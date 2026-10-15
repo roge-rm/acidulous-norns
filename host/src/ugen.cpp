@@ -131,10 +131,14 @@ static void Acidulous_Dtor(Acidulous* unit)
     owner.compare_exchange_strong(me, nullptr);
 }
 
+// SuperCollider before 3.13 (norns has a 3.13 dev build without it) has no
+// PluginUnload; the guard above stops everything at exit instead.
+#ifdef PluginUnload
 PluginUnload(Acidulous)
 {
     shutdown();
 }
+#endif
 
 PluginLoad(Acidulous)
 {

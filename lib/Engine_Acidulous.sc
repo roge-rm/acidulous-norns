@@ -12,6 +12,8 @@ Engine_Acidulous : CroneEngine {
         SynthDef(\acidulous, { arg in_l, in_r, out;
             Out.ar(out, Acidulous.ar(In.ar(in_l), In.ar(in_r)));
         }).add;
+        // The def has to reach scsynth before start makes the synth.
+        context.server.sync;
 
         this.addCommand("start", "", { arg msg;
             this.startEngine;

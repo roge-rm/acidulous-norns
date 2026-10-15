@@ -26,6 +26,10 @@ To use a new plugin, strip it and put it in `bin/`:
 strip --strip-unneeded -o ../../bin/Acidulous.so Acidulous.so
 ```
 
+To try it by hand, copy it to `~/.local/share/SuperCollider/Extensions/acidulous/` and restart SuperCollider with `sudo systemctl restart norns-sclang`. Only the `.so` goes there: SuperCollider already compiles `lib/Acidulous.sc` and `lib/Engine_Acidulous.sc` from `~/dust`, and a second copy would be a duplicate class.
+
+When the last ssh login ends, the norns removes the user's shared memory, JACK's included. Running audio carries on, but SuperCollider restarted after that can't connect to JACK. Restart SuperCollider while still logged in, or restart `norns-jack` (which restarts crone and sclang) and then `norns-matron`, or restart the norns.
+
 ## On the desktop
 
 ```
