@@ -1,0 +1,203 @@
+# Diction - thirty singers, for the built-in voice or a recorded one.
+#
+# A patch is a singer: the size of the throat, how hard and how rough it
+# sings, how it moves between notes, and how many sing. The voice itself is
+# the track's, so every patch here has to sound like itself in the built-in
+# voice and in anybody's recorded one. The knobs only a recorded voice has
+# (clean, source, throat) are an extra in a few, never the whole of one.
+#
+# The throat is `formant`. Down is bigger and darker, up smaller and
+# brighter, and it doesn't move the pitch. Play a patch low or high for a low
+# or high singer: the notes decide that.
+
+machine Diction
+
+patch Init family=voices
+patch Deep family=voices
+  # A big, dark throat, sung a little soft. Best low.
+  formant        -6 st
+  effort         -0.2
+  vibrato        22 ct
+  vibratorate    5 Hz
+patch High family=voices
+  formant        4 st
+  effort         0.2
+  vibrato        28 ct
+patch Child family=voices
+  # A small throat that gets smaller as it goes up, and a little air.
+  formant        7 st
+  track          0.3
+  breath         0.25
+  vibrato        15 ct
+patch Neither family=voices
+  # Between the two, with a steadier line than either.
+  formant        1 st
+  breath         0.3
+  drift          0.2
+  vibrato        15 ct
+patch Giant family=voices
+  # A throat twice the size, darker still on the high notes.
+  formant        -10 st
+  track          -0.3
+  growl          0.2
+  effort         0.3
+  vibrato        10 ct
+
+patch Soft family=colour
+  # Close and gentle: the top of the voice down, and some air.
+  effort         -0.8
+  breath         0.5
+  attack         0.12 s
+  vibrato        15 ct
+patch Belter family=colour
+  # Sung out: bright, pushed up into each note, a wide late vibrato.
+  effort         1
+  scoop          0.6 st
+  rasp           0.1
+  vibrato        45 ct
+  vibratodelay   0.5 s
+patch Rasp family=colour
+  rasp           0.55
+  effort         0.4
+  drift          0.5
+patch Growl family=colour
+  growl          0.7
+  effort         0.6
+  formant        -2 st
+  scoop          0.4 st
+patch Whisper family=colour
+  whisper        1
+  attack         0.08 s
+  vibrato        0 ct
+  # A whisper is quieter than a voice; brought most of the way up.
+  volume         1.15
+patch Pure family=colour
+  # No breath left: a recorded voice cleaned right through, the built-in
+  # one with none, and hardly a waver.
+  clean          1
+  breath         0
+  drift          0.1
+  vibrato        12 ct
+
+patch Chant family=style
+  # Straight and steady: no vibrato, hardly any wander.
+  vibrato        0 ct
+  drift          0.05
+  glide          0.05 s
+  vowel          1
+patch Ballad family=style
+  # Late, gentle vibrato, an easy scoop into each note, sung soft and breathy.
+  vibrato        25 ct
+  vibratodelay   0.6 s
+  drift          0.55
+  glide          0.12 s
+  scoop          0.5 st
+  effort         -0.3
+  breath         0.3
+patch Opera family=style
+  # Wide vibrato that comes in early, a darker throat, sung out, hardly any air.
+  vibrato        70 ct
+  vibratorate    6 Hz
+  vibratodelay   0.2 s
+  formant        -1 st
+  breath         0.04
+  effort         0.5
+patch Crooner family=style
+  # Low and soft, sliding up into the notes.
+  scoop          1 st
+  glide          0.15 s
+  vibrato        25 ct
+  vibratodelay   0.7 s
+  effort         -0.4
+  formant        -2 st
+patch Lullaby family=style
+  # Soft and close: a slow start, a little air and vibrato that waits.
+  vowel          1
+  attack         0.25 s
+  breath         0.35
+  effort         -0.5
+  vibrato        15 ct
+  vibratodelay   0.9 s
+  glide          0.15 s
+patch Swoop family=style
+  # Slides between notes and wanders on them.
+  glide          0.25 s
+  drift          0.6
+  scoop          1.5 st
+patch Robot family=style
+  # Dead on the note: no wander, no vibrato, no slide. A recorded voice
+  # sings it through the built-in folds.
+  vibrato        0 ct
+  drift          0
+  glide          0 s
+  source         1
+  clean          1
+  effort         0.3
+  # The built-in folds' pulse peaks high for its level: 0.88 at full.
+  volume         0.5
+
+patch Duo family=choir
+  singers        2
+  spread         0.3
+patch Choir family=choir
+  singers        6
+  spread         0.5
+  vibrato        20 ct
+  attack         0.1 s
+  release        0.4 s
+patch Chamber family=choir
+  # Four, close together and clean.
+  singers        4
+  spread         0.25
+  clean          0.5
+  vibrato        18 ct
+patch Crowd family=choir
+  # Six who don't agree: late, out of tune, all over the place.
+  singers        6
+  spread         1
+  drift          0.6
+  rasp           0.2
+patch Chorale family=choir
+  # Three a note on every note of a chord.
+  harmony        1
+  singers        3
+  spread         0.4
+  attack         0.12 s
+  release        0.5 s
+  vibrato        15 ct
+patch Harmony family=choir
+  # A chord sings the words on every note, a close pair on each.
+  harmony        1
+  singers        2
+  spread         0.2
+
+patch Chipmunk family=strange
+  track          1
+  formant        3 st
+patch Undertow family=strange
+  # The throat grows as the notes go up, and a growl under it.
+  track          -1
+  formant        -4 st
+  growl          0.4
+  glide          0.3 s
+patch Fry family=strange
+  # Down in the throat's crackle.
+  growl          1
+  effort         -0.3
+  formant        -3 st
+patch Ghosts family=strange
+  # Four whispering, far apart.
+  whisper        0.7
+  singers        4
+  spread         1
+  release        0.8 s
+  volume         1.4
+patch Buzz family=strange
+  # Bright and hard. A recorded voice sings it through the built-in folds
+  # and half the built-in throat.
+  effort         0.8
+  formant        2 st
+  source         1
+  throat         0.5
+  rasp           0.15
+  volume         0.5

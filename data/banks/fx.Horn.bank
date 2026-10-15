@@ -1,0 +1,88 @@
+# Horn - the track plays a wind instrument.
+#
+# The track's pitch is followed and its level becomes the breath, so a
+# melody sung, played or synthesised comes out of a horn, a clarinet, an
+# oboe or a flute. It follows one note at a time, so give it a lead line, a
+# bass or a voice. `octave` moves the instrument from the track, `tone` is
+# the lips' tension or the reed's stiffness, `bell` how bright, `air` the
+# breath noise, `glide` how fast it follows a change of note, and `breath`
+# how hard a given level blows it. With `snap` the notes land on semitones.
+#
+# Families: brass, reed, flute, blend.
+
+machine fx.Horn
+
+patch Init family=brass
+
+patch "Bright Lead" family=brass
+  # A trumpet-like lead, bright and quick.
+  tone           0.75
+  bell           0.8
+  glide          15 ms
+  gain           -0.5 dB
+
+patch "Low Brass" family=brass
+  # An octave down, dark and round, for a bass line.
+  octave         #1
+  tone           0.3
+  bell           0.3
+  gain           -0.5 dB
+
+patch "Hunting Horn" family=brass
+  # Slow to move between notes, with air in it.
+  bell           0.35
+  air            0.35
+  glide          120 ms
+  gain           -3 dB
+
+patch "Muted Trumpet" family=brass
+  # Dark and close, the tone down.
+  kind           #0
+  tone           0.25
+  bell           0.3
+  gain           -3.5 dB
+
+patch Clarinet family=reed
+  # The single reed: hollow and woody.
+  kind           #1
+  gain           -5.5 dB
+
+patch "Low Clarinet" family=reed
+  # An octave down, for a bass line.
+  kind           #1
+  octave         #1
+  tone           0.35
+  gain           -1 dB
+
+patch Oboe family=reed
+  # The double reed: nasal and piercing.
+  kind           #2
+  tone           0.6
+  gain           -6 dB
+
+patch Flute family=flute
+  # An octave up, a clean flute over the track.
+  kind           #3
+  octave         #3
+  air            0.25
+  gain           -12.5 dB
+
+patch "Breathy Flute" family=flute
+  # Mostly breath, blown softly.
+  kind           #3
+  air            0.7
+  breath         0.3
+  gain           -4.5 dB
+
+patch "Airy Flute" family=flute
+  # Lots of air.
+  kind           #3
+  air            0.6
+  tone           0.5
+  gain           -7 dB
+
+patch "Sung Brass" family=blend
+  # Half under the track and snapped to semitones: a voice doubled by a horn.
+  snap           #1
+  mix            0.5
+  gain           1.5 dB

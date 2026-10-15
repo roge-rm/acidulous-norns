@@ -1,0 +1,161 @@
+# Grain - a cloud of the last few seconds of the track.
+#
+# Short slices of what the track just played, `size` long, `density` of them
+# a second, each from a little further back by `spray`, then played at
+# `pitch`, an octave up or down by `scatter`, backwards by `reverse`, and
+# spread across the stereo field by `width`. Mixed in, a cloud follows the
+# part like a shadow; fully wet, the part is gone and only the cloud is left.
+#
+# The extras are `freeze`, which stops listening so the cloud keeps playing
+# what it has (a switch to play live), and `feedback`, which feeds the cloud
+# back into what it listens to, so it grows on itself.
+#
+# Families: cloud, pitch, feedback.
+
+machine fx.Grain
+
+patch Init family=cloud
+
+patch Haze family=cloud
+  # Long, soft grains close behind the part: a blur that trails it.
+  size           220 ms
+  density        30
+  spray          0.15
+  width          0.9
+  mix            0.45
+
+patch Swarm family=cloud
+  # Many short grains from all over the last few seconds.
+  size           25 ms
+  density        90
+  spray          0.8
+  width          1
+  mix            0.6
+
+patch Stutter family=cloud
+  # Few, short and close: the part chopped and thrown back.
+  size           40 ms
+  density        8
+  spray          0.05
+  width          0.5
+  mix            0.5
+
+patch Fog family=cloud
+  # Long, overlapping grains: the sound blurred to a cloud.
+  size           300
+  density        40
+  spray          0.6
+  mix            0.5
+
+patch "Rain of Grains" family=cloud
+  # Short grains, dense and scattered.
+  size           20
+  density        80
+  spray          0.8
+  mix            0.45
+
+patch Frozen family=cloud
+  # Freeze on: the last moment held as a cloud.
+  freeze         #1
+  size           200
+  density        40
+  mix            0.6
+  gain           3 dB
+
+patch "Octave Up" family=pitch
+  # A cloud an octave above the part.
+  pitch          12 st
+  size           120 ms
+  density        35
+  mix            0.4
+
+patch "Octave Down" family=pitch
+  # And one below it, darker and slower.
+  pitch          -12 st
+  size           180 ms
+  density        25
+  mix            0.45
+
+patch Backwards family=pitch
+  # Every grain reversed: swells where the part has attacks.
+  reverse        1
+  size           260 ms
+  density        20
+  spray          0.3
+  mix            0.5
+
+patch Sparkle family=pitch
+  # Octaves up and down at random over a fifth: a glittering halo.
+  pitch          7 st
+  scatter        0.6
+  size           80 ms
+  density        45
+  width          1
+  mix            0.35
+  gain           -1.5 dB
+
+patch "Fifth Up" family=pitch
+  # Grains a fifth above, a shimmer.
+  pitch          7
+  density        30
+  mix            0.4
+
+patch "Scattered Pitch" family=pitch
+  # Each grain a different pitch.
+  scatter        1
+  density        40
+  mix            0.45
+
+patch "Reverse Cloud" family=pitch
+  # Reversed grains, a swelling smear.
+  reverse        1
+  size           250
+  density        30
+  mix            0.5
+
+patch "Deep Down" family=pitch
+  # Two octaves down, short grains: a rumble from the part.
+  pitch          -24
+  size           80
+  density        15
+  mix            0.35
+
+patch Bloom family=feedback
+  # The cloud fed back into itself: it thickens the longer the part plays.
+  feedback       0.6
+  size           240 ms
+  density        30
+  spray          0.4
+  mix            0.5
+  gain           0 dB
+
+patch Rising family=feedback
+  # Fed back a fifth up each time round: the cloud climbs.
+  pitch          7 st
+  feedback       0.55
+  size           200 ms
+  density        25
+  mix            0.45
+  gain           -1 dB
+
+patch Endless family=feedback
+  # Fed back on itself: a cloud that keeps going.
+  feedback       0.8
+  size           150
+  density        30
+  mix            0.45
+  gain           -0.5 dB
+
+patch "Shimmer Loop" family=feedback
+  # An octave up and fed back, rising.
+  pitch          12
+  feedback       0.6
+  mix            0.4
+  gain           -1.5 dB
+
+patch "Granular Echo" family=feedback
+  # Sparse grains fed back like an echo.
+  size           60
+  density        5
+  feedback       0.5
+  mix            0.4

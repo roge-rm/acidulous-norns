@@ -1,0 +1,129 @@
+# Swell - upward compression: the quiet parts come up to meet the loud ones.
+#
+# Everything above `floor` is pulled toward `ceiling`, by `amount`: at 0
+# nothing moves, at 1 every sound above the floor ends up at the ceiling.
+# Sounds under the floor are left exactly as they are, so a noise floor stays
+# where it was. `release` is how fast the gain comes back up after a peak.
+# Slow is close to normalising, a gentle lift that keeps the shape of a
+# phrase. Fast follows each cycle of the waveform and flattens everything
+# into a wall.
+#
+# The extra is `split`: from one band to three, at 300 Hz and 5 kHz. Split,
+# a quiet top end or a thin low end is brought up on its own, which is where
+# the air, the breath and the room come from. The bands add back to exactly
+# the input, so splitting never colours a sound that isn't being lifted.
+#
+# Families: lift, glue, thick, crush.
+
+machine fx.Swell
+
+patch Init family=lift
+
+patch Loud family=lift
+  # Louder without sounding squashed: quiet passages come up, loud ones barely move.
+  floor          -45 dB
+  ceiling        -2 dB
+  amount         0.45
+  split          0.6
+  release        400 ms
+  gain           -4 dB
+
+patch Even family=lift
+  # A vocal or lead that comes and goes, evened out, its phrases kept.
+  floor          -50 dB
+  ceiling        -8 dB
+  amount         0.6
+  split          0.3
+  release        900 ms
+  gain           -0.5 dB
+
+patch Upfront family=lift
+  # Brings a part to the front, the consonants and the pick most of all.
+  floor          -48 dB
+  ceiling        -6 dB
+  amount         0.55
+  split          1
+  release        200 ms
+  gain           -3.5 dB
+
+patch Bus family=glue
+  # On a drum or synth bus: the parts sit closer in level, nothing pushed down.
+  floor          -40 dB
+  ceiling        -6 dB
+  amount         0.3
+  split          0.5
+  release        250 ms
+  gain           -1.5 dB
+
+patch Master family=glue
+  # The gentlest, on the master before the limiter.
+  floor          -36 dB
+  ceiling        -3 dB
+  amount         0.2
+  split          0.7
+  release        600 ms
+  gain           -1.5 dB
+
+patch Parallel family=glue
+  # Fully squashed, a third mixed in: the dynamics stay, the quiet detail on top.
+  floor          -60 dB
+  ceiling        -6 dB
+  amount         1
+  split          1
+  release        60 ms
+  mix            0.35
+  gain           -4.5 dB
+
+patch Thick family=thick
+  # Pads and chords: the low end fills out and the top shimmers.
+  floor          -55 dB
+  ceiling        -6 dB
+  amount         0.75
+  split          1
+  release        120 ms
+  gain           -6.5 dB
+
+patch Tails family=thick
+  # Reverb and delay tails brought right up, for drums and plucks that hang in the air.
+  floor          -65 dB
+  ceiling        -10 dB
+  amount         0.8
+  split          0.8
+  release        1200 ms
+  gain           0 dB
+
+patch Room family=thick
+  # The room on a drum loop: everything between the hits comes up.
+  floor          -55 dB
+  ceiling        -12 dB
+  amount         0.7
+  split          0.6
+  release        90 ms
+  gain           -1 dB
+
+patch Crush family=crush
+  # All the way, fast: every sound flattened to the ceiling in three bands.
+  floor          -60 dB
+  ceiling        -6 dB
+  amount         1
+  split          1
+  release        30 ms
+  gain           -10.5 dB
+
+patch Wreck family=crush
+  # Faster than a bass note's cycle, so it turns into distortion.
+  floor          -70 dB
+  ceiling        -8 dB
+  amount         1
+  split          1
+  release        6 ms
+  gain           -9.5 dB
+
+patch Breath family=crush
+  # Every breath, string squeak and key click brought up to the note's level.
+  floor          -75 dB
+  ceiling        -10 dB
+  amount         1
+  split          0
+  release        40 ms
+  gain           -4.5 dB

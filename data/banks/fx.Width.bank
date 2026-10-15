@@ -1,0 +1,81 @@
+# Width - the stereo image, which nothing else in the rack could touch.
+#
+# `width` scales the side against the mid: nothing is mono, one is unchanged,
+# two is twice as wide as it was recorded. It is also a diagnostic - a machine
+# that has quietly gone mono is obvious the moment widening it does nothing.
+#
+# Two extras, both of them what mastering actually does here. `below` returns
+# everything under a frequency to the centre, because width in the bass is what
+# makes a mix fall apart on a big system and a phone speaker alike. `haas`
+# delays one side by up to twenty milliseconds, which is width the side channel
+# cannot give you: it is the ear's arrival-time cue rather than a level trick,
+# and it survives a fold to mono as a comb rather than as silence.
+#
+# Families: width, bass, haas.
+
+machine fx.Width
+
+patch Init family=width
+
+patch Narrow family=width
+  # Halfway to mono. What you do to a part that is fighting the middle of the
+  # mix rather than removing it.
+  width          0.5
+
+patch Mono family=width
+  # The side gone entirely. Useful for checking what survives a fold, and for
+  # the bass part that should never have been wide.
+  width          0.0
+
+patch Wide family=width
+  # Half again as wide. About as far as this can go before the middle starts to
+  # feel hollow, which is the honest limit of a mid-side trick.
+  width          1.5
+
+patch Huge family=width
+  # The top of the range, with the bass pinned to the centre so the low end
+  # does not come apart with the rest of it - which is what makes this usable
+  # rather than merely wide.
+  width          2.0
+  below          140 Hz
+
+patch "Extra Wide" family=width
+  # Wider than it was recorded.
+  width          1.6
+
+patch Turned family=width
+  # The image turned a little to one side, the centre kept.
+  rotate         0.3
+
+patch "Tight Bass" family=bass
+  # The width left alone and everything under two hundred hertz returned to the
+  # middle. The most boring patch here and the one a mix engineer would reach
+  # for first.
+  width          1.0
+  below          200 Hz
+
+patch "Mono Below" family=bass
+  # Mono below 150 Hz, wide above.
+  width          1.3
+  below          150 Hz
+
+patch Haas family=haas
+  # Twelve milliseconds on one side. The ear takes arrival time as direction,
+  # so this reads as wide even though both channels carry the same thing - and
+  # unlike a level trick, it leaves something behind when folded to mono.
+  width          1.0
+  haas           12 ms
+  gain           0 dB
+
+patch "Off Centre" family=haas
+  # A short delay and the whole image turned, so the source sits to one side
+  # and leans. For putting two takes of the same part in different places
+  # without panning either of them flat.
+  width          1.2
+  haas           6 ms
+  rotate         -0.35
+  gain           -1 dB
+
+patch "Small Room" family=haas
+  # A short delay on one side: width from a single sound.
+  haas           8 ms

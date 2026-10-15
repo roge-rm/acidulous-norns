@@ -1,0 +1,165 @@
+# Filter - a filter you can play, rather than one you set.
+#
+# Cutoff, resonance and a mode are the classic part. The two extras are what
+# moves it: `lfodepth` sweeps it in time with the transport, and `envdepth`
+# follows the level of what is going through - and either can be negative, so
+# the sweep can go down as things get louder, which is the setting that turns
+# an auto-wah into something else.
+#
+# Families: fixed, sweep, extreme, wobble.
+
+machine fx.Filter
+
+patch Init family=fixed
+
+patch "Low Cut" family=fixed
+  # A high pass with no movement: everything under two hundred hertz gone. The
+  # least exciting patch in the bank and the one most likely to be used.
+  mode           #1
+  cutoff         200 Hz
+  reso           0.1
+  gain           5.9 dB
+
+patch Band family=fixed
+  # A band pass in the middle, wide enough to leave the sound recognisable.
+  # What a filter does when you want less of something rather than none.
+  mode           #2
+  cutoff         900 Hz
+  reso           0.35
+  gain           12 dB
+
+patch Telephone family=fixed
+  # Narrow, resonant, and centred where speech is. Everything above and below
+  # is gone; what is left is the part a phone would have carried.
+  mode           #2
+  cutoff         1400 Hz
+  reso           0.7
+  gain           12 dB
+
+patch "High Cut" family=fixed
+  # Takes the top off.
+  mode           #0
+  cutoff         3000 Hz
+  reso           0.1
+
+patch Radio family=fixed
+  # Band-passed and narrow, a small speaker.
+  mode           #2
+  cutoff         1500 Hz
+  reso           0.5
+  gain           13.5 dB
+
+patch "Auto Wah" family=sweep
+  # The envelope opens it: loud parts are bright, quiet parts are dark. The
+  # classic funk setting, and it works on anything with dynamics - a drum loop
+  # more than a pad.
+  cutoff         420 Hz
+  reso           0.6
+  envdepth       0.75
+
+patch "Reverse Wah" family=sweep
+  # The same follower with its sign turned round, so it *closes* as things get
+  # louder. Nothing acoustic behaves this way and it is the more interesting
+  # half of the control.
+  cutoff         3000 Hz
+  reso           0.55
+  envdepth       -0.7
+
+patch "Slow Sweep" family=sweep
+  # Two bars a cycle, low resonance, wide range: the filter as a slow tide
+  # rather than an effect. Long enough that you stop noticing it and only hear
+  # that the loop is not repeating.
+  cutoff         800 Hz
+  reso           0.25
+  lforate        #15
+  lfodepth       0.85
+
+patch "Bar Sweep" family=sweep
+  # Opens over a bar, closes over the next.
+  cutoff         400 Hz
+  reso           0.5
+  lforate        #13
+  lfodepth       0.8
+
+patch "Envelope Up" family=sweep
+  # Opens with each hit, harder hits further.
+  cutoff         300 Hz
+  reso           0.6
+  envdepth       0.8
+
+patch Scream family=extreme
+  # Resonance at the top, where the filter is nearly ringing on its own, swept
+  # fast. The resonance is the sound and whatever went in is just exciting it.
+  cutoff         600 Hz
+  # Just under where it rings on its own. At 0.97 it peaked seven decibels
+  # over full scale, which is not a patch, it is a fault with a name.
+  reso           0.88
+  lforate        #8
+  lfodepth       0.6
+  gain           -5 dB
+
+patch Rhythmic family=extreme
+  # Sixteenths, deep, resonant: the filter becomes the rhythm. On a held chord
+  # it makes a part that was not played.
+  cutoff         500 Hz
+  reso           0.72
+  lforate        #2
+  lfodepth       0.9
+  envdepth       0.3
+
+# The wobble: a resonant low pass swept wide and in time. Each is the same
+# filter at a different speed; a dubstep line talks by moving between them,
+# so lock lforate on the steps, or map it to a knob or the mod wheel.
+
+patch "Resonant Peak" family=extreme
+  # Resonance near ringing, held still.
+  cutoff         1200 Hz
+  reso           0.95
+  gain           -1 dB
+
+patch Chopper family=extreme
+  # Sixteenth wobbles, deep.
+  cutoff         300 Hz
+  reso           0.7
+  lforate        #2
+  lfodepth       1
+
+patch "Half Wub" family=wobble
+  mode           #0
+  cutoff         180 Hz
+  reso           0.55
+  lforate        #11
+  lfodepth       1.0
+  gain           3 dB
+
+patch Wub family=wobble
+  mode           #0
+  cutoff         220 Hz
+  reso           0.55
+  lforate        #8
+  lfodepth       0.9
+  gain           4 dB
+
+patch Wobble family=wobble
+  mode           #0
+  cutoff         220 Hz
+  reso           0.6
+  lforate        #5
+  lfodepth       0.9
+  gain           4 dB
+
+patch "Triplet Wobble" family=wobble
+  mode           #0
+  cutoff         240 Hz
+  reso           0.6
+  lforate        #3
+  lfodepth       0.85
+  gain           2 dB
+
+patch Flutter family=wobble
+  mode           #0
+  cutoff         300 Hz
+  reso           0.5
+  lforate        #2
+  lfodepth       0.7
+  gain           2 dB

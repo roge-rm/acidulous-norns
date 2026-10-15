@@ -1,0 +1,90 @@
+# Eq - three bands and a tilt.
+#
+# Low and high are shelves, the middle is a sweepable bell with its own Q, and
+# `tilt` pivots the whole spectrum about the middle in one gesture - which is
+# the control you actually reach for when something is nearly right and a
+# little too dark.
+#
+# Families: cut, shape, tilt.
+
+machine fx.Eq
+
+patch Init family=shape
+
+patch "Low Cut" family=cut
+  # Everything under a hundred hertz taken out. The most-used equaliser setting
+  # there is and the least interesting to look at: it is what stops eight
+  # tracks of rumble adding up to one muddy record.
+  lowgain        -15 dB
+  lowfreq        100 Hz
+  gain           2 dB
+
+patch "Mud Cut" family=cut
+  # The three hundred hertz dip. Nothing lives there that is not also
+  # somewhere else, and taking it out is what makes a busy mix legible.
+  midgain        -6 dB
+  midfreq        320 Hz
+  midq           1.2
+  gain           3.1 dB
+
+patch "Hiss Cut" family=cut
+  # A shelf off the top for tape, cheap converters and anything that has been
+  # through a bit crusher.
+  highgain       -9 dB
+  highfreq       8000 Hz
+
+patch Smile family=shape
+  # Both ends up and nothing done to the middle: the curve every hi-fi has a
+  # button for. Flattering on a loop and ruinous on a mix, which is worth
+  # knowing before you put it on the master.
+  lowgain        6 dB
+  lowfreq        90 Hz
+  highgain       6 dB
+  highfreq       7000 Hz
+
+patch Scoop family=shape
+  # The opposite: the middle taken out hard and wide. A metal guitar sound, and
+  # on a drum loop it leaves you the kick and the cymbals and nothing between.
+  midgain        -12 dB
+  midfreq        900 Hz
+  midq           0.6
+  gain           2.3 dB
+
+patch Presence family=shape
+  # A lift where a voice's consonants are. Narrow enough not to bring the whole
+  # middle with it, which is the difference between presence and shouting.
+  midgain        5 dB
+  midfreq        3000 Hz
+  midq           1.5
+
+patch Air family=shape
+  # A shelf at the very top, where there is more room than sound. It makes
+  # things feel closer without making them brighter, and too much of it is
+  # what makes a record tiring.
+  highgain       7 dB
+  highfreq       12000 Hz
+
+patch Warmth family=shape
+  # A little low end and a softer top.
+  lowgain        3 dB
+  lowfreq        150 Hz
+  highgain       -3 dB
+  highfreq       8000 Hz
+
+patch Forward family=shape
+  # Mids forward for a voice or a lead.
+  midgain        4 dB
+  midfreq        3000 Hz
+  midq           0.8
+
+patch Warmer family=tilt
+  # The whole spectrum tipped down. One control instead of two shelves, and it
+  # keeps the middle where it was, which is what the shelves do not.
+  tilt           -0.45
+  gain           -2.5 dB
+
+patch Brighter family=tilt
+  # The same lever the other way. Past about a half it stops being a tone
+  # control and starts being a different mix.
+  tilt           0.45
+  gain           2 dB

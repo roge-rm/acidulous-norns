@@ -1,0 +1,194 @@
+# Aviary - birdsong.
+#
+# A bird sings from its syrinx: two sources, one in each branch of the
+# airway, whose folds start to swing once the pressure passes a threshold.
+# Above them the trachea, a throat tuned to the note, and the beak. A held
+# note sets a bird singing two octaves up, in time with the tempo.
+#
+# `pattern` is the song: a plain whistle, chirps, trills, a wandering
+# warble, a call answered in the gaps, or a chorus of birds each singing
+# its own. `rate` is syllables a beat, `length` how much of each it sings,
+# `sweep` how far each one slides (falling from above, or rising from below
+# when negative). `two` lets the syrinx's other side sing at `interval`,
+# `rasp` makes the folds slap, `breath` adds air, `throat` and `beak` shape
+# it, `flock` adds birds and `space` puts them further off. Pressure blows
+# harder; the mod wheel widens the sweeps.
+#
+# Families: whistle, chirp, trill, warble, call, chorus.
+
+machine Aviary
+role lead
+
+patch Init family=chirp note=60 range=48..72
+
+patch "Pure Whistle" family=whistle note=60 range=48..72
+  # A clear held note, sliding into it.
+  pattern        #0
+  sweep          4 st
+
+patch "Two-Voiced Whistle" family=whistle note=60 range=48..72
+  # Both sides of the syrinx at once, a fifth apart.
+  pattern        #0
+  sweep          3 st
+  two            0.8
+  interval       7 st
+
+patch "Slow Whistle" family=whistle note=55 range=43..67
+  # A long, low slide into the note, breathy.
+  pattern        #0
+  sweep          12 st
+  breath         0.3
+
+patch "Ringing Whistle" family=whistle note=62 range=48..74
+  # The throat tuned close: hollow and pure.
+  pattern        #0
+  throat         0.9
+  beak           0.3
+  sweep          2 st
+
+patch "Down Chirps" family=chirp note=60 range=48..72
+  # Quick falling chirps, four a beat.
+  pattern        #1
+  sweep          9 st
+  length         0.4
+
+patch "Up Chirps" family=chirp note=60 range=48..72
+  # Rising chirps, like a question.
+  pattern        #1
+  sweep          -9 st
+  length         0.4
+
+patch "Sparrow Chips" family=chirp note=64 range=52..76
+  # Short, harsh chips, eight a beat.
+  pattern        #1
+  rate           #3
+  length         0.3
+  sweep          5 st
+  rasp           0.5
+
+patch "Swooping Chirps" family=chirp note=57 range=45..69
+  # Long sweeps over an octave, two a beat.
+  pattern        #1
+  rate           #1
+  length         0.8
+  sweep          14 st
+
+patch "Fast Trill" family=trill note=64 range=52..76
+  # A fast, tight trill.
+  pattern        #2
+  rate           #2
+  length         0.6
+  sweep          3 st
+
+patch "Rattling Trill" family=trill note=60 range=48..72
+  # A dry, buzzing trill.
+  pattern        #2
+  rate           #3
+  rasp           0.6
+  sweep          2 st
+
+patch "Slow Trill" family=trill note=60 range=48..72
+  # A slower, wider trill.
+  pattern        #2
+  rate           #1
+  length         0.7
+  sweep          5 st
+
+patch "Two-Note Trill" family=trill note=62 range=48..74
+  # Both sides trilling together.
+  pattern        #2
+  rate           #2
+  two            0.7
+  interval       5 st
+
+patch Warbler family=warble note=60 range=48..72
+  # Wandering about the note, never stopping.
+  pattern        #3
+  length         1
+  sweep          9 st
+
+patch "Quick Warbler" family=warble note=64 range=52..76
+  # Fast and bright, eight steps a beat.
+  pattern        #3
+  rate           #3
+  length         1
+  sweep          7 st
+  beak           0.7
+
+patch "Raspy Warbler" family=warble note=57 range=45..69
+  # Scratchy and wide.
+  pattern        #3
+  length         0.9
+  sweep          12 st
+  rasp           0.5
+
+patch "Twin Warblers" family=warble note=60 range=48..72
+  # Two birds wandering apart.
+  pattern        #3
+  length         1
+  sweep          9 st
+  flock          #1
+  spread         0.8
+
+patch "Two-Note Call" family=call note=60 range=48..72
+  # A call a third apart, two notes a beat.
+  pattern        #4
+  rate           #1
+  length         0.6
+
+patch "Call and Answer" family=call note=60 range=48..72
+  # One bird calls, another answers in the gap.
+  pattern        #4
+  rate           #1
+  length         0.6
+  flock          #1
+  spread         1
+
+patch "Distant Call" family=call note=55 range=43..67
+  # A slow call across the valley.
+  pattern        #4
+  rate           #0
+  length         0.5
+  space          0.8
+  volume         0.9
+
+patch "Hooting Call" family=call note=48 range=40..62
+  # Low and hollow, the beak almost closed.
+  pattern        #4
+  rate           #0
+  length         0.7
+  throat         0.9
+  beak           0.1
+  breath         0.25
+
+patch "Dawn Chorus" family=chorus note=60 range=48..72 role=pad
+  # Four birds, each singing its own song.
+  pattern        #5
+  flock          #3
+  spread         1
+  space          0.4
+
+patch "Garden Birds" family=chorus note=64 range=52..76 role=pad
+  # Two birds nearby.
+  pattern        #5
+  flock          #1
+  spread         0.7
+
+patch "Far Off Flock" family=chorus note=60 range=48..72 role=pad
+  # A flock across the field.
+  pattern        #5
+  flock          #3
+  spread         1
+  space          0.85
+  volume         0.85
+
+patch "Busy Hedge" family=chorus note=62 range=48..74 role=pad
+  # Fast and close.
+  pattern        #5
+  flock          #3
+  rate           #3
+  spread         0.8
+
+patch "Bird Kit" family=kit note=36 range=36..51
+  # Sixteen pads: whistles, chirps, trills, warbles, calls and choruses, a hedge on one track.
+  kit            1

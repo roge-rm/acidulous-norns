@@ -1,0 +1,390 @@
+# Sympath - plucked strings over a buzzing bridge.
+#
+# Each note is a string lying over a wide, curved bridge. Once it swings far
+# enough it strikes the bridge, and every strike rings it: a bright buzz on
+# every cycle that lasts as long as the string swings wide enough to reach.
+# `bridge` is how much, `curve` how wide a swing it takes.
+#
+# Under the played strings lie sympathetic strings tuned to `sa` (the tonic)
+# and `scale`, which ring on the notes of the scale. `chikari` strikes the
+# drone strings with each note. A tanpura plucks its four strings by itself
+# through a `cycle` of beats while a note is held, its first string set by
+# `first`. With one voice, `meend` slides from note to note; `gamak` (and
+# the mod wheel) shakes the note, and pressure pulls the string up.
+#
+# Families: sitar, veena, drone, east, bowed, bridge.
+
+machine Sympath
+role tune
+
+patch Init family=sitar note=61 range=48..84
+
+patch Sitar family=sitar note=61 range=48..84 role=lead
+  # One string, sliding between notes, the sympathetic strings ringing under it.
+  voices         #0
+  meend          120 ms
+  tarbs          0.6
+
+patch "Sitar Chikari" family=sitar note=61 range=48..84 role=lead
+  # Each note struck with the drone strings, as a phrase ends.
+  voices         #0
+  meend          120 ms
+  chikari        0.5
+
+patch "Sitar Gamak" family=sitar note=61 range=48..84 role=lead
+  # Notes shaken fast and wide.
+  voices         #0
+  meend          80 ms
+  gamak          0.5
+
+patch "Bright Sitar" family=sitar note=64 range=48..88 role=lead
+  # A hard plectrum near the bridge, a strong buzz.
+  voices         #0
+  meend          100 ms
+  pluck          0.85
+  position       0.07
+  bridge         0.85
+
+patch "Sitar Kafi" family=sitar note=61 range=48..84 role=lead
+  # The sympathetic strings tuned to a minor-sounding scale.
+  voices         #0
+  meend          140 ms
+  scale          #2
+  tarbs          0.8
+
+patch "Sitar Bhairav" family=sitar note=61 range=48..84 role=lead
+  # Flat second and sixth in the sympathetic strings.
+  voices         #0
+  meend          140 ms
+  scale          #5
+  tarbs          0.8
+
+patch "Sitar Chords" family=sitar note=61 range=48..84 role=chord
+  # Four strings at once, no slides.
+  tarbs          0.5
+  sustain        0.6
+
+patch "Sarod" family=sitar note=60 range=48..84 role=lead
+  # No frets: notes slid on the steel plate, the shell plectrum bright.
+  model          #4
+  voices         #0
+  meend          100 ms
+
+patch "Sarod Jhala" family=sitar note=60 range=48..84 role=lead
+  # Fast strokes on the drone strings between the notes.
+  model          #4
+  chikari        0.7
+
+patch "Sarod Alap" family=sitar note=55 range=43..79 role=lead
+  # Slow and sliding, the opening of a raga.
+  model          #4
+  voices         #0
+  meend          250 ms
+  sustain        0.7
+
+patch "Electric Sitar" family=sitar note=64 range=52..88
+  # A guitar with a buzzing bridge, the sixties sound.
+  model          #10
+
+patch "Electric Sitar Bright" family=sitar note=64 range=52..88
+  # Brighter, the sympathetic strings up.
+  model          #10
+  bright         0.7
+  tarbs          0.7
+
+patch "Electric Sitar Lead" family=sitar note=67 range=52..88 role=lead
+  # One voice, sliding, for a lead line.
+  model          #10
+  voices         #0
+  meend          60 ms
+
+patch Veena family=veena note=50 range=36..79 role=lead
+  # Plucked with the nail, sliding along the frets.
+  model          #2
+  voices         #0
+  meend          150 ms
+
+patch "Veena Tala" family=veena note=50 range=36..79 role=lead
+  # The side strings struck with each note.
+  model          #2
+  voices         #0
+  meend          150 ms
+  chikari        0.6
+
+patch "Veena Gamak" family=veena note=50 range=36..79 role=lead
+  # Deep, slow shakes of the note.
+  model          #2
+  voices         #0
+  meend          200 ms
+  gamak          0.6
+
+patch "Low Veena" family=veena note=43 range=31..67 role=bass
+  # The low strings, warm and long.
+  model          #2
+  bright         0.35
+  sustain        0.7
+
+patch "Veena Chords" family=veena note=50 range=36..79 role=chord
+  # Several strings at once.
+  model          #2
+  pluck          0.35
+
+patch "Rudra Veena" family=veena note=48 range=36..72 role=lead
+  # Deep and slow, the two gourds ringing.
+  model          #5
+  voices         #0
+  meend          200 ms
+
+patch "Rudra Veena Dhrupad" family=veena note=43 range=31..67 role=lead
+  # Wide slides and shakes, dhrupad style.
+  model          #5
+  voices         #0
+  meend          350 ms
+  gamak          0.4
+
+patch "Rudra Veena Soft" family=veena note=48 range=36..72
+  # Plucked softly with the fingertip.
+  model          #5
+  pluck          0.2
+  sustain        0.7
+
+patch Tanpura family=drone note=49 range=36..60 role=drone
+  # Pa, Sa, Sa and low Sa, plucked in turn while the note's held.
+  model          #1
+
+patch "Tanpura Ma" family=drone note=49 range=36..60 role=drone
+  # The first string tuned to Ma, for ragas without Pa.
+  model          #1
+  first          #1
+
+patch "Tanpura Ni" family=drone note=49 range=36..60 role=drone
+  # The first string tuned to Ni.
+  model          #1
+  first          #2
+
+patch "Slow Tanpura" family=drone note=49 range=36..60 role=drone
+  # Eight beats a cycle, the strings ringing long.
+  model          #1
+  cycle          #3
+  sustain        0.75
+
+patch "Quick Tanpura" family=drone note=49 range=36..60 role=drone
+  # Two beats a cycle.
+  model          #1
+  cycle          #0
+  sustain        0.4
+
+patch "High Tanpura" family=drone note=61 range=48..72 role=drone
+  # A smaller tanpura, an octave up.
+  model          #1
+  bright         0.6
+
+patch "Soft Tanpura" family=drone note=49 range=36..60 role=drone
+  # Less of the buzz: round and calm.
+  model          #1
+  bridge         0.3
+  bright         0.35
+
+patch "Swarmandal" family=drone note=72 range=60..96
+  # A zither strummed open, bright and ringing.
+  model          #6
+
+patch "Swarmandal Shimmer" family=drone note=72 range=60..96
+  # Long rings over sympathetic shimmer.
+  model          #6
+  sustain        0.8
+  tarbs          0.7
+
+patch "Swarmandal Soft" family=drone note=67 range=55..91
+  # Plucked softly, under a voice.
+  model          #6
+  pluck          0.2
+
+patch "Ektara" family=drone note=52 range=40..64 role=lead
+  # One string, squeezed for its bends.
+  model          #9
+  voices         #0
+  meend          150 ms
+
+patch "Ektara Drone" family=drone note=48 range=40..60
+  # The buzzing drone of a Baul singer.
+  model          #9
+  bridge         0.8
+
+patch "Ektara Bright" family=drone note=55 range=43..67
+  # Plucked hard, bright and buzzing.
+  model          #9
+  pluck          0.8
+
+patch Shamisen family=east note=57 range=45..81 role=tune
+  # A big plectrum striking string and skin together.
+  model          #3
+
+patch "Shamisen Sawari" family=east note=57 range=45..81 role=tune
+  # The low string tuned to A and buzzing on the neck under every A and E.
+  model          #3
+  sa             #9
+  tarbs          1
+
+patch "Soft Shamisen" family=east note=57 range=45..81 role=tune
+  # Played with the fingers: no snap.
+  model          #3
+  pluck          0.1
+  tarbs          0.4
+
+patch "Shamisen Slide" family=east note=57 range=45..81 role=lead
+  # One string, sliding between notes.
+  model          #3
+  voices         #0
+  meend          90 ms
+  sustain        0.7
+
+patch "Low Shamisen" family=east note=50 range=40..72 role=tune
+  # The thick-necked kind, lower and longer.
+  model          #3
+  sustain        0.75
+  bright         0.4
+
+patch "Biwa" family=east note=57 range=45..72
+  # A Japanese lute, its sawari buzzing, the plectrum striking the body.
+  model          #7
+
+patch "Biwa Narrative" family=east note=52 range=45..69
+  # Hard strokes that crack the body, as for a tale.
+  model          #7
+  pluck          0.9
+  bridge         0.9
+
+patch "Biwa Soft" family=east note=57 range=45..72
+  # Softer strokes, more ring.
+  model          #7
+  pluck          0.3
+  sustain        0.6
+
+patch "Sanxian" family=east note=60 range=45..76
+  # Three strings over snakeskin, bright and dry.
+  model          #8
+
+patch "Sanxian Slide" family=east note=60 range=45..76 role=lead
+  # Sliding on its fretless neck.
+  model          #8
+  voices         #0
+  meend          80 ms
+  pluck          0.7
+
+patch "Sanxian Low" family=east note=52 range=40..67
+  # Lower and rounder.
+  model          #8
+  pluck          0.4
+
+patch "Sarangi" family=bowed note=62 range=48..84 role=lead
+  # Bowed, the nail sliding the string, a forest of sympathetics.
+  model          #11
+  voices         #0
+  meend          120 ms
+
+patch "Sarangi Vocal" family=bowed note=62 range=48..84 role=lead
+  # Slides and shakes like a singing voice.
+  model          #11
+  voices         #0
+  meend          220 ms
+  gamak          0.3
+
+patch "Sarangi Soft" family=bowed note=57 range=48..79
+  # A lighter bow, the sympathetic strings louder.
+  model          #11
+  pluck          0.3
+  tarbs          0.7
+
+patch "Esraj" family=bowed note=62 range=48..84 role=lead
+  # A bowed fretted neck, soft and sweet.
+  model          #12
+  voices         #0
+  meend          100 ms
+
+patch "Esraj Gentle" family=bowed note=62 range=48..84
+  # A light bow, airy.
+  model          #12
+  pluck          0.25
+
+patch "Esraj Song" family=bowed note=64 range=52..84 role=lead
+  # With a gentle shake, for a song.
+  model          #12
+  voices         #0
+  gamak          0.25
+
+patch "Dilruba" family=bowed note=55 range=43..79 role=lead
+  # Deeper and fuller than the esraj.
+  model          #13
+  voices         #0
+  meend          120 ms
+
+patch "Dilruba Kirtan" family=bowed note=55 range=43..79 role=lead
+  # Slow and devotional.
+  model          #13
+  voices         #0
+  meend          180 ms
+  sustain        0.7
+
+patch "Dilruba Bright" family=bowed note=60 range=48..84
+  # More bow, more bite.
+  model          #13
+  bright         0.7
+
+patch "Hardanger Fiddle" family=bowed note=69 range=55..91 role=lead
+  # A violin with four strings ringing under it.
+  model          #14
+  voices         #0
+
+patch "Hardanger Dance" family=bowed note=69 range=55..91
+  # A hard bow, for a springar.
+  model          #14
+  pluck          0.8
+
+patch "Hardanger Drone" family=bowed note=62 range=55..86
+  # The sympathetic strings loud, almost a drone.
+  model          #14
+  tarbs          0.8
+
+patch "Nyckelharpa" family=bowed note=64 range=48..84 role=lead
+  # A keyed fiddle, its strings shimmering under every note.
+  model          #15
+  voices         #0
+
+patch "Nyckelharpa Polska" family=bowed note=64 range=48..84
+  # Driving, for a polska.
+  model          #15
+  pluck          0.7
+  tarbs          0.7
+
+patch "Nyckelharpa Soft" family=bowed note=60 range=48..79
+  # A light bow, the shimmer to the front.
+  model          #15
+  pluck          0.25
+
+patch "Plain Bridge" family=bridge note=55 range=40..84 role=tune
+  # The sitar's string with a sharp-edged bridge: no buzz at all.
+  bridge         0
+  tarbs          0.4
+
+patch "Grazing Bridge" family=bridge note=55 range=40..84 role=tune
+  # A low curve: even soft notes buzz.
+  bridge         0.8
+  curve          0
+
+patch "Heavy Buzz" family=bridge note=50 range=36..79 role=tune
+  # The bridge buzzing as hard as it goes.
+  bridge         1
+  curve          0.1
+  volume         0.6
+
+patch "Sympathy Only" family=bridge note=61 range=48..84 role=pad
+  # Short notes and long sympathetic strings: the scale rings on behind.
+  sustain        0.15
+  tarbs          1
+  scale          #6
+
+patch "Buzz Bass" family=bridge note=37 range=28..55 role=bass
+  # A low string, the bridge buzzing hard.
+  model          #2
+  bridge         0.9

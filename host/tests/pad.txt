@@ -1,0 +1,17 @@
+# Two chords of a bar each at 120 bpm
+0.000 note 0 1 55 90
+1.800 note 0 1 55 0
+0.000 note 0 1 59 90
+1.800 note 0 1 59 0
+0.000 note 0 1 62 90
+1.800 note 0 1 62 0
+0.000 note 0 1 67 90
+1.800 note 0 1 67 0
+2.000 note 0 1 57 90
+3.800 note 0 1 57 0
+2.000 note 0 1 60 90
+3.800 note 0 1 60 0
+2.000 note 0 1 64 90
+3.800 note 0 1 64 0
+2.000 note 0 1 69 90
+3.800 note 0 1 69 0

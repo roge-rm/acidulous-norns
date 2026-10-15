@@ -1,0 +1,446 @@
+# Tine - struck and plucked bars, tines and pans.
+#
+# Each note is a handful of modes tuned to the ratios of what's struck: a
+# wooden bar undercut to two octaves and a third, a harder one to a twelfth,
+# a metal bar left free, a tine clamped at one end, or a pan's note tuned to
+# octave and twelfth.
+#
+# `mallet` is how hard what strikes it, `position` where (the middle keeps a
+# bar's second mode quiet), `tube` the resonator under the bar, `motor` and
+# `depth` the discs turning in it, `damp` the damper on a let-go note (the
+# sustain pedal lifts it), `bloom` a pan's octave growing out of the note,
+# `buzz` a rattle on a tine, and `roll` strikes held notes again and again.
+# Pressure bows a held bar.
+#
+# Families: wood, metal, gamelan, thumb, pans, hits.
+
+machine Tine
+role bell
+
+patch Init family=wood note=60 range=36..96
+
+patch Marimba family=wood note=60 range=36..96 role=keys
+  # Rosewood bars over their tubes, medium yarn mallets.
+  tube           0.7
+  mallet         0.45
+
+patch "Soft Marimba" family=wood note=55 range=36..90 role=keys
+  # Soft mallets: the note and its tube, hardly any overtone.
+  tube           0.8
+  mallet         0.1
+  position       0.15
+
+patch "Bright Marimba" family=wood note=64 range=36..96 role=keys
+  # Hard rubber mallets near the end of the bar.
+  mallet         0.85
+  position       0.6
+  bright         0.65
+  tube           0.6
+
+patch "Bass Marimba" family=wood note=40 range=28..60 role=bass
+  # The low end of the bars: long tubes, soft mallets.
+  tube           0.9
+  mallet         0.2
+  decay          0.6
+
+patch "Marimba Roll" family=wood note=60 range=36..90 role=pad
+  # Held notes rolled with two soft mallets.
+  roll           13
+  volume         0.5
+  mallet         0.2
+  tube           0.8
+
+patch Xylophone family=wood note=72 range=53..100 role=bell
+  # Hard wood, tuned to the twelfth, struck with hard mallets.
+  model          #2
+  mallet         0.8
+  tube           0.6
+
+patch "Soft Xylophone" family=wood note=72 range=53..100 role=bell
+  # The same bars with rubber mallets.
+  model          #2
+  mallet         0.35
+  tube           0.7
+
+patch "Dry Wood" family=wood note=60 range=40..90 role=keys
+  # Bars with no tubes, damped short.
+  tube           0
+  decay          0.15
+  mallet         0.7
+  damp           0.6
+  volume         1
+
+patch "Balafon" family=wood note=60 range=48..84
+  # Wooden bars over gourds, each with a buzzing membrane.
+  model          #0
+  buzz           0.7
+  mallet         0.6
+
+patch "Xylophone Hard" family=wood note=72 range=60..96
+  # Hard mallets, bright and quick.
+  model          #2
+  mallet         0.9
+  bright         0.7
+
+patch "Slit Drum" family=wood note=48 range=40..60
+  # A hollowed log with tongues cut in its slot, warm and short.
+  model          #15
+
+patch "Slit Drum Soft" family=wood note=45 range=36..57
+  # Padded beaters, rounder and longer.
+  model          #15
+  mallet         0.2
+  decay          0.7
+
+patch "Log Drum Low" family=wood note=40 range=31..52
+  # The big log, deep and woody.
+  model          #15
+  mallet         0.4
+  bright         0.3
+
+patch Vibraphone family=metal note=60 range=53..89 role=keys
+  # Metal bars with the damper down: notes stop when let go.
+  model          #1
+  damp           0.85
+  tube           0.7
+
+patch "Vibes Motor" family=metal note=60 range=53..89 role=keys
+  # The discs turning, a quick, even pulse.
+  model          #1
+  damp           0.85
+  tube           0.9
+  motor          5.5
+  depth          0.6
+
+patch "Slow Motor" family=metal note=57 range=53..89 role=chord
+  # The discs turning slowly, the notes left to ring.
+  model          #1
+  tube           0.9
+  motor          2
+  depth          0.7
+
+patch "Soft Vibes" family=metal note=60 range=53..89 role=chord
+  # Yarn mallets, the damper down.
+  model          #1
+  mallet         0.1
+  damp           0.7
+  tube           0.8
+
+patch "Hard Vibes" family=metal note=65 range=53..89 role=lead
+  # Hard mallets near the end of the bar.
+  model          #1
+  mallet         0.85
+  position       0.6
+  damp           0.8
+  tube           0.6
+
+patch "Vibes Roll" family=metal note=60 range=53..89 role=pad
+  # Held notes rolled, the motor turning.
+  model          #1
+  roll           11
+  volume         0.45
+  mallet         0.2
+  tube           0.9
+  motor          4
+  depth          0.4
+
+patch "Long Vibes" family=metal note=57 range=53..89 role=pad
+  # Struck softly and left to ring for a long time.
+  model          #1
+  decay          0.8
+  mallet         0.15
+  tube           0.9
+
+patch Glockenspiel family=metal note=84 range=72..108 role=bell
+  # Steel bars and brass mallets.
+  model          #3
+  mallet         0.85
+  tube           0
+
+patch "Soft Glockenspiel" family=metal note=84 range=72..108 role=bell
+  # The same bars with plastic mallets.
+  model          #3
+  mallet         0.45
+  tube           0
+
+patch "Bell Bars" family=metal note=72 range=60..100 role=bell
+  # Steel bars struck with felt over wooden boxes: soft and glassy.
+  model          #3
+  mallet         0.25
+  tube           0.6
+  decay          0.4
+  damp           0.7
+
+patch "Tin Bells" family=metal note=84 range=67..108 role=bell
+  # Small bars struck near the end, brittle.
+  model          #3
+  mallet         1
+  position       0.8
+  bright         0.75
+  decay          0.3
+  tube           0
+
+patch "Chimes" family=metal note=60 range=60..77
+  # Tubular bells, struck with a rawhide mallet.
+  model          #9
+  tube           0
+
+patch "Chimes Soft" family=metal note=60 range=60..77
+  # A softer mallet, the bells ringing on.
+  model          #9
+  mallet         0.25
+  decay          0.7
+  tube           0
+
+patch "Chimes Damped" family=metal note=60 range=60..77
+  # Each bell cut shorter.
+  model          #9
+  decay          0.25
+  tube           0
+
+patch "Crotales" family=metal note=84 range=72..96
+  # Small bronze discs, high and long.
+  model          #10
+  tube           0
+
+patch "Crotales Bowed" family=metal note=84 range=72..96
+  # A bow drawn on the edge: a long, pure ring.
+  model          #10
+  mallet         0.05
+  decay          0.9
+  roll           18
+  tube           0
+  volume         0.35
+
+patch "Crotales Bright" family=metal note=84 range=72..96
+  # Brass mallets, glassy.
+  model          #10
+  mallet         0.9
+  bright         0.8
+  tube           0
+
+patch "Saron" family=gamelan note=67 range=60..79
+  # A gamelan's bronze bar, bright and clangy.
+  model          #11
+
+patch "Saron Damped" family=gamelan note=67 range=60..79
+  # Each note stopped by the hand as the next is struck.
+  model          #11
+  decay          0.2
+
+patch "Gender" family=gamelan note=60 range=48..79
+  # The thin-barred gender, padded and singing.
+  model          #11
+  mallet         0.2
+  decay          0.8
+
+patch "Bonang" family=gamelan note=62 range=55..74
+  # A row of kettle gongs, the bosses struck.
+  model          #12
+
+patch "Bonang Barung" family=gamelan note=55 range=48..67
+  # The lower bonang, rounder.
+  model          #12
+  mallet         0.4
+  decay          0.7
+
+patch "Bonang Interlock" family=gamelan note=62 range=55..74
+  # Quick repeated strokes, as two players interlock.
+  model          #12
+  roll           8
+  decay          0.4
+  volume         0.4
+
+patch "Gong Ageng" family=gamelan note=36 range=28..48
+  # The great gong, deep and long.
+  model          #13
+  tube           0
+
+patch "Gong Soft" family=gamelan note=36 range=28..48
+  # A soft beater: the gong swells after the stroke.
+  model          #13
+  mallet         0.15
+  bloom          0.8
+  tube           0
+
+patch "Kempul" family=gamelan note=48 range=40..60
+  # The smaller hanging gong.
+  model          #13
+  decay          0.4
+  tube           0
+
+patch "Music Box" family=thumb note=79 range=60..100 role=bell
+  # The teeth of a steel comb plucked by pins.
+  model          #5
+  tube           0.2
+
+patch "Slow Music Box" family=thumb note=72 range=55..96 role=bell
+  # A larger comb, rings longer and darker.
+  model          #5
+  decay          0.75
+  bright         0.35
+  tube           0.3
+
+patch "Thumb Piano" family=thumb note=60 range=48..88 role=tune
+  # Metal tines over a wooden box, plucked by the thumbs.
+  model          #4
+  tube           0.4
+
+patch "Buzzing Thumb" family=thumb note=60 range=48..88 role=tune
+  # With rattles on the tines.
+  model          #4
+  buzz           0.6
+  tube           0.4
+
+patch "Gourd Thumb" family=thumb note=55 range=43..84 role=tune
+  # Tines over a big gourd: round, low and buzzing a little.
+  model          #4
+  tube           0.9
+  buzz           0.1
+  bright         0.35
+  mallet         0.3
+
+patch "Bright Thumb" family=thumb note=67 range=52..92 role=tune
+  # Plucked with the nails near the free end.
+  model          #4
+  mallet         0.9
+  position       0.7
+  bright         0.65
+  tube           0.2
+  volume         0.95
+
+patch "Music Box Slow" family=thumb note=72 range=60..96
+  # The comb in a wooden box, ringing on.
+  model          #5
+  decay          0.7
+  tube           0.7
+
+patch "Steel Pan" family=pans note=67 range=55..88 role=tune
+  # A lead pan struck with rubber sticks, the octave blooming.
+  model          #6
+  bloom          0.6
+  mallet         0.5
+  tube           0
+
+patch "Pan Roll" family=pans note=67 range=55..88 role=pad
+  # Held notes rolled quickly, as pans play long notes.
+  model          #6
+  bloom          0.5
+  roll           16
+  volume         0.55
+  mallet         0.35
+  tube           0
+
+patch "Bass Pan" family=pans note=43 range=31..60 role=bass
+  # The big drums, the octave strong.
+  model          #6
+  bloom          0.8
+  mallet         0.25
+  decay          0.6
+  tube           0
+
+patch Handpan family=pans note=57 range=45..77 role=tune
+  # Struck with the fingers: round and long.
+  model          #7
+  bloom          0.5
+  tube           0.3
+
+patch "Soft Handpan" family=pans note=55 range=45..77 role=pad
+  # Softer fingers, longer ring, a little spread.
+  model          #7
+  mallet         0.1
+  decay          0.7
+  bloom          0.4
+  spread         0.5
+  tube           0.3
+
+patch "Tongue Drum" family=pans note=60 range=48..79 role=tune
+  # Tongues cut into a steel drum, struck with rubber mallets.
+  model          #8
+  tube           0.5
+
+patch "Deep Tongue" family=pans note=48 range=40..67 role=tune
+  # A bigger drum, low and long.
+  model          #8
+  mallet         0.2
+  decay          0.7
+  tube           0.7
+
+patch "Singing Bowl" family=pans note=60 range=48..72
+  # A thick bowl struck with a padded stick, beating as it rings.
+  model          #14
+  tube           0
+
+patch "Bowl Rubbed" family=pans note=60 range=48..72
+  # The stick run round the rim: a long, swelling tone.
+  model          #14
+  roll           20
+  mallet         0.05
+  decay          0.9
+  tube           0
+
+patch "Bowl Low" family=pans note=48 range=36..60
+  # A big bowl, low and slow.
+  model          #14
+  mallet         0.2
+  tube           0
+
+patch "Handpan Soft" family=pans note=62 range=50..74
+  # Fingertips only, round and soft.
+  model          #7
+  mallet         0.2
+
+patch "Tongue Drum Bright" family=pans note=67 range=55..79
+  # Hard rubber mallets, a clear ring.
+  model          #8
+  mallet         0.8
+
+patch "Temple Blocks" family=hits note=67 range=60..76
+  # Hollow wooden blocks, a dry knock with a pitch.
+  model          #16
+
+patch "Temple Blocks Hard" family=hits note=72 range=64..84
+  # Hard mallets, sharper.
+  model          #16
+  mallet         0.9
+
+patch "Wood Blocks" family=hits note=79 range=72..88
+  # Small blocks, short and high.
+  model          #16
+  decay          0.3
+  bright         0.6
+
+patch "Cowbell" family=hits note=68 range=60..76
+  # A clanking metal bell.
+  model          #17
+  tube           0
+
+patch "Agogo" family=hits note=72 range=64..84
+  # The paired agogô bells, struck with a stick.
+  model          #17
+  mallet         0.7
+  decay          0.6
+  tube           0
+
+patch "Cowbell Muted" family=hits note=68 range=60..76
+  # The hand on the bell, short and dry.
+  model          #17
+  decay          0.15
+  tube           0
+
+patch "Triangle" family=hits note=84 range=76..96
+  # A bent steel rod, ringing.
+  model          #18
+  tube           0
+
+patch "Triangle Roll" family=hits note=84 range=76..96
+  # The beater rattled inside a corner.
+  model          #18
+  roll           16
+  tube           0
+
+patch "Triangle Muted" family=hits note=84 range=76..96
+  # Held in the hand, short and bright.
+  model          #18
+  decay          0.15
+  tube           0

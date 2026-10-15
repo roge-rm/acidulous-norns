@@ -1,0 +1,1302 @@
+# Ratio - fifty patches, six operators and thirty-two ways of wiring them.
+#
+# Each operator has sixteen waveforms, eight modes, a ratio from a quarter to
+# sixty-four, its own feedback and its own four-stage envelope. On top of that
+# are two algorithms at once with a morph between them, which no other machine
+# here has, and snap and skew on the ratios. A bank of seven was a sample of
+# it.
+#
+# The patches are grouped the way this kind of synthesis is actually heard -
+# keys, bells and metal, basses, leads and brass, organs and reeds, strings
+# and pads, then percussion and effects - rather than by algorithm, because
+# nobody hears "algorithm fourteen" as a category. Spread through those groups
+# are the ones that are this machine's own rather than the family's: the morph
+# between two algorithms, the skew that fans the partials apart, and `snap`
+# set to none so a ratio can sit between two notes of the scale.
+#
+# **Bells get their own demo.** A struck sound is its tail, and every other
+# phrase here starts the next note before the last one has finished. `bell`
+# leaves a second and a half between strikes, puts two together so two tails
+# beat, and leaves the last one ringing on its own.
+#
+# Levelled to the house figure of -21 dB on the loudness column, the same as
+# every other machine in the app. Five decibels of that came out of the
+# machine's own output (`kHouse` in Ratio.cpp) so Init lands there too. Five
+# patches sit one to six decibels under and all five are either a single
+# operator with nothing modulating it or a strike short enough that four
+# hundred milliseconds of it is mostly silence.
+#
+# **Three patches did not play the note you pressed**, which is the fault this
+# kind of synthesis invites and the range sweep is the only thing that finds
+# it: a carrier written at half the ratio sounded an octave down, one at four
+# times sounded two octaves up, and one with the *carrier* fixed rather than
+# the modulator sounded fifty hertz whatever key was held. A ratio is a
+# multiplier on the note, so the carrier's is almost always one and everything
+# interesting happens in the operators feeding it.
+#
+# Values are in each parameter's own units; `audition params Ratio` lists
+# them. A patch names only what it changes.
+
+machine Ratio
+role    keys
+
+patch Init family=keys
+
+patch Tine family=keys  note=60 range=36..84 role=keys
+  algoa          #6
+  o1_decay       2.5 s
+  o1_sustain     0.25
+  o2_decay       0.35 s
+  o2_level       0.55
+  o2_ratio       14
+  o2_sustain     0
+  o2_vel         0.9
+  o3_decay       2 s
+  o3_level       0.5
+  o3_sustain     0.2
+  o4_level       0.35
+  o4_ratio       3
+  o4_sustain     0
+  volume         0.76
+
+patch "Sync Stab" family=lead  note=60 range=36..84 role=keys
+  algoa          #3
+  l1_rate        0.4 Hz
+  m01_depth      0.25
+  m01_dest       #10
+  m01_src        #11
+  o1_decay       0.6 s
+  o1_level       1.00
+  o1_mode        #5
+  o1_ratio       4.5
+  o1_sustain     0.3
+  o2_level       1.00
+  o2_sustain     1
+  o2_wave        #7
+  snap           #0
+  volume         0.90
+
+patch Bell family=bell  note=60 range=36..84 role=bell
+  algoa          #6
+  o1_decay       6 s
+  o1_release     6 s
+  o1_sustain     0
+  o2_decay       3 s
+  o2_level       0.6
+  o2_ratio       2.76
+  o2_release     3 s
+  o2_sustain     0
+  o3_decay       4 s
+  o3_level       0.45
+  o3_ratio       5.4
+  o3_release     4 s
+  o3_sustain     0
+  snap           #5
+  volume         0.79
+
+patch Stretched family=pad  note=60 range=36..84 role=bell
+  algoa          #6
+  m01_depth      0.5
+  m01_dest       #3
+  m01_src        #2
+  o1_decay       3 s
+  o1_level       0.85
+  o1_release     2 s
+  o1_sustain     0.3
+  o2_level       0.62
+  o2_ratio       3
+  o3_level       0.45
+  o3_ratio       7
+  skew           0.22
+  volume         0.72
+
+patch "Grit Bass" family=bass  note=36 range=24..55 role=bass
+  f_freq         2200 Hz
+  f_res          0.2
+  m01_depth      0.35
+  m01_dest       #5
+  m01_src        #4
+  o1_decay       0.5 s
+  o1_level       0.9
+  o1_sustain     0.6
+  o2_decay       0.25 s
+  o2_fb          0.55
+  o2_level       0.65
+  o2_sustain     0.15
+  o3_fb          0.4
+  o3_level       0.4
+  o3_mode        #7
+  voicemode      #1
+  volume         0.95
+
+patch "Fold Lead" family=lead  note=67 range=48..91 role=lead
+  algoa          #3
+  glide          0.1 s
+  m01_depth      0.3
+  m01_dest       #3
+  m01_src        #3
+  o1_fb          0.45
+  o1_level       0.85
+  o1_mode        #4
+  o1_sustain     0.9
+  o2_level       0.8
+  o2_sustain     0.9
+  o2_wave        #7
+  voicemode      #2
+  volume         0.99
+
+patch "Morph Sweep" family=pad  note=55 range=36..79 role=pad
+  e1_attack      1.2 s
+  e1_decay       3 s
+  e1_sustain     0.4
+  m01_depth      0.7
+  m01_dest       #2
+  m01_src        #7
+  m02_depth      0.6
+  m02_dest       #2
+  m02_src        #2
+  o1_attack      0.4 s
+  o1_level       0.7
+  o1_release     1.5 s
+  o1_sustain     0.8
+  o2_level       0.6
+  o2_ratio       2
+  o2_sustain     0.7
+  o3_level       0.5
+  o3_ratio       3
+  o3_sustain     0.6
+  o4_level       0.45
+  o4_ratio       4
+  o5_level       0.4
+  o5_ratio       6
+  o6_level       0.35
+  o6_ratio       8
+  volume         0.60
+
+patch "Stage Keys" family=keys  note=60 range=36..84 role=keys
+  # Two pairs, the modulator a fourth above its carrier and decaying
+  # faster than it. The whole electric piano is that one relationship.
+  algoa          #6
+  o1_ratio       1
+  o1_level       0.9
+  o1_decay       3 s
+  o1_sustain     0.2
+  o1_release     0.7 s
+  o2_ratio       4
+  o2_level       0.42
+  o2_decay       0.5 s
+  o2_sustain     0.0
+  o2_vel         0.8
+  o3_ratio       1
+  o3_level       0.5
+  o3_decay       2.5 s
+  o3_sustain     0.15
+  o4_ratio       7
+  o4_level       0.22
+  o4_decay       0.3 s
+  o4_sustain     0.0
+  o5_level       0
+  o6_level       0
+  volume         0.72
+
+patch "Reed Keys" family=keys  note=60 range=36..84 role=keys
+  # Harder and hollower than the tine: the modulator is a square, which
+  # puts a reed's buzz on the front of every note.
+  algoa          #6
+  o1_ratio       1
+  o1_level       0.9
+  o1_decay       2.2 s
+  o1_sustain     0.18
+  o2_wave        #8
+  o2_ratio       2
+  o2_level       0.5
+  o2_decay       0.35 s
+  o2_sustain     0.0
+  o2_vel         0.9
+  o3_ratio       1
+  o3_level       0.4
+  o3_decay       1.8 s
+  o3_sustain     0.1
+  o4_ratio       3
+  o4_level       0.3
+  o4_decay       0.2 s
+  o4_sustain     0.0
+  o5_level       0
+  o6_level       0
+  volume         0.77
+
+patch "Funk Keys" family=keys  note=60 range=36..84 role=keys
+  # A stack of three with feedback on the top of it, decaying almost at
+  # once. Feedback is what turns a sine into a saw here.
+  algoa          #5
+  o1_ratio       1
+  o1_level       1.00
+  o1_decay       0.7 s
+  o1_sustain     0.05
+  o1_release     0.2 s
+  o2_ratio       3
+  o2_level       1.00
+  o2_decay       0.25 s
+  o2_sustain     0.0
+  o3_ratio       1
+  o3_fb          0.45
+  o3_level       1.00
+  o3_decay       0.2 s
+  o3_sustain     0.0
+  o4_level       0.00
+  o5_level       0.00
+  o6_level       0.00
+  f_type         #2
+  f_freq         4000 Hz
+  f_key          0.6
+  volume         1.00
+
+patch "Glass Keys" family=keys  note=60 range=36..84 role=keys
+  # Ratios of seven and eleven, which are nowhere near harmonic, held
+  # back to a level where they colour the note instead of destroying it.
+  algoa          #6
+  o1_ratio       1
+  o1_level       0.85
+  o1_decay       2.5 s
+  o1_sustain     0.12
+  o2_ratio       7
+  o2_level       0.2
+  o2_decay       1.2 s
+  o2_sustain     0.0
+  o3_ratio       1
+  o3_level       0.45
+  o3_decay       2 s
+  o3_sustain     0.1
+  o4_ratio       11
+  o4_level       0.14
+  o4_decay       0.8 s
+  o4_sustain     0.0
+  o5_level       0
+  o6_level       0
+  volume         0.76
+
+patch Hammer family=keys  note=60 range=36..84 role=keys
+  # The attack is a burst of noise from operator six and nothing else;
+  # after forty milliseconds it is gone and a plain tone is left.
+  algoa          #14
+  o1_ratio       1
+  o1_level       0.9
+  o1_decay       1.6 s
+  o1_sustain     0.1
+  o2_ratio       2
+  o2_level       0.3
+  o2_decay       0.5 s
+  o2_sustain     0.0
+  o3_ratio       3
+  o3_level       0.2
+  o3_decay       0.3 s
+  o3_sustain     0.0
+  o6_wave        #15
+  o6_level       0.35
+  o6_decay       0.04 s
+  o6_sustain     0.0
+  o4_level       0
+  o5_level       0
+  volume         0.63
+
+patch "Soft Keys" family=keys  note=60 range=36..84 role=keys
+  # Almost no modulation at all: two carriers a fifth apart, which is a
+  # machine like this being asked to be simple. It is the patch the rest
+  # of the bank is measured against.
+  algoa          #22
+  o1_ratio       1
+  o1_level       1.00
+  o1_decay       2.5 s
+  o1_sustain     0.35
+  o2_ratio       2
+  o2_level       0.59
+  o2_decay       2 s
+  o2_sustain     0.25
+  o3_ratio       3
+  o3_level       0.23
+  o3_decay       1.5 s
+  o3_sustain     0.1
+  o4_level       0.00
+  o5_level       0.00
+  o6_level       0.00
+  f_type         #2
+  f_freq         3000 Hz
+  volume         1.00
+
+patch "Toy Box" family=keys  note=60 range=36..84 role=keys
+  # A ratio of nine over a crushed sine. High, thin and mechanical: a
+  # music box that has been dropped.
+  algoa          #6
+  o1_wave        #2
+  o1_ratio       1
+  o1_level       1.00
+  o1_decay       1.4 s
+  o1_sustain     0.0
+  o2_ratio       9
+  o2_level       0.39
+  o2_decay       0.7 s
+  o2_sustain     0.0
+  o3_ratio       2
+  o3_level       0.45
+  o3_decay       1 s
+  o3_sustain     0.0
+  o4_level       0.00
+  o5_level       0.00
+  o6_level       0.00
+  volume         0.84
+
+patch "Struck Glass" family=bell  note=60 range=36..84 role=bell
+  # Two modulators at a seventh and a thirteenth of the carrier, so every
+  # partial lands between two notes of the scale. It rings for a long time
+  # and never settles on a pitch.
+  algoa          #6
+  o1_ratio       1
+  o1_level       0.85
+  o1_decay       6 s
+  o1_sustain     0.0
+  o1_release     3 s
+  o2_ratio       7
+  o2_level       0.3
+  o2_decay       3 s
+  o2_sustain     0.0
+  o3_ratio       1
+  o3_level       0.4
+  o3_decay       5 s
+  o3_sustain     0.0
+  o4_ratio       13
+  o4_level       0.18
+  o4_decay       2 s
+  o4_sustain     0.0
+  o5_level       0
+  o6_level       0
+  snap           #0
+  volume         0.69
+
+patch Plucked family=keys  note=55 range=40..79 role=arp
+  # Everything short. The point is the envelope rather than the spectrum:
+  # an FM stack with a fast decay is a plucked string and nobody has to
+  # model one.
+  algoa          #5
+  o1_ratio       1
+  o1_level       1.00
+  o1_decay       0.9 s
+  o1_sustain     0.0
+  o1_release     0.3 s
+  o2_ratio       2
+  o2_level       0.52
+  o2_decay       0.25 s
+  o2_sustain     0.0
+  o3_ratio       5
+  o3_level       0.34
+  o3_decay       0.12 s
+  o3_sustain     0.0
+  o4_level       0.00
+  o5_level       0.00
+  o6_level       0.00
+  volume         1.00
+
+patch Tubular family=bell  note=60 range=36..84 role=bell
+  # Five modulators into one carrier, all at ratios that share no factors.
+  # This is the algorithm this kind of synthesis is famous for and the one
+  # no subtractive synth can imitate.
+  algoa          #14
+  o1_ratio       1
+  o1_level       0.9
+  o1_decay       8 s
+  o1_sustain     0.0
+  o1_release     4 s
+  o2_ratio       3.5
+  o2_level       0.22
+  o2_decay       4 s
+  o2_sustain     0.0
+  o3_ratio       5
+  o3_level       0.16
+  o3_decay       3 s
+  o3_sustain     0.0
+  o4_ratio       7
+  o4_level       0.12
+  o4_decay       2 s
+  o4_sustain     0.0
+  o5_ratio       11
+  o5_level       0.08
+  o5_decay       1.2 s
+  o5_sustain     0.0
+  o6_level       0
+  snap           #0
+  volume         0.54
+
+patch Gamelan family=bell  note=60 range=36..84 role=bell
+  # Two carriers a fraction apart, each with its own modulator, so the two
+  # tails beat against each other for as long as they last.
+  algoa          #6
+  o1_ratio       1
+  o1_level       0.8
+  o1_decay       5 s
+  o1_sustain     0.0
+  o2_ratio       2.76
+  o2_level       0.35
+  o2_decay       2 s
+  o2_sustain     0.0
+  o3_ratio       1.01
+  o3_level       0.7
+  o3_decay       5 s
+  o3_sustain     0.0
+  o4_ratio       5.4
+  o4_level       0.25
+  o4_decay       1.5 s
+  o4_sustain     0.0
+  o5_level       0
+  o6_level       0
+  snap           #0
+  volume         0.77
+
+patch Church family=bell  note=60 range=36..84 role=bell
+  # The hum an octave below the strike, which is where a real bell's two
+  # lowest partials sit. The carrier stays on the note - written with the
+  # carrier itself at half the ratio the patch played an octave under
+  # whatever key you pressed, which is a bell that transposes.
+  algoa          #6
+  o1_ratio       1
+  o1_level       0.85
+  o1_decay       9 s
+  o1_sustain     0.0
+  o1_release     5 s
+  o2_ratio       3
+  o2_level       0.24
+  o2_decay       5 s
+  o2_sustain     0.0
+  o3_ratio       0.5
+  o3_level       0.5
+  o3_decay       7 s
+  o3_sustain     0.0
+  o4_ratio       4.2
+  o4_level       0.14
+  o4_decay       3 s
+  o4_sustain     0.0
+  o5_level       0
+  o6_level       0
+  snap           #0
+  volume         0.86
+
+patch Ice family=bell  note=67 range=48..88 role=bell
+  # Thin, very high, and almost no low end - but on the note. The carrier
+  # was written at four times the ratio, so the patch played two octaves
+  # above the key; the height comes from the modulators and the high-pass
+  # instead, which is where it should have come from.
+  algoa          #6
+  o1_ratio       1
+  o1_level       1.00
+  o1_decay       4 s
+  o1_sustain     0.0
+  o2_ratio       9
+  o2_level       0.26
+  o2_decay       2 s
+  o2_sustain     0.0
+  o3_ratio       4
+  o3_level       0.46
+  o3_decay       3 s
+  o3_sustain     0.0
+  o4_level       0.00
+  o5_level       0.00
+  o6_level       0.00
+  # The high-pass follows the keyboard, and the range starts where a thing
+  # called Ice belongs anyway. Fixed at 700 Hz it removed the note itself
+  # over the bottom octave and the tenth harmonic was the loudest thing in
+  # it.
+  f_type         #5
+  f_freq         500 Hz
+  f_key          0.8
+  volume         0.73
+
+patch Anvil family=bell  note=60 range=36..84 role=bell
+  # The ring mode rather than frequency modulation: two operators
+  # multiplied together, which produces sum and difference and nothing
+  # else. Nothing in it is a harmonic of the note.
+  algoa          #6
+  o1_ratio       1
+  o1_level       0.85
+  o1_decay       2.5 s
+  o1_sustain     0.0
+  o2_mode        #1
+  o2_ratio       3.7
+  o2_level       0.8
+  o2_decay       2 s
+  o2_sustain     0.0
+  o3_ratio       1
+  o3_level       0.4
+  o3_decay       1.5 s
+  o3_sustain     0.0
+  o4_mode        #1
+  o4_ratio       6.3
+  o4_level       0.5
+  o4_decay       1 s
+  o4_sustain     0.0
+  o5_level       0
+  o6_level       0
+  snap           #0
+  volume         0.86
+
+patch Bowl family=bell  note=60 range=36..84 role=bell
+  # Long, low and slow, with the modulation fading before the carrier
+  # does. The note gets rounder as it dies, the way a struck bowl does.
+  algoa          #6
+  o1_ratio       1
+  o1_level       0.85
+  o1_decay       10 s
+  o1_sustain     0.0
+  o1_release     6 s
+  o2_ratio       2.4
+  o2_level       0.3
+  o2_decay       1.5 s
+  o2_sustain     0.0
+  o3_ratio       1
+  o3_fine        6
+  o3_level       0.5
+  o3_decay       9 s
+  o3_sustain     0.0
+  o4_level       0
+  o5_level       0
+  o6_level       0
+  snap           #0
+  volume         0.82
+
+patch "Kalimba FM" family=bell  note=60 range=36..84 role=bell
+  # A short bright strike over a sine that keeps going: two operators, one
+  # fast and one slow, which is the whole of a thumb piano.
+  algoa          #6
+  o1_ratio       1
+  o1_level       1.00
+  o1_decay       1.8 s
+  o1_sustain     0.0
+  o2_ratio       4.1
+  o2_level       0.36
+  o2_decay       0.12 s
+  o2_sustain     0.0
+  o3_ratio       2
+  o3_level       0.30
+  o3_decay       0.9 s
+  o3_sustain     0.0
+  o4_level       0.00
+  o5_level       0.00
+  o6_level       0.00
+  volume         1.00
+
+patch "Deep Sine" family=bass  note=36 range=24..55 role=bass
+  # One carrier, one modulator at the octave, and almost nothing else. The
+  # bass that does not fight anything.
+  algoa          #6
+  o1_ratio       1
+  o1_level       0.95
+  o1_decay       1.5 s
+  o1_sustain     0.65
+  o2_ratio       2
+  o2_level       0.18
+  o2_decay       0.4 s
+  o2_sustain     0.05
+  o3_level       0
+  o4_level       0
+  o5_level       0
+  o6_level       0
+  volume         1.00
+
+patch Slap family=bass  note=36 range=24..55 role=bass
+  # The modulator is loud for sixty milliseconds and then gone, which is
+  # the click of a thumb and nothing more. Under it the note is a sine.
+  algoa          #6
+  o1_ratio       1
+  o1_level       0.9
+  o1_decay       1.2 s
+  o1_sustain     0.3
+  o2_ratio       5
+  o2_level       0.7
+  o2_decay       0.06 s
+  o2_sustain     0.0
+  o2_vel         0.9
+  o3_ratio       1
+  o3_level       0.4
+  o3_decay       0.9 s
+  o3_sustain     0.2
+  o4_level       0
+  o5_level       0
+  o6_level       0
+  volume         1.00
+
+patch "Growl FM" family=bass  note=36 range=24..55 role=bass
+  # Feedback on a *modulator*, which is the one way to get a saw out of a
+  # sine, driven hard into a carrier on the same note. Dirty and entirely
+  # harmonic - every sideband of a unison modulator lands on a harmonic.
+  #
+  # Written first on the algorithm where all six operators are carriers,
+  # which means nothing modulates anything: it was two sines an octave apart
+  # with a low-pass on them, it had no growl in it at all, and Dan reported
+  # it as too quiet to really hear. It was not quiet, it was empty.
+  algoa          #6
+  o1_ratio       1
+  o1_level       0.95
+  o1_decay       1.5 s
+  o1_sustain     0.75
+  o2_ratio       1
+  o2_fb          0.85
+  o2_level       0.6
+  o2_decay       1.2 s
+  o2_sustain     0.55
+  o3_ratio       0.5
+  o3_level       0.5
+  o3_decay       1.5 s
+  o3_sustain     0.6
+  o4_ratio       2
+  o4_level       0.3
+  o4_decay       0.6 s
+  o4_sustain     0.25
+  o5_level       0
+  o6_level       0
+  f_type         #3
+  f_freq         1600 Hz
+  f_res          0.2
+  volume         1.00
+
+# Starts at 30: below that the fixed modulator is *above* the note and its
+# sidebands stop being harmonics of anything, which reads a hundred cents
+# out even though the note is still the loudest thing there.
+  volume         1.00
+patch "Sub Drop FM" family=bass  note=36 range=30..55 role=bass
+  # A second carrier fixed at fifty hertz under one that tracks the keyboard,
+  # so every note has the same rumble beneath it however high it is played.
+  # Fixed ratios are the other half of what this machine can do.
+  #
+  # **A fixed operator's ratio is in units of 55 Hz, not hertz.** Written as
+  # 50 it was not fifty hertz, it was two thousand seven hundred and fifty,
+  # and the patch called Sub Drop had a centroid of nearly three kilohertz.
+  # 0.91 is fifty. It was wrong twice before that as well - once with the
+  # fixed operator as the carrier, so it played the same pitch whatever key
+  # was held, and once with it modulating a carrier a tone below it, which
+  # throws sidebands everywhere.
+  algoa          #22
+  o1_ratio       1
+  o1_level       0.9
+  o1_decay       2 s
+  o1_sustain     0.55
+  o2_fixed       1
+  o2_ratio       0.91
+  o2_level       0.5
+  o2_decay       2 s
+  o2_sustain     0.5
+  o3_ratio       2
+  o3_level       0.12
+  o3_decay       0.6 s
+  o3_sustain     0.15
+  o4_level       0
+  o5_level       0
+  o6_level       0
+  f_type         #3
+  f_freq         600 Hz
+  volume         1.00
+
+patch "Metal Bass" family=bass  note=36 range=24..55 role=bass
+  # A ratio of three and a half, which is not a harmonic of anything, kept
+  # quiet enough to be a colour on a bass rather than a bell.
+  algoa          #6
+  o1_ratio       1
+  o1_level       0.9
+  o1_decay       1.2 s
+  o1_sustain     0.5
+  o2_ratio       3.5
+  o2_level       0.28
+  o2_decay       0.5 s
+  o2_sustain     0.1
+  o3_ratio       1
+  o3_level       0.35
+  o3_decay       1 s
+  o3_sustain     0.4
+  o4_level       0
+  o5_level       0
+  o6_level       0
+  snap           #0
+  volume         1.00
+
+patch "Pluck Bass FM" family=bass  note=36 range=24..55 role=bass
+  # Short, with the filter closing faster than the amplitude so the note
+  # goes dull before it goes quiet.
+  algoa          #5
+  o1_ratio       1
+  o1_level       1.00
+  o1_decay       0.6 s
+  o1_sustain     0.1
+  o2_ratio       2
+  o2_level       0.86
+  o2_decay       0.15 s
+  o2_sustain     0.0
+  o3_ratio       4
+  o3_level       0.52
+  o3_decay       0.08 s
+  o3_sustain     0.0
+  o4_level       0.00
+  o5_level       0.00
+  o6_level       0.00
+  f_type         #3
+  f_freq         700 Hz
+  f_env          0.6
+  f_decay        0.15 s
+  f_sustain      0.0
+  volume         1.00
+
+patch "Wide Bass FM" family=bass  note=36 range=24..55 role=bass
+  # Two carriers a few cents apart panned hard, which on a bass is usually
+  # a mistake and here is not, because the filter keeps the beating under
+  # the note.
+  #
+  # Both modulators were at a fifth of their carriers, which is barely any
+  # index at all: the patch was two detuned sines with four per cent of its
+  # energy above a hundred and fifty hertz, so on anything without real bass
+  # extension there was nothing to hear. Dan reported it as quiet and it was
+  # not quiet, it was empty.
+  algoa          #6
+  o1_ratio       1
+  o1_fine        -7
+  o1_pan         -0.6
+  o1_level       0.8
+  o1_decay       1.4 s
+  o1_sustain     0.6
+  o2_ratio       2
+  o2_level       0.5
+  o2_decay       0.5 s
+  o2_sustain     0.1
+  o3_ratio       1
+  o3_fine        7
+  o3_pan         0.6
+  o3_level       0.8
+  o3_decay       1.4 s
+  o3_sustain     0.6
+  o4_ratio       2
+  o4_level       0.5
+  o4_decay       0.5 s
+  o4_sustain     0.1
+  o5_level       0
+  o6_level       0
+  f_type         #3
+  f_freq         1500 Hz
+  volume         0.72
+
+patch "Brass FM" family=lead  note=67 range=48..91 role=lead
+  # The modulator rises with the amplitude rather than falling, which is
+  # what a brass attack is: the sound gets brighter as it gets louder.
+  algoa          #5
+  o1_ratio       1
+  o1_level       0.9
+  o1_attack      0.04 s
+  o1_decay       2 s
+  o1_sustain     0.8
+  o2_ratio       1
+  o2_level       0.45
+  o2_attack      0.12 s
+  o2_decay       1.5 s
+  o2_sustain     0.55
+  o3_ratio       2
+  o3_level       0.25
+  o3_attack      0.18 s
+  o3_decay       1 s
+  o3_sustain     0.35
+  o4_level       0
+  o5_level       0
+  o6_level       0
+  volume         0.72
+
+patch "Square Lead FM" family=lead  note=67 range=48..91 role=lead
+  # A square modulator at the unison, which is how to get a hollow pulse
+  # out of a machine with no pulse in it.
+  algoa          #6
+  o1_ratio       1
+  o1_level       0.9
+  o1_decay       1.5 s
+  o1_sustain     0.85
+  o2_wave        #8
+  o2_ratio       1
+  o2_level       0.4
+  o2_decay       1 s
+  o2_sustain     0.6
+  o3_level       0
+  o4_level       0
+  o5_level       0
+  o6_level       0
+  glide          0.03 s
+  volume         0.89
+
+patch "Reed Lead" family=lead  note=67 range=48..91 role=lead
+  # An odd-harmonic modulator at three times the note, which is a clarinet
+  # written as two numbers.
+  algoa          #6
+  o1_ratio       1
+  o1_level       0.9
+  o1_attack      0.03 s
+  o1_decay       2 s
+  o1_sustain     0.8
+  o2_wave        #13
+  o2_ratio       3
+  o2_level       0.32
+  o2_attack      0.05 s
+  o2_decay       1 s
+  o2_sustain     0.5
+  o3_level       0
+  o4_level       0
+  o5_level       0
+  o6_level       0
+  volume         0.87
+
+patch Scream family=lead  note=67 range=48..91 role=lead
+  # Feedback almost all the way up on a stack of three. Past about 0.8 the
+  # operator stops being a sine at all and starts being noise, and this
+  # sits just under that.
+  algoa          #5
+  o1_ratio       1
+  o1_fb          0.55
+  o1_level       0.9
+  o1_decay       1.5 s
+  o1_sustain     0.8
+  o2_ratio       2
+  o2_fb          0.75
+  o2_level       0.5
+  o2_decay       1 s
+  o2_sustain     0.6
+  o3_ratio       1
+  o3_level       0.4
+  o3_decay       1 s
+  o3_sustain     0.5
+  o4_level       0
+  o5_level       0
+  o6_level       0
+  f_type         #3
+  f_freq         4000 Hz
+  f_res          0.2
+  volume         0.86
+
+patch "Whistle FM" family=lead  note=67 range=48..91 role=lead
+  # One operator, one sine, nothing else on at all. Proof that the machine
+  # will get out of the way when it is asked to.
+  algoa          #22
+  o1_ratio       1
+  o1_level       1.00
+  o1_attack      0.04 s
+  o1_decay       2 s
+  o1_sustain     0.9
+  o2_level       0.00
+  o3_level       0.00
+  o4_level       0.00
+  o5_level       0.00
+  o6_level       0.00
+  glide          0.1 s
+  volume         1.00
+
+patch "Fifth Stack" family=lead  note=67 range=48..91 role=lead
+  # Three carriers at the unison, the fifth and the octave, with one
+  # modulator across all of them. Hollow and very large.
+  algoa          #10
+  o1_ratio       1
+  o1_level       0.7
+  o1_decay       2 s
+  o1_sustain     0.8
+  o2_ratio       1.5
+  o2_level       0.55
+  o2_decay       2 s
+  o2_sustain     0.8
+  o3_ratio       2
+  o3_level       0.4
+  o3_decay       2 s
+  o3_sustain     0.8
+  o4_level       0
+  o5_level       0
+  o6_ratio       2
+  o6_level       0.3
+  o6_decay       1.5 s
+  o6_sustain     0.5
+  volume         0.90
+
+patch Drawbars family=reed  note=60 range=36..84 role=keys
+  # All six operators as carriers at the octave, the fifth, the double
+  # octave and so on, which is exactly what an organ's drawbars are. No
+  # modulation anywhere.
+  algoa          #22
+  o1_ratio       1
+  o1_level       0.8
+  o1_sustain     1
+  o1_decay       8 s
+  o2_ratio       2
+  o2_level       0.55
+  o2_sustain     1
+  o2_decay       8 s
+  o3_ratio       3
+  o3_level       0.4
+  o3_sustain     1
+  o3_decay       8 s
+  o4_ratio       4
+  o4_level       0.3
+  o4_sustain     1
+  o4_decay       8 s
+  o5_ratio       6
+  o5_level       0.2
+  o5_sustain     1
+  o5_decay       8 s
+  o6_ratio       8
+  o6_level       0.15
+  o6_sustain     1
+  o6_decay       8 s
+  o1_attack      0.01 s
+  volume         0.99
+
+patch "Percussive Organ" family=reed  note=60 range=36..84 role=keys
+  # The same drawbars with the top two given a fast decay, which is the
+  # key click an organ makes and the reason it sounds played rather than
+  # switched on.
+  algoa          #22
+  o1_ratio       1
+  o1_level       0.96
+  o1_sustain     1
+  o1_decay       8 s
+  o2_ratio       2
+  o2_level       0.60
+  o2_sustain     1
+  o2_decay       8 s
+  o3_ratio       3
+  o3_level       0.54
+  o3_decay       0.25 s
+  o3_sustain     0.0
+  o4_ratio       4
+  o4_level       0.42
+  o4_decay       0.18 s
+  o4_sustain     0.0
+  o5_level       0.00
+  o6_level       0.00
+  volume         1.00
+
+patch Harmonica family=reed  note=60 range=36..84 role=keys
+  # Two carriers a fifth apart with a slow tremolo from the first LFO,
+  # and a modulator too quiet to hear except as a rasp.
+  algoa          #6
+  o1_ratio       1
+  o1_level       0.85
+  o1_attack      0.05 s
+  o1_decay       2 s
+  o1_sustain     0.8
+  o2_wave        #6
+  o2_ratio       2
+  o2_level       0.22
+  o2_decay       1 s
+  o2_sustain     0.5
+  o3_ratio       1.5
+  o3_level       0.4
+  o3_attack      0.07 s
+  o3_decay       2 s
+  o3_sustain     0.75
+  o4_ratio       3
+  o4_level       0.15
+  o4_decay       1 s
+  o4_sustain     0.4
+  o5_level       0
+  o6_level       0
+  l1_rate        5.5 Hz
+  volume         0.87
+
+patch "Oboe FM" family=reed  note=67 range=48..91 role=lead
+  # A rectified sine as the modulator, which is all even harmonics, at
+  # twice the note. Nasal in the way a double reed is.
+  algoa          #6
+  o1_ratio       1
+  o1_level       1.00
+  o1_attack      0.04 s
+  o1_decay       1.5 s
+  o1_sustain     0.8
+  o2_wave        #4
+  o2_ratio       2
+  o2_level       0.45
+  o2_attack      0.06 s
+  o2_decay       1 s
+  o2_sustain     0.55
+  o3_level       0.00
+  o4_level       0.00
+  o5_level       0.00
+  o6_level       0.00
+  volume         0.87
+
+patch Accordion family=reed  note=60 range=36..84 role=keys
+  # Three carriers, two of them a few cents out, which is the beating a
+  # reed box makes and the only thing that tells it from an organ.
+  algoa          #22
+  o1_ratio       1
+  o1_level       0.7
+  o1_sustain     0.95
+  o1_decay       6 s
+  o1_attack      0.02 s
+  o2_ratio       1
+  o2_fine        9
+  o2_level       0.6
+  o2_sustain     0.95
+  o2_decay       6 s
+  o3_ratio       2
+  o3_fine        -6
+  o3_level       0.45
+  o3_sustain     0.95
+  o3_decay       6 s
+  o4_ratio       3
+  o4_level       0.25
+  o4_sustain     0.9
+  o4_decay       6 s
+  o5_level       0
+  o6_level       0
+  volume         0.93
+
+patch Pipe family=reed  note=55 range=36..79 role=pad
+  # A quarter sine as the carrier, which has a hole in every cycle and
+  # therefore a hollow spectrum, with no modulation at all.
+  algoa          #22
+  o1_wave        #5
+  o1_ratio       1
+  o1_level       1.00
+  o1_attack      0.12 s
+  o1_decay       4 s
+  o1_sustain     0.9
+  o2_wave        #3
+  o2_ratio       2
+  o2_level       0.82
+  o2_attack      0.2 s
+  o2_decay       4 s
+  o2_sustain     0.85
+  o3_level       0.00
+  o4_level       0.00
+  o5_level       0.00
+  o6_level       0.00
+  volume         1.00
+
+patch "String Pad FM" family=pad  note=55 range=36..79 role=pad
+  # A slow attack on both the carrier and its modulator, so the patch
+  # gets brighter as it arrives rather than fading in at a fixed colour.
+  algoa          #6
+  o1_ratio       1
+  o1_level       0.8
+  o1_attack      0.8 s
+  o1_decay       4 s
+  o1_sustain     0.85
+  o1_release     1.8 s
+  o2_ratio       3
+  o2_level       0.22
+  o2_attack      1.4 s
+  o2_decay       3 s
+  o2_sustain     0.6
+  o3_ratio       1
+  o3_fine        8
+  o3_level       0.55
+  o3_attack      1 s
+  o3_decay       4 s
+  o3_sustain     0.8
+  o4_ratio       2
+  o4_level       0.15
+  o4_attack      1.2 s
+  o4_decay       3 s
+  o4_sustain     0.5
+  o5_level       0
+  o6_level       0
+  volume         0.71
+
+patch "Choir FM" family=pad  note=55 range=36..79 role=pad
+  # Two carriers a fifth apart with a rectified modulator too slow to
+  # hear as modulation. Not a voice, and the closer you listen the less it
+  # is one.
+  algoa          #6
+  o1_ratio       1
+  o1_level       0.8
+  o1_attack      0.6 s
+  o1_decay       3 s
+  o1_sustain     0.85
+  o1_release     1.5 s
+  o2_wave        #4
+  o2_ratio       1
+  o2_level       0.25
+  o2_attack      1 s
+  o2_decay       3 s
+  o2_sustain     0.6
+  o3_ratio       1.5
+  o3_level       0.5
+  o3_attack      0.7 s
+  o3_decay       3 s
+  o3_sustain     0.8
+  o4_level       0
+  o5_level       0
+  o6_level       0
+  f_type         #2
+  f_freq         3000 Hz
+  volume         0.89
+
+patch "Morph Pad" family=pad  note=55 range=36..79 role=pad
+  # Built to be moved: algorithm A is three pairs and algorithm B is all
+  # six as carriers, and the morph between them takes the patch from a
+  # modulated sound to an additive one without changing a note.
+  algoa          #6
+  algob          #22
+  morph          0.35
+  o1_ratio       1
+  o1_level       0.75
+  o1_attack      0.7 s
+  o1_decay       4 s
+  o1_sustain     0.85
+  o1_release     2 s
+  o2_ratio       2
+  o2_level       0.4
+  o2_attack      1 s
+  o2_decay       4 s
+  o2_sustain     0.7
+  o3_ratio       3
+  o3_level       0.3
+  o3_attack      1.2 s
+  o3_decay       4 s
+  o3_sustain     0.6
+  o4_ratio       4
+  o4_level       0.2
+  o4_attack      1.4 s
+  o4_decay       4 s
+  o4_sustain     0.5
+  o5_level       0
+  o6_level       0
+  volume         0.96
+
+patch "Skewed Pad" family=pad  note=55 range=36..79 role=pad
+  # The skew control pulls every ratio off its whole number by the same
+  # amount, so the partials fan apart as they go up. A stretched harmonic
+  # series, which is what a piano has and no oscillator does.
+  algoa          #22
+  skew           0.28
+  snap           #0
+  o1_ratio       1
+  o1_level       0.94
+  o1_attack      0.9 s
+  o1_decay       5 s
+  o1_sustain     0.85
+  o1_release     2.5 s
+  o2_ratio       2
+  o2_level       0.57
+  o2_attack      1.1 s
+  o2_decay       5 s
+  o2_sustain     0.8
+  o3_ratio       3
+  o3_level       0.38
+  o3_attack      1.3 s
+  o3_decay       5 s
+  o3_sustain     0.7
+  o4_ratio       5
+  o4_level       0.23
+  o4_attack      1.5 s
+  o4_decay       5 s
+  o4_sustain     0.6
+  o5_level       0.00
+  o6_level       0.00
+  volume         1.00
+
+patch "Drone FM" family=pad  note=55 range=36..79 role=pad
+  # Six carriers, no envelope movement at all, and two of them a few cents
+  # apart so the whole thing turns over slowly and never repeats.
+  algoa          #22
+  o1_ratio       1
+  o1_level       0.7
+  o1_attack      2 s
+  o1_decay       10 s
+  o1_sustain     0.9
+  o1_release     4 s
+  o2_ratio       1
+  o2_fine        11
+  o2_level       0.5
+  o2_attack      2.4 s
+  o2_decay       10 s
+  o2_sustain     0.9
+  o3_ratio       2
+  o3_level       0.4
+  o3_attack      2.8 s
+  o3_decay       10 s
+  o3_sustain     0.9
+  o4_ratio       3
+  o4_fine        -8
+  o4_level       0.25
+  o4_attack      3 s
+  o4_decay       10 s
+  o4_sustain     0.9
+  o5_ratio       5
+  o5_level       0.15
+  o5_attack      3.4 s
+  o5_decay       10 s
+  o5_sustain     0.9
+  o6_level       0
+  volume         1.00
+
+patch Wood family=noise  note=60 range=36..84 role=bell
+  # A noise operator lasting eight milliseconds into a carrier that lasts
+  # two hundred. That is the whole of a wood block, and it is two numbers.
+  algoa          #6
+  o1_ratio       1
+  o1_level       1.00
+  o1_decay       0.22 s
+  o1_sustain     0.0
+  o1_release     0.1 s
+  o2_wave        #15
+  o2_ratio       8
+  o2_level       1.00
+  o2_decay       0.008 s
+  o2_sustain     0.0
+  o3_ratio       3.3
+  o3_level       1.00
+  o3_decay       0.15 s
+  o3_sustain     0.0
+  o4_level       0.00
+  o5_level       0.00
+  o6_level       0.00
+  snap           #0
+  volume         1.00
+
+patch Crush family=noise  note=67 range=48..91 role=lead
+  # The crush mode on two operators at once, which quantises the phase
+  # rather than the amplitude and is therefore an aliasing effect with a
+  # pitch. Not subtle.
+  algoa          #5
+  o1_wave        #2
+  o1_ratio       1
+  o1_level       0.85
+  o1_decay       1.5 s
+  o1_sustain     0.7
+  o2_mode        #7
+  o2_ratio       2
+  o2_level       0.5
+  o2_decay       1 s
+  o2_sustain     0.6
+  o3_mode        #7
+  o3_ratio       3
+  o3_level       0.35
+  o3_decay       0.8 s
+  o3_sustain     0.4
+  o4_level       0
+  o5_level       0
+  o6_level       0
+  volume         0.88
+
+patch Riser family=noise  note=55 range=36..79 role=pad
+  # A sample-and-hold operator at a fixed rate under a carrier with a very
+  # long attack. Nothing about it is pitched and it is in the bank because
+  # every bank needs one thing that is not.
+  algoa          #6
+  o1_ratio       1
+  o1_level       0.92
+  o1_attack      3 s
+  o1_decay       6 s
+  o1_sustain     0.9
+  o1_release     1 s
+  o2_wave        #14
+  o2_fixed       1
+  o2_ratio       12
+  o2_level       0.63
+  o2_attack      3 s
+  o2_decay       6 s
+  o2_sustain     0.8
+  o3_level       0.00
+  o4_level       0.00
+  o5_level       0.00
+  o6_level       0.00
+  f_type         #3
+  f_freq         600 Hz
+  f_env          0.85
+  f_attack       3.5 s
+  f_sustain      0.9
+  volume         1.00

@@ -1,0 +1,1202 @@
+# Trinity - fifty patches, because the machine has fifty patches in it.
+#
+# Three oscillators, each with twelve waveforms - four analogue shapes and
+# eight wavetables - eight voices of unison apiece with their own detune and
+# their own drift, ring modulation and FM between them, two filters with
+# twelve types and six drive curves each, six envelopes, four LFOs and a
+# modulation matrix. A bank of seven was not a bank, it was a sample of one.
+#
+# The patches are grouped by what they are for: keys and plucks, pads,
+# strings and brass, basses, leads, then textures. Each says which demo it is
+# auditioned with, because a pad judged on a melody and a lead judged on a
+# chord both sound like mistakes. Four demos are new for this machine - `pad`
+# (four chords, held and overlapping), `lead` (one line with long notes, a
+# run and a leap), `keys` (a root underneath and stabs above it) and a
+# rewritten `arp` (a broken chord over a progression rather than one triad
+# forever).
+#
+# Levelled to the house figure of -21 dB on the loudness column, which is the
+# same figure every machine in the app is levelled to. Four decibels of that
+# came out of the machine's own output (`kHouse` in Trinity.cpp) so that Init
+# lands there too and the volume knob means the same thing here as anywhere
+# else. Six patches sit one to five decibels under it and all six are made of
+# things that are quiet by nature - noise through a band, and the vowel and
+# sweep tables, which have less in them than a saw does. They are already at
+# the top of their volume.
+#
+# Two of those were much further under before the filter was the problem
+# rather than the level: a twelve-decibel band on nothing but noise throws
+# almost all of it away, and a twenty-four decibel low-pass on noise does the
+# same more slowly. Six and twelve decibels a octave respectively, and they
+# came back fifteen and four decibels.
+#
+# Values are in each parameter's own units; `audition params Trinity` lists
+# them. A patch names only what it changes.
+
+machine Trinity
+role    pad
+
+patch Init family=keys
+
+patch "Bell Keys" family=keys  note=60 range=36..84 role=keys
+  a_attack       0.002 s
+  a_decay        1.6 s
+  a_release      1.2 s
+  a_sustain      0.05
+  f1_env         0.5
+  f1_freq        9000 Hz
+  f_sustain      0
+  o1_pos         0.7
+  o1_wave        #7
+  o2_coarse      #36
+  o2_level       0.57
+  o2_wave        #3
+  ring12         0.35
+  volume         0.79
+
+patch "Wide Saws" family=lead  note=55 range=36..79 role=pad
+  a_attack       0.02 s
+  a_decay        1.2 s
+  a_release      0.5 s
+  a_sustain      0.8
+  f1_env         0.25
+  f1_freq        6000 Hz
+  f1_res         0.1
+  m01_depth      0.4
+  m01_dest       #23
+  m01_src        #2
+  m02_depth      0.4
+  m02_dest       #17
+  m02_src        #3
+  o1_density     #4
+  o1_detune      0.45
+  o1_drift       0.3
+  o1_level       1.00
+  o2_density     #2
+  o2_detune      0.6
+  o2_drift       0.3
+  o2_fine        -9
+  o2_level       1.00
+  o3_coarse      #12
+  o3_density     #0
+  o3_drift       0.2
+  o3_level       0.68
+  volume         0.40
+
+patch "Glass Pad" family=pad  note=55 range=36..79 role=pad
+  a_attack       0.8 s
+  a_decay        2 s
+  a_release      2.5 s
+  a_sustain      0.75
+  f1_freq        4000 Hz
+  f1_res         0.2
+  f1_type        #1
+  l1_rate        0.15 Hz
+  l2_rate        0.07 Hz
+  m01_depth      0.4
+  m01_dest       #5
+  m01_src        #13
+  m02_depth      0.15
+  m02_dest       #23
+  m02_src        #14
+  m03_depth      0.5
+  m03_dest       #5
+  m03_src        #2
+  m04_depth      0.45
+  m04_dest       #23
+  m04_src        #3
+  o1_level       1.00
+  o1_pos         0.2
+  o1_wave        #5
+  o2_fine        6
+  o2_pos         0.6
+  o2_wave        #4
+  volume         0.96
+
+patch "Drift Strings" family=ensemble  note=55 range=36..79 role=pad
+  a_attack       0.35 s
+  a_decay        2 s
+  a_release      1.4 s
+  a_sustain      0.85
+  f1_freq        3500 Hz
+  f1_res         0.05
+  f1_type        #2
+  l1_delay       2 s
+  l1_rate        4.5 Hz
+  m01_depth      0.02
+  m01_dest       #1
+  m01_src        #13
+  m01_src2       #2
+  o1_density     #1
+  o1_detune      0.3
+  o1_drift       0.8
+  o1_level       0.95
+  o2_drift       0.9
+  o2_fine        -7
+  o2_level       0.87
+  o3_coarse      #36
+  o3_drift       0.7
+  o3_level       0.55
+  o3_wave        #2
+  volume         0.45
+
+patch "Sync Lead" family=lead  note=67 range=48..91 role=lead
+  a_attack       0.01 s
+  a_decay        0.5 s
+  a_release      0.2 s
+  a_sustain      0.85
+  f1_freq        7000 Hz
+  glide          0.12 s
+  m01_depth      0.7
+  m01_dest       #14
+  m01_src        #2
+  m02_depth      0.3
+  m02_dest       #23
+  m02_src        #4
+  o1_level       1.00
+  o1_sync        0.25
+  o2_fine        5
+  o2_level       0.49
+  o2_wave        #1
+  voicemode      #2
+  volume         0.45
+
+patch "FM Bass" family=bass  note=36 range=24..55 role=bass
+  a_attack       0.002 s
+  a_decay        0.35 s
+  a_release      0.15 s
+  a_sustain      0.35
+  e3_decay       0.25 s
+  e3_sustain     0
+  f1_env         0.55
+  f1_freq        900 Hz
+  f1_res         0.25
+  f_decay        0.2 s
+  f_sustain      0
+  fm21           0.55
+  glide          0.08 s
+  m01_depth      0.3
+  m01_dest       #21
+  m01_src        #9
+  o1_level       1.00
+  o1_wave        #3
+  o2_coarse      #36
+  o2_level       0.00
+  o2_wave        #3
+  voicemode      #1
+  volume         1.00
+
+patch "Electric Piano" family=keys  note=60 range=36..84 role=keys
+  # Two sines a fifth apart with a little FM between them and a hard decay:
+  # the tine, without a sample of one anywhere.
+  o1_wave        #3
+  o1_level       1.00
+  o2_wave        #3
+  o2_coarse      #31
+  o2_level       0.66
+  fm21           0.28
+  f1_type        #1
+  f1_freq        4200 Hz
+  f1_env         0.35
+  f1_key         0.5
+  a_attack       0.002 s
+  a_decay        1.6 s
+  a_sustain      0.12
+  a_release      0.5 s
+  f_decay        0.5 s
+  f_sustain      0.05
+  volume         0.53
+
+patch Clav family=keys  note=60 range=36..84 role=keys
+  # A narrow pulse through a band-pass with the envelope on it. All attack
+  # and no body, which is the whole instrument.
+  o1_wave        #1
+  o1_pw          0.18
+  o1_level       1.00
+  o2_wave        #1
+  o2_pw          0.26
+  o2_fine        6
+  o2_level       1.00
+  f1_type        #2
+  f1_freq        2400 Hz
+  f1_res         0.25
+  f1_env         0.5
+  f1_key         0.6
+  a_attack       0.001 s
+  a_decay        0.45 s
+  a_sustain      0.0
+  a_release      0.18 s
+  f_decay        0.2 s
+  f_sustain      0.0
+  volume         0.71
+
+patch Mallet family=keys  note=60 range=36..84 role=keys
+  # The bell table struck and let go. Short, wooden, and pitched enough to
+  # play a tune on rather than to ring.
+  o1_wave        #7
+  o1_pos         0.25
+  o1_level       1.00
+  o2_wave        #3
+  o2_coarse      #36
+  o2_level       0.66
+  f1_type        #3
+  f1_freq        3000 Hz
+  f1_env         0.55
+  f1_key         0.7
+  a_attack       0.001 s
+  a_decay        0.9 s
+  a_sustain      0.0
+  a_release      0.35 s
+  f_decay        0.28 s
+  f_sustain      0.0
+  volume         0.80
+
+patch "Music Box" family=keys  note=60 range=36..84 role=keys
+  # High, thin and metallic, with the second oscillator two octaves up and
+  # barely there. It runs out before the note does, as the real thing does.
+  o1_wave        #7
+  o1_pos         0.7
+  o1_level       1.00
+  o2_wave        #3
+  o2_coarse      #48
+  o2_level       0.35
+  o1_drift       0.05
+  f1_type        #1
+  f1_freq        6000 Hz
+  f1_key         0.8
+  a_attack       0.001 s
+  a_decay        1.1 s
+  a_sustain      0.0
+  a_release      0.6 s
+  volume         0.84
+
+patch Harpsi family=keys  note=60 range=36..84 role=keys
+  # Two saws a tiny way apart, plucked and filtered high: the jack and the
+  # quill rather than the hammer.
+  o1_wave        #0
+  o1_level       1.00
+  o2_wave        #0
+  o2_fine        11
+  o2_level       0.98
+  o3_wave        #0
+  o3_coarse      #36
+  o3_level       0.41
+  f1_type        #2
+  f1_freq        5200 Hz
+  f1_res         0.15
+  f1_env         0.3
+  f1_key         0.55
+  a_attack       0.001 s
+  a_decay        0.7 s
+  a_sustain      0.0
+  a_release      0.25 s
+  volume         0.79
+
+patch Kalimba family=keys  note=60 range=36..84 role=keys
+  # Almost a sine with a knock on the front of it. The comb table gives the
+  # thumb piano's hollow second partial without a filter doing the work.
+  o1_wave        #8
+  o1_pos         0.4
+  o1_level       1.00
+  o2_wave        #3
+  o2_coarse      #31
+  o2_level       0.50
+  noise          0.20
+  noisecol       0.8
+  f1_type        #1
+  f1_freq        2600 Hz
+  f1_env         0.4
+  f1_key         0.6
+  a_attack       0.001 s
+  a_decay        0.55 s
+  a_sustain      0.0
+  a_release      0.3 s
+  f_decay        0.08 s
+  f_sustain      0.0
+  volume         1.00
+
+patch "Toy Piano" family=keys  note=60 range=36..84 role=keys
+  # Detuned, short and a little sour, with the fold table putting a rattle
+  # above the note. Deliberately not a good piano.
+  o1_wave        #9
+  o1_pos         0.3
+  o1_warp        0.35
+  o1_level       1.00
+  o2_wave        #2
+  o2_fine        -22
+  o2_level       0.73
+  o1_drift       0.4
+  f1_type        #1
+  f1_freq        3400 Hz
+  f1_env         0.45
+  f1_key         0.5
+  a_attack       0.001 s
+  a_decay        0.8 s
+  a_sustain      0.0
+  a_release      0.3 s
+  volume         0.83
+
+patch "Pluck Wide" family=keys  note=55 range=40..79 role=arp
+  # Eight voices of unison detuned hard, plucked. Density is the thing this
+  # machine has that a three-oscillator synth normally does not, and this is
+  # the patch that is only that.
+  o1_wave        #0
+  o1_density     #7
+  o1_detune      0.55
+  o1_level       1.00
+  o2_wave        #0
+  o2_density     #5
+  o2_detune      0.4
+  o2_coarse      #36
+  o2_level       0.57
+  f1_type        #3
+  f1_freq        3800 Hz
+  f1_res         0.2
+  f1_env         0.45
+  a_attack       0.002 s
+  a_decay        0.9 s
+  a_sustain      0.0
+  a_release      0.4 s
+  f_decay        0.35 s
+  f_sustain      0.0
+  volume         0.98
+
+patch "Warm Pad" family=pad  note=55 range=36..79 role=pad
+  # Three saws, gently detuned, a long way open and slow at both ends. The
+  # one a bank is incomplete without.
+  o1_wave        #0
+  o1_density     #3
+  o1_detune      0.3
+  o1_level       1.00
+  o2_wave        #0
+  o2_fine        -8
+  o2_density     #2
+  o2_level       1.00
+  o3_wave        #2
+  o3_coarse      #12
+  o3_level       0.57
+  o1_drift       0.25
+  f1_type        #3
+  f1_freq        2200 Hz
+  f1_res         0.12
+  f1_env         0.3
+  a_attack       0.9 s
+  a_decay        3 s
+  a_sustain      0.75
+  a_release      2.2 s
+  volume         0.39
+
+patch Choir family=pad  note=55 range=36..79 role=pad
+  # The vowel table on two oscillators a fifth apart, drifting. Not a sample
+  # of anybody, and the closer you listen the less human it is, which is the
+  # interesting part.
+  o1_wave        #6
+  o1_pos         0.35
+  o1_density     #2
+  o1_detune      0.25
+  o1_level       1.00
+  o2_wave        #6
+  o2_pos         0.6
+  o2_coarse      #31
+  o2_level       0.83
+  o1_drift       0.35
+  o2_drift       0.4
+  f1_type        #1
+  f1_freq        3200 Hz
+  f1_res         0.2
+  a_attack       0.6 s
+  a_decay        2.5 s
+  a_sustain      0.8
+  a_release      1.8 s
+  volume         1.00
+
+patch "Sweep Pad" family=pad  note=55 range=36..79 role=pad
+  # The sweep table with its position moving under an LFO: the wavetable
+  # doing what a filter usually gets asked to do.
+  o1_wave        #4
+  o1_pos         0.2
+  o1_density     #1
+  o1_level       1.00
+  o2_wave        #4
+  o2_pos         0.7
+  o2_fine        -6
+  o2_level       1.00
+  l1_rate        0.12 Hz
+  m01_src        #13
+  m01_dest       #5
+  m01_depth      0.5
+  f1_type        #1
+  f1_freq        4000 Hz
+  a_attack       1.2 s
+  a_decay        3 s
+  a_sustain      0.8
+  a_release      2.6 s
+  volume         1.00
+
+patch "Dark Pad" family=pad  note=55 range=36..79 role=pad
+  # Low, filtered hard and with the noise floor deliberately left in. For
+  # underneath things rather than on top of them.
+  o1_wave        #0
+  o1_coarse      #12
+  o1_density     #2
+  o1_detune      0.35
+  o1_level       1.00
+  o2_wave        #2
+  o2_level       0.86
+  noise          0.31
+  noisecol       0.25
+  f1_type        #3
+  f1_freq        700 Hz
+  f1_res         0.25
+  f1_env         0.2
+  a_attack       1.4 s
+  a_decay        4 s
+  a_sustain      0.7
+  a_release      3 s
+  volume         0.53
+
+patch Shimmer family=pad  note=55 range=36..79 role=pad
+  # The glass table an octave and a fifth up over a root that stays the
+  # loudest thing in it. Written the other way round the played pitch was
+  # thirty decibels under the twelfth above it, which is a patch that
+  # transposes what you play.
+  # The glass table an octave and a fifth up over a root, with both
+  # drifting. High, bright, and thin enough to sit over anything.
+  o1_wave        #5
+  o1_pos         0.5
+  o1_level       1.00
+  o2_wave        #5
+  o2_coarse      #43
+  o2_pos         0.75
+  o2_level       0.45
+  # The sine sits on the note rather than an octave over it, so there is a
+  # fundamental under the shimmer. Without one the patch played an octave
+  # above whatever key you pressed, which a shimmer may do to a reverb tail
+  # but should not do to a keyboard.
+  o3_wave        #3
+  o3_level       0.55
+  o1_drift       0.5
+  o2_drift       0.45
+  # The high-pass follows the keyboard. Fixed at 400 Hz it removed the note
+  # itself over the bottom half of the range - eighty decibels down at the
+  # lowest, with the sixth harmonic the loudest thing in it - so the patch
+  # played a different pitch depending where you put your hand.
+  f1_type        #5
+  f1_freq        120 Hz
+  f1_key         0.9
+  a_attack       1.6 s
+  a_decay        4 s
+  a_sustain      0.85
+  a_release      3.5 s
+  volume         0.73
+
+patch "Breath Pad" family=pad  note=55 range=36..79 role=pad
+  # Mostly noise, with just enough oscillator under it to give the noise a
+  # pitch. The band-pass is what makes it a note rather than a hiss.
+  o1_wave        #3
+  o1_level       1.00
+  o2_wave        #3
+  o2_coarse      #31
+  o2_level       0.60
+  noise          1.00
+  noisecol       0.55
+  f1_type        #8
+  f1_freq        1200 Hz
+  f1_res         0.3
+  f1_key         0.9
+  f1_env         0.25
+  a_attack       1.1 s
+  a_decay        3 s
+  a_sustain      0.75
+  a_release      2.4 s
+  volume         1.00
+
+patch "Rotor Pad" family=pad  note=55 range=36..79 role=pad
+  # The organ table with a fast LFO on the pitch of one oscillator only, so
+  # the two beat against each other the way a spinning cabinet does.
+  o1_wave        #11
+  o1_level       1.00
+  o2_wave        #11
+  o2_fine        4
+  o2_level       1.00
+  l1_rate        5.6 Hz
+  m01_src        #13
+  m01_dest       #3
+  m01_depth      0.12
+  f1_type        #1
+  f1_freq        3000 Hz
+  a_attack       0.15 s
+  a_decay        2 s
+  a_sustain      0.85
+  a_release      0.6 s
+  volume         0.53
+
+patch "Glass Ice" family=pad  note=55 range=36..79 role=pad
+  # The glass table played straight with a notch moving through it. Cold,
+  # and the notch is what stops it being a organ.
+  o1_wave        #5
+  o1_pos         0.15
+  o1_density     #1
+  o1_level       0.75
+  o2_wave        #5
+  o2_pos         0.85
+  o2_fine        -11
+  o2_level       0.5
+  f1_type        #10
+  f1_freq        1200 Hz
+  f1_res         0.5
+  l1_rate        0.2 Hz
+  m01_src        #13
+  m01_dest       #23
+  m01_depth      0.45
+  a_attack       0.7 s
+  a_decay        3 s
+  a_sustain      0.8
+  a_release      2.2 s
+  volume         0.82
+
+patch Wash family=pad  note=55 range=36..79 role=pad
+  # Eight-voice unison on two oscillators with the detune wide and the
+  # attack long enough that nothing ever quite starts. Density at its limit.
+  o1_wave        #0
+  o1_density     #7
+  o1_detune      0.8
+  o1_drift       0.6
+  o1_level       1.00
+  o2_wave        #2
+  o2_density     #7
+  o2_detune      0.7
+  o2_coarse      #19
+  o2_level       0.77
+  f1_type        #1
+  f1_freq        1800 Hz
+  a_attack       2.5 s
+  a_decay        5 s
+  a_sustain      0.8
+  a_release      4 s
+  volume         0.51
+
+patch "Solo String" family=ensemble  note=60 range=48..84 role=lead
+  # One voice, a slow bow on the attack and a little drift. Deliberately not
+  # an ensemble: it is the patch that shows the ensemble ones are ensembles.
+  o1_wave        #0
+  o1_level       1.00
+  o2_wave        #0
+  o2_fine        5
+  o2_level       0.74
+  o1_drift       0.3
+  f1_type        #2
+  f1_freq        2400 Hz
+  f1_res         0.18
+  f1_env         0.25
+  a_attack       0.22 s
+  a_decay        2 s
+  a_sustain      0.85
+  a_release      0.5 s
+  glide          0.04 s
+  volume         0.44
+
+patch Ensemble family=ensemble  note=55 range=36..79 role=pad
+  # Six voices of unison on each of two oscillators, drifting apart at
+  # different rates. The size comes from the drift and not from the detune,
+  # which is the difference between an ensemble and a chorus pedal.
+  o1_wave        #0
+  o1_density     #5
+  o1_detune      0.32
+  o1_drift       0.45
+  o1_level       1.00
+  o2_wave        #2
+  o2_density     #4
+  o2_detune      0.28
+  o2_drift       0.3
+  o2_fine        -7
+  o2_level       0.97
+  f1_type        #2
+  f1_freq        3200 Hz
+  f1_res         0.1
+  a_attack       0.35 s
+  a_decay        2.5 s
+  a_sustain      0.85
+  a_release      1.2 s
+  volume         0.38
+
+patch "Brass Section" family=ensemble  note=55 range=40..79 role=keys
+  # The filter envelope arriving late and hard, which is what a brass attack
+  # is. Three oscillators, the third an octave down for weight.
+  o1_wave        #0
+  o1_density     #2
+  o1_detune      0.22
+  o1_level       1.00
+  o2_wave        #0
+  o2_fine        9
+  o2_level       1.00
+  o3_wave        #1
+  o3_coarse      #12
+  o3_level       0.59
+  f1_type        #3
+  f1_freq        700 Hz
+  f1_res         0.22
+  f1_env         0.75
+  f1_key         0.4
+  f_attack       0.06 s
+  f_decay        0.5 s
+  f_sustain      0.45
+  a_attack       0.04 s
+  a_decay        1.5 s
+  a_sustain      0.85
+  a_release      0.3 s
+  volume         0.40
+
+patch "Soft Horn" family=ensemble  note=55 range=36..79 role=pad
+  # The same idea with the envelope taken off and the filter left low: round
+  # and slow, and it stops being brass the moment it stops being bright.
+  o1_wave        #0
+  o1_density     #1
+  o1_level       1.00
+  o2_wave        #2
+  o2_fine        -5
+  o2_level       0.92
+  o3_wave        #3
+  o3_coarse      #12
+  o3_level       0.50
+  f1_type        #3
+  f1_freq        1100 Hz
+  f1_res         0.1
+  f1_env         0.2
+  a_attack       0.3 s
+  a_decay        2 s
+  a_sustain      0.8
+  a_release      0.8 s
+  volume         0.35
+
+patch "Analog Strings" family=ensemble  note=55 range=36..79 role=pad
+  # Saw and square a shade apart with the drift up, filtered gently and with
+  # a slow sweep on the cutoff. The string machine rather than the string.
+  o1_wave        #0
+  o1_density     #3
+  o1_detune      0.38
+  o1_drift       0.5
+  o1_level       1.00
+  o2_wave        #1
+  o2_pw          0.42
+  o2_fine        8
+  o2_level       0.82
+  l1_rate        0.09 Hz
+  m01_src        #13
+  m01_dest       #23
+  m01_depth      0.35
+  f1_type        #2
+  f1_freq        2000 Hz
+  f1_res         0.15
+  a_attack       0.5 s
+  a_decay        3 s
+  a_sustain      0.8
+  a_release      1.6 s
+  volume         0.31
+
+patch Swell family=ensemble  note=55 range=36..69 role=pad
+  # Nothing at all for a quarter of a second and then everything. Written
+  # at 0.45 plus a 1.8 second attack it had not started by the end of a two
+  # second note, which is a patch nobody can play. The amplitude
+  # delay is a parameter most synths do not have and this is what it is for.
+  o1_wave        #4
+  o1_pos         0.45
+  o1_density     #2
+  o1_detune      0.3
+  o1_level       1.00
+  o2_wave        #0
+  o2_coarse      #19
+  o2_level       0.61
+  a_delay        0.25 s
+  a_attack       1.1 s
+  a_decay        3 s
+  a_sustain      0.8
+  a_release      2.5 s
+  f1_type        #1
+  f1_freq        2600 Hz
+  f1_env         0.4
+  volume         0.81
+
+patch "Sub Bass" family=bass  note=36 range=24..55 role=bass
+  # A sine and nothing else, with a square an octave up at a tenth of its
+  # level so there is something to hear on a small speaker.
+  o1_wave        #3
+  o1_level       1.00
+  o2_wave        #1
+  o2_coarse      #36
+  o2_level       0.20
+  f1_type        #1
+  f1_freq        700 Hz
+  a_attack       0.004 s
+  a_decay        1.2 s
+  a_sustain      0.6
+  a_release      0.15 s
+  volume         0.70
+
+patch Reese family=bass  note=36 range=24..55 role=bass
+  # Two saws far enough apart to beat rather than to thicken, low-passed
+  # until only the beating is left. The detune is the instrument.
+  o1_wave        #0
+  o1_level       1.00
+  o2_wave        #0
+  o2_fine        -28
+  o2_level       1.00
+  o1_drift       0.15
+  f1_type        #3
+  f1_freq        420 Hz
+  f1_res         0.3
+  f1_env         0.25
+  a_attack       0.01 s
+  a_decay        1.5 s
+  a_sustain      0.85
+  a_release      0.25 s
+  volume         0.48
+
+patch Wobble family=bass  note=36 range=24..55 role=bass
+  # The Reese's two saws through a resonant low pass that LFO 1 opens and
+  # closes in eighth triplets, restarting with each note. Lock l1_sync on the
+  # steps (1/4, 1/8, 1/8T, 1/16) and the bass talks.
+  o1_wave        #0
+  o1_level       1.00
+  o2_wave        #0
+  o2_fine        -18
+  o2_level       1.00
+  o1_drift       0.1
+  f1_type        #3
+  f1_freq        200 Hz
+  f1_res         0.55
+  f1_env         0.1
+  f1_drive       0.45
+  l1_sync        #4
+  m01_src        #13
+  m01_dest       #23
+  m01_depth      0.8
+  a_attack       0.005 s
+  a_decay        1.5 s
+  a_sustain      1.0
+  a_release      0.12 s
+  volume         0.45
+
+patch Wub family=bass  note=36 range=24..55 role=bass
+  # Slower and darker: a quarter-note wub on a square and a sub.
+  o1_wave        #1
+  o1_level       1.00
+  o2_wave        #0
+  o2_coarse      #12
+  o2_level       0.8
+  f1_type        #3
+  f1_freq        160 Hz
+  f1_res         0.5
+  f1_drive       0.3
+  l1_sync        #9
+  m01_src        #13
+  m01_dest       #23
+  m01_depth      0.85
+  a_attack       0.005 s
+  a_sustain      1.0
+  a_release      0.15 s
+  volume         0.5
+
+patch "Pluck Bass" family=bass  note=36 range=24..55 role=bass
+  # Short, filtered, and with the filter envelope faster than the amplitude
+  # one so the note darkens while it is still loud.
+  o1_wave        #0
+  o1_level       1.00
+  o2_wave        #1
+  o2_pw          0.35
+  o2_coarse      #36
+  o2_level       0.69
+  f1_type        #3
+  f1_freq        500 Hz
+  f1_res         0.35
+  f1_env         0.7
+  f_decay        0.12 s
+  f_sustain      0.0
+  a_attack       0.002 s
+  a_decay        0.5 s
+  a_sustain      0.15
+  a_release      0.2 s
+  volume         0.99
+
+patch "Growl Bass" family=bass  note=36 range=24..55 role=bass
+  # The grit table through a driven filter. Where Reflux's drive is a pedal
+  # after the filter, this one is a waveshape before it.
+  o1_wave        #10
+  o1_pos         0.4
+  o1_warp        0.5
+  o1_level       1.00
+  o2_wave        #0
+  o2_coarse      #12
+  o2_level       0.65
+  f1_type        #3
+  f1_freq        600 Hz
+  f1_res         0.3
+  f1_drivetype   #2
+  f1_drive       0.3
+  f1_env         0.4
+  a_attack       0.004 s
+  a_decay        1 s
+  a_sustain      0.7
+  a_release      0.2 s
+  volume         1.00
+
+patch "Wide Bass" family=bass  note=36 range=24..55 role=bass
+  # Unison on the bass, which normally muddies it: the filter is low enough
+  # that the detuning stays under the note instead of smearing across it.
+  o1_wave        #0
+  o1_density     #3
+  o1_detune      0.2
+  o1_level       1.00
+  o2_wave        #3
+  o2_level       0.74
+  f1_type        #3
+  f1_freq        380 Hz
+  f1_res         0.2
+  f1_env         0.35
+  a_attack       0.006 s
+  a_decay        1.2 s
+  a_sustain      0.75
+  a_release      0.2 s
+  volume         0.62
+
+patch "Square Bass" family=bass  note=36 range=24..55 role=bass
+  # A hollow square with the pulse width just off centre and no resonance at
+  # all. The plain one, which every bank needs and few have.
+  o1_wave        #1
+  o1_pw          0.38
+  o1_level       1.00
+  o2_wave        #1
+  o2_pw          0.5
+  o2_coarse      #12
+  o2_level       0.64
+  f1_type        #2
+  f1_freq        900 Hz
+  f1_res         0.05
+  f1_env         0.2
+  a_attack       0.003 s
+  a_decay        1 s
+  a_sustain      0.7
+  a_release      0.15 s
+  volume         0.46
+
+patch "Ring Bass" family=bass  note=36 range=24..55 role=bass
+  # Ring modulation between the first two oscillators, which is metal rather
+  # than harmony, kept low enough to still be a bass.
+  o1_wave        #3
+  o1_level       1.00
+  o2_wave        #3
+  o2_coarse      #19
+  o2_level       1.00
+  ring12         0.65
+  f1_type        #3
+  f1_freq        800 Hz
+  f1_res         0.25
+  f1_env         0.4
+  a_attack       0.003 s
+  a_decay        0.9 s
+  a_sustain      0.5
+  a_release      0.2 s
+  volume         0.58
+
+patch "Square Lead" family=lead  note=67 range=48..91 role=lead
+  # One square, one filter, one envelope, played high. If a synth cannot do
+  # this it cannot do anything.
+  o1_wave        #1
+  o1_pw          0.5
+  o1_level       1.00
+  o2_wave        #1
+  o2_pw          0.45
+  o2_fine        -6
+  o2_level       0.64
+  f1_type        #3
+  f1_freq        2600 Hz
+  f1_res         0.2
+  f1_env         0.35
+  a_attack       0.01 s
+  a_decay        1 s
+  a_sustain      0.8
+  a_release      0.25 s
+  glide          0.03 s
+  volume         0.27
+
+patch "Saw Lead" family=lead  note=67 range=48..91 role=lead
+  # Three saws, two of them a cent or two out, with the filter tracking the
+  # keyboard so the top of the range does not turn to mud.
+  o1_wave        #0
+  o1_level       1.00
+  o2_wave        #0
+  o2_fine        4
+  o2_level       1.00
+  o3_wave        #0
+  o3_fine        -5
+  o3_level       0.83
+  f1_type        #3
+  f1_freq        1800 Hz
+  f1_res         0.25
+  f1_key         0.8
+  f1_env         0.3
+  a_attack       0.008 s
+  a_decay        1.2 s
+  a_sustain      0.85
+  a_release      0.3 s
+  volume         0.39
+
+patch "Fifth Lead" family=lead  note=67 range=48..91 role=lead
+  # The second oscillator a fifth above and the third an octave, which is a
+  # chord you cannot play a wrong note in. Hollow and very loud for its size.
+  o1_wave        #1
+  o1_level       1.00
+  o2_wave        #1
+  o2_coarse      #31
+  o2_level       0.91
+  o3_wave        #1
+  o3_coarse      #36
+  o3_level       0.58
+  f1_type        #2
+  f1_freq        3200 Hz
+  f1_res         0.15
+  a_attack       0.01 s
+  a_decay        1 s
+  a_sustain      0.85
+  a_release      0.2 s
+  volume         0.24
+
+patch "Soft Lead" family=lead  note=67 range=48..91 role=lead
+  # A triangle with the corners taken off and a slow glide. For playing over
+  # something rather than through it.
+  o1_wave        #2
+  o1_level       1.00
+  o2_wave        #3
+  o2_fine        7
+  o2_level       0.81
+  o1_drift       0.2
+  f1_type        #1
+  f1_freq        1600 Hz
+  f1_env         0.2
+  a_attack       0.06 s
+  a_decay        1.5 s
+  a_sustain      0.85
+  a_release      0.5 s
+  glide          0.09 s
+  volume         0.37
+
+patch "Hard Sync" family=lead  note=67 range=48..91 role=lead
+  # Oscillator two hard-synced to oscillator one and tuned a long way above
+  # it, so its pitch becomes a timbre. The envelope sweeps it.
+  o1_wave        #0
+  o1_level       0.82
+  o2_wave        #0
+  o2_sync        1
+  o2_hard        1
+  o2_coarse      #43
+  o2_level       1.00
+  f1_type        #2
+  f1_freq        4000 Hz
+  f1_res         0.15
+  f1_env         0.4
+  a_attack       0.005 s
+  a_decay        1 s
+  a_sustain      0.8
+  a_release      0.2 s
+  volume         0.52
+
+patch "PWM Lead" family=lead  note=67 range=48..91 role=lead
+  # The pulse width moving under a slow LFO, which is the oldest trick there
+  # is and still the one that makes one oscillator sound like two.
+  o1_wave        #1
+  o1_pw          0.5
+  o1_level       1.00
+  o2_wave        #1
+  o2_pw          0.5
+  o2_fine        -4
+  o2_level       0.96
+  l1_rate        0.45 Hz
+  m01_src        #13
+  m01_dest       #11
+  m01_depth      0.4
+  m02_src        #13
+  m02_dest       #12
+  m02_depth      -0.35
+  f1_type        #3
+  f1_freq        2800 Hz
+  f1_res         0.12
+  a_attack       0.02 s
+  a_decay        1.2 s
+  a_sustain      0.85
+  a_release      0.3 s
+  volume         0.22
+
+patch "Vowel Lead" family=lead  note=67 range=48..91 role=lead
+  # The vowel table with its position on the envelope, so the note says one
+  # thing at its start and another by the end of it.
+  o1_wave        #6
+  o1_density     #2
+  o1_detune      0.2
+  o1_pos         0.2
+  o1_level       1.00
+  o2_wave        #6
+  o2_pos         0.5
+  o2_fine        6
+  o2_level       0.93
+  m01_src        #8
+  m01_dest       #5
+  m01_depth      0.6
+  f1_type        #2
+  f1_freq        3000 Hz
+  f1_res         0.2
+  a_attack       0.01 s
+  a_decay        1.2 s
+  a_sustain      0.8
+  a_release      0.3 s
+  volume         1.00
+
+patch Whistle family=lead  note=67 range=48..91 role=lead
+  # Near enough a sine with a little drift and a lot of glide: the top of
+  # the keyboard, where most patches stop being usable.
+  o1_wave        #3
+  o1_level       1.00
+  o2_wave        #3
+  o2_fine        3
+  o2_level       0.49
+  o1_drift       0.35
+  f1_type        #1
+  f1_freq        5000 Hz
+  a_attack       0.05 s
+  a_decay        1 s
+  a_sustain      0.9
+  a_release      0.4 s
+  glide          0.12 s
+  volume         0.36
+
+patch "Noise Sweep" family=texture  note=55 range=36..79 role=pad
+  # All noise, with a resonant low-pass opening over three seconds. No
+  # oscillator at all: proof the filter is an instrument on its own.
+  o1_level       0.00
+  o2_level       0.00
+  noise          1.00
+  noisecol       0.5
+  f1_type        #1
+  f1_freq        420 Hz
+  f1_res         0.45
+  f1_env         0.9
+  f_attack       2.8 s
+  f_decay        3 s
+  f_sustain      0.9
+  a_attack       0.4 s
+  a_decay        4 s
+  a_sustain      0.85
+  a_release      2 s
+  volume         1.00
+
+patch "Ring Bells" family=texture  note=55 range=36..79 role=keys
+  # Ring modulation between two oscillators a tritone apart, which has no
+  # harmonic relationship at all and therefore sounds like metal.
+  o1_wave        #3
+  o1_level       0.98
+  o2_wave        #3
+  o2_coarse      #30
+  o2_level       0.98
+  ring12         0.9
+  o3_wave        #7
+  o3_coarse      #36
+  o3_level       0.41
+  f1_type        #1
+  f1_freq        6000 Hz
+  a_attack       0.002 s
+  a_decay        2.5 s
+  a_sustain      0.0
+  a_release      1.2 s
+  volume         0.39
+
+patch Drone family=texture  note=55 range=36..79 role=pad
+  # Three oscillators on the organ table at the octave and the fifth, no
+  # envelope movement at all, and enough drift that it never quite repeats.
+  o1_wave        #11
+  o1_level       1.00
+  o2_wave        #11
+  o2_coarse      #31
+  o2_level       0.75
+  o3_wave        #11
+  o3_coarse      #36
+  o3_level       0.58
+  o1_drift       0.55
+  o2_drift       0.5
+  o3_drift       0.6
+  f1_type        #1
+  f1_freq        2400 Hz
+  a_attack       2 s
+  a_decay        8 s
+  a_sustain      0.9
+  a_release      3 s
+  volume         0.56
+
+patch Metallic family=texture  note=55 range=36..79 role=pad
+  # The fold table warped hard through a peaking filter. Inharmonic on
+  # purpose: it has a pitch but it does not have a key.
+  o1_wave        #9
+  o1_pos         0.8
+  o1_warp        0.75
+  o1_level       1.00
+  o2_wave        #9
+  o2_pos         0.3
+  o2_coarse      #30
+  o2_level       0.81
+  f1_type        #11
+  f1_freq        1800 Hz
+  f1_res         0.6
+  a_attack       0.01 s
+  a_decay        3 s
+  a_sustain      0.3
+  a_release      1.5 s
+  volume         0.33
+
+patch "Sweep Down" family=texture  note=55 range=36..79 role=pad
+  # A filter falling from the top of its range to the bottom over four
+  # seconds, with nothing else happening. The one you put at the end of a
+  # bar.
+  o1_wave        #0
+  o1_density     #4
+  o1_detune      0.45
+  o1_level       1.00
+  o2_wave        #10
+  o2_level       0.55
+  noise          0.35
+  f1_type        #3
+  f1_freq        9000 Hz
+  f1_res         0.45
+  f1_env         -0.95
+  f_attack       0.01 s
+  f_decay        4 s
+  f_sustain      0.0
+  a_attack       0.01 s
+  a_decay        5 s
+  a_sustain      0.6
+  a_release      1.5 s
+  volume         0.42
+
+patch Air family=texture  note=55 range=36..79 role=pad
+  # A high-pass at four kilohertz on almost nothing: what is left is the top
+  # of the drift and the top of the noise. Sits above a mix without being
+  # in it.
+  o1_wave        #5
+  o1_pos         0.9
+  o1_density     #3
+  o1_detune      0.5
+  o1_drift       0.6
+  o1_level       1.00
+  noise          0.3
+  noisecol       0.9
+  # The high-pass follows the keyboard and sits far lower than it did. At a
+  # fixed four kilohertz there was no note anywhere in the range - the patch
+  # was a texture with no pitch, which is a fine layer and not a thing you
+  # can play: twelve decibels an octave rather than twenty-four, and a
+  # third of the noise. It is still airy and it now has a note in it.
+  f1_type        #5
+  f1_freq        600 Hz
+  f1_key         0.8
+  f1_res         0.2
+  a_attack       1.5 s
+  a_decay        4 s
+  a_sustain      0.85
+  a_release      3 s
+  volume         0.95

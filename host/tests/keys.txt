@@ -1,0 +1,17 @@
+# Two bars of quarter-note arpeggios at 120 bpm
+0.000 note 0 1 60 100
+0.400 note 0 1 60 0
+0.500 note 0 1 64 100
+0.900 note 0 1 64 0
+1.000 note 0 1 67 100
+1.400 note 0 1 67 0
+1.500 note 0 1 72 100
+1.900 note 0 1 72 0
+2.000 note 0 1 62 100
+2.400 note 0 1 62 0
+2.500 note 0 1 65 100
+2.900 note 0 1 65 0
+3.000 note 0 1 69 100
+3.400 note 0 1 69 0
+3.500 note 0 1 74 100
+3.900 note 0 1 74 0

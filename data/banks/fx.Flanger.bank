@@ -1,0 +1,105 @@
+# Flanger - a delay short enough to comb, and the switch that inverts it.
+#
+# The classic part is a few milliseconds of delay swept slowly with feedback.
+# The extra is `negative`: the delayed copy is subtracted rather than added, so
+# the comb's teeth land where its peaks were and the low end cancels instead of
+# reinforcing. Through-zero flanging is the thing tape did and pedals mostly
+# cannot, and it is a switch rather than a knob because it is one or the other.
+#
+# Families: classic, through, subtle.
+
+machine fx.Flanger
+
+patch Init family=classic
+
+patch Jet family=classic
+  # The sound the word is for: deep, fed back hard, sweeping over a couple of
+  # bars. On anything broadband it is a jet going over; on a single note it is
+  # a slow bend that is not a bend.
+  rate           #14
+  depth          0.85
+  feedback       0.8
+  spread         0.5
+  mix            0.5
+
+patch Metallic family=classic
+  # Feedback at the top with the sweep nearly stopped. The comb sits still and
+  # rings, so the source picks up a fixed pitched resonance - metal rather than
+  # movement.
+  rate           #16
+  depth          0.15
+  feedback       0.95
+  spread         0.3
+  mix            0.55
+
+patch "Fast Flutter" family=classic
+  # Quick and shallow, a fluttering edge.
+  rate           #8
+  depth          0.3
+  feedback       0.4
+
+patch "Slow Sweep" family=classic
+  # Four bars a sweep, the classic airplane.
+  rate           #15
+  depth          0.8
+  feedback       0.6
+
+patch "Through Zero" family=through
+  # Inverted, which cancels at the point the two copies line up instead of
+  # doubling. The hole in the middle of the sweep is the whole effect, and it
+  # is what tape flanging sounded like and pedals rarely do.
+  negative       #1
+  rate           #15
+  depth          0.9
+  feedback       0.6
+  spread         0.4
+  mix            0.5
+  gain           -2 dB
+
+patch "Negative Jet" family=through
+  # Negative feedback: hollow, the jet turned inside out.
+  rate           #14
+  depth          0.8
+  feedback       0.7
+  negative       1
+  gain           -3 dB
+
+patch "Zero Crossing" family=through
+  # Sweeps right through zero, the tape trick.
+  rate           #15
+  depth          1
+  feedback       0.3
+  mix            0.5
+
+patch Doubler family=subtle
+  # No feedback, shallow, fast: not a flanger at all but the short delay
+  # underneath one, which thickens a part without colouring it.
+  rate           #13
+  depth          0.2
+  feedback       0.0
+  spread         0.8
+  mix            0.35
+
+patch Chorused family=subtle
+  # Slow, wide, and no feedback - a flanger pretending to be a chorus, which is
+  # what a flanger at these settings is. Worth having so the difference between
+  # this and the Chorus next door is audible.
+  rate           #15
+  depth          0.45
+  feedback       0.1
+  spread         1.0
+  mix            0.45
+
+patch "Stereo Flange" family=subtle
+  # Left and right apart, wide and gentle.
+  rate           #14
+  depth          0.5
+  feedback       0.3
+  spread         1
+
+patch Ghost family=subtle
+  # Barely there: a hint of movement.
+  rate           #15
+  depth          0.3
+  feedback       0.2
+  mix            0.3

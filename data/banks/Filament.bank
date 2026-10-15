@@ -1,0 +1,287 @@
+# Filament - strings, and the first pass over them with the harness pointed
+# at the machine rather than at the bank.
+#
+# **Six things in the model were wrong and all six are fixed.** They are the
+# same three lessons the brass and the woodwinds gave, in a third dress.
+#
+#   - **The loop length was guessed, not solved.** It was the period minus a
+#     *DC estimate* of two of the four things in the loop. But it is the
+#     phase at the note that decides where a string sounds, and an allpass
+#     has its full delay at DC and less at every frequency above; the damper
+#     tap was not counted at all. A damper a third of the way along put the
+#     note fifty cents up. Solved from the whole loop's phase now, the tap
+#     included, which takes three passes because the tap sits along the
+#     length being solved for.
+#   - **An allpass at zero stiffness is still a one-sample delay.** Two of
+#     them on a 367-sample string is nine cents, and every patch had it.
+#   - **Coupling was a gain.** Two strings over one bridge were each handed
+#     the other's whole output every sample: over a 145-sample turn at
+#     `couple` 0.8 that added two and a third to a loop gain already at
+#     0.999. The Wire patch was fourteen decibels louder with coupling on
+#     than off and its note-on read *fifty-four thousand times* the edge of
+#     its own tone. A bridge shares rather than makes, so each string now
+#     gets a fraction of the *difference*, and the fraction is of a turn.
+#   - **The sympathetic bank had the same fault**, six strings each given
+#     eight per cent of the played note every sample. They never stopped.
+#   - **Stiffness could bend the loop by a third of the string.** A real wire
+#     is sharp in its partials by a fraction of a percent low down and a few
+#     percent at the top. A third is not a stiff string, it is a different
+#     instrument every note. A twelfth at full stiffness now.
+#   - **A string cannot hold DC, and this one could.** Nothing blocked it and
+#     the loop passes DC whole, so a hammer - whose blow is a squared sine
+#     and therefore never negative - and a jet, whose pressure has an offset
+#     by definition, each left a standing offset going round for ever. A
+#     seventh of full scale on the sympathetic patch. It was headroom spent
+#     on nothing, a thump at every note, and enough of a pedestal that the
+#     harness could not find a pitch in six of these ten patches at all.
+#
+# **And how long a string rings is a time, not a loop gain.** A fixed loss per
+# turn is a string that goes round f times a second, so the same number gave
+# a low string twice the ring of the one an octave up. Two octaves above where
+# a patch was voiced there was nothing left to measure. `sustain` is now
+# seconds - a twentieth at nothing, eight at the top - and `sustainkey` does
+# what it says instead of the opposite.
+#
+# Measured, against the bank this replaces: DC from -17 dB to -110, note-ons
+# from 54076x and 1346x and 35x down to 17.8x at the worst, and eight of ten
+# patches have a findable pitch where four did. Every one of those eight is
+# within 16 cents. The plucked patches are levelled on peak and the sustained
+# ones on rms, because a bank holding both cannot be levelled on one number -
+# the "loudness spread" line is reading the two against each other and should
+# be ignored here.
+#
+# **The second pass took the three that were left.**
+#
+#   - **The bow played two and a half octaves under the note.** Not
+#     period-doubling: a waveguide's loop gain well below its own note is the
+#     loop filter's, near one, and a bow adds negative resistance on top of
+#     that. The total went over one and turned the corner of the loop's own
+#     DC blocker into a relaxation oscillator - an eleven-hertz wander with
+#     the note underneath it. The blocker sits at a tenth of whatever note is
+#     playing now (`kDcBelow`), which a string can say for itself: it has no
+#     motion below its own fundamental. The bow reads +4 cents.
+#   - **A pick was noise times an alternating plus and minus one** - a square
+#     wave at Nyquist, which does not brighten a spectrum, it inverts it, and
+#     puts the whole burst where no string has a partial. Wire started twelve
+#     times brighter than it continued and nothing on the string could reach
+#     it, because none of it was on the string. A pick is a harder, narrower
+#     contact, so it is a first-order tilt now.
+#   - **`sustain` did not mean seconds.** Asked for two it rang for three
+#     quarters of one, because the tone filter and the DC blocker take their
+#     own share every turn and nothing counted it. The string works out what
+#     to ask its feedback for so that a whole turn comes to what the caller
+#     said - the same reason the brass and the woodwinds solve their loops.
+#     Measured on the fundamental alone: Nylon 1.72 s against 2 asked, Wire
+#     4.2 against 5. A stiff or tension-modulated string comes in shorter
+#     still, which is what dispersion and a bending pitch do.
+#
+# And one the bank test caught on the way past: **a damper was a comb with
+# peaks.** Subtracting a delayed tap returns `1 + k` where the tap comes back
+# inverted, so a damper of 0.4 handed the loop a gain of 1.36 and the
+# prepared patch grew a partial until it ended louder than it started. A
+# finger can only take away; divided by that peak it still nulls the note at
+# a node, which is the whole point of putting one there.
+#
+# **The last ten notes in the bank's ranges were two different things.** Nine
+# were the damper on Prepared nulling the fundamental it sat under, so that
+# the loudest thing in the note was the body ringing at its own pitch rather
+# than the string at the played one - `harm` read 0.00 to 0.10 and taking
+# `bodymix` to zero brought the note straight back. The damper is halfway
+# along now, where it nulls the odd harmonics instead and every note returns.
+# The tenth was Blown at note 84, in tune and on the right partial but nine
+# parts jet noise to one part note, so its range stops at 82. All 379 notes
+# of this bank now pass.
+#
+# **The spike in front of the note was a pulse train.** Nylon put one
+# millisecond of excitation into a six millisecond loop, so what came out was
+# two milliseconds of sound and four of near silence, over and over, at the
+# right pitch - thirty decibels between the loud part and the quiet part of
+# every single period. A pluck displaces the *whole* string, and a
+# waveguide's string is one period long, so a pluck fills the loop. Nylon's
+# note-on went from five times the corner of its own tone to one, its loudest
+# partial from the octave to the fundamental, and the note carries seven
+# decibels more of its own energy.
+#
+# **And a hammer's contact is a fraction of the string's period**, which is
+# why a piano's treble hammers are harder and lighter than its bass ones.
+# Fixed at six milliseconds it was two thirds of a period at the bottom of a
+# range and four whole periods at the top, and a pulse four periods long has
+# nothing at the note to give it: Prepared was twelve decibels quieter at the
+# top of its range than the bottom with an identical peak. It scales from
+# middle C now, and hits harder as the contact shortens, because a hammer of
+# one mass at one speed carries the same blow whatever it lands on.
+#
+# **What is still wrong.** `Spoken To` is played by the audio input and so
+# measures as silence here, which is correct and means it cannot be
+# auditioned without one. Steel is three decibels under the rest of the bank
+# at full volume, because its energy sits in high partials rather than at the
+# note. And `chiff` reads 1.0 whenever a patch's tail is under a twentieth of
+# its peak, which means "not measured" rather than "no chiff" - do not read
+# the plucked patches' 1.0 as a result.
+#
+# **`position` is a pick position now.** A string plucked a fraction b along
+# its length gets harmonic n in proportion to sin(n.pi.b): every harmonic
+# with a node under the pick is missing, which is why playing by the bridge
+# is thin and nasal and over the hole is round. That is one comb on the
+# excitation, `1 - z^-bL` over a string L samples long. The comment had said
+# so all along and the code underneath handed the *second string of the
+# course* a fraction less excitation instead - a level difference between two
+# strings, and measurably nothing: moving `position` from 0.08 to 0.3 changed
+# no column at all. It now moves the steel patch's loudest partial from its
+# eighth harmonic to its third, and at the middle of the string it reads -21
+# on `hollow`, which is the even harmonics gone and is exactly what plucking
+# there does. A bow and a jet do not get it: they hold a force against the
+# string for the whole note rather than acting at a point and leaving.
+# The four patches that set it had values chosen while it did nothing, so
+# they are chosen again. The harness's `pitch` is unreliable for a string
+# picked near its bridge - Steel's fundamental sits eleven decibels under its
+# own fifth harmonic, and a direct look at the spectrum says the note is
+# eight cents flat where the column says a hundred and ninety-six. Scoring a
+# whole harmonic series instead of walking down from the loudest peak was
+# tried and is worse; the column is wrong for Steel and Wire and the machine
+# is not. And `edge` says a plucked string is twenty times brighter at its
+# attack than in its tail, which is true and is not a click.
+#
+# Values are in each parameter's own units; `audition params Filament` lists
+# them. A patch names only what it changes.
+
+machine Filament
+# A melody rather than one held note: one note is what one note sounds
+# like, and a bank can pass that patch by patch and still be the same
+# sound all the way down.
+role    tune
+
+patch Init family=plucked
+
+patch Nylon family=plucked  note=52 range=40..76
+  bodymix        0.45
+  couple         0.3
+  detune         5 c
+  grit           0.6
+  length         0.00102617 s
+  # Over the soundhole, about a quarter along, where the fundamental is
+  # strongest. These four numbers were chosen when the parameter did
+  # nothing, so they are chosen again now that it does.
+  position       0.28
+  size           0.55
+  sustain        0.727
+  tone           0.4
+  volume         1.00
+
+patch Steel family=plucked  note=52 range=40..79
+  bodymix        0.4
+  couple         0.4
+  detune         6 c
+  drive          0.12
+  exciter        #1
+  # Nearer the bridge than the nylon, which is the pick sound.
+  position       0.14
+  size           0.4
+  stiffness      0.18
+  sustain        0.807
+  # 0.62 made a loop bright enough that the eighth harmonic was the loudest
+  # thing in the note. A steel string is bright and still has a fundamental.
+  tone           0.5
+  volume         1.33
+
+patch Hammered family=struck  note=60 range=36..84
+  bodymix        0.3
+  couple         0.5
+  exciter        #2
+  hardness       0.55
+  length         0.000674641 s
+  size           0.3
+  stages         #4
+  stiffness      0.55
+  sustain        0.943
+  symlevel       0.25
+  sympathy       #1
+  symtune        #5
+  tension        0.3
+  tone           0.5
+  volume         0.34
+
+patch Bowed family=sustained  note=55 range=36..76
+  bodymix        0.4
+  exciter        #3
+  grit           0.3
+  position       0.1064
+  # The bow leans harder than it did. With the string's own offset blocked
+  # the friction curve has to do all the work, and at 0.55 it did not start
+  # one: the patch measured as broadband noise at 3900 Hz with the string
+  # barely in it. At 0.85 the centroid falls to 1163 Hz, which is a string.
+  pressure       0.85
+  speed          0.8
+  sustain        0.454
+  tone           0.4
+  velocity       0.4
+  volume         0.17
+
+# 48..82 rather than 84: at a kilohertz a string blown at rather than
+# struck is nine parts jet noise to one part note, and 84 measured 0.11 on
+# the harmonic series with the right pitch underneath it.
+patch Blown family=sustained  note=67 range=48..82
+  bodymix        0.5
+  exciter        #4
+  grit           0.7
+  pressure       0.6
+  size           0.7
+  stiffness      0.1
+  sustain        0.41
+  tone           0.3
+  volume         0.53
+
+patch Sympathy family=prepared  note=60 range=45..81
+  "on release"   #0
+  symlevel       0.7
+  sympathy       #1
+  symsustain     0.786
+  symtune        #4
+  symwide        0.8
+  tone           0.5
+  volume         0.68
+
+patch Prepared family=prepared  note=55 range=36..76
+  damper         0.4
+  # Halfway rather than a third along. A damper nulls the harmonics that
+  # have a node under it, and at a third it takes the fundamental with
+  # them: from note 64 up, nine notes of this range had almost no energy
+  # on the note's own series at all and what was loudest was the body
+  # ringing at its own pitch rather than the string at the played one.
+  # At a half it nulls the odd harmonics instead, which is a different
+  # colour and a real one, and every note of the range comes back.
+  "damper at"    0.5
+  drive          0.2
+  exciter        #2
+  rattle         0.55
+  "rattle at"    0.208
+  stages         #3
+  stiffness      0.3
+  sustain        0.727
+  tone           0.6
+  volume         0.25
+
+patch "Spoken To" family=prepared  note=55 range=36..72
+  bodymix        0.3
+  exciter        #5
+  "in gain"      2
+  sustain        0.727
+  symlevel       0.4
+  sympathy       #1
+  symtune        #2
+  tone           0.55
+  volume         1.50
+
+patch Wire family=plucked  note=64 range=52..88
+  couple         0.8
+  detune         30 c
+  drive          0.3
+  exciter        #1
+  position       0.044
+  rattle         0.3
+  stages         #4
+  stiffness      0.85
+  sustain        0.907
+  tension        0.8
+  tone           0.85
+  volume         0.86

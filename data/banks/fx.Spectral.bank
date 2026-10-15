@@ -1,0 +1,125 @@
+# Spectral - the track taken apart into its frequencies and put back.
+#
+# `freeze` holds the sound as it is for as long as it's on. `blur` lets each
+# frequency fade instead of stopping, so notes run into each other. `smear`
+# scrambles the timing within a frame, for a washed, distant sound. `robot`
+# throws the timing away, for a flat, buzzing voice. `peaks` keeps only the
+# strongest frequencies, a glassy, whistling sound, and `tilt` leans it all
+# darker or brighter. It runs about 40 ms behind the track; `mix` keeps the
+# dry signal in step.
+#
+# Families: wash, ghost, robot, glass.
+
+machine fx.Spectral
+
+patch Init family=wash
+
+patch Smear family=wash
+  # Notes run into each other, a little blurred.
+  blur           0.6
+  smear          0.3
+
+patch "Long Blur" family=wash
+  # Every note leaves a long fading trail.
+  blur           0.92
+  gain           -2 dB
+
+patch "Dark Haze" family=wash
+  # Blurred, smeared and dark: a pad from anything.
+  blur           0.75
+  smear          0.5
+  tilt           -8 dB
+  gain           -8.5 dB
+
+patch "Light Blur" family=wash
+  # A little blur: softer edges.
+  blur           0.3
+
+patch "Soft Smear" family=wash
+  # A gentle smear: notes bleeding into the next.
+  smear          0.4
+  gain           -2 dB
+
+patch "Smear Wash" family=wash
+  # Smeared and blurred, everything run together.
+  blur           0.7
+  smear          0.7
+  gain           -2.5 dB
+
+patch Whisper family=ghost
+  # The timing scrambled: a voice turns to breath.
+  smear          1
+  tilt           3 dB
+  gain           1.5 dB
+
+patch "Far Away" family=ghost
+  # Scrambled and blurred, behind the track.
+  smear          0.8
+  blur           0.5
+  mix            0.5
+
+patch Breath family=ghost
+  # Only the airy part kept.
+  peaks          0
+  blur           0.5
+  tilt           6 dB
+  mix            0.6
+  gain           5 dB
+
+patch Distant family=ghost
+  # Dark and blurred, from another room.
+  blur           0.6
+  tilt           -9 dB
+  mix            0.6
+  gain           -2.5 dB
+
+patch "Robot Voice" family=robot
+  # The timing thrown away: a flat buzzing voice.
+  robot          1
+
+patch "Half Robot" family=robot
+  # Partly robotic, partly smeared.
+  robot          0.5
+  blur           0.3
+  gain           -3 dB
+
+patch Monotone family=robot
+  # Mostly robot, a little brighter.
+  robot          0.7
+  tilt           3 dB
+  gain           1.5 dB
+
+patch "Robot Blend" family=robot
+  # A robot under the voice.
+  robot          1
+  mix            0.4
+  gain           3.5 dB
+
+patch Glass family=glass
+  # Only the strongest frequencies: glassy and whistling.
+  peaks          0.75
+
+patch Ice family=glass
+  # Thin, blurred and bright.
+  peaks          0.85
+  blur           0.7
+  tilt           4 dB
+  gain           11 dB
+
+patch Crystal family=glass
+  # Only the strongest frequencies, bright.
+  peaks          1
+  tilt           6 dB
+  gain           24 dB
+
+patch "Dark Glass" family=glass
+  # The peaks only, dark.
+  peaks          0.8
+  tilt           -6 dB
+  gain           -6 dB
+
+patch "Bright Breath" family=glass
+  # Peaks and air, a bright whisper.
+  peaks          0.3
+  tilt           9 dB
+  gain           8 dB

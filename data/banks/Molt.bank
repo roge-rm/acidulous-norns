@@ -1,0 +1,295 @@
+# Molt - twenty-four patches, voiced against the debug build.
+#
+# The last machine in the app to get a bank, and the one where "a bank" needs
+# explaining. Molt has no sound of its own. It takes a take somebody sang,
+# finds the glottal pulses in it, and lays them down again at a spacing the
+# clip decides - so pitch and formant move independently and the piano roll
+# does the tuning. What a patch here stores is therefore a **way of treating
+# a voice you supply**, the same shape of thing Dice's eighteen store for a
+# loop. Mount a different take and every patch still means what it says.
+#
+# That is why there are twenty-four and not forty. Sweeping `formant` across
+# its range would be twelve near-duplicates of one voice; what earns a patch
+# is doing something nameable.
+#
+# **The two controls the machine is really about.** `tune` is how hard the
+# sung line is pulled onto what was written - at nought the line survives and
+# is merely moved to the note, at one every moment lands exactly on it.
+# `rate` is how long that takes. The pair is the whole classic vocabulary:
+# 1/0 is the hard tune everybody knows, 0.75/60 is a singer correcting
+# themselves, 1/250 scoops into every note.
+#
+# **`rate` has nothing to do at tune 1 and that is correct**, not a fault. At
+# full tune the target is the written note and it does not move, so there is
+# nothing to glide towards; the smoothing only shows where the target moves,
+# which is at partial tune or under a bend. Rendering tune 1 at rate 0 and at
+# rate 400 gives bit-identical audio, and a quarter of an hour was spent
+# proving that is the machine being right.
+#
+# **Partial tune measures as out of tune, and should.** The harness anchors on
+# the note it asked for, so a patch sitting deliberately between the sung
+# pitch and the written one reads a hundred cents flat with almost no energy
+# on the note's harmonic series. `Correct` and `Natural` below are the two
+# that do it; their tune and harm columns are the feature, not a fault.
+#
+# `Pluck` measures four decibels under the rest and `volume` is already at the
+# top of its range, so it stays there. The reason is in its own note: a sound
+# that has mostly gone inside a tenth of a second spends most of the window
+# the bank is levelled in silent, and levelling it up by the number would put
+# its peak above everything else in the bank.
+#
+# **Voiced against a real recording.** The harness mounts the file named in
+# tools/local.env when there is one and a twelve second synthetic phrase when
+# there is not, and this bank is levelled on the former - a phone in a room,
+# which is what this machine will always be fed. The numbers in the table
+# below are that take's; on the synthetic phrase the same volumes come out
+# 1.5 dB quieter and 1.5 dB closer together, which is as near as two different
+# voices can be expected to land.
+#
+# What the earlier version of this bank was levelled against, and why its
+# numbers were wrong: the synthetic phrase has no rumble, no clipping, a crest
+# factor of eleven decibels and audio from its first frame. The recording is
+# fifty-six per cent sub-seventy-hertz energy, clipped at 0.3% of its samples,
+# thirty-three decibels of crest, and four hundred milliseconds of room tone
+# before the first word - and every note began in that room. The harness
+# measures a tenth of a second in, so `harm`, `part` and `low` were all being
+# read off silence. `Utterance::analyse` takes the rumble and the room out
+# now; see engine/core/Utterance.h.
+#
+# The fallback phrase is twelve seconds and its pitch walks between 70 and
+# 190 Hz across nine syllables. It used to be a two and a half second one at
+# a fixed pitch, against which `tune` at nought and `tune` at one differ by a
+# constant offset and `rate` has nothing at all to act on - the same mistake
+# as judging a vocoder on a held vowel.
+#
+# Stepped parameters are written as `#n`, and `#n` is the *step index*, not
+# the value:
+#   robot      #0 off  #1 every mark takes the written pitch
+#   loop       #0 the take plays once  #1 it runs round
+#   filtertype #0 LP6 #1 LP12 #2 LP18 #3 LP24  #4 HP6 #5 HP12 #6 HP18 #7 HP24
+#              #8 BP6 #9 BP12 #10 notch #11 peak
+#   octave     -3..3, so #3 is nought and #2 is an octave down
+#   transpose  -12..12, so #12 is nought
+#   bendrange  0..24 semitones, so #12 is an octave
+#
+# Families: tune, robot, size, tone, shape, play.
+
+machine Molt
+
+patch Init family=tune
+
+patch Natural family=tune
+  # The line as it was sung, moved to the note and otherwise left alone. The
+  # one to hear the take itself on, and what every other patch here is a
+  # departure from. It reads badly out of tune on purpose: that is the
+  # singer's own line showing through.
+  tune           0.0
+  rate           40 ms
+  volume         0.75
+
+patch Correct family=tune
+  # A singer correcting themselves: most of the way onto the note, over about
+  # the time a person takes to notice. The setting to use when you want the
+  # performance and not the effect.
+  tune           0.78
+  rate           60 ms
+  volume         0.9
+
+patch Hard family=tune
+  # The one everybody knows. Every moment on the note, arrived at instantly,
+  # so the line moves in steps rather than glides and the steps are the sound.
+  #
+  # Tune and rate here are the machine's own defaults, so this patch would be
+  # Init with a different name if it stopped there - it carries the bite the
+  # effect has in practice, which is where the difference actually is.
+  tune           1.0
+  rate           0 ms
+  drive          0.3
+  cutoff         7000 Hz
+  filtertype     #1
+  volume         0.59
+
+patch "Catch Up" family=tune
+  # Full correction arriving late, so every note is scooped into from
+  # wherever the voice was. The other half of the classic pair, and the one
+  # that sounds like singing rather than like arithmetic.
+  #
+  # Tune short of one on purpose: at exactly one the target is the written
+  # note and never moves, so there is nothing for a slow rate to chase and
+  # this would render bit-identical to `Hard`. A hair of the sung line left
+  # in is what the scoop is made of.
+  tune           0.95
+  rate           250 ms
+  volume         0.93
+
+patch Robot family=robot
+  # Every mark takes the written pitch, voiced or not, so the consonants come
+  # with it and the words survive a monotone. This is the machine's other
+  # headline and it needs no filter to be itself.
+  robot          #1
+  volume         0.91
+
+patch Choir family=robot
+  # The signature. One read head, four voices: draw a chord and the take
+  # sings it, all four saying the same word at the same moment and differing
+  # only in what they are pulled to. Glide so the chord moves rather than
+  # jumps.
+  robot          #1
+  glide          0.12 s
+  amprelease     0.4 s
+  volume         0.91
+
+patch Talkbox family=robot
+  # A monotone through a resonant band, which is the cheap way to the sound a
+  # tube in the mouth makes. The resonance is doing the vowel work here, not
+  # the take.
+  robot          #1
+  filtertype     #8
+  cutoff         1200 Hz
+  resonance      0.62
+  volume         1.5
+
+patch Monk family=robot
+  # The written pitch an octave down, slow to leave. A monotone low enough
+  # that the formants rather than the pitch carry the word.
+  robot          #1
+  octave         #2
+  formant        -3 st
+  amprelease     0.9 s
+  volume         0.9
+
+patch Giant family=size
+  # The same note sung by somebody twice the size. Nothing here touches the
+  # pitch at all - this is the resonances of the throat moving on their own,
+  # which is the thing a sampler cannot do.
+  formant        -8 st
+  volume         1.22
+
+patch Child family=size
+  # And the other way. Not a chipmunk: the note is where it was written, only
+  # the singer got smaller.
+  formant        +7 st
+  cutoff         9000 Hz
+  volume         0.67
+
+patch Chest family=size
+  # A little larger, and heard from inside the room rather than across it.
+  formant        -4 st
+  cutoff         2400 Hz
+  filtertype     #1
+  volume         0.89
+
+patch Megaphone family=size
+  # The horn, with the band it needs around it. Mega is doing the shape and
+  # the filter is only keeping it out of the cellar.
+  mega           0.8
+  cutoff         1500 Hz
+  filtertype     #8
+  resonance      0.3
+  volume         0.91
+
+patch Telephone family=tone
+  # Three hundred to three thousand, near enough, and nothing outside it.
+  filtertype     #9
+  cutoff         1100 Hz
+  resonance      0.35
+  drive          0.18
+  volume         1.03
+
+patch "Dark Room" family=tone
+  # The words still there and the air gone. A voice heard through a wall.
+  filtertype     #3
+  cutoff         900 Hz
+  resonance      0.12
+  volume         1.19
+
+patch Air family=tone
+  # The opposite: the body taken out and the breath left in, which is what a
+  # high pass on a voice is for.
+  filtertype     #4
+  cutoff         380 Hz
+  formant        +2 st
+  volume         1.08
+
+patch Driven family=tone
+  # Pushed until the vowels bite. The drive is after the formants, so it
+  # roughens the voice rather than changing its size.
+  drive          0.62
+  cutoff         5000 Hz
+  filtertype     #1
+  volume         0.54
+
+patch Swell family=shape
+  # Arrives rather than starts. A long attack on a voice is a held breath
+  # coming up under a line.
+  ampattack      0.9 s
+  ampdecay       1.2 s
+  ampsustain     0.9
+  amprelease     0.7 s
+  volume         1.04
+
+patch Pluck family=shape
+  # The words as a rhythm part: a syllable struck and mostly gone.
+  #
+  # Not all the way gone. A note that empties inside a tenth of a second
+  # spends most of the window the bank is levelled in silent, and reads eight
+  # decibels under everything around it - so it would be levelled up until it
+  # peaked, which is the wrong end to fix it at. A third of the voice left
+  # standing is still plainly plucked and sits with the rest of the bank.
+  ampattack      0.004 s
+  ampdecay       0.3 s
+  ampsustain     0.34
+  amprelease     0.12 s
+  volume         1.5
+
+patch Gated family=shape
+  # On and off with nothing in between, which is what makes a voice a
+  # sequence rather than a phrase.
+  ampattack      0.002 s
+  ampdecay       0.05 s
+  ampsustain     0.75
+  amprelease     0.02 s
+  volume         1.24
+
+patch Held family=shape
+  # Nothing in the envelope at all: it lasts as long as the note does and
+  # leaves slowly. The setting for pads made of people.
+  ampattack      0.06 s
+  ampsustain     1.0
+  amprelease     1.6 s
+  loop           #1
+  volume         0.93
+
+patch Glide family=play
+  # Between notes rather than at them, so a written melody is sung as one
+  # line. Under a chord this is what makes four voices move together.
+  glide          0.3 s
+  tune           0.9
+  rate           30 ms
+  volume         0.93
+
+patch "Octave Down" family=play
+  # An octave below what is written, at the original size. Pitch and formant
+  # separated, stated as plainly as the machine can state it.
+  octave         #2
+  formant        +4 st
+  volume         0.79
+
+patch "Wide Bend" family=play
+  # An octave of bend, for a line that is played rather than typed. The tune
+  # is left short of one so the bend has the voice's own line to move.
+  bendrange      #12
+  tune           0.85
+  rate           50 ms
+  volume         0.9
+
+patch Whisper family=play
+  # Velocity doing most of the work, and the take started past its first
+  # syllable so a short note lands on a vowel rather than on the breath in
+  # front of it.
+  velocity       0.9
+  start          0.18
+  cutoff         6000 Hz
+  filtertype     #1
+  drive          0.1
+  volume         1.05

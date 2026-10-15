@@ -1,0 +1,333 @@
+# Hammer - pianos and their relatives, from a hammer and what it strikes.
+#
+# What each key of the grand is comes from a recorded concert grand,
+# measured (tools/hammer_reference): how stiff its strings are, how long
+# each part of a note rings, how far the first fast decay falls before the
+# slow one takes over, how bright the strike is and how that changes with
+# velocity. Init is that grand. The upright, the honky-tonk, the electric
+# grand, the tine and the reed are measured the same way against their own
+# recordings; the fortepiano, the tangent keyboard, the celesta, the toy
+# piano, the dulcimer and the cimbalom are built from what's written about
+# them.
+#
+# The families, plainest first: grand, upright, electric, keys, bells,
+# strings, strange. The patches move each instrument away from itself:
+# the size of the piano, the felt, where you listen from, how old it is,
+# what's been put on its strings.
+#
+# Each patch plays the `piano` phrase (the pedal changed every bar, then
+# three notes alone) or, for the bells, the `bell` phrase, inside its own
+# range. Values are in each parameter's own units; `audition params Hammer`
+# lists them. A patch names only what it changes.
+#
+# What is still wrong:
+#   - The grand's knee (how far the prompt sound falls before the
+#     aftersound) is about 11 dB from the recording's across the keyboard:
+#     too shallow in the bass, too deep at the top.
+#   - The soft reed is purer than its recording above the 2nd harmonic.
+#   - The fortepiano, tangent, celesta, toy, dulcimer and cimbalom have no
+#     recording behind them, only the literature and an ear.
+#   - Three knobs do nothing yet: tension, clang and duplex.
+
+machine Hammer
+role    piano
+
+# --- grand -------------------------------------------------------------------
+
+patch Init family=grand note=60 range=21..108
+
+patch "Mellow Grand" family=grand note=60 range=21..108
+  # Softer felt, darker as it rings.
+  hardness      -0.35
+  tone          -0.3
+  volume         1.11
+
+patch "Bright Grand" family=grand note=60 range=21..108
+  # Harder felt, struck a little nearer the end, the top ringing on.
+  hardness       0.4
+  hardkey        0.2
+  position      -0.2
+  tone           0.3
+
+patch "Felt Room" family=grand note=60 range=21..108
+  # A worn-in hammer and short strings: an intimate, close sound.
+  hardness      -0.7
+  sustain       -0.4
+  unison         0.6
+  volume         1.50
+
+patch "Baby Grand" family=grand note=60 range=21..108
+  # The smallest grand: a stiffer, thinner bass, a little more knock.
+  size           0
+  hardness       0.1
+  volume         0.86
+
+patch "Salon Grand" family=grand note=60 range=21..108
+  # A middle-sized grand with the lid on the short stick, from the room.
+  size           0.5
+  lid            0.5
+  mic            3
+  tail           0.8
+
+patch "Pop Grand" family=grand note=60 range=21..108
+  # Close in and bright, hard felt and a stretched top: cuts through a mix.
+  hardness       0.6
+  hardkey        0.3
+  mic            2
+  stretch        1.3
+  width          1
+  volume         0.85
+
+patch "Jazz Club" family=grand note=60 range=21..108
+  # A grand that's been played every night: harder hammers, a little out,
+  # heard from the tables.
+  age            0.45
+  hardness      -0.15
+  tone          -0.2
+  mic            1
+  tail           0.7
+  volume         1.17
+
+patch "Concert Hall" family=grand note=60 range=21..108
+  # From the audience, the lid wide, the hall long; soft felt, long strings.
+  mic            1
+  tail           1
+  sustain        0.3
+  hardness      -0.2
+  sympathy       0.8
+
+# --- upright -----------------------------------------------------------------
+
+patch Upright family=upright note=60 range=21..108
+  model          1      # upright
+
+patch "Parlour Upright" family=upright note=60 range=21..108
+  # A family's upright, seldom tuned: soft felt, unisons drifted.
+  model          1
+  age            0.5
+  hardness      -0.25
+  seed           3
+  volume         1.41
+
+patch "Felt Upright" family=upright note=60 range=21..108
+  # The practice rail down: felt between the hammers and the strings.
+  model          1
+  felt           0.8
+  lid            0.3
+  volume         1.16
+
+patch Honky-Tonk family=upright note=60 range=21..108
+  model          2      # honky-tonk
+
+patch "Tack Piano" family=upright note=60 range=21..108
+  # Tacks in the hammers: every note hard and bright, however soft.
+  model          2
+  tacks          0.85
+  unison         0.6
+
+patch Saloon family=upright note=60 range=21..108
+  # Out of tune, worn, loud.
+  model          2
+  age            0.8
+  unison         1.6
+  hardness       0.3
+  seed           5
+  volume         0.88
+
+# --- electric ----------------------------------------------------------------
+
+patch Tine family=electric note=60 range=28..100
+  model          5      # tine
+
+patch "Tine Bark" family=electric note=60 range=28..100
+  # The pickups close: dig in and it growls.
+  model          5
+  pickup         0.85
+  offset         0.1
+  drive          0.35
+  volume         0.68
+
+patch "Tine Autopan" family=electric note=60 range=28..100
+  # The tremolo panning side to side.
+  model          5
+  tremolo        0.55
+  tremrate       4.2
+  tremwide       1
+  volume         1.36
+
+patch "Tine Ballad" family=electric note=60 range=28..100
+  # Soft and round: the tonebar holding more, the pickup further off.
+  model          5
+  pickup         0.2
+  offset         0.5
+  tonebar        0.8
+  hardness      -0.3
+
+patch "Glass Tine" family=electric note=60 range=28..100
+  # The tine on the pickup's axis: an octave up and hollow, a long bell.
+  model          5
+  offset        -0.05
+  tonebar        0.9
+  sustain        0.4
+  volume         0.53
+
+patch Reed family=electric note=60 range=33..96
+  model          6      # reed
+
+patch "Reed Growl" family=electric note=60 range=33..96
+  # Played into the amp: a reed piano's snarl.
+  model          6
+  pickup         0.75
+  drive          0.6
+  volume         0.86
+
+patch "Reed Tremolo" family=electric note=60 range=33..96
+  # Its built-in tremolo, up and down.
+  model          6
+  tremolo        0.6
+  tremrate       5.5
+  tremwide       0
+  volume         1.32
+
+patch "Electric Grand" family=electric note=60 range=21..108
+  model          4      # electric grand
+
+# --- keys --------------------------------------------------------------------
+
+patch Tangent family=keys note=60 range=29..88
+  model          7      # tangent
+
+patch "Tangent Muted" family=keys note=60 range=29..88
+  # The mute strip on: short and plucky.
+  model          7
+  mute           0.7
+  pickups        1
+
+patch "Tangent Funk" family=keys note=60 range=29..88
+  # Both pickups against each other, a little amp: thin and biting.
+  model          7
+  pickups        3
+  drive          0.4
+  volume         0.90
+
+patch Fortepiano family=keys note=60 range=29..89
+  model          3      # fortepiano
+
+patch "Fortepiano Moderator" family=keys note=60 range=29..89
+  # The moderator knee lever: cloth between hammer and strings.
+  model          3
+  felt           0.7
+
+# --- bells -------------------------------------------------------------------
+
+patch Celesta family=bells note=72 range=60..108 role=bell
+  model          8      # celesta
+
+patch "Celesta Box" family=bells note=72 range=60..108 role=bell
+  # Softer hammers, the boxes ringing longer, further away.
+  model          8
+  hardness      -0.4
+  sustain        0.4
+  mic            3
+  volume         0.76
+
+patch "Music Box" family=bells note=79 range=67..108 role=bell
+  # Celesta bars, hard and short, high up.
+  model          8
+  hardness       0.8
+  sustain       -0.5
+  octave         1
+  volume         1.36
+
+patch "Toy Piano" family=bells note=72 range=55..96 role=bell
+  model          9      # toy
+
+patch "Toy Lullaby" family=bells note=72 range=55..96 role=bell
+  # Played softly in another room.
+  model          9
+  hardness      -0.5
+  mic            3
+  tail           1
+  volume         1.11
+
+patch "Bell Tine" family=bells note=72 range=48..100 role=bell
+  # A tine piano's bell without its body: hard hammers, no tonebar.
+  model          5
+  tonebar        0.05
+  hardness       0.7
+  offset         1
+  sustain        0.5
+  volume         0.88
+
+# --- strings -----------------------------------------------------------------
+
+patch Dulcimer family=strings note=67 range=50..88
+  model         10      # dulcimer
+
+patch "Bright Dulcimer" family=strings note=67 range=50..88
+  # Bare wooden hammers.
+  model         10
+  hardness       0.6
+
+patch "Soft Dulcimer" family=strings note=67 range=50..88
+  # Leather-faced hammers, a long shimmer.
+  model         10
+  hardness      -0.6
+  sustain        0.4
+
+patch Cimbalom family=strings note=60 range=40..88
+  model         11      # cimbalom
+
+patch "Cotton Cimbalom" family=strings note=60 range=40..88
+  # Cotton-wrapped hammers and the dampers off.
+  model         11
+  hardness      -0.7
+  dampers        0.2
+  volume         1.30
+
+# --- strange -----------------------------------------------------------------
+
+patch "Rubber Mutes" family=strange note=60 range=21..108
+  # Rubber wedged between the strings: thuds with a ring in them.
+  prep           1
+  prepamt        0.6
+  "prep at"      0.4
+  volume         1.50
+
+patch "Screws and Bolts" family=strange note=60 range=21..108
+  # Something different on each key: a screw, a bolt, rubber or paper.
+  prep           5
+  seed           2
+  prepamt        0.7
+  volume         1.26
+
+patch "Paper Buzz" family=strange note=60 range=21..108
+  # Paper woven through the strings: every note buzzes.
+  prep           4
+  prepamt        0.6
+  volume         1.23
+
+patch "Gamelan Keys" family=strange note=61 range=36..96
+  # Screws on the black keys of an upright: bells out of tune with the rest.
+  model          1
+  prep           2
+  prepkeys       2
+  prepamt        0.8
+  "prep at"      0.25
+  volume         0.69
+
+patch "Stiff Wire" family=strange note=48 range=21..96
+  # Strings twice as stiff and the tuning stretched to match: metallic.
+  stiffness      2
+  stretch        2
+  hardness       0.3
+  volume         0.75
+
+patch "Ghost Strings" family=strange note=60 range=21..108
+  # Soft felt, every string ringing along, a long room.
+  hardness      -0.8
+  sympathy       1
+  sustain        0.6
+  tail           1
+  mic            3
+  volume         1.26

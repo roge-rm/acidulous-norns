@@ -1,0 +1,784 @@
+# Mosaic - thirty-six patches and an Init, voiced against the debug build.
+#
+# Mosaic plays a *map*: samples laid out across the keyboard in zones, with
+# crossfades between them by key and by velocity, and a layer scan that moves
+# through them under anything in the matrix. On top of that sits a grain
+# engine that can read one point of a sample over and over instead of playing
+# it through. So a patch here is two decisions before it is anything else -
+# **where in the sample the sound comes from, and whether it is played or
+# granulated.**
+#
+# The harness mounts a small hand-built map: three key zones two octaves
+# apart, two velocity layers each, and the top of the keyboard deliberately
+# left uncovered so a patch that only works because every key finds a zone is
+# caught rather than assumed. Each zone is a struck note - a noise transient,
+# a body whose upper partials die faster than its lower ones, and a level
+# sustain that loops. **That last part is why this bank could be voiced at
+# all:** the map used to be a harmonic stack at constant amplitude, and
+# against it `reverse` moved the centroid two hertz and `start` twelve. A
+# signal with no attack sounds the same from either end and from anywhere in
+# the middle.
+#
+# Two things worth knowing before reading the patches:
+#
+#   - `start` and `reverse` are about the *transient*. Moving start past it
+#     turns a struck note into a bowed one; reversing puts it at the end.
+#   - `gpos` is where the grains are taken from, and it only means something
+#     because the body changes as it goes: grains from the front are bright
+#     and grains from the sustain are dark. It is the most useful knob here.
+#
+# Stepped parameters are written as `#n`:
+#   loop      #0 from file  #1 off  #2 forward
+#   f_type    #0 LP6 #1 LP12 #2 LP18 #3 LP24  #4 HP6 ... #7 HP24
+#             #8 BP6 #9 BP12 #10 notch #11 peak
+#   l*_wave   #0 sine #1 triangle #2 saw up #3 saw down #4 square
+#             #5 sample-and-hold #6 smooth random #7 step8 #8 step16
+#   voicemode #0 poly #1 mono #2 legato
+#   m*_src    #1 on #2 mod wheel #3 pressure #4 velocity #5 key #6 random
+#             #7 amp eg #8 filter eg #9 eg1 #10 eg2 #11 lfo1 #12 lfo2
+#   m*_dest   #1 pitch #2 scan #3 start #4 grain pos #5 grain rate
+#             #6 grain size #7 grain density #8 grain spray #9 grain pitch
+#             #10 filter freq #11 filter res #12 amp #13 pan
+#             #14 lfo1 rate #15 lfo2 rate
+#
+# Families: keys, pad, grain, motion, lead, texture.
+#
+# Values are in each parameter's own units; `audition params Mosaic` lists
+# them. A patch names only what it changes.
+
+machine Mosaic
+# A melody rather than one held note: one note is what one note sounds
+# like, and a bank can pass that patch by patch and still be the same
+# sound all the way down.
+role    tune
+
+patch Init family=keys
+
+patch Felt family=keys
+  # A key with the hammer softened, which is the one thing the rest of this
+  # family does not do: Mallets is shorter, Bell Keys is pitched up, Undertow
+  # down, Electric is modulated and Clav is short and resonant. Nothing was
+  # simply *darker*.
+  #
+  # This slot used to be Struck - "the map played straight, the reference the
+  # rest of the bank is heard against" - which is exactly what Init already
+  # is. Dan: "sounds fine, very close to init", and it measured -20.9 against
+  # -21.0 with the centroids within a couple of hundred hertz. Rewriting it
+  # around velocity bought six decibels of extra range and no character; a
+  # patch has to be a different *sound*, not a different response to the same
+  # one.
+  #
+  # The start sits four thousandths in - past the crack of the hammer, before
+  # the body has begun - so the strike is felt rather than heard.
+  start          0.004
+  a_decay        2.2 s
+  a_sustain      0.45
+  a_release      0.5 s
+  f_type         #3
+  f_freq         1100 Hz
+  f_key          0.3
+  f_env          0
+  f_decay        1.2 s
+  f_sustain      0.3
+  velamt         1
+  veltofilter    0.2
+  keyfade        6 st
+  velfade        24
+  volume         1.00
+
+patch Mallets family=keys
+  # No sustain at all, so every note is the strike and the first part of the
+  # body. Key tracking on the filter keeps the top of the map from getting
+  # brittle.
+  a_decay        0.7 s
+  a_sustain      0
+  a_release      0.25 s
+  f_type         #1
+  f_freq         6000 Hz
+  f_key          0.6
+  velamt         1
+  veltofilter    0.5
+  loop           #1
+  keyfade        3 st
+  volume         0.55
+
+patch Electric family=keys
+  # A tine: the attack kept, the body shortened, and a slow tremolo put on the
+  # amp rather than on the filter - which is what makes it read as electric
+  # rather than as wobbly.
+  a_decay        1.8 s
+  a_sustain      0.3
+  a_release      0.4 s
+  f_type         #2
+  f_freq         4200 Hz
+  f_env          0.3
+  f_decay        0.9 s
+  f_sustain      0.25
+  l1_wave        #0
+  l1_rate        5.2 Hz
+  l1_keysync     #0
+  m01_src        #11
+  m01_dest       #12
+  m01_depth      0.22
+  velamt         1
+  veltofilter    0.45
+  volume         1.03
+
+patch Clav family=keys
+  # Short, hard and band-passed, with velocity opening the filter a long way.
+  # The start is moved just far enough to lose the softest part of the hit.
+  start          0.008
+  a_decay        0.6 s
+  a_sustain      0
+  a_release      0.12 s
+  f_type         #11
+  f_freq         760 Hz
+  f_res          0.45
+  f_env          0.5
+  f_attack       0.001 s
+  f_decay        0.25 s
+  f_sustain      0.3
+  velamt         1
+  veltofilter    0.45
+  loop           #1
+  volume         0.99
+
+patch "Bell Keys" family=keys
+  # Up an octave with the body left to ring, so the upper partials - the ones
+  # that die first in the map - are most of what you hear.
+  octave         1
+  a_decay        4 s
+  a_sustain      0.25
+  a_release      2.2 s
+  f_type         #5
+  f_freq         600 Hz
+  keyfade        8 st
+  velfade        30
+  volume         0.89
+
+patch Undertow family=keys
+  # Down two octaves and low-passed hard: the map's bottom zone stretched
+  # below where it was sampled, which is a real thing a sampler does and a
+  # real thing it sounds like.
+  octave         -2
+  a_attack       0.03 s
+  a_decay        5 s
+  a_sustain      0.6
+  a_release      1.2 s
+  f_type         #3
+  f_freq         900 Hz
+  f_res          0.2
+  f_key          0.4
+  keyfade        10 st
+  volume         0.76
+
+patch "Soft Pad" family=pad
+  # The start moved past the transient entirely, so there is no strike left -
+  # the note arrives instead of beginning. That is the whole patch.
+  start          0.06
+  a_attack       0.6 s
+  a_decay        3 s
+  a_sustain      0.9
+  a_release      1.8 s
+  f_type         #3
+  f_freq         3500 Hz
+  f_env          0.2
+  f_decay        2 s
+  f_sustain      0.6
+  keyfade        6 st
+  velfade        20
+  loop           #2
+  volume         0.99
+
+patch "Warm Wash" family=pad
+  # Two slow LFOs on the filter at rates that do not divide into each other,
+  # so the movement never lines up and never repeats audibly.
+  start          0.08
+  a_attack       1.2 s
+  a_decay        6 s
+  a_sustain      0.85
+  a_release      3 s
+  f_type         #2
+  f_freq         2400 Hz
+  f_res          0.25
+  l1_wave        #0
+  l1_rate        0.09 Hz
+  l1_keysync     #0
+  l2_wave        #6
+  l2_rate        0.14 Hz
+  l2_keysync     #0
+  m01_src        #11
+  m01_dest       #10
+  m01_depth      0.4
+  m02_src        #12
+  m02_dest       #10
+  m02_depth      0.22
+  keyfade        8 st
+  loop           #2
+  volume         0.72
+
+patch "Glass Pad" family=pad
+  # High-passed gently, so the fundamental is thinned rather than removed.
+  # Steeper than this and there is nothing left: the map's energy is almost
+  # all in the first few partials, and an 18 dB slope at 1400 Hz took forty
+  # decibels off the patch and left a pad you could not hear.
+  start          0.05
+  a_attack       0.9 s
+  a_decay        5 s
+  a_sustain      0.8
+  a_release      2.6 s
+  f_type         #4
+  f_freq         340 Hz
+  f_res          0.3
+  f_env          0.2
+  f_decay        4 s
+  f_sustain      0.4
+  octave         1
+  keyfade        12 st
+  velfade        40
+  loop           #2
+  volume         0.85
+
+patch "Slow Swell" family=pad
+  # The amp envelope doing all of it: four seconds up, four back down, and an
+  # aux envelope opening the filter a beat behind so the top arrives late.
+  start          0.07
+  a_attack       1.8 s
+  a_decay        8 s
+  a_sustain      0.7
+  a_release      4 s
+  f_type         #3
+  f_freq         1100 Hz
+  e1_attack      2.4 s
+  e1_decay       6 s
+  e1_sustain     0.8
+  e1_release     3 s
+  m01_src        #9
+  m01_dest       #10
+  m01_depth      0.55
+  loop           #2
+  keyfade        6 st
+  volume         0.82
+
+patch "Dark Pad" family=pad
+  # Everything above two kilohertz gone and the grains taken from deep in the
+  # sustain, where the map is darkest to begin with. Grain size long enough
+  # that it reads as a smear rather than as texture.
+  grain          #1
+  gpos           0.75
+  gsize          260 ms
+  gdensity       14
+  gspray         0.12
+  grate          0.4
+  a_attack       0.8 s
+  a_release      2.4 s
+  f_type         #3
+  f_freq         1600 Hz
+  f_res          0.15
+  keyfade        6 st
+  volume         1.07
+
+patch "Choir Fade" family=pad
+  # Velocity crossfading across the whole range the map has, so how hard you
+  # play chooses the layer rather than just the level. Long fades both ways.
+  velfade        28
+  keyfade        14 st
+  start          0.09
+  a_attack       1.6 s
+  a_decay        7 s
+  a_sustain      0.9
+  a_release      3.4 s
+  f_type         #1
+  f_freq         4200 Hz
+  velamt         0.5
+  veltofilter    0.2
+  loop           #2
+  volume         0.46
+
+patch Cloud family=grain
+  # The first grain patch and the plainest: grains taken from across the
+  # whole sample at a low rate, so the cloud moves through the note's own
+  # brightness as it goes.
+  grain          #1
+  gpos           0.1
+  grate          0.15
+  gsize          180 ms
+  gdensity       18
+  gspray         0.25
+  gpitch         0.2 st
+  a_attack       0.35 s
+  a_release      2.5 s
+  m01_src        #2
+  m01_dest       #4
+  m01_depth      0.6
+  volume         0.68
+
+patch Shimmer family=grain
+  # Dense, small and *in tune*: grains taken from the bright front of the
+  # sample, close together, so it sparkles rather than hisses.
+  #
+  # `gpitch` is a continuous random spread, not an interval - twelve
+  # semitones means every grain lands somewhere in a two-octave band at
+  # random, and at seventy grains a second that is noise however pretty the
+  # number looks. Dust, Scatter and this were all written wide and all three
+  # came out the same noise; Dan heard it straight away. Here the spread is
+  # a third of a semitone: enough to shimmer, not enough to detune.
+  grain          #1
+  gpos           0.07
+  grate          0.04
+  gsize          24 ms
+  gdensity       75
+  gspray         0.08
+  gpitch         0.3 st
+  a_attack       0.2 s
+  a_release      3 s
+  l1_rate        0.2 Hz
+  l1_keysync     #0
+  m01_src        #11
+  m01_dest       #4
+  m01_depth      0.25
+  m02_src        #3
+  m02_dest       #9
+  m02_depth      0.5
+  volume         1.21
+
+patch Freeze family=grain
+  # Rate at zero, so the grains never move on: one slice of the body held
+  # still for as long as the key is down. The spray is what stops it being a
+  # loop of one buffer.
+  grain          #1
+  gpos           0.45
+  grate          0
+  gsize          120 ms
+  gdensity       40
+  gspray         0.03
+  gpitch         0 st
+  a_attack       0.25 s
+  a_decay        10 s
+  a_sustain      1
+  a_release      1.6 s
+  f_type         #1
+  f_freq         7000 Hz
+  volume         0.80
+
+patch Stutter family=grain
+  # Few grains, big ones, and a stepped LFO throwing the read position about.
+  # The gaps are the point: at this density you hear each grain arrive.
+  grain          #1
+  gpos           0.3
+  grate          0.6
+  gsize          45 ms
+  gdensity       30
+  gspray         0
+  a_attack       0.005 s
+  a_release      0.3 s
+  l1_wave        #8
+  l1_rate        7 Hz
+  m01_src        #11
+  m01_dest       #4
+  m01_depth      0.35
+  f_type         #11
+  f_freq         900 Hz
+  f_res          0.4
+  volume         1.01
+
+patch Dust family=grain
+  # Dan: "is this a helicopter sound?" - it was: evenly spaced grains at twelve a
+  # second are a rotor. The density wanders now, so the specks do not march.
+  # Sparse enough to count. Twelve grains a second at twenty-five
+  # milliseconds is a duty of three tenths, so they do not overlap and you
+  # hear each one arrive as a speck - which is the only way a grain cloud
+  # ever sounds like grains rather than like a texture. Sprayed right across
+  # the sample so no two specks come from the same place.
+  grain          #1
+  gpos           0.35
+  grate          0.2
+  gsize          25 ms
+  gdensity       22
+  gspray         0.85
+  gpitch         1 st
+  a_attack       0.6 s
+  a_decay        9 s
+  a_sustain      0.8
+  a_release      3 s
+  f_type         #0
+  f_freq         9000 Hz
+  l1_wave        #6
+  l1_rate        11 Hz
+  l1_keysync     #0
+  m01_src        #11
+  m01_dest       #7
+  m01_depth      0.75
+  volume         0.83
+
+patch Smear family=grain
+  # The other extreme: grains half a second long overlapping heavily, which
+  # is a time-stretch rather than a cloud. Rate slightly under one so it
+  # falls behind the note it came from.
+  grain          #1
+  gpos           0
+  grate          0.75
+  gsize          500 ms
+  gdensity       30
+  gspray         0.08
+  a_attack       0.4 s
+  a_decay        8 s
+  a_sustain      0.9
+  a_release      2.8 s
+  f_type         #3
+  f_freq         5000 Hz
+  volume         0.57
+
+patch Scatter family=grain
+  # Random as a modulation source, on the read position, so the cloud
+  # wanders through the sample instead of sitting in it. In tune with
+  # itself and at a middling size, so what you hear moving is *where* the
+  # grains come from rather than what pitch they are.
+  grain          #1
+  gpos           0.4
+  grate          0.3
+  gsize          90 ms
+  gdensity       24
+  gspray         0.5
+  gpitch         0.5 st
+  m01_src        #6
+  m01_dest       #4
+  m01_depth      0.8
+  a_attack       0.15 s
+  a_release      1.8 s
+  volume         0.80
+
+patch Tremolo family=motion
+  # A square LFO on the amp, fast enough to be an effect rather than a
+  # wobble, and key-synced so every note starts on the same part of it.
+  start          0.025
+  l1_wave        #4
+  l1_rate        6.5 Hz
+  l1_keysync     #1
+  m01_src        #11
+  m01_dest       #12
+  m01_depth      0.5
+  a_decay        4 s
+  a_sustain      0.8
+  a_release      0.6 s
+  f_freq         9000 Hz
+  volume         0.63
+
+patch Wah family=motion
+  # A triangle on a resonant low-pass, delayed half a second so the note
+  # speaks before it starts moving. The delay is what makes it musical.
+  l1_wave        #1
+  l1_rate        1.4 Hz
+  l1_delay       0.5 s
+  m01_src        #11
+  m01_dest       #10
+  m01_depth      0.75
+  f_type         #3
+  f_freq         1200 Hz
+  f_res          0.55
+  a_decay        5 s
+  a_sustain      0.85
+  a_release      0.8 s
+  volume         0.86
+
+patch Autopan family=motion
+  # Slow sine on pan, free-running so a chord's notes are not all in the same
+  # place - which is the only way this does anything on more than one note.
+  #
+  # The rate went 0.35 -> 0.8 Hz while the machine was still mono, on the
+  # reasoning that a pan slower than a note lasts cannot be heard as panning.
+  # That was true and beside the point: it could not be heard because one
+  # filter was processing both channels and the image had collapsed. With
+  # stereo working, 0.8 was too fast to sit in - a pan you notice moving is
+  # an effect, and this is meant to be a place.
+  start          0.025
+  l1_wave        #0
+  l1_rate        0.28 Hz
+  l1_keysync     #0
+  m01_src        #11
+  m01_dest       #13
+  m01_depth      0.9
+  a_attack       0.2 s
+  a_decay        6 s
+  a_sustain      0.9
+  a_release      1.4 s
+  loop           #2
+  volume         0.93
+
+patch "Scan Sweep" family=motion
+  # The layer scan on an envelope: the note starts in one layer and arrives
+  # in another. Nothing else in the machine does this.
+  #
+  # **`velfade` is what makes it a sweep rather than a switch.** The scan
+  # slides a position along the velocity axis; without a crossfade width the
+  # layers simply swap when it crosses the boundary, so two thirds of the
+  # envelope's travel does nothing at all and the last third jumps. Measured
+  # at scan 0, 0.5 and 1 it read 977 Hz, 977 Hz, 1407 Hz - Dan: "I don't know
+  # that I can hear a switch between layers". Opened to the full range, every
+  # part of the sweep moves the sound.
+  start          0.025
+  scan           0
+  scanamt        1
+  e1_attack      1.8 s
+  e1_decay       3 s
+  e1_sustain     0.9
+  e1_release     1.2 s
+  m01_src        #9
+  m01_dest       #2
+  m01_depth      1
+  a_attack       0.1 s
+  a_decay        6 s
+  a_sustain      0.85
+  a_release      1.6 s
+  keyfade        6 st
+  velfade        64
+  volume         0.74
+
+patch Pulse family=motion
+  # An eight-step LFO on the grain density, so the cloud thickens and thins
+  # in a pattern rather than smoothly. Rhythm out of a texture.
+  grain          #1
+  gpos           0.25
+  grate          0.2
+  gsize          70 ms
+  gdensity       80
+  l1_wave        #7
+  l1_rate        3.2 Hz
+  m01_src        #11
+  m01_dest       #7
+  m01_depth      0.3
+  a_attack       0.1 s
+  a_release      1.2 s
+  f_type         #11
+  f_freq         1000 Hz
+  f_res          0.35
+  volume         0.49
+
+patch Wobble family=motion
+  # Smooth random on pitch, shallow, plus the same source on the start point.
+  # A sampler that cannot quite find the same place twice.
+  start          0.025
+  l1_wave        #6
+  l1_rate        2.6 Hz
+  l1_keysync     #0
+  m01_src        #11
+  m01_dest       #1
+  m01_depth      0.06
+  m02_src        #6
+  m02_dest       #3
+  m02_depth      0.12
+  a_decay        4 s
+  a_sustain      0.7
+  a_release      0.9 s
+  f_freq         8000 Hz
+  volume         0.88
+
+patch "Mono Lead" family=lead
+  # One voice, retriggered, with the filter envelope doing the work. Nothing
+  # exotic - a bank needs something you can play a line on.
+  start          0.008
+  voicemode      #1
+  a_attack       0.004 s
+  a_decay        1.2 s
+  a_sustain      0.7
+  a_release      0.2 s
+  f_type         #3
+  f_freq         1800 Hz
+  f_res          0.4
+  f_env          0.6
+  f_attack       0.002 s
+  f_decay        0.5 s
+  f_sustain      0.35
+  velamt         1
+  veltofilter    0.6
+  loop           #2
+  volume         1.02
+
+patch "Glide Lead" family=lead
+  # Legato, so a line played without gaps slides rather than retriggers, and
+  # the glide is long enough to hear on a step of a tone.
+  start          0.008
+  voicemode      #2
+  glide          0.16 s
+  glidemode      #1
+  a_attack       0.02 s
+  a_decay        2 s
+  a_sustain      0.8
+  a_release      0.3 s
+  f_type         #2
+  f_freq         2600 Hz
+  f_res          0.3
+  f_env          0.35
+  f_decay        0.8 s
+  f_sustain      0.5
+  loop           #2
+  volume         0.86
+
+patch "Bright Lead" family=lead
+  # Started past the transient and pushed up an octave, with resonance high
+  # enough to sing. The peak filter rather than a low-pass, so what it does
+  # is add rather than take away.
+  octave         1
+  start          0.02
+  voicemode      #1
+  a_attack       0.008 s
+  a_decay        1.5 s
+  a_sustain      0.75
+  a_release      0.25 s
+  f_type         #11
+  f_freq         3400 Hz
+  f_res          0.6
+  f_env          0.4
+  f_decay        0.6 s
+  loop           #2
+  velamt         1
+  volume         0.92
+
+patch Reed family=lead
+  # A slow vibrato that arrives late, which is how a player does it, on top
+  # of a band-pass that keeps only the middle of the map.
+  start          0.008
+  voicemode      #2
+  glide          0.05 s
+  l1_wave        #0
+  l1_rate        4.4 Hz
+  l1_delay       0.45 s
+  m01_src        #11
+  m01_dest       #1
+  m01_depth      0.05
+  a_attack       0.08 s
+  a_decay        3 s
+  a_sustain      0.85
+  a_release      0.3 s
+  f_type         #11
+  f_freq         900 Hz
+  f_res          0.3
+  loop           #2
+  volume         0.78
+
+patch Grind family=lead
+  # Mono, high resonance, and the filter envelope inverted so the note opens
+  # downward into the body instead of upward out of the attack.
+  start          0.008
+  voicemode      #1
+  a_attack       0.003 s
+  a_decay        1 s
+  a_sustain      0.6
+  a_release      0.18 s
+  f_type         #3
+  f_freq         4800 Hz
+  f_res          0.7
+  f_env          -0.7
+  f_attack       0.004 s
+  f_decay        0.7 s
+  f_sustain      0.2
+  velamt         1
+  veltofilter    0.7
+  coarse         -12
+  loop           #2
+  volume         1.32
+
+patch Backwards family=texture
+  # Played from the end, so the body arrives first and the transient is the
+  # last thing you hear - which is the one thing a sampler can do that
+  # nothing else in this app can.
+  reverse        #1
+  loop           #1
+  a_attack       0.01 s
+  a_decay        6 s
+  a_sustain      1
+  a_release      0.5 s
+  f_freq         11000 Hz
+  volume         1.38
+
+patch "Scan Layers" family=texture
+  # The mod wheel moving the scan by hand, which is what the control is for
+  # and what a demo cannot show: this patch exists to be played.
+  start          0.025
+  scan           0.2
+  scanamt        1
+  m01_src        #2
+  m01_dest       #2
+  m01_depth      0.8
+  a_release      0.5 s
+  keyfade        4 st
+  velfade        16
+  volume         0.73
+
+patch "Late Start" family=texture
+  # Started nine tenths of the way in, where the sample is nearly done. With
+  # the loop off it is a very short note; with it on it is the sustain and
+  # nothing else. This one has the loop on.
+  start          0.9
+  loop           #2
+  a_attack       0.25 s
+  a_decay        8 s
+  a_sustain      0.95
+  a_release      2 s
+  f_type         #1
+  f_freq         5000 Hz
+  keyfade        6 st
+  volume         1.02
+
+patch "Broken Loop" family=texture
+  # Loop off and the start late, so every note simply runs out. How long it
+  # lasts depends on how far the key is below its zone's root, which makes
+  # the bottom of the map sustain and the top of it stop dead.
+  start          0.55
+  loop           #1
+  a_attack       0.006 s
+  a_sustain      1
+  a_release      0.4 s
+  f_freq         9000 Hz
+  velamt         1
+  volume         1.43
+
+patch "Metal Sheet" family=texture
+  # Pitched up two octaves, notched, and granulated from one point with the
+  # grains pitched a fifth apart. Not a sample any more - a resonance.
+  #
+  # **The density is the ripple rate**, and that is the whole patch. At 80
+  # grains a second it rippled eighty times a second, which is not a sheet of
+  # metal moving - it is close enough to a pitch to buzz. Dan: "it does
+  # somewhat sound like a metal sheet rippling but it ripples far too fast to
+  # be real." Seven a second is a sheet the size of a door. The grains have to
+  # grow as the density falls or the sound turns to gaps: 200 ms at 7 a second
+  # still overlaps.
+  #
+  # **And the pitch spread had to go with it.** Seven semitones of spread
+  # across eighty grains a second is a shimmer; across seven it is seven
+  # separate notes a second, each long enough to hear as a note. Dan: "sounds
+  # like a random collection of notes now". A slow cloud has to be in tune
+  # with itself.
+  octave         2
+  grain          #1
+  gpos           0.55
+  grate          0
+  gsize          200 ms
+  gdensity       7
+  gspray         0.1
+  gpitch         0.3 st
+  f_type         #10
+  f_freq         3000 Hz
+  f_res          0.5
+  a_attack       0.1 s
+  a_decay        7 s
+  a_sustain      0.85
+  a_release      2.2 s
+  volume         1.50
+
+patch Detuned family=texture
+  # Fine tuning pushed most of a semitone, so the zones beat against each
+  # other where they cross. The key crossfade is wide on purpose - it is the
+  # overlap that makes the sound.
+  fine           -44
+  keyfade        24 st
+  velfade        48
+  a_attack       0.3 s
+  a_decay        6 s
+  a_sustain      0.85
+  a_release      1.8 s
+  f_type         #1
+  f_freq         4000 Hz
+  loop           #2
+  volume         0.31

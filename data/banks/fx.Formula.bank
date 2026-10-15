@@ -1,0 +1,120 @@
+# Formula - a formula shapes the track a sample at a time.
+#
+# Written the way Formulate's are: integers and the C operators. The track
+# comes in as `x`, 0 to 255 with silence at 128, and what the formula gives,
+# taken as 0 to 255, goes out. `t` counts at `rate`, `a`, `b` and `c` are
+# three knobs, 0 to 255, and `r` is a fresh random each sample. `drive`
+# pushes the track harder into the formula and `smooth` rounds off the steps
+# it leaves. With no formula the track passes untouched.
+#
+# Families: crush, mangle, rhythm.
+
+machine fx.Formula
+
+patch Init family=crush
+
+patch "Eight Bit" family=crush
+  # The track cut to eight bits, and nothing else.
+  set formula "x"
+
+patch "Fewer Bits" family=crush
+  # Bits thrown away as a goes up: here down to three.
+  set formula "x & (255 << (a >> 5))"
+  a              160
+  gain           -4.5 dB
+
+patch "Soft Bits" family=crush
+  # Three bits with the steps rounded off: dusty.
+  set formula "x & 224"
+  smooth         3000 Hz
+  gain           -4 dB
+
+patch "Two Bit" family=crush
+  # Two bits: a buzz from anything.
+  set formula "x & 192"
+  gain           -10 dB
+
+patch "Smooth Bits" family=crush
+  # Five bits, the steps rounded off: a soft, grainy warmth.
+  set formula "x & 248"
+  smooth         3000
+
+patch Wrap family=mangle
+  # Turned up until it wraps around: loud parts fold into noise.
+  set formula "128 + ((x - 128) * (a + 16) >> 4)"
+  a              48
+  gain           -11.5 dB
+
+patch Ring family=mangle
+  # Multiplied by a sine, for a metallic ring.
+  set formula "128 + ((x - 128) * sin(t * (a + 1) >> 3) >> 7)"
+  a              20
+  gain           3 dB
+
+patch Scramble family=mangle
+  # The bits flipped by a counter, half under the track.
+  set formula "x ^ t >> 4"
+  mix            0.5
+  gain           -12 dB
+
+patch Grit family=mangle
+  # Random low bits: the track turns to sand.
+  set formula "x ^ r >> (8 - (b >> 5))"
+  b              120
+
+patch "Fold Back" family=mangle
+  # Folded back when it passes the top.
+  set formula "x < 128 ? 255 - x * 2 : x * 2 - 256"
+  gain           -1.5 dB
+
+patch "Square It" family=mangle
+  # Every sample to one side or the other.
+  set formula "x > 128 ? 200 : 56"
+  smooth         4000
+  gain           -16.5 dB
+
+patch "Noise Gate" family=mangle
+  # Quiet parts become noise, loud ones pass.
+  set formula "(x > 140 || x < 116) ? x : 128 + (r & 15) - 8"
+  gain           -1 dB
+
+patch "Bit Flip" family=mangle
+  # The top bit flipped with a.
+  set formula "x ^ (a & 128)"
+  a              128
+  gain           -21.5 dB
+
+patch Chop family=rhythm
+  # Cut on and off by the counter, four times a second.
+  set formula "t >> 11 & 1 ? x : 128"
+  gain           2 dB
+
+patch "Three in Four" family=rhythm
+  # On for three counts, off for one.
+  set formula "(t >> 10 & 3) ? x : 128"
+  gain           1.5 dB
+
+patch "Clock Bits" family=rhythm
+  # The top bits from the track, the bottom from the counter: a buzz that moves with it.
+  set formula "(x & 240) | (t >> 2 & 15)"
+  smooth         6000 Hz
+  gain           -0.5 dB
+
+patch Stepper family=rhythm
+  # Muted on the eighths that b says.
+  set formula "((t >> 11) & (b >> 4)) ? x : 128"
+  b              170
+  rate           8000
+  gain           2 dB
+
+patch "Gated Noise" family=rhythm
+  # Noise let in on a rhythm.
+  set formula "((t >> 10) & 3) ? x : (x + r) & 255"
+  rate           8000
+  gain           -15.5 dB
+
+patch "Swing Chop" family=rhythm
+  # Chopped in threes.
+  set formula "((t >> 10) % 3) ? x : 128"
+  rate           8000
+  gain           2 dB

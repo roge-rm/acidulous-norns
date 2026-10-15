@@ -1,0 +1,677 @@
+# Genesis - thirty-one kits and an Init, voiced against the debug build.
+#
+# What separates this bank from Hexbeat's is the last six parameters. Genesis
+# has a *bus*: a compressor, a duck the kick drives, drive and drift. So a kit
+# here is not only thirteen sounds and their balance, it is what happens to
+# them together - and a third of these are named for the bus rather than for
+# the drums, because that is where the character is.
+#
+# **Read `comp` and `duck` as a pair.** The compressor decides how much the
+# kit moves as one thing; the duck decides how much the kick owns the moment
+# it lands. Both at nothing is a kit of thirteen separate sounds; both hard is
+# one instrument that breathes.
+#
+# `drift` is the circuit being imperfect - tunings that wander a little from
+# hit to hit - and it is the difference between a kit that sounds sampled and
+# one that sounds built.
+#
+# **Two faults this bank turned up**, both invisible with only thirteen kits
+# to compare. The drive knob was normalised by 1/sqrt(k), which is a ceiling
+# rather than a normalisation and drops as the knob turns: driving Genesis
+# harder made it *quieter* and squarer at once, and at drive=0 - where there
+# is no saturator in the path at all - the Init kit came out at +3.9 dBFS and
+# was clipped by the master rather than by anything of its own. And the level
+# knob was worth a different amount on every voice: 13.5 dB of spread on
+# loudness with the bus bypassed, the rim the loudest thing in the kit and the
+# closed hat the quietest by eight. See kLevelTrim in Genesis.cpp - the trims
+# are solved against the balance heard *through* the bus, because the
+# compressor hands back most of what a trim takes.
+#
+# Families: classic, bus, dirty, metal, perc, tone.
+#
+# Values are in each parameter's own units - decays here are in *seconds* -
+# and `audition params Genesis` lists them.
+
+machine Genesis
+role    beat
+
+patch Init family=classic
+
+patch Straight family=classic
+  # The workhorse. Everything where you would set it first: a kick with
+  # enough sweep to carry on a small speaker, the bus doing just enough to
+  # hold the kit together without being heard doing it.
+  kicktune       46 Hz
+  kickdecay      0.62 s
+  kickpunch      0.55
+  kicksweep      0.05 s
+  kickclick      0.4
+  snaredecay     0.2 s
+  snaresnap      0.6
+  tomdecay       0.42 s
+  hatclosed      0.055 s
+  hatopen        0.42 s
+  crashdecay     1.8 s
+  ridedecay      1.4 s
+  comp           0.3
+  duck           0.25
+  drift          0.18
+  volume         0.91
+
+patch Boom family=classic
+  # The long swept kick this box is for, with the bus barely doing anything so
+  # you can hear how long it actually is.
+  kicktune       36 Hz
+  kickdecay      1.6 s
+  kicksweep      0.09 s
+  kickpunch      0.4
+  kickclick      0.2
+  kicklevel      1.15
+  snaredecay     0.18 s
+  hatclosed      0.05 s
+  comp           0.15
+  duck           0.1
+  volume         0.87
+
+patch Tight family=classic
+  # Everything short, and the compressor quick enough to keep it that way.
+  # For a pattern with no room in it.
+  kicktune       52 Hz
+  kickdecay      0.32 s
+  kickpunch      0.7
+  kicksweep      0.02 s
+  kickclick      0.55
+  snaredecay     0.12 s
+  snaresnap      0.75
+  tomdecay       0.2 s
+  hatclosed      0.03 s
+  hatopen        0.22 s
+  crashdecay     0.9 s
+  ridedecay      0.7 s
+  clapdecay      0.18 s
+  comp           0.45
+  compattack     0.002 s
+  comprelease    0.08 s
+  duck           0.3
+  accent         0.65
+  volume         0.91
+
+patch Clicky family=classic
+  # All attack: the click right up, the sweep short so the pitch is gone
+  # before you notice it, and the compressor slow enough to let the transient
+  # through before it grabs.
+  kickclick      0.95
+  kicksweep      0.012 s
+  kickdecay      0.3 s
+  kickpunch      0.8
+  kickdrive      0.35
+  snaresnap      0.85
+  snaretone      0.7
+  snaredecay     0.14 s
+  rimdecay       0.03 s
+  hatclosed      0.025 s
+  compattack     0.02 s
+  comp           0.3
+  accent         0.7
+  volume         0.96
+
+patch Deep family=classic
+  # Low and unhurried. Not longer than Boom - lower, and with the toms brought
+  # down to sit in the same place, which is a different kit and the reason
+  # both are here.
+  kicktune       30 Hz
+  kickdecay      1.0 s
+  kicksweep      0.12 s
+  kickpunch      0.45
+  kickclick      0.15
+  snaretune      145 Hz
+  snaredecay     0.3 s
+  snaretone      0.3
+  tomlotune      62 Hz
+  tommidtune     88 Hz
+  tomhitune      124 Hz
+  tomdecay       0.8 s
+  hattune        360 Hz
+  hattone        4600 Hz
+  crashtone      2400 Hz
+  belltune       480 Hz
+  duck           0.4
+  comp           0.3
+  volume         0.91
+
+patch Pump family=bus
+  # The compressor hard and the duck deep, so the whole kit heaves away from
+  # the kick and comes back. The release is what you are setting: long enough
+  # to be a swell rather than a flutter.
+  comp           0.85
+  compattack     0.004 s
+  comprelease    0.34 s
+  duck           0.8
+  kicktune       44 Hz
+  kickdecay      0.55 s
+  kickpunch      0.6
+  kicklevel      1.2
+  snaredecay     0.24 s
+  hatopen        0.6 s
+  crashdecay     2.6 s
+  drive          0.25
+  volume         0.93
+
+patch Glue family=bus
+  # The compressor doing the other job: fast, gentle and always on, so the kit
+  # reads as one instrument rather than thirteen. No duck at all - nothing is
+  # supposed to be heard moving.
+  comp           0.6
+  compattack     0.0008 s
+  comprelease    0.1 s
+  duck           0.0
+  drive          0.12
+  kickdecay      0.5 s
+  kickpunch      0.6
+  snaredecay     0.19 s
+  snaresnap      0.55
+  hatclosed      0.05 s
+  drift          0.12
+  volume         0.90
+
+patch Sidechain family=bus
+  # All duck and no compression: the kick is the only thing that moves
+  # anything, and it moves everything. The long release is the point - the kit
+  # comes back up across the whole beat.
+  duck           1
+  comp           0.1
+  comprelease    0.5 s
+  kicktune       42 Hz
+  kickdecay      0.7 s
+  kicksweep      0.07 s
+  kicklevel      1.25
+  kickclick      0.25
+  snaredecay     0.26 s
+  hatopen        0.8 s
+  crashdecay     3.2 s
+  ridedecay      2.4 s
+  volume         0.85
+
+patch Breathing family=bus
+  # The slowest setting that still reads as the bus rather than as a mistake:
+  # a long attack so every transient gets through untouched, and a long
+  # release so what follows sags behind it.
+  comp           0.7
+  compattack     0.06 s
+  comprelease    0.7 s
+  duck           0.45
+  kickdecay      0.75 s
+  kicktune       40 Hz
+  snaredecay     0.34 s
+  snaresnap      0.5
+  tomdecay       0.7 s
+  hatopen        0.7 s
+  crashdecay     3.0 s
+  drift          0.3
+  volume         0.91
+
+patch Slam family=bus
+  # Everything at once: compressor maximum, attack at its fastest, drive up.
+  # Nothing survives with its transient intact, which is the sound.
+  comp           1
+  compattack     0.0005 s
+  comprelease    0.06 s
+  duck           0.5
+  drive          0.6
+  kickdecay      0.38 s
+  kickpunch      0.75
+  kickdrive      0.5
+  snaredecay     0.15 s
+  snaresnap      0.8
+  hatclosed      0.03 s
+  accent         0.8
+  volume         0.99
+
+patch Flattened family=bus
+  # The compressor as an effect rather than as glue: so much of it that the
+  # loud things and the quiet things arrive at the same size, and the hats end
+  # up as prominent as the kick. Unmusical on purpose - one kit in a bank
+  # should show what a control does at the end of its travel.
+  comp           1
+  compattack     0.0005 s
+  comprelease    0.02 s
+  duck           0.0
+  drive          0.35
+  kickdecay      0.45 s
+  hatclosed      0.08 s
+  hatlevel       0.9
+  ridelevel      0.8
+  crashlevel     0.8
+  accent         0.2
+  volume         0.97
+
+patch Dirty family=dirty
+  # The bus drive doing the work, with the kick's own on top of it. Two
+  # saturators in series is more than twice as dirty as one.
+  drive          0.7
+  kickdrive      0.65
+  kicktune       48 Hz
+  kickdecay      0.5 s
+  kickpunch      0.6
+  snaresnap      0.7
+  snaretone      0.65
+  snaredecay     0.2 s
+  hattone        8500 Hz
+  comp           0.5
+  duck           0.3
+  drift          0.3
+  volume         0.99
+
+patch Scorched family=dirty
+  # Drive at the top of its travel. The kit stops being thirteen sounds and
+  # becomes one squared-off block, and the cymbals are what still gets out.
+  drive          1
+  kickdrive      0.8
+  kicktune       44 Hz
+  kickdecay      0.6 s
+  kicklevel      1.3
+  snaredecay     0.22 s
+  snaresnap      0.75
+  crashdecay     3.4 s
+  crashlevel     0.85
+  ridelevel      0.8
+  comp           0.4
+  duck           0.35
+  accent         0.85
+  volume         0.99
+
+patch Drifting family=dirty
+  # Drift at its maximum: every hit lands a little off where the last one did.
+  # Slow, sparse patterns are where you hear it - on a busy one it reads as
+  # noise rather than as a circuit.
+  drift          1
+  kicktune       40 Hz
+  kickdecay      0.9 s
+  kicksweep      0.08 s
+  snaredecay     0.28 s
+  tomdecay       0.7 s
+  tombend        0.6
+  hattune        620 Hz
+  belltune       860 Hz
+  belldecay      0.5 s
+  comp           0.25
+  duck           0.2
+  volume         0.91
+
+patch Grit family=dirty
+  # Dirt without weight: the drive up but the kick short and tuned high, so
+  # what saturates is the top of the kit rather than the bottom of it.
+  drive          0.55
+  kicktune       66 Hz
+  kickdecay      0.24 s
+  kickpunch      0.85
+  kickclick      0.7
+  kicklevel      0.8
+  snaretune      265 Hz
+  snaredecay     0.13 s
+  snaresnap      0.8
+  snaretone      0.75
+  hattone        10000 Hz
+  hatclosed      0.03 s
+  rimtune        2100 Hz
+  comp           0.55
+  compattack     0.002 s
+  accent         0.8
+  drift          0.35
+  volume         0.99
+
+patch Wobbler family=dirty
+  # Drift high and the toms bending hard, so the pitched voices are never
+  # quite where you left them. The bus kept gentle - two things wandering at
+  # once is one too many.
+  drift          0.8
+  tombend        1
+  tomdecay       0.9 s
+  tomlotune      70 Hz
+  tommidtune     112 Hz
+  tomhitune      178 Hz
+  kicktune       38 Hz
+  kicksweep      0.14 s
+  kickdecay      0.8 s
+  kickpunch      0.7
+  snaretune      170 Hz
+  snaredecay     0.25 s
+  comp           0.2
+  duck           0.15
+  volume         0.91
+
+patch Cymbals family=metal
+  # Built around the crash and the ride, both long and both up, with the ride
+  # bell well in so the two are told apart by more than their decay.
+  crashdecay     4.4 s
+  crashtone      5200 Hz
+  crashlevel     0.95
+  ridedecay      3.6 s
+  ridetone       6800 Hz
+  ridebell       0.75
+  ridelevel      0.9
+  hatopen        1.1 s
+  hattone        9000 Hz
+  kickdecay      0.45 s
+  snaredecay     0.2 s
+  comp           0.25
+  duck           0.35
+  volume         0.91
+
+patch Splash family=metal
+  # Cymbals at their shortest and brightest. A crash that stops is a
+  # different instrument from one that rings, and this bank did not have one.
+  crashdecay     0.2 s
+  crashtone      9000 Hz
+  crashlevel     0.9
+  ridedecay      0.35 s
+  ridetone       12000 Hz
+  ridebell       0.2
+  ridelevel      0.75
+  hatopen        0.18 s
+  hatclosed      0.02 s
+  hattone        11000 Hz
+  kickdecay      0.3 s
+  kickpunch      0.75
+  snaredecay     0.14 s
+  snaresnap      0.8
+  accent         0.8
+  volume         0.91
+
+patch Tarnish family=metal
+  # The metal tuned right down - the hat stack at the bottom of its range, the
+  # cymbals dark - so the top of the kit is heavy rather than bright. The
+  # opposite end of the same knob Splash sits at the top of.
+  hattune        200 Hz
+  hattone        2000 Hz
+  hatclosed      0.11 s
+  hatopen        1.3 s
+  hatlevel       0.85
+  crashtone      1500 Hz
+  crashdecay     4.0 s
+  crashlevel     0.8
+  ridetone       2000 Hz
+  ridedecay      3.0 s
+  ridebell       0.15
+  belltune       420 Hz
+  rimtune        900 Hz
+  kicktune       36 Hz
+  kickdecay      0.8 s
+  snaretone      0.25
+  comp           0.3
+  volume         0.91
+
+patch Shimmer family=metal
+  # High and thin and held: the hat open for most of a bar, the ride long, and
+  # nothing underneath allowed to compete. For playing the top of a pattern.
+  hatopen        2 s
+  hatclosed      0.012 s
+  hattune        980 Hz
+  hattone        12000 Hz
+  hatlevel       0.95
+  ridedecay      5.0 s
+  ridetone       10000 Hz
+  ridebell       0.1
+  ridelevel      0.8
+  crashdecay     2.0 s
+  crashlevel     0.5
+  kicktune       46 Hz
+  kickdecay      0.4 s
+  kicklevel      0.85
+  snaredecay     0.17 s
+  comp           0.2
+  duck           0.45
+  volume         0.97
+
+patch Hiss family=metal
+  # The snare as a noise source rather than a drum - snap at the top, tone
+  # near the bottom - with the hats matched to it. What is left is a kit made
+  # mostly of air.
+  snaresnap      1
+  snaretone      0.1
+  snaredecay     0.42 s
+  snaretune      320 Hz
+  snarelevel     1.0
+  hattone        9500 Hz
+  hatclosed      0.075 s
+  hatopen        0.9 s
+  clapdecay      0.5 s
+  claptone       2600 Hz
+  clapspread     0.04 s
+  kickdecay      0.42 s
+  kickclick      0.5
+  comp           0.4
+  duck           0.4
+  volume         0.83
+
+patch Rimshot family=perc
+  # The rim doing the snare's job for a whole pattern, tuned up where it cuts.
+  # The snare stays in, right down, for the fills.
+  rimtune        2500 Hz
+  rimdecay       0.09 s
+  rimlevel       1.3
+  snarelevel     0.3
+  snaredecay     0.16 s
+  kicktune       48 Hz
+  kickdecay      0.5 s
+  kickclick      0.45
+  hatclosed      0.04 s
+  hatopen        0.45 s
+  comp           0.35
+  duck           0.3
+  accent         0.7
+  volume         0.87
+
+patch Handclap family=perc
+  # Built on the clap and committed to it: wide spread so you hear the pulses
+  # as pulses, long and dark, with the snare mostly out of the way.
+  clapspread     0.05 s
+  clapdecay      1.1 s
+  claptone       760 Hz
+  claplevel      1.35
+  snarelevel     0.35
+  snaredecay     0.15 s
+  kicktune       44 Hz
+  kickdecay      0.55 s
+  kicklevel      1.1
+  hatclosed      0.045 s
+  hatopen        0.4 s
+  crashlevel     0.35
+  ridelevel      0.35
+  comp           0.4
+  duck           0.4
+  volume         0.88
+
+patch Bellwork family=perc
+  # The cowbell as the instrument: tuned high, rung long, and loud enough to
+  # carry a pattern on its own. Everything else is accompaniment and levelled
+  # as such.
+  belltune       1200 Hz
+  belldecay      0.85 s
+  belllevel      1.35
+  rimtune        1900 Hz
+  rimlevel       0.8
+  kicktune       50 Hz
+  kickdecay      0.42 s
+  kicklevel      0.85
+  snaredecay     0.18 s
+  snarelevel     0.6
+  tomlevel       0.55
+  hatlevel       0.5
+  crashlevel     0.3
+  ridelevel      0.35
+  comp           0.3
+  volume         0.90
+
+patch Woodshop family=perc
+  # Rim and cowbell both in the wood part of their ranges and both short, with
+  # the toms up under them as the low blocks. Nothing here rings.
+  rimtune        1150 Hz
+  rimdecay       0.02 s
+  rimlevel       1.2
+  belltune       640 Hz
+  belldecay      0.08 s
+  belllevel      1.0
+  tomlotune      118 Hz
+  tommidtune     172 Hz
+  tomhitune      258 Hz
+  tomdecay       0.16 s
+  tombend        0.15
+  tomlevel       1.0
+  kicktune       64 Hz
+  kickdecay      0.22 s
+  kickpunch      0.8
+  kickclick      0.6
+  snaretune      280 Hz
+  snaredecay     0.1 s
+  snaretone      0.25
+  hatclosed      0.022 s
+  hatopen        0.18 s
+  hattone        5600 Hz
+  crashlevel     0.28
+  ridelevel      0.3
+  comp           0.45
+  drift          0.3
+  volume         0.91
+
+patch Ghosts family=perc
+  # The rim at its quietest and quickest, for the notes between the notes.
+  # Accent is what makes this playable: a light pattern with the occasional
+  # hit through it, so the accent threshold is doing most of the arranging.
+  rimdecay       0.01 s
+  rimtune        1450 Hz
+  rimlevel       0.85
+  snaredecay     0.11 s
+  snaresnap      0.65
+  snarelevel     0.7
+  accent         1
+  kicktune       50 Hz
+  kickdecay      0.36 s
+  kickpunch      0.65
+  hatclosed      0.028 s
+  hatopen        0.3 s
+  comp           0.5
+  compattack     0.003 s
+  duck           0.25
+  drift          0.25
+  volume         0.91
+
+patch Toms family=tone
+  # The three toms low, long and bending, and loud enough to be the pattern
+  # rather than the fill. The kick sits under them instead of in front.
+  tomlotune      60 Hz
+  tommidtune     92 Hz
+  tomhitune      138 Hz
+  tomdecay       1.4 s
+  tombend        0.7
+  tomlevel       1.35
+  kicktune       34 Hz
+  kickdecay      0.7 s
+  kicklevel      0.9
+  kickclick      0.2
+  snaredecay     0.24 s
+  snarelevel     0.7
+  hatopen        0.6 s
+  comp           0.3
+  duck           0.4
+  volume         0.87
+
+patch Descent family=tone
+  # Every bit of bend the toms have and two seconds to fall through it, tuned
+  # wide apart so the three of them are an instrument rather than three sizes
+  # of the same one.
+  tomlotune      60 Hz
+  tommidtune     140 Hz
+  tomhitune      340 Hz
+  tomdecay       2 s
+  tombend        1
+  tomlevel       1.3
+  kicktune       31 Hz
+  kickdecay      1.2 s
+  kicksweep      0.2 s
+  kickpunch      1
+  snaredecay     0.2 s
+  snarelevel     0.6
+  crashdecay     3.6 s
+  comp           0.25
+  duck           0.5
+  drift          0.4
+  volume         0.87
+
+patch Tuned family=tone
+  # The toms and the cowbell tuned to a minor seventh, so the pads play a
+  # chord. The kick sits a fifth below the low tom rather than wherever it
+  # landed, and the bend is off - a chord that slides is not a chord.
+  tomlotune      98 Hz
+  tommidtune     117 Hz
+  tomhitune      147 Hz
+  tomdecay       1.1 s
+  tombend        0
+  tomlevel       1.2
+  belltune       784 Hz
+  belldecay      0.7 s
+  belllevel      0.85
+  rimtune        1568 Hz
+  kicktune       65 Hz
+  kickdecay      0.5 s
+  kickpunch      0.35
+  kickclick      0.15
+  snaretune      196 Hz
+  snaredecay     0.3 s
+  snaretone      0.3
+  snarelevel     0.6
+  hattune        392 Hz
+  drift          0.05
+  comp           0.3
+  volume         0.90
+
+patch Subsonic family=tone
+  # The kick at the bottom of its range with the longest sweep the machine
+  # has, and nothing above it allowed to get in the way. More felt than heard,
+  # which is the point and also the warning.
+  kicktune       30 Hz
+  kickdecay      3 s
+  kicksweep      0.2 s
+  kickpunch      0.3
+  kickclick      0.1
+  kicklevel      1.4
+  kickdrive      0.15
+  snaredecay     0.18 s
+  snarelevel     0.55
+  tomlotune      64 Hz
+  tomdecay       0.5 s
+  tomlevel       0.6
+  hatlevel       0.45
+  crashlevel     0.3
+  ridelevel      0.3
+  comp           0.2
+  duck           0.1
+  volume         0.83
+
+patch Hollow family=tone
+  # Tone down on everything that has one: the snare nearly all noise, the kick
+  # with no click, the metal dark. What is left is the shape of the kit
+  # without any of its edges.
+  snaretone      0
+  snaresnap      0.45
+  snaredecay     0.26 s
+  snaretune      155 Hz
+  kickclick      0
+  kicktune       38 Hz
+  kickdecay      0.75 s
+  kicksweep      0.1 s
+  tomdecay       0.6 s
+  tombend        0.2
+  hattune        300 Hz
+  hattone        3200 Hz
+  hatclosed      0.07 s
+  hatopen        0.55 s
+  crashtone      1900 Hz
+  claptone       520 Hz
+  clapdecay      0.4 s
+  rimtune        860 Hz
+  belltune       430 Hz
+  comp           0.35
+  duck           0.3
+  drift          0.25
+  volume         0.91

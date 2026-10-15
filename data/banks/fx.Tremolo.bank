@@ -1,0 +1,103 @@
+# Tremolo, and the same lever turned into an auto-pan.
+#
+# Rate, depth and a shape are the classic part. `pan` is the extra and it is
+# not a second effect: it slides the LFO's phase apart between the two
+# channels, so at nothing both ducks together and it is a tremolo, at the top
+# they are opposite and it is an auto-pan, and everywhere in between belongs to
+# neither. `skew` bends the waveform's duty, so the dip can be a stab or a
+# swell rather than always symmetrical.
+#
+# Families: tremolo, pan, skew.
+
+machine fx.Tremolo
+
+patch Init family=tremolo
+
+patch Vintage family=tremolo
+  # A sine on the quarter note, depth about two thirds: the amplifier tremolo,
+  # which is shallower than people remember and is why it sits under a part
+  # rather than chopping it.
+  rate           #8
+  depth          0.65
+  shape          #0
+  gain           2.5 dB
+
+patch Choppy family=tremolo
+  # Triangle, eighths, deep. The linear ramp makes each dip arrive with an edge
+  # a sine does not have.
+  rate           #5
+  depth          0.9
+  shape          #1
+  gain           6 dB
+
+patch Square family=tremolo
+  # On or off, sixteenths. Not a tremolo so much as a gate in time - and with
+  # depth full it is silence between the hits rather than a dip.
+  rate           #2
+  depth          1.0
+  shape          #2
+
+patch "Fast Pulse" family=tremolo
+  # Sixteenths, deep: a chopping pulse.
+  rate           #2
+  depth          0.8
+  shape          #1
+  gain           4.5 dB
+
+patch "Slow Swell" family=tremolo
+  # A bar a swell, gentle.
+  rate           #13
+  depth          0.5
+  shape          #0
+  gain           2 dB
+
+patch "Auto Pan" family=pan
+  # The same LFO arriving at the two channels exactly out of step, so the level
+  # is constant and only the position moves. A quarter-note pan, which is as
+  # fast as one can be before it stops reading as position.
+  rate           #8
+  depth          0.8
+  shape          #0
+  pan            1.0
+  gain           4 dB
+
+patch Wide family=pan
+  # Half way between tremolo and pan, slowly: the image rocks and the level
+  # breathes, and neither is quite doing what you would expect on its own.
+  rate           #13
+  depth          0.7
+  shape          #0
+  pan            0.5
+  gain           3 dB
+
+patch "Ping Pong" family=pan
+  # Eighths, left to right.
+  rate           #5
+  depth          0.9
+  pan            1
+  gain           4 dB
+
+patch Stab family=skew
+  # Skew low, so the rise is short and the fall is long: each cycle arrives as
+  # a hit and decays away. A tremolo shaped like a note.
+  rate           #5
+  depth          0.95
+  shape          #1
+  skew           0.12
+  gain           3.1 dB
+
+patch Swell family=skew
+  # The opposite. A long rise into a short drop, which is a bowed attack made
+  # out of a volume control.
+  rate           #11
+  depth          0.9
+  shape          #1
+  skew           0.88
+  gain           5.5 dB
+
+patch Lurch family=skew
+  # A skewed wave on quarters: the push of a sidechain.
+  rate           #8
+  depth          0.7
+  skew           0.85
+  gain           2 dB

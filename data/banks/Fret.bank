@@ -1,0 +1,349 @@
+# Fret - electric guitars and basses.
+#
+# A string plucked by a pick, a finger or a slapping thumb, heard through
+# its pickups: a magnet under the string at the neck, at the bridge or both,
+# a single coil or a humbucker, and the tone knob. A pickup hears the string
+# where it sits, so the neck is round and the bridge thin and bright; a
+# quarter of the way along, the 4th harmonic is gone.
+#
+# The hands: `mute` rests the palm by the bridge (the mod wheel does too),
+# `harmonic` touches the 12th, 7th or 5th fret, `buzz` lets the frets slap,
+# `strum` spreads a chord across the strings, and with one voice `slide`
+# glides from note to note. `drive` is the amp, with a speaker as it comes
+# in, and `feedback` lets it shake the held strings until a note sustains.
+#
+# The string's partials sit within a few cents of the harmonic series: the
+# loop's DC blocker sits at a hundredth of the note rather than a tenth, so
+# its phase lead doesn't pull every partial flat.
+#
+# Families: clean, crunch, lead, strum, jazz, steel, bass.
+
+machine Fret
+role tune
+
+patch Init family=clean note=52 range=40..88
+
+patch "Clean Neck" family=clean note=52 range=40..88
+  # The neck pickup alone: round and warm.
+  pickup         #0
+  tone           0.7
+
+patch "Clean Bridge" family=clean note=52 range=40..88
+  # The bridge single coil: thin, bright and quick.
+  pickup         #2
+  bright         0.6
+
+patch "Both Pickups" family=clean note=52 range=40..88
+  # Neck and bridge together: hollow, the in-between sound.
+  pickup         #1
+  bright         0.55
+
+patch Jangle family=clean note=57 range=40..88 role=chord
+  # Twelve strings, both pickups, strummed lightly.
+  model          #1
+  pickup         #1
+  strum          12 ms
+  bright         0.6
+
+patch Harmonics family=clean note=52 range=40..76
+  # A finger at the 12th fret: bell-like octaves.
+  harmonic       #1
+  pickup         #0
+  sustain        0.7
+
+patch "Fifth Harmonics" family=clean note=48 range=40..72
+  # The 7th fret: a twelfth up, glassier still.
+  harmonic       #2
+  pickup         #1
+  sustain        0.7
+
+patch "Finger Style" family=clean note=52 range=40..84
+  # Played with the fingers on the neck pickup: soft and close.
+  stroke         #1
+  pickup         #0
+  hardness       0.4
+  tone           0.6
+
+patch Baritone family=clean note=47 range=35..80
+  # A longer neck tuned down: deep and clear.
+  model          #2
+  pickup         #0
+  volume         0.85
+
+patch Twang family=clean note=47 range=35..80
+  # The baritone's bridge pickup with a little drive.
+  model          #2
+  drive          0.2
+  bright         0.6
+  volume         0.85
+
+patch Surf family=clean note=52 range=35..84
+  # A bright single coil and a fast vibrato.
+  model          #2
+  bright         0.65
+  vibrato        0.45
+  sustain        0.4
+
+patch Crunch family=crunch note=48 range=40..84 role=chord
+  # A humbucker at the bridge into an amp just breaking up.
+  coil           #1
+  drive          0.4
+  bright         0.55
+  volume         0.85
+
+patch Chug family=crunch note=40 range=36..64 role=chord
+  # Palm-muted power chords through a driven amp.
+  coil           #1
+  mute           0.65
+  drive          0.6
+  hardness       0.8
+  volume         1
+
+patch Blues family=crunch note=52 range=40..84
+  # The neck pickup, a little drive and a slow vibrato.
+  pickup         #0
+  drive          0.3
+  vibrato        0.3
+  volume         0.9
+
+patch Garage family=crunch note=48 range=40..80 role=chord
+  # A single coil at the bridge, driven, the frets buzzing.
+  drive          0.5
+  buzz           0.4
+  hardness       0.8
+  volume         0.95
+
+patch Funk family=crunch note=55 range=45..84 role=chord
+  # The bridge single coil, half muted, quick strums.
+  mute           0.35
+  strum          6 ms
+  direction      #2
+  bright         0.65
+  volume         0.85
+
+patch Lead family=lead note=64 range=48..96 role=lead
+  # A humbucker at the bridge, driven hard, with vibrato.
+  coil           #1
+  drive          0.8
+  vibrato        0.25
+  sustain        0.8
+
+patch "Singing Lead" family=lead note=64 range=48..96 role=lead
+  # Loud enough that held notes feed back and sing.
+  coil           #1
+  drive          0.75
+  feedback       0.7
+  sustain        0.85
+  volume         0.5
+
+patch "Feedback Swell" family=lead note=57 range=45..88 role=lead
+  # Notes that grow as the amp takes them over.
+  pickup         #0
+  coil           #1
+  drive          0.85
+  feedback       1
+  hardness       0.2
+  volume         0.55
+
+patch "Slide Lead" family=lead note=60 range=45..90 role=lead
+  # One voice, sliding from note to note.
+  voices         #0
+  slide          140 ms
+  drive          0.5
+  vibrato        0.2
+
+patch Screamer family=lead note=67 range=52..96 role=lead
+  # Bridge single coil, flat out, buzzing frets.
+  drive          1
+  buzz           0.3
+  hardness       0.9
+  bright         0.6
+
+patch "Whammy Dive" family=lead note=64 range=52..88
+  # Driven, the bar dived a whole octave: pull the bend wheel down.
+  drive          0.7
+  bend           12
+  vibrato        0.3
+
+patch Strummed family=strum note=52 range=40..76 role=chord
+  # Down and up in turn across the strings.
+  strum          25 ms
+  direction      #2
+  pickup         #1
+
+patch "Up Strokes" family=strum note=55 range=40..76 role=chord
+  # Every chord strummed upwards: the offbeat skank.
+  strum          10 ms
+  direction      #1
+  mute           0.3
+  bright         0.6
+  volume         0.85
+
+patch "Slow Strum" family=strum note=52 range=40..76 role=chord
+  # Wide, slow strums on the neck pickup.
+  strum          60 ms
+  pickup         #0
+  sustain        0.7
+
+patch "Twelve Strum" family=strum note=52 range=40..76 role=chord
+  # Twelve strings strummed down.
+  model          #1
+  strum          30 ms
+  pickup         #1
+
+patch "Funk Muted" family=strum note=64 range=52..76 role=chord
+  # Palm-muted chops, bright and percussive, for funk.
+  mute           0.6
+  pickup         #2
+  bright         0.7
+  hardness       0.8
+  volume         0.55
+
+patch "Twelve Ballad" family=strum note=57 range=40..76 role=chord
+  # The twelve-string strummed slowly, chiming.
+  model          #1
+  strum          40
+  sustain        0.7
+
+patch "Jazz Box" family=jazz note=57 range=40..76
+  # An archtop on the neck pickup, tone rolled off.
+  model          #5
+  pickup         #0
+  tone           0.4
+
+patch "Jazz Comping" family=jazz note=57 range=40..76 role=chord
+  # Fingers through soft chords, the way a rhythm player comps.
+  model          #5
+  pickup         #0
+  tone           0.45
+  stroke         #1
+  strum          15
+
+patch "Jazz Octaves" family=jazz note=62 range=48..79
+  # Thumb and octave shapes, warm and round.
+  model          #5
+  pickup         #0
+  tone           0.5
+  stroke         #1
+
+patch "Archtop Bright" family=jazz note=60 range=40..79
+  # Both pickups, a little more cut.
+  model          #5
+  pickup         #1
+  tone           0.7
+
+patch "Lap Steel" family=steel note=62 range=48..84
+  # The bar slid between notes, played legato.
+  model          #6
+  slide          150
+  sustain        0.8
+
+patch "Pedal Steel" family=steel note=62 range=48..84 role=chord
+  # Slow bends and a shimmer, country ballad style.
+  model          #6
+  slide          250
+  vibrato        0.25
+  sustain        0.9
+  strum          20
+
+patch "Steel Swell" family=steel note=62 range=48..84
+  # A soft pick and a warm tone, swelling under a song.
+  model          #6
+  slide          80
+  tone           0.6
+  hardness       0.2
+
+patch "Hawaiian Steel" family=steel note=67 range=55..84
+  # Wide vibrato, bright and sweet.
+  model          #6
+  slide          120
+  vibrato        0.4
+
+patch "Bass Finger" family=bass note=33 range=23..60 role=bass
+  # Fingers on the neck pickup: the round, ordinary bass.
+  model          #3
+  stroke         #1
+  pickup         #0
+
+patch "Bass Pick" family=bass note=33 range=23..60 role=bass
+  # A pick at the bridge pickup: tight and growly.
+  model          #3
+  pickup         #2
+  hardness       0.7
+
+patch "Slap Bass" family=bass note=33 range=23..60 role=bass
+  # The thumb slapped against the strings, the frets ringing.
+  model          #3
+  stroke         #2
+  pickup         #1
+  bright         0.65
+
+patch "Muted Bass" family=bass note=33 range=23..60 role=bass
+  # The palm on the strings: short, thumpy notes.
+  model          #3
+  stroke         #1
+  mute           0.6
+  pickup         #0
+
+patch "Five String" family=bass note=28 range=23..55 role=bass
+  # A low B string, played with the fingers.
+  model          #4
+  stroke         #1
+  pickup         #1
+
+patch "Driven Bass" family=bass note=33 range=23..60 role=bass
+  # A pick into a driven amp.
+  model          #3
+  coil           #1
+  drive          0.45
+  volume         0.95
+
+patch "Slide Bass" family=bass note=33 range=23..60 role=bass
+  # One voice gliding between notes, like a bass with no frets: dark and long.
+  model          #3
+  stroke         #1
+  voices         #0
+  slide          90 ms
+  pickup         #0
+  bright         0.3
+  sustain        0.75
+  tone           0.55
+
+patch "Fretless" family=bass note=40 range=28..60
+  # No frets: notes glide into each other.
+  model          #7
+  slide          120
+  stroke         #1
+
+patch "Fretless Mwah" family=bass note=40 range=28..60
+  # The bridge pickup, the vocal growl of a fretless.
+  model          #7
+  pickup         #2
+  bright         0.75
+  stroke         #1
+
+patch "Fretless Low" family=bass note=33 range=23..52
+  # Deep and soft, on the neck pickup.
+  model          #7
+  pickup         #0
+  tone           0.4
+  stroke         #1
+
+patch "Slap Thumb" family=bass note=40 range=28..60
+  # Thumb slaps on the low strings.
+  model          #3
+  stroke         #2
+  bright         0.7
+
+patch "Slap Pop" family=bass note=45 range=28..64
+  # Slaps and pops, the bridge pickup up.
+  model          #3
+  stroke         #2
+  pickup         #2
+  bright         0.8
+
+patch "Five String Deep" family=bass note=28 range=23..48
+  # The low B, fingered and full.
+  model          #4
+  stroke         #1
+  tone           0.6

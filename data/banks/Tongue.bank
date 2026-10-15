@@ -1,0 +1,332 @@
+# Tongue - jaw harps: a reed ringing through a slot, and a mouth that picks
+# out its harmonics.
+#
+# Steel, khomus, morsing, brass, munnharpe and temir komuz are fitted to
+# recordings (tools/tongue_reference): steel's harmonics close to level up to
+# the 16th, the odd and even about equal, the mouth's formants at 0.5 to 1.6
+# kHz and 1.4 to 3.2 kHz bringing out the 3rd to 10th, a pluck falling about
+# 36 dB a second when played 7 times a second, its fundamental and 2nd at half
+# that. Each kind's ring is steel's times the ratio of their recordings' falls.
+# Bamboo, mukkuri, genggong and kouxian have no open recordings, so they're
+# from what's written about them and by ear.
+#
+# Each patch plays the `jaw` phrase: one note plucked in a gallop, the mod
+# wheel (the mouth) stepping through vowels, then a pluck left to ring.
+# Mouth-mode patches play `harmonics` instead: legato keys walking the
+# drone's harmonics. 41 patches in seven families.
+# Values are in each parameter's own units; `audition params Tongue` lists
+# them. A patch names only what it changes.
+#
+# What is still wrong:
+#   - Breath is set by ear: the recordings were too quick to measure it.
+#   - Steel fits the recordings' median to 2.4 dB rms over the first twelve
+#     harmonics, inside their own scatter (a real recording against the
+#     median of the others is 6.3 dB, the closest 2.6). Khomus and morsing
+#     fit theirs to about 3.4. Brass, munnharpe and temir komuz each have
+#     one recording whose middle harmonics stand 25 to 30 dB over the
+#     fundamental, a player working the mouth; they fit to 6 to 10 dB and
+#     keep the character (a weak fundamental, a bright middle and top)
+#     rather than the take.
+#   - The bamboo kinds' reed modes, rings and frame knocks are guesses.
+#   - Words are said from the note's start: a word's first consonants don't
+#     lead the beat as Diction's do, so quick words smear.
+#   - Following needs the other track to play one note at a time; a chord
+#     gives whichever note is strongest, or nothing.
+#   - Four voices of five reeds cost about 57 us a block on the dev box.
+
+machine Tongue
+role    jaw
+
+# --- steel -------------------------------------------------------------------
+
+patch Init family=steel note=55 range=48..67
+
+patch "Bright Steel" family=steel note=55 range=48..67
+  # A close-fitting reed flicked hard: every harmonic up, the mouth narrow.
+  edge           0.85
+  pluck          0.9
+  focus          0.85
+  volume         0.75
+
+patch "Soft Steel" family=steel note=55 range=48..67
+  # Plucked gently with the pad of the finger, the mouth doing more of the work.
+  pluck          0.2
+  edge           0.35
+  ring           4
+  depth          0.6
+  mouth          0.2
+  volume         0.97
+
+patch "Breathing Steel" family=steel note=55 range=48..67
+  # Breathed through as it's played, the breath keeping it going.
+  breath         0.5
+  air            0.5
+  sustain        0.6
+  volume         0.53
+
+patch "Low Steel" family=steel note=43 range=36..52
+  # A big steel harp down low, the mouth deep and slow.
+  ring           8
+  depth          0.65
+  glide          120
+  volume         0.83
+
+patch "Paired Steel" family=steel note=55 range=48..62
+  # Two harps a few cents apart, played together.
+  reeds          2
+  chord          1      # unison
+  strum          8
+
+# --- northern harps: munnharpe, khomus, temir komuz --------------------------
+
+patch "Munnharpe" family=northern note=45 range=40..55
+  # A low Norwegian harp: soft and round, the odd harmonics up.
+  model          1      # munnharpe
+
+patch "Khomus" family=northern note=55 range=48..62
+  # A Sakha harp, breathed as it rings.
+  model          2      # khomus
+  breath         0.25
+  air            0.5
+
+patch "Temir Komuz" family=northern note=55 range=50..64
+  # A Kyrgyz harp: a close fit, bright and ringing.
+  model          4      # temir komuz
+
+patch "Breathing Khomus" family=northern note=55 range=48..62
+  # Breathed hard, so a held note never dies.
+  model          2      # khomus
+  breath         0.55
+  air            0.6
+  sustain        0.75
+  volume         0.51
+
+patch "Sweet Munnharpe" family=northern note=45 range=40..55
+  # Soft, the mouth narrow and doing most of the work.
+  model          1      # munnharpe
+  pluck          0.35
+  focus          0.85
+  depth          0.75
+  mouth          0.3
+
+patch "Temir Pair" family=northern note=55 range=50..64
+  # Temir komuz are often played two at once: a pair a hair apart.
+  model          4      # temir komuz
+  reeds          2
+  chord          1      # unison
+  strum          12
+
+# --- southern harps: morsing and brass ---------------------------------------
+
+patch "Morsing" family=southern note=49 range=44..56
+  # A big South Indian harp: low, dark and short, for rhythm.
+  model          3      # morsing
+
+patch "Brass Harp" family=southern note=50 range=45..60
+  # A thin brass harp cut from its own frame: high and buzzy, quiet.
+  model          5      # brass
+
+patch "Brass Whisper" family=southern note=50 range=45..60
+  # A brass harp played softly and breathed through.
+  model          5      # brass
+  pluck          0.3
+  depth          0.85
+  breath         0.25
+  air            0.75
+  volume         0.79
+
+patch "Bright Brass" family=southern note=52 range=45..62
+  # Flicked hard, every harmonic up and the mouth narrow.
+  model          5      # brass
+  edge           0.85
+  focus          0.9
+
+patch "Ringing Morsing" family=southern note=49 range=44..56
+  # A morsing let ring, its finger off the reed.
+  model          3      # morsing
+  ring           9
+  stop           0
+  volume         0.56
+
+# --- bamboo ------------------------------------------------------------------
+
+patch "Bamboo Harp" family=bamboo note=57 range=50..64
+  # Bamboo cut from its own frame: a woody tock, soft and short.
+  model          6      # bamboo
+
+patch "Mukkuri" family=bamboo note=52 range=45..60
+  # A bamboo harp played by a pull on a string tied to its frame.
+  model          7      # mukkuri
+
+patch "Genggong" family=bamboo note=55 range=48..62
+  # A string-pulled palm harp: a quick tug and a buzz.
+  model          8      # genggong
+
+patch "Kouxian" family=bamboo note=60 range=52..67
+  # Three reeds tuned to a pentatonic chord, plucked one after another.
+  model          9      # kouxian
+  strum          60
+
+patch "Bamboo Whisper" family=bamboo note=57 range=50..64
+  # Barely plucked, mostly breath through the bamboo.
+  model          6      # bamboo
+  pluck          0.2
+  breath         0.35
+  air            0.85
+  depth          0.8
+  volume         0.62
+
+patch "Slow Mukkuri" family=bamboo note=52 range=45..60
+  # A long, slow pull on the string, the mouth doing the talking.
+  model          7      # mukkuri
+  pluck          0.15
+  depth          0.9
+  mouth          0.2
+  volume         0.96
+
+# --- many reeds --------------------------------------------------------------
+
+patch "Fifths" family=reeds note=50 range=45..60
+  # Two steel reeds a fifth apart, plucked together.
+  reeds          2
+  chord          3      # fifths
+  volume         0.8
+
+patch "Strummed Major" family=reeds note=55 range=48..62
+  # Four steel reeds in a major chord, strummed down.
+  reeds          4
+  chord          4      # major
+  strum          45
+  order          1      # down
+
+patch "Reeds In Turn" family=reeds note=55 range=48..62
+  # Five bamboo reeds, one plucked a note in turn, so a run plays the chord.
+  model          6      # bamboo
+  reeds          5
+  chord          6      # pentatonic
+  order          2      # in turn
+
+patch "Octave Harp" family=reeds note=48 range=40..60
+  # Two reeds an octave apart.
+  reeds          2
+  chord          2      # octaves
+  volume         0.79
+
+patch "Minor Strum" family=reeds note=55 range=48..62
+  # Four reeds in a minor chord, strummed up slowly.
+  reeds          4
+  chord          5      # minor
+  strum          70
+
+patch "Scattered Kouxian" family=reeds note=60 range=52..67
+  # Five bamboo reeds, plucked in a different order each time.
+  model          9      # kouxian
+  reeds          5
+  order          3      # scatter
+  strum          40
+  volume         0.79
+
+# --- keys, rhythm, words and following ---------------------------------------
+
+patch "Mouth Tunes" family=rhythm note=50 range=50..86 role=harmonics
+  # The keys move the mouth over a D drone, in a gallop.
+  play           1      # mouth
+  drone          50
+  repluck        2      # loud
+  pattern        3      # gallop
+  focus          0.8
+  volume         0.47
+
+patch "Khomus Gallop" family=rhythm note=55 range=48..62
+  # A khomus galloping on the beat, breathed.
+  model          2      # khomus
+  pattern        3      # gallop
+  accent         0.7
+  breath         0.2
+  volume         0.50
+
+patch "Genggong Runs" family=rhythm note=55 range=48..62
+  # Quick runs of pulls and a rest.
+  model          8      # genggong
+  pattern        5      # runs
+  accent         0.6
+  volume         0.45
+
+patch "Morsing Groupings" family=rhythm note=49 range=44..56
+  # Sixteenths in groups of four and three, now and then doubled.
+  model          3      # morsing
+  pattern        6      # groupings
+  accent         0.8
+  ratchet        0.15
+  volume         0.54
+
+patch "Talking Steel" family=rhythm note=50 range=45..60
+  # Give its notes words: a deep, open mouth that says them, ringing on.
+  depth          0.8
+  focus          0.4
+  stop           0
+  words          1
+  volume         0.8
+
+patch "Follow Track 1" family=rhythm note=50 range=45..60
+  # A drone galloping while track 1's melody moves the mouth.
+  sidechain      1
+  pattern        3      # gallop
+  focus          0.8
+  volume         0.6
+
+patch "Steel Triplets" family=rhythm note=55 range=48..62
+  # Triplets with the first of each leaning.
+  pattern        4      # triplets
+  accent         0.6
+
+# --- strange -----------------------------------------------------------------
+
+patch "Glass Harp" family=strange note=60 range=52..72
+  # A close fit and every overtone up, ringing for ever.
+  model          4      # temir komuz
+  edge           1
+  pluck          1
+  overtones      1
+  ring           10
+  stop           0
+  focus          1
+  depth          1
+  volume         0.31
+
+patch "Sub Harp" family=strange note=36 range=28..43
+  # A steel harp far below any real one: a slow, grinding buzz.
+  set            0.5
+  edge           0.3
+  ring           10
+  depth          0.7
+  volume         0.84
+
+patch "Buzz Choir" family=strange note=50 range=45..60
+  # Five reeds in unison, breathed so they never stop.
+  reeds          5
+  chord          1      # unison
+  breath         0.6
+  sustain        0.8
+  air            0.4
+  volume         0.45
+
+patch "Robot Words" family=strange note=50 range=50..86 role=harmonics
+  # Mouth mode with a mouth that snaps from shape to shape.
+  play           1      # mouth
+  drone          50
+  focus          1
+  depth          1
+  glide          5
+  pattern        2      # sixteenths
+  ratchet        0.3
+  volume         0.28
+
+patch "Broken Gallop" family=strange note=55 range=48..62
+  # A genggong galloping, stumbling into doubles, pulled off its middle.
+  model          8      # genggong
+  pattern        6      # groupings
+  ratchet        0.6
+  accent         1
+  set            -0.6
+  volume         0.38

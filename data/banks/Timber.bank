@@ -1,0 +1,240 @@
+# Timber - ten woodwinds, each in its own range, each levelled, and each now
+# playing every note of that range.
+#
+# **Every patch says the range it is played in.** `body` is the instrument's
+# lowest note, and the bodies here are the real instruments' bottom notes -
+# the seeds had that right. But the `note=` centres had been placed by
+# sweeping for "where it makes a pitch", and four of them were *below* the
+# instrument's own bottom note, with the audition phrase going another
+# octave down from there. Below the body the tube under the fingers clamps
+# to nothing and what is left is a bare line and a reed, which is what was
+# heard as "breath and no note". So every patch carries `range=lo..hi`, from
+# the instrument and not from the model, the phrase stays inside it, and the
+# app puts the keyboard there when the patch is loaded.
+#
+# **The range is the acceptance test, not the centre.** `audition sweep
+# Timber` plays every note of every range and says which ones are dead or on
+# the wrong partial. All two hundred and twenty pass. The centre alone never
+# saw the saxophone's bottom note come out an octave high or the oboe lose
+# the top five of its own.
+#
+# **The reed's table is a curve now, and that is where its gain comes from.**
+# A straight table has only one way to make gain - tilt it - but the tilt and
+# the resting point are then the same number, so a loop gain of 1.24 meant a
+# reed already 97 per cent shut, with three per cent of its travel left
+# against wave swings ten times that. The gain was capped at `2 r_rest -
+# offset` however hard the player blew: the bassoon took 240 ms to speak,
+# `pressure` moved nothing, and the gain the solve asked for rippled away
+# with whatever the tube below the fingers was doing, which is what killed
+# the oboe above note 74. A cube costs a sixth of the aperture for the same
+# gain and raises the ceiling from 2 - offset to 4 - 3 offset. Measured:
+# every patch speaks in 30-70 ms where it took 50-240, the solve now gets
+# the gain it asks for at every note of every range, and `pressure` is worth
+# seven decibels from 0.4 to 1.2 where it used to be worth none.
+#
+# **The breath is no longer taken through the envelope.** A wind player's
+# breath is up before the note sounds - that is what a tongued attack is -
+# and running the envelope through the mouthpiece solve meant the loop was
+# linearised at a different pressure every block on the way up, so the gain
+# crossed one somewhere in the middle of the attack. The envelope shapes
+# what leaves the instrument; the breath has its own four-millisecond ramp.
+#
+# **The lattice is a filter and not a lag.** A row of open holes is a
+# cutoff: below it the wave turns round whole. A one-pole is eleven per cent
+# down at half its corner, so the top of a range was losing an eighth of its
+# loop to holes that should have given it back untouched. Two poles, or four
+# when `holes` is deep, flat below and steeper above.
+#
+# **The walls take a root of the frequency, per round trip.** Stated at a
+# fixed frequency - a fifth off above four times the bottom note - it was the
+# right law said wrongly: deep enough to stop the saxophone overblowing, it
+# took three notes off the top of the oboe. A round trip is as long as the
+# tube that is sounding, so the loss per turn goes as the root of the partial
+# and as one over the root of the note, and a high note is a short tube that
+# loses less. That is also the only thing telling a cone which of its modes
+# to sound, and at a third off at the bottom note every patch holds its
+# fundamental everywhere.
+#
+# **`hollow` is the new column and it is the one to voice against.** Even
+# harmonics over odd, in decibels: a cylinder is -18 to -26, a cone -3 to
+# -12, a stopped pipe -39. It exists because a levelled bank has the same
+# rms all the way down and a centroid cannot tell a clarinet from a
+# saxophone - the two read within a percent of each other with thirteen
+# decibels between their second harmonics. It caught the oboe and the bassoon
+# measuring as hollow as clarinets: their embouchures were tight enough to
+# keep the reed nearly linear, and a cone with no even harmonics is a cone in
+# name only. Loosened to 0.45 and 0.48 they read -3 and -9.
+#
+# **Embouchure is a real control now** and it trades three things at once, as
+# a lip does: looser is louder, richer and flatter. The oboe moved 5 dB, 14
+# decibels of second harmonic and 11 cents between 0.7 and 0.45. The flatness
+# is the reed's own curve pulling with amplitude, it differs patch by patch
+# (+14 cents on Stopped Wood, -3 on the old tight oboe), and `fine` carries
+# it. Init sets nothing by rule and so reads 12 cents flat.
+#
+# Every centre is within 3 cents and every patch within half a decibel of
+# -22 dB RMS. Across a whole range the tuning is mostly within 10 cents with
+# the odd note at 20, which is the tube below the fingers pulling each
+# fingering differently, and 7-11 dB of loudness, which is a wind instrument.
+#
+# **What is still wrong.** The radiated fundamental sits 14 dB under its own
+# partials by construction (`arrive - 0.8 low`), which is backwards for a
+# chalumeau. A cone's modes come out 4-7 per cent flat of harmonic, because
+# only the fundamental gets a tube length solved for it and every filter in
+# the loop has phase the other partials keep - that is what leaves the oboe's
+# second harmonic in a trough between modes. The flute's attack is eight
+# times the edge of its own tone, which is a chiff and probably right. And
+# the timbres past the bore and the embouchure are still as seeded.
+#
+# Values are in each parameter's own units; `audition params Timber` lists
+# them. A patch names only what it changes.
+
+machine Timber
+# A melody rather than one held note: one note is what one note sounds
+# like, and a bank can pass that patch by patch and still be the same
+# sound all the way down.
+role    tune
+
+# Auditioned at middle C rather than wherever the harness would otherwise put
+# it: every other patch here declares its own note and range, and without one
+# Init was being measured in a dead spot of the bore - 6 dB down on note 60 for
+# the sake of two semitones, which read as a broken house level and was not.
+patch Init family=single  note=60
+
+patch Clarinet family=single  note=62 range=52..76
+  attack         0.02 s
+  breath         0.1
+  keys           0.2
+  volume         0.80
+
+  fine           11 cents
+  volume         0.83
+patch "Bass Clarinet" family=single  note=50 range=40..62
+  body           73.4 Hz
+  breath         0.16
+  embouchure     0.5
+  keys           0.35
+  lattice        1000 Hz
+  pressure       0.9
+  tongue         0.6
+  volume         0.98
+
+  fine           13 cents
+  volume         0.98
+patch "Alto Sax" family=single  note=60 range=50..74
+  attack         0.015 s
+  body           138.6 Hz
+  bore           #1
+  breath         0.2
+  embouchure     0.5
+  keys           0.3
+  lattice        900 Hz
+  pressure       0.95
+  tongue         0.75
+  vibrato        9 cents
+  volume         0.58
+
+  fine           9 cents
+  volume         0.57
+patch Oboe family=double  note=70 range=60..84
+  attack         0.012 s
+  body           233.1 Hz
+  bore           #1
+  breath         0.08
+  embouchure     0.45
+  family         #1
+  keys           0.2
+  lattice        1600 Hz
+  pressure       0.95
+  tongue         0.8
+  vibrato        12 cents
+  volume         0.57
+
+  fine           8 cents
+  volume         0.42
+patch Bassoon family=double  note=46 range=36..60
+  attack         0.025 s
+  body           58.3 Hz
+  bore           #1
+  # 0.45 is where the cone's harmonics come right, but the bassoon plays an
+  # octave and a half above its own body and that is where the wall loss has
+  # least to say about which mode wins: at 0.45 note 50 came out as two modes
+  # beating and no pitch at all. 0.48 keeps the series and settles it.
+  embouchure     0.48
+  family         #1
+  keys           0.4
+  lattice        700 Hz
+  pressure       0.9
+  volume         0.86
+
+  fine           10 cents
+  volume         0.86
+patch Flute family=flute  note=72 range=62..86
+  attack         0.04 s
+  body           261.6 Hz
+  bore           #1
+  breath         0.45
+  family         #2
+  keys           0.15
+  lattice        1400 Hz
+  pressure       0.8
+  tongue         0.35
+  vibrato        10.8 cents
+  volume         0.62
+
+  volume         0.23
+patch "Pan Pipe" family=flute  note=67 range=57..79
+  aim            0.1
+  attack         0.06 s
+  body           196 Hz
+  breath         0.6
+  family         #2
+  jet            0.55
+  lattice        2200 Hz
+  pressure       0.7
+  tongue         0.2
+  volume         0.55
+
+  volume         0.55
+patch "Stopped Wood" family=odd  note=55 range=46..68
+  answer         0.385
+  attack         0.05 s
+  body           110 Hz
+  breath         0.3
+  # Dark from the filter now, not from the lattice. A lattice at 420 Hz on
+  # a 110 Hz tube is under four times its bottom note - no real woodwind is
+  # under six - and with the deep holes it made no note at all from 58 to
+  # 64: measured, +18 and +222 cents at -37 dB, breath and nothing else,
+  # which is what Dan heard in the top of the phrase. At 700 Hz with plain
+  # holes it plays every note from 46 to 68 within five cents.
+  cutoff         4000 Hz
+  drive          0.2
+  embouchure     0.45
+  holes          0.5
+  lattice        700 Hz
+  pressure       1
+  tongue         0.5
+  volume         0.97
+
+  fine           14 cents
+  volume         0.47
+patch Forked family=odd  note=62 range=52..74
+  # 0.4675, seeded from what shipped, is past the point where the fork
+  # stops being a colour and becomes a note the tube cannot hold: it read
+  # -4137 cents, which is no pitch at all. It plays at 0.32.
+  answer         0.32
+  attack         0.04 s
+  below          1.74
+  bore           #1
+  breath         0.25
+  embouchure     0.45
+  family         #1
+  fingering      0.8
+  flutter        0.35
+  lattice        1200 Hz
+  pressure       1
+  tongue         0.6
+  volume         0.59
+
+  fine           2 cents
+  volume         0.27

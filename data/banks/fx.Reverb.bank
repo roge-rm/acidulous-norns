@@ -1,0 +1,196 @@
+# Reverb - a room, its tone, and the two things that are not rooms.
+#
+# `size` is the room and `damp` is what the walls are made of; `predelay` is
+# how far you are from them, and it is the control that keeps a big reverb from
+# swallowing the thing that caused it. The two that are not rooms are `freeze`,
+# which holds the tail for as long as you leave it, and `gate`, which cuts the
+# tail off flat and is a sound rather than a space.
+#
+# Families: room, tone, gate, hold, shimmer, lofi.
+
+machine fx.Reverb
+
+patch Init family=room
+
+patch Booth family=room
+  # A small hard space: short, bright, and close enough that the predelay is
+  # almost nothing. What a voice sounds like in a cupboard.
+  size           0.12
+  damp           0.2
+  predelay       4 ms
+  mix            0.22
+
+patch Room family=room
+  # The useful one. Big enough to hear, small enough to sit under a mix, and
+  # the predelay long enough that the source arrives before its own room does.
+  size           0.38
+  damp           0.4
+  predelay       18 ms
+  mix            0.28
+
+patch Hall family=room
+  # Long, soft, and far away. Above about a half, `size` stops sounding like a
+  # bigger room and starts sounding like a different building.
+  size           0.72
+  damp           0.55
+  tone           6000 Hz
+  predelay       35 ms
+  mix            0.35
+
+patch Cathedral family=room
+  # The end of the range, with the predelay long enough to keep the words
+  # legible - which is the only reason a reverb this size is usable at all.
+  size           0.95
+  damp           0.3
+  tone           5000 Hz
+  predelay       60 ms
+  mix            0.42
+
+patch Plate family=room
+  # A bright plate, dense and smooth.
+  size           0.45
+  damp           0.15
+  tone           12000 Hz
+  predelay       15 ms
+  mix            0.25
+
+patch Dark family=tone
+  # The top taken off the tail but not off the source: the room is made of
+  # curtains rather than tile, and nothing sibilant comes back.
+  size           0.6
+  damp           0.8
+  tone           2200 Hz
+  predelay       25 ms
+  mix            0.32
+
+patch Bright family=tone
+  # The other way: hard surfaces, nothing absorbed, and the tail keeps every
+  # bit of the top it was given. Unkind to cymbals on purpose.
+  size           0.55
+  damp           0.05
+  tone           16000 Hz
+  predelay       12 ms
+  mix            0.3
+
+patch Gated family=gate
+  # The tail cut off flat instead of decaying. A big room and a short gate is
+  # the sound of the eighties, and it works because the cut is what you hear
+  # rather than the room.
+  size           0.85
+  damp           0.25
+  gate           0.18
+  predelay       8 ms
+  mix            0.55
+
+patch "Snare Gate" family=gate
+  # Tighter and brighter, set where it does the most for a snare: enough room
+  # to thicken the hit and not enough to blur the next one.
+  size           0.6
+  damp           0.15
+  tone           11000 Hz
+  gate           0.08
+  predelay       5 ms
+  mix            0.6
+
+patch Freeze family=hold
+  # Held. The tail stops decaying and stays exactly where it was until you let
+  # go - not a long reverb, an infinite one, and the difference is that this
+  # one does not get quieter.
+  size           0.8
+  damp           0.1
+  freeze         #1
+  predelay       20 ms
+  mix            0.6
+
+patch Shimmer family=shimmer
+  # The tail fed back an octave up, so each pass climbs. Not a bright reverb -
+  # a rising one: hold a chord and the room builds a second chord above it out
+  # of what you already played.
+  size           0.8
+  damp           0.35
+  shimmer        0.55
+  predelay       30 ms
+  mix            0.45
+
+patch Ascend family=shimmer
+  # The same idea taken as far as it goes, in a small bright room where the
+  # ladder climbs fastest. Every pass is an octave, and the damping is what
+  # decides how many rungs there are before it runs out.
+  size           0.45
+  damp           0.1
+  shimmer        1.0
+  tone           14000 Hz
+  predelay       15 ms
+  mix            0.55
+
+patch "Held Sky" family=shimmer
+  # Shimmer under a long soft room, with the top rolled off so the climb
+  # thickens rather than sharpens. The one to put a pad through.
+  size           0.95
+  damp           0.6
+  tone           4500 Hz
+  shimmer        0.4
+  wobble         0.3
+  predelay       50 ms
+  mix            0.5
+
+patch "Eight Bit" family=lofi
+  # A room made of cheap memory. The dry signal is untouched and the tail is
+  # quantised to eight bits, which is the sound of a reverb that has been
+  # sampled, not the sound of a sampler in a room.
+  size           0.55
+  damp           0.3
+  bits           #7
+  predelay       12 ms
+  mix            0.4
+
+patch "Four Bit" family=lofi
+  # Further down. At four bits the quiet end of the tail turns to steps, which
+  # is exactly where a reverb spends most of its time - so the decay gets a
+  # grain that gets coarser as it fades.
+  size           0.7
+  damp           0.2
+  bits           #3
+  tone           7000 Hz
+  predelay       20 ms
+  mix            0.45
+
+patch Downsampled family=lofi
+  # Rate rather than depth: the tail sample-and-held, so it picks up aliases
+  # that a room could not contain. Chiptune reverb, and the aliases move with
+  # the source the wrong way round, which is the giveaway.
+  size           0.6
+  damp           0.25
+  crush          14
+  predelay       10 ms
+  mix            0.42
+
+patch Ruined family=lofi
+  # Both at once, in a big room, with the walls drifting. A reverb recovered
+  # from a damaged tape: still a room, but not one that was ever in a building.
+  size           0.85
+  damp           0.4
+  bits           #4
+  crush          9
+  wobble         0.8
+  tone           3500 Hz
+  predelay       40 ms
+  mix            0.5
+
+patch Seasick family=lofi
+  # Wobble alone, at the top. The comb lengths drift out of step, so the tail
+  # never settles into the fixed pattern a digital reverb otherwise has - and
+  # a long note put through it is never quite in tune with itself.
+  size           0.9
+  damp           0.45
+  wobble         1.0
+  predelay       25 ms
+  mix            0.4
+
+patch Spring family=lofi
+  # A small, boingy spring tank.
+  size           0.3
+  damp           0.5
+  tone           5000 Hz
+  wobble         0.5
+  mix            0.25

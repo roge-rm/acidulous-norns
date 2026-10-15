@@ -1,0 +1,782 @@
+# Hexbeat - thirty-two kits and an Init, voiced against the debug build.
+#
+# A drum patch is not a sound, it is thirteen sounds and the balance between
+# them, so these are named for the room they belong in rather than for the
+# knob that made them. What separates them is mostly three things: how long
+# things ring, where the metal sits, and which of the small voices - rim,
+# clave, cowbell, clap - is carrying the pattern instead of decorating it.
+#
+# The internal balance is the part to read - `audition bank Hexbeat` prints
+# each voice against the loudest in its own kit. A kit whose hat is six
+# decibels under its kick is a kit you never hear the hats in.
+#
+# **The eleven kits this replaces all measured -0.0 dB peak.** Not because
+# they were balanced: the machine summed thirteen voices straight into a tanh
+# with nothing before it, so every kit was clamped flat against the ceiling
+# and the old header wrote that up as "within a tenth of a decibel, which is
+# the number that matters for a kit". It was the number that mattered for the
+# clipper. `kDrive` now sets how hard the voices reach it - a single hit
+# stays straight, a whole kit on one beat bends - and a `volume` knob, which
+# this machine did not have at all, carries the levelling.
+#
+# Families: classic, room, dry, metal, electro, perc.
+#
+# Values are in each parameter's own units; `audition params Hexbeat` lists
+# them.
+
+machine Hexbeat
+role    beat
+
+patch Init family=classic
+
+patch Straight family=classic
+  # The workhorse: the defaults pulled into focus. A kick with enough sweep
+  # to speak on a small speaker, a snare that is half noise, hats short
+  # enough to sit under a sixteenth pattern.
+  kick_tune      54 Hz
+  kick_decay     330 ms
+  kick_punch     0.58
+  snare_decay    190 ms
+  snare_snappy   0.55
+  snare_tone     2400 Hz
+  tom_decay      300 ms
+  hat_closed_decay 44 ms
+  hat_open_decay 420 ms
+  cym_decay      1300 ms
+  ride_decay     800 ms
+  clap_decay     180 ms
+  volume         0.90
+
+patch Tight family=classic
+  # Everything short. The kit for a busy pattern, where anything that rings
+  # is in the way of the next hit.
+  kick_tune      58 Hz
+  kick_decay     170 ms
+  kick_punch     0.72
+  snare_decay    120 ms
+  snare_snappy   0.72
+  tom_decay      180 ms
+  hat_closed_decay 32 ms
+  hat_open_decay 280 ms
+  cym_decay      900 ms
+  ride_decay     600 ms
+  clap_decay     150 ms
+  bell_decay     120 ms
+  accent         0.7
+  volume         0.90
+
+patch Punchy family=classic
+  # All the sweep the kick has and a short body under it, so the attack is
+  # most of the sound. Snare snapped right up to match.
+  kick_tune      62 Hz
+  kick_decay     210 ms
+  kick_punch     1
+  kick_level     1
+  snare_tune     210 Hz
+  snare_decay    140 ms
+  snare_snappy   0.85
+  snare_tone     3000 Hz
+  tom_decay      220 ms
+  hat_closed_decay 28 ms
+  hat_open_decay 320 ms
+  clap_decay     130 ms
+  accent         0.8
+  volume         0.82
+
+patch Boomy family=classic
+  # The other end: a long low kick and toms that carry. Snare damped a little
+  # so it does not fight the kick's tail.
+  kick_tune      45 Hz
+  kick_decay     950 ms
+  kick_punch     0.35
+  snare_decay    300 ms
+  snare_snappy   0.4
+  tom_decay      640 ms
+  tom_lo_tune    72 Hz
+  tom_mid_tune   112 Hz
+  tom_hi_tune    160 Hz
+  hat_open_decay 600 ms
+  kick_level     0.95
+  volume         0.86
+
+patch Deep family=classic
+  # Everything a fourth or so down, and given room. Not longer than Boomy -
+  # lower, which is a different thing and the reason both are here.
+  kick_tune      38 Hz
+  kick_decay     520 ms
+  kick_punch     0.5
+  snare_tune     140 Hz
+  snare_decay    260 ms
+  snare_tone     1600 Hz
+  tom_lo_tune    62 Hz
+  tom_mid_tune   95 Hz
+  tom_hi_tune    130 Hz
+  tom_decay      520 ms
+  hat_tune       0.72 x
+  hat_tone       5600 Hz
+  cym_tone       2600 Hz
+  bell_tune      380 Hz
+  clave_tune     1600 Hz
+  volume         0.90
+
+patch Garage family=classic
+  # Fast hats and a clap where the snare would be, which is most of what
+  # makes a shuffle sound like one. Kick kept mid so the hats have room.
+  kick_tune      56 Hz
+  kick_decay     280 ms
+  kick_punch     0.6
+  snare_decay    150 ms
+  snare_snappy   0.65
+  snare_level    0.55
+  clap_decay     220 ms
+  clap_tone      1500 Hz
+  clap_level     0.95
+  hat_closed_decay 24 ms
+  hat_open_decay 340 ms
+  hat_tone       9000 Hz
+  hat_level      0.72
+  tom_decay      240 ms
+  accent         0.75
+  volume         0.71
+
+patch Hall family=room
+  # Nothing short anywhere. The metal is what carries a room, so the open hat
+  # and both cymbals are long and the closed hat is kept out of the way.
+  kick_tune      48 Hz
+  kick_decay     620 ms
+  kick_punch     0.45
+  snare_decay    420 ms
+  snare_snappy   0.5
+  snare_tone     2600 Hz
+  tom_decay      760 ms
+  hat_closed_decay 55 ms
+  hat_open_decay 1200 ms
+  cym_decay      3000 ms
+  cym_level      0.6
+  ride_decay     2000 ms
+  ride_level     0.6
+  clap_decay     420 ms
+  bell_decay     360 ms
+  volume         0.90
+
+patch Stadium family=room
+  # Built on the toms: low, long and loud, with a kick underneath rather than
+  # in front. The clap stands in for a room mic on the snare.
+  kick_tune      43 Hz
+  kick_decay     780 ms
+  kick_punch     0.3
+  kick_level     0.85
+  tom_lo_tune    66 Hz
+  tom_mid_tune   100 Hz
+  tom_hi_tune    142 Hz
+  tom_decay      1100 ms
+  tom_level      1
+  snare_decay    380 ms
+  snare_snappy   0.45
+  snare_level    0.7
+  clap_decay     520 ms
+  clap_tone      1100 Hz
+  clap_level     0.9
+  hat_open_decay 900 ms
+  cym_decay      2600 ms
+  volume         0.82
+
+patch Distant family=room
+  # The kit heard from the other end of the building: the attacks down, the
+  # tails long, and the top rolled off so nothing is close.
+  kick_tune      46 Hz
+  kick_decay     700 ms
+  kick_punch     0.28
+  kick_level     0.7
+  snare_decay    460 ms
+  snare_snappy   0.35
+  snare_tone     1500 Hz
+  snare_level    0.6
+  tom_decay      820 ms
+  tom_level      0.65
+  hat_tune       0.78 x
+  hat_tone       5200 Hz
+  hat_closed_decay 70 ms
+  hat_open_decay 1000 ms
+  hat_level      0.4
+  cym_tone       2600 Hz
+  cym_decay      2800 ms
+  cym_level      0.34
+  ride_decay     1900 ms
+  ride_level     0.32
+  clap_tone      900 Hz
+  clap_decay     480 ms
+  rim_level      0.4
+  clave_level    0.35
+  bell_level     0.3
+  volume         1.14
+
+patch Plate family=room
+  # The snare is the patch: long, bright and mostly noise, the way a plate
+  # reverb returns one. Everything else is kept short so it stays the subject.
+  snare_tune     240 Hz
+  snare_decay    720 ms
+  snare_snappy   0.95
+  snare_tone     4200 Hz
+  snare_level    1
+  kick_decay     260 ms
+  kick_punch     0.65
+  tom_decay      260 ms
+  hat_closed_decay 30 ms
+  hat_open_decay 500 ms
+  cym_decay      2200 ms
+  cym_tone       6000 Hz
+  ride_decay     1400 ms
+  clap_decay     560 ms
+  clap_tone      2400 Hz
+  volume         0.82
+
+patch Enormous family=room
+  # Everything long, everything loud, nothing left for anything else in the
+  # song. One kit in a bank should go too far.
+  kick_tune      42 Hz
+  kick_decay     1600 ms
+  kick_punch     0.25
+  kick_level     1
+  snare_decay    620 ms
+  snare_snappy   0.5
+  snare_level    0.95
+  tom_decay      1200 ms
+  tom_level      0.95
+  hat_open_decay 1600 ms
+  cym_decay      3800 ms
+  cym_level      0.7
+  ride_decay     2600 ms
+  ride_level     0.7
+  clap_decay     700 ms
+  accent         0.5
+  volume         0.82
+
+patch Cardboard family=dry
+  # Nothing metallic left to speak of: hats and cymbals right down and short,
+  # everything tuned into the middle. A kit made of boxes.
+  kick_tune      70 Hz
+  kick_decay     130 ms
+  kick_punch     0.85
+  snare_tune     260 Hz
+  snare_decay    90 ms
+  snare_snappy   0.25
+  snare_tone     1400 Hz
+  tom_decay      120 ms
+  hat_tone       4600 Hz
+  hat_closed_decay 20 ms
+  hat_open_decay 130 ms
+  hat_level      0.42
+  cym_decay      400 ms
+  cym_level      0.3
+  ride_decay     350 ms
+  ride_level     0.35
+  rim_tune       520 Hz
+  clave_tune     1500 Hz
+  volume         0.90
+
+patch Wooden family=dry
+  # The dry kit: no cymbals to speak of, the toms tight, and the clave and rim
+  # doing the work up top. Sits under something already busy.
+  kick_tune      64 Hz
+  kick_decay     190 ms
+  kick_punch     0.8
+  snare_tune     230 Hz
+  snare_decay    110 ms
+  snare_snappy   0.3
+  snare_tone     1800 Hz
+  tom_decay      150 ms
+  hat_tone       6200 Hz
+  hat_closed_decay 26 ms
+  hat_open_decay 180 ms
+  cym_level      0.18
+  ride_level     0.28
+  rim_tune       700 Hz
+  rim_level      0.85
+  clave_tune     2100 Hz
+  clave_level    0.8
+  bell_level     0.3
+  volume         0.90
+
+patch Clatter family=dry
+  # Short and hard everywhere, and the rim, clave and bell brought up so the
+  # small voices carry the pattern instead of decorating it.
+  kick_decay     140 ms
+  kick_punch     0.9
+  snare_decay    80 ms
+  snare_snappy   0.85
+  tom_decay      110 ms
+  hat_closed_decay 18 ms
+  hat_open_decay 160 ms
+  cym_decay      350 ms
+  cym_level      0.35
+  ride_decay     300 ms
+  clap_decay     90 ms
+  rim_tune       1150 Hz
+  rim_level      0.9
+  clave_tune     3100 Hz
+  clave_level    0.85
+  bell_tune      880 Hz
+  bell_decay     90 ms
+  bell_level     0.8
+  accent         0.85
+  volume         0.84
+
+patch Deadened family=dry
+  # Every decay at or near its floor. A kit with a towel on it, which is what
+  # a close-miked studio kit of a certain decade actually was.
+  kick_tune      66 Hz
+  kick_decay     105 ms
+  kick_punch     0.9
+  snare_tune     250 Hz
+  snare_decay    70 ms
+  snare_snappy   0.4
+  snare_tone     1900 Hz
+  tom_decay      85 ms
+  hat_closed_decay 16 ms
+  hat_open_decay 115 ms
+  hat_level      0.5
+  cym_decay      260 ms
+  cym_level      0.28
+  ride_decay     240 ms
+  ride_level     0.3
+  clap_decay     70 ms
+  bell_decay     45 ms
+  accent         0.9
+  volume         0.89
+
+patch Tabletop family=dry
+  # Small and high: everything tuned up, nothing with any body. The kit you
+  # get tapping on a desk, and a useful top layer over something bigger.
+  kick_tune      95 Hz
+  kick_decay     120 ms
+  kick_punch     0.75
+  kick_level     0.7
+  snare_tune     330 Hz
+  snare_decay    85 ms
+  snare_snappy   0.5
+  snare_tone     3200 Hz
+  tom_lo_tune    130 Hz
+  tom_mid_tune   190 Hz
+  tom_hi_tune    280 Hz
+  tom_decay      100 ms
+  hat_tune       1.35 x
+  hat_tone       9500 Hz
+  hat_closed_decay 17 ms
+  hat_open_decay 140 ms
+  cym_level      0.34
+  ride_level     0.34
+  rim_tune       1250 Hz
+  rim_level      0.9
+  clave_tune     3400 Hz
+  clave_level    0.85
+  bell_tune      1000 Hz
+  bell_decay     60 ms
+  volume         0.90
+
+patch Trashy family=metal
+  # Metal moved up and opened out: hats brighter and detuned, cymbal thinner,
+  # snare with the top on. The kit that sits over a loud mix.
+  hat_tune       1.5 x
+  hat_tone       10500 Hz
+  hat_closed_decay 75 ms
+  hat_open_decay 900 ms
+  cym_tone       7200 Hz
+  cym_decay      2600 ms
+  snare_tone     4000 Hz
+  snare_snappy   0.9
+  clap_tone      1950 Hz
+  accent         0.9
+  hat_level      0.7
+  volume         0.86
+
+patch Glassy family=metal
+  # Pitched metal rather than bright metal, which is what separates it from
+  # Trashy - the hats and cymbals come *down* and back, and the bell and the
+  # clave carry the top of the kit instead.
+  hat_tune       1.85 x
+  hat_tone       9000 Hz
+  hat_closed_decay 40 ms
+  hat_level      0.34
+  cym_tone       6000 Hz
+  cym_decay      2400 ms
+  cym_level      0.28
+  ride_decay     2200 ms
+  ride_level     0.34
+  bell_tune      1150 Hz
+  bell_decay     520 ms
+  bell_level     1
+  clave_tune     3800 Hz
+  clave_level    0.95
+  rim_tune       1400 Hz
+  rim_level      0.85
+  kick_decay     260 ms
+  volume         0.77
+
+patch Ironworks family=metal
+  # The metal tuned right down - the hat stack at half its usual base, the
+  # cymbals dark - so the top of the kit is heavy rather than bright. The
+  # opposite end of the same knob Trashy is at the top of.
+  hat_tune       0.5 x
+  hat_tone       4000 Hz
+  hat_closed_decay 90 ms
+  hat_open_decay 1400 ms
+  hat_level      0.68
+  cym_tone       2000 Hz
+  cym_decay      3400 ms
+  cym_level      0.62
+  ride_decay     2400 ms
+  ride_level     0.58
+  bell_tune      320 Hz
+  bell_decay     420 ms
+  bell_level     0.7
+  rim_tune       340 Hz
+  clave_tune     1250 Hz
+  kick_tune      44 Hz
+  kick_decay     480 ms
+  snare_tone     1300 Hz
+  snare_snappy   0.45
+  volume         0.90
+
+patch Splash family=metal
+  # Cymbals at their shortest and their brightest: a splash rather than a
+  # crash, and a ride that stops. Everything else stays out of the way.
+  cym_decay      200 ms
+  cym_tone       9000 Hz
+  cym_level      0.72
+  ride_decay     200 ms
+  ride_level     0.62
+  hat_tune       1.6 x
+  hat_tone       11000 Hz
+  hat_closed_decay 22 ms
+  hat_open_decay 200 ms
+  kick_decay     220 ms
+  kick_punch     0.7
+  snare_decay    130 ms
+  snare_snappy   0.8
+  snare_tone     3600 Hz
+  tom_decay      190 ms
+  accent         0.85
+  volume         0.90
+
+patch Gamelan family=metal
+  # The cowbell is the instrument: two squares, tuned high and rung long, with
+  # the clave above it and everything percussive underneath kept dark and
+  # short. Nothing here is trying to be a drum kit.
+  bell_tune      1200 Hz
+  bell_decay     600 ms
+  bell_level     1
+  clave_tune     4000 Hz
+  clave_level    0.9
+  rim_tune       900 Hz
+  rim_level      0.75
+  cym_tone       5200 Hz
+  cym_decay      3200 ms
+  cym_level      0.55
+  ride_decay     2800 ms
+  ride_level     0.5
+  hat_tune       1.9 x
+  hat_tone       8000 Hz
+  hat_closed_decay 65 ms
+  hat_open_decay 1100 ms
+  hat_level      0.42
+  kick_tune      52 Hz
+  kick_decay     420 ms
+  kick_punch     0.35
+  snare_level    0.4
+  snare_decay    240 ms
+  tom_lo_tune    110 Hz
+  tom_mid_tune   165 Hz
+  tom_hi_tune    248 Hz
+  tom_decay      600 ms
+  volume         0.76
+
+patch Sizzle family=metal
+  # Open hat and ride held down for as long as they will go, thin and high,
+  # with the closed hat almost absent. A kit for playing the top of the bar.
+  hat_tune       1.7 x
+  hat_tone       12000 Hz
+  hat_closed_decay 15 ms
+  hat_open_decay 2000 ms
+  hat_level      0.75
+  ride_decay     3000 ms
+  ride_level     0.68
+  cym_decay      1800 ms
+  cym_tone       8000 Hz
+  cym_level      0.42
+  kick_tune      50 Hz
+  kick_decay     300 ms
+  snare_decay    170 ms
+  snare_snappy   0.8
+  snare_tone     4400 Hz
+  tom_decay      240 ms
+  accent         0.7
+  volume         0.90
+
+patch Circuitry family=electro
+  # Nothing with any noise in it that can be helped: the snare tuned up and
+  # snapped off, the toms short and swept, the small voices high. A kit that
+  # sounds like it was made of oscillators, because it was.
+  kick_tune      72 Hz
+  kick_decay     160 ms
+  kick_punch     0.95
+  snare_tune     380 Hz
+  snare_decay    95 ms
+  snare_snappy   0.15
+  snare_tone     5000 Hz
+  tom_lo_tune    150 Hz
+  tom_mid_tune   225 Hz
+  tom_hi_tune    340 Hz
+  tom_decay      130 ms
+  hat_tune       1.45 x
+  hat_tone       10000 Hz
+  hat_closed_decay 19 ms
+  hat_open_decay 210 ms
+  rim_tune       1350 Hz
+  rim_level      0.85
+  clave_tune     3600 Hz
+  clave_level    0.8
+  bell_tune      1080 Hz
+  bell_decay     70 ms
+  accent         0.9
+  volume         0.87
+
+patch Rubber family=electro
+  # A low kick with all its sweep and no click to speak of, toms to match, and
+  # the noise voices pulled well back. Everything bounces rather than hits.
+  kick_tune      40 Hz
+  kick_decay     380 ms
+  kick_punch     1
+  kick_level     1
+  tom_lo_tune    60 Hz
+  tom_mid_tune   90 Hz
+  tom_hi_tune    120 Hz
+  tom_decay      300 ms
+  snare_tune     160 Hz
+  snare_decay    150 ms
+  snare_snappy   0.1
+  snare_tone     1200 Hz
+  snare_level    0.6
+  hat_tune       0.85 x
+  hat_tone       5400 Hz
+  hat_closed_decay 30 ms
+  hat_open_decay 300 ms
+  hat_level      0.45
+  cym_level      0.2
+  ride_level     0.24
+  clap_level     0.3
+  bell_tune      420 Hz
+  clave_tune     1400 Hz
+  volume         0.82
+
+patch Falling family=electro
+  # The toms given every bit of sweep the machine has and a long tail to fall
+  # down, tuned wide apart so the three of them are an instrument rather than
+  # three sizes of the same one.
+  tom_lo_tune    60 Hz
+  tom_mid_tune   140 Hz
+  tom_hi_tune    330 Hz
+  tom_decay      1500 ms
+  tom_level      1
+  kick_tune      37 Hz
+  kick_decay     900 ms
+  kick_punch     1
+  snare_decay    200 ms
+  snare_snappy   0.5
+  snare_level    0.55
+  hat_closed_decay 35 ms
+  hat_open_decay 700 ms
+  hat_level      0.45
+  cym_decay      2400 ms
+  cym_tone       3400 Hz
+  cym_level      0.35
+  ride_level     0.42
+  accent         0.55
+  volume         0.81
+
+patch Chordal family=electro
+  # The three toms and the cowbell tuned to a minor seventh, so playing the
+  # pads plays a chord. The kick sits a fifth under the low tom rather than
+  # wherever it landed.
+  tom_lo_tune    98 Hz
+  tom_mid_tune   117 Hz
+  tom_hi_tune    147 Hz
+  tom_decay      900 ms
+  tom_level      0.95
+  bell_tune      392 Hz
+  bell_decay     560 ms
+  bell_level     0.75
+  kick_tune      65 Hz
+  kick_decay     420 ms
+  kick_punch     0.4
+  snare_tune     196 Hz
+  snare_decay    260 ms
+  snare_snappy   0.3
+  snare_tone     1800 Hz
+  snare_level    0.6
+  clave_tune     1568 Hz
+  rim_tune       784 Hz
+  hat_tune       0.9 x
+  hat_closed_decay 40 ms
+  hat_open_decay 520 ms
+  hat_level      0.42
+  cym_level      0.26
+  ride_level     0.28
+  volume         0.86
+
+patch Bleep family=electro
+  # Rim and clave at the top of their ranges and everything else out of their
+  # way. Barely a kit: a pattern machine for the small voices.
+  rim_tune       1500 Hz
+  rim_level      1
+  clave_tune     4000 Hz
+  clave_level    1
+  bell_tune      1150 Hz
+  bell_decay     40 ms
+  bell_level     0.8
+  kick_tune      80 Hz
+  kick_decay     140 ms
+  kick_punch     0.8
+  kick_level     0.7
+  snare_tune     340 Hz
+  snare_decay    80 ms
+  snare_snappy   0.2
+  snare_tone     4600 Hz
+  snare_level    0.5
+  tom_decay      110 ms
+  tom_level      0.5
+  hat_tune       1.6 x
+  hat_closed_decay 16 ms
+  hat_open_decay 150 ms
+  hat_level      0.4
+  cym_level      0.16
+  ride_level     0.2
+  clap_level     0.3
+  accent         0.95
+  volume         0.69
+
+patch Handclap family=perc
+  # Built around the clap and committed to it: long, dark and at the top, with
+  # the snare most of the way out so the two do not double each other, and the
+  # metal down so there is room.
+  clap_decay     760 ms
+  clap_tone      820 Hz
+  clap_level     1
+  snare_level    0.28
+  snare_decay    140 ms
+  snare_snappy   0.3
+  kick_tune      50 Hz
+  kick_decay     320 ms
+  kick_level     1
+  hat_closed_decay 34 ms
+  hat_open_decay 240 ms
+  hat_level      0.38
+  cym_level      0.25
+  ride_level     0.3
+  bell_level     0.35
+  rim_level      0.4
+  volume         0.82
+
+patch Clapback family=perc
+  # The clap at the other end of its range: short, bright and tight, three
+  # pulses you can hear as three. Snare kept in this time, underneath it.
+  clap_decay     50 ms
+  clap_tone      3000 Hz
+  clap_level     1
+  snare_tune     220 Hz
+  snare_decay    120 ms
+  snare_snappy   0.7
+  snare_tone     3400 Hz
+  snare_level    0.75
+  kick_tune      58 Hz
+  kick_decay     230 ms
+  kick_punch     0.7
+  hat_closed_decay 22 ms
+  hat_open_decay 260 ms
+  hat_tone       9600 Hz
+  tom_decay      200 ms
+  accent         0.85
+  volume         0.51
+
+patch Blocks family=perc
+  # Rim and clave carrying, both tuned into the wood range, with the toms up
+  # under them as the low blocks. The cowbell is the odd one out and is kept
+  # short so it reads as a block too.
+  rim_tune       620 Hz
+  rim_level      1
+  clave_tune     1900 Hz
+  clave_level    0.95
+  bell_tune      760 Hz
+  bell_decay     55 ms
+  bell_level     0.8
+  tom_lo_tune    118 Hz
+  tom_mid_tune   172 Hz
+  tom_hi_tune    252 Hz
+  tom_decay      160 ms
+  tom_level      0.9
+  kick_tune      74 Hz
+  kick_decay     150 ms
+  kick_punch     0.8
+  snare_snappy   0.25
+  snare_tune     290 Hz
+  snare_decay    100 ms
+  snare_level    0.6
+  hat_tone       5800 Hz
+  hat_closed_decay 21 ms
+  hat_open_decay 170 ms
+  hat_level      0.45
+  cym_level      0.34
+  ride_level     0.34
+  volume         0.82
+
+patch Cowbells family=perc
+  # The bell at four tunings' worth of prominence, long enough to ring into
+  # the next one. Everything else is accompaniment and is levelled as such.
+  bell_tune      560 Hz
+  bell_decay     420 ms
+  bell_level     1
+  clave_tune     2200 Hz
+  clave_level    0.7
+  rim_tune       740 Hz
+  rim_level      0.6
+  kick_tune      54 Hz
+  kick_decay     300 ms
+  kick_level     0.8
+  snare_decay    180 ms
+  snare_snappy   0.5
+  snare_level    0.6
+  tom_decay      280 ms
+  tom_level      0.65
+  hat_closed_decay 30 ms
+  hat_open_decay 380 ms
+  hat_level      0.45
+  cym_level      0.26
+  ride_level     0.3
+  clap_level     0.4
+  volume         0.80
+
+patch Sidestick family=perc
+  # The rim doing the snare's job for a whole song, which is what a sidestick
+  # is for. The snare is still there, right down, for the fills.
+  rim_tune       800 Hz
+  rim_level      1
+  snare_level    0.22
+  snare_decay    150 ms
+  snare_snappy   0.6
+  kick_tune      52 Hz
+  kick_decay     340 ms
+  kick_punch     0.5
+  kick_level     0.95
+  hat_closed_decay 36 ms
+  hat_open_decay 440 ms
+  hat_tone       7600 Hz
+  hat_level      0.55
+  cym_decay      1600 ms
+  cym_level      0.34
+  ride_decay     1100 ms
+  ride_level     0.42
+  clap_level     0.35
+  bell_level     0.35
+  clave_level    0.45
+  tom_decay      320 ms
+  volume         0.82

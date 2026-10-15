@@ -1,0 +1,157 @@
+# Resonator - strings tuned to a key, ringing in sympathy with the track.
+#
+# `strings` of Filament's strings, climbing `scale` in `key` from the first
+# note of the key at or above `low`. Whatever plays through it sets the
+# strings that are in its notes ringing, so a part in the key blooms and one
+# out of it barely does, like the open strings of a sitar or a piano with
+# its dampers up. `decay` is how long they ring, `tone` how bright, `width`
+# how far apart low and high strings sit.
+#
+# The extra is `metal`: stiffness in the strings, which pulls their overtones
+# sharp, from a string toward a bell.
+#
+# Set the key and scale to the song's.
+#
+# Families: strings, metal, drone.
+
+machine fx.Resonator
+
+patch Init family=strings
+
+patch Sympathy family=strings
+  # A piano's undamped strings: a soft ring behind whatever plays.
+  decay          4 s
+  tone           0.45
+  mix            0.25
+
+patch Harp family=strings
+  # Bright, wide and up an octave, in the major pentatonic.
+  scale          #9
+  low            48 st
+  tone           0.75
+  width          0.9
+  mix            0.35
+
+patch Minor family=strings
+  # A minor key, darker, for a melancholy halo.
+  scale          #5
+  key            #9
+  tone           0.35
+  decay          5 s
+  mix            0.3
+  gain           -2 dB
+
+patch "Major Strings" family=strings
+  # Twelve strings in G major, ringing a little longer.
+  key            #7
+  scale          #0
+  decay          4 s
+  mix            0.35
+
+patch "Dorian Glow" family=strings
+  # D dorian, warm and long.
+  key            #2
+  scale          #1
+  decay          5 s
+  tone           0.4
+  mix            0.35
+
+patch "Short Pluck" family=strings
+  # A short ring: a halo on each hit.
+  decay          0.6 s
+  mix            0.4
+
+patch "Sixteen Strings" family=strings
+  # All sixteen, wide.
+  strings        16
+  width          1
+  mix            0.35
+
+patch "Bright Harp" family=strings
+  # Higher and brighter, a harp behind the part.
+  low            48
+  tone           0.8
+  decay          2 s
+  mix            0.3
+
+patch Bell family=metal
+  # Stiff strings: their overtones go sharp, and it rings like a bell.
+  metal          0.6
+  decay          6 s
+  tone           0.7
+  mix            0.35
+
+patch Gong family=metal
+  # Low, stiff and whole-tone: a gong's wash behind the part.
+  scale          #30
+  low            30 st
+  metal          0.9
+  decay          9 s
+  tone           0.5
+  mix            0.4
+
+patch Glass family=metal
+  # High and a little stiff, in the major pentatonic: glassy.
+  scale          #9
+  low            60 st
+  metal          0.35
+  tone           0.85
+  decay          3 s
+  mix            0.3
+
+patch Tin family=metal
+  # A little stiffness: thin metal ringing.
+  metal          0.4
+  decay          2 s
+  mix            0.3
+
+patch Chimes family=metal
+  # Very stiff and long, wind chimes in key.
+  metal          0.8
+  decay          8 s
+  low            60
+  mix            0.3
+  gain           -2.5 dB
+
+patch "Steel Plate" family=metal
+  # Fully stiff and dark.
+  metal          1
+  tone           0.3
+  decay          4 s
+  mix            0.3
+
+patch Drone family=drone
+  # Low strings that ring for a long time: a pad grown out of the part.
+  low            28 st
+  strings        #4
+  decay          10 s
+  tone           0.3
+  mix            0.4
+
+patch Raga family=drone
+  # Phrygian dominant, long and bright: sympathetic strings for a lead.
+  scale          #21
+  decay          8 s
+  tone           0.65
+  metal          0.1
+  mix            0.35
+
+patch "Low Drone" family=drone
+  # Low strings, long: a drone under everything.
+  low            24
+  strings        6
+  decay          12 s
+  tone           0.3
+  mix            0.3
+
+patch "Fifth Drone" family=drone
+  # Few strings, long, the key and its fifth.
+  strings        4
+  decay          10 s
+  mix            0.3
+
+patch "Dark Hum" family=drone
+  # Long and dark, humming in key.
+  tone           0.1
+  decay          8 s
+  mix            0.35

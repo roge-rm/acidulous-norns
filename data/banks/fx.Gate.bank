@@ -1,0 +1,154 @@
+# Gate - shut below a level, and the two knobs that are not on a pedal.
+#
+# The classic four are threshold, attack, hold and release. `hyst` is the
+# hysteresis: how far *below* the threshold the signal has to fall before the
+# gate is willing to shut, which is what stops a note sitting on the number
+# from flapping the gate a hundred times a second.
+#
+# The two extras:
+#
+#   - **key** filters the detector, not the audio. A gate in front of a loud
+#     amp is listening to a pickup that hears hum, a room and a hand as well
+#     as the string, and all of those are low. Slide the detector's high-pass
+#     up and the gate opens for a pick rather than for a building, while the
+#     note it passes keeps its bottom end.
+#   - **duck** is how far down "closed" is. All the way is a gate; twelve
+#     decibels is what drums want, where silence between hits is a hole and
+#     the room going quiet is a tightening.
+#
+# There is no `mix`, on purpose: half a gate is the noise at half level.
+#
+# Families: guitar, drums, clean, tight.
+
+machine fx.Gate
+
+patch Init family=clean
+
+patch Hush family=guitar
+  # In front of a loud amp, doing as little as it can: the threshold just over
+  # the hiss, a long hold so a sustaining note is never cut, and a release
+  # slow enough that the room falls away rather than stopping.
+  threshold      -52 dB
+  hyst           8 dB
+  attack         0.5 ms
+  hold           250 ms
+  release        400 ms
+
+patch HighGain family=guitar
+  # For the amount of hiss a lead patch makes, which is a great deal more. A
+  # threshold well up into the material, `key` above where a long cable picks
+  # up mains hum, and a hold short enough that it shuts between phrases
+  # rather than riding over them.
+  threshold      -30 dB
+  hyst           8 dB
+  attack         0.5 ms
+  hold           100 ms
+  release        180 ms
+  key            150 Hz
+
+patch Palm family=guitar
+  # Chugging: the gate has to shut between the muted notes or there is no
+  # chug. Short hold, fast release, and the threshold high enough that the
+  # ring of the last note does not hold it open through the gap.
+  threshold      -34 dB
+  hyst           6 dB
+  attack         0.3 ms
+  hold           30 ms
+  release        60 ms
+  key            90 Hz
+
+patch Snare family=drums
+  # A close snare mic with the whole kit leaking into it. `key` at 300 Hz so
+  # the kick in the same mic does not open it, and a hold long enough for the
+  # shell to ring out.
+  threshold      -28 dB
+  hyst           6 dB
+  attack         0.1 ms
+  hold           90 ms
+  release        120 ms
+  key            300 Hz
+
+patch Tighten family=drums
+  # Ducking rather than gating: the room is still there, twelve decibels
+  # further away. Everything that made a drum sound big and none of the
+  # holes that a hard gate leaves between the hits.
+  threshold      -30 dB
+  hyst           5 dB
+  attack         0.2 ms
+  hold           60 ms
+  release        180 ms
+  duck           -12 dB
+
+patch Gated family=drums
+  # The eighties: a hard shut with no release to speak of, so the tail stops
+  # dead rather than decaying. The sound is the flat end, so `hold` is doing
+  # all of the work and `release` none.
+  threshold      -26 dB
+  hyst           4 dB
+  attack         0.1 ms
+  hold           140 ms
+  release        8 ms
+
+patch Noise family=clean
+  # A quiet source with a noise floor under it - a DI, a synth with a hissy
+  # output stage. Set to be inaudible: it should only ever act on silence.
+  threshold      -58 dB
+  hyst           10 dB
+  attack         2 ms
+  hold           400 ms
+  release        600 ms
+  duck           -30 dB
+
+patch Breath family=clean
+  # A voice or a wind instrument, where the gate must never be heard working.
+  # A slow attack rounds the front of a word instead of clicking it, and the
+  # long hold carries the quiet end of a phrase.
+  threshold      -50 dB
+  hyst           9 dB
+  attack         5 ms
+  hold           300 ms
+  release        500 ms
+  duck           -18 dB
+
+patch Room family=clean
+  # A room mic that should only be there when the band is playing. The
+  # threshold is high because the room is what is being gated, and `duck`
+  # keeps a floor so the change is a door closing and not a mute.
+  threshold      -36 dB
+  hyst           8 dB
+  attack         3 ms
+  hold           200 ms
+  release        700 ms
+  duck           -15 dB
+
+patch Stutter family=tight
+  # The gate as an effect: a threshold up in the middle of the material, so
+  # only the loud parts get through and everything else is gone. A rhythm
+  # made of what was already there.
+  threshold      -18 dB
+  hyst           2 dB
+  attack         0.1 ms
+  hold           10 ms
+  release        15 ms
+
+patch Chop family=tight
+  # The same idea taken further: nothing under the peaks at all, and closed
+  # is closed. On a sustained sound this is a tremolo whose rate is the
+  # material's own.
+  threshold      -14 dB
+  hyst           1 dB
+  attack         0.05 ms
+  hold           5 ms
+  release        8 ms
+  gain           2 dB
+
+patch Pluck family=tight
+  # Only the attacks. The key filter is up where a pick or a stick is, so
+  # what opens the gate is the transient and not the body, and the hold is
+  # short enough that the body never arrives.
+  threshold      -24 dB
+  hyst           3 dB
+  attack         0.05 ms
+  hold           20 ms
+  release        40 ms
+  key            250 Hz

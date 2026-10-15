@@ -1,0 +1,231 @@
+# Dice - eighteen patches, voiced against the debug build.
+#
+# A slicer's patches are not sounds. Every other bank here stores a voice;
+# this one stores a *way of treating a loop you supply*. Mount a different
+# break and every patch still means the same thing - which is why there are
+# eighteen and not thirty-six: the machine has five dice and four cut
+# controls, and a bank that sweeps each probability across its range would be
+# thirty near-duplicates of one drum loop.
+#
+# So each patch does something you can name. The `dice` family turns exactly
+# one control up and leaves the rest alone, because a probability you cannot
+# hear in isolation is a probability nobody will ever set.
+#
+# The harness mounts two bars at 120 bpm with real onsets, so `cut #0` has
+# something to detect and slicing is being tested rather than the fallback
+# that divides evenly.
+#
+# Stepped parameters are written as `#n`, where n is the value:
+# `#n` is the *step index*, not the value, and it bites wherever a stepped
+# parameter does not start at zero: `slices` runs 2..16, so sixteen slices is
+# `#14`; `stutterdiv` runs 2..8, so an eight-stroke roll is `#6`; `jumprange`
+# runs 1..12, so a full octave is `#11`.
+#   cut        #0 at the loop's own onsets  #1 on an even grid
+#   dir        #0 forwards  #1 reversed
+#   hold       #0 free  #1 seeded, so every pass is identical
+#   filtertype #0 LP6 #1 LP12 #2 LP18 #3 LP24  #4 HP6 ... #7 HP24
+#              #8 BP6 #9 BP12 #10 notch #11 peak
+#
+# A per-slice `decay` of 4 s means *no* decay - the top of the range is the
+# off position, so a loop played straight is not faded slice by slice.
+#
+# Families: straight, dice, perform, tone, slice.
+
+machine Dice
+
+patch Init family=straight
+
+patch Straight family=straight
+  # The loop reproduced as faithfully as a slicer can: sixteen pieces cut at
+  # its own transients, nothing rolled, every slice running to its own end.
+  # This is the one to hear the break itself on, and the one every other
+  # patch here is a departure from.
+  slices         #14
+  gate           1.0
+  volume         1.01
+
+patch Grid family=straight
+  # The same loop cut by the clock rather than by the music. Sixteen equal
+  # pieces, so a hit that did not fall exactly on a sixteenth is split across
+  # two slices and its attack arrives in the middle of one. Worth having in
+  # the bank because it is what every slicer that cannot find onsets does,
+  # and the difference is the argument for the detector.
+  cut            #1
+  slices         #14
+  gate           1.0
+  volume         1.08
+
+patch "Half Time" family=straight
+  # Rate at a half: each slice plays at half speed, which is an octave down
+  # and twice as long. The groove does not change - the tempo of the material
+  # inside it does.
+  slices         #6
+  rate           0.5
+  gate           1.0
+  volume         0.80
+
+patch "Double Time" family=straight
+  # The other way: twice the speed, an octave up, each slice done in half the
+  # time. Thin and hurried, and the gaps it leaves are where a fill goes.
+  slices         #14
+  rate           2.0
+  gate           0.9
+  volume         1.50
+
+patch Swap family=dice
+  # Swap alone, at certainty. Every trigger plays *some* slice, never the one
+  # the pad names, so the same sixteen hits come out in a different order
+  # every bar. The material is untouched; only the sequence is rolled.
+  slices         #14
+  swap           1.0
+  gate           1.0
+  volume         1.01
+
+patch Reverse family=dice
+  # Reverse alone. Half the hits are played tail-first, so each one is a swell
+  # that arrives *at* its transient instead of starting on it - the sound of a
+  # cymbal sucked backwards, on a snare.
+  slices         #14
+  reverse        0.5
+  gate           1.0
+  volume         1.01
+
+patch Stutter family=dice
+  # Stutter alone: about half the hits repeat four times inside their own
+  # length, so the loop keeps its shape and its length while individual hits
+  # ratchet. A stutter is the same piece again, not the next one.
+  slices         #14
+  stutter        0.55
+  stutterdiv     #2
+  gate           1.0
+  volume         0.68
+
+patch Drop family=dice
+  # Drop alone. Half the triggers play nothing at all, and because the roll is
+  # per trigger the holes are somewhere else next time round. This is the die
+  # that makes a loop breathe.
+  #
+  # A half rather than a third, because a third was not enough to be the point
+  # of the patch: over the two bars bank_test plays, the dice rolled no drops
+  # at all and it came out byte-identical to Straight next door. A patch called
+  # Drop should be unmistakably dropping.
+  slices         #14
+  drop           0.5
+  gate           1.0
+  volume         1.01
+
+patch Jump family=dice
+  # Jump alone, a full octave either way. Half the hits arrive transposed, so
+  # a drum loop turns melodic without anything having been tuned - and the
+  # pitch moves the slice's length with it, which is what keeps it musical
+  # rather than just detuned.
+  slices         #14
+  jump           0.5
+  jumprange      #11
+  gate           1.0
+  volume         1.02
+
+patch Fill family=perform
+  # The end of a bar. Three dice at once and the gate short, which is the
+  # difference between a fill and a mess: the hits are cut before they can
+  # smear into each other, so what is left is dense but still legible.
+  slices         #14
+  swap           0.6
+  stutter        0.5
+  stutterdiv     #4
+  jump           0.3
+  jumprange      #6
+  gate           0.45
+  drive          0.2
+  volume         0.79
+
+patch Roll family=perform
+  # Every hit an eight-stroke roll. Stutter at certainty with the division at
+  # its maximum, gated short so each stroke is an attack rather than a piece
+  # of the loop - a drum roll built out of whatever you mounted.
+  slices         #6
+  stutter        1.0
+  stutterdiv     #6
+  gate           0.3
+  drive          0.15
+  volume         1.01
+
+patch Ghost family=perform
+  # The loop as ghost notes: the gate low enough that a slice is its attack
+  # and almost none of its body, a few of them dropped, and the level down.
+  # What survives is the rhythm without the weight, which is what you put
+  # under something else.
+  slices         #14
+  gate           0.18
+  drop           0.2
+  volume         1.50
+
+patch Held family=perform
+  # The dice, held. Hold on means the rolls come from the slice and the seed
+  # alone, so this pattern is elaborate and *identical every pass* - which is
+  # the difference between a machine that surprises you and one you can
+  # record. Change `seed` for a different permanent pattern.
+  slices         #14
+  hold           #1
+  seed           #11
+  swap           0.45
+  reverse        0.25
+  stutter        0.3
+  gate           0.8
+  volume         1.12
+
+patch Dust family=tone
+  # Low-passed hard and resonant, with a third of the hits dropped: the loop
+  # heard through a wall, in another room, some time ago. The resonance is
+  # what stops it being merely quiet.
+  cut            #1
+  slices         #12
+  cutoff         2200 Hz
+  resonance      0.15
+  filtertype     #1
+  drop           0.3
+  swap           0.35
+  reverse        0.2
+  gate           0.45
+  volume         1.50
+
+patch Driven family=tone
+  # The drive stage hard. Until today this knob bought dirt by spending
+  # level - `tanh(x * k) / sqrt(k)` is a ceiling that falls as you turn it -
+  # so the patch is voiced against the corrected law and is thick without
+  # being quiet.
+  slices         #14
+  drive          0.7
+  cutoff         9000 Hz
+  gate           1.0
+  volume         0.58
+
+patch Pitched family=tone
+  # The whole loop down a fourth, and a few cents under, without touching the
+  # rate: `pitch` moves the read speed of every slice together, so the loop
+  # gets longer and darker in the way tape does, while `rate` alone would
+  # have done it without the transposition being the point.
+  slices         #14
+  pitch          -5
+  fine           -8 cents
+  gate           1.0
+  volume         1.03
+
+patch Scattered family=slice
+  # The per-slice settings, which is the one thing in this machine that does
+  # *not* port to another loop - and the reason there is exactly one patch
+  # using them. Alternate pads hard left and right, two of them pitched, so
+  # the loop spreads across the image and picks up a melody it did not have.
+  slices         #6
+  gate           1.0
+  s00_pan        -0.8
+  s01_pan        0.8
+  s02_pan        -0.5
+  s03_pan        0.5
+  s03_pitch      7
+  s04_pan        -0.8
+  s05_pan        0.8
+  s05_pitch      -5
+  s06_pan        -0.5
+  s07_pan        0.5
+  volume         0.98

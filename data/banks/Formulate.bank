@@ -1,0 +1,717 @@
+# Formulate - the chip and the equation, voiced against the debug build.
+#
+# Three layers, and the point is that they interlock rather than stack.
+#
+#   **The chip.** A hardware-style oscillator: pulse with a duty, triangle,
+#   saw, noise with a long or a short shift register. Then the limits that
+#   made it sound like hardware - `bits` quantises to as few as two levels,
+#   `crush` divides the sample clock, `sub` adds the octave below.
+#
+#   **The tables.** Three lists clocked together at `framerate`, fifty steps
+#   a second by default because that is a video frame. `arp` is semitones,
+#   so "0 4 7" plays a chord *on one voice* - which is where chiptune's
+#   harmony came from, there being no channels to spare. `duty` and `vol`
+#   shape the pulse and the level. A `|` marks the loop point: with the bar
+#   at the end the table runs out and stops, which is a one-shot.
+#
+#   **The formula.** A C-style integer expression, per sample, per voice. It
+#   reads `t` `f` `n` `v`, the macros `a` `b` `c`, the table step `s`, a
+#   random `rnd()` - and **`x`, which is the chip's own sample**, so an
+#   expression can shape the hardware instead of replacing it. `formulamode`
+#   chooses: replace, ring, gate, or exclusive-or.
+#
+# **The one number that governs every formula patch.** `t` advances by
+# `freq/55` each sample, so a note's period is always `sr/55` = 873 units of
+# `t`, whatever pitch is played. An expression whose cycle is P sits at the
+# note when `timescale = P/873`. `sin()` has a cycle of 256, so 0.293 puts it
+# on the key, 0.587 an octave up, 1.174 two octaves up - measured, not
+# reasoned. Without that a formula plays at an arbitrary pitch that does not
+# track the keyboard.
+#
+# **Two more that bite.** The formula's result is masked to 0..255, so an
+# expression that goes negative wraps rather than clipping - `sin(t)` returns
+# -127..127 and wants its `+ 128`. And centre is 128, not zero: in ring mode
+# a formula that reaches 0 slams the output to -1.0 rather than to silence.
+#
+# Values are in each parameter's own units; `audition params Formulate` lists
+# them. A patch names only what it changes.
+
+machine Formulate
+# Demos: `chip` is sixteenths with wide leaps, because the tables run at
+# fifty steps a second and every other phrase here is too legato to show
+# them; `pad` for the sustained few.
+role    chip
+
+patch Init family=chip
+# A square, played one note at a time. The whole vocabulary starts here.
+patch "Pulse Lead" note=64 range=48..88 family=chip
+  wave           #0
+  duty           0.5
+  mono           #1
+  glide          0 s
+  ampattack      0.001 s
+  ampdecay       0.4 s
+  ampsustain     0.7
+  amprelease     0.05 s
+  volume         0.77
+
+# A quarter duty: thinner, and it leaves room under itself for a bass.
+# Three duty settings is most of what a pulse channel had.
+patch "Quarter Pulse" note=64 range=48..88 family=chip
+  wave           #0
+  duty           0.25
+  mono           #1
+  ampattack      0.001 s
+  ampdecay       0.35 s
+  ampsustain     0.7
+  amprelease     0.05 s
+  volume         0.89
+
+# An eighth: nasal and small, the one that cuts through everything
+# because there is nothing else up there.
+patch "Eighth Pulse" note=67 range=52..91 family=chip
+  wave           #0
+  duty           0.125
+  mono           #1
+  ampattack      0.001 s
+  ampdecay       0.3 s
+  ampsustain     0.65
+  amprelease     0.04 s
+  volume         1.13
+
+# The triangle channel, which on the hardware had no volume control at
+# all - it was on or it was off, and that is why chip bass sounds the
+# way it does.
+patch "Triangle Bass" note=40 range=28..60 family=chip
+  wave           #1
+  mono           #1
+  glide          0 s
+  ampattack      0.001 s
+  ampdecay       1.5 s
+  ampsustain     0.9
+  amprelease     0.08 s
+  volume         1.30
+
+# Triangle with the sub octave under it. Nothing above the fourth
+# harmonic worth speaking of.
+patch "Sub Bass" note=36 range=24..55 family=chip
+  wave           #1
+  sub            0.85
+  mono           #1
+  cutoff         2200 Hz
+  ampattack      0.002 s
+  ampdecay       2 s
+  ampsustain     0.9
+  amprelease     0.1 s
+  volume         1.44
+
+# Not a chip waveform - the hardware could not make one - which is why
+# it is here: the machine is a chip *and* an equation, and this is the
+# oscillator being honest about the second part.
+patch "Saw Lead" note=60 range=45..84 family=chip
+  wave           #2
+  mono           #1
+  cutoff         8000 Hz
+  ampattack      0.001 s
+  ampdecay       0.5 s
+  ampsustain     0.7
+  amprelease     0.06 s
+  volume         1.33
+
+# White noise with a volume table that runs out and stops. The table's
+# bar is at the end, which means no loop - a one-shot, which is how a
+# tracker made a drum.
+patch "Noise Snare" note=48 range=36..72 family=chip
+  wave           #3
+  ampattack      0.0005 s
+  ampdecay       0.3 s
+  ampsustain     0
+  amprelease     0.05 s
+  framerate      60 Hz
+  volume         1.5
+  set vol "255 190 120 70 40 20 8 0 |"
+
+# The same, over in a twentieth of a second, with the short register on
+# so it is metallic rather than hissy.
+patch "Noise Hat" note=60 range=48..84 family=chip
+  wave           #3
+  noiseshort     #1
+  ampattack      0.0005 s
+  ampdecay       0.06 s
+  ampsustain     0
+  amprelease     0.02 s
+  cutoff         14000 Hz
+  volume         1.5
+
+# Noise low enough to be a thump, with everything above 400 Hz taken
+# off. The hardware made drums out of whatever channel was free.
+patch "Noise Kick" note=36 range=24..55 family=chip
+  wave           #3
+  noiseshort     #1
+  cutoff         420 Hz
+  resonance      0.35
+  ampattack      0.0005 s
+  ampdecay       0.16 s
+  ampsustain     0
+  amprelease     0.04 s
+  drive          0.4
+  volume         1.5
+
+# The duty swept slowly by the hardware's own modulator, which is the
+# one way a pulse channel could sound wide.
+patch "PWM Pad" note=55 range=40..79 family=chip role=pad
+  wave           #0
+  duty           0.5
+  pwmdepth       0.42
+  pwmrate        0.6 Hz
+  ampattack      0.35 s
+  ampdecay       1.2 s
+  ampsustain     0.85
+  amprelease     0.6 s
+  cutoff         7000 Hz
+  volume         0.78
+
+# Faster and shallower, so it reads as a texture on a lead rather than
+# as movement in a pad.
+patch "PWM Lead" note=64 range=48..88 family=chip
+  wave           #0
+  duty           0.4
+  pwmdepth       0.22
+  pwmrate        5.5 Hz
+  mono           #1
+  ampattack      0.001 s
+  ampdecay       0.4 s
+  ampsustain     0.75
+  amprelease     0.06 s
+  volume         0.78
+
+# The noise register on its short loop. It stops being noise and starts
+# being a pitch - a very ugly one, which is the point.
+patch "Metal Noise" note=55 range=40..79 family=chip
+  wave           #3
+  noiseshort     #1
+  cutoff         9000 Hz
+  resonance      0.25
+  ampattack      0.001 s
+  ampdecay       0.7 s
+  ampsustain     0.4
+  amprelease     0.1 s
+  volume         0.93
+
+# Four levels. Everything quiet in the source becomes a staircase, and
+# the distortion is the quantiser rather than a clipper.
+patch "Two Bit" note=60 range=45..84 family=chip
+  wave           #0
+  duty           0.5
+  bits           #1
+  mono           #1
+  ampattack      0.001 s
+  ampdecay       0.6 s
+  ampsustain     0.7
+  amprelease     0.06 s
+  volume         0.99
+
+# Two levels: on and off. Every patch in this bank passes through the
+# same quantiser and this is the far end of it.
+patch "One Bit" note=60 range=45..84 family=chip
+  wave           #1
+  bits           #0
+  mono           #1
+  cutoff         6000 Hz
+  ampattack      0.001 s
+  ampdecay       0.8 s
+  ampsustain     0.8
+  amprelease     0.06 s
+  volume         1.42
+
+# One voice playing a chord, fifty times a second. This is where
+# chiptune harmony came from - there were not enough channels to hold
+# one each, so the channel took turns.
+patch "Major Arp" note=60 range=45..84 family=table
+  wave           #0
+  duty           0.5
+  mono           #1
+  framerate      50 Hz
+  ampattack      0.001 s
+  ampdecay       0.5 s
+  ampsustain     0.75
+  amprelease     0.05 s
+  volume         0.72
+  set arp "0 4 7"
+
+# The same with a flat third. One character changes the chord, which is
+# the argument for writing harmony as a table.
+patch "Minor Arp" note=60 range=45..84 family=table
+  wave           #0
+  duty           0.25
+  mono           #1
+  framerate      50 Hz
+  ampattack      0.001 s
+  ampdecay       0.5 s
+  ampsustain     0.75
+  amprelease     0.05 s
+  volume         0.82
+  set arp "0 3 7"
+
+# Four steps rather than three, so the cycle is slower and you start to
+# hear the individual notes instead of a chord.
+patch "Seventh Arp" note=60 range=45..84 family=table
+  wave           #0
+  duty           0.375
+  mono           #1
+  framerate      42 Hz
+  ampattack      0.001 s
+  ampdecay       0.6 s
+  ampsustain     0.75
+  amprelease     0.05 s
+  volume         0.73
+  set arp "0 4 7 10"
+
+# Two steps an octave apart at full rate: not a chord any more, a
+# timbre. The pitch you hear is the note; the octave is texture.
+patch "Octave Trill" note=60 range=45..84 family=table
+  wave           #0
+  duty           0.5
+  mono           #1
+  framerate      60 Hz
+  ampattack      0.001 s
+  ampdecay       0.7 s
+  ampsustain     0.8
+  amprelease     0.05 s
+  volume         0.68
+  set arp "0 12"
+
+# A volume table with silences in it, so one key gives four hits that
+# get quieter. A delay made of a list, and it costs nothing.
+patch "Echo Pluck" note=60 range=45..84 family=table
+  wave           #0
+  duty           0.25
+  framerate      30 Hz
+  ampattack      0.001 s
+  ampdecay       4 s
+  ampsustain     1
+  amprelease     0.05 s
+  volume         1.50
+  set vol "255 90 0 0 200 60 0 0 150 40 0 0 100 25 0 0 60 12 0 0 |"
+
+# The pulse width stepped through a table instead of swept by an LFO.
+# Stepped is what the hardware did, and it does not sound the same.
+patch "Duty Sweep" note=60 range=45..84 family=table
+  wave           #0
+  framerate      36 Hz
+  mono           #1
+  ampattack      0.001 s
+  ampdecay       0.8 s
+  ampsustain     0.8
+  amprelease     0.06 s
+  volume         0.75
+  set duty "32 64 96 128 160 192 160 128 96 64 |"
+
+# The same arpeggio at twelve steps a second instead of fifty. Slow
+# enough to be a riff rather than a chord, which is the whole of the
+# frame rate knob.
+patch "Slow Frame" note=60 range=45..84 family=table
+  wave           #0
+  duty           0.25
+  mono           #1
+  framerate      12 Hz
+  ampattack      0.001 s
+  ampdecay       1.2 s
+  ampsustain     0.85
+  amprelease     0.05 s
+  volume         0.73
+  set arp "0 7 12 7 3 7 12 19"
+
+# The tables clocked from the transport rather than from a rate in
+# hertz, so the arpeggio stays with the song when the tempo moves.
+# No chip could do this; every tracker wished it could.
+patch "Locked Arp" note=60 range=45..84 family=table
+  wave           #0
+  duty           0.5
+  mono           #1
+  framesync      #1
+  tableretrig    #1
+  ampattack      0.001 s
+  ampdecay       0.8 s
+  ampsustain     0.8
+  amprelease     0.05 s
+  volume         0.68
+  set arp "0 4 7 12 7 4"
+
+# The chip's own sample multiplied by a sine from the language. Ring
+# mode, so what you hear is the hardware being shaped rather than
+# replaced - that is what `x` is for.
+patch "Ring Chip" note=60 range=45..84 family=shape
+  wave           #0
+  duty           0.5
+  formula        1
+  formulamode    #2
+  timescale      0.879
+  ampattack      0.001 s
+  ampdecay       0.8 s
+  ampsustain     0.6
+  amprelease     0.1 s
+  volume         1.02
+  set formula "sin(t) + 128"
+
+# The chop is a volume table at twenty-four steps a second, which is how
+# a tracker did it - the formula's own clock has a floor of 0.125 and
+# cannot go that slow. The formula is doing the grit instead.
+patch "Gated Grit" note=60 range=45..84 family=shape
+  wave           #0
+  duty           0.125
+  bits           #4
+  formula        1
+  formulamode    #4
+  timescale      0.147
+  framerate      24 Hz
+  ampattack      0.001 s
+  ampdecay       0.5 s
+  ampsustain     0.7
+  amprelease     0.1 s
+  volume         0.98
+  set formula "t & 64 ? 255 : 0"
+  set arp "0 0 12 7"
+  set vol "255 255 0 0 255 0 255 0"
+
+# The oscillator exclusive-ORed with a ramp. There is no analogue
+# equivalent of this at all - it is an arithmetic operation on a number
+# that happens to be a sound.
+patch "Xor Fold" note=60 range=45..84 family=shape
+  wave           #1
+  formula        1
+  formulamode    #4
+  timescale      0.293
+  ampattack      0.001 s
+  ampdecay       0.7 s
+  ampsustain     0.65
+  amprelease     0.08 s
+  cutoff         9000 Hz
+  volume         1.28
+  set formula "t & 255"
+
+# The chip's sample with bits knocked out of it by the `a` macro, so
+# the knob is a bit pattern rather than a level. Turn it and the timbre
+# changes in steps, because bits do.
+patch "Bit Mask" note=60 range=45..84 family=shape
+  wave           #0
+  duty           0.5
+  a              200
+  formula        1
+  formulamode    #1
+  ampattack      0.001 s
+  ampdecay       0.9 s
+  ampsustain     0.7
+  amprelease     0.08 s
+  volume         0.88
+  set formula "x & (a | 15)"
+
+# Full-wave rectification, written as arithmetic: everything below the
+# centre is folded above it, which doubles the pitch and fills the
+# spectrum with even harmonics.
+patch "Fold Back" note=60 range=45..84 family=shape
+  wave           #1
+  formula        1
+  formulamode    #1
+  ampattack      0.001 s
+  ampdecay       0.8 s
+  ampsustain     0.7
+  amprelease     0.08 s
+  cutoff         10000 Hz
+  volume         1.12
+  set formula "abs(x - 128) * 2"
+
+# **The formula reading the tables.** `s` is the table's step counter,
+# so the expression changes with every frame the arpeggio advances -
+# the two halves of the machine driving each other rather than sitting
+# side by side.
+patch "Step Ring" note=60 range=45..84 family=shape
+  wave           #0
+  duty           0.5
+  formula        1
+  formulamode    #2
+  framerate      24 Hz
+  ampattack      0.001 s
+  ampdecay       1 s
+  ampsustain     0.7
+  amprelease     0.1 s
+  volume         1.13
+  set formula "(s * 40 + 80) & 255"
+  set arp "0 3 7 10 12 10 7 3"
+
+# `n` is the MIDI note, so the amount of shaping changes as you move up
+# the keyboard - bright and clean at the top, mangled at the bottom.
+# One patch that is two instruments depending on where you play it.
+patch "Note Shape" note=60 range=36..84 family=shape
+  wave           #0
+  duty           0.5
+  formula        1
+  formulamode    #4
+  timescale      0.587
+  ampattack      0.001 s
+  ampdecay       0.8 s
+  ampsustain     0.7
+  amprelease     0.08 s
+  volume         1.29
+  set formula "t >> (n >> 4) & 255"
+
+# How hard the key is hit decides how much of the chip survives. Not a
+# filter and not a level - the arithmetic itself is velocity sensitive.
+patch "Velocity Grit" note=60 range=45..84 family=shape
+  wave           #0
+  duty           0.375
+  formula        1
+  formulamode    #2
+  velocity       0
+  ampattack      0.001 s
+  ampdecay       0.7 s
+  ampsustain     0.7
+  amprelease     0.08 s
+  volume         1.28
+  set formula "x * v >> 6"
+
+# A sine that no chip ever had, written in four characters and tuned to
+# the note by the time scale. `sin()` has a cycle of 256 and one note
+# period is 873 units of `t`, so 256/873 = 0.293 puts it on the key.
+patch "Pure Sine" note=60 range=36..84 family=formula role=pad
+  wave           #4
+  formula        1
+  formulamode    #1
+  timescale      0.293
+  ampattack      0.02 s
+  ampdecay       1 s
+  ampsustain     0.85
+  amprelease     0.2 s
+  volume         0.99
+  set formula "sin(t) + 128"
+
+# A square built out of a comparison rather than out of hardware. The
+# point is not that it sounds different - it is that the duty is an
+# expression, so it can depend on anything.
+patch "Formula Square" note=60 range=45..84 family=formula
+  wave           #4
+  formula        1
+  formulamode    #1
+  timescale      0.293
+  b              96
+  ampattack      0.001 s
+  ampdecay       0.6 s
+  ampsustain     0.7
+  amprelease     0.06 s
+  volume         0.77
+  set formula "(t & 255) < b ? 255 : 0"
+
+# The AND of a counter with itself shifted, which draws the Sierpinski
+# gasket if you plot it and buzzes in a self-similar way if you listen
+# to it - bits knocked out of a ramp at nested scales, so it pulses at
+# several rates at once. One of the oldest of these and still one of
+# the strangest.
+# #
+# # The doubling matters. Raw, the expression is zero a tenth of the
+# # time and under an eighth of full scale for nearly half of it - mean
+# # 64 where centre is 128 - so it sits near the negative rail and
+# # spikes upward, and the blocker then removes half of full scale. At
+# # twice the size it uses the range it was always drawing in.
+patch Sierpinski note=60 range=45..84 family=formula
+  wave           #4
+  formula        1
+  formulamode    #1
+  timescale      1.174
+  ampattack      0.001 s
+  ampdecay       0.9 s
+  ampsustain     0.7
+  amprelease     0.08 s
+  cutoff         11000 Hz
+  volume         0.89
+  set formula "min((t & t >> 8) * 2, 255)"
+
+# Shift, mask, multiply: the multiplier *is* the wave's rate of change,
+# so it steps between the note and its third, fifth and seventh
+# harmonics about three times a second. A melody of timbres, which is
+# what these expressions sound like when they are given room.
+# #
+# # The published ones assume a free-running clock at eight kilohertz
+# # where `t >> 12` turns over twice a second. Here `t` is *pitched* and
+# # runs at 1.78 a sample, so the same shifts put `t >> 8` at 334 Hz -
+# # the pitch being re-rolled three hundred times a second, which is a
+# # fizz rather than a sound. Every published formula needs its shifts
+# # moved right before it means anything here.
+patch Crunch note=55 range=40..79 family=formula
+  wave           #4
+  formula        1
+  formulamode    #1
+  timescale      0.293
+  ampattack      0.001 s
+  ampdecay       1.2 s
+  ampsustain     0.75
+  amprelease     0.1 s
+  cutoff         9000 Hz
+  volume         1.21
+  set formula "(t * (((t >> 16 | t >> 14) & 7) | 1)) & 255"
+
+# An expression that writes its own tune: the shifts pick out different
+# bits at different times, so it walks a scale nobody chose. The steps
+# are even - two, four, six, eight - where Crunch's are odd, which is
+# the difference between a tune in octaves and one in fifths.
+# #
+# # Two things had to be right. The `+ 1`: without it the mask lets the
+# # multiplier reach zero a quarter of the time, and zero is not silence
+# # here - centre is 128, so it is full-scale negative. And the melody
+# # has to step *slowly*, `t >> 18` rather than `t >> 8`: at the fast
+# # rate the changes themselves were a 39 Hz square wave under the tune,
+# # and 98% of the patch sat below half the note. Now 0.01% does.
+patch "Bit Melody" note=60 range=45..84 family=formula
+  wave           #4
+  formula        1
+  formulamode    #1
+  timescale      4.69
+  cutoff         5200 Hz
+  resonance      0.2
+  ampattack      0.001 s
+  ampdecay       1.4 s
+  ampsustain     0.8
+  amprelease     0.1 s
+  volume         1.12
+  set formula "(t >> 4) * ((t >> 18 & 6) + 2) & 255"
+
+# Eight values in a scrambled order, each held for thirty-two ticks, and
+# the set of them repeating exactly once per note. A sample-and-hold
+# written as multiplication: `rnd()` cannot do it, being fresh every
+# sample with no memory behind it, so the held randomness comes out of
+# the arithmetic instead - 97 and 256 are coprime, so multiplying by it
+# walks the range in an order that sounds unplanned.
+# #
+# # In a *pitched* machine a sample-and-hold is a waveform rather than a
+# # slow random: eight steps inside four milliseconds is a timbre. What
+# # matters is that the pattern closes at the note. It used to step by
+# # 37 and wrap after 6.9 holds, which put a saw at 4.62 times the note
+# # - between a major third and a fourth, which is not an interval.
+patch Dice note=60 range=45..84 family=formula
+  wave           #4
+  formula        1
+  formulamode    #1
+  timescale      0.293
+  ampattack      0.001 s
+  ampdecay       0.5 s
+  ampsustain     0.4
+  amprelease     0.08 s
+  cutoff         7000 Hz
+  resonance      0.3
+  volume         1.50
+  set formula "(((t >> 5) & 7) * 97) & 255"
+
+# Additive synthesis in one line: a fundamental and its octave, added
+# and rescaled to fit. The language has no floating point, so the
+# halving is a shift.
+patch "Two Sines" note=57 range=40..84 family=formula role=pad
+  wave           #4
+  formula        1
+  formulamode    #1
+  timescale      0.293
+  ampattack      0.05 s
+  ampdecay       1.2 s
+  ampsustain     0.8
+  amprelease     0.25 s
+  volume         0.95
+  set formula "sin(t) + (sin(t * 2) >> 1) + 128"
+
+# A sine put through a coarse quantiser written in the language rather
+# than taken from the `bits` knob - so the number of steps can be an
+# expression, and here it is the `c` macro.
+patch Stair note=60 range=45..84 family=formula
+  wave           #4
+  formula        1
+  formulamode    #1
+  timescale      0.293
+  c              48
+  ampattack      0.002 s
+  ampdecay       1 s
+  ampsustain     0.75
+  amprelease     0.1 s
+  volume         1.02
+  set formula "((sin(t) + 128) / max(c, 4)) * max(c, 4)"
+
+# The arpeggio table moves the note, and `s` moves the formula that is
+# ringing it. Neither half is an effect on the other - they are clocked
+# together and the sound is what happens in between.
+patch "Table Ring" note=60 range=45..84 family=hybrid
+  wave           #0
+  duty           0.5
+  formula        1
+  formulamode    #2
+  framerate      32 Hz
+  ampattack      0.001 s
+  ampdecay       1.2 s
+  ampsustain     0.7
+  amprelease     0.1 s
+  volume         1.29
+  set formula "((s & 3) * 60 + 90) & 255"
+  set arp "0 4 7 12"
+  set duty "64 96 128 160"
+
+# All three knobs in one expression: `a` sets the pitch of the shaping,
+# `b` how much of the chip survives, `c` where it folds. A formula that
+# is played rather than only typed - and all three automate.
+patch "Macro Morph" note=60 range=45..84 family=hybrid
+  wave           #0
+  duty           0.375
+  a              64
+  b              160
+  c              96
+  formula        1
+  formulamode    #1
+  timescale      0.293
+  ampattack      0.001 s
+  ampdecay       1 s
+  ampsustain     0.75
+  amprelease     0.1 s
+  volume         1.02
+  set formula "(x * b >> 8) + (sin(t * (a >> 5) + c) >> 1) & 255"
+
+# A saw exclusive-ORed with a number taken from the frequency, so the
+# *waveform* is a different permutation at every note while the pitch
+# tracks exactly. Play a scale and it is not one sound getting higher.
+# #
+# # Reading `f` into the wave's *rate* does not work: `f >> 6` is an
+# # integer divide, so it is 1 at C2, 4 at C4 and 16 at C6 - the pitch
+# # leaps in octaves instead of tracking, and sits at 16 Hz at the
+# # bottom of the range. `f` belongs in the timbre, not in the clock.
+patch "Keyed Chaos" note=60 range=36..84 family=hybrid
+  wave           #4
+  formula        1
+  formulamode    #1
+  timescale      0.293
+  ampattack      0.001 s
+  ampdecay       1 s
+  ampsustain     0.7
+  amprelease     0.1 s
+  cutoff         10000 Hz
+  volume         1.22
+  set formula "(t & 255) ^ (f & 255)"
+
+# Formula, then three bits, then the sample clock divided by twelve.
+# Three destructive things in a row, which is the whole machine pointed
+# at one sound - so the formula itself is a plain saw with a slow bit
+# flipped through it, and everything you hear happening to it is the
+# crushing rather than the arithmetic.
+# #
+# # It used to be `t * (t >> 9 | 1)`, which sweeps *forever*: the final
+# # mask bounds the value but not the rate of change, and by a fifth of
+# # a second that term was stepping sixty-seven units a tick, which is
+# # aliasing rather than a pitch.
+patch "Crush Formula" note=55 range=40..79 family=hybrid
+  wave           #4
+  formula        1
+  formulamode    #1
+  timescale      0.293
+  bits           #2
+  crush          12
+  smooth         0.2
+  ampattack      0.001 s
+  ampdecay       1.1 s
+  ampsustain     0.75
+  amprelease     0.1 s
+  drive          0.3
+  volume         0.61
+  set formula "(t & 255) ^ (t >> 9 & 48)"
+

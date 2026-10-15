@@ -1,0 +1,102 @@
+# Bitcrusher - depth, rate, and a clock that will not hold still.
+#
+# `bits` is how many levels are left and `rate` is how often the value is
+# allowed to change; they are different kinds of damage and sound nothing
+# alike. The extra is `jitter`: the sample clock wanders, which is what a cheap
+# converter does and what no plugin models, and it turns a clean aliased edge
+# into something that moves.
+#
+# `bits` here is a plain count, not a step index: this one is a linear
+# parameter and `#n` means nothing to it. The Reverb's `bits` *is* stepped,
+# which is exactly the sort of difference that only shows up when the test
+# refuses the file.
+#
+# Families: bits, rate, jitter.
+
+machine fx.Bitcrusher
+
+patch Init family=bits
+
+patch "Eight Bit" family=bits
+  # The console sound: enough levels that the loud parts survive and the quiet
+  # parts step. The quantisation noise follows the signal rather than sitting
+  # under it, which is why it reads as character rather than as hiss.
+  bits           8
+  rate           32000
+  tone           14000 Hz
+
+patch "Four Bit" family=bits
+  # Sixteen levels. Anything quiet is now three or four of them, so the decay
+  # of every sound turns into a staircase.
+  bits           4
+  rate           24000
+  tone           9000 Hz
+
+patch "One Bit" family=bits
+  # Two levels: everything is either full up or full down and only the zero
+  # crossings survive. What is left is the rhythm and the pitch, with none of
+  # the tone - and it is still recognisable, which is the interesting part.
+  bits           1
+  rate           20000
+  tone           7000 Hz
+  mix            0.8
+  # No make-up here: one bit is a square wave, so it is quiet by loudness and
+  # enormous by peak, and a trim measured on the first sends it over full
+  # scale on the second.
+  gain           14 dB
+
+patch Coarse family=bits
+  # Four bits: a loud, coarse grain.
+  bits           4
+  rate           24000
+  gain           -1 dB
+
+patch "Twelve Bit" family=bits
+  # The old samplers' twelve bits, gently dirty.
+  bits           12
+  rate           26000
+  tone           12000 Hz
+
+patch Downsample family=rate
+  # Depth untouched, rate cut hard: the aliases fold back down the spectrum and
+  # move the *opposite* way to the pitch, which is the sound no analogue
+  # process makes.
+  bits           16
+  rate           6000
+  tone           12000 Hz
+
+patch Phone family=rate
+  # Eight kilohertz and a lid on the top, which is a telephone line's budget.
+  # The aliasing is deliberate: the real thing filtered first and this does not.
+  bits           12
+  rate           8000
+  tone           3500 Hz
+
+patch Telephone family=rate
+  # A low rate and the top cut, small and far.
+  bits           8
+  rate           6000
+  tone           3000 Hz
+
+patch Unstable family=jitter
+  # The sample clock wandering gently. Nothing is obviously wrong and nothing
+  # is quite in tune with itself - the effect a worn-out sampler has before it
+  # fails outright.
+  bits           10
+  rate           16000
+  jitter         0.35
+
+patch Broken family=jitter
+  # The clock gone entirely. At this much jitter the rate is a suggestion, and
+  # what comes out is somewhere between downsampling and ring modulation.
+  bits           6
+  rate           9000
+  jitter         0.9
+  tone           8000 Hz
+
+patch Unsteady family=jitter
+  # The clock wandering, the grain shifting.
+  bits           10
+  rate           16000
+  jitter         0.6
+  mix            0.7

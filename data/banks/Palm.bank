@@ -1,0 +1,649 @@
+# Palm - hand drums.
+#
+# Each note is a head tuned to the note: the modes of a circular membrane,
+# or a tabla's, tuned to a harmonic series by the paste in its middle. The
+# hand does the rest. `stroke` picks open, slap, muted, bass or rim, or lets
+# the velocity choose (soft is muted, hard is slapped); `position` moves it
+# towards the middle or the edge, `hand` makes it softer or quicker, and
+# `damp` rests the other hand on the head.
+#
+# A djembe's goblet and a cajón's box ring low under a bass stroke (`body`);
+# `rattle` is a cajón's snares, a djembe's rattles or a frame drum's
+# jingles. A head struck hard goes sharp and settles (`drop`); pressure or
+# the mod wheel squeezes a bayan or a talking drum up by `squeeze`
+# semitones. Slide (with MPE) lays a finger on the head. `roll` strikes held
+# notes again and again.
+#
+# Families: africa, latin, arabic, india, kit.
+
+machine Palm
+role tune
+
+patch Init family=africa note=55 range=45..67
+
+patch "Djembe Bass" family=africa note=55 range=45..67 role=bass
+  # The palm in the middle: the goblet's air booms under it.
+  stroke         #3
+  body           0.8
+
+patch "Djembe Tone" family=africa note=55 range=45..67
+  # The fingers flat near the edge: round and singing.
+  stroke         #0
+  position       0.55
+  decay          0.6
+
+patch "Djembe Slap" family=africa note=55 range=45..67
+  # The fingertips cracking at the edge.
+  stroke         #1
+
+patch "Djembe By Touch" family=africa note=55 range=45..67
+  # Soft notes muted, the middle tone, hard notes slapped.
+  stroke         #5
+  hand           0.65
+
+patch "Djembe Rattles" family=africa note=55 range=45..67
+  # Metal rattles on the rim, buzzing with every stroke.
+  stroke         #5
+  rattle         0.6
+
+patch "Djembe Muted" family=africa note=55 range=45..67
+  # The other hand on the head.
+  stroke         #0
+  damp           0.7
+
+patch "Talking Drum" family=africa note=55 range=45..67
+  # Struck with the hooked stick, in the middle.
+  model          #5
+  stroke         #3
+  squeeze        5
+
+patch "Talking Squeeze" family=africa note=52 range=45..67 role=lead
+  # The cords squeezed for a fifth: press, or use the mod wheel.
+  model          #5
+  stroke         #3
+  squeeze        7
+  decay          0.7
+
+patch "Talking Open" family=africa note=55 range=45..67
+  # Struck nearer the edge.
+  model          #5
+  stroke         #0
+  squeeze        5
+
+patch "Talking Roll" family=africa note=55 range=45..67 role=pad
+  # Held notes rolled, the drum squeezed.
+  model          #5
+  stroke         #0
+  squeeze        5
+  roll           10
+  volume         0.45
+
+patch "Ashiko" family=africa note=50 range=43..57
+  # The cone drum's open tone.
+  model          #16
+  stroke         #0
+
+patch "Ashiko Bass" family=africa note=43 range=36..50
+  # Its air ringing low under the palm.
+  model          #16
+  stroke         #3
+  body           0.7
+
+patch "Ashiko Slap" family=africa note=55 range=48..62
+  # The cone drum's slap.
+  model          #16
+  stroke         #1
+
+patch "Udu" family=africa note=48 range=41..55
+  # The hole slapped with the palm: the pot's air, a deep bloop.
+  model          #17
+  stroke         #3
+  body           0.8
+
+patch "Udu Bloop" family=africa note=45 range=38..52
+  # Slapped hard, so the bloop drops a long way.
+  model          #17
+  stroke         #3
+  body           1
+  drop           1
+
+patch "Udu Tap" family=africa note=55 range=48..62
+  # The fingers on the clay, the air answering softly.
+  model          #17
+  stroke         #4
+  body           0.5
+
+patch "Cajon Bass" family=latin note=47 range=40..60 role=bass
+  # The palm in the middle of the plate; the box booms.
+  model          #3
+  stroke         #3
+  rattle         0.2
+
+patch "Cajon Slap" family=latin note=47 range=40..60
+  # The fingers at the top corner: the snares crack.
+  model          #3
+  stroke         #1
+  rattle         0.8
+  volume         1
+
+patch "Cajon Snares" family=latin note=47 range=40..60
+  # The snares tight against the plate.
+  model          #3
+  stroke         #5
+  rattle         1
+
+patch "Cajon Dry" family=latin note=47 range=40..60
+  # No snares: just the box.
+  model          #3
+  stroke         #5
+  rattle         0
+
+patch "Cajon By Touch" family=latin note=47 range=40..60
+  # Soft notes muted, hard ones slapped, some snare.
+  model          #3
+  stroke         #5
+  rattle         0.5
+
+patch "Conga Open" family=latin note=57 range=50..64
+  # The conga's open tone: the fingers flat near the edge, lifted at once.
+  model          #6
+  stroke         #0
+
+patch "Quinto Slap" family=latin note=62 range=55..69
+  # The small, high conga, slapped.
+  model          #6
+  stroke         #1
+  decay          0.4
+  volume         0.95
+
+patch "Tumba" family=latin note=52 range=45..59
+  # The big, low conga, played open with the palm for the bass.
+  model          #6
+  stroke         #5
+  body           0.7
+
+patch "Conga Muted" family=latin note=57 range=50..64
+  # The hand left on the head for the closed tone.
+  model          #6
+  stroke         #2
+  volume         1
+
+patch "Bongo Macho" family=latin note=69 range=62..76
+  # The small bongo: high, dry and quick.
+  model          #7
+  stroke         #5
+
+patch "Bongo Hembra" family=latin note=64 range=57..71
+  # The larger bongo of the pair.
+  model          #7
+  stroke         #0
+
+patch "Bongo Martillo" family=latin note=67 range=60..74 role=beat
+  # The steady bongo pattern: rolled notes, played by the velocity.
+  model          #7
+  stroke         #5
+  roll           6
+
+patch "Bata Iya" family=latin note=50 range=43..57
+  # The biggest batá, open.
+  model          #13
+  stroke         #0
+  body           0.6
+
+patch "Bata Okonkolo" family=latin note=62 range=55..69
+  # The smallest batá, slapped.
+  model          #13
+  stroke         #1
+  volume         0.95
+
+patch "Bata Itotele" family=latin note=55 range=48..62
+  # The middle batá, open.
+  model          #13
+  stroke         #0
+
+patch "Cuica" family=latin note=64 range=57..71 role=lead
+  # Hold a note and the stick squeaks the head; press, or the mod wheel, to slide it up.
+  model          #18
+  stroke         #0
+  volume         0.3
+
+patch "Cuica Laugh" family=latin note=60 range=53..67 role=lead
+  # Pressed up and let go, the cuíca's laugh.
+  model          #18
+  stroke         #0
+  squeeze        9
+  volume         0.3
+
+patch "Cuica Low" family=latin note=52 range=45..59 role=lead
+  # Lower and closed, the thumb on the head.
+  model          #18
+  stroke         #2
+  squeeze        5
+
+patch "Frame Doum" family=arabic note=43 range=33..57 role=bass
+  # The deep stroke in the middle of a wide head.
+  model          #4
+  stroke         #3
+
+patch "Frame Tek" family=arabic note=43 range=33..57
+  # A finger at the rim: high and short.
+  model          #4
+  stroke         #4
+
+patch "Frame Jingles" family=arabic note=45 range=33..57
+  # A frame drum with jingles in the rim.
+  model          #4
+  stroke         #0
+  rattle         1
+
+patch "Frame Roll" family=arabic note=43 range=33..57 role=pad
+  # Held notes rolled with the fingers.
+  model          #4
+  stroke         #0
+  roll           14
+  hand           0.3
+  volume         0.4
+
+patch "Big Frame" family=arabic note=38 range=28..52 role=bass
+  # A wider head, lower and longer.
+  model          #4
+  stroke         #3
+  decay          0.75
+
+patch "Frame By Touch" family=arabic note=43 range=33..57
+  # Soft notes muted, the middle open, hard notes at the rim.
+  model          #4
+  stroke         #5
+  rattle         0.3
+
+patch "Darbuka Doum" family=arabic note=50 range=43..57
+  # The deep stroke in the middle, the goblet's air ringing under it.
+  model          #8
+  stroke         #3
+  body           0.7
+
+patch "Darbuka Tek" family=arabic note=59 range=52..66
+  # The bright, ringing stroke at the edge.
+  model          #8
+  stroke         #4
+
+patch "Darbuka Ka" family=arabic note=59 range=52..66
+  # The other hand's tek, softer and closer in.
+  model          #8
+  stroke         #0
+  position       0.7
+
+patch "Riq" family=arabic note=64 range=57..71
+  # The riq's open stroke, its jingles ringing on.
+  model          #9
+  stroke         #0
+  rattle         0.8
+
+patch "Riq Shake" family=arabic note=64 range=57..71
+  # Held notes shake the jingles.
+  model          #9
+  stroke         #2
+  rattle         1
+  roll           12
+
+patch "Tar" family=arabic note=45 range=38..52
+  # The wide frame drum's deep stroke in the middle.
+  model          #10
+  stroke         #3
+
+patch "Tar Edge" family=arabic note=52 range=45..59
+  # The tar's bright edge stroke.
+  model          #10
+  stroke         #4
+
+patch "Bendir" family=arabic note=47 range=40..54
+  # The snares buzzing under the deep stroke.
+  model          #11
+  stroke         #3
+  rattle         0.7
+
+patch "Riq Slap" family=arabic note=66 range=59..73
+  # The sharp slap at the rim, jingles answering.
+  model          #9
+  stroke         #1
+  rattle         0.6
+
+patch "Tar Roll" family=arabic note=45 range=38..52
+  # Fingers rolling on the wide head.
+  model          #10
+  stroke         #0
+  roll           10
+  decay          0.7
+  volume         0.25
+
+patch "Bendir Edge" family=arabic note=52 range=45..59
+  # The edge stroke with the snares buzzing.
+  model          #11
+  stroke         #4
+  rattle         0.6
+
+patch "Bendir Roll" family=arabic note=47 range=40..54
+  # A roll that keeps the snares going.
+  model          #11
+  stroke         #0
+  rattle         0.8
+  roll           8
+  volume         0.32
+
+patch "Tabla Na" family=india note=62 range=55..74
+  # The finger on the edge, against the paste: ringing and bright.
+  model          #0
+  stroke         #4
+
+patch "Tabla Tin" family=india note=62 range=55..74
+  # The open stroke, between the edge and the paste.
+  model          #0
+  stroke         #0
+
+patch "Tabla Tun" family=india note=62 range=55..74
+  # The finger in the middle: the round, low mode.
+  model          #0
+  stroke         #3
+  volume         1
+
+patch "Tabla Te" family=india note=62 range=55..74
+  # Struck and held on the paste: short and dry.
+  model          #0
+  stroke         #2
+
+patch "Tabla By Touch" family=india note=62 range=55..74
+  # Soft notes muted, the middle open, hard notes cracked; quicker fingers.
+  model          #0
+  stroke         #5
+  hand           0.7
+
+patch "Bayan Ghe" family=india note=43 range=36..55 role=bass
+  # The bass drum struck open, the wrist ready to press it up.
+  model          #1
+  stroke         #3
+  squeeze        4
+  drop           0.5
+
+patch "Bayan Ke" family=india note=43 range=36..55 role=bass
+  # The flat hand slapped down and left: a dull knock.
+  model          #1
+  stroke         #2
+  volume         1
+
+patch "Bayan Swoop" family=india note=41 range=36..55 role=bass
+  # Long notes the wrist bends up: press, or use the mod wheel.
+  model          #1
+  stroke         #3
+  squeeze        7
+  decay          0.7
+
+patch "Bayan Open" family=india note=45 range=36..55 role=bass
+  # Struck nearer the edge: more ring, less boom.
+  model          #1
+  stroke         #0
+
+patch "Kanjira" family=india note=62 range=55..69
+  # Its one pair of jingles; press, or the mod wheel, to bend it up.
+  model          #12
+  stroke         #0
+  rattle         0.5
+  squeeze        3
+
+patch "Mridangam" family=india note=60 range=53..67
+  # The tuned head's long, clear ring.
+  model          #14
+  stroke         #0
+  decay          0.7
+
+patch "Mridangam Thom" family=india note=48 range=41..55
+  # The bass side's deep stroke.
+  model          #14
+  stroke         #3
+  volume         1
+
+patch "Dholak" family=india note=55 range=48..62
+  # The treble side, open.
+  model          #15
+  stroke         #0
+
+patch "Dholak Bass" family=india note=43 range=36..50
+  # The pasted bass side; press to bend it.
+  model          #15
+  stroke         #3
+  squeeze        4
+
+patch "Kanjira Slap" family=india note=64 range=57..71
+  # The kanjira slapped, the jingles quick.
+  model          #12
+  stroke         #1
+  rattle         0.4
+
+patch "Kanjira Glide" family=india note=60 range=53..67
+  # Pressed up after the stroke, as players bend it.
+  model          #12
+  stroke         #0
+  squeeze        5
+  decay          0.7
+
+patch "Mridangam Chapu" family=india note=64 range=57..71
+  # The ringing stroke at the edge of the tuned head.
+  model          #14
+  stroke         #4
+
+patch "Dholak Slap" family=india note=57 range=50..64
+  # The treble side slapped.
+  model          #15
+  stroke         #1
+  volume         1
+
+patch "Hand Drum Kit" family=kit note=36 range=36..51
+  # Sixteen pads: djembe, cajon, tabla, bayan, frame and talking drum, each with its own stroke.
+  kit            1
+
+patch "Latin Kit" family=kit note=36 range=36..51
+  # Congas, bongos, cajón and batá on sixteen pads.
+  kit            1
+  p01_model      #6
+  p01_stroke     #3
+  p01_note       47
+  p02_model      #6
+  p02_stroke     #0
+  p02_note       52
+  p03_model      #6
+  p03_stroke     #1
+  p03_note       52
+  p04_model      #6
+  p04_stroke     #2
+  p04_note       52
+  p05_model      #6
+  p05_stroke     #0
+  p05_note       57
+  p06_model      #6
+  p06_stroke     #1
+  p06_note       57
+  p07_model      #7
+  p07_stroke     #0
+  p07_note       64
+  p08_model      #7
+  p08_stroke     #1
+  p08_note       64
+  p09_model      #7
+  p09_stroke     #0
+  p09_note       69
+  p10_model      #7
+  p10_stroke     #1
+  p10_note       69
+  p11_model      #3
+  p11_stroke     #3
+  p11_note       40
+  p12_model      #3
+  p12_stroke     #1
+  p12_note       52
+  p13_model      #13
+  p13_stroke     #0
+  p13_note       50
+  p14_model      #13
+  p14_stroke     #1
+  p14_note       62
+  p15_model      #3
+  p15_stroke     #4
+  p15_note       57
+  p16_model      #6
+  p16_stroke     #5
+  p16_note       45
+
+patch "Tabla Kit" family=kit note=36 range=36..51
+  # Tabla, bayan, mridangam, dholak and kanjira on sixteen pads.
+  kit            1
+  p01_model      #1
+  p01_stroke     #3
+  p01_note       40
+  p02_model      #0
+  p02_stroke     #4
+  p02_note       69
+  p03_model      #0
+  p03_stroke     #2
+  p03_note       64
+  p04_model      #0
+  p04_stroke     #1
+  p04_note       62
+  p05_model      #1
+  p05_stroke     #0
+  p05_note       43
+  p06_model      #0
+  p06_stroke     #0
+  p06_note       62
+  p07_model      #1
+  p07_stroke     #1
+  p07_note       48
+  p08_model      #14
+  p08_stroke     #0
+  p08_note       60
+  p09_model      #14
+  p09_stroke     #3
+  p09_note       48
+  p10_model      #14
+  p10_stroke     #4
+  p10_note       64
+  p11_model      #15
+  p11_stroke     #0
+  p11_note       55
+  p12_model      #15
+  p12_stroke     #3
+  p12_note       43
+  p13_model      #12
+  p13_stroke     #0
+  p13_note       62
+  p14_model      #12
+  p14_stroke     #1
+  p14_note       64
+  p15_model      #0
+  p15_stroke     #5
+  p15_note       62
+  p16_model      #1
+  p16_stroke     #5
+  p16_note       43
+
+patch "African Kit" family=kit note=36 range=36..51
+  # Djembes, ashiko, talking drum and batá on sixteen pads.
+  kit            1
+  p01_model      #16
+  p01_stroke     #3
+  p01_note       43
+  p02_model      #2
+  p02_stroke     #0
+  p02_note       52
+  p03_model      #2
+  p03_stroke     #1
+  p03_note       57
+  p04_model      #2
+  p04_stroke     #2
+  p04_note       52
+  p05_model      #2
+  p05_stroke     #0
+  p05_note       55
+  p06_model      #2
+  p06_stroke     #1
+  p06_note       60
+  p07_model      #2
+  p07_stroke     #3
+  p07_note       43
+  p08_model      #16
+  p08_stroke     #0
+  p08_note       50
+  p09_model      #16
+  p09_stroke     #1
+  p09_note       55
+  p10_model      #5
+  p10_stroke     #0
+  p10_note       55
+  p11_model      #5
+  p11_stroke     #3
+  p11_note       50
+  p12_model      #5
+  p12_stroke     #1
+  p12_note       60
+  p13_model      #13
+  p13_stroke     #0
+  p13_note       50
+  p14_model      #13
+  p14_stroke     #0
+  p14_note       55
+  p15_model      #13
+  p15_stroke     #1
+  p15_note       62
+  p16_model      #2
+  p16_stroke     #5
+  p16_note       52
+
+patch "Arabic Kit" family=kit note=36 range=36..51
+  # Darbuka, riq, tar, bendir and frame drum on sixteen pads.
+  kit            1
+  p01_model      #8
+  p01_stroke     #3
+  p01_note       50
+  p02_model      #8
+  p02_stroke     #4
+  p02_note       59
+  p03_model      #8
+  p03_stroke     #0
+  p03_note       59
+  p04_model      #8
+  p04_stroke     #1
+  p04_note       61
+  p05_model      #9
+  p05_stroke     #0
+  p05_note       64
+  p06_model      #9
+  p06_stroke     #1
+  p06_note       66
+  p07_model      #9
+  p07_stroke     #2
+  p07_note       64
+  p08_model      #10
+  p08_stroke     #3
+  p08_note       45
+  p09_model      #10
+  p09_stroke     #4
+  p09_note       52
+  p10_model      #11
+  p10_stroke     #3
+  p10_note       47
+  p11_model      #11
+  p11_stroke     #4
+  p11_note       52
+  p12_model      #4
+  p12_stroke     #3
+  p12_note       45
+  p13_model      #4
+  p13_stroke     #0
+  p13_note       52
+  p14_model      #4
+  p14_stroke     #4
+  p14_note       57
+  p15_model      #8
+  p15_stroke     #5
+  p15_note       55
+  p16_model      #9
+  p16_stroke     #5
+  p16_note       64

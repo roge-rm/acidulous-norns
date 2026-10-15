@@ -1,0 +1,159 @@
+# Delay - the classic, and the two it has that a delay usually does not.
+#
+# `time` is a note value, so it is written as a step index: #0 1/16, #1 1/8T,
+# #2 1/8, #3 1/8., #4 1/4, #5 1/4., #6 1/2, #7 free.
+#
+# Values are in each parameter's own units; `audition params fx.Delay` lists
+# them. A patch names only what it changes.
+
+effect Delay
+
+patch Init family=short
+
+patch Slapback family=short
+  time           #0
+  feedback       0.12
+  tone           4500 Hz
+  pingpong       #0
+  mix            0.28
+
+patch Doubler family=short
+  # A thirty-second note: thickens without sounding like an echo.
+  time           #0
+  feedback       0
+  mix            0.3
+  pingpong       #0
+
+patch Rockabilly family=short
+  # A quick, bright slap with one repeat.
+  time           #1
+  feedback       0.2
+  tone           7000 Hz
+  pingpong       #0
+  mix            0.35
+
+patch "Eighth Sync" family=synced
+  time           #2
+  feedback       0.38
+  tone           7000 Hz
+  pingpong       #0
+  mix            0.32
+
+patch "Ping Pong" family=synced
+  time           #3
+  feedback       0.5
+  tone           8000 Hz
+  pingpong       #1
+  mix            0.38
+
+patch "Dotted Eighth" family=synced
+  # The dotted eighth that makes a guitar line cascade.
+  time           #3
+  feedback       0.4
+  mix            0.3
+
+patch Quarter family=synced
+  # On the beat, a few repeats.
+  time           #4
+  feedback       0.35
+  mix            0.3
+
+patch "Half Bar" family=synced
+  # Long and spaced, two beats.
+  time           #6
+  feedback       0.45
+  tone           4000 Hz
+  mix            0.3
+
+patch Dub family=dub
+  # Long, dark and nearly self-sustaining: the feedback is most of the sound
+  # and the tone control is what stops it turning into noise.
+  time           #5
+  feedback       0.82
+  tone           2200 Hz
+  pingpong       #1
+  mix            0.45
+
+patch Ducked family=dub
+  # The extra: echoes sit under the dry signal and swell in the gaps, so a
+  # long delay can sit behind a busy part without smearing it.
+  time           #4
+  feedback       0.55
+  tone           5200 Hz
+  pingpong       #1
+  mix            0.5
+  duck           0.8
+
+patch "Long Dub" family=dub
+  # A bar long, feeding back and darkening.
+  time           #7
+  feedback       0.7
+  tone           2000 Hz
+  mix            0.4
+
+patch "Wobbly Dub" family=dub
+  # Dotted quarters, high feedback, the repeats wobbling.
+  time           #5
+  feedback       0.75
+  tone           2500 Hz
+  wobble         0.4
+  mix            0.4
+
+patch Tape family=tape
+  # The other extra: two sines on the read head. Slow and shallow is a tape
+  # machine; further up it is a machine that needs servicing.
+  time           #4
+  feedback       0.55
+  tone           3200 Hz
+  pingpong       #0
+  mix            0.36
+  wobble         0.35
+  gain           -2.5 dB
+
+patch Seasick family=tape
+  time           #6
+  feedback       0.7
+  tone           2800 Hz
+  pingpong       #1
+  mix            0.5
+  wobble         0.85
+  duck           0.3
+
+patch "Melting Tape" family=tape
+  # Eighths on a worn tape: they bend as they fade.
+  time           #2
+  feedback       0.5
+  tone           3000 Hz
+  wobble         0.8
+  mix            0.35
+
+patch "Vocal Echo" family=ambient
+  # Ducked under the singer, rising in the gaps.
+  time           #4
+  feedback       0.35
+  duck           0.8
+  mix            0.35
+
+patch Wash family=ambient
+  # Long and dark under everything, a bed of echoes.
+  time           #6
+  feedback       0.8
+  tone           1500 Hz
+  pingpong       #1
+  mix            0.35
+  gain           -1 dB
+
+patch "Dark Ping Pong" family=ambient
+  # Left and right, the repeats softening.
+  time           #2
+  feedback       0.5
+  tone           2500 Hz
+  pingpong       #1
+  mix            0.3
+
+patch "Ghost Notes" family=ambient
+  # Quiet sixteenths, a shadow behind the part.
+  time           #1
+  feedback       0.3
+  mix            0.15
+  pingpong       #1

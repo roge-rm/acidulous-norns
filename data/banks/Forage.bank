@@ -1,0 +1,245 @@
+# Forage - twenty patches, voiced against the debug build.
+#
+# **These are not sounds.** Every other bank here stores a voice; Forage's
+# pads hold whatever the player loaded, so a patch can only store *a way of
+# treating thirteen samples*. Load a different kit and every patch still means
+# the same thing. It is the same argument as Dice's, and it is why there are
+# twenty rather than sixty: sweeping one knob across its range would be
+# nineteen near-copies of somebody else's drum kit.
+#
+# So each patch does something you can name, and almost all of it is said with
+# a star: `p*_cutoff` sets that parameter on all thirteen pads at once.
+# Thirteen pads of fourteen parameters is a hundred and eighty-two names, and
+# a patch that low-passes the kit should not have to say so thirteen times.
+#
+# **What the per-pad patches assume.** Four of these do address pads by
+# number, and they can only do that because the pad order is the app's own
+# convention - Hexbeat's voice order, which is what the drum grid draws and
+# what the harness mounts: 0 kick, 1 rim, 2 snare, 3 clap, 4-6 toms, 7 closed
+# hat, 8 open hat, 9 crash, 10 ride, 11 cowbell, 12 clave. A kit loaded in
+# some other order will still play; those four patches just stop meaning what
+# their names say.
+#
+# Stepped parameters are written as `#n`, the step *index*:
+#   reverse #0 forwards  #1 backwards
+#   mode    #0 low-pass  #1 band-pass
+#   choke   #0 none      #1..#4 the four groups
+#
+# `decay` runs the other way from most: 1.0 means *play the sample through*,
+# and below that it is an exponential release from four seconds down to twenty
+# milliseconds. So a short pad is a low number, and 1.0 is the off position.
+#
+# The machine gained two things to make this bank possible. It had no level of
+# its own at all, so nothing could be levelled; and thirteen pads summed
+# straight into a tanh meant every kit came out flattened to within a decibel
+# of itself - Init measured thirteen voices all at -2.7 dB and 1.1 dB apart,
+# which read as balance and was the clipper. See kDrive in Forage.cpp.
+#
+# **Do not read the `click` column here.** It is the ratio of the edge on the
+# front of the take to the edge just before the note-off, and on a kit those
+# are the first drum's attack and the sixth drum's tail - two different sounds.
+# Patches with a long smooth tail read in the hundreds and are perfectly
+# clean: `Body` reads 1193 and its largest sample-to-sample jump in the first
+# five milliseconds is a hundredth of what `Straight` has. The edge ramps
+# below are the real fix and they are already in.
+#
+# Families: straight, shape, tone, motion, kit.
+
+machine Forage
+role    beat
+
+patch Init family=straight
+
+patch Straight family=straight
+  # The kit as loaded, with the top corner taken off and a little more accent
+  # than the default. This is the one to hear your samples on, and the one
+  # every other patch here is a departure from.
+  p*_cutoff      16000 Hz
+  accent         0.7
+  volume         0.90
+
+patch Soft family=straight
+  # A kit that answers quietly. Accent almost off, so a hard hit and a gentle
+  # one land close together, and the level down to match - the patch to play
+  # under something rather than over it.
+  p*_cutoff      9000 Hz
+  accent         0.1
+  volume         0.86
+
+patch Hard family=straight
+  # The other way: accent at full, so the loud hits are a long way above the
+  # quiet ones and several at once bend the output stage. A sample box that
+  # clips when the whole kit lands on one beat is the sound.
+  accent         1.0
+  volume         1.34
+
+patch Tight family=shape
+  # Everything short. A decay of 0.35 is about a tenth of a second, so each
+  # pad is its attack and very little else - the difference between a kit you
+  # can play sixteenths on and one that smears.
+  p*_decay       0.35
+  volume         0.90
+
+patch Gated family=shape
+  # Shorter still, and hard. This is the gate on a room mic: the front of
+  # every sample and then nothing, which turns any kit into a tight one
+  # whether or not it was recorded that way.
+  p*_decay       0.2
+  accent         0.85
+  volume         1.02
+
+patch Clipped family=shape
+  # The front third of each sample and no more, cut by the end point rather
+  # than by an envelope - so it stops dead instead of fading. On a long
+  # sample this is the transient alone; on a short one it changes nothing,
+  # which is the honest behaviour.
+  p*_end         0.33
+  volume         0.94
+
+patch Body family=shape
+  # The opposite: the first tenth skipped, so what is left is the body without
+  # the stick. Under a kit that already has attacks in it, this is the layer
+  # that adds weight and nothing else.
+  p*_start       0.1
+  p*_decay       0.8
+  volume         1.13
+
+patch Backwards family=shape
+  # Every pad played tail first. A sample reversed is a swell that arrives at
+  # its own transient instead of starting on it, and thirteen of them is a
+  # kit that plays before the beat rather than on it.
+  p*_reverse     #1
+  volume         0.96
+
+patch "Reverse Gate" family=shape
+  # Reversed and then cut short, which is the one that sounds deliberate:
+  # the swell is allowed to build and then stops at its peak.
+  p*_reverse     #1
+  p*_decay       0.45
+  volume         1.50
+
+patch Dusty family=tone
+  # Heard through a wall. Low-passed hard with a little resonance to stop it
+  # being merely quiet, and a touch of crush so the quiet parts get grainy
+  # rather than smooth.
+  p*_cutoff      2200 Hz
+  p*_reso        0.25
+  p*_crush       0.25
+  volume         1.05
+
+patch Telephone family=tone
+  # A band-pass across the whole kit, wide enough to keep the rhythm legible.
+  # Everything below and above the band goes, which is most of a drum kit -
+  # what is left is the part that survives a small speaker.
+  p*_mode        #1
+  p*_cutoff      1400 Hz
+  p*_reso        0.35
+  volume         1.18
+
+patch "Eight Bit" family=tone
+  # The crusher at a third: eight or nine bits and the sample rate down to
+  # something like twenty kilohertz. Enough to hear on the cymbals, not
+  # enough to lose the kick.
+  p*_crush       0.35
+  volume         0.87
+
+patch Ruined family=tone
+  # The crusher most of the way up and the top rolled off so what is left is
+  # aliasing rather than hiss. Three or four bits at a few kilohertz.
+  p*_crush       0.8
+  p*_cutoff      3500 Hz
+  volume         1.03
+
+patch Resonant family=tone
+  # A low-pass with the resonance up, which on percussive material rings the
+  # filter rather than the sample: every hit picks up the same pitch, and the
+  # kit turns into something tuned that it was not.
+  p*_cutoff      600 Hz
+  p*_reso        0.8
+  volume         0.69
+
+patch "Fifth Down" family=motion
+  # The whole kit down a fifth. Pitch moves the read rate, so everything gets
+  # longer as well as lower - tape, not a pitch shifter, which is what makes
+  # it sound like a different room rather than a different kit.
+  p*_pitch       -7
+  volume         0.91
+
+patch "Octave Up" family=motion
+  # And up, where every sample is half as long. Thin and hurried, and the
+  # gaps it leaves are where the rest of the pattern goes.
+  p*_pitch       12
+  volume         1.02
+
+patch Boing family=motion
+  # A pitch envelope on every pad: each hit starts most of an octave up and
+  # falls to its own pitch in sixty milliseconds. On a kick that is the oldest
+  # trick there is; on thirteen pads at once it is a kit made of springs.
+  p*_penv        0.8
+  p*_pdecay      60 ms
+  volume         0.99
+
+patch Sucked family=motion
+  # The envelope the other way - each hit starts *below* its pitch and rises
+  # into it, slowly enough to hear. Nothing acoustic does this, which is
+  # rather the point.
+  p*_penv        -0.6
+  p*_pdecay      150 ms
+  volume         0.99
+
+patch "Choked Hats" family=kit
+  # The one convention every drum machine has and this one could not express
+  # until it had choke groups: the closed hat cuts the open one. Pads 7 and 8
+  # share group 1, so whichever lands last is the one you hear.
+  #
+  # The first of the four patches here that address pads by number - see the
+  # note at the top about what that assumes.
+  p07_choke      #1
+  p08_choke      #1
+  p08_decay      0.75
+  accent         0.7
+  volume         0.86
+
+patch Spread family=kit
+  # The kit across the image rather than in a heap. Kick, snare and clap stay
+  # where they belong - in the middle, because that is where the weight goes -
+  # and everything that decorates is placed around them, toms left to right as
+  # a drummer sits behind them.
+  #
+  # It is narrower than it first was, and the cymbals have swapped sides. At
+  # plus and minus seven tenths the patch swung twelve decibels between the
+  # channels - which is not an image, it is a kit that has fallen over - and
+  # the sides were wrong as well: crash, low tom and clave were all left, so
+  # everything with weight in it leaned one way.
+  p01_pan        -0.3
+  p04_pan        -0.42
+  p05_pan        -0.14
+  p06_pan        0.2
+  p07_pan        0.28
+  p08_pan        0.34
+  p09_pan        0.45
+  p10_pan        -0.45
+  p11_pan        0.24
+  p12_pan        -0.26
+  accent         0.7
+  volume         0.77
+
+patch "Low and High" family=kit
+  # Split the kit by what it is for: everything below the hats keeps its
+  # weight, everything above is thinned and shortened so it sits on top
+  # instead of competing. A mix decision stored as a patch.
+  p00_cutoff     9000 Hz
+  p01_cutoff     9000 Hz
+  p02_cutoff     12000 Hz
+  p03_cutoff     12000 Hz
+  p04_cutoff     7000 Hz
+  p05_cutoff     7000 Hz
+  p06_cutoff     7000 Hz
+  p07_decay      0.5
+  p08_decay      0.6
+  p09_decay      0.7
+  p10_decay      0.65
+  p11_decay      0.55
+  p12_decay      0.5
+  accent         0.7
+  volume         0.96

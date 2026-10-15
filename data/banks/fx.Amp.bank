@@ -1,0 +1,327 @@
+# Amp - a preamp, a tone stack that fights with itself, a power stage that
+# sags, and a speaker in a box.
+#
+# The classic controls are drive, bass, mid, treble, presence and master. **The
+# something is the cabinet**: `size` and `cone` are continuous, so a patch can
+# sit between a practice combo, a four-by-twelve and a bass eight-by-ten -
+# between cabinets that do not exist, which is the thing an impulse response
+# cannot do and the reason this one is modelled.
+#
+# `stack` is not three tone curves. It changes what reaches the first stage,
+# how hard the two preamp stages are coupled, where the second one starts, and
+# how much the supply sags - a Fender and a high-gain amp differ far more in
+# those than in their tone networks.
+#
+# Families: clean, crunch, lead, bass, character.
+
+machine fx.Amp
+
+patch Init family=clean
+  # The machine as built, and nothing written down: a little drive, the stack
+  # in the middle, a mid-sized cabinet. Every bank's first patch sets nothing,
+  # so that coming back to it is coming back to the defaults rather than to
+  # somebody's copy of them.
+
+patch Blackface family=clean
+  # The American clean: scooped, bright, and with the headroom to stay clean
+  # when you dig in. A big open-backed combo, mic slightly off the centre.
+  drive          0.18
+  bass           0.7
+  mid            0.25
+  treble         0.75
+  stack          #0
+  presence       0.45
+  master         0.3
+  sag            0.45
+  size           0.38
+  cone           0.35
+  mic            0.3
+  edge           0.25
+  room           0.25
+  gain           2.0 dB
+
+patch Chime family=clean
+  # Small, bright and jangly - the sound of a chord rather than a note. The cab
+  # is tiny, which is where the top end comes from.
+  drive          0.24
+  bass           0.35
+  mid            0.5
+  treble         0.85
+  stack          #0
+  presence       0.6
+  master         0.28
+  sag            0.5
+  size           0.12
+  cone           0.62
+  mic            0.15
+  edge           0.1
+  room           0.2
+  gain           1 dB
+
+patch Jazz family=clean
+  # Dark, round and completely clean: the neck pickup patch. Off-axis on a big
+  # cab, with the top taken right off.
+  drive          0.1
+  bass           0.65
+  mid            0.6
+  treble         0.25
+  stack          #0
+  presence       0.1
+  master         0.25
+  sag            0.35
+  size           0.55
+  cone           0.2
+  mic            0.7
+  edge           0.05
+  room           0.3
+  gain           1.0 dB
+
+patch "Twin Clean" family=clean
+  # Big, clean and bright, the cab open.
+  drive          0.12
+  bass           0.6
+  mid            0.4
+  treble         0.75
+  stack          #0
+  gain           2 dB
+
+patch Plexi family=crunch
+  # The British stack on the edge: clean when you play softly and cracking up
+  # when you do not. The sag is what makes it breathe.
+  drive          0.55
+  bass           0.55
+  mid            0.6
+  treble         0.7
+  stack          #1
+  presence       0.55
+  master         0.6
+  sag            0.55
+  size           0.72
+  cone           0.6
+  mic            0.2
+  edge           0.3
+  room           0.15
+  gain           -1.5 dB
+
+patch Tweed family=crunch
+  # Small, old and asymmetric: `bias` is what makes it a tweed rather than a
+  # clean amp turned up. Soft, woolly and loud.
+  drive          0.62
+  bias           0.55
+  bass           0.45
+  mid            0.65
+  treble         0.45
+  stack          #0
+  presence       0.25
+  master         0.7
+  sag            0.8
+  size           0.2
+  cone           0.3
+  mic            0.35
+  edge           0.2
+  room           0.2
+  gain           -1.2 dB
+
+patch Combo family=crunch
+  # A 2x12 at a workable volume, mic on the cone. The everyday rhythm sound.
+  drive          0.48
+  bass           0.5
+  mid            0.55
+  treble         0.6
+  stack          #1
+  presence       0.4
+  master         0.45
+  sag            0.4
+  size           0.5
+  cone           0.55
+  mic            0.12
+  edge           0.35
+  room           0.1
+  gain           0.1 dB
+
+patch "British Crunch" family=crunch
+  # Mids forward, crunching when you dig in.
+  drive          0.45
+  bass           0.5
+  mid            0.75
+  treble         0.6
+  stack          #1
+
+patch Hotrod family=lead
+  # Two stages hard into a four-by-twelve. Mid up, because a lead that is
+  # scooped disappears the moment anything else plays.
+  drive          0.8
+  bass           0.5
+  mid            0.75
+  treble         0.6
+  stack          #1
+  presence       0.6
+  master         0.55
+  sag            0.35
+  size           0.75
+  cone           0.7
+  mic            0.2
+  edge           0.25
+  room           0.12
+  gain           -2.5 dB
+
+patch Modern family=lead
+  # The high-gain voicing: everything below two hundred taken out before the
+  # first stage, the two stages tightly coupled, and almost no sag - which is
+  # what "tight" means.
+  drive          0.92
+  bass           0.55
+  mid            0.4
+  treble         0.7
+  stack          #2
+  presence       0.7
+  master         0.5
+  sag            0.12
+  size           0.78
+  cone           0.75
+  mic            0.18
+  edge           0.2
+  room           0.08
+  gain           -3.5 dB
+
+patch Solo family=lead
+  # Sustained and singing rather than aggressive: more master and less preamp,
+  # so the power stage is doing the work and the sag is audible.
+  drive          0.6
+  bass           0.45
+  mid            0.8
+  treble         0.55
+  stack          #1
+  presence       0.5
+  master         0.85
+  sag            0.6
+  size           0.68
+  cone           0.6
+  mic            0.28
+  edge           0.15
+  room           0.22
+  gain           -1.5 dB
+
+patch "High Gain" family=lead
+  # Saturated and tight, for a solo.
+  drive          0.85
+  bass           0.6
+  mid            0.4
+  treble         0.6
+  stack          #2
+  gain           -3 dB
+
+patch Fridge family=bass
+  # An eight-by-ten: the low corner is as far down as this cabinet goes, and
+  # the cone is soft so the top stays out of the way.
+  drive          0.3
+  bass           0.7
+  mid            0.5
+  treble         0.4
+  stack          #2
+  presence       0.2
+  master         0.4
+  sag            0.4
+  size           1
+  cone           0.25
+  mic            0.2
+  edge           0.1
+  room           0.1
+  gain           -0.3 dB
+
+patch Fliptop family=bass
+  # The old valve bass amp: driven enough to thicken, with plenty of sag, on a
+  # single large speaker.
+  drive          0.5
+  bias           0.35
+  bass           0.65
+  mid            0.6
+  treble         0.35
+  stack          #0
+  presence       0.2
+  master         0.7
+  sag            0.75
+  size           0.88
+  cone           0.3
+  mic            0.3
+  edge           0.15
+  room           0.18
+  gain           0.2 dB
+
+patch Grind family=bass
+  # Bass with the top half distorted: hard cone, mic on the centre, and the
+  # mid left alone so it cuts.
+  drive          0.78
+  bass           0.6
+  mid            0.7
+  treble         0.55
+  stack          #2
+  presence       0.5
+  master         0.5
+  sag            0.2
+  size           0.92
+  cone           0.8
+  mic            0.1
+  edge           0.3
+  room           0.05
+  gain           -3.5 dB
+
+patch "Bass Stack" family=bass
+  # A big cabinet under a bass, warm.
+  drive          0.25
+  bass           0.8
+  mid            0.5
+  treble         0.4
+  size           0.9
+
+patch Radio family=character
+  # A tiny speaker in a box a long way off: everything below two hundred and
+  # above two thousand gone, and a room around it.
+  drive          0.55
+  bass           0.2
+  mid            0.8
+  treble         0.3
+  stack          #0
+  presence       0.15
+  master         0.45
+  sag            0.5
+  size           0
+  cone           0.45
+  mic            0.85
+  edge           0.6
+  room           0.75
+  gain           -2.8 dB
+
+patch Blown family=character
+  # A speaker that has given up: hard cone, mic at the rim, a deep comb, and
+  # a bias far enough off that every note is lopsided.
+  drive          0.85
+  bias           0.9
+  bass           0.6
+  mid            0.45
+  treble         0.5
+  stack          #0
+  presence       0.3
+  master         0.9
+  sag            0.95
+  size           0.15
+  cone           0.95
+  mic            0.4
+  edge           0.95
+  room           0.3
+  gain           -0.5 dB
+
+patch Cranked family=character
+  # Everything at ten, which is a legitimate setting and its own sound: the
+  # power stage doing all of it, sagging hard, and no cabinet to tidy it up.
+  drive          1
+  bass           1
+  mid            1
+  treble         1
+  stack          #1
+  presence       1
+  master         1
+  sag            1
+  cab            #0
+  mix            1
+  gain           -4.8 dB

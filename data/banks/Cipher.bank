@@ -1,0 +1,332 @@
+# Cipher - twenty-five patches, voiced against the debug build.
+#
+# A vocoder listens to one sound through a bank of filters, measures how loud
+# each band is, and imposes that shape on another. Everything interesting is
+# what happens between the measuring and the imposing, and most vocoders let
+# you do nothing there: band one drives band one, forever.
+#
+# Here the banks are wired through a map, and the map is the machine. That is
+# why `remap` gets a family of its own: reversed, mirrored, folded, odd
+# against even, or shuffled from a seed. Speech through a reversed bank is
+# still speech-shaped and completely unintelligible, and nothing else sounds
+# like it.
+#
+# The harness puts a voice on the input bus, because a vocoder with nothing to
+# listen to is silence, and a vocoder auditioned on a steady vowel tells you
+# nothing - the band map only shows what it does when what goes through it
+# moves. On a phone that input is you.
+#
+# `#n` is the step index, not the value, which matters wherever a stepped
+# parameter does not start at zero: `bands` runs 4..40, so sixteen bands is
+# `#12` and thirty-two is `#28`.
+#   remap    #0 direct  #1 reversed  #2 mirrored  #3 odd/even  #4 shuffled  #5 folded
+#   role     #0 the input is the modulator  #1 the input is the carrier
+#   wave     #0 saw  #1 pulse  #2 super  #3 noise  #4 ring
+#   freeze, track, slope  #0 off  #1 on
+#
+# Families: classic, remap, formant, hold, carrier, extreme.
+
+machine Cipher
+# Held chords over the whole recording. A vocoder is only audible while its
+# carrier sounds, and the default phrase lets go after two seconds - which
+# left twelve seconds of noise floor in every demo.
+role vocode
+
+patch Init family=classic
+
+patch Classic family=classic
+  # The robot voice, done properly: a fast attack so consonants arrive on
+  # time, a release short enough that the bank lets go between syllables, and
+  # a saw carrier with enough harmonics for every band to have something to
+  # impose its shape on. This is the one to judge intelligibility on.
+  bands          #20
+  attack         0.002 s
+  release        0.04 s
+  q              0.6
+  sibilance      0.5
+  mix            0.25
+  detune         8 c
+  volume         1.19
+
+patch Choir family=classic
+  # The same machine made to sound like people rather than a machine: more
+  # bands, a slower attack and a long release so the spectrum moves the way a
+  # held note does, and the carrier detuned far enough to be several voices.
+  bands          #28
+  attack         0.02 s
+  release        0.3 s
+  q              0.45
+  mix            0.55
+  detune         30 c
+  sub            0.1
+  ampatk         0.08 s
+  amprel         0.6 s
+  volume         1.66
+
+patch Ensemble family=classic
+  # Thick: the detune at its widest with a sub under it, which is what stops a
+  # wide-detuned carrier sounding thin rather than large.
+  bands          #24
+  release        0.18 s
+  mix            0.6
+  detune         45 c
+  sub            0.45
+  "wave b"         #2
+  volume         1.09
+
+patch Narrow family=classic
+  # Few bands over a narrow range. Cheap, gritty - and *more* intelligible
+  # than the wide ones, not less, because speech lives in the middle and a
+  # bank spread over ten octaves spends most of itself on places speech never
+  # goes.
+  bands          #8
+  low            200 Hz
+  high           4200 Hz
+  q              0.65
+  attack         0.002 s
+  release        0.05 s
+  sibilance      0.6
+  volume         1.91
+
+patch Backwards family=remap
+  # The bank reversed: the lowest band of the analysis drives the highest of
+  # the synthesis. Still unmistakably speech-shaped - the rhythm and the
+  # consonants survive - and completely unintelligible. The patch this machine
+  # exists for.
+  bands          #20
+  remap          #1
+  release        0.08 s
+  mix            0.5
+  sub            0.25
+  volume         1.80
+
+patch Mirror family=remap
+  # Mirrored about the middle of the bank rather than end-swapped, so the
+  # centre stays put and the extremes trade. Vowels turn inside out while the
+  # body of the voice stays where it was.
+  bands          #20
+  remap          #2
+  release        0.08 s
+  volume         0.98
+
+patch Folded family=remap
+  # Folded, so the top and the bottom of the bank share bands. Congested on
+  # purpose: two parts of the spectrum arriving in the same place is what
+  # makes it dense rather than merely reordered.
+  bands          #20
+  remap          #5
+  release        0.1 s
+  q              0.5
+  volume         1.00
+
+patch Comb family=remap
+  # Odd bands against even. Hollow and phasey - speech through a grille - and
+  # the one remap that keeps pitch and formant roughly where they were while
+  # taking every other slice out of the spectrum.
+  bands          #30
+  remap          #3
+  release        0.07 s
+  q              0.5
+  volume         1.76
+
+patch Shuffled family=remap
+  # A seeded scramble: arbitrary, but the *same* arbitrary every time, so it
+  # can be recorded. Change `seed` for a different permanent scramble - there
+  # are thirty-two of them and no two sound alike.
+  bands          #20
+  remap          #4
+  seed           #7
+  release        0.08 s
+  volume         0.98
+
+patch Chipmunk family=formant
+  # The synthesis bank read an octave up while the carrier stays where it is:
+  # formants move, pitch does not. A small head singing the same note, which
+  # is a thing no pitch shifter can do.
+  bands          #20
+  shift          7
+  release        0.07 s
+  volume         0.65
+
+patch Giant family=formant
+  # The same idea downward: a large throat, the same note. Below about a fifth
+  # down it stops sounding like a bigger person and starts sounding like a
+  # different instrument, which is the interesting part of the range.
+  bands          #20
+  shift          -7
+  release        0.09 s
+  sub            0.3
+  volume         0.83
+
+patch Stretched family=formant
+  # The bank's spacing warped wider, so the bands are read further apart than
+  # they were measured. Vowels pulled away from each other - unnatural, wide,
+  # and still clearly derived from speech.
+  bands          #24
+  stretch        0.5
+  release        0.08 s
+  volume         1.35
+
+patch Squashed family=formant
+  # Spacing narrowed instead: everything crowded into the middle of the
+  # spectrum, which is what a voice does through a small speaker and why this
+  # one reads as "small" rather than "filtered".
+  bands          #24
+  stretch        -0.5
+  release        0.08 s
+  sibilance      0.55
+  volume         0.74
+
+patch "Held Vowel" family=hold
+  # Freeze on: the measured shape is held, so one vowel sustains for as long
+  # as the key is down no matter what the input does afterwards. A pad made
+  # out of a moment of speech.
+  bands          #24
+  freeze         #1
+  frzmorph       0.0
+  release        0.4 s
+  ampatk         0.15 s
+  amprel         1.5 s
+  volume         0.66
+
+patch Morph family=hold
+  # Frozen, but morphing against the live input rather than ignoring it: half
+  # of the spectrum is the held vowel and half is what is arriving now, which
+  # is the setting where freeze stops being a special effect and becomes
+  # playable.
+  bands          #24
+  freeze         #1
+  frzmorph       0.5
+  frzdecay       6 s
+  release        0.2 s
+  volume         0.82
+
+patch "Trail Up" family=hold
+  # Smear positive: the release is scaled across the bank so the top lets go
+  # before the bottom. The spectrum leaves a trail that falls as it fades,
+  # which is the sound of a room swallowing a voice.
+  bands          #28
+  smear          0.8
+  release        0.5 s
+  q              0.5
+  volume         0.99
+
+patch "Trail Down" family=hold
+  # Smear the other way: the bottom decays first and a bright ghost is left
+  # behind. Less natural than Trail Up and much more useful over a pad.
+  bands          #28
+  smear          -0.8
+  release        0.5 s
+  volume         0.70
+
+patch Pulse family=carrier
+  # A narrow pulse carrier. Nasal and reedy, with the odd harmonics a pulse
+  # has and the even ones it does not - which changes which bands have
+  # anything to impose a shape on, and so changes the vowels themselves.
+  bands          #20
+  "wave a"         #1
+  "wave b"         #1
+  pw             0.12
+  mix            0.0
+  release        0.06 s
+  volume         1.55
+
+patch "Sub Heavy" family=carrier
+  # Weighted low, with the bank's bottom brought down to meet it: chest rather
+  # than throat. The sub is below the lowest band, so it is felt and never
+  # vocoded, which is exactly how it should be used.
+  bands          #20
+  low            70 Hz
+  sub            0.8
+  mix            0.3
+  release        0.1 s
+  volume         0.58
+
+patch Breath family=carrier
+  # A noise carrier with the unvoiced path open: whispered, with no pitch at
+  # all. The keyboard stops changing the note and starts changing nothing,
+  # which is correct - a whisper has no fundamental to move.
+  bands          #28
+  "wave a"         #3
+  "wave b"         #3
+  mix            0.7
+  noise          0.8
+  unvoiced       0.5
+  sibilance      0.7
+  release        0.12 s
+  volume         2.00
+
+patch Ring family=carrier
+  # The ring-modulated carrier: inharmonic, metallic, and the least natural of
+  # the five. A vocoder's bands do not care whether what they are shaping is
+  # harmonic, which is why this still reads as speech while sounding like no
+  # voice at all.
+  bands          #20
+  "wave a"         #4
+  "wave b"         #4
+  mix            0.5
+  detune         25 c
+  release        0.07 s
+  volume         1.47
+
+patch Talkbox family=extreme
+  # Narrow, resonant bands and the carrier following the speaker's own pitch:
+  # the voice plays the synth and the keyboard is only along for the ride.
+  # This is the guitar-through-a-tube sound, arrived at from the other end.
+  bands          #16
+  q              0.85
+  track          #1
+  trackamt       1.0
+  trackglide     0.02 s
+  attack         0.002 s
+  release        0.05 s
+  sibilance      0.55
+  volume         0.80
+
+patch Tracked family=extreme
+  # Tracking without the resonance: a clean vocoder whose carrier is tuned by
+  # whatever is speaking into it. Play a chord and it stays a chord - the
+  # tracking moves the carrier, not the harmony.
+  bands          #24
+  track          #1
+  trackamt       0.8
+  trackglide     0.06 s
+  release        0.08 s
+  mix            0.45
+  volume         1.09
+
+patch Runaway family=extreme
+  # A vocoder listening to itself. The output goes back into the analysis, so
+  # the bands that were loud stay loud and the spectrum sharpens into itself -
+  # held under the point where it takes off, which is close.
+  bands          #20
+  feedback       0.32
+  fbtone         0.6
+  release        0.25 s
+  q              0.6
+  volume         0.97
+
+patch Swapped family=extreme
+  # The roles reversed: what is plugged in becomes the carrier and the
+  # oscillators become the modulator, so a chord chops whatever you are
+  # playing into it. The same machine read backwards, and the reason `role` is
+  # a parameter rather than a second machine.
+  bands          #20
+  role           #1
+  release        0.05 s
+  attack         0.003 s
+  mix            0.5
+  volume         1.21
+
+patch Gated family=extreme
+  # The band gate hard: a band quieter than the threshold is shut entirely
+  # rather than merely quiet. Consonants punch and everything between them is
+  # silence, which is the difference between a vocoder that breathes and one
+  # that is a rhythm.
+  bands          #24
+  gate           0.45
+  gatedepth      1.0
+  attack         0.001 s
+  release        0.03 s
+  sibilance      0.6
+  volume         1.33

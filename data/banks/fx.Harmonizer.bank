@@ -1,0 +1,124 @@
+# Harmonizer - intervals that belong to the key, not to the knob.
+#
+# Every pitch shifter in a box like this shifts by a fixed number of semitones,
+# so a "third" is a major third over every note and half of them are wrong.
+# This shifts by a number of *scale degrees*: it listens for the note arriving,
+# finds its place in the scale, counts up, and shifts by whatever that turns
+# out to be. Proved on single notes in C major - +2 degrees gives a major third
+# over C, F and G and a minor third over D and E, from the same setting.
+#
+# The thirty-three scales are the ones the modifiers know, so a part harmonised
+# here agrees with a part quantised there. Below the tracker's confidence - on
+# a drum, on noise, between phrases - it falls back to the plain chromatic
+# interval, because a wrong note is worse than an unmusical one.
+#
+# `window` is the shifter's grain: short is tight and burbles, long is smooth
+# and smears. `interval2` at zero means the second voice is off.
+#
+# Families: thirds, stack, scale, fx.
+
+machine fx.Harmonizer
+
+patch Init family=thirds
+
+patch Third family=thirds
+  # The one to hear the idea on. Hold a line in C and the harmony follows the
+  # key rather than the interval - the thing a fixed shifter cannot do.
+  interval       #9
+  scale          #0
+  key            #0
+  window         45 ms
+  mix            0.45
+  gain           0 dB
+
+patch Sixth family=thirds
+  # Five degrees up, which is the other interval a second singer uses. Wider,
+  # and it sits above the line instead of inside it.
+  interval       #12
+  scale          #0
+  window         50 ms
+  mix            0.4
+  gain           -0.5 dB
+
+patch "Fifth Below" family=thirds
+  # A fifth under the line, in key.
+  interval       #3
+  scale          #0
+  key            #0
+  mix            0.45
+
+patch Triad family=stack
+  # Both voices: a third and a fifth, so one note becomes the chord that note
+  # implies in the key. Change `scale` and the same part implies a different
+  # chord without a note being moved.
+  interval       #9
+  interval2      #11
+  scale          #0
+  window         55 ms
+  mix            0.5
+
+patch Octave family=stack
+  # Seven degrees is an octave in any seven-note scale, so this one is exact
+  # whatever the key - and the second voice an octave down under it.
+  interval       #14
+  interval2      #0
+  scale          #0
+  window         60 ms
+  mix            0.45
+  gain           0 dB
+
+patch "Sixth Above" family=stack
+  # A sixth over the line, sweet.
+  interval       #12
+  scale          #0
+  key            #0
+  mix            0.45
+
+patch Minor family=scale
+  # The same third, in Aeolian. Over the same notes it lands minor where the
+  # major scale landed major, which is the entire point stated in one patch.
+  interval       #9
+  scale          #5
+  key            #0
+  window         45 ms
+  mix            0.45
+  gain           0 dB
+
+patch Dorian family=scale
+  # Dorian, which is the scale the rest of this project keeps coming back to:
+  # a minor with a major sixth, so the harmony above a line has one note in it
+  # that a plain minor would not.
+  interval       #9
+  interval2      #11
+  scale          #1
+  key            #0
+  window         50 ms
+  mix            0.45
+  gain           -0.5 dB
+
+patch "Minor Thirds" family=scale
+  # Thirds in A minor.
+  interval       #9
+  scale          #5
+  key            #9
+  mix            0.45
+
+patch Shimmer family=fx
+  # An octave up, fed back, so each pass climbs again. Not a harmony any more -
+  # a ladder, and the nearest thing this machine has to the reverb's shimmer,
+  # arrived at from the other side.
+  interval       #14
+  scale          #0
+  window         70 ms
+  feedback       0.6
+  mix            0.55
+
+patch Burble family=fx
+  # The window at its shortest, where the crossfade is too fast to hide and
+  # the grains are audible as grains. A fault in a pitch shifter, and a texture
+  # if you choose it on purpose.
+  interval       #11
+  scale          #0
+  window         10 ms
+  mix            0.5
+  gain           0 dB

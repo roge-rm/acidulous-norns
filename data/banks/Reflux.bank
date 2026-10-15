@@ -1,0 +1,481 @@
+# Reflux - thirty patches: the classics first, and then what this machine
+# has that they did not.
+#
+# Thirteen parameters, and eight of them are one idea: a resonant filter with
+# an envelope thrown at it. So the first half of this bank is a tour of that
+# one idea - how far open, how much envelope, how fast it shuts, how far a
+# note slides into the next - because that is what a bank of this kind is
+# judged on, and anyone reaching for this machine is reaching for it first.
+#
+# The second half is the four controls that are not part of that idea: the
+# sub oscillator, the pulse width, the band-pass mode and the drive. None of
+# them existed on the instrument this descends from, and they are why the
+# machine has its own name rather than being a tribute act.
+#
+# **Levelled to -21 dB on the harness's loudness column**, which is the house
+# figure across every machine in the app rather than a number chosen for this
+# bank alone. Getting there took fourteen decibels out of the machine's
+# output rather than out of each patch's volume knob (`kHouse` in
+# Reflux.cpp): every machine here had been levelled against its own bank and
+# none against the others, and the factory had come to span twenty-five
+# decibels, so changing machine changed the volume of the song. Done in the
+# machine, the knob still means the same thing wherever you are and Init
+# lands with the rest of the bank instead of fourteen decibels above it.
+#
+# Five patches sit below the house figure and all five are the band-passed
+# ones, which take both ends off a spectrum and most of its energy with them:
+# two to six decibels down, all of them already at the top of their volume.
+# That is what the mode costs and not something to pretend away. Drive does
+# not buy it back - its own compensation is slightly over-generous, so
+# leaning on it measures quieter.
+#
+# **A fixed band on a moving note runs out.** Reed and Glass are band-passed
+# and their bands do not follow the keyboard, so below a certain note the
+# band sits twenty-five or thirty-five harmonics above the fundamental and
+# there is no note left in it. Their ranges start where the band can still
+# reach, which is a real property of the mode rather than a fault.
+#
+# **The demo is sixteenths with rests, slides and accents** (`role acid`),
+# because what this machine does happens between the notes rather than on
+# them. The two bars of eighths it used to be showed that a bass machine
+# worked and showed nothing about this one.
+#
+# **The sub oscillator can take the note off you.** Grind was written at 0.8
+# and the octave below sat eighteen decibels ahead of the played note, so you
+# pressed one key and heard another; it is at 0.4. Sub Drop is the patch
+# where that is the point, and it stops at note 45 because above there the
+# sub has nothing left to be an octave below.
+#
+# Every patch says the notes it is played in, so the app puts the keyboard
+# there when it is loaded. Every note of every range now reads within twenty
+# cents and none is on the wrong partial.
+#
+# Values are in each parameter's own units; `audition params Reflux` lists
+# them. A patch names only what it changes.
+
+machine Reflux
+# Sixteenths with rests, slides and accents, because what this machine is
+# for happens between the notes rather than on them. Eighths showed that a
+# bass machine worked and showed nothing about this one.
+role    acid
+
+patch Init family=classic
+
+# --- The classics ----------------------------------------------------
+#
+# What the machine everybody means does, and what a bank of this kind is
+# judged on first.
+
+patch Classic family=classic  note=36 range=24..55
+  # The one everybody means. Open enough to hear the note, resonant enough to
+  # hear the filter, and a decay that shuts before the next eighth.
+  #
+  # Further from the machine's own defaults than it first was: at 520 Hz and
+  # 0.62 it measured the same as Init, and a bank whose first two entries are
+  # the same sound has nine patches in it, not ten.
+  cutoff         410 Hz
+  resonance      0.72
+  envmod         0.64
+  decay          280 ms
+  accent         0.75
+  slide          50 ms
+  drive          0.16
+  volume         0.88
+
+patch Squelch family=classic  note=36 range=24..55
+  # Further into the resonance and a much faster decay: the blip rather than
+  # the sweep. Accent nearly all the way up, because on a line like this the
+  # accented steps are the line.
+  cutoff         330 Hz
+  resonance      0.9
+  envmod         0.85
+  decay          130 ms
+  accent         0.92
+  slide          40 ms
+  drive          0.22
+  volume         0.90
+
+patch Rubber family=classic  note=36 range=24..55
+  # A pulse instead of a saw, wide slide, and enough drive to round the peak
+  # off. The one that bends between notes rather than stepping.
+  wave           #1
+  pw             0.42
+  cutoff         295 Hz
+  resonance      0.75
+  envmod         0.7
+  decay          150 ms
+  accent         0.8
+  slide          130 ms
+  drive          0.25
+  volume         0.74
+
+patch "Long Sweep" family=motion  note=36 range=24..55
+  # A decay far longer than a step, so the filter never closes and the line
+  # rises across the bar instead of inside each note.
+  cutoff         180 Hz
+  resonance      0.72
+  envmod         0.95
+  decay          1600 ms
+  accent         0.45
+  slide          60 ms
+  drive          0.15
+  volume         0.91
+
+patch "Slide Line" family=motion  note=36 range=24..55
+  # Every note glides into the next. The slide is the other half of what
+  # this machine is for and nothing else here is built around it: at half a
+  # second the line stops being notes and becomes one moving pitch.
+  cutoff         380 Hz
+  resonance      0.68
+  envmod         0.6
+  decay          260 ms
+  accent         0.7
+  slide          420 ms
+  drive          0.14
+  volume         0.89
+
+patch Doorstop family=short  note=36 range=24..55
+  # Shut. Almost no cutoff, almost all envelope, and a decay short enough
+  # that each note is a thud with a pitch somewhere inside it.
+  cutoff         90 Hz
+  resonance      0.55
+  envmod         1
+  decay          90 ms
+  accent         0.85
+  slide          25 ms
+  drive          0.3
+  volume         0.98
+
+patch Round family=classic  note=36 range=24..55
+  # No resonance at all and no envelope: the note, warm, with the filter just
+  # taking the top off. Every bank needs the one that is simply a bass, and
+  # a bank of nothing but acid does not have it.
+  cutoff         520 Hz
+  resonance      0.0
+  envmod         0.0
+  decay          300 ms
+  accent         0.35
+  slide          45 ms
+  drive          0.05
+  volume         0.99
+
+patch "Open Saw" family=classic  note=36 range=24..55
+  # The filter out of the way, so you can hear what it is doing to
+  # everything else in the bank. Raw oscillator, drive off, and the only
+  # thing shaping the note is its own decay.
+  cutoff         9000 Hz
+  resonance      0.05
+  envmod         0.0
+  decay          500 ms
+  accent         0.3
+  drive          0.0
+  volume         0.87
+
+patch Tick family=short  note=36 range=24..55
+  # The shortest thing the envelope can do: forty milliseconds, all of it
+  # thrown at the filter. Each step is a click with a pitch rather than a
+  # note with a filter on it, and a line of them is closer to a hi-hat
+  # pattern than to a bass part.
+  cutoff         250 Hz
+  resonance      0.8
+  envmod         1
+  decay          45 ms
+  accent         0.85
+  slide          20 ms
+  drive          0.18
+  volume         0.92
+
+patch Wasp family=dirty  note=48 range=36..67
+  # The same idea carried up into the treble, where the resonance stops
+  # sounding like a filter and starts sounding like a second oscillator
+  # buzzing above the note.
+  cutoff         1800 Hz
+  resonance      0.88
+  envmod         0.4
+  decay          180 ms
+  accent         0.55
+  slide          40 ms
+  drive          0.1
+  volume         0.75
+
+patch Crawl family=motion  note=24 range=24..48
+  # Low, slow, and sliding most of the way: the line that moves underneath
+  # everything else rather than driving it. A long decay on a low cutoff
+  # means the filter is still opening when the bar ends.
+  cutoff         120 Hz
+  resonance      0.7
+  envmod         0.85
+  decay          1100 ms
+  accent         0.4
+  slide          300 ms
+  drive          0.12
+  volume         1.32
+
+patch Talk family=motion  note=36 range=24..55
+  # Envelope all the way up on a middling cutoff, so each note starts bright
+  # and closes to a vowel. The most speech-like thing a one-pole-per-stage
+  # ladder can do, and the reason people say these lines sing.
+  cutoff         620 Hz
+  resonance      0.6
+  envmod         1
+  decay          340 ms
+  accent         0.7
+  slide          70 ms
+  drive          0.1
+  volume         0.85
+
+patch Siren family=motion  note=36 range=24..55
+  # Longer than Long Sweep by half again, with the resonance up: the filter
+  # takes nearly three seconds to travel and the line underneath it is
+  # almost beside the point. Hold the pattern and listen to the sweep.
+  cutoff         85 Hz
+  resonance      0.9
+  envmod         1
+  decay          2600 ms
+  accent         0.35
+  slide          80 ms
+  drive          0.14
+  volume         0.93
+
+# --- Beyond ----------------------------------------------------------
+#
+# The sub oscillator, the band-pass, the pulse width and the drive are
+# four things the machine this descends from never had. This half is
+# what they are for, and it is the half the machine is named after.
+
+patch "Sub Hollow" family=sub  note=36 range=24..55
+  # The sub is the note and the pulse is the edge on it. Narrow width, filter
+  # low, very little envelope: a bass that stays where it is put.
+  wave           #1
+  pw             0.24
+  sub            0.65
+  cutoff         220 Hz
+  resonance      0.38
+  envmod         0.3
+  decay          480 ms
+  accent         0.5
+  drive          0.08
+  volume         0.91
+
+# Stops at 45: above that the cutoff at the floor leaves the sub with the
+# note only thirteen decibels behind it, and it is a sub no longer.
+patch "Sub Drop" family=sub  note=36 range=24..45
+  # All sub and no edge: the cutoff is at the floor, so what is left is the
+  # octave below the note and almost nothing else. For the bottom of a mix
+  # rather than the front of one.
+  wave           #1
+  pw             0.5
+  sub            1
+  cutoff         70 Hz
+  resonance      0.2
+  envmod         0.1
+  decay          900 ms
+  accent         0.3
+  drive          0.0
+  volume         1.46
+
+patch "Band Squelch" family=band  note=36 range=24..55
+  # Band-pass: no bottom and no top, so what is left is the resonance itself.
+  # Volume at the top and drive doing the rest, and it is still the quietest
+  # thing here by two decibels - which is what taking the ends off a spectrum
+  # costs, not something to pretend away.
+  mode           #1
+  cutoff         690 Hz
+  resonance      0.85
+  envmod         0.8
+  decay          120 ms
+  accent         0.9
+  drive          0.55
+  volume         1.50
+
+patch "Band Lead" family=band  note=48 range=36..67
+  # Band-pass with the resonance near the top, played an octave up. The
+  # machine does leave the bass register, and this is what it sounds like
+  # when it does: a thin reedy lead with the filter as its tone.
+  mode           #1
+  cutoff         1150 Hz
+  resonance      0.93
+  envmod         0.45
+  decay          200 ms
+  accent         0.6
+  slide          90 ms
+  drive          0.35
+  volume         1.26
+
+patch "Thin Ice" family=sub  note=48 range=36..67
+  # Right at the top of the resonance with almost no envelope: it whistles on
+  # the note rather than under it. The one that shows resonance is a tone.
+  cutoff         1400 Hz
+  resonance      0.97
+  envmod         0.15
+  decay          220 ms
+  accent         0.4
+  drive          0.05
+  volume         0.76
+
+patch Buzzsaw family=dirty  note=36 range=24..55
+  # Filter nearly out of the way and the drive doing the work. Not acid at
+  # all - the machine's other end, and the reason drive is in the voice
+  # rather than in an insert.
+  cutoff         3200 Hz
+  resonance      0.25
+  envmod         0.25
+  decay          400 ms
+  accent         0.55
+  drive          0.85
+  volume         0.91
+
+patch "Hollow Pulse" family=sub  note=36 range=24..55
+  # The pulse squeezed almost shut. A narrow pulse is all odd harmonics and
+  # no body, which the filter then has almost nothing to take away from: it
+  # is nasal where everything above it is round, and it is a width the
+  # machine this descends from could not set.
+  wave           #1
+  pw             0.08
+  cutoff         700 Hz
+  resonance      0.55
+  envmod         0.5
+  decay          220 ms
+  accent         0.6
+  slide          55 ms
+  drive          0.12
+  volume         1.06
+
+patch Screamer family=dirty  note=36 range=24..55
+  # Drive at the top with the resonance still up, which the original could
+  # only do by putting a pedal after it. The filter is still doing its job
+  # underneath; what comes out the other side is not clean and is not meant
+  # to be.
+  cutoff         620 Hz
+  resonance      0.8
+  envmod         0.75
+  decay          240 ms
+  accent         0.8
+  slide          45 ms
+  drive          1
+  volume         0.87
+
+patch Ghost family=band  note=48 range=36..67
+  # Band-pass with the resonance low and the decay long: no bottom, no top
+  # and no bite, so what is left is a breathy middle that sits under a track
+  # rather than on it. The machine as a texture rather than a line.
+  mode           #1
+  # The band sits on the note rather than three octaves above it: at 900 Hz
+  # a bass note's fundamental is nowhere near the pass band and the patch was
+  # ten decibels under the bank instead of five.
+  cutoff         380 Hz
+  resonance      0.5
+  envmod         0.25
+  decay          1400 ms
+  accent         0.3
+  slide          180 ms
+  drive          0.1
+  volume         1.50
+
+patch "Octave Down" family=motion  note=48 range=36..60
+  # The tuning control put a whole octave down with the sub underneath it.
+  # Play it where a lead would sit and it answers an octave and a half below
+  # your hand, which is a thing a bass with one oscillator cannot do.
+  tune           -12 st
+  sub            0.55
+  cutoff         300 Hz
+  resonance      0.5
+  envmod         0.45
+  decay          420 ms
+  accent         0.5
+  slide          60 ms
+  drive          0.1
+  volume         1.06
+
+# A fixed band on a moving note: below the tenor register the band sits
+# thirty-five harmonics above the fundamental and there is no note left in
+# it, so the range starts where the band can still reach.
+patch Reed family=classic  note=48 range=36..67
+  # The pulse at the far end from Hollow Pulse - nearly all the way open,
+  # which is the same waveform inverted and sounds nothing like it once the
+  # band-pass has taken the ends off. Thin, reedy, and the closest this
+  # machine comes to being blown rather than plucked.
+  wave           #1
+  pw             0.9
+  mode           #1
+  cutoff         520 Hz
+  resonance      0.7
+  envmod         0.5
+  decay          380 ms
+  accent         0.55
+  slide          90 ms
+  drive          0.25
+  volume         1.41
+
+patch Grind family=dirty  note=36 range=24..48
+  # Sub most of the way up, cutoff low, drive high. The distortion is working
+  # on the octave below the note rather than on the note, which is what makes
+  # it a texture instead of a fuzz pedal.
+  # 0.4 rather than 0.8: at 0.8 the octave below was eighteen decibels
+  # ahead of the note, so you played one note and heard another.
+  sub            0.4
+  cutoff         190 Hz
+  resonance      0.4
+  envmod         0.35
+  decay          600 ms
+  accent         0.6
+  drive          0.9
+  volume         0.98
+
+# Same again, higher: a band at 2600 Hz has nothing to say about a note at
+# 100.
+patch Glass family=short  note=60 range=49..79
+  # Band-pass with the resonance at the very top and almost no envelope:
+  # the filter rings on its own and the oscillator is only there to start it.
+  # Played high it is a ping rather than a bass at all.
+  mode           #1
+  cutoff         2600 Hz
+  resonance      0.99
+  envmod         0.08
+  decay          260 ms
+  accent         0.3
+  slide          35 ms
+  drive          0.05
+  volume         0.62
+
+patch Wide family=band  note=36 range=24..55
+  # A square and the sub together with the filter well out of the way: no
+  # acid in it at all, just a large simple bass with two octaves in it. The
+  # one to reach for when the line is not the point.
+  wave           #1
+  pw             0.5
+  sub            1
+  cutoff         900 Hz
+  resonance      0.15
+  envmod         0.1
+  decay          700 ms
+  accent         0.4
+  slide          50 ms
+  drive          0.06
+  volume         1.02
+
+patch Rasp family=dirty  note=36 range=24..55
+  # Mid-range, half driven, resonance only half up: the filter is shaping
+  # distortion rather than the other way round. Sits where a guitar would.
+  cutoff         1100 Hz
+  resonance      0.5
+  envmod         0.3
+  decay          200 ms
+  accent         0.6
+  slide          45 ms
+  drive          0.7
+  volume         0.92
+
+patch Pluck family=short  note=36 range=24..55
+  # No resonance, a very short decay and a little drive: the filter closes
+  # before it can ring, so what is left is the attack and a short woody body.
+  # Round's opposite, and the only thing here that does not sound like a
+  # filter at all.
+  cutoff         1500 Hz
+  resonance      0.05
+  envmod         0.55
+  decay          110 ms
+  accent         0.5
+  slide          30 ms
+  drive          0.3
+  volume         0.95

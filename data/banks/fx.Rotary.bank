@@ -1,0 +1,88 @@
+# Rotary - Manual's rotating speaker cabinet, for any track.
+#
+# A horn for the highs and a drum for the lows, turning at `slow` or `fast`,
+# heard by two microphones. `speed` switches between brake, slow and fast,
+# and the rotors take `ramp` to get there, longer to slow down than to speed
+# up, as the motors do. `distance` and `angle` are where the microphones sit:
+# close is a deep swing, far a gentle one. The cabinet has one input, so a
+# stereo track is summed before it, as an organ's would be.
+#
+# The extra is `tempo`: the horn turns once a note value instead of at its
+# own speed, so the swirl sits on the beat.
+#
+# Families: slow, fast, tempo.
+
+machine fx.Rotary
+
+patch Init family=slow
+
+patch Chorale family=slow
+  # The slow speed, close in: a gentle churn under sustained chords.
+  slow           0.7 Hz
+  distance       0.25
+  angle          0.85
+  width          0.8
+
+patch Distant family=slow
+  # The microphones well back: a gentle swing.
+  slow           0.9 Hz
+  distance       0.85
+  width          0.6
+  mix            0.8
+
+patch Brake family=slow
+  # Stopped: the horn pointed one way.
+  speed          #0
+  distance       0.3
+  gain           -2 dB
+
+patch Fast family=fast
+  # Full speed, the sound everyone knows from the organ.
+  speed          #2
+  fast           6.6 Hz
+  distance       0.35
+
+patch Tremolo family=fast
+  # Faster, closer, narrower: more a throb than a swirl.
+  speed          #2
+  fast           8.5 Hz
+  distance       0.1
+  width          0.4
+
+patch Guitar family=fast
+  # A guitar through the cabinet, half mixed in, so the attack stays clear.
+  speed          #2
+  fast           5.8 Hz
+  ramp           1.4 s
+  mix            0.6
+  gain           2.5 dB
+
+patch "Ramping Up" family=fast
+  # Slow to fast with a long ramp, for a swell.
+  speed          #2
+  ramp           3 s
+  distance       0.35
+
+patch "Close Mic" family=fast
+  # Mics close in: deeper whirl, more doppler.
+  speed          #2
+  distance       0.1
+  angle          0.9
+
+patch Quarter family=tempo
+  # A turn a beat.
+  speed          #1
+  tempo          #3
+
+patch Eighth family=tempo
+  # A turn every eighth, close and wide, for pads that pulse in time.
+  speed          #2
+  tempo          #4
+  distance       0.2
+  width          1
+
+patch Bar family=tempo
+  # One turn a bar: a slow sweep that lands where the bar does.
+  speed          #1
+  tempo          #1
+  distance       0.15

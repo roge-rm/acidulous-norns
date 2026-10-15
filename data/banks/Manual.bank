@@ -1,0 +1,1472 @@
+# Manual - the organ, voiced against the debug build.
+#
+# One rack is a whole instrument and four instruments at once: a tonewheel
+# generator with drawbars, a transistor combo with footage tabs, a pipe organ
+# with ranks, and free reeds under a bellows. They share one generator of 91
+# always-running wheels, which is why a chord here does not beat where the
+# notes share a harmonic and why polyphony costs nine multiplies a key.
+#
+# **Registrations are written as nine digits, 0..8, in the comment above each
+# patch** - 16' 5 1/3' 8' 4' 2 2/3' 2' 1 3/5' 1 1/3' 1' - because that is how
+# a player writes one down. The bank file carries them as the machine's own
+# 0..1.
+#
+# **Three things about this bank that are not obvious from the values:**
+#
+# 1. **A patch decides which manuals exist.** `loweron` and `pedalon` default
+#    to off, so a patch that does not set them puts every key on the upper
+#    manual. The ones that do set them place `split` and `pedsplit`, and the
+#    audition phrases are written in absolute notes for those boundaries -
+#    feet below 48, lower manual below 60 - rather than as steps above a
+#    moving centre, which would drag a bass line onto the wrong keyboard.
+#
+# 2. **The register comes from the registration, not from the key.** A 16'
+#    patch played at middle C sounds an octave down, so `note=` here stays
+#    near 60 for nearly everything and the drawbars do the moving. That is
+#    also why the `part` column reads 0.49 on any patch with the 16' out: the
+#    loudest partial really is the sub-octave, and that is the stop working.
+#
+# 3. **Nothing in this bank is an effect over the top.** The celeste is a
+#    detune across the generator, the chorus is the scanner's line delay, the
+#    swell on the reeds is a shared wind supply sagging under the notes that
+#    are drawing on it, and the level swing on the rotary patches is a horn
+#    going round. Each of those behaves differently under a held chord than
+#    the pedal that imitates it, which is the reason for building them.
+#
+# Values are in each parameter's own units; `audition params Manual` lists
+# them. A patch names only what it changes.
+
+machine Manual
+# Four demos, because a hymn says nothing about a combo organ:
+#   gospel  - two manuals and the feet, grace notes and a run of sixteenths
+#   chorale - four parts held, doubled in the pedals, with a breath
+#   combo   - eighths played short over a vamp
+#   swell   - five chords rising and falling on one wind supply
+role    gospel
+
+patch Init family=tonewheel
+# The one everybody knows: the top three bars out, the second-harmonic
+# percussion on, and the cabinet turning slowly until it does not.
+patch Gospel family=tonewheel note=60 range=29..84 role=gospel
+  ua_16          1
+  ua_513         1
+  ua_8           1
+  ua_4           0
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  la_16          1
+  la_513         0.375
+  la_8           1
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  pa_1           1
+  pa_2           0.625
+  loweron        #1
+  pedalon        #1
+  split          60
+  pedsplit       48
+  perc           #1
+  percharm       #1
+  perclvl        0.7
+  percfast       #1
+  percdec        0.32
+  rotspeed       #1
+  drive          0.28
+  vibtype        #3
+  vibdepth       0.45
+  click          0.4
+  volume         1.01
+
+# Every bar out, which is not a registration so much as a decision.
+# It is meant to be too much, and the cabinet on fast is the point.
+patch "Full Draw" family=tonewheel note=60 range=36..84 role=gospel
+  ua_16          1
+  ua_513         1
+  ua_8           1
+  ua_4           1
+  ua_223         1
+  ua_2           1
+  ua_135         1
+  ua_113         1
+  ua_1           1
+  la_16          1
+  la_513         1
+  la_8           1
+  la_4           1
+  la_223         1
+  la_2           1
+  la_135         1
+  la_113         1
+  la_1           1
+  pa_1           1
+  pa_2           1
+  loweron        #1
+  pedalon        #1
+  perc           #0
+  rotspeed       #2
+  drive          0.5
+  click          0.55
+  vibtype        #5
+  vibdepth       0.7
+  volume         1.03
+
+# The dark half-drawn one. Mid bars in, top bars back, leakage up:
+# the sound of an instrument that has been in the room a long time.
+patch Smoke family=tonewheel note=60 range=36..84 role=gospel
+  ua_16          1
+  ua_513         1
+  ua_8           1
+  ua_4           1
+  ua_223         0.875
+  ua_2           0.75
+  ua_135         0.625
+  ua_113         0.5
+  ua_1           1
+  la_16          1
+  la_513         0.5
+  la_8           1
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  pa_1           1
+  pa_2           0.5
+  loweron        #1
+  pedalon        #1
+  perc           #0
+  age            0.45
+  leakage        0.32
+  click          0.45
+  rotspeed       #1
+  drive          0.42
+  treble         -2
+  volume         1.03
+
+# A left-hand registration: flat, no percussion, nothing to cut through
+# with. What you play under somebody else.
+patch Comping family=tonewheel note=60 range=41..79 role=gospel
+  ua_16          1
+  ua_513         0.375
+  ua_8           1
+  ua_4           0
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  la_16          1
+  la_513         0
+  la_8           1
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  pa_1           0.75
+  pa_2           0.375
+  loweron        #1
+  pedalon        #1
+  split          64
+  perc           #0
+  rotspeed       #1
+  drive          0.15
+  upper          0.8
+  volume         1.04
+
+# Three flutes and the scanner in chorus, no percussion and no drive.
+# All of the sound is the vibrato and the cabinet.
+patch "Jazz Flutes" family=tonewheel note=60 range=48..84 role=gospel
+  ua_16          1
+  ua_513         1
+  ua_8           1
+  ua_4           0
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  la_16          1
+  la_513         1
+  la_8           1
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  perc           #0
+  vibtype        #5
+  vibdepth       0.75
+  vibup          #1
+  rotspeed       #1
+  drive          0.08
+  click          0.2
+  volume         1.00
+  pedalon        #1
+  pedsplit       48
+  pedal          0.9
+  pa_1           1
+  pa_2           0.5
+
+# Two bars and the third-harmonic tap, fast and loud, stealing the 1'.
+# It only fires when every key is up, which is what makes it playable.
+patch "Third Perc" family=tonewheel note=60 range=48..84 role=gospel
+  ua_16          1
+  ua_513         0
+  ua_8           1
+  ua_4           0
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           1
+  la_16          1
+  la_513         0.375
+  la_8           1
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  loweron        #1
+  perc           #1
+  percharm       #0
+  perclvl        1
+  percfast       #1
+  percdec        0.22
+  percsteal      #1
+  perckey        0.45
+  rotspeed       #2
+  drive          0.3
+  click          0.5
+  volume         1.07
+  pedalon        #1
+  pedsplit       48
+  pedal          0.9
+  pa_1           1
+  pa_2           0.5
+
+# The same tap taken slowly and quietly, on the second harmonic, so it
+# reads as an attack rather than as a note of its own.
+patch "Slow Tap" family=tonewheel note=60 range=48..84 role=gospel
+  ua_16          1
+  ua_513         0.75
+  ua_8           1
+  ua_4           0
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  perc           #1
+  percharm       #1
+  perclvl        0.45
+  percfast       #0
+  percdec        0.9
+  perckey        0.2
+  rotspeed       #1
+  drive          0.2
+  volume         1.00
+  pedalon        #1
+  pedsplit       48
+  pedal          0.9
+  pa_1           1
+  pa_2           0.5
+
+# Four bars and the amplifier worked hard. The 8' sitting under it is
+# what stops the drive turning the whole thing into fuzz.
+patch "Blues Wail" family=tonewheel note=60 range=48..84 role=gospel
+  ua_16          1
+  ua_513         1
+  ua_8           1
+  ua_4           1
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  la_16          1
+  la_513         0.5
+  la_8           1
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  pa_1           1
+  pa_2           0.5
+  loweron        #1
+  pedalon        #1
+  perc           #0
+  drive          0.72
+  bias           0.12
+  rotspeed       #2
+  click          0.5
+  mid            2
+  volume         1.11
+
+# Past where the amplifier is polite. The bias is off centre so the
+# clipping is not symmetrical, which is where the even harmonics come
+# from and why this is a different sound and not just a louder one.
+patch Overdrive family=tonewheel note=64 range=41..84 role=gospel
+  ua_16          1
+  ua_513         1
+  ua_8           1
+  ua_4           1
+  ua_223         1
+  ua_2           1
+  ua_135         1
+  ua_113         1
+  ua_1           1
+  la_16          1
+  la_513         1
+  la_8           1
+  la_4           1
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  pa_1           1
+  pa_2           1
+  loweron        #1
+  pedalon        #1
+  perc           #0
+  drive          0.92
+  bias           0.3
+  rotspeed       #2
+  hornfast       7.4
+  click          0.6
+  bass           2
+  treble         -3
+  volume         1.06
+
+# Nothing at the bottom and a gap in the middle. A thin registration is
+# a real one - it is what you use when a horn section has the tune.
+patch Whistle family=tonewheel note=67 range=48..88 role=gospel
+  ua_16          0
+  ua_513         0
+  ua_8           0.875
+  ua_4           0
+  ua_223         0.75
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0.625
+  perc           #0
+  rotspeed       #2
+  drive          0.28
+  vibtype        #2
+  vibdepth       0.5
+  click          0.45
+  volume         1.45
+  pedalon        #1
+  pedsplit       48
+  pedal          0.9
+  pa_1           1
+  pa_2           0.5
+
+# No 16', so the left hand does not muddy, and the upper bars tapered
+# rather than out - a taper is what a drawbar set is for.
+patch "Bright Ballad" family=tonewheel note=60 range=48..84 role=gospel
+  ua_16          0
+  ua_513         0
+  ua_8           0.75
+  ua_4           1
+  ua_223         0.875
+  ua_2           0.75
+  ua_135         0.625
+  ua_113         0.5
+  ua_1           0
+  la_16          0
+  la_513         0
+  la_8           0.5
+  la_4           0.625
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  loweron        #1
+  perc           #0
+  rotspeed       #1
+  drive          0.2
+  vibtype        #4
+  vibdepth       0.5
+  volume         1.26
+  pedalon        #1
+  pedsplit       48
+  pedal          0.9
+  pa_1           1
+  pa_2           0.5
+
+# The whole instrument at once, which is the thing this machine is for:
+# a bright upper with the tap, a soft lower to comp on, and the feet
+# on 16' and 8'. One rack, three registrations.
+patch "Two Manuals" family=tonewheel note=60 range=29..84 role=gospel
+  ua_16          1
+  ua_513         1
+  ua_8           1
+  ua_4           1
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  la_16          0
+  la_513         0
+  la_8           0.5
+  la_4           0.625
+  la_223         0.5
+  la_2           0.5
+  la_135         0.25
+  la_113         0.25
+  la_1           0.25
+  pa_1           1
+  pa_2           0.75
+  loweron        #1
+  pedalon        #1
+  split          60
+  pedsplit       48
+  perc           #1
+  percharm       #1
+  perclvl        0.65
+  percfast       #1
+  lower          0.75
+  pedal          0.95
+  pedsus         0.25
+  rotspeed       #1
+  drive          0.3
+  volume         1.01
+
+# Written from the feet up. The pedal split is high enough that the left
+# hand walks on it, the sustain is long enough to join the notes, and
+# the manuals are left thin so the bass is the loudest thing.
+patch "Pedal Bass" family=tonewheel note=60 range=29..79 role=gospel
+  ua_16          0
+  ua_513         0
+  ua_8           0.5
+  ua_4           0.75
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  la_16          1
+  la_513         0
+  la_8           0.75
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  pa_1           1
+  pa_2           1
+  loweron        #1
+  pedalon        #1
+  split          64
+  pedsplit       53
+  pedal          1
+  pedsus         0.45
+  upper          0.7
+  lower          0.7
+  perc           #0
+  rotspeed       #1
+  drive          0.35
+  bass           3
+  volume         1.08
+
+# The scanner alone, at its widest, with the cabinet braked so there is
+# nothing else moving. This is the line delay, not a chorus pedal.
+patch "Chorus Vib" family=tonewheel note=60 range=48..84 role=gospel
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         1
+  ua_2           1
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  perc           #0
+  vibtype        #5
+  vibdepth       1
+  vibrate        6.4
+  vibwide        0.7
+  rotspeed       #0
+  rotary         #1
+  drive          0.12
+  volume         0.95
+  pedalon        #1
+  pedsplit       48
+  pedal          0.9
+  pa_1           1
+  pa_2           0.5
+
+# An old one. The wheels are worn so the tuning wanders, the shielding
+# has given up so the generator is audible on its own, and the motor
+# is off so all you get is the cabinet standing still.
+patch "Tired Machine" family=tonewheel note=60 range=41..79 role=gospel
+  ua_16          1
+  ua_513         1
+  ua_8           0.75
+  ua_4           0.5
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  la_16          1
+  la_513         0.5
+  la_8           1
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  loweron        #1
+  age            0.9
+  leakage        0.62
+  hum            0.35
+  spray          0.3
+  sprayrate      0.35
+  spraywide      0.6
+  click          0.7
+  clickoff       0.5
+  contacts       0.8
+  perc           #0
+  rotspeed       #0
+  drive          0.3
+  volume         1.20
+  pedalon        #1
+  pedsplit       48
+  pedal          0.9
+  pa_1           1
+  pa_2           0.5
+
+# Two whole registrations and a slow LFO between them: the bars move
+# under a chord you are still holding, which no organ with real
+# drawbars can do without a second player.
+patch "Drawbar Morph" family=tonewheel note=60 range=41..84 role=gospel
+  ua_16          1
+  ua_513         1
+  ua_8           0.75
+  ua_4           0
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  ub_16          0
+  ub_513         0
+  ub_8           1
+  ub_4           1
+  ub_223         1
+  ub_2           1
+  ub_135         1
+  ub_113         1
+  ub_1           1
+  la_16          1
+  la_513         0
+  la_8           1
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  lb_16          0
+  lb_513         0
+  lb_8           0.5
+  lb_4           0.75
+  lb_223         0.75
+  lb_2           0.75
+  lb_135         0.5
+  lb_113         0
+  lb_1           0
+  loweron        #1
+  morph          0.4
+  morphsrc       #9
+  morphamt       1
+  lfo1wave       #1
+  lfo1rate       0.09
+  lfo1depth      1
+  m1_src         #9
+  m1_dst         #1
+  m1_amt         1
+  perc           #0
+  rotspeed       #1
+  drive          0.25
+  volume         1.07
+  pedalon        #1
+  pedsplit       48
+  pedal          0.9
+  pa_1           1
+  pa_2           0.5
+
+# Squares divided down from one master oscillator and switched in by
+# footage, which is the whole of a combo organ. No drawbars: a tab is
+# in or it is out.
+patch "Combo Bright" family=combo note=60 range=48..84 role=combo
+  model          #1
+  combowave      #0
+  tab16          0.9
+  tab8           1
+  tab4           0.75
+  tab2           0.15
+  tab2r          0
+  tab4r          0
+  reedy          0.55
+  comboatk       0.22
+  rotary         #0
+  perc           #0
+  vibtype        #1
+  vibrate        7.2
+  vibdepth       0.55
+  drive          0.25
+  volume         0.93
+
+# The pulse wave through the reedy filter well up, which is the buzz
+# that made these things sound like a harmonica with a mains lead.
+patch "Combo Reed" family=combo note=60 range=48..84 role=combo
+  model          #1
+  combowave      #1
+  tab16          0.4
+  tab8           1
+  tab4           0.6
+  tab2           0.25
+  reedy          0.95
+  comboatk       0.05
+  rotary         #0
+  perc           #0
+  vibtype        #0
+  vibrate        8.4
+  vibdepth       0.4
+  drive          0.35
+  mid            2.5
+  volume         0.82
+
+# Saws rather than squares, 8' and 4' and the first mixture tab, with
+# the vibrato fast and shallow. The riff sound.
+patch "Combo Sixties" family=combo note=60 range=48..84 role=combo
+  model          #1
+  combowave      #2
+  tab16          0.35
+  tab8           1
+  tab4           0.8
+  tab2           0.4
+  tab2r          0.35
+  tab4r          0
+  reedy          0.5
+  comboatk       0.06
+  rotary         #0
+  perc           #0
+  vibtype        #2
+  vibrate        8.8
+  vibdepth       0.45
+  drive          0.4
+  volume         1.11
+
+# Both mixture tabs out, which on a small transistor organ was always
+# sold as a church sound and is nothing of the kind. That is exactly
+# why it is here: it is its own thing and a good one.
+patch "Combo Mixture" family=combo note=60 range=48..84 role=combo
+  model          #1
+  combowave      #0
+  tab16          0.7
+  tab8           1
+  tab4           0.7
+  tab2           0.45
+  tab2r          0.6
+  tab4r          0.45
+  reedy          0.35
+  comboatk       0.1
+  rotary         #0
+  perc           #0
+  vibtype        #4
+  vibdepth       0.4
+  drive          0.22
+  treble         -1.5
+  volume         0.91
+
+# The attack shortened until the key click is most of the note. Played
+# short this is a percussion instrument.
+patch "Combo Stab" family=combo note=60 range=48..84 role=combo
+  model          #1
+  combowave      #0
+  tab16          0.3
+  tab8           1
+  tab4           0.85
+  tab2           0.6
+  tab2r          0
+  reedy          0.88
+  comboatk       0
+  click          0.8
+  clickoff       0.45
+  contacts       0.15
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.0008
+  release        0.012
+  drive          0.45
+  volume         0.79
+
+# A combo organ with the bottom two octaves switched to a bass
+# registration, which is how these were played when there was no bass
+# player in the band.
+patch "Combo Split" family=combo note=60 range=41..84 role=combo
+  la_16          1
+  la_513         1
+  la_8           0
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  model          #1
+  combowave      #1
+  loweron        #1
+  split          60
+  tab16          0.5
+  tab8           1
+  tab4           0.7
+  tab2           0.35
+  tab2r          0.3
+  reedy          0.7
+  comboatk       0.07
+  lower          1
+  rotary         #0
+  perc           #0
+  vibtype        #1
+  vibdepth       0.5
+  drive          0.45
+  bass           2.5
+  volume         0.90
+
+# 2' and the mixtures with nothing underneath. It has no bottom at all,
+# and against a bass line that is the point.
+patch "Combo Thin" family=combo note=67 range=55..88 role=combo
+  model          #1
+  combowave      #2
+  tab16          0
+  tab8           1
+  tab4           0.9
+  tab2           0.6
+  tab2r          0.35
+  tab4r          0.15
+  reedy          0.3
+  comboatk       0.05
+  rotary         #0
+  perc           #0
+  vibtype        #0
+  vibdepth       0.5
+  drive          0.18
+  bass           -4
+  volume         1.26
+
+# The principal chorus at 16', 8' and 4' - one rank at three pitches,
+# which is what an organ means by a chorus and has nothing to do with
+# detuning anything.
+patch Diapason family=pipe note=60 range=36..84 role=chorale
+  ua_16          1
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.02
+  release        0.09
+  drive          0
+  principal      1
+  flute          0.35
+  string         0
+  reed           0
+  mixture        0
+  chiff          0.22
+  tracker        0.25
+  windsag        0.3
+  windresp       0.35
+  windnoise      0.1
+  pedalon        #1
+  pedsplit       44
+  volume         0.76
+  pa_1           1
+  pa_2           0.75
+
+# Two stopped flutes, quiet, with the chiff well up. The wind noise on
+# the attack is most of what tells you this is a pipe and not a sine.
+patch "Flutes 8 and 4" family=pipe note=60 range=41..88 role=chorale
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.03
+  release        0.09
+  drive          0
+  principal      0
+  flute          1
+  string         0
+  reed           0
+  mixture        0
+  chiff          0.5
+  tracker        0.55
+  windsag        0.22
+  windresp       0.28
+  windnoise      0.2
+  volume         1.25
+  pedalon        #1
+  pedsplit       44
+  pedal          0.95
+  pa_1           1
+  pa_2           0.75
+
+# Two string ranks a hair apart. The beat is the spray across the
+# generator rather than a chorus over the top, so notes that share a
+# wheel beat together the way two ranks of pipes do.
+patch "Strings Celeste" family=pipe note=60 range=41..84 role=chorale
+  ua_16          1
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.075
+  release        0.14
+  drive          0
+  principal      0.3
+  flute          0.15
+  string         1
+  reed           0
+  mixture        0
+  chiff          0.08
+  tracker        0.15
+  spray          0.3
+  sprayrate      0.55
+  spraywide      0.8
+  spraypat       #1
+  windsag        0.18
+  volume         1.30
+  pedalon        #1
+  pedsplit       44
+  pedal          0.95
+  pa_1           1
+  pa_2           0.75
+
+# A flute chorus with the quint and the tierce drawn - the mutations
+# that sum into a reedy formant without a reed being involved.
+patch Cornet family=pipe note=60 range=48..84 role=chorale
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         0.625
+  ua_2           1
+  ua_135         1
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.02
+  release        0.09
+  drive          0
+  principal      0.2
+  flute          1
+  string         0.55
+  reed           0
+  mixture        0
+  chiff          0.3
+  tracker        0.2
+  windsag        0.25
+  volume         0.67
+  pedalon        #1
+  pedsplit       44
+  pedal          0.95
+  pa_1           1
+  pa_2           0.75
+
+# The reed rank, which on this rig sits at the top of the stop list and
+# so wants a principal under it to be a trumpet rather than a whistle.
+patch "Reed Stop" family=pipe note=60 range=41..84 role=chorale
+  ua_16          1
+  ua_513         0
+  ua_8           1
+  ua_4           0.5
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         1
+  ua_1           1
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.02
+  release        0.09
+  drive          0
+  principal      0.4
+  flute          0.08
+  string         0
+  reed           1
+  mixture        0.55
+  chiff          0.35
+  tracker        0.3
+  windsag        0.32
+  windresp       0.3
+  volume         1.01
+  pedalon        #1
+  pedsplit       44
+  pedal          0.95
+  pa_1           1
+  pa_2           0.75
+
+# Principals from 8' up with the mixture on top and no flutes at all.
+# The bright, cold sound a chorus is built to make.
+patch Plenum family=pipe note=60 range=36..84 role=chorale
+  ua_16          0.5
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         0
+  ua_2           1
+  ua_135         0
+  ua_113         0
+  ua_1           1
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.02
+  release        0.09
+  drive          0
+  principal      1
+  flute          0
+  string         0.2
+  reed           0
+  mixture        0.6
+  chiff          0.25
+  tracker        0.3
+  windsag        0.38
+  windresp       0.3
+  windnoise      0.12
+  pedalon        #1
+  pedsplit       44
+  volume         0.78
+  pa_1           1
+  pa_2           1
+
+# Everything drawn and the feet on reeds. The wind sag is set high, so
+# a big chord pulls the pitch and the level down and letting go of it
+# lets them back - which is the part of a large organ you feel.
+patch "Full Organ" family=pipe note=60 range=33..88 role=chorale
+  ua_16          1
+  ua_513         1
+  ua_8           1
+  ua_4           1
+  ua_223         1
+  ua_2           1
+  ua_135         1
+  ua_113         1
+  ua_1           1
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.02
+  release        0.09
+  drive          0
+  principal      1
+  flute          0.8
+  string         0.6
+  reed           0.9
+  mixture        0.9
+  chiff          0.3
+  tracker        0.4
+  windsag        0.72
+  windresp       0.5
+  windnoise      0.22
+  pedalon        #1
+  pedsplit       44
+  pedal          1
+  volume         0.33
+  pa_1           1
+  pa_2           1
+
+# One 8' flute played quietly. Everything in it is the attack and the
+# release: the chiff arriving, the tracker under the key, and a long
+# wind response so the supply is still catching up.
+patch "Soft Flute" family=pipe note=60 range=48..88 role=chorale
+  ua_16          0.5
+  ua_513         0
+  ua_8           1
+  ua_4           0.625
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.045
+  release        0.16
+  drive          0
+  principal      0
+  flute          1
+  string         0
+  reed           0
+  mixture        0
+  chiff          0.45
+  tracker        0.7
+  windsag        0.3
+  windresp       0.9
+  windnoise      0.3
+  volume         1.33
+  pedalon        #1
+  pedsplit       44
+  pedal          0.95
+  pa_1           1
+  pa_2           0.75
+
+# Written for the feet: 16' and 8' in the pedals with the reeds up, the
+# pedal split raised so the left hand can play them, and the manual
+# left at a flute so it does not compete.
+patch "Pedal Reeds" family=pipe note=60 range=29..79 role=chorale
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           0.5
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.02
+  release        0.09
+  drive          0
+  principal      0.4
+  flute          0.7
+  string         0
+  reed           0.85
+  mixture        0.2
+  chiff          0.2
+  tracker        0.3
+  pedalon        #1
+  pedsplit       55
+  pedal          1
+  pedsus         0.3
+  windsag        0.45
+  windresp       0.4
+  bass           2.5
+  volume         0.92
+  pa_1           1
+  pa_2           1
+
+# Free reeds under bellows pressure. The buzz is the reed beating
+# against its frame and it grows with how hard the thing is pushed,
+# which is why this gets louder and dirtier at the same time.
+patch Harmonium family=reed note=60 range=41..81 role=swell
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #3
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.012
+  release        0.05
+  drive          0
+  pressure       0.78
+  buzz           0.45
+  reedtrem       0.25
+  tremrate       1.7
+  tremdepth      0.18
+  windsag        0.42
+  windresp       0.3
+  windnoise      0.12
+  volume         1.75
+  pedalon        #1
+  pedsplit       44
+  pedal          0.85
+  pa_1           0.875
+  pa_2           0.5
+
+# Three reeds to a key, a few cents apart. They are all at the same
+# pitch - that is what makes it a musette rather than a registration -
+# so the brightness has to come from the reed itself and not from
+# stacking footages on top of it. The beat is the spray across the
+# generator, and it is the same wheels for every key, so a chord
+# shimmers as one thing instead of drifting apart.
+patch Musette family=reed note=60 range=45..84 role=swell
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           0.625
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #3
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.012
+  release        0.05
+  drive          0
+  pressure       0.8
+  buzz           0.18
+  reedtrem       0
+  spray          0.55
+  sprayrate      0.9
+  spraywide      0.75
+  spraypat       #0
+  tremdepth      0
+  tremrate       5.4
+  windsag        0.28
+  volume         2.00
+  pedalon        #1
+  pedsplit       44
+  pedal          0.85
+  pa_1           0.875
+  pa_2           0.5
+
+# One 8' rank and a tremolo, which is a small reed organ's whole
+# vocabulary. Quiet, and it wheezes.
+patch Melodeon family=reed note=60 range=45..81 role=swell
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           0.5
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #3
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.012
+  release        0.05
+  drive          0
+  pressure       0.92
+  buzz           0.3
+  reedtrem       0.45
+  tremrate       4.6
+  tremdepth      0.35
+  windsag        0.35
+  windresp       0.22
+  windnoise      0.28
+  volume         2.00
+  pedalon        #1
+  pedsplit       44
+  pedal          0.85
+  pa_1           0.875
+  pa_2           0.5
+
+# The supply deliberately too small for the instrument. Hold a big chord
+# and it sinks; let one note go and the rest come back up. That is a
+# foot pump, and it is a shared wind supply doing it, not an envelope.
+patch "Pump Organ" family=reed note=60 range=38..79 role=swell
+  ua_16          1
+  ua_513         0
+  ua_8           1
+  ua_4           0
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #3
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.012
+  release        0.05
+  drive          0
+  pressure       0.9
+  buzz           0.5
+  reedtrem       0.2
+  windsag        0.95
+  windresp       0.85
+  windnoise      0.4
+  tremrate       3.2
+  tremdepth      0.12
+  bass           2
+  volume         1.36
+  pedalon        #1
+  pedsplit       44
+  pedal          0.85
+  pa_1           0.875
+  pa_2           0.5
+
+# 16', 8' and 4' with the buzz wound past polite. The tremolo is slow
+# and deep enough to be a voice rather than a shimmer.
+patch "Big Reed" family=reed note=60 range=36..81 role=swell
+  ua_16          1
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         0.25
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #3
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.012
+  release        0.05
+  drive          0
+  pressure       0.95
+  buzz           0.82
+  reedtrem       0.55
+  tremrate       2.4
+  tremdepth      0.4
+  windsag        0.5
+  windresp       0.35
+  windnoise      0.15
+  volume         1.50
+  pedalon        #1
+  pedsplit       44
+  pedal          0.85
+  pa_1           0.875
+  pa_2           0.5
+
+# The registration never settles. One LFO walks the morph, another
+# opens the spray, and the two are at rates that do not divide into
+# each other, so it does not repeat inside a piece.
+patch Drift family=cabinet note=60 range=41..84 role=gospel
+  ua_16          1
+  ua_513         0
+  ua_8           0.75
+  ua_4           1
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  ub_16          0
+  ub_513         0
+  ub_8           0.5
+  ub_4           0.75
+  ub_223         0.75
+  ub_2           0.75
+  ub_135         1
+  ub_113         0.25
+  ub_1           0
+  la_16          1
+  la_513         0
+  la_8           1
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  lb_16          0
+  lb_513         0
+  lb_8           1
+  lb_4           1
+  lb_223         0.5
+  lb_2           0.5
+  lb_135         0
+  lb_113         0
+  lb_1           0
+  loweron        #1
+  morphsrc       #9
+  morphamt       1
+  lfo1wave       #1
+  lfo1rate       0.046
+  lfo2wave       #1
+  lfo2rate       0.19
+  m1_src         #9
+  m1_dst         #1
+  m1_amt         0.9
+  m2_src         #10
+  m2_dst         #2
+  m2_amt         0.45
+  spray          0.12
+  sprayrate      0.23
+  spraywide      0.8
+  perc           #0
+  rotspeed       #1
+  drive          0.25
+  volume         1.03
+  pedalon        #1
+  pedsplit       48
+  pedal          0.9
+  pa_1           1
+  pa_2           0.5
+
+# The cabinet driving the instrument instead of only carrying it. The
+# horn's phase is a modulation source here, so the upper bars and the
+# treble move with the rotor - the level swing you hear is partly the
+# organ itself changing, which no microphone in a room can do.
+patch "Cabinet Mod" family=cabinet note=60 range=48..84 role=gospel
+  ua_16          1
+  ua_513         1
+  ua_8           1
+  ua_4           0.5
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  rotspeed       #1
+  rotwide        0.8
+  micdist        0.55
+  micangle       0.85
+  m1_src         #11
+  m1_dst         #14
+  m1_amt         0.16
+  m2_src         #12
+  m2_dst         #10
+  m2_amt         0.3
+  m3_src         #11
+  m3_dst         #3
+  m3_amt         0.1
+  perc           #0
+  drive          0.22
+  volume         0.89
+  pedalon        #1
+  pedsplit       48
+  pedal          0.9
+  pa_1           1
+  pa_2           0.5
+
+# The wind supply as the instrument. Nothing here is an envelope: the
+# attack of a chord is the pressure falling as eight pipes start to
+# draw on it, and the swell at the end is it recovering.
+patch Breath family=cabinet note=60 range=36..81 role=swell
+  ua_16          1
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.02
+  release        0.09
+  drive          0
+  principal      0.7
+  flute          0.9
+  string         0.35
+  reed           0.25
+  mixture        0
+  chiff          0.4
+  tracker        0.35
+  windsag        0.7
+  windresp       0.5
+  windnoise      0.25
+  m1_src         #14
+  m1_dst         #13
+  m1_amt         0.03
+  m2_src         #14
+  m2_dst         #10
+  m2_amt         0.3
+  pedalon        #1
+  pedsplit       44
+  volume         0.55
+  pa_1           1
+  pa_2           0.75
+
+# Spray wound all the way up, which stops being a worn generator and
+# becomes an ensemble. It is a detune across the wheels, so two keys
+# sharing a harmonic are detuned by the same amount and stay together.
+patch Sprayed family=cabinet note=60 range=41..84 role=gospel
+  ua_16          1
+  ua_513         1
+  ua_8           1
+  ua_4           1
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  la_16          1
+  la_513         0
+  la_8           1
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  loweron        #1
+  spray          0.85
+  sprayrate      0.42
+  spraywide      1
+  spraypat       #2
+  perc           #0
+  rotspeed       #0
+  rotary         #1
+  vibtype        #4
+  vibdepth       0.3
+  drive          0.2
+  volume         1.00
+  pedalon        #1
+  pedsplit       48
+  pedal          0.9
+  pa_1           1
+  pa_2           0.5
+

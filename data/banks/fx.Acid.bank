@@ -1,0 +1,119 @@
+# Acid - Reflux's filter on any track.
+#
+# Two resonant stages with a little saturation between them and `drive`
+# after, swept up from `cutoff` by `env` (up to four octaves) and falling
+# back over `decay`. `mode` is low pass or band pass.
+#
+# What starts the sweep is `pattern`. At "track" it's the track itself: each
+# hit opens it, and a loud hit is an accent. The other eight are sixteen-step
+# patterns on the tempo, with accents, so a pad, a chord or a drum loop
+# squelches like a bass line. `accent` is how much further an accented sweep
+# goes and how much louder it is.
+#
+# Families: follow, pattern, wild.
+
+machine fx.Acid
+
+patch Init family=follow
+
+patch Squelch family=follow
+  # Every hit of the track opens it with a bite: on a bass or a drum loop.
+  cutoff         300 Hz
+  resonance      0.8
+  env            0.7
+  decay          180 ms
+  accent         0.7
+  drive          0.4
+  gain           -2 dB
+
+patch Wah family=follow
+  # Softer and band pass: a guitar or keys that quack as they're played.
+  cutoff         500 Hz
+  resonance      0.6
+  env            0.6
+  decay          250 ms
+  mode           #1
+  drive          0.2
+  gain           15.5 dB
+
+patch Duck family=follow
+  # Dark until a hit, then wide open and back: drums that bark.
+  cutoff         150 Hz
+  resonance      0.5
+  env            1
+  decay          120 ms
+  accent         0.4
+  drive          0.3
+
+patch Bouncy family=follow
+  # Low resonance, long decay: a rubbery bounce.
+  cutoff         200 Hz
+  resonance      0.5
+  env            0.6
+  decay          600 ms
+
+patch Eighths family=pattern
+  # Eighth notes with the accents on the beat, on a held pad or chord.
+  pattern        #1
+  cutoff         250 Hz
+  resonance      0.8
+  env            0.8
+  decay          200 ms
+
+patch Sixteenths family=pattern
+  # Every sixteenth: the classic running line, out of any sustained sound.
+  pattern        #2
+  cutoff         300 Hz
+  resonance      0.85
+  env            0.6
+  decay          140 ms
+  drive          0.5
+  gain           -1.5 dB
+
+patch Offbeat family=pattern
+  # Only between the beats, for a house stab that answers the kick.
+  pattern        #3
+  cutoff         400 Hz
+  resonance      0.7
+  env            0.7
+  decay          160 ms
+
+patch Rolling family=pattern
+  # A busy line with pushes and accents, at a high resonance.
+  pattern        #8
+  cutoff         220 Hz
+  resonance      0.9
+  env            0.75
+  decay          170 ms
+  accent         0.8
+  drive          0.4
+  gain           -2 dB
+
+patch Scream family=wild
+  # Resonance almost at its edge and the drive up: it screams.
+  pattern        #5
+  cutoff         350 Hz
+  resonance      0.97
+  env            0.8
+  decay          260 ms
+  accent         1
+  drive          0.8
+  gain           -4 dB
+
+patch Rubber family=wild
+  # Long sweeps on half notes: slow, rubbery, almost vocal.
+  pattern        #6
+  cutoff         120 Hz
+  resonance      0.88
+  env            1
+  decay          900 ms
+  drive          0.3
+
+patch Screamer family=wild
+  # Resonance high and driven hard.
+  cutoff         400 Hz
+  resonance      0.95
+  env            0.8
+  decay          200 ms
+  drive          0.9
+  gain           -5.5 dB

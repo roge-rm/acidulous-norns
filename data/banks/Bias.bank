@@ -1,0 +1,230 @@
+# Bias - the medium, not the mix.
+#
+# Bias is the high-frequency signal a tape machine mixes into the record head,
+# and setting it is exactly how you choose between a clean transfer and a
+# compressed, rolled-off, saturated one. So a patch here is a **recording
+# medium**: it colours what comes out and never the recordings, which makes it
+# free to try, reversible, and comparable. Printing one is a separate act, and
+# one that already exists - the freeze render.
+#
+# A patch deliberately carries none of the four lane levels or mutes. Those are
+# the mix, and loading a medium must not wipe it; see MachineUi.patchKeeps.
+#
+# Init is the default here as in every bank, and it is the machine as built
+# rather than a setting that undoes something: with every control at nought the
+# whole chain is skipped, so a Bias track plays a file back sample for sample.
+#
+# Families: clean, tape, digital, broadcast, worn.
+
+machine Bias
+
+patch Init family=clean
+  # Nothing at all: the recording, played back. It sets no value, the way every
+  # bank's first patch does - so the whole colour section is skipped rather
+  # than run at neutral, which is what makes a stem export of a Bias track
+  # sample-identical to the file.
+
+patch Warm family=clean
+  # A transfer that was made carefully onto something good. The only thing
+  # doing any work is the saturation, and it is working against the level the
+  # signal actually reaches rather than against full scale.
+  sat            0.35
+  bump           2 dB
+  bumpfreq       60 Hz
+  highcut        18000 Hz
+
+patch Wide family=clean
+  # The low end a big transport gives you, and a little more image than was
+  # printed. Nothing is lost here; it is the one patch that is a flattery.
+  bump           3 dB
+  bumpfreq       45 Hz
+  sat            0.15
+  width          1.3
+
+patch Cassette family=tape
+  # Type I ferric, played back on something ordinary: gone above thirteen and
+  # a half, gone below forty-five, hiss you can hear in the gaps, and a
+  # transport that never quite holds still.
+  hiss           0.35
+  hisstone       0.55
+  lowcut         45 Hz
+  highcut        13500 Hz
+  bump           3 dB
+  bumpfreq       95 Hz
+  sat            0.4
+  comp           0.3
+  wow            0.25
+  flutter        0.3
+  width          0.95
+
+patch "Four-Track" family=tape
+  # The cassette four-track: four tracks across a strip of tape meant for two, so the
+  # tracks are narrower, the hiss is worse, and **what is on one is faintly on
+  # the next**. That last is `bleed`, and it is the reason muting a track on
+  # one of these never quite silences it.
+  hiss           0.5
+  hisstone       0.6
+  lowcut         60 Hz
+  highcut        11000 Hz
+  bump           4 dB
+  bumpfreq       110 Hz
+  sat            0.5
+  comp           0.55
+  wow            0.3
+  flutter        0.4
+  bleed          0.45
+  width          0.9
+
+patch Reel family=tape
+  # Fifteen inches a second on quarter inch: wide, quiet, and with enough
+  # headroom that the saturation is something you go looking for rather than
+  # something that happens to you. The head bump sits low, where a big
+  # transport puts it.
+  hiss           0.12
+  hisstone       0.35
+  lowcut         25 Hz
+  highcut        18500 Hz
+  bump           2.5 dB
+  bumpfreq       42 Hz
+  sat            0.28
+  comp           0.15
+  wow            0.1
+  flutter        0.08
+  speed          0.6
+
+patch Cartridge family=tape
+  # The cartridge: an endless loop dragged past the head by a pinch roller
+  # that has been doing it since 1971. Duller than a cassette, wowier than
+  # anything, and with the odd moment where the tape lifts away.
+  hiss           0.42
+  hisstone       0.45
+  lowcut         70 Hz
+  highcut        9000 Hz
+  bump           3.5 dB
+  bumpfreq       105 Hz
+  sat            0.45
+  comp           0.4
+  wow            0.5
+  flutter        0.35
+  bleed          0.3
+  drop           0.15
+
+patch Micro family=tape
+  # A dictaphone. Three hundred to four thousand, squashed flat, mono, and
+  # running at whatever speed the batteries feel like. For a voice memo that
+  # became a song.
+  hiss           0.7
+  hisstone       0.75
+  lowcut         320 Hz
+  highcut        4200 Hz
+  sat            0.6
+  comp           0.8
+  wow            0.55
+  flutter        0.6
+  speed          1.8
+  drop           0.25
+  width          0
+
+patch Disc family=digital
+  # **No hiss at all**, which is the point of standing it next to the tapes:
+  # its character is entirely codec. A band edge just under sixteen, a smear
+  # that thickens transients instead of sharpening them, and an image the
+  # coder narrowed to save bits.
+  lowcut         20 Hz
+  highcut        15800 Hz
+  bits           #12
+  smear          0.35
+  width          0.8
+
+patch DAT family=digital
+  # Sixteen bits and a brick wall, and almost nothing else. It is nearly
+  # transparent and that is the whole of it - the one patch here that sounds
+  # like the nineties by not sounding like anything.
+  highcut        19500 Hz
+  bits           #12
+  sat            0.05
+
+patch Sampler family=digital
+  # Twelve bits at thirty kilohertz: the other digital character, where the
+  # quantisation and the aliasing are the instrument rather than the price.
+  highcut        15000 Hz
+  bits           #8
+  rate           0.62
+  sat            0.2
+
+patch Phone family=broadcast
+  # Three hundred to thirty-four hundred, eight bits, and a compressor that
+  # never lets go. A line, not a room.
+  lowcut         300 Hz
+  highcut        3400 Hz
+  bits           #4
+  comp           0.6
+  sat            0.3
+  width          0
+
+patch Shortwave family=broadcast
+  # A signal that has come a long way and is not sure it will arrive: narrow,
+  # noisy, fading in and out, and drifting on a transport that is the
+  # ionosphere.
+  lowcut         260 Hz
+  highcut        3000 Hz
+  hiss           0.55
+  hisstone       0.6
+  drop           0.4
+  wow            0.35
+  speed          2.2
+  comp           0.5
+  width          0
+
+patch AM family=broadcast
+  # Wider than a telephone and squashed harder, which is what a station does
+  # to be loud on a small speaker.
+  lowcut         120 Hz
+  highcut        5200 Hz
+  hiss           0.3
+  hisstone       0.45
+  comp           0.55
+  sat            0.25
+  width          0
+
+patch Shellac family=worn
+  # A 78: two hundred to three thousand, surface noise under everything, and
+  # a turntable with a story. The wow is slow because the disc is big.
+  lowcut         220 Hz
+  highcut        3200 Hz
+  hiss           0.6
+  hisstone       0.3
+  drop           0.55
+  wow            0.6
+  speed          0.5
+  sat            0.35
+  comp           0.35
+  width          0
+
+patch Wire family=worn
+  # Steel wire dragged past a head at six feet a second, by a machine that
+  # cannot keep it straight. Hissier than tape and far less stable.
+  lowcut         260 Hz
+  highcut        4800 Hz
+  hiss           0.65
+  hisstone       0.5
+  sat            0.4
+  wow            0.45
+  flutter        0.5
+  speed          1.4
+  drop           0.3
+  width          0
+
+patch Wax family=worn
+  # A cylinder. The narrowest thing here and the least steady: what a hundred
+  # and twenty years does to a recording, without the hundred and twenty years.
+  lowcut         350 Hz
+  highcut        2600 Hz
+  hiss           0.5
+  hisstone       0.25
+  drop           0.4
+  wow            0.75
+  speed          0.35
+  sat            0.45
+  comp           0.4
+  width          0

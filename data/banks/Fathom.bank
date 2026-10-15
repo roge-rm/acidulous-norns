@@ -1,0 +1,469 @@
+# Fathom - water and weather.
+#
+# Most of the sound of water is bubbles: air caught under the surface rings
+# at a pitch set by its size and rises as it nears the top. A drip is a
+# bubble and a tap; rain is many drips and what they land on; a stream is a
+# cloud of small bubbles and a few big ones; surf is a wave's rush. Wind is
+# air rushing past, in gusts, whistling where it's caught; fire is
+# crackles, hiss and roar.
+#
+# A held note keeps it going: the note sets the bubbles' size or the
+# wind's whistle, the velocity how much. `density` is how many events,
+# `size` how far their pitches spread, `rise` how far a bubble climbs,
+# `decay` how long each rings, `surface` what the rain falls on, `gust` how
+# much the wind, fire and waves come and go, `whistle` the wind caught in a
+# gap, `tone` how bright, `swell` beats from wave to wave, `fade` how long
+# it takes to come and go. Pressure and the mod wheel thicken it.
+#
+# Families: water, rain, weather, fire, winter, kit.
+
+machine Fathom
+role pad
+
+patch Init family=water note=48 range=36..60
+
+patch "Fish Tank" family=water note=55 range=43..67
+  # A steady line of small bubbles.
+  density        0.55
+  size           3 st
+  rise           0.5
+
+patch "Big Bubbles" family=water note=36 range=24..48
+  # Slow, deep bubbles, long and round.
+  density        0.35
+  size           7 st
+  decay          0.8
+  rise           0.3
+
+patch "Boiling Pot" family=water note=48 range=36..60
+  # Thick and fast.
+  density        0.85
+  size           9 st
+  rise           0.6
+  volume         0.6
+
+patch "Bubble Notes" family=water note=48 range=24..72 role=tune
+  # One bubble a note, tuned: play a melody.
+  density        0
+  size           0 st
+  rise           0.2
+  decay          0.7
+  volume         1
+
+patch "Cave Drips" family=water note=43 range=31..55
+  # Slow drips into a pool.
+  model          #1
+  density        0.45
+  size           4 st
+  decay          0.7
+
+patch "Tap Drip" family=water note=48 range=36..60
+  # A leaking tap, steady.
+  model          #1
+  density        0.55
+  size           1 st
+
+patch "Drip Notes" family=water note=43 range=24..60 role=tune
+  # One drip a note, tuned.
+  model          #1
+  density        0
+  size           0 st
+  volume         1
+
+patch "Gutter" family=water note=40 range=28..52
+  # Faster, uneven drips.
+  model          #1
+  density        0.75
+  size           8 st
+
+patch Brook family=water note=48 range=36..60
+  # A small stream over stones.
+  model          #3
+  density        0.4
+  size           8 st
+
+patch River family=water note=36 range=24..48
+  # Deeper and wider, more of the big bubbles.
+  model          #3
+  density        0.6
+  size           12 st
+  volume         0.4
+
+patch Fountain family=water note=55 range=43..67
+  # Fine, bright and busy.
+  model          #3
+  density        0.75
+  size           5 st
+  volume         0.4
+
+patch Trickle family=water note=52 range=40..64
+  # Just a little water.
+  model          #3
+  density        0.2
+  size           6 st
+
+patch Surf family=water note=48 range=36..60
+  # Waves every four beats.
+  model          #4
+  swell          4 beats
+  gust           0.8
+
+patch "Slow Swell" family=water note=48 range=36..60
+  # Long waves, eight beats apart, dark.
+  model          #4
+  swell          8 beats
+  gust           0.9
+  tone           0.3
+
+patch Shore family=water note=52 range=36..60
+  # Small waves, bright foam.
+  model          #4
+  swell          2 beats
+  gust           0.6
+  tone           0.7
+  density        0.7
+
+patch "Calm Sea" family=water note=48 range=36..60
+  # Barely moving.
+  model          #4
+  swell          16 beats
+  gust           0.3
+  tone           0.25
+
+patch "Waterfall" family=water note=40 range=31..55
+  # The roar of falling water and its countless bubbles.
+  model          #9
+
+patch "Waterfall Far" family=water note=36 range=28..48
+  # Heard from down the valley, dark and steady.
+  model          #9
+  tone           0.2
+  density        0.4
+
+patch "Cascade" family=water note=48 range=36..60
+  # A small fall, close by and bright.
+  model          #9
+  tone           0.7
+  density        0.8
+  volume         0.4
+
+patch "Splash" family=water note=48 range=36..60
+  # A hand in the water and a burst of bubbles.
+  model          #13
+
+patch "Paddling" family=water note=48 range=36..60
+  # Splashes in a steady rhythm, like paddling.
+  model          #13
+  density        0.6
+
+patch "Big Splash" family=water note=40 range=31..52
+  # Something heavy thrown in.
+  model          #13
+  size           12 st
+
+patch "Underwater" family=water note=36 range=24..48
+  # Below the surface: a dark wash and big, slow bubbles.
+  model          #14
+
+patch "Deep Underwater" family=water note=31 range=24..43
+  # Deeper still, almost nothing but the wash.
+  model          #14
+  tone           0.2
+  density        0.3
+
+patch "Diver" family=water note=40 range=28..52
+  # A diver's breath rising past.
+  model          #14
+  density        0.7
+  rise           0.8
+  volume         0.5
+
+patch "Light Rain" family=rain note=48 range=36..60
+  # A shower on water.
+  model          #2
+  density        0.35
+  tone           0.4
+  volume         1
+
+patch Downpour family=rain note=48 range=36..60
+  # Heavy rain, the hiss up.
+  model          #2
+  density        0.85
+  tone           0.6
+  volume         0.6
+
+patch "Rain on Leaves" family=rain note=48 range=36..60
+  # Drops on leaves: soft taps.
+  model          #2
+  density        0.6
+  surface        #1
+
+patch "Tin Roof" family=rain note=48 range=36..60
+  # Rain on a metal roof, ringing.
+  model          #2
+  density        0.55
+  surface        #2
+
+patch "Window" family=rain note=48 range=36..60
+  # Rain against glass, close.
+  model          #2
+  density        0.5
+  surface        #3
+  tone           0.3
+  volume         1
+
+patch "Hail" family=rain note=48 range=36..60
+  # Ice on a hard roof, bouncing.
+  model          #8
+
+patch "Hail on Tin" family=rain note=52 range=40..64
+  # Heavy hail on a tin roof, bright.
+  model          #8
+  density        0.7
+  tone           0.8
+
+patch "Light Hail" family=rain note=48 range=36..60
+  # A few hailstones, scattered.
+  model          #8
+  density        0.3
+
+patch "Rainstick" family=rain note=48 range=36..60
+  # Pebbles falling past the pins, thinning out.
+  model          #15
+
+patch "Long Rainstick" family=rain note=48 range=36..60
+  # A long stick, the fall slowing over seconds.
+  model          #15
+  decay          0.9
+
+patch "Short Rainstick" family=rain note=52 range=40..64
+  # A short stick turned quickly.
+  model          #15
+  decay          0.2
+  density        0.8
+
+patch Breeze family=weather note=36 range=24..48
+  # A soft wind coming and going.
+  model          #5
+  gust           0.6
+  tone           0.4
+
+patch Gale family=weather note=43 range=31..55
+  # Strong, gusty, bright.
+  model          #5
+  gust           1
+  tone           0.8
+  volume         0.85
+
+patch "Whistling Wind" family=weather note=48 range=31..60 role=tune
+  # Wind through a gap, whistling the note.
+  model          #5
+  whistle        0.8
+  gust           0.7
+  volume         0.4
+
+patch "Moaning Wind" family=weather note=31 range=19..43 role=tune
+  # Low, hollow, whistling.
+  model          #5
+  whistle        0.6
+  gust           0.8
+  tone           0.25
+  volume         1
+
+patch "Thunder" family=weather note=36 range=24..48
+  # A crack, then the rumble rolling away.
+  model          #7
+
+patch "Distant Thunder" family=weather note=31 range=24..43
+  # Far off: no crack to speak of, a low roll coming and going.
+  model          #7
+  tone           0.2
+  fade           1.5 s
+
+patch "Thunder Clap" family=weather note=40 range=28..52
+  # Close: a loud crack and a short rumble.
+  model          #7
+  tone           0.8
+  decay          0.3
+
+patch Campfire family=fire note=36 range=24..48
+  # Crackles and a soft roar.
+  model          #6
+  density        0.55
+  volume         1
+
+patch Bonfire family=fire note=36 range=24..48
+  # Loud pops and a big roar.
+  model          #6
+  density        0.8
+  gust           0.8
+  volume         1
+
+patch Embers family=fire note=36 range=24..48
+  # Just the odd crackle.
+  model          #6
+  density        0.3
+  gust           0.2
+  tone           0.2
+  volume         1
+
+patch Hearth family=fire note=36 range=24..48
+  # A steady fire indoors.
+  model          #6
+  density        0.5
+  gust           0.4
+  tone           0.5
+  volume         1
+
+patch "Sizzle" family=fire note=60 range=48..72
+  # Steam and fat in a hot pan.
+  model          #10
+
+patch "Steam" family=fire note=64 range=52..76
+  # A kettle's hiss and a few spits.
+  model          #10
+  density        0.3
+  tone           0.8
+
+patch "Frying" family=fire note=60 range=48..72
+  # A pan full, loud and busy.
+  model          #10
+  density        0.8
+
+patch "Ice" family=winter note=48 range=36..60
+  # A frozen pond cracking, its sheet ringing.
+  model          #11
+
+patch "Ice Groans" family=winter note=40 range=31..52
+  # Slow cracks, long glassy rings.
+  model          #11
+  decay          0.8
+  density        0.3
+
+patch "Ice Shards" family=winter note=60 range=48..72
+  # Small, quick cracks.
+  model          #11
+  density        0.7
+  decay          0.3
+
+patch "Snow Steps" family=winter note=48 range=36..60
+  # Footsteps in fresh snow.
+  model          #12
+
+patch "Snow Run" family=winter note=48 range=36..60
+  # Running through it, quick and crunchy.
+  model          #12
+  density        0.8
+
+patch "Packed Snow" family=winter note=52 range=40..64
+  # Old, hard snow, squeakier.
+  model          #12
+  tone           0.8
+
+patch "Weather Kit" family=kit note=36 range=36..51
+  # Sixteen pads: fire, wind, rain, drips, bubbles, a stream and surf, to play a scene on one track.
+  kit            1
+
+patch "Storm Kit" family=kit note=36 range=36..51
+  # Sixteen pads for a storm: rain, heavy rain, hail, wind, gusts, thunder near and far.
+  kit            1
+  p01_model      #2
+  p01_note       48
+  p01_density    0.4
+  p02_model      #2
+  p02_note       48
+  p02_density    0.8
+  p03_model      #2
+  p03_note       55
+  p03_density    0.6
+  p04_model      #8
+  p04_note       48
+  p04_density    0.5
+  p05_model      #8
+  p05_note       52
+  p05_density    0.8
+  p06_model      #5
+  p06_note       40
+  p06_density    0.4
+  p07_model      #5
+  p07_note       48
+  p07_density    0.7
+  p08_model      #5
+  p08_note       36
+  p08_density    0.9
+  p09_model      #7
+  p09_note       36
+  p09_density    0.5
+  p10_model      #7
+  p10_note       31
+  p10_density    0.5
+  p11_model      #7
+  p11_note       40
+  p11_density    0.5
+  p12_model      #1
+  p12_note       48
+  p12_density    0.3
+  p13_model      #4
+  p13_note       31
+  p13_density    0.6
+  p14_model      #3
+  p14_note       40
+  p14_density    0.5
+  p15_model      #15
+  p15_note       48
+  p15_density    0.5
+  p16_model      #9
+  p16_note       40
+  p16_density    0.6
+
+patch "Water Kit" family=kit note=36 range=36..51
+  # Sixteen pads of water: bubbles, drips, a stream, splashes, a waterfall and the deep.
+  kit            1
+  p01_model      #0
+  p01_note       36
+  p01_density    0.4
+  p02_model      #0
+  p02_note       48
+  p02_density    0.6
+  p03_model      #1
+  p03_note       40
+  p03_density    0.3
+  p04_model      #1
+  p04_note       48
+  p04_density    0.5
+  p05_model      #1
+  p05_note       55
+  p05_density    0.3
+  p06_model      #3
+  p06_note       40
+  p06_density    0.5
+  p07_model      #3
+  p07_note       48
+  p07_density    0.7
+  p08_model      #13
+  p08_note       48
+  p08_density    0.4
+  p09_model      #13
+  p09_note       40
+  p09_density    0.6
+  p10_model      #9
+  p10_note       40
+  p10_density    0.6
+  p11_model      #9
+  p11_note       48
+  p11_density    0.8
+  p12_model      #14
+  p12_note       36
+  p12_density    0.5
+  p13_model      #14
+  p13_note       31
+  p13_density    0.3
+  p14_model      #4
+  p14_note       31
+  p14_density    0.6
+  p15_model      #4
+  p15_note       36
+  p15_density    0.8
+  p16_model      #2
+  p16_note       48
+  p16_density    0.4

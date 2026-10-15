@@ -1,0 +1,192 @@
+# Chorus - voices, and a clock that will not hold still.
+#
+# `voices` is two, three or four taps, each swept at its own point in the LFO's
+# cycle and alternating across the image by `spread`. The extra is `drift`: a
+# slow random walk on each voice's delay, which is what a bucket-brigade line
+# does when its clock wanders. At nothing this is a clean digital chorus; at
+# the top no two voices agree about the tuning for long.
+#
+# Families: classic, voices, drift, parts.
+
+machine fx.Chorus
+
+patch Init family=classic
+
+patch Ensemble family=classic
+  # Three voices, wide, moving slowly: the string-machine sound. The point is
+  # width rather than depth, so the modulation stays shallow and the spread
+  # does the work.
+  voices         #1
+  rate           #14
+  depth          0.35
+  spread         0.9
+  drift          0.1
+  mix            0.55
+  gain           0 dB
+
+patch Lush family=classic
+  # Four voices with more depth and a slower sweep. Thick enough that a single
+  # oscillator sounds like a section, which is the only honest use for this.
+  voices         #2
+  rate           #15
+  depth          0.6
+  spread         0.8
+  drift          0.2
+  mix            0.6
+  gain           0 dB
+
+patch "Classic Two" family=classic
+  # The plain two-voice chorus on a quarter-bar sweep.
+  voices         #0
+  rate           #11
+  depth          0.45
+  spread         0.6
+  mix            0.5
+
+patch "Slow Wash" family=classic
+  # Very slow and deep: a pad that seems to breathe.
+  voices         #1
+  rate           #16
+  depth          0.75
+  spread         0.9
+  mix            0.6
+  gain           0 dB
+
+patch "Bright Shimmer" family=classic
+  # Quick and shallow, a sparkle on top.
+  voices         #1
+  rate           #8
+  depth          0.2
+  spread         0.8
+  mix            0.45
+
+patch Duo family=voices
+  # Two voices, hard apart, nearly no modulation: a doubler rather than a
+  # chorus. What you put on a part that should be wide and still in tune.
+  voices         #0
+  rate           #16
+  depth          0.15
+  spread         1.0
+  drift          0.05
+  mix            0.5
+  gain           -0.5 dB
+
+patch Quartet family=voices
+  # Four voices at the sweep's fastest useful rate. Dense, and just short of
+  # the point where the modulation becomes a vibrato you can hear counting.
+  voices         #2
+  rate           #11
+  depth          0.5
+  spread         0.7
+  drift          0.15
+  gain           -0.5 dB
+
+patch Trio family=voices
+  # Three voices spread evenly, a little drift.
+  voices         #1
+  rate           #13
+  depth          0.4
+  spread         0.75
+  drift          0.25
+  mix            0.55
+
+patch "Wide Quartet" family=voices
+  # Four voices, as wide as it goes.
+  voices         #2
+  rate           #14
+  depth          0.45
+  spread         1
+  mix            0.6
+  gain           0 dB
+
+patch "Narrow Pair" family=voices
+  # Two voices close together, thickening the middle.
+  voices         #0
+  rate           #12
+  depth          0.4
+  spread         0.15
+  mix            0.5
+
+patch Tape family=drift
+  # The clock wandering the way tape does: the pitch is never wrong enough to
+  # name and never right for long. Depth low, because the drift is doing the
+  # moving.
+  voices         #1
+  rate           #15
+  depth          0.2
+  spread         0.6
+  drift          0.6
+  mix            0.5
+  gain           -0.5 dB
+
+patch Seasick family=drift
+  # Drift at the top. Four voices each disagreeing about the tuning, none of
+  # them settling - past the point of being a chorus and into something that
+  # sounds broken on purpose.
+  voices         #2
+  rate           #16
+  depth          0.3
+  spread         0.9
+  drift          1.0
+  mix            0.6
+  gain           0 dB
+
+patch "Worn Tape" family=drift
+  # A tape machine's wobble, uneven.
+  voices         #0
+  rate           #14
+  depth          0.3
+  drift          0.7
+  mix            0.55
+
+patch "Lo-Fi Warble" family=drift
+  # Seasick and narrow, for a cassette feel.
+  voices         #0
+  rate           #9
+  depth          0.6
+  spread         0.2
+  drift          0.8
+  mix            0.7
+  gain           1.5 dB
+
+patch "Keys Chorus" family=parts
+  # For an electric piano: slow, wide and warm.
+  voices         #0
+  rate           #14
+  depth          0.5
+  spread         0.8
+  mix            0.5
+
+patch "Clean Guitar" family=parts
+  # The bright eighties clean guitar.
+  voices         #0
+  rate           #12
+  depth          0.55
+  spread         0.7
+  mix            0.55
+
+patch "Bass Chorus" family=parts
+  # Shallow and narrow, so the low end stays solid.
+  voices         #0
+  rate           #13
+  depth          0.3
+  spread         0.3
+  mix            0.35
+
+patch "Vocal Double" family=parts
+  # Nearly still, wide: a second singer.
+  voices         #0
+  rate           #15
+  depth          0.1
+  spread         1
+  drift          0.3
+  mix            0.45
+
+patch "Pad Width" family=parts
+  # Four voices, slow, to spread a pad across the stereo.
+  voices         #2
+  rate           #15
+  depth          0.4
+  spread         1
+  mix            0.6
+  gain           0 dB

@@ -1,0 +1,107 @@
+# Magneto - the sound of a small recordable disc's data-reduced formats.
+#
+# `mode` is the format. SP is the original: the top nearly all there, a
+# fine grain through the mids and highs. LP2 has half the bits: the top cut
+# below 16 kHz, grainy, a little smear on hits. LP4 has half again, with
+# left and right sharing them: the highs flicker in and out below a 14 kHz
+# cut and the upper mids narrow almost to mono. HQ is the
+# later high-rate format, the cleanest. XLP is its lowest rate, between LP2
+# and LP4. `dubs` copies it again, up to four generations, each losing a
+# little more.
+#
+# Families: clean, dubbed, blend.
+
+machine fx.Magneto
+
+patch Init family=clean
+
+patch "Long Play" family=clean
+  # LP2: twice the time on the disc, a grainier top.
+  mode           #1
+
+patch "Long Play x4" family=clean
+  # LP4: the highs come and go and the top goes narrow.
+  mode           #2
+
+patch "High Rate" family=clean
+  # HQ: the later format at its best, nearly clear.
+  mode           #3
+
+patch "Extra Long" family=clean
+  # XLP: the later format at its lowest rate.
+  mode           #4
+
+patch "Copy of a Copy" family=dubbed
+  # LP2 copied twice over.
+  mode           #1
+  dubs           #1
+
+patch "Fourth Generation" family=dubbed
+  # LP4 four times over: watery, swirling and thin.
+  mode           #2
+  dubs           #3
+
+patch "Mixtape" family=dubbed
+  # SP dubbed three times, the way a compilation was made.
+  dubs           #2
+
+patch "High Rate Dub" family=dubbed
+  # The high rate, copied once.
+  mode           #3
+  dubs           #1
+
+patch "Extra Long Dub" family=dubbed
+  # The longest play, copied twice.
+  mode           #4
+  dubs           #2
+
+patch "Long Play Third" family=dubbed
+  # Long play, three copies down.
+  mode           #1
+  dubs           #3
+
+patch "Original Dub" family=dubbed
+  # The standard mode, copied three times.
+  dubs           #3
+
+patch "Four Times Copied" family=dubbed
+  # The longest four-times mode, copied once.
+  mode           #2
+  dubs           #1
+
+patch "Worn Out" family=dubbed
+  # Extra long, copied three times: the most it can take.
+  mode           #4
+  dubs           #3
+
+patch "Under the Mix" family=blend
+  # LP4 half under the dry track: the grit without losing the top.
+  mode           #2
+  mix            0.5
+
+patch "Shimmer" family=blend
+  # XLP four times over, a little of it under the track for a swirl in the highs.
+  mode           #4
+  dubs           #3
+  mix            0.35
+
+patch "Faint Long Play" family=blend
+  # A little long play under the track.
+  mode           #1
+  mix            0.3
+
+patch "Half Extra Long" family=blend
+  # The longest play, half in.
+  mode           #4
+  mix            0.5
+
+patch "Ghost Copy" family=blend
+  # A worn copy of a copy, a third in.
+  mode           #2
+  dubs           #2
+  mix            0.35
+
+patch "High Rate Blend" family=blend
+  # The high rate's sheen, half in.
+  mode           #3
+  mix            0.5

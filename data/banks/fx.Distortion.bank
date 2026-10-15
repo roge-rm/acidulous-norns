@@ -1,0 +1,150 @@
+# Distortion - four curves and an asymmetry.
+#
+# `mode` is which curve: soft is a tanh and rounds the peaks, hard clips them
+# flat, fold turns them back on themselves and goes somewhere no amplifier
+# does, tube is soft with a knee. `bias` is the extra: it pushes the signal off
+# centre before the curve, so the two halves of the wave are treated
+# differently and even harmonics appear - which is the difference between a
+# valve and a transistor, and the reason one is described as warm.
+#
+# Families: soft, hard, fold, tube.
+
+machine fx.Distortion
+
+patch Init family=soft
+
+patch Warm family=soft
+  # Barely there: enough to round the peaks and thicken the middle, and not
+  # enough to hear as an effect. The setting that goes on things rather than
+  # the one that is the point of them.
+  drive          2.5
+  tone           9000 Hz
+  mix            0.55
+  gain           -0.5 dB
+
+patch Crunch family=soft
+  # Where it starts being audible. The top rolled back, because a distortion
+  # that keeps every harmonic it makes is a fizz rather than a crunch.
+  drive          9
+  tone           5000 Hz
+
+patch Overdrive family=soft
+  # A pedal's warm overdrive.
+  drive          6
+  tone           6000 Hz
+
+patch Saturate family=soft
+  # Just enough to fatten, mixed in.
+  drive          3
+  mix            0.4
+  gain           -1 dB
+
+patch "Warm Bass" family=soft
+  # Drive on the bass without losing the low end.
+  drive          4
+  tone           3000 Hz
+  mix            0.6
+  gain           -1 dB
+
+patch Fuzz family=hard
+  # Clipped flat and hard. Everything above the threshold is the same height,
+  # so what comes out is closer to a square than to what went in, and the
+  # dynamics of the source are gone on purpose.
+  mode           #1
+  drive          22
+  tone           6500 Hz
+
+patch Wall family=hard
+  # The end of the range with the tone wide open: no dynamics, no top cut,
+  # nothing left of the original but its rhythm.
+  mode           #1
+  drive          40
+  tone           16000 Hz
+
+patch Razor family=hard
+  # Hard clipping, bright.
+  mode           #1
+  drive          15
+  tone           12000 Hz
+  gain           -1.5 dB
+
+patch "Square Up" family=hard
+  # Clipped to nearly a square.
+  mode           #1
+  drive          40
+  tone           5000 Hz
+  gain           1 dB
+
+patch "Thin Fuzz" family=hard
+  # Fuzz with the low end cut.
+  mode           #1
+  drive          20
+  tone           9000 Hz
+  bias           0.3
+  gain           -0.5 dB
+
+patch Fold family=fold
+  # The curve turns back on itself instead of flattening, so a peak that goes
+  # further comes out *lower*. Nothing physical does this, which is why it
+  # sounds like nothing physical - the harmonics it makes are not a series.
+  mode           #2
+  drive          7
+  tone           8000 Hz
+
+patch Shatter family=fold
+  # Folding hard, where the wave crosses back on itself several times in one
+  # cycle. A sine goes in and something with no fundamental left comes out.
+  mode           #2
+  drive          26
+  tone           12000 Hz
+
+patch Wavefolder family=fold
+  # Folded back on itself: overtones that move with the level.
+  mode           #2
+  drive          8
+  gain           -1 dB
+
+patch "Deep Fold" family=fold
+  # Folded many times, metallic.
+  mode           #2
+  drive          25
+  tone           8000 Hz
+  gain           1.5 dB
+
+patch Tube family=tube
+  # The soft knee, driven where a valve would be working: the peaks compress
+  # before they distort, so it gets louder and fatter before it gets dirty.
+  mode           #3
+  drive          11
+  tone           7000 Hz
+  bias           0.25
+
+patch Asymmetric family=tube
+  # Bias at its most, which makes the curve treat the two halves of the wave
+  # differently and fills in the even harmonics - the octave rather than the
+  # fifth. This is the control that is not on most distortion boxes.
+  mode           #3
+  drive          14
+  tone           6000 Hz
+  bias           0.85
+  mix            0.8
+
+patch "Valve Warmth" family=tube
+  # A valve's even harmonics, gently.
+  mode           #3
+  drive          3
+  bias           0.4
+
+patch "Hot Tube" family=tube
+  # Driven hard into the valve.
+  mode           #3
+  drive          14
+  tone           6000 Hz
+  gain           -0.5 dB
+
+patch "Broken Valve" family=tube
+  # Biased off, sputtering.
+  mode           #3
+  drive          10
+  bias           0.9
+  gain           0 dB

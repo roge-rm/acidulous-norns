@@ -1,0 +1,103 @@
+Acidulous
+Copyright (C) 2026 Dan Hunke
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option)
+any later version. See LICENSE for the full text.
+
+
+Third-party components
+----------------------
+
+Oboe — Apache License 2.0
+  https://github.com/google/oboe
+  The audio driver's stream. Apache 2.0 is compatible with GPLv3 (and not
+  with GPLv2, which is why this project is GPLv3-or-later).
+  Licence text: licences/Apache-2.0.txt
+
+LAME 3.100 — GNU Library General Public License, version 2
+  https://lame.sourceforge.io/
+  MP3 encoding. Vendored under app/src/main/cpp/third_party/lame and built
+  as its own libmp3lame.so, linked against and never compiled in, which is
+  the relinking freedom the LGPL asks for; LGPLv2 §3 is what lets a copy be
+  taken under GPLv3-or-later. See that directory's PROVENANCE.md.
+  Licence text: app/src/main/cpp/third_party/lame/COPYING
+
+Ableton Link 4.0 — GNU General Public License, version 2 or later
+  https://github.com/Ableton/link
+  A tempo, a beat and a bar line shared with other machines on the same
+  network. Dual-licensed: the GPL, or a proprietary licence from Ableton.
+  This app takes the GPL, which is what GPLv3-or-later may do with
+  GPLv2-or-later code. Vendored under app/src/main/cpp/third_party/link;
+  header-only, so it is compiled into libacidulous.so.
+  Licence text: licences/GPL-2.0.txt
+
+asio 1.36.0 — Boost Software License 1.0
+  https://github.com/chriskohlhoff/asio
+  The sockets and timers Link is built on; it comes with Link and is used
+  header-only. Vendored under app/src/main/cpp/third_party/asio.
+  Licence text: app/src/main/cpp/third_party/asio/LICENSE_1_0.txt
+
+miniaudio 0.11.22 — public domain (the Unlicense), or MIT No Attribution
+  https://miniaud.io/
+  The desktop build's audio driver, in place of Oboe: PulseAudio, ALSA or
+  JACK. Header-only, compiled into the desktop's libacidulous.so and not
+  into the phone's. Either licence is the licensee's choice; neither asks for
+  a notice. See app/src/main/cpp/third_party/miniaudio/PROVENANCE.md.
+
+alsa-lib 1.2.14 — GNU Lesser General Public License, version 2.1 or later
+  https://www.alsa-project.org/
+  MIDI on Linux, through ALSA's sequencer: the desktop build only. Its headers
+  are vendored under app/src/main/cpp/third_party/alsa; the library itself is
+  the system's libasound, opened at run time and never compiled in. See that
+  directory's PROVENANCE.md.
+  Licence text: licences/LGPL-2.1.txt
+
+ASIO SDK 2.3.4 — GNU General Public License, version 3 (one of the two
+licences Steinberg offers it under; the other is proprietary)
+  https://www.steinberg.net/developers/
+  The Windows build only: playing and recording through an interface's own
+  low-latency driver. The host side is vendored under
+  app/src/main/cpp/third_party/asiosdk (see its PROVENANCE.md); the files in
+  its host/ folder carry this licence of their own:
+
+    (c) 2025, Steinberg Media Technologies GmbH, All Rights Reserved
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+      * Redistributions of source code must retain the above copyright notice,
+        this list of conditions and the following disclaimer.
+      * Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in the
+        documentation and/or other materials provided with the distribution.
+      * Neither the name of the Steinberg Media Technologies nor the names of
+        its contributors may be used to endorse or promote products derived
+        from this software without specific prior written permission.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+  ASIO is a trademark and software of Steinberg Media Technologies GmbH.
+
+DejaVu Sans and Noto Sans Symbols / Runic — Bitstream Vera licence (DejaVu's
+changes public domain) and SIL Open Font License 1.1
+  https://dejavu-fonts.github.io/  https://fonts.google.com/noto
+  The browser build only: small subsets for the symbols the app draws as text,
+  since a browser lends no system fonts.
+  Licence texts: web/app/src/wasmJsMain/resources/fonts/NOTICE.txt
+
+Everything else in this repository is original work. The C++ engine, every
+machine and effect, the sequencer, the WAV, AIFF and FLAC writers and the
+MIDI file writer were all written for this project; no DSP, presets or
+samples are taken from anywhere else.
+
+Every one of these licence texts is shipped inside the app and can be read
+from its About window.

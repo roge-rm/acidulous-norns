@@ -1,0 +1,101 @@
+# Shifter - the one effect here that nothing else can imitate.
+#
+# Not a pitch shifter. A pitch shifter multiplies every partial by the same
+# ratio and the sound keeps its harmonic series; this *adds* the same number of
+# hertz to all of them, so 100, 200, 300 becomes 180, 280, 380 and the series
+# is gone. A few hertz is a phasing that never repeats, because the two sides
+# beat against each other forever; a few hundred is struck metal.
+#
+# The extra is `spread`: the two channels shift in opposite directions, which
+# nothing acoustic does, and which turns a mono source into something that will
+# not sit still.
+#
+# Families: subtle, extreme, stereo.
+
+machine fx.Shifter
+
+patch Init family=subtle
+
+patch Phasing family=subtle
+  # Under a hertz. Too little to hear as pitch and too much to stay still: the
+  # whole spectrum slides against itself and the beating never repeats, because
+  # nothing here is a multiple of anything.
+  shift          0 Hz
+  fine           0.7 Hz
+  mix            0.5
+  gain           3 dB
+
+patch Detune family=subtle
+  # A few hertz, which on a low note is most of a semitone and on a high one is
+  # nothing at all. That inconsistency is the effect - it is what tells you this
+  # is not a pitch shifter.
+  shift          4 Hz
+  mix            0.45
+  gain           2.5 dB
+
+patch Wobble family=subtle
+  # A slow beat, half a hertz up.
+  shift          0.5 Hz
+  mix            0.5
+  gain           2.5 dB
+
+patch "Chorus Shift" family=subtle
+  # A few hertz each way, a chorus without a sweep.
+  shift          2 Hz
+  spread         0.8
+  mix            0.5
+  gain           2 dB
+
+patch Metallic family=extreme
+  # A hundred and forty hertz up. Every partial moves by the same amount, so
+  # what was harmonic is not any more and the result rings like something
+  # struck rather than played.
+  shift          140 Hz
+  mix            0.6
+  gain           3.5 dB
+
+patch Bell family=extreme
+  # Further up with a little feedback, so each pass shifts again and the
+  # partials walk away from each other in a ladder. Bells are inharmonic; this
+  # is how you make one out of anything.
+  shift          320 Hz
+  feedback       0.45
+  mix            0.65
+  gain           0.5 dB
+
+patch Inharmonic family=extreme
+  # Shifted *down*, which hollows a sound out instead of brightening it: the
+  # low partials cross zero and fold back up, and what comes out has no
+  # fundamental where the original had one.
+  shift          -180 Hz
+  fine           -3 Hz
+  mix            0.6
+  gain           2.8 dB
+
+patch Robot family=extreme
+  # Shifted far down, the voice gone metal.
+  shift          -180 Hz
+  mix            0.8
+
+patch Spiral family=extreme
+  # Fed back on itself, rising for ever.
+  shift          40 Hz
+  feedback       0.7
+  mix            0.6
+  gain           2 dB
+
+patch Opposing family=stereo
+  # The two channels shifted in opposite directions. The mid cancels where the
+  # sides reinforce and the image tears itself apart slowly - the setting that
+  # exists because nothing physical can do it.
+  shift          12 Hz
+  spread         1.0
+  mix            0.55
+  gain           2.5 dB
+
+patch "Wide Detune" family=stereo
+  # Each side shifted the other way, a little.
+  shift          4 Hz
+  spread         1
+  mix            0.5
+  gain           2 dB

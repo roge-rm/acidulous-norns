@@ -1,0 +1,163 @@
+# Tape - a worn tape machine.
+#
+# The speed wanders slowly (`wow`) and quickly (`flutter`), the tape
+# saturates as it's driven with a bump in the lows and the highs rolling off
+# above `tone`, and `hiss` is underneath. `age` makes the wow less even and
+# the bump bigger.
+#
+# The extra is `stop`: switched on, the tape slows to a halt over
+# `stoptime`, the pitch falling with it. Switched off, it's back at speed at
+# once. Map it to a button.
+#
+# Families: warm, worn, broken.
+
+machine fx.Tape
+
+patch Init family=warm
+
+patch Warm family=warm
+  # Hardly any wobble, a little drive and the top rounded: a mix on tape.
+  wow            0.08
+  flutter        0.05
+  drive          0.4
+  tone           14000 Hz
+  hiss           0.05
+  age            0.1
+
+patch Saturate family=warm
+  # Driven hard, clean otherwise: thick, without the wobble.
+  wow            0
+  flutter        0
+  drive          0.85
+  tone           11000 Hz
+  hiss           0.02
+  gain           -2 dB
+
+patch "Clean Reel" family=warm
+  # A good machine: a touch of warmth, nothing else.
+  wow            0.05
+  flutter        0.05
+  drive          0.2
+  hiss           0.03
+
+patch "Hot Reel" family=warm
+  # Driven hard into the tape.
+  drive          0.8
+  wow            0.1
+  hiss           0.05
+  gain           -3 dB
+
+patch "Soft Top" family=warm
+  # The top rolled off, round.
+  tone           6000 Hz
+  drive          0.4
+
+patch Cassette family=worn
+  # A cassette: the top gone, some hiss, a steady wow.
+  wow            0.35
+  flutter        0.3
+  drive          0.35
+  tone           7000 Hz
+  hiss           0.35
+  age            0.4
+
+patch Dictaphone family=worn
+  # Narrow and noisy: a voice memo.
+  wow            0.3
+  flutter        0.6
+  drive          0.5
+  tone           3500 Hz
+  hiss           0.6
+  age            0.6
+  gain           -1.5 dB
+
+patch Seasick family=worn
+  # The wow turned right up: keys and pads that drift out of tune.
+  wow            0.9
+  flutter        0.2
+  drive          0.3
+  tone           10000 Hz
+  hiss           0.15
+  age            0.7
+
+patch "Old Reel" family=worn
+  # Wow and hiss, a reel from the attic.
+  wow            0.5
+  flutter        0.3
+  hiss           0.3
+  age            0.6
+
+patch "Answering Machine" family=worn
+  # Small, hissy and wobbly.
+  tone           3500 Hz
+  wow            0.4
+  hiss           0.4
+  age            0.8
+
+patch "Lo-Fi Loop" family=worn
+  # Gentle wobble and dust, for a beat.
+  wow            0.3
+  flutter        0.2
+  hiss           0.2
+  age            0.5
+  tone           8000 Hz
+
+patch VHS family=worn
+  # A video tape's warble and dull top.
+  wow            0.35
+  flutter        0.5
+  tone           5000 Hz
+  hiss           0.25
+
+patch Stretched family=broken
+  # A tape that's been stretched: uneven wow and a lot of flutter.
+  wow            0.7
+  flutter        0.9
+  drive          0.4
+  tone           8000 Hz
+  hiss           0.25
+  age            1
+  gain           -1.5 dB
+
+patch "Quick Stop" family=broken
+  # Set for a fast stop: switch `stop` on for the end of a phrase.
+  wow            0.15
+  flutter        0.1
+  drive          0.4
+  stoptime       0.3 s
+  hiss           0.1
+
+patch "Slow Stop" family=broken
+  # A long wind-down, two and a half seconds, on an older, duller machine.
+  wow            0.3
+  flutter        0.15
+  drive          0.3
+  tone           8000 Hz
+  age            0.6
+  stoptime       2.5 s
+  hiss           0.15
+
+patch Chewed family=broken
+  # The tape caught in the heads.
+  wow            0.9
+  flutter        0.8
+  age            1
+
+patch "Dying Battery" family=broken
+  # Slowing and wavering.
+  wow            1
+  flutter        0.4
+  age            0.7
+  tone           6000 Hz
+
+patch "Brake Stop" family=broken
+  # Stop on: a long slowdown.
+  stop           #1
+  stoptime       2.5 s
+  gain           2.5 dB
+
+patch "Snap Stop" family=broken
+  # Stop on: a quick halt.
+  stop           #1
+  stoptime       0.2 s
+  gain           8.5 dB

@@ -1,0 +1,104 @@
+# Mouth - Diction's throat on any track.
+#
+# Five formants and a nose: whatever goes through is shaped into a vowel,
+# from oo through oh, ah and eh to ee as `vowel` goes up. `size` is the size
+# of the throat, from big and dark to small and bright, and `nasal` opens
+# the nose.
+#
+# `move` says what moves the vowel: an LFO on the tempo at `rate`, the
+# track's own level (louder opens the mouth, a wah that talks), or another
+# track through the sidechain. `depth` is how far it moves from `vowel`.
+#
+# Families: talk, sweep, key.
+
+machine fx.Mouth
+
+patch Init family=sweep
+
+patch Talk family=talk
+  # Moved by the track's own level: louder notes say "ah", quiet ones "oo".
+  move           #1
+  vowel          0.05
+  depth          0.7
+  size           0.5
+
+patch Yowl family=talk
+  # Further and brighter: a lead that yowls as it's played harder.
+  move           #1
+  vowel          0.1
+  depth          1
+  size           0.35
+  nasal          0.2
+  gain           2 dB
+
+patch Choir family=talk
+  # Held on "ah", a bigger throat: a pad that sings.
+  vowel          0.5
+  depth          0
+  size           0.7
+  mix            0.8
+  gain           -2 dB
+
+patch Ah family=talk
+  # An open ah, held.
+  move           #0
+  vowel          0.1
+  size           0.5
+  gain           -0.5 dB
+
+patch "Small Mouth" family=talk
+  # A smaller mouth, higher and nasal.
+  move           #0
+  vowel          0.4
+  size           0.2
+  nasal          0.5
+  gain           5 dB
+
+patch Wow family=sweep
+  # A slow sweep on the beat: oo to ah and back every bar.
+  move           #0
+  rate           #13
+  vowel          0.05
+  depth          0.55
+
+patch Chatter family=sweep
+  # Fast and nasal: an eighth-note chatter.
+  move           #0
+  rate           #5
+  vowel          0.25
+  depth          0.6
+  nasal          0.4
+  gain           4 dB
+
+patch Robot family=sweep
+  # Small and bright, sixteenth steps of vowel: a robot reading aloud.
+  move           #0
+  rate           #2
+  vowel          0.4
+  depth          0.6
+  size           0.25
+  gain           2 dB
+
+patch "Wah Sweep" family=sweep
+  # A slow sweep from oo to ee, on the beat.
+  move           #1
+  rate           #13
+  depth          0.9
+  vowel          0.5
+  gain           1 dB
+
+patch Vocode family=key
+  # The vowel follows another track: point the sidechain at a drum loop and
+  # a pad talks in its rhythm.
+  move           #2
+  vowel          0.05
+  depth          0.9
+
+patch Mumble family=key
+  # The sidechain, moved only a little, dark and nasal.
+  move           #2
+  vowel          0.15
+  depth          0.4
+  size           0.75
+  nasal          0.5
+  gain           3.5 dB
