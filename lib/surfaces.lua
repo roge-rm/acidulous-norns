@@ -8,6 +8,7 @@
 --   lost()           it was unplugged: forget it, sending nothing
 --   disconnect()     hand it back, on the script's cleanup
 --   connected()      true while it's in use
+--   owns(dev)        true if dev (a norns device, from midi.remove) is the one in use
 --   frame()          15 times a second: update its LEDs
 --   and optionally
 --   wants_screen()   true while it can show a screen
@@ -43,7 +44,7 @@ end
 
 function S.removed(dev)
   for _, kind in ipairs(S.kinds) do
-    if kind.match(dev.name) and kind.connected() then kind.lost() end
+    if kind.connected() and kind.owns(dev) then kind.lost() end
   end
 end
 

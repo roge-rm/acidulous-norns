@@ -50,6 +50,7 @@ surf.flash = nil
 
 surf.match = omx.is_omx
 function surf.connected() return omx.port_open() end
+function surf.owns(d) return omx.owns(d) end
 function surf.remote() return omx.is_remote() end
 function surf.wants_screen() return omx.is_remote() end
 surf.screen_send = omx.screen_send

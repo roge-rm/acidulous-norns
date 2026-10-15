@@ -58,17 +58,38 @@ local function mpe_detected()
 end
 
 -- True if port's MIDI goes to the MPE part. "auto" is an Exquis or QuNexus
--- if one is plugged in, otherwise the "midi from" device.
+-- if one is plugged in, otherwise nothing: other controllers are picked.
 local function mpe_source(port)
   local sel = params:get("mpe_device")
-  if sel == 1 then
-    local found = mpe_detected()
-    if found then return port == found end
-    local dev = params:get("midi_device")
-    return dev == 1 or dev - 1 == port
-  end
+  if sel == 1 then return port == mpe_detected() end
   return sel == 2 or sel - 2 == port
 end
+
+-- Where each held note went, so its note off goes to the same places whatever
+-- has changed since. Keyed by source (a port, or "omx"), channel and note;
+-- each holds a list of {part, engine channel}. For "omx" the channel is the part.
+local active = {}
+
+local function akey(src, ch, note) return src .. ":" .. ch .. ":" .. note end
+
+local function remember(src, ch, note, i, ech)
+  local k = akey(src, ch, note)
+  local list = active[k]
+  if not list then list = {}; active[k] = list end
+  list[#list + 1] = {i, ech}
+end
+
+local function forget_part(i)
+  for k, list in pairs(active) do
+    for n = #list, 1, -1 do
+      if list[n][1] == i then table.remove(list, n) end
+    end
+    if #list == 0 then active[k] = nil end
+  end
+end
+parts.on_notes_off = forget_part
+
+local function is_off(kind, d2) return kind == 0x80 or (kind == 0x90 and d2 == 0) end
 
 -- Sends one message to part i, on the engine's channel ch.
 local function send_to(i, kind, ch, d1, d2)
@@ -93,36 +114,64 @@ local function unpack_midi(data)
   return status & 0xF0, (status & 0x0F) + 1, data[2] or 0, data[3] or 0
 end
 
+-- A note off goes to wherever the note on went.
+local function release(src, kch, note)
+  local k = akey(src, kch, note)
+  local list = active[k]
+  if not list then return end
+  active[k] = nil
+  for _, t in ipairs(list) do send_to(t[1], 0x80, t[2], note, 0) end
+end
+
 -- Notes, CCs, bend and channel pressure go to every part on their channel,
 -- except the MPE part. While a part is MPE the others get channel 1 in the
--- engine, so their bend and pressure stay whole-part.
-local function play(data)
+-- engine, so their bend and pressure stay whole-part. src and kch name the
+-- note for release (the port and channel unless the caller says).
+local function play(data, src, kch)
   local kind, ch, d1, d2 = unpack_midi(data)
   if not kind then return end
+  if is_off(kind, d2) then
+    release(src, kch or ch, d1)
+    return
+  end
   for i, part in ipairs(parts.list) do
     if part.channel == ch and part.machine and parts.mpe ~= i then
-      send_to(i, kind, parts.mpe and 1 or ch, d1, d2)
+      local ech = parts.mpe and 1 or ch
+      send_to(i, kind, ech, d1, d2)
+      if kind == 0x90 then remember(src, kch or ch, d1, i, ech) end
     end
   end
 end
 
 -- Everything from the MPE source goes to the MPE part on its own channel:
 -- the engine treats channels 2-16 as one finger each.
-local function play_mpe(data)
+local function play_mpe(data, src)
   local kind, ch, d1, d2 = unpack_midi(data)
   if not kind then return end
+  if is_off(kind, d2) then
+    release(src, ch, d1)
+    return
+  end
   local i = parts.mpe
-  if parts.list[i].machine then send_to(i, kind, ch, d1, d2) end
+  if parts.list[i].machine then
+    send_to(i, kind, ch, d1, d2)
+    if kind == 0x90 then remember(src, ch, d1, i, ch) end
+  end
 end
 
 local function midi_event(port, data)
+  local kind, ch, d1, d2 = unpack_midi(data)
+  if kind and is_off(kind, d2) then
+    release(port, ch, d1)
+    return
+  end
   if parts.mpe and mpe_source(port) then
-    play_mpe(data)
+    play_mpe(data, port)
     return
   end
   local dev = params:get("midi_device")
   if dev > 1 and dev - 1 ~= port then return end
-  play(data)
+  play(data, port)
 end
 acid.midi = midi_event
 
@@ -131,11 +180,13 @@ acid.midi = midi_event
 -- MPE part (on the master channel).
 local function part_note(i, note, vel)
   local part = parts.list[i]
-  if part.channel > 0 and parts.mpe ~= i then
-    play({(vel > 0 and 0x90 or 0x80) | (part.channel - 1), note, vel})
+  if vel == 0 then
+    release("omx", i, note)
+  elseif part.channel > 0 and parts.mpe ~= i then
+    play({0x90 | (part.channel - 1), note, vel}, "omx", i)
   elseif part.machine then
-    parts.send("/note", {i - 1, 1, note, vel})
-    parts.note(i, vel > 0)
+    send_to(i, 0x90, 1, note, vel)
+    remember("omx", i, note, i, 1)
   end
 end
 
@@ -252,6 +303,8 @@ function cleanup()
   for i = 1, parts.COUNT do
     if parts.list[i].machine then parts.notes_off(i) end
   end
+  active = {}
+  parts.on_notes_off = nil
   for i = 1, 16 do midi.vports[i].event = nil end
   acid = nil
 end
@@ -272,6 +325,7 @@ function redraw()
     view.starting(parts.error)
     return
   end
+  state.mpe_missing = parts.mpe ~= nil and params:get("mpe_device") == 1 and mpe_detected() == nil
   surfaces.frame()
   surfaces.screens()
   local note = omx_problem and util.time() - omx_problem.at < 10 and omx_problem.text or nil

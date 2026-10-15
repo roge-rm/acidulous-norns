@@ -66,7 +66,13 @@ function view.main(parts, state, note)
     if on and state.k1 then screen.level(15) end
     text(20, y, m and m.short or "-")
     screen.level(on and state.k1 and 6 or bright)
-    if part.machine then text(48, y, fit(part.patch or "", 66)) end
+    if part.machine then
+      if parts.mpe == i and state.mpe_missing then
+        text(48, y, "mpe: no device")
+      else
+        text(48, y, fit(part.patch or "", 66))
+      end
+    end
     -- a dot while a note is held or just played, and the part's level
     if part.held > 0 or util.time() - part.last_note < 0.15 then
       screen.level(15)

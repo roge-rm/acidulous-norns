@@ -198,6 +198,7 @@ function P.notes_off(i)
   local part = P.list[i]
   send("/cc", {i - 1, P.mpe == i and 1 or math.max(part.channel, 1), 123, 0})
   part.held = 0
+  if P.on_notes_off then P.on_notes_off(i) end
 end
 
 -- The machine's params live in pre-made slots, renamed and given the new
@@ -524,7 +525,9 @@ function P.audition(i, z)
   if not part.machine then return end
   local m = P.machine_info(part.machine)
   local note = m and m.note or 48
-  local ch = P.mpe == i and 1 or math.max(part.channel, 1)
+  -- with an MPE zone active, a non-MPE part keeps to channel 1
+  local ch = P.mpe and 1 or math.max(part.channel, 1)
+  if z == 1 then part.aud_ch = ch else ch = part.aud_ch or ch end
   send("/note", {i - 1, ch, note, z == 1 and 100 or 0})
   P.note(i, z == 1)
 end

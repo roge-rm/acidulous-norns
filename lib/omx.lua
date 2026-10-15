@@ -29,6 +29,7 @@ omx.midi = function(data, port) end
 
 local dev
 local port_n -- dev's port in midi.vports
+local dev_id -- the norns device id, which stays the same while it's plugged in
 -- true once the OMX has been asked into REMOTE; it ignores LEDs and frames before that
 local remote = false
 local rx = {}
@@ -38,7 +39,8 @@ local leds, shown = {}, {}
 local frame_pending = false
 local frame_sent_at = 0
 local KEEP_ALIVE = 30 -- seconds; the OMX's own screensaver starts after 3 min without a frame
-local last_chunks = {}
+local last_chunks = {} -- chunks the OMX has acked, as shown
+local sent_chunks = {}   -- chunks in the frame in flight, kept once it's acked
 
 local function send(cmd, payload)
   local m = {table.unpack(HEAD)}
@@ -57,7 +59,11 @@ local function handle(m)
     return
   end
   if m[5] == 0x52 then
-    if m[6] == 0x04 then frame_pending = false end
+    if m[6] == 0x04 then
+      frame_pending = false
+      for c, chunk in pairs(sent_chunks) do last_chunks[c] = chunk end
+      sent_chunks = {}
+    end
     return
   end
   if m[5] ~= 0x51 then return end
@@ -108,10 +114,11 @@ function omx.connect()
     if v.device and omx.is_omx(v.name) then
       dev = midi.connect(i)
       port_n = i
+      dev_id = v.device.id
       dev.event = on_midi
       remote = false
       for n = 0, 26 do leds[n] = {0, 0, 0}; shown[n] = {-1, -1, -1} end
-      last_chunks = {}
+      last_chunks, sent_chunks = {}, {}
       frame_pending = false
       version_reply = nil
       -- a newer connect (it was plugged in again) takes over from this one
@@ -122,7 +129,7 @@ function omx.connect()
         send(0x51, {0x05, MODE_REMOTE})
         -- everything again in full, now that it's listening
         for n = 0, 26 do shown[n] = {-1, -1, -1} end
-        last_chunks = {}
+        last_chunks, sent_chunks = {}, {}
         frame_pending = false
         remote = true
       end
@@ -193,13 +200,18 @@ function omx.port_open() return dev ~= nil end
 -- true once it's in REMOTE mode
 function omx.is_remote() return dev ~= nil and remote end
 
+-- true if d, a norns device, is the one in use
+function omx.owns(d)
+  return dev ~= nil and d ~= nil and dev_id ~= nil and d.id == dev_id
+end
+
 -- its port in midi.vports, while in use
 function omx.port() return dev and port_n end
 
 -- The OMX-27 was unplugged: forget it without sending anything.
 function omx.lost()
   if dev then dev.event = nil end
-  dev = nil
+  dev, dev_id = nil, nil
   remote = false
   frame_pending = false
 end
@@ -208,7 +220,7 @@ function omx.disconnect()
   if dev then
     send(0x51, {0x05, MODE_MI})
     dev.event = nil
-    dev = nil
+    dev, dev_id = nil, nil
     remote = false
   end
 end
@@ -254,7 +266,7 @@ end
 
 -- Makes the next screen_send send the whole frame, not just what changed.
 function omx.screen_refresh()
-  last_chunks = {}
+  last_chunks, sent_chunks = {}, {}
 end
 
 -- Sends the 128x32 region of the norns screen at (x, y) to the OMX screen.
@@ -262,7 +274,11 @@ end
 -- shown yet, so drawing can never run ahead of the OMX.
 function omx.screen_send(x, y)
   if not dev or not remote then return false end
-  if frame_pending and util.time() - frame_sent_at < 0.25 then return false end
+  if frame_pending then
+    if util.time() - frame_sent_at < 0.25 then return false end
+    -- no ack: the frame may have been dropped, so its chunks count as unsent
+    sent_chunks = {}
+  end
   local px = screen.peek(x or 0, y or 0, 128, 32)
   if not px then return false end
   -- SSD1306 pages, turned 180 degrees as the panel is mounted
@@ -289,7 +305,7 @@ function omx.screen_send(x, y)
       local payload = {c}
       for _, b in ipairs(enc7(chunk)) do payload[#payload + 1] = b end
       send(0x5C, payload)
-      last_chunks[c] = chunk
+      sent_chunks[c] = chunk
       any = true
     end
   end
