@@ -1,4 +1,5 @@
--- The norns screen: the parts list and a part's macro page.
+-- The norns screen: the parts list and a part's macro page, and the
+-- OMX-27's 128x32 screen.
 
 local view = {}
 
@@ -24,11 +25,14 @@ local function meter(peak)
 end
 
 -- Load in the top right, and a warning on the left while the worst block has
--- been over 80% in the last 2 seconds.
-local function header(parts, left)
+-- been over 80% in the last 2 seconds, or `note` if there is one.
+local function header(parts, left, note)
   screen.level(4)
   text(127, 6, string.format("%d%%", math.floor(parts.load + 0.5)), "right")
-  if util.time() - parts.worst_at < 2 then
+  if note then
+    screen.level(15)
+    text(0, 6, fit(note, 104))
+  elseif util.time() - parts.worst_at < 2 then
     screen.level(15)
     text(0, 6, string.format("overload %d%%", math.floor(parts.worst + 0.5)))
   elseif left then
@@ -37,13 +41,13 @@ local function header(parts, left)
   end
 end
 
--- state: sel (part), k1 (held)
-function view.main(parts, state)
+-- state: sel (part), k1 (held). note: a line for the header, or nil
+function view.main(parts, state, note)
   screen.clear()
   screen.font_face(1)
   screen.font_size(8)
   local sel = parts.list[state.sel]
-  header(parts, sel.machine and (sel.n .. " " .. sel.machine .. "  " .. (sel.patch or "")) or nil)
+  header(parts, sel.machine and (sel.n .. " " .. sel.machine .. "  " .. (sel.patch or "")) or nil, note)
   for i, part in ipairs(parts.list) do
     local y = 7 + 7 * i
     local on = i == state.sel
@@ -81,12 +85,14 @@ end
 
 -- The part's 5 macros, a row each: label, bar of the 0-1 value, readout.
 -- state: sel, macro (selected row). list: from macros.resolve
-function view.macros(parts, state, list)
+-- Labels get a column wide enough for any 6-letter label.
+local LABEL_W, BAR_X, BAR_W = 36, 38, 44
+function view.macros(parts, state, list, note)
   screen.clear()
   screen.font_face(1)
   screen.font_size(8)
   local part = parts.list[state.sel]
-  header(parts, part.n .. " " .. (part.machine or "none") .. "  " .. (part.patch or ""))
+  header(parts, part.n .. " " .. (part.machine or "none") .. "  " .. (part.patch or ""), note)
   for k, mac in ipairs(list) do
     local y = 7 + 11 * k
     local on = k == state.macro
@@ -97,23 +103,70 @@ function view.macros(parts, state, list)
     end
     local p = mac.slot and params:lookup_param(parts.id(state.sel, "s" .. mac.slot))
     screen.level(p and (on and 15 or 6) or 2)
-    text(1, y, mac.label)
+    text(1, y, fit(mac.label, LABEL_W))
     if p then
       local v = p:get()
       screen.level(on and 6 or 2)
-      screen.rect(34, y - 4, 46, 3)
+      screen.rect(BAR_X, y - 4, BAR_W, 3)
       screen.fill()
       screen.level(on and 15 or 8)
-      local w = math.floor(v * 46 + 0.5)
+      local w = math.floor(v * BAR_W + 0.5)
       if w > 0 then
-        screen.rect(34, y - 4, w, 3)
+        screen.rect(BAR_X, y - 4, w, 3)
         screen.fill()
       end
       screen.level(on and 15 or 6)
-      text(127, y, fit(parts.readout(mac.def, v), 42), "right")
+      text(127, y, fit(parts.readout(mac.def, v), 127 - BAR_X - BAR_W - 3), "right")
     end
   end
   screen.update()
+end
+
+-- The OMX-27's screen, at the top left of the norns screen, without
+-- screen.update: pixels at level 8 or more are lit on the OMX.
+-- Part, machine and octave on top and the patch below, or for a second after
+-- a pot is turned, its macro: label, readout and a bar. While the pot is
+-- waiting to pick up the value, a tick shows where the pot is.
+-- list: from macros.resolve. omx: the surface (octave, showing()).
+function view.omx(parts, state, list, omx)
+  screen.clear()
+  screen.font_face(1)
+  screen.font_size(8)
+  screen.level(15)
+  local part = parts.list[state.sel]
+  local f = omx.showing()
+  local mac = f and list[f.k]
+  local p = mac and mac.slot and params:lookup_param(parts.id(state.sel, "s" .. mac.slot))
+  if p then
+    local v = p:get()
+    text(0, 7, mac.label)
+    text(127, 7, fit(parts.readout(mac.def, v), 80), "right")
+    screen.rect(0.5, 12.5, 127, 9)
+    screen.stroke()
+    local w = math.floor(v * 125 + 0.5)
+    if w > 0 then
+      screen.rect(1, 13, w, 8)
+      screen.fill()
+    end
+    if f.waiting then
+      -- the pot's place, as a gap through the bar with marks above and below
+      local x = 1 + math.floor(f.pos * 124 + 0.5)
+      screen.level(0)
+      screen.rect(x - 1, 13, 3, 8)
+      screen.fill()
+      screen.level(15)
+      screen.rect(x, 10, 1, 14)
+      screen.fill()
+      text(64, 31, f.pos < v and "turn up to pick up" or "turn down to pick up", "center")
+    end
+    return
+  end
+  local oct = omx.octave
+  text(0, 7, part.n .. " " .. (part.machine or "none"))
+  text(127, 7, (part.channel > 0 and ("ch " .. part.channel) or "ch off") .. "  oct " .. (oct > 0 and "+" or "") .. oct, "right")
+  screen.font_size(16)
+  text(0, 28, fit(part.patch or "-", 127))
+  screen.font_size(8)
 end
 
 function view.starting(err)

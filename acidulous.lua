@@ -8,25 +8,31 @@
 -- K2 macros, K3 play a note
 -- on macros: E2 pick, E3 set,
 -- K1 held + E3 fine
+--
+-- OMX-27: keys play the part,
+-- AUX + top keys 1 2 octave,
+-- AUX + bottom keys 1-8 part,
+-- pots macros, encoder patch
 
 engine.name = "Acidulous"
 
 local parts = include("lib/parts")
 local view = include("lib/view")
 local macros = include("lib/macros")
+local surfaces = include("lib/surfaces")
 
 local state = {sel = 1, k1 = false, page = "main", macro = 1}
 local auditioning = nil -- the part K3 is playing
+local omx_problem = nil  -- {text, at}: the OMX-27 can't do REMOTE mode
 
--- For the REPL: acid.midi(port, bytes) plays as if from MIDI port `port`.
-acid = {parts = parts, state = state, macros = macros}
+-- For the REPL: acid.midi(port, bytes) plays as if from MIDI port `port`,
+-- acid.omx is the OMX-27 surface (call its key, pot, enc and enc_btn).
+acid = {parts = parts, state = state, macros = macros, surfaces = surfaces, omx = surfaces.kinds[1]}
 
 -- ---- MIDI in ----------------------------------------------------------------
 
 -- Notes, CCs, bend and channel pressure go to every part on their channel.
-local function midi_event(port, data)
-  local dev = params:get("midi_device")
-  if dev > 1 and dev - 1 ~= port then return end
+local function play(data)
   local status = data[1]
   if not status or status < 0x80 or status >= 0xF0 then return end
   local kind, ch = status & 0xF0, (status & 0x0F) + 1
@@ -49,7 +55,25 @@ local function midi_event(port, data)
     end
   end
 end
+
+local function midi_event(port, data)
+  local dev = params:get("midi_device")
+  if dev > 1 and dev - 1 ~= port then return end
+  play(data)
+end
 acid.midi = midi_event
+
+-- A note for part i from the OMX-27: on the part's channel, so parts layered
+-- on it play too, or straight to the part if its channel is off.
+local function part_note(i, note, vel)
+  local part = parts.list[i]
+  if part.channel > 0 then
+    play({(vel > 0 and 0x90 or 0x80) | (part.channel - 1), note, vel})
+  elseif part.machine then
+    parts.send("/note", {i - 1, 1, note, vel})
+    parts.note(i, vel > 0)
+  end
+end
 
 local function device_names()
   local names = {"all"}
@@ -59,11 +83,12 @@ end
 
 -- Every port is listened to; the device param picks which are played.
 -- Devices plugged in later land on a port, so only the names change.
+local function listen(i)
+  midi.connect(i).event = function(data) midi_event(i, data) end
+end
+
 local function connect_midi()
-  for i = 1, 16 do
-    local port = midi.connect(i)
-    port.event = function(data) midi_event(i, data) end
-  end
+  for i = 1, 16 do listen(i) end
 end
 
 local function refresh_devices()
@@ -72,6 +97,37 @@ local function refresh_devices()
     local p = params:lookup_param("midi_device")
     if p then p.options = device_names() end
   end)
+end
+
+-- ---- OMX-27 -------------------------------------------------------------------
+
+local part_macros -- below
+
+local function start_surfaces()
+  local a = surfaces.actions
+  a.note = part_note
+  a.velocity = function() return params:get("omx_velocity") end
+  a.selected = function() return state.sel end
+  a.select = function(i) state.sel = i end
+  a.has_machine = function(i) return parts.list[i].machine ~= nil end
+  a.patch = function(d)
+    if parts.list[state.sel].machine then params:delta(parts.id(state.sel, "patch"), d) end
+  end
+  a.machine = function(d) params:delta(parts.id(state.sel, "machine"), d) end
+  a.page = function() state.page = state.page == "main" and "macros" or "main" end
+  a.macros = function() return part_macros() end
+  a.slot_id = function(slot) return parts.id(state.sel, "s" .. slot) end
+  a.midi = midi_event
+  -- the OMX-27's port is a regular MIDI port again
+  a.port_freed = function(port) if port then listen(port) end end
+  a.old_firmware = function(version)
+    local v = version and string.format("%d.%d.%d", version[1], version[2], version[3]) or "no answer"
+    omx_problem = {text = "OMX-27 firmware too old", at = util.time()}
+    print("acidulous: OMX-27 firmware " .. v .. " has no REMOTE mode, needs 1.15.4")
+  end
+  a.answered = function() omx_problem = nil end
+  a.draw = function(surf) view.omx(parts, state, part_macros(), surf) end
+  surfaces.connect_all()
 end
 
 -- ---- start-up ----------------------------------------------------------------
@@ -85,6 +141,7 @@ local function ready()
       if parts.list[i].machine then parts.notes_off(i) end
     end
   end)
+  params:add_number("omx_velocity", "omx velocity", 1, 127, 100)
   parts.add_params()
   local names = {}
   for _, m in ipairs(parts.machines) do names[#names + 1] = m.name end
@@ -93,8 +150,16 @@ local function ready()
   parts.set_part(2, "Hexbeat", "Straight")
   for i = 1, parts.COUNT do parts.start_part(i) end
   connect_midi()
-  midi.add = function() refresh_devices() end
-  midi.remove = function() refresh_devices() end
+  start_surfaces()
+  midi.add = function(dev)
+    refresh_devices()
+    surfaces.added(dev)
+  end
+  -- norns also calls this again with no device
+  midi.remove = function(dev)
+    refresh_devices()
+    if dev then surfaces.removed(dev) end
+  end
 end
 
 function init()
@@ -110,6 +175,7 @@ function init()
 end
 
 function cleanup()
+  surfaces.disconnect()
   for i = 1, parts.COUNT do
     if parts.list[i].machine then parts.notes_off(i) end
   end
@@ -120,19 +186,26 @@ end
 -- ---- screen and controls -----------------------------------------------------
 
 -- The selected part's macros, with their slots and defs.
-local function part_macros()
+part_macros = function()
   local part = parts.list[state.sel]
   if not part.machine then return {} end
   return macros.resolve(part.machine, parts.defs[part.machine])
 end
 
+-- The OMX-27's screen is drawn first and copied off with screen.peek; each
+-- view clears the screen before drawing, and only it reaches screen.update.
 function redraw()
   if not parts.ready then
     view.starting(parts.error)
-  elseif state.page == "macros" then
-    view.macros(parts, state, part_macros())
+    return
+  end
+  surfaces.frame()
+  surfaces.screens()
+  local note = omx_problem and util.time() - omx_problem.at < 10 and omx_problem.text or nil
+  if state.page == "macros" then
+    view.macros(parts, state, part_macros(), note)
   else
-    view.main(parts, state)
+    view.main(parts, state, note)
   end
 end
 
