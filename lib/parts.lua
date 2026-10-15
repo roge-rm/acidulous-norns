@@ -1,6 +1,8 @@
 -- The 8 parts: their params, and what they send to the plugin.
 -- A part n is the plugin's part n - 1 (an engine track).
 
+local timer = include("lib/timer")
+
 local P = {}
 
 P.COUNT = 8
@@ -43,6 +45,7 @@ P.error = nil     -- shown instead of the parts, e.g. no machines
 P.loading = false -- a PSET is being read
 P.seen = 0        -- when the plugin last sent /load
 P.load, P.worst, P.worst_at = 0, 0, 0
+P.mpe = nil       -- the part that's MPE, or nil
 P.list = {}
 for i = 1, P.COUNT do
   P.list[i] = {
@@ -137,26 +140,28 @@ local watch
 
 function P.start(ready)
   on_ready = ready
-  clock.run(function()
-    -- the plugin can take a moment to start; ask again until it answers
-    while not asked_machines do
-      send("/machines", {})
-      clock.sleep(1)
-    end
-    if P.error then return end
-    while not P.ready do
-      clock.sleep(1)
-      if waiting and util.time() - waiting.asked > 2 then
+  local tick = 0
+  local watching = false
+  P.ticker = timer.every(0.5, function()
+    tick = tick + 1
+    if watching then
+      watch()
+    elseif not asked_machines then
+      -- the plugin can take a moment to start; ask again until it answers
+      if tick % 2 == 1 then send("/machines", {}) end
+    elseif P.error then
+      timer.cancel(P.ticker)
+    elseif not P.ready then
+      if tick % 2 == 0 and waiting and util.time() - waiting.asked > 2 then
         table.insert(queue, 1, waiting)
         ask_next()
       end
-    end
-    P.seen = util.time()
-    while true do
-      clock.sleep(0.5)
-      watch()
+    else
+      P.seen = util.time()
+      watching = true
     end
   end)
+  send("/machines", {})
 end
 
 -- ---- params -------------------------------------------------------------------
@@ -175,9 +180,23 @@ function P.send_volume(i)
   send("/channel", {i - 1, "gain", math.min(1, db_to_gain(params:get(id(i, "volume"))) / 1.5)})
 end
 
+-- The engine's MPE zone: the lower one, master channel 1 and members 2-16,
+-- or off.
+function P.send_mpe()
+  if P.mpe then
+    send("/mpe", {P.mpe - 1, 15, params:get(id(P.mpe, "mpe_bend"))})
+  else
+    send("/mpe", {0, 0, 48})
+  end
+end
+
+local function show_mpe(i)
+  if params:get(id(i, "mpe")) == 2 then params:show(id(i, "mpe_bend")) else params:hide(id(i, "mpe_bend")) end
+end
+
 function P.notes_off(i)
   local part = P.list[i]
-  send("/cc", {i - 1, math.max(part.channel, 1), 123, 0})
+  send("/cc", {i - 1, P.mpe == i and 1 or math.max(part.channel, 1), 123, 0})
   part.held = 0
 end
 
@@ -252,9 +271,8 @@ end
 -- encoder through patches only loads the one it stops on.
 local function later(i, wait, fn)
   local part = P.list[i]
-  if part.pending then clock.cancel(part.pending) end
-  part.pending = clock.run(function()
-    clock.sleep(wait)
+  timer.cancel(part.pending)
+  part.pending = timer.after(wait, function()
     part.pending = nil
     fn()
   end)
@@ -264,7 +282,8 @@ end
 -- which mounts the machine, then the saved params on top of it.
 function P.apply(i)
   local part = P.list[i]
-  if part.pending then clock.cancel(part.pending); part.pending = nil end
+  timer.cancel(part.pending)
+  part.pending = nil
   P.notes_off(i)
   P.send_volume(i)
   load_machine(i, false)
@@ -278,11 +297,12 @@ end
 
 function P.apply_all()
   for i = 1, P.COUNT do P.apply(i) end
+  P.send_mpe()
 end
 
 local function add_part(i)
   local part = P.list[i]
-  params:add_group("part_" .. i, "part " .. i, 4 + P.slots)
+  params:add_group("part_" .. i, "part " .. i, 6 + P.slots)
 
   local chans = {"off"}
   for c = 1, 16 do chans[c + 1] = tostring(c) end
@@ -290,6 +310,36 @@ local function add_part(i)
   params:set_action(id(i, "channel"), function(v)
     if not P.loading then P.notes_off(i) end
     part.channel = v - 1
+  end)
+
+  -- One part at a time can be MPE: it gets every channel of the "mpe from"
+  -- device, and its own channel is unused.
+  params:add_option(id(i, "mpe"), "mpe", {"off", "on"}, 1)
+  params:set_action(id(i, "mpe"), function(v)
+    if v == 2 then
+      if P.mpe ~= i then
+        local old = P.mpe
+        P.mpe = i
+        if old then
+          params:set(id(old, "mpe"), 1)
+          if not P.loading then P.notes_off(old) end
+        end
+        if not P.loading then P.notes_off(i) end
+      end
+      if not P.loading then P.send_mpe() end
+    elseif P.mpe == i then
+      P.mpe = nil
+      if not P.loading then
+        P.notes_off(i)
+        P.send_mpe()
+      end
+    end
+    show_mpe(i)
+    rebuild_menu()
+  end)
+  params:add_number(id(i, "mpe_bend"), "mpe bend", 1, 96, 48, function(param) return param:get() .. " st" end)
+  params:set_action(id(i, "mpe_bend"), function()
+    if P.mpe == i and not P.loading then P.send_mpe() end
   end)
 
   local names = {"none"}
@@ -349,7 +399,10 @@ end
 
 function P.add_params()
   for i = 1, P.COUNT do add_part(i) end
-  for i = 1, P.COUNT do show_machine(i, nil, true) end
+  for i = 1, P.COUNT do
+    show_mpe(i)
+    show_machine(i, nil, true)
+  end
   -- params:clear() removes this when the script ends.
   params.action_read = function(filename) P.after_read(filename) end
 end
@@ -373,6 +426,15 @@ function P.after_read(filename)
     end
     part.channel = params:get(id(i, "channel")) - 1
   end
+  -- the first part saved as MPE, in case a file has more than one
+  P.mpe = nil
+  for i = 1, P.COUNT do
+    if params:get(id(i, "mpe")) == 2 then
+      if P.mpe then params:set(id(i, "mpe"), 1, true) else P.mpe = i end
+    end
+    show_mpe(i)
+  end
+  rebuild_menu()
   if changed and filename then
     rereading = true
     local ok, err = pcall(params.read, params, filename, true)
@@ -427,6 +489,7 @@ function P.resend()
       P.apply(i)
     end
   end
+  P.send_mpe()
 end
 
 -- Puts a machine and patch on a part without the debounce, for start-up.
@@ -461,7 +524,8 @@ function P.audition(i, z)
   if not part.machine then return end
   local m = P.machine_info(part.machine)
   local note = m and m.note or 48
-  send("/note", {i - 1, math.max(part.channel, 1), note, z == 1 and 100 or 0})
+  local ch = P.mpe == i and 1 or math.max(part.channel, 1)
+  send("/note", {i - 1, ch, note, z == 1 and 100 or 0})
   P.note(i, z == 1)
 end
 

@@ -287,6 +287,13 @@ bool Core::command(const std::string& path, const Args& a)
         const uint8_t ch = chan(a[1]), note = clamp7(to_int(a[2])), vel = clamp7(to_int(a[3]));
         const uint8_t status = uint8_t((vel ? 0x90 : 0x80) | part);
         const MidiMessage m{status, note, vel, ch};
+        if(member(ch))
+        {
+            if(vel)
+                fingers[ch] = Finger{note, -1, -1, -1};
+            else if(fingers[ch].note == note)
+                fingers[ch].note = -1;
+        }
         live(part, [this, m] { engine->pushMidi(m); });
         return true;
     }
@@ -301,6 +308,8 @@ bool Core::command(const std::string& path, const Args& a)
         else
         {
             const MidiMessage m{uint8_t(0xb0 | part), num, val, ch};
+            if(num == 74 && member(ch))
+                fingers[ch].timbre = val;
             live(part, [this, m] { engine->pushMidi(m); });
         }
         return true;
@@ -313,6 +322,8 @@ bool Core::command(const std::string& path, const Args& a)
         int v = to_int(a[2]);
         v     = v < 0 ? 0 : v > 16383 ? 16383 : v;
         const MidiMessage m{uint8_t(0xe0 | part), uint8_t(v & 0x7f), uint8_t(v >> 7), chan(a[1])};
+        if(member(m.channel))
+            fingers[m.channel].bend = v;
         live(part, [this, m] { engine->pushMidi(m); });
         return true;
     }
@@ -325,6 +336,7 @@ bool Core::command(const std::string& path, const Args& a)
         if(member(ch))
         {
             const MidiMessage m{uint8_t(0xd0 | part), clamp7(to_int(a[2])), 0, ch};
+            fingers[ch].pressure = m.data1;
             live(part, [this, m] { engine->pushMidi(m); });
         }
         else
@@ -400,6 +412,24 @@ bool Core::command(const std::string& path, const Args& a)
         mpe_members.store(members > 0 ? std::min(members, 15) : 15);
         mpe_bend.store(to_float(a[2]));
         mpe_serial.fetch_add(1, std::memory_order_release);
+        for(Finger& f : fingers)
+            f = Finger{};
+        return true;
+    }
+    if(path == "/mpe_state")
+    {
+        // After everything queued so far, so the engine has seen it. The held
+        // mask is read off the audio thread, which is fine for a test readout.
+        post([this, f = std::vector<Finger>(fingers, fingers + 16)] {
+            wait_applied();
+            Args out{Value::i(mpe_kind.load()), Value::i(mpe_members.load()), Value::f(mpe_bend.load()),
+                     Value::i(engine->mpeHeldMask())};
+            for(int c = 0; c < 16; ++c)
+                if(f[size_t(c)].note >= 0)
+                    for(int v : {c + 1, f[size_t(c)].note, f[size_t(c)].bend, f[size_t(c)].pressure, f[size_t(c)].timbre})
+                        out.push_back(Value::i(v));
+            reply("/mpe_state", out);
+        });
         return true;
     }
     return false;

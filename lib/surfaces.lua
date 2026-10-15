@@ -15,6 +15,8 @@
 --   screen_send(x, y)  sends that part of the norns screen to it
 -- It calls the functions in surfaces.actions (set by the script).
 
+local timer = include("lib/timer")
+
 local S = {}
 
 S.kinds = {
@@ -34,10 +36,7 @@ end
 function S.added(dev)
   for _, kind in ipairs(S.kinds) do
     if kind.match(dev.name) then
-      clock.run(function()
-        clock.sleep(0.5) -- let norns finish setting the port up
-        kind.connect()
-      end)
+      timer.after(0.5, function() kind.connect() end) -- let norns finish setting the port up
     end
   end
 end

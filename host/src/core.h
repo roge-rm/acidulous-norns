@@ -138,6 +138,13 @@ class Core
     std::atomic<int>      mpe_kind{0}, mpe_members{15};
     std::atomic<float>    mpe_bend{48};
     uint32_t              mpe_applied = 0;
+    // For /mpe_state: what each member channel last sent the engine (note,
+    // bend 0-16383, pressure, CC74), -1 for nothing yet. Control thread.
+    struct Finger
+    {
+        int note = -1, bend = -1, pressure = -1, timbre = -1;
+    };
+    Finger fingers[16];
 
     // FIFO, audio thread only.
     float fifo_in[64 * 2]  = {};

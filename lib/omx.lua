@@ -2,6 +2,8 @@
 -- gets every key, the encoder, its button and the pots, and sets the 27 key
 -- LEDs. Protocol: SYSEX_SPEC.md "REMOTE mode" in github.com/Quixotic7/OMX-27.
 
+local timer = include("lib/timer")
+
 local omx = {}
 
 local HEAD = {0xF0, 0x7D, 0x00, 0x00}
@@ -15,6 +17,7 @@ omx.answered = function() end -- it answered after old_firmware, new enough
 local MIN_VERSION = {1, 15, 4}
 local version_reply = nil
 local connecting = nil -- counts connects, so only the latest acts
+local asking = nil     -- the timer asking for its version
 
 -- callbacks, set by the script
 omx.key = function(n, ev) end -- n 0-26 (0 is AUX), ev "down" "up" "hold" "quick"
@@ -115,40 +118,27 @@ function omx.connect()
       connecting = (connecting or 0) + 1
       local mine = connecting
       local asked_at = util.time()
-      clock.run(function()
-        -- ask until it answers: one just switched on can take over 6 s to
-        -- start up before it does. Old firmware never answers, so a long wait
-        -- only delays the update prompt.
-        for i = 0, 199 do
-          if i % 5 == 0 then send(0x1F) end
-          clock.sleep(0.1)
-          if version_reply or mine ~= connecting or not dev then break end
-        end
-        if mine ~= connecting or not dev then return end
-        if version_reply then
-          print(string.format("omx-27: firmware %d.%d.%d, answered after %.1f s", version_reply[1],
-            version_reply[2], version_reply[3], util.time() - asked_at))
-        end
-        local function go_remote()
-          send(0x51, {0x05, MODE_REMOTE})
-          -- everything again in full, now that it's listening
-          for n = 0, 26 do shown[n] = {-1, -1, -1} end
-          last_chunks = {}
-          frame_pending = false
-          remote = true
-        end
-        if new_enough(version_reply) then
-          go_remote()
-          return
-        end
-        omx.old_firmware(version_reply)
-        if version_reply then return end
-        -- no answer yet: it may only be slow to start. Keep asking for a
-        -- minute, and if it answers new enough, carry on as if it had at once.
-        for _ = 1, 60 do
-          clock.sleep(1)
-          if mine ~= connecting or not dev then return end
+      local function go_remote()
+        send(0x51, {0x05, MODE_REMOTE})
+        -- everything again in full, now that it's listening
+        for n = 0, 26 do shown[n] = {-1, -1, -1} end
+        last_chunks = {}
+        frame_pending = false
+        remote = true
+      end
+      -- No answer at first: it may only be slow to start. Keep asking once a
+      -- second for a minute, and if it answers new enough, carry on as if it
+      -- had at once.
+      local function slow_asks()
+        local tries = 0
+        asking = timer.every(1, function()
+          tries = tries + 1
+          if mine ~= connecting or not dev or tries > 60 then
+            timer.cancel(asking)
+            return
+          end
           if version_reply then
+            timer.cancel(asking)
             if new_enough(version_reply) then
               go_remote()
               omx.answered()
@@ -156,7 +146,32 @@ function omx.connect()
             return
           end
           send(0x1F)
+        end)
+      end
+      -- Ask until it answers: one just switched on can take over 6 s to
+      -- start up before it does. Old firmware never answers, so a long wait
+      -- only delays the update prompt.
+      timer.cancel(asking)
+      send(0x1F)
+      local i = 0
+      asking = timer.every(0.1, function()
+        i = i + 1
+        if not (version_reply or mine ~= connecting or not dev or i >= 200) then
+          if i % 5 == 0 then send(0x1F) end
+          return
         end
+        timer.cancel(asking)
+        if mine ~= connecting or not dev then return end
+        if version_reply then
+          print(string.format("omx-27: firmware %d.%d.%d, answered after %.1f s", version_reply[1],
+            version_reply[2], version_reply[3], util.time() - asked_at))
+        end
+        if new_enough(version_reply) then
+          go_remote()
+          return
+        end
+        omx.old_firmware(version_reply)
+        if not version_reply then slow_asks() end
       end)
       return true
     end

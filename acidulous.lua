@@ -9,6 +9,9 @@
 -- on macros: E2 pick, E3 set,
 -- K1 held + E3 fine
 --
+-- a part with mpe on gets
+-- every channel of "mpe from"
+--
 -- OMX-27: keys play the part,
 -- AUX + top keys 1 2 octave,
 -- AUX + bottom keys 1-8 part,
@@ -20,6 +23,7 @@ local parts = include("lib/parts")
 local view = include("lib/view")
 local macros = include("lib/macros")
 local surfaces = include("lib/surfaces")
+local timer = include("lib/timer")
 
 local state = {sel = 1, k1 = false, page = "main", macro = 1}
 local auditioning = nil -- the part K3 is playing
@@ -31,32 +35,91 @@ acid = {parts = parts, state = state, macros = macros, surfaces = surfaces, omx 
 
 -- ---- MIDI in ----------------------------------------------------------------
 
--- Notes, CCs, bend and channel pressure go to every part on their channel.
-local function play(data)
-  local status = data[1]
-  if not status or status < 0x80 or status >= 0xF0 then return end
-  local kind, ch = status & 0xF0, (status & 0x0F) + 1
-  local d1, d2 = data[2] or 0, data[3] or 0
-  for i, part in ipairs(parts.list) do
-    if part.channel == ch and part.machine then
-      local p = i - 1
-      if kind == 0x90 or kind == 0x80 then
-        local vel = kind == 0x90 and d2 or 0
-        parts.send("/note", {p, ch, d1, vel})
-        parts.note(i, vel > 0)
-      elseif kind == 0xB0 then
-        parts.send("/cc", {p, ch, d1, d2})
-        if d1 == 123 or d1 == 120 then part.held = 0 end
-      elseif kind == 0xE0 then
-        parts.send("/bend", {p, ch, d1 + (d2 << 7)})
-      elseif kind == 0xD0 then
-        parts.send("/pressure", {p, ch, d1})
+-- MPE controllers "mpe from" finds by itself, by port name. Both send on
+-- the lower zone (master channel 1) with a bend range of 48, the MPE default,
+-- once they're in MPE mode.
+local MPE_DEVICES = {
+  -- the Exquis's notes are on the first of its two ports, the QuNexus's on
+  -- the first of its three
+  {name = "Exquis", match = function(n) return n:find("^exquis") ~= nil and n:find("2$") == nil end},
+  {name = "QuNexus", match = function(n) return n:find("qunexus") ~= nil and n:find("[23]$") == nil end},
+}
+
+-- The port of the first MPE controller plugged in, or nil.
+local function mpe_detected()
+  for i = 1, 16 do
+    local v = midi.vports[i]
+    if v.device and v.name then
+      for _, d in ipairs(MPE_DEVICES) do
+        if d.match(v.name:lower()) then return i, d end
       end
     end
   end
 end
 
+-- True if port's MIDI goes to the MPE part. "auto" is an Exquis or QuNexus
+-- if one is plugged in, otherwise the "midi from" device.
+local function mpe_source(port)
+  local sel = params:get("mpe_device")
+  if sel == 1 then
+    local found = mpe_detected()
+    if found then return port == found end
+    local dev = params:get("midi_device")
+    return dev == 1 or dev - 1 == port
+  end
+  return sel == 2 or sel - 2 == port
+end
+
+-- Sends one message to part i, on the engine's channel ch.
+local function send_to(i, kind, ch, d1, d2)
+  local part, p = parts.list[i], i - 1
+  if kind == 0x90 or kind == 0x80 then
+    local vel = kind == 0x90 and d2 or 0
+    parts.send("/note", {p, ch, d1, vel})
+    parts.note(i, vel > 0)
+  elseif kind == 0xB0 then
+    parts.send("/cc", {p, ch, d1, d2})
+    if d1 == 123 or d1 == 120 then part.held = 0 end
+  elseif kind == 0xE0 then
+    parts.send("/bend", {p, ch, d1 + (d2 << 7)})
+  elseif kind == 0xD0 then
+    parts.send("/pressure", {p, ch, d1})
+  end
+end
+
+local function unpack_midi(data)
+  local status = data[1]
+  if not status or status < 0x80 or status >= 0xF0 then return nil end
+  return status & 0xF0, (status & 0x0F) + 1, data[2] or 0, data[3] or 0
+end
+
+-- Notes, CCs, bend and channel pressure go to every part on their channel,
+-- except the MPE part. While a part is MPE the others get channel 1 in the
+-- engine, so their bend and pressure stay whole-part.
+local function play(data)
+  local kind, ch, d1, d2 = unpack_midi(data)
+  if not kind then return end
+  for i, part in ipairs(parts.list) do
+    if part.channel == ch and part.machine and parts.mpe ~= i then
+      send_to(i, kind, parts.mpe and 1 or ch, d1, d2)
+    end
+  end
+end
+
+-- Everything from the MPE source goes to the MPE part on its own channel:
+-- the engine treats channels 2-16 as one finger each.
+local function play_mpe(data)
+  local kind, ch, d1, d2 = unpack_midi(data)
+  if not kind then return end
+  local i = parts.mpe
+  if parts.list[i].machine then send_to(i, kind, ch, d1, d2) end
+end
+
 local function midi_event(port, data)
+  if parts.mpe and mpe_source(port) then
+    play_mpe(data)
+    return
+  end
   local dev = params:get("midi_device")
   if dev > 1 and dev - 1 ~= port then return end
   play(data)
@@ -64,10 +127,11 @@ end
 acid.midi = midi_event
 
 -- A note for part i from the OMX-27: on the part's channel, so parts layered
--- on it play too, or straight to the part if its channel is off.
+-- on it play too, or straight to the part if its channel is off or it's the
+-- MPE part (on the master channel).
 local function part_note(i, note, vel)
   local part = parts.list[i]
-  if part.channel > 0 then
+  if part.channel > 0 and parts.mpe ~= i then
     play({(vel > 0 and 0x90 or 0x80) | (part.channel - 1), note, vel})
   elseif part.machine then
     parts.send("/note", {i - 1, 1, note, vel})
@@ -78,6 +142,12 @@ end
 local function device_names()
   local names = {"all"}
   for i = 1, 16 do names[i + 1] = i .. ". " .. midi.vports[i].name end
+  return names
+end
+
+local function mpe_device_names()
+  local names = device_names()
+  table.insert(names, 1, "auto")
   return names
 end
 
@@ -92,10 +162,12 @@ local function connect_midi()
 end
 
 local function refresh_devices()
-  clock.run(function()
-    clock.sleep(0.5) -- norns puts the device on its port after this is called
-    local p = params:lookup_param("midi_device")
-    if p then p.options = device_names() end
+  -- norns puts the device on its port after this is called
+  timer.after(0.5, function()
+    for _, pid in ipairs({"midi_device", "mpe_device"}) do
+      local p = params:lookup_param(pid)
+      if p then p.options = pid == "mpe_device" and mpe_device_names() or device_names() end
+    end
   end)
 end
 
@@ -141,6 +213,10 @@ local function ready()
       if parts.list[i].machine then parts.notes_off(i) end
     end
   end)
+  params:add_option("mpe_device", "mpe from", mpe_device_names(), 1)
+  params:set_action("mpe_device", function()
+    if parts.mpe and parts.list[parts.mpe].machine then parts.notes_off(parts.mpe) end
+  end)
   params:add_number("omx_velocity", "omx velocity", 1, 127, 100)
   parts.add_params()
   local names = {}
@@ -166,15 +242,12 @@ function init()
   osc.event = function(path, args) parts.osc(path, args) end
   engine.start()
   parts.start(ready)
-  clock.run(function()
-    while true do
-      clock.sleep(1 / 15)
-      redraw()
-    end
-  end)
+  -- by name: norns holds its own redraw in the global while init runs
+  timer.every(1 / 15, function() redraw() end)
 end
 
 function cleanup()
+  timer.cancel_all()
   surfaces.disconnect()
   for i = 1, parts.COUNT do
     if parts.list[i].machine then parts.notes_off(i) end

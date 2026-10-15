@@ -60,7 +60,7 @@ function view.main(parts, state, note)
     screen.level(bright)
     text(1, y, tostring(i))
     screen.level(math.max(1, bright - 4))
-    text(8, y, part.channel > 0 and tostring(part.channel) or "-")
+    text(8, y, parts.mpe == i and "mpe" or part.channel > 0 and tostring(part.channel) or "-")
     screen.level(bright)
     local m = part.machine and parts.machine_info(part.machine)
     if on and state.k1 then screen.level(15) end

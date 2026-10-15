@@ -12,6 +12,7 @@
 //   /mpe i:part i:members f:bend       members 0 turns MPE off
 //   /defs s:machine   /patches s:machine   /machines
 //   /state i:part                      for tests
+//   /mpe_state                         for tests
 // Out (to `reply` on localhost, matron's 10111):
 //   /mounted i:part s:machine          "" when emptied
 //   /hello                             each time AcidulousStart runs, with an
@@ -20,6 +21,10 @@
 //   /patch i:part s:machine s:patch    once it's applied
 //   /state i:part s:machine s:patch f:gain01 f:value01...   what the engine
 //        holds once everything sent before has been applied
+//   /mpe_state i:kind i:members f:bend i:held_mask (i:ch i:note i:bend14
+//        i:pressure i:cc74)...   the zone, the member channels the engine
+//        holds a note on (bit 0 is channel 1), and what each member channel
+//        holding a note last sent, -1 for nothing
 //   /def s:machine i:index s:name f:min f:max f:default s:unit i:steps s:curve
 //        steps is 0 unless stepped; curve is "lin", "exp" or "step"
 //   /defs_end s:machine i:count
