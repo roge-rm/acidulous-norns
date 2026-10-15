@@ -1,4 +1,4 @@
--- The norns screen: the parts list and a part's params page.
+-- The norns screen: the parts list and a part's macro page.
 
 local view = {}
 
@@ -79,30 +79,39 @@ function view.main(parts, state)
   screen.update()
 end
 
--- The part's first params. state: sel, param (selected row), first (top row)
-view.PARAM_ROWS = 6
-
-function view.params(parts, state, params_get)
+-- The part's 5 macros, a row each: label, bar of the 0-1 value, readout.
+-- state: sel, macro (selected row). list: from macros.resolve
+function view.macros(parts, state, list)
   screen.clear()
   screen.font_face(1)
   screen.font_size(8)
   local part = parts.list[state.sel]
   header(parts, part.n .. " " .. (part.machine or "none") .. "  " .. (part.patch or ""))
-  local defs = part.machine and parts.defs[part.machine] or {}
-  for r = 1, view.PARAM_ROWS do
-    local j = state.first + r - 1
-    local d = defs[j]
-    if not d then break end
-    local y = 8 + 9 * r
-    local on = j == state.param
+  for k, mac in ipairs(list) do
+    local y = 7 + 11 * k
+    local on = k == state.macro
     if on then
       screen.level(3)
-      screen.rect(0, y - 7, 128, 9)
+      screen.rect(0, y - 8, 128, 11)
       screen.fill()
     end
-    screen.level(on and 15 or 6)
-    text(1, y, fit(d.name, 70))
-    text(127, y, parts.readout(d, params_get(j)), "right")
+    local p = mac.slot and params:lookup_param(parts.id(state.sel, "s" .. mac.slot))
+    screen.level(p and (on and 15 or 6) or 2)
+    text(1, y, mac.label)
+    if p then
+      local v = p:get()
+      screen.level(on and 6 or 2)
+      screen.rect(34, y - 4, 46, 3)
+      screen.fill()
+      screen.level(on and 15 or 8)
+      local w = math.floor(v * 46 + 0.5)
+      if w > 0 then
+        screen.rect(34, y - 4, w, 3)
+        screen.fill()
+      end
+      screen.level(on and 15 or 6)
+      text(127, y, fit(parts.readout(mac.def, v), 42), "right")
+    end
   end
   screen.update()
 end

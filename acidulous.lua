@@ -5,18 +5,21 @@
 -- MIDI channel
 -- E1 part, E2 patch, E3 volume
 -- K1 held + E2 machine
--- K2 params, K3 play a note
+-- K2 macros, K3 play a note
+-- on macros: E2 pick, E3 set,
+-- K1 held + E3 fine
 
 engine.name = "Acidulous"
 
 local parts = include("lib/parts")
 local view = include("lib/view")
+local macros = include("lib/macros")
 
-local state = {sel = 1, k1 = false, page = "main", param = 1, first = 1}
+local state = {sel = 1, k1 = false, page = "main", macro = 1}
 local auditioning = nil -- the part K3 is playing
 
 -- For the REPL: acid.midi(port, bytes) plays as if from MIDI port `port`.
-acid = {parts = parts, state = state}
+acid = {parts = parts, state = state, macros = macros}
 
 -- ---- MIDI in ----------------------------------------------------------------
 
@@ -83,6 +86,9 @@ local function ready()
     end
   end)
   parts.add_params()
+  local names = {}
+  for _, m in ipairs(parts.machines) do names[#names + 1] = m.name end
+  for _, problem in ipairs(macros.check(names, parts.defs)) do print("acidulous: macros: " .. problem) end
   parts.set_part(1, "Reflux", "Classic")
   parts.set_part(2, "Hexbeat", "Straight")
   for i = 1, parts.COUNT do parts.start_part(i) end
@@ -113,21 +119,33 @@ end
 
 -- ---- screen and controls -----------------------------------------------------
 
-local function slot_value(j) return params:get(parts.id(state.sel, "s" .. j)) end
+-- The selected part's macros, with their slots and defs.
+local function part_macros()
+  local part = parts.list[state.sel]
+  if not part.machine then return {} end
+  return macros.resolve(part.machine, parts.defs[part.machine])
+end
 
 function redraw()
   if not parts.ready then
     view.starting(parts.error)
-  elseif state.page == "params" then
-    view.params(parts, state, slot_value)
+  elseif state.page == "macros" then
+    view.macros(parts, state, part_macros())
   else
     view.main(parts, state)
   end
 end
 
-local function part_defs()
-  local part = parts.list[state.sel]
-  return part.machine and parts.defs[part.machine] or {}
+-- E3 on a macro: about 100 detents for the whole range (0.001 with K1 held),
+-- and one step a detent for a stepped param.
+local function turn_macro(d)
+  local mac = part_macros()[state.macro]
+  if not mac or not mac.slot then return end
+  local def = mac.def
+  local step = state.k1 and 0.001 or 0.01
+  if def.curve == "step" and def.steps > 1 then step = 1 / (def.steps - 1) end
+  local sid = parts.id(state.sel, "s" .. mac.slot)
+  params:set(sid, util.clamp(params:get(sid) + d * step, 0, 1))
 end
 
 function key(n, z)
@@ -135,8 +153,7 @@ function key(n, z)
   if n == 1 then
     state.k1 = z == 1
   elseif n == 2 and z == 1 then
-    state.page = state.page == "main" and "params" or "main"
-    state.param, state.first = 1, 1
+    state.page = state.page == "main" and "macros" or "main"
   elseif n == 3 then
     if z == 1 then
       if auditioning then parts.audition(auditioning, 0) end
@@ -154,16 +171,11 @@ function enc(n, d)
   local i = state.sel
   if n == 1 then
     state.sel = util.clamp(i + d, 1, parts.COUNT)
-    state.param, state.first = 1, 1
-  elseif state.page == "params" then
-    local count = #part_defs()
-    if count == 0 then return end
+  elseif state.page == "macros" then
     if n == 2 then
-      state.param = util.clamp(state.param + d, 1, count)
-      if state.param < state.first then state.first = state.param end
-      if state.param >= state.first + view.PARAM_ROWS then state.first = state.param - view.PARAM_ROWS + 1 end
+      state.macro = util.clamp(state.macro + d, 1, macros.COUNT)
     elseif n == 3 then
-      params:delta(parts.id(i, "s" .. state.param), d)
+      turn_macro(d)
     end
   elseif n == 2 then
     if state.k1 then

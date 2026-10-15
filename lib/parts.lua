@@ -455,7 +455,7 @@ function P.start_part(i)
   load_machine(i, true)
 end
 
--- For K3 and the params page.
+-- For K3.
 function P.audition(i, z)
   local part = P.list[i]
   if not part.machine then return end
