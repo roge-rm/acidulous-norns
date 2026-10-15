@@ -15,10 +15,13 @@
 #include "bridge.h"
 #include "core.h"
 
+#include <EngineHost.h>
+
 #include <atomic>
 #include <cstdio>
 #include <cstring>
 #include <string>
+#include <thread>
 
 #ifndef ACIDULOUS_OSC_PORT
 #define ACIDULOUS_OSC_PORT 57150
@@ -31,6 +34,9 @@ namespace
 
 std::atomic<core::Core*> engine{nullptr};
 std::atomic<Unit*>       owner{nullptr};
+// The audio thread is inside Acidulous_next. shutdown() waits for it to leave
+// before deleting the core.
+std::atomic<int> in_next{0};
 
 struct StartCmd
 {
@@ -41,7 +47,7 @@ struct StartCmd
 void shutdown();
 
 // Stops everything when the library is unloaded or the process exits. Made on
-// the first start, after EngineHost's statics, so it runs before they go.
+// the first start, after EngineHost's singleton, so it's destroyed before it.
 struct ShutdownGuard
 {
     ~ShutdownGuard() { shutdown(); }
@@ -49,6 +55,7 @@ struct ShutdownGuard
 
 bool start_stage2(World* world, void* data)
 {
+    (void)acidulous::EngineHost::instance();
     static ShutdownGuard guard;
     auto* cmd = static_cast<StartCmd*>(data);
     if(core::Core* c = engine.load())
@@ -75,6 +82,8 @@ bool start_stage2(World* world, void* data)
 void shutdown()
 {
     core::Core* c = engine.exchange(nullptr);
+    while(in_next.load())
+        std::this_thread::yield();
     bridge::stop();
     delete c;
 }
@@ -108,7 +117,8 @@ static void Acidulous_next(Acidulous* unit, int n)
 {
     float*      outl = OUT(0);
     float*      outr = OUT(1);
-    core::Core* c    = engine.load(std::memory_order_acquire);
+    in_next.fetch_add(1);
+    core::Core* c = engine.load();
     if(c)
     {
         // The first instance to run once the owner is gone takes over.
@@ -120,9 +130,11 @@ static void Acidulous_next(Acidulous* unit, int n)
     {
         std::memset(outl, 0, n * sizeof(float));
         std::memset(outr, 0, n * sizeof(float));
+        in_next.fetch_sub(1);
         return;
     }
     c->process(IN(0), IN(1), outl, outr, n);
+    in_next.fetch_sub(1);
 }
 
 static void Acidulous_Ctor(Acidulous* unit)

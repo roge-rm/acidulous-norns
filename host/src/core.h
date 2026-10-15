@@ -13,6 +13,7 @@
 // - Replies go to the Replier from either the control or the worker thread.
 #pragma once
 
+#include <array>
 #include <atomic>
 #include <condition_variable>
 #include <cstdint>
@@ -85,6 +86,12 @@ class Core
     // Waits until every queued job has run.
     void drain();
 
+    // Jobs only. Waits until the mounts queued so far are in place, for
+    // EngineHost's loaders, which want the machine already there. Inline (the
+    // render tool) there's no audio thread, so it renders a block now, which
+    // plays before the next one: everything after it is a block later.
+    void settle();
+
   private:
     struct Part
     {
@@ -134,11 +141,9 @@ class Core
     // Blocks the audio thread has finished.
     std::atomic<uint64_t> blocks{0};
 
-    // MPE zone, set by the worker and applied on the audio thread.
-    std::atomic<uint32_t> mpe_serial{0};
+    // MPE zone as last sent, for /mpe_state and routing. Control thread.
     std::atomic<int>      mpe_kind{0}, mpe_members{15};
     std::atomic<float>    mpe_bend{48};
-    uint32_t              mpe_applied = 0;
     // For /mpe_state: what each member channel last sent the engine (note,
     // bend 0-16383, pressure, CC74), -1 for nothing yet. Control thread.
     struct Finger
@@ -151,6 +156,11 @@ class Core
     float fifo_in[64 * 2]  = {};
     float fifo_out[64 * 2] = {};
     int   fifo_pos         = 0;
+    // Inline only: blocks settle() rendered ahead, and whether a mount has
+    // been queued since the last block.
+    using Block = std::array<float, 64 * 2>;
+    std::deque<Block> early;
+    std::atomic<bool> mounts_queued{false};
 };
 
 } // namespace core

@@ -3,8 +3,10 @@
 #include <thread>
 
 namespace {
-// The started driver, and whether pull() is inside its callback. Sequentially
-// consistent, so stop() either sees the pull busy or the pull sees it gone.
+// The started driver, and whether a pull() is inside its callback. sBusy is
+// also a try-lock: only one pull runs at a time and a second one is skipped.
+// Sequentially consistent, so stop() either sees the pull busy or the pull
+// sees it gone.
 std::atomic<AudioDriver *> sLive{nullptr};
 std::atomic<bool> sBusy{false};
 std::atomic<int64_t> sBlocks{0};
@@ -25,7 +27,7 @@ void AudioDriver::stop() {
 }
 
 bool AudioDriver::pull(float *in, float *out) {
-    sBusy.store(true);
+    if (sBusy.exchange(true)) return false;
     AudioDriver *d = sLive.load();
     const bool ok = d != nullptr;
     if (ok) {

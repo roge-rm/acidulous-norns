@@ -33,7 +33,8 @@ class AudioDriver {
     /**
      * Audio thread. Renders one engine block: [in] and [out] are kBlockFrames
      * of interleaved stereo, [in] may be null. Returns false and leaves [out]
-     * alone when no started driver is attached.
+     * alone when no started driver is attached, or when another pull is
+     * running.
      */
     static bool pull(float *in, float *out);
     /** Blocks pulled so far, so a host can wait for the queues to drain. */

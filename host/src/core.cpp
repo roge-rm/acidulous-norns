@@ -111,8 +111,11 @@ Core::~Core()
     for(int p = 0; p < kParts; ++p)
         host.unmountMachine(p);
     host.setMpeZone(0, 15, 48);
+    // The UGen has stopped calling process(), but a pull may still be
+    // finishing, so this tries for up to 50 ms.
     float in[kBlockFrames * 2] = {}, out[kBlockFrames * 2];
-    AudioDriver::pull(in, out);
+    for(int tries = 0; tries < 50 && !AudioDriver::pull(in, out); ++tries)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     host.stop();
 }
 
@@ -136,16 +139,24 @@ void Core::process(const float* in_l, const float* in_r, float* out_l, float* ou
         out_r[i]                  = fifo_out[fifo_pos * 2 + 1];
         if(++fifo_pos == kBlockFrames)
         {
-            const uint32_t serial = mpe_serial.load(std::memory_order_acquire);
-            if(serial != mpe_applied)
-            {
-                mpe_applied = serial;
-                host.setMpeZone(mpe_kind.load(), mpe_members.load(), mpe_bend.load());
-            }
             // Silence while EngineHost has the driver stopped (an offline
-            // render or a freeze).
-            if(!AudioDriver::pull(fifo_in, fifo_out))
-                std::memset(fifo_out, 0, sizeof(fifo_out));
+            // render or a freeze). Blocks settle() rendered early go out
+            // first; that only happens inline, in the render tool.
+            if(early.empty())
+            {
+                if(!AudioDriver::pull(fifo_in, fifo_out))
+                    std::memset(fifo_out, 0, sizeof(fifo_out));
+            }
+            else
+            {
+                Block b;
+                if(!AudioDriver::pull(fifo_in, b.data()))
+                    b.fill(0.f);
+                early.push_back(b);
+                std::memcpy(fifo_out, early.front().data(), sizeof(fifo_out));
+                early.pop_front();
+            }
+            mounts_queued = false;
             blocks.fetch_add(1, std::memory_order_release);
             fifo_pos = 0;
         }
@@ -213,12 +224,30 @@ void Core::wait_applied()
         std::this_thread::sleep_for(std::chrono::milliseconds(2));
 }
 
+void Core::settle()
+{
+    if(!inline_jobs)
+    {
+        wait_applied();
+        return;
+    }
+    if(!mounts_queued)
+        return;
+    float in[kBlockFrames * 2] = {};
+    Block b;
+    if(!AudioDriver::pull(in, b.data()))
+        b.fill(0.f);
+    early.push_back(b);
+    mounts_queued = false;
+    blocks.fetch_add(1, std::memory_order_release);
+}
+
 void Core::reset()
 {
     host.panic();
     mpe_kind.store(0);
     mpe_members.store(15);
-    mpe_serial.fetch_add(1, std::memory_order_release);
+    host.setMpeZone(0, 15, mpe_bend.load());
     for(int p = 0; p < kParts; ++p)
         post_part(p, [this, p] { unmount(p); });
     drain();
@@ -424,7 +453,9 @@ bool Core::command(const std::string& path, const Args& a)
         mpe_kind.store(members > 0 ? 1 : 0);
         mpe_members.store(members > 0 ? std::min(members, 15) : 15);
         mpe_bend.store(to_float(a[2]));
-        mpe_serial.fetch_add(1, std::memory_order_release);
+        // Here rather than on the audio thread, as the app does, so the routing
+        // below and EngineHost's agree from the next message on.
+        host.setMpeZone(mpe_kind.load(), mpe_members.load(), mpe_bend.load());
         for(Finger& f : fingers)
             f = Finger{};
         return true;
@@ -462,6 +493,7 @@ bool Core::mount(int part, const std::string& name)
         return false;
     }
     const std::string type = MachineRegistry::name(i);
+    mounts_queued = true;
     if(!host.mountMachine(part, type))
     {
         error("mount queue full");
@@ -476,6 +508,7 @@ bool Core::mount(int part, const std::string& name)
 
 void Core::unmount(int part)
 {
+    mounts_queued = true;
     host.unmountMachine(part);
     wait_applied();
     parts[part] = Part{};
@@ -643,6 +676,7 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
             // Frees the program itself if the queue stays full.
             const bool had = program != nullptr;
             program.release();
+            mounts_queued = true;
             if(host.mountObjectWithRetry(mt))
                 parts[part].program = had;
             else
