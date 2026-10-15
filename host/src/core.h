@@ -26,6 +26,7 @@
 namespace acidulous
 {
 class Engine;
+struct ParamMessage;
 }
 
 namespace core
@@ -104,8 +105,10 @@ class Core
     void load_patch(int part, const std::string& machine, const std::string& name);
     void send_defs(const std::string& machine);
     void send_patches(const std::string& machine);
+    void send_state(int part);
     void set_param(int part, const Value& which, float v01);
     void set_channel(int part, const Value& which, float v01);
+    bool push_param(const acidulous::ParamMessage& m);
     struct BankCache;
     std::shared_ptr<BankCache> bank(const std::string& machine); // null if it can't be read
 

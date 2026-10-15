@@ -79,6 +79,14 @@ Core::Core(const std::string& bank_dir_, Replier* replier_, bool inline_jobs_)
   inline_jobs(inline_jobs_)
 {
     engine->start();
+    // The master fader at its top, 1.5, which is 5.5 dB over the app's
+    // default of 0.8, so one Reflux part peaks around -9 dBFS. The limiter
+    // (on, ceiling 0.95) keeps four loud parts from clipping.
+    ParamMessage master;
+    master.unit  = Unit::Master;
+    master.index = MasterBus::Volume;
+    master.value = 1.f;
+    engine->pushParam(master);
     if(!inline_jobs)
         worker = std::thread([this] { worker_loop(); });
 }
@@ -358,6 +366,13 @@ bool Core::command(const std::string& path, const Args& a)
             post_part(part, [this, part, m = to_str(a[1]), n = to_str(a[2])] { load_patch(part, m, n); });
         return true;
     }
+    if(path == "/state" && a.size() >= 1)
+    {
+        const int part = to_int(a[0]);
+        if(part_ok(part))
+            post_part(part, [this, part] { send_state(part); });
+        return true;
+    }
     if(path == "/defs" && a.size() >= 1)
     {
         post([this, m = to_str(a[0])] { send_defs(m); });
@@ -458,7 +473,7 @@ void Core::set_param(int part, const Value& which, float v01)
     m.unit  = Unit::Machine;
     m.index = index;
     m.value = v01 < 0.f ? 0.f : v01 > 1.f ? 1.f : v01;
-    engine->pushParam(m);
+    push_param(m);
 }
 
 // The track's channel strip, in Rack::ChannelParam's order. Applies with or
@@ -483,7 +498,35 @@ void Core::set_channel(int part, const Value& which, float v01)
     m.unit  = Unit::Channel;
     m.index = index;
     m.value = v01 < 0.f ? 0.f : v01 > 1.f ? 1.f : v01;
-    engine->pushParam(m);
+    push_param(m);
+}
+
+// The engine's param queue holds 512 and the audio thread empties it every
+// block, so when it's full this waits for blocks to render and tries again.
+// It gives up only if no block renders for a second. Worker thread; inline
+// jobs (the render tool) run between blocks, so they can't wait.
+bool Core::push_param(const ParamMessage& m)
+{
+    if(engine->pushParam(m))
+        return true;
+    if(!inline_jobs)
+    {
+        uint64_t seen = blocks.load(std::memory_order_acquire);
+        int      idle = 0;
+        while(!stopping && idle < 1000)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            if(engine->pushParam(m))
+                return true;
+            const uint64_t now = blocks.load(std::memory_order_acquire);
+            if(now != seen)
+                seen = now, idle = 0;
+            else
+                ++idle;
+        }
+    }
+    error("param queue full");
+    return false;
 }
 
 void Core::levels(float* out)
@@ -545,18 +588,8 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
         m.unit  = Unit::Machine;
         m.index = i;
         m.value = r.norm[size_t(i)];
-        bool sent = engine->pushParam(m);
-        // The queue holds 512, so this only waits when a lot is queued at once.
-        for(int tries = 0; !sent && !inline_jobs && tries < 100; ++tries)
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(2));
-            sent = engine->pushParam(m);
-        }
-        if(!sent)
-        {
-            error("param queue full");
+        if(!push_param(m))
             return;
-        }
     }
 
     // Formulate's formula and tables are compiled here and swapped in. A
@@ -605,11 +638,25 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
                      patch->name.c_str());
 
     parts[part].patch = patch->name;
-    Args values{Value::i(part), Value::s(machine)};
+    Args values{Value::i(part), Value::s(machine), Value::s(patch->name)};
     for(int32_t i = 0; i < count; ++i)
         values.push_back(Value::f(r.norm[size_t(i)]));
     reply("/values", values);
     reply("/patch", {Value::i(part), Value::s(machine), Value::s(patch->name)});
+}
+
+// What the engine holds for the part once everything queued before has been
+// applied, for tests: the gain and the machine's params, 0-1.
+void Core::send_state(int part)
+{
+    wait_applied();
+    const Rack& rack = engine->racks[part];
+    Args        out{Value::i(part), Value::s(parts[part].machine), Value::s(parts[part].patch),
+             Value::f(rack.channelNormalized(Rack::Gain))};
+    if(const Machine* m = rack.currentMachine())
+        for(int32_t i = 0; i < m->params().size(); ++i)
+            out.push_back(Value::f(m->params().normalized(i)));
+    reply("/state", out);
 }
 
 void Core::send_defs(const std::string& machine)

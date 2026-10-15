@@ -39,7 +39,9 @@ P.defs = {}      -- machine -> list of {name, min, max, default, unit, steps, cu
 P.patches = {}   -- machine -> list of patch names
 P.slots = 0      -- param slots per part: the most any machine has
 P.ready = false
+P.error = nil     -- shown instead of the parts, e.g. no machines
 P.loading = false -- a PSET is being read
+P.seen = 0        -- when the plugin last sent /load
 P.load, P.worst, P.worst_at = 0, 0, 0
 P.list = {}
 for i = 1, P.COUNT do
@@ -47,6 +49,9 @@ for i = 1, P.COUNT do
     n = i, channel = i, machine = nil, patch = nil,
     level = 0, held = 0, last_note = 0,
     want_values = false, pending = nil,
+    sent = nil,     -- the patch last sent to the plugin
+    edits = {},     -- slot -> value, set while a patch is on its way
+    values_at = 0, values_retried = false,
   }
 end
 
@@ -111,10 +116,12 @@ end
 local queue = {}
 local waiting = nil -- {kind, machine, asked}
 local on_ready
+local asked_machines = false -- /machines has been answered
 
 local function ask_next()
   waiting = table.remove(queue, 1)
   if not waiting then
+    if P.ready then return end
     P.slots = 0
     for _, m in ipairs(P.machines) do P.slots = math.max(P.slots, #(P.defs[m.name] or {})) end
     P.ready = true
@@ -126,20 +133,28 @@ local function ask_next()
   send("/" .. waiting.kind, {waiting.machine})
 end
 
+local watch
+
 function P.start(ready)
   on_ready = ready
   clock.run(function()
     -- the plugin can take a moment to start; ask again until it answers
-    while #P.machines == 0 do
+    while not asked_machines do
       send("/machines", {})
       clock.sleep(1)
     end
+    if P.error then return end
     while not P.ready do
       clock.sleep(1)
       if waiting and util.time() - waiting.asked > 2 then
         table.insert(queue, 1, waiting)
         ask_next()
       end
+    end
+    P.seen = util.time()
+    while true do
+      clock.sleep(0.5)
+      watch()
     end
   end)
 end
@@ -217,15 +232,20 @@ local function load_machine(i, with_values)
   local part = P.list[i]
   part.pending = nil
   local name = patch_name(i)
+  part.want_values = false
+  if not with_values then part.edits = {} end
   if not part.machine then
     send("/unmount", {i - 1})
+    name = nil
   elseif name then
     part.want_values = with_values
+    part.values_at, part.values_retried = util.time(), false
     send("/patch", {i - 1, part.machine, name})
   else
     send("/mount", {i - 1, part.machine})
   end
   part.patch = name
+  part.sent = name
 end
 
 -- Runs fn after `wait` seconds unless called again first, so turning an
@@ -248,6 +268,7 @@ function P.apply(i)
   P.notes_off(i)
   P.send_volume(i)
   load_machine(i, false)
+  -- C++ waits for room in the engine's param queue, so none of these is lost
   if part.machine then
     for j = 1, #P.defs[part.machine] do
       send("/param", {i - 1, j - 1, params:get(id(i, "s" .. j))})
@@ -280,7 +301,9 @@ local function add_part(i)
       show_machine(i, machine, false)
       return
     end
+    if machine == part.machine and not part.pending then return end -- a bang
     P.notes_off(i)
+    part.edits = {}
     params:set(id(i, "patch"), 1, true)
     show_machine(i, machine, true)
     part.patch = patch_name(i)
@@ -290,7 +313,10 @@ local function add_part(i)
   params:add_option(id(i, "patch"), "patch", {"-"}, 1)
   params:set_action(id(i, "patch"), function()
     if P.loading or not part.machine then return end
-    part.patch = patch_name(i)
+    local name = patch_name(i)
+    if name == part.sent and not part.pending then return end -- a bang
+    part.patch = name
+    part.edits = {}
     later(i, 0.2, function() load_machine(i, true) end)
   end)
 
@@ -308,8 +334,15 @@ local function add_part(i)
       return P.readout(param.def, param:get())
     end
     params:set_action(sid, function(v)
-      if P.loading or part.pending or not part.machine then return end
-      if j <= #P.defs[part.machine] then send("/param", {i - 1, j - 1, v}) end
+      if P.loading or not part.machine or j > #P.defs[part.machine] then return end
+      -- An edit made while a patch is on its way goes on top of the patch
+      -- once its values arrive.
+      if part.pending then
+        part.edits[j] = v
+        return
+      end
+      send("/param", {i - 1, j - 1, v})
+      if part.want_values then part.edits[j] = v end
     end)
   end
 end
@@ -317,15 +350,82 @@ end
 function P.add_params()
   for i = 1, P.COUNT do add_part(i) end
   for i = 1, P.COUNT do show_machine(i, nil, true) end
-  -- Reading a PSET only stores the values; the parts are sent afterwards, in
-  -- order, so each machine is mounted before its params arrive.
-  local read = params.read
-  params.read = function(self, ...)
-    P.loading = true
-    local ok, err = pcall(read, self, ...)
-    P.loading = false
+  -- params:clear() removes this when the script ends.
+  params.action_read = function(filename) P.after_read(filename) end
+end
+
+-- After a PSET is read, sends every part again, in order, so each machine is
+-- mounted before its params arrive. A silent read doesn't run the machine
+-- actions, so the menus are fixed here and the file read again to put the
+-- patch and slots in the right options.
+local rereading = false
+
+function P.after_read(filename)
+  if rereading then return end
+  P.loading = true
+  local changed = false
+  for i, part in ipairs(P.list) do
+    local v = params:get(id(i, "machine"))
+    local machine = v > 1 and P.machines[v - 1] and P.machines[v - 1].name or nil
+    if machine ~= part.machine then
+      show_machine(i, machine, false)
+      changed = true
+    end
+    part.channel = params:get(id(i, "channel")) - 1
+  end
+  if changed and filename then
+    rereading = true
+    local ok, err = pcall(params.read, params, filename, true)
+    rereading = false
     if not ok then print("acidulous: pset read failed: " .. tostring(err)) end
-    P.apply_all()
+  end
+  P.loading = false
+  P.apply_all()
+end
+
+-- Every half second once started: sends everything again if the plugin was
+-- started again under the script, and asks for a patch's values once more
+-- if they haven't come.
+watch = function()
+  local now = util.time()
+  if now - P.seen > 3 and not P.lost then
+    P.lost, P.lost_tries, P.lost_at = true, 0, now
+    print("acidulous: the plugin stopped answering")
+  end
+  -- SuperCollider started again: start the engine, and if sclang lost it,
+  -- load it again. Its /hello then sends the parts.
+  if P.lost and now - P.lost_at > 5 then
+    P.lost_at = now
+    P.lost_tries = P.lost_tries + 1
+    if P.lost_tries % 2 == 1 then
+      engine.start()
+    else
+      engine.load("Acidulous", function() engine.start() end)
+    end
+  end
+  for i, part in ipairs(P.list) do
+    if part.want_values and not part.values_retried and now - part.values_at > 2 then
+      part.values_retried = true
+      part.values_at = now
+      send("/patch", {i - 1, part.machine, part.sent})
+    end
+  end
+end
+
+-- The plugin has an empty engine: sends every part again.
+function P.resend()
+  P.lost = false
+  print("acidulous: plugin started again, sending the parts")
+  for i, part in ipairs(P.list) do
+    if part.pending then
+      P.send_volume(i) -- the pending patch mounts the machine
+    elseif part.want_values then
+      -- the slots don't hold this patch's values yet, so ask for them again
+      P.send_volume(i)
+      load_machine(i, true)
+    else
+      P.apply(i)
+    end
   end
 end
 
@@ -385,6 +485,8 @@ function P.osc(path, args)
       part.level = math.max(args[i] or 0, part.level * 0.7)
     end
   elseif path == "/load" then
+    P.seen = util.time()
+    if P.lost and P.ready then P.resend() end
     P.load = args[1] or 0
     if (args[2] or 0) > 80 then
       P.worst, P.worst_at = args[2], util.time()
@@ -392,14 +494,23 @@ function P.osc(path, args)
   elseif path == "/values" then
     local i = (args[1] or -1) + 1
     local part = P.list[i]
-    if not part or not part.want_values or part.machine ~= args[2] or part.pending then return end
+    if not part or not part.want_values or part.pending then return end
+    if part.machine ~= args[2] or part.sent ~= args[3] then return end
     part.want_values = false
-    for j = 3, #args do
-      local sid = id(i, "s" .. (j - 2))
+    for j = 4, #args do
+      local sid = id(i, "s" .. (j - 3))
       if params.lookup[sid] then params:set(sid, args[j], true) end
     end
+    for j, v in pairs(part.edits) do
+      params:set(id(i, "s" .. j), v, true)
+      send("/param", {i - 1, j - 1, v})
+    end
+    part.edits = {}
+  elseif path == "/hello" then
+    if P.ready then P.resend() end
   elseif path == "/machines" then
-    if #P.machines > 0 then return end
+    if asked_machines then return end
+    asked_machines = true
     local have = {}
     for _, name in ipairs(args) do have[name] = true end
     for _, m in ipairs(P.MACHINES) do
@@ -408,6 +519,11 @@ function P.osc(path, args)
         queue[#queue + 1] = {kind = "defs", machine = m.name}
         queue[#queue + 1] = {kind = "patches", machine = m.name}
       end
+    end
+    if #P.machines == 0 then
+      P.error = "no machines in the plugin"
+      print("acidulous: " .. P.error)
+      return
     end
     ask_next()
   elseif path == "/def" then

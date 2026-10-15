@@ -107,10 +107,10 @@ function view.params(parts, state, params_get)
   screen.update()
 end
 
-function view.starting()
+function view.starting(err)
   screen.clear()
-  screen.level(8)
-  text(64, 34, "starting", "center")
+  screen.level(err and 15 or 8)
+  text(64, 34, err or "starting", "center")
   screen.update()
 end
 

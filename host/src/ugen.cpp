@@ -46,6 +46,7 @@ bool start_stage2(World* world, void* data)
         c->reset();
         if(!bridge::start(c, std::to_string(cmd->port), "10111"))
             std::fprintf(stderr, "acidulous: can't open OSC port %d\n", cmd->port);
+        bridge::replier_for_core()->reply("/hello", {});
         return true;
     }
     if(world->mSampleRate != 48000.0)
@@ -55,6 +56,7 @@ bool start_stage2(World* world, void* data)
     if(!bridge::start(c, std::to_string(cmd->port), "10111"))
         std::fprintf(stderr, "acidulous: can't open OSC port %d\n", cmd->port);
     engine.store(c);
+    bridge::replier_for_core()->reply("/hello", {});
     return true;
 }
 

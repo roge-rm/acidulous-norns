@@ -11,10 +11,15 @@
 //   /patch i:part s:machine s:patch    mounts the machine if it isn't there
 //   /mpe i:part i:members f:bend       members 0 turns MPE off
 //   /defs s:machine   /patches s:machine   /machines
+//   /state i:part                      for tests
 // Out (to `reply` on localhost, matron's 10111):
 //   /mounted i:part s:machine          "" when emptied
-//   /values i:part s:machine f:value01...   every param, sent just before
+//   /hello                             each time AcidulousStart runs, with an
+//        empty engine, so the script sends its parts again
+//   /values i:part s:machine s:patch f:value01...   every param, sent just before
 //   /patch i:part s:machine s:patch    once it's applied
+//   /state i:part s:machine s:patch f:gain01 f:value01...   what the engine
+//        holds once everything sent before has been applied
 //   /def s:machine i:index s:name f:min f:max f:default s:unit i:steps s:curve
 //        steps is 0 unless stepped; curve is "lin", "exp" or "step"
 //   /defs_end s:machine i:count

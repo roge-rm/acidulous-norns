@@ -76,6 +76,12 @@ end
 local function ready()
   params:add_separator("acidulous", "acidulous")
   params:add_option("midi_device", "midi from", device_names(), 1)
+  -- notes held on the old device would never get their note offs
+  params:set_action("midi_device", function()
+    for i = 1, parts.COUNT do
+      if parts.list[i].machine then parts.notes_off(i) end
+    end
+  end)
   parts.add_params()
   parts.set_part(1, "Reflux", "Classic")
   parts.set_part(2, "Hexbeat", "Straight")
@@ -111,7 +117,7 @@ local function slot_value(j) return params:get(parts.id(state.sel, "s" .. j)) en
 
 function redraw()
   if not parts.ready then
-    view.starting()
+    view.starting(parts.error)
   elseif state.page == "params" then
     view.params(parts, state, slot_value)
   else
