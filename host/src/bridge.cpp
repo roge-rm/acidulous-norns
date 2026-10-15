@@ -7,6 +7,8 @@
 #include <atomic>
 #include <chrono>
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <mutex>
 #include <thread>
 
@@ -15,12 +17,25 @@ namespace bridge
 namespace
 {
 
+// These are never destroyed, so a thread that is still replying while the
+// process exits can't touch a destroyed mutex. stop() joins the threads.
 lo_server_thread  osc = nullptr;
 lo_address        to  = nullptr;
-std::mutex        send_lock; // replies come from the OSC thread and the core's worker
-std::thread       pump;
+std::mutex&       send_lock = *new std::mutex; // replies come from the OSC thread and the core's worker
+std::thread*      pump      = nullptr;
 std::atomic<bool> running{false};
 core::Core*       target = nullptr;
+bool              local_only = true;
+
+bool from_loopback(lo_message msg)
+{
+    lo_address src = lo_message_get_source(msg);
+    const char* h  = src ? lo_address_get_hostname(src) : nullptr;
+    if(!h)
+        return false;
+    return !std::strncmp(h, "127.", 4) || !std::strcmp(h, "::1") || !std::strncmp(h, "::ffff:127.", 11) ||
+           !std::strcmp(h, "localhost");
+}
 
 struct OscReplier : core::Replier
 {
@@ -48,8 +63,10 @@ OscReplier replier;
 
 // norns sends every Lua number as a float, so numbers keep their own type
 // and the core converts.
-int on_any(const char* path, const char* types, lo_arg** a, int argc, lo_message, void*)
+int on_any(const char* path, const char* types, lo_arg** a, int argc, lo_message msg, void*)
 {
+    if(local_only && !from_loopback(msg))
+        return 0;
     core::Args args;
     for(int i = 0; i < argc; ++i)
     {
@@ -73,11 +90,16 @@ int on_any(const char* path, const char* types, lo_arg** a, int argc, lo_message
 
 void pump_main()
 {
+    int ticks = 0;
     while(running)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(250));
+        // Short sleeps so stop() doesn't wait a quarter of a second.
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
         if(!running)
             break;
+        if(++ticks < 25)
+            continue;
+        ticks = 0;
         replier.reply("/load", {core::Value::f(target->load_percent()), core::Value::f(target->worst_percent())});
     }
 }
@@ -98,6 +120,10 @@ bool start(core::Core* core, const std::string& port, const std::string& reply)
 {
     if(running)
         return true;
+    // liblo can only bind every interface, so the handler drops anything that
+    // doesn't come from this machine, unless ACIDULOUS_OSC_ALL is set.
+    const char* all = std::getenv("ACIDULOUS_OSC_ALL");
+    local_only      = !(all && *all && std::strcmp(all, "0"));
     osc = lo_server_thread_new(port.c_str(), on_error);
     if(!osc)
         return false;
@@ -109,7 +135,7 @@ bool start(core::Core* core, const std::string& port, const std::string& reply)
     lo_server_thread_add_method(osc, nullptr, nullptr, on_any, nullptr);
     lo_server_thread_start(osc);
     running = true;
-    pump    = std::thread(pump_main);
+    pump    = new std::thread(pump_main);
     return true;
 }
 
@@ -118,9 +144,13 @@ void stop()
     if(!running)
         return;
     running = false;
-    pump.join();
+    pump->join();
+    delete pump;
+    pump = nullptr;
+    // Stops the OSC thread, so no command runs after this.
     lo_server_thread_free(osc);
-    osc = nullptr;
+    osc    = nullptr;
+    target = nullptr;
     std::lock_guard<std::mutex> l(send_lock);
     lo_address_free(to);
     to = nullptr;

@@ -74,6 +74,10 @@ class Core
     // The worst block since the last call, as a percentage of a block's length.
     float worst_percent();
 
+    // Control thread. Back to an empty engine: all notes off, every part
+    // unmounted, MPE off. Returns once that has run.
+    void reset();
+
     // Waits until every queued job has run.
     void drain();
 
@@ -86,6 +90,8 @@ class Core
     };
 
     void post(std::function<void()> job);
+    void post_part(int part, std::function<void()> job);
+    void wait_applied();
     void worker_loop();
     void reply(const char* path, const Args& args);
     void error(const std::string& text);
@@ -98,7 +104,7 @@ class Core
     void send_patches(const std::string& machine);
     void set_param(int part, const Value& which, float v01);
     struct BankCache;
-    const struct BankCache* bank(const std::string& machine);
+    std::shared_ptr<BankCache> bank(const std::string& machine); // null if it can't be read
 
     std::unique_ptr<acidulous::Engine> engine;
     std::string                        bank_dir;
@@ -114,6 +120,12 @@ class Core
     std::deque<std::function<void()>> jobs;
     bool                              busy = false;
     bool                              quitting = false;
+    std::atomic<bool>                 stopping{false};
+
+    // Jobs queued per part, so live messages know whether to wait behind them.
+    std::atomic<int> pending[kParts] = {};
+    // Blocks the audio thread has finished.
+    std::atomic<uint64_t> blocks{0};
 
     // MPE zone, set by the worker and applied on the audio thread.
     std::atomic<uint32_t> mpe_serial{0};

@@ -48,6 +48,10 @@ tools/vendor-acidulous.sh [PATH_TO_ACIDULOUS]
 
 copies the engine, the sequencer and the patch bank reader from the app into `third_party/acidulous`, and the factory banks into `data/banks`. It defaults to `~/Projects/AndroidStudioProjects/Acidulous`. The app's commit goes in `third_party/acidulous/VERSION`. Don't edit the copied files.
 
+## OSC access
+
+The plugin listens on UDP port 57150 and drops any message that doesn't come from this machine (liblo can only bind every interface, so it filters instead). To accept other machines, for desktop testing, start scsynth with `ACIDULOUS_OSC_ALL=1` in its environment.
+
 ## Testing offline
 
 ```
@@ -67,3 +71,5 @@ See the top of `host/src/render.cpp` for the options. `tools/render-tests.sh` re
 ## OSC
 
 The messages the plugin takes on port 57150 and what it sends back to matron on 10111 are listed at the top of `host/src/bridge.h`. Parts are 0 to 7 and channels 1 to 16.
+
+`acidulous-test BANK_DIR` (built with the plugin) runs the core with its worker thread and the OSC bridge: a note straight after `/patch`, reset, and starting and stopping the bridge and core twice. `tools/render-tests.sh` fails if a patch is missing or an output isn't finite.

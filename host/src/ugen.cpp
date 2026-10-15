@@ -5,7 +5,9 @@
 // makes the engine and its OSC bridge (bridge.h) on scsynth's non-real-time
 // thread. The UGen then runs it:
 //   Acidulous.ar(in_l, in_r) -> [out_l, out_r]
-// Only one instance runs the engine; others output silence. The engine is
+// Only one instance runs the engine; others output silence until it is freed,
+// then one of them takes over. Sending AcidulousStart again (a script reload)
+// empties the engine: all notes off and every part unmounted. The engine is
 // fixed at 48 kHz and runs in 64-frame blocks behind a FIFO, so any scsynth
 // block size works, with 64 frames of extra latency.
 #include "SC_PlugIn.h"
@@ -39,8 +41,13 @@ struct StartCmd
 bool start_stage2(World* world, void* data)
 {
     auto* cmd = static_cast<StartCmd*>(data);
-    if(engine.load())
+    if(core::Core* c = engine.load())
+    {
+        c->reset();
+        if(!bridge::start(c, std::to_string(cmd->port), "10111"))
+            std::fprintf(stderr, "acidulous: can't open OSC port %d\n", cmd->port);
         return true;
+    }
     if(world->mSampleRate != 48000.0)
         std::fprintf(stderr, "acidulous: scsynth runs at %g Hz; the engine is 48 kHz and will be off pitch\n",
                      world->mSampleRate);
@@ -50,6 +57,20 @@ bool start_stage2(World* world, void* data)
     engine.store(c);
     return true;
 }
+
+// Stops the OSC threads, then the core's worker. Called when scsynth unloads
+// the plugin, or when the library is unloaded or the process exits.
+void shutdown()
+{
+    core::Core* c = engine.exchange(nullptr);
+    bridge::stop();
+    delete c;
+}
+
+struct ShutdownGuard
+{
+    ~ShutdownGuard() { shutdown(); }
+} guard;
 
 void start_cleanup(World* world, void* data)
 {
@@ -81,6 +102,13 @@ static void Acidulous_next(Acidulous* unit, int n)
     float*      outl = OUT(0);
     float*      outr = OUT(1);
     core::Core* c    = engine.load(std::memory_order_acquire);
+    if(c)
+    {
+        // The first instance to run once the owner is gone takes over.
+        Unit* none = nullptr;
+        if(owner.compare_exchange_strong(none, unit))
+            c->reset_fifo();
+    }
     if(!c || owner.load() != unit)
     {
         std::memset(outl, 0, n * sizeof(float));
@@ -92,12 +120,6 @@ static void Acidulous_next(Acidulous* unit, int n)
 
 static void Acidulous_Ctor(Acidulous* unit)
 {
-    Unit* none = nullptr;
-    if(owner.compare_exchange_strong(none, unit))
-    {
-        if(core::Core* c = engine.load(std::memory_order_acquire))
-            c->reset_fifo();
-    }
     SETCALC(Acidulous_next);
     OUT0(0) = 0.f;
     OUT0(1) = 0.f;
@@ -107,6 +129,11 @@ static void Acidulous_Dtor(Acidulous* unit)
 {
     Unit* me = unit;
     owner.compare_exchange_strong(me, nullptr);
+}
+
+PluginUnload(Acidulous)
+{
+    shutdown();
 }
 
 PluginLoad(Acidulous)

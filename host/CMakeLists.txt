@@ -65,6 +65,11 @@ if(SC_INC AND LO_INC AND LO_LIB)
     target_include_directories(Acidulous PRIVATE ${SC_INC} ${SC_INC}/../common ${LO_INC})
     target_link_libraries(Acidulous acidulous-core ${LO_LIB})
     target_link_options(Acidulous PRIVATE -Wl,--exclude-libs,ALL -Wl,-Bsymbolic)
+
+    # Core, worker and OSC bridge start and stop, without scsynth.
+    add_executable(acidulous-test tests/lifecycle.cpp src/bridge.cpp)
+    target_include_directories(acidulous-test PRIVATE src ${LO_INC})
+    target_link_libraries(acidulous-test acidulous-core ${LO_LIB})
 else()
     message(STATUS "No SuperCollider plugin headers or liblo: building only acidulous-render")
 endif()

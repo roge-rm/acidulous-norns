@@ -2,6 +2,7 @@
 
 #include <engine/core/Constants.h>
 #include <engine/core/Handover.h>
+#include <engine/dsp/Denormals.h>
 #include <engine/core/Messages.h>
 #include <engine/machine/MachineRegistry.h>
 #include <engine/machine/formulate/Program.h>
@@ -83,6 +84,7 @@ Core::Core(const std::string& bank_dir_, Replier* replier_, bool inline_jobs_)
 
 Core::~Core()
 {
+    stopping = true;
     if(worker.joinable())
     {
         {
@@ -109,6 +111,7 @@ void Core::reset_fifo()
 
 void Core::process(const float* in_l, const float* in_r, float* out_l, float* out_r, int n)
 {
+    dsp::flushDenormalsOnce();
     for(int i = 0; i < n; ++i)
     {
         fifo_in[fifo_pos * 2]     = in_l ? in_l[i] : 0.f;
@@ -124,6 +127,7 @@ void Core::process(const float* in_l, const float* in_r, float* out_l, float* ou
                 engine->setMpeZone(mpe_kind.load(), mpe_members.load(), mpe_bend.load());
             }
             engine->renderBlock(fifo_in, fifo_out);
+            blocks.fetch_add(1, std::memory_order_release);
             fifo_pos = 0;
         }
     }
@@ -166,6 +170,39 @@ void Core::post(std::function<void()> job)
         jobs.push_back(std::move(job));
     }
     jobs_cv.notify_one();
+}
+
+void Core::post_part(int part, std::function<void()> job)
+{
+    pending[part].fetch_add(1, std::memory_order_acq_rel);
+    post([this, part, job = std::move(job)] {
+        job();
+        pending[part].fetch_sub(1, std::memory_order_acq_rel);
+    });
+}
+
+// A queued mount is applied at the start of the next block that starts after
+// it, so two finished blocks are enough. If nothing is rendering this gives up
+// after half a second. The render tool runs jobs inline between blocks, where
+// the order is already right.
+void Core::wait_applied()
+{
+    if(inline_jobs)
+        return;
+    const uint64_t want = blocks.load(std::memory_order_acquire) + 2;
+    for(int tries = 0; tries < 250 && !stopping && blocks.load(std::memory_order_acquire) < want; ++tries)
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+}
+
+void Core::reset()
+{
+    engine->panicFlag.store(true);
+    mpe_kind.store(0);
+    mpe_members.store(15);
+    mpe_serial.fetch_add(1, std::memory_order_release);
+    for(int p = 0; p < kParts; ++p)
+        post_part(p, [this, p] { unmount(p); });
+    drain();
 }
 
 void Core::drain()
@@ -214,6 +251,14 @@ bool Core::command(const std::string& path, const Args& a)
             return ch <= 14 && ch >= 15 - members;
         return false;
     };
+    // Messages for a part with a mount or patch still on the worker wait behind
+    // it, in order. Otherwise they go straight to the engine.
+    const auto live = [&](int part, std::function<void()> fn) {
+        if(inline_jobs || pending[part].load(std::memory_order_acquire) == 0)
+            fn();
+        else
+            post_part(part, std::move(fn));
+    };
     // The mod wheel, pedals and channel pressure go as performance params,
     // as the app does, so the machine sees them the same way.
     const auto perf = [&](int part, int index, int value) {
@@ -222,7 +267,7 @@ bool Core::command(const std::string& path, const Args& a)
         p.unit  = Unit::Performance;
         p.index = index;
         p.value = float(clamp7(value)) / 127.f;
-        engine->pushParam(p);
+        live(part, [this, p] { engine->pushParam(p); });
     };
 
     if(path == "/note" && a.size() >= 4)
@@ -232,7 +277,8 @@ bool Core::command(const std::string& path, const Args& a)
             return true;
         const uint8_t ch = chan(a[1]), note = clamp7(to_int(a[2])), vel = clamp7(to_int(a[3]));
         const uint8_t status = uint8_t((vel ? 0x90 : 0x80) | part);
-        engine->pushMidi({status, note, vel, ch});
+        const MidiMessage m{status, note, vel, ch};
+        live(part, [this, m] { engine->pushMidi(m); });
         return true;
     }
     if(path == "/cc" && a.size() >= 4)
@@ -244,7 +290,10 @@ bool Core::command(const std::string& path, const Args& a)
         if(!member(ch) && (num == 1 || num == 64 || num == 66 || num == 67))
             perf(part, num == 1 ? kPerfMod : num == 64 ? kPerfSustain : num == 66 ? kPerfSostenuto : kPerfSoft, val);
         else
-            engine->pushMidi({uint8_t(0xb0 | part), num, val, ch});
+        {
+            const MidiMessage m{uint8_t(0xb0 | part), num, val, ch};
+            live(part, [this, m] { engine->pushMidi(m); });
+        }
         return true;
     }
     if(path == "/bend" && a.size() >= 3)
@@ -254,7 +303,8 @@ bool Core::command(const std::string& path, const Args& a)
             return true;
         int v = to_int(a[2]);
         v     = v < 0 ? 0 : v > 16383 ? 16383 : v;
-        engine->pushMidi({uint8_t(0xe0 | part), uint8_t(v & 0x7f), uint8_t(v >> 7), chan(a[1])});
+        const MidiMessage m{uint8_t(0xe0 | part), uint8_t(v & 0x7f), uint8_t(v >> 7), chan(a[1])};
+        live(part, [this, m] { engine->pushMidi(m); });
         return true;
     }
     if(path == "/pressure" && a.size() >= 3)
@@ -264,7 +314,10 @@ bool Core::command(const std::string& path, const Args& a)
             return true;
         const uint8_t ch = chan(a[1]);
         if(member(ch))
-            engine->pushMidi({uint8_t(0xd0 | part), clamp7(to_int(a[2])), 0, ch});
+        {
+            const MidiMessage m{uint8_t(0xd0 | part), clamp7(to_int(a[2])), 0, ch};
+            live(part, [this, m] { engine->pushMidi(m); });
+        }
         else
             perf(part, kPerfPressure, to_int(a[2]));
         return true;
@@ -273,28 +326,28 @@ bool Core::command(const std::string& path, const Args& a)
     {
         const int part = to_int(a[0]);
         if(part_ok(part))
-            post([this, part, m = to_str(a[1])] { mount(part, m); });
+            post_part(part, [this, part, m = to_str(a[1])] { mount(part, m); });
         return true;
     }
     if(path == "/unmount" && a.size() >= 1)
     {
         const int part = to_int(a[0]);
         if(part_ok(part))
-            post([this, part] { unmount(part); });
+            post_part(part, [this, part] { unmount(part); });
         return true;
     }
     if(path == "/param" && a.size() >= 3)
     {
         const int part = to_int(a[0]);
         if(part_ok(part))
-            post([this, part, which = a[1], v = to_float(a[2])] { set_param(part, which, v); });
+            post_part(part, [this, part, which = a[1], v = to_float(a[2])] { set_param(part, which, v); });
         return true;
     }
     if(path == "/patch" && a.size() >= 3)
     {
         const int part = to_int(a[0]);
         if(part_ok(part))
-            post([this, part, m = to_str(a[1]), n = to_str(a[2])] { load_patch(part, m, n); });
+            post_part(part, [this, part, m = to_str(a[1]), n = to_str(a[2])] { load_patch(part, m, n); });
         return true;
     }
     if(path == "/defs" && a.size() >= 1)
@@ -350,6 +403,7 @@ bool Core::mount(int part, const std::string& name)
         error("mount queue full");
         return false;
     }
+    wait_applied();
     parts[part] = Part{};
     parts[part].machine = m->typeName();
     reply("/mounted", {Value::i(part), Value::s(parts[part].machine)});
@@ -367,6 +421,7 @@ void Core::unmount(int part)
         error("mount queue full");
         return;
     }
+    wait_applied();
     parts[part] = Part{};
     reply("/mounted", {Value::i(part), Value::s("")});
 }
@@ -398,24 +453,27 @@ void Core::set_param(int part, const Value& which, float v01)
     engine->pushParam(m);
 }
 
-const Core::BankCache* Core::bank(const std::string& machine)
+std::shared_ptr<Core::BankCache> Core::bank(const std::string& machine)
 {
     auto it = banks.find(machine);
     if(it != banks.end())
-        return it->second.get();
+        return it->second;
     auto        cache = std::make_shared<BankCache>();
     std::string why;
     cache->ok = ab::readBank(bank_dir + "/" + machine + ".bank", cache->bank, why);
     if(!cache->ok)
+    {
         error(why);
+        return nullptr;
+    }
     banks[machine] = cache;
-    return cache.get();
+    return cache;
 }
 
 void Core::load_patch(int part, const std::string& machine, const std::string& name)
 {
-    const BankCache* b = bank(machine);
-    if(!b->ok)
+    const auto b = bank(machine);
+    if(!b)
         return;
     const ab::BankPatch* patch = nullptr;
     for(const auto& p : b->bank.patches)
@@ -439,8 +497,8 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
     for(const auto& p : r.problems)
         std::fprintf(stderr, "acidulous: %s %s: %s\n", machine.c_str(), patch->name.c_str(), p.c_str());
 
-    // Every param, so nothing is left over from the last patch. Mounts are
-    // applied before params in each block, so these land on the new machine.
+    // Every param, so nothing is left over from the last patch. mount() has
+    // waited for the new machine to be in place.
     for(int32_t i = 0; i < count; ++i)
     {
         ParamMessage m;
@@ -533,9 +591,9 @@ void Core::send_defs(const std::string& machine)
 
 void Core::send_patches(const std::string& machine)
 {
-    const BankCache* b = bank(machine);
-    Args             out{Value::s(machine)};
-    if(b->ok)
+    const auto b = bank(machine);
+    Args       out{Value::s(machine)};
+    if(b)
         for(const auto& p : b->bank.patches)
             out.push_back(Value::s(p.name));
     reply("/patches", out);
