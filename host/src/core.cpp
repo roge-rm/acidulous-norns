@@ -7,6 +7,7 @@
 #include <engine/machine/MachineRegistry.h>
 #include <engine/machine/formulate/Program.h>
 #include <engine/rack/Engine.h>
+#include <engine/rack/Rack.h>
 #include <tools/patchbank.h>
 
 #include <chrono>
@@ -343,6 +344,13 @@ bool Core::command(const std::string& path, const Args& a)
             post_part(part, [this, part, which = a[1], v = to_float(a[2])] { set_param(part, which, v); });
         return true;
     }
+    if(path == "/channel" && a.size() >= 3)
+    {
+        const int part = to_int(a[0]);
+        if(part_ok(part))
+            post_part(part, [this, part, which = a[1], v = to_float(a[2])] { set_channel(part, which, v); });
+        return true;
+    }
     if(path == "/patch" && a.size() >= 3)
     {
         const int part = to_int(a[0]);
@@ -451,6 +459,37 @@ void Core::set_param(int part, const Value& which, float v01)
     m.index = index;
     m.value = v01 < 0.f ? 0.f : v01 > 1.f ? 1.f : v01;
     engine->pushParam(m);
+}
+
+// The track's channel strip, in Rack::ChannelParam's order. Applies with or
+// without a machine.
+void Core::set_channel(int part, const Value& which, float v01)
+{
+    static const char* const names[] = {"gain", "pan", "mute", "solo"};
+    int index = -1;
+    if(which.type != 's')
+        index = to_int(which);
+    else
+        for(int i = 0; i < 4; ++i)
+            if(which.str == names[i])
+                index = i;
+    if(index < 0 || index >= Rack::ChannelCount)
+    {
+        error("no channel param " + to_str(which));
+        return;
+    }
+    ParamMessage m;
+    m.rack  = part;
+    m.unit  = Unit::Channel;
+    m.index = index;
+    m.value = v01 < 0.f ? 0.f : v01 > 1.f ? 1.f : v01;
+    engine->pushParam(m);
+}
+
+void Core::levels(float* out)
+{
+    for(int p = 0; p < kParts; ++p)
+        out[p] = engine->racks[p].readPeak();
 }
 
 std::shared_ptr<Core::BankCache> Core::bank(const std::string& machine)
@@ -566,6 +605,10 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
                      patch->name.c_str());
 
     parts[part].patch = patch->name;
+    Args values{Value::i(part), Value::s(machine)};
+    for(int32_t i = 0; i < count; ++i)
+        values.push_back(Value::f(r.norm[size_t(i)]));
+    reply("/values", values);
     reply("/patch", {Value::i(part), Value::s(machine), Value::s(patch->name)});
 }
 

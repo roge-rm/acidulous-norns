@@ -1,140 +1,171 @@
 -- acidulous
--- test script: plays the first machines and prints the plugin's load
+-- a multitimbral patch player
 --
--- From the REPL: acid.play("reflux"), "hexbeat", "trinity", "ratio",
--- "formulate" or "four" (Reflux, Hexbeat, Trinity and Ratio at once).
--- acid.stop() stops the notes, acid.load() prints the last load reading.
+-- 8 parts, each on its own
+-- MIDI channel
+-- E1 part, E2 patch, E3 volume
+-- K1 held + E2 machine
+-- K2 params, K3 play a note
 
 engine.name = "Acidulous"
 
-local PLUGIN = {"127.0.0.1", 57150}
--- Normalised machine volume, so nothing plays at full scale.
-local VOLUME = 0.35
+local parts = include("lib/parts")
+local view = include("lib/view")
 
-acid = {verbose = true}
-local mode = nil
-local held = {} -- part -> notes to release
-local load = {now = 0, worst = 0, peak = 0, peak_worst = 0}
-local count = 0
+local state = {sel = 1, k1 = false, page = "main", param = 1, first = 1}
+local auditioning = nil -- the part K3 is playing
 
-local function send(path, args) osc.send(PLUGIN, path, args) end
+-- For the REPL: acid.midi(port, bytes) plays as if from MIDI port `port`.
+acid = {parts = parts, state = state}
 
-local function note(part, n, vel)
-  send("/note", {part, 1, n, vel})
-end
+-- ---- MIDI in ----------------------------------------------------------------
 
-local function release(part)
-  for _, n in ipairs(held[part] or {}) do note(part, n, 0) end
-  held[part] = {}
-end
-
-local function play_notes(part, notes, vel)
-  release(part)
-  for _, n in ipairs(notes) do note(part, n, vel) end
-  held[part] = notes
-end
-
--- The parts and their patches. Reflux 0, Hexbeat 1, Trinity 2, Ratio 3,
--- Formulate 4.
-local PATCHES = {
-  {0, "Reflux", "Classic"},
-  {1, "Hexbeat", "Straight"},
-  {2, "Trinity", "Glass Pad"},
-  {3, "Ratio", "Tine"},
-  {4, "Formulate", "Pulse Lead"},
-}
-
-local ACID = {36, 36, 48, 36, 39, 36, 43, 36, 36, 46, 36, 48, 41, 36, 39, 43}
-local ACCENT = {1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0}
--- Kick 36, snare 38, closed hat 43, open hat 44.
-local BEAT = {
-  {36, 43}, {43}, {43}, {43}, {38, 43}, {43}, {43}, {44},
-  {36, 43}, {43}, {36, 43}, {43}, {38, 43}, {43}, {43}, {44},
-}
-local CHORDS = {{48, 55, 60, 64}, {45, 52, 57, 60}, {41, 48, 53, 57}, {43, 50, 55, 59}}
-local ARP = {60, 64, 67, 72, 67, 64}
-
-local function step(s)
-  local i = (s - 1) % 16 + 1
-  local bar = (s - 1) // 16 % 4 + 1
-  local on = function(m) return mode == m or (mode == "four" and m ~= "formulate") end
-  if on("reflux") then
-    play_notes(0, {ACID[i]}, ACCENT[i] == 1 and 110 or 70)
+-- Notes, CCs, bend and channel pressure go to every part on their channel.
+local function midi_event(port, data)
+  local dev = params:get("midi_device")
+  if dev > 1 and dev - 1 ~= port then return end
+  local status = data[1]
+  if not status or status < 0x80 or status >= 0xF0 then return end
+  local kind, ch = status & 0xF0, (status & 0x0F) + 1
+  local d1, d2 = data[2] or 0, data[3] or 0
+  for i, part in ipairs(parts.list) do
+    if part.channel == ch and part.machine then
+      local p = i - 1
+      if kind == 0x90 or kind == 0x80 then
+        local vel = kind == 0x90 and d2 or 0
+        parts.send("/note", {p, ch, d1, vel})
+        parts.note(i, vel > 0)
+      elseif kind == 0xB0 then
+        parts.send("/cc", {p, ch, d1, d2})
+        if d1 == 123 or d1 == 120 then part.held = 0 end
+      elseif kind == 0xE0 then
+        parts.send("/bend", {p, ch, d1 + (d2 << 7)})
+      elseif kind == 0xD0 then
+        parts.send("/pressure", {p, ch, d1})
+      end
+    end
   end
-  if on("hexbeat") then
-    for _, n in ipairs(BEAT[i]) do note(1, n, n == 43 and 60 or 90) end
-  end
-  if on("trinity") and (i == 1 or i == 9) then play_notes(2, CHORDS[bar], 70) end
-  if on("ratio") and (i == 5 or i == 13) then play_notes(3, CHORDS[bar], 70) end
-  if on("formulate") then play_notes(4, {ARP[(s - 1) % #ARP + 1]}, 80) end
+end
+acid.midi = midi_event
+
+local function device_names()
+  local names = {"all"}
+  for i = 1, 16 do names[i + 1] = i .. ". " .. midi.vports[i].name end
+  return names
 end
 
-local function sequence()
-  local s = 1
-  while true do
-    clock.sync(1 / 4)
-    if mode then step(s) end
-    s = s + 1
+-- Every port is listened to; the device param picks which are played.
+-- Devices plugged in later land on a port, so only the names change.
+local function connect_midi()
+  for i = 1, 16 do
+    local port = midi.connect(i)
+    port.event = function(data) midi_event(i, data) end
   end
 end
 
-function acid.play(m)
-  acid.stop()
-  load.peak, load.peak_worst = 0, 0
-  mode = m
-  print("playing " .. m)
+local function refresh_devices()
+  clock.run(function()
+    clock.sleep(0.5) -- norns puts the device on its port after this is called
+    local p = params:lookup_param("midi_device")
+    if p then p.options = device_names() end
+  end)
 end
 
-function acid.stop()
-  mode = nil
-  for part = 0, 4 do
-    release(part)
-    send("/cc", {part, 1, 123, 0})
-  end
-end
+-- ---- start-up ----------------------------------------------------------------
 
-function acid.load()
-  print(string.format("load %.1f%% worst %.1f%%, highest load %.1f%% worst %.1f%%",
-    load.now, load.worst, load.peak, load.peak_worst))
-end
-
-local function on_osc(path, args, from)
-  if path == "/load" then
-    load.now, load.worst = args[1], args[2]
-    load.peak = math.max(load.peak, args[1])
-    load.peak_worst = math.max(load.peak_worst, args[2])
-    count = count + 1
-    if acid.verbose and count % 4 == 0 then acid.load() end
-  elseif path == "/patch" then
-    print("patch " .. args[1] .. " " .. args[2] .. " " .. args[3])
-    send("/param", {args[1], "volume", VOLUME})
-  elseif path == "/error" then
-    print("acidulous error: " .. tostring(args[1]))
-  elseif path == "/mounted" then
-    print("mounted " .. args[1] .. " " .. args[2])
-  end
+local function ready()
+  params:add_separator("acidulous", "acidulous")
+  params:add_option("midi_device", "midi from", device_names(), 1)
+  parts.add_params()
+  parts.set_part(1, "Reflux", "Classic")
+  parts.set_part(2, "Hexbeat", "Straight")
+  for i = 1, parts.COUNT do parts.start_part(i) end
+  connect_midi()
+  midi.add = function() refresh_devices() end
+  midi.remove = function() refresh_devices() end
 end
 
 function init()
-  osc.event = on_osc
+  osc.event = function(path, args) parts.osc(path, args) end
   engine.start()
+  parts.start(ready)
   clock.run(function()
-    clock.sleep(0.5)
-    for _, p in ipairs(PATCHES) do send("/patch", p) end
+    while true do
+      clock.sleep(1 / 15)
+      redraw()
+    end
   end)
-  clock.run(sequence)
 end
 
 function cleanup()
-  acid.stop()
+  for i = 1, parts.COUNT do
+    if parts.list[i].machine then parts.notes_off(i) end
+  end
+  for i = 1, 16 do midi.vports[i].event = nil end
   acid = nil
 end
 
+-- ---- screen and controls -----------------------------------------------------
+
+local function slot_value(j) return params:get(parts.id(state.sel, "s" .. j)) end
+
 function redraw()
-  screen.clear()
-  screen.move(0, 10)
-  screen.text("acidulous test")
-  screen.move(0, 30)
-  screen.text(mode or "stopped")
-  screen.update()
+  if not parts.ready then
+    view.starting()
+  elseif state.page == "params" then
+    view.params(parts, state, slot_value)
+  else
+    view.main(parts, state)
+  end
+end
+
+local function part_defs()
+  local part = parts.list[state.sel]
+  return part.machine and parts.defs[part.machine] or {}
+end
+
+function key(n, z)
+  if not parts.ready then return end
+  if n == 1 then
+    state.k1 = z == 1
+  elseif n == 2 and z == 1 then
+    state.page = state.page == "main" and "params" or "main"
+    state.param, state.first = 1, 1
+  elseif n == 3 then
+    if z == 1 then
+      if auditioning then parts.audition(auditioning, 0) end
+      auditioning = state.sel
+      parts.audition(auditioning, 1)
+    elseif auditioning then
+      parts.audition(auditioning, 0)
+      auditioning = nil
+    end
+  end
+end
+
+function enc(n, d)
+  if not parts.ready then return end
+  local i = state.sel
+  if n == 1 then
+    state.sel = util.clamp(i + d, 1, parts.COUNT)
+    state.param, state.first = 1, 1
+  elseif state.page == "params" then
+    local count = #part_defs()
+    if count == 0 then return end
+    if n == 2 then
+      state.param = util.clamp(state.param + d, 1, count)
+      if state.param < state.first then state.first = state.param end
+      if state.param >= state.first + view.PARAM_ROWS then state.first = state.param - view.PARAM_ROWS + 1 end
+    elseif n == 3 then
+      params:delta(parts.id(i, "s" .. state.param), d)
+    end
+  elseif n == 2 then
+    if state.k1 then
+      params:delta(parts.id(i, "machine"), d)
+    elseif parts.list[i].machine then
+      params:delta(parts.id(i, "patch"), d)
+    end
+  elseif n == 3 then
+    params:delta(parts.id(i, "volume"), d)
+  end
 end

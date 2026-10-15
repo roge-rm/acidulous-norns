@@ -6,17 +6,21 @@
 //   /cc i:part i:ch i:num i:val    /bend i:part i:ch i:value14 (8192 centre)
 //   /pressure i:part i:ch i:val
 //   /param i:part s:name|i:index f:value01
+//   /channel i:part s:name|i:index f:value01   the track's strip: "gain"
+//        (0-1.5 linear, so 1/1.5 is unity), "pan", "mute", "solo"
 //   /patch i:part s:machine s:patch    mounts the machine if it isn't there
 //   /mpe i:part i:members f:bend       members 0 turns MPE off
 //   /defs s:machine   /patches s:machine   /machines
 // Out (to `reply` on localhost, matron's 10111):
 //   /mounted i:part s:machine          "" when emptied
+//   /values i:part s:machine f:value01...   every param, sent just before
 //   /patch i:part s:machine s:patch    once it's applied
 //   /def s:machine i:index s:name f:min f:max f:default s:unit i:steps s:curve
 //        steps is 0 unless stepped; curve is "lin", "exp" or "step"
 //   /defs_end s:machine i:count
 //   /patches s:machine s:name...       /machines s:name...
 //   /load f:percent f:worst_percent    4 times a second
+//   /levels f:peak...                  each part's peak, 20 times a second
 //   /error s:text
 #pragma once
 #include <string>

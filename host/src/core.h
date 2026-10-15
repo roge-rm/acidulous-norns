@@ -71,6 +71,8 @@ class Core
     bool command(const std::string& path, const Args& args);
 
     float load_percent() const;
+    // Each part's output peak since the last call, linear. Any thread.
+    void levels(float* out);
     // The worst block since the last call, as a percentage of a block's length.
     float worst_percent();
 
@@ -103,6 +105,7 @@ class Core
     void send_defs(const std::string& machine);
     void send_patches(const std::string& machine);
     void set_param(int part, const Value& which, float v01);
+    void set_channel(int part, const Value& which, float v01);
     struct BankCache;
     std::shared_ptr<BankCache> bank(const std::string& machine); // null if it can't be read
 

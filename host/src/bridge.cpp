@@ -97,7 +97,17 @@ void pump_main()
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
         if(!running)
             break;
-        if(++ticks < 25)
+        ++ticks;
+        if(ticks % 5 == 0)
+        {
+            float l[core::kParts];
+            target->levels(l);
+            core::Args args;
+            for(float v : l)
+                args.push_back(core::Value::f(v));
+            replier.reply("/levels", args);
+        }
+        if(ticks < 25)
             continue;
         ticks = 0;
         replier.reply("/load", {core::Value::f(target->load_percent()), core::Value::f(target->worst_percent())});
