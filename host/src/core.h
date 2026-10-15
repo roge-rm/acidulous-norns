@@ -1,5 +1,7 @@
 // The Acidulous engine with its commands, shared by the SuperCollider UGen
-// and the offline render tool.
+// and the offline render tool. The engine is the app's EngineHost, a
+// singleton, so only one Core may exist at a time. process() pulls its blocks
+// through the norns AudioDriver (src/norns/drivers), which opens no device.
 //
 // Threads:
 // - process() runs on the audio thread. It never allocates or locks.
@@ -25,8 +27,7 @@
 
 namespace acidulous
 {
-class Engine;
-struct ParamMessage;
+class EngineHost;
 }
 
 namespace core
@@ -108,11 +109,11 @@ class Core
     void send_state(int part);
     void set_param(int part, const Value& which, float v01);
     void set_channel(int part, const Value& which, float v01);
-    bool push_param(const acidulous::ParamMessage& m);
+    bool push_param(int part, const char* unit, const std::string& name, float v01);
     struct BankCache;
     std::shared_ptr<BankCache> bank(const std::string& machine); // null if it can't be read
 
-    std::unique_ptr<acidulous::Engine> engine;
+    acidulous::EngineHost&             host;
     std::string                        bank_dir;
     Replier*                           replier;
     bool                               inline_jobs;

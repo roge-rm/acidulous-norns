@@ -38,8 +38,18 @@ struct StartCmd
     int  port;
 };
 
+void shutdown();
+
+// Stops everything when the library is unloaded or the process exits. Made on
+// the first start, after EngineHost's statics, so it runs before they go.
+struct ShutdownGuard
+{
+    ~ShutdownGuard() { shutdown(); }
+};
+
 bool start_stage2(World* world, void* data)
 {
+    static ShutdownGuard guard;
     auto* cmd = static_cast<StartCmd*>(data);
     if(core::Core* c = engine.load())
     {
@@ -68,11 +78,6 @@ void shutdown()
     bridge::stop();
     delete c;
 }
-
-struct ShutdownGuard
-{
-    ~ShutdownGuard() { shutdown(); }
-} guard;
 
 void start_cleanup(World* world, void* data)
 {

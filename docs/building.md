@@ -22,6 +22,8 @@ This gives:
 
 On ARM the build targets the Cortex-A53, which covers the Pi 3 and Pi 4. The engine builds at `-O3 -ffast-math -fno-finite-math-only`, as in the app.
 
+The plugin runs the app's `EngineHost` with its own audio driver (`host/src/norns/drivers`), which opens no device: the UGen pulls each 64-frame block from scsynth's audio thread. Tracks render on that thread only; set `ACIDULOUS_WORKERS` in scsynth's environment to try worker threads. MP3 isn't built (no LAME), so MP3 files fail to load with an error.
+
 To use a new plugin, strip it and put it in `bin/`:
 
 ```
@@ -52,7 +54,7 @@ cmake -S host -B host/build -DSC_INC=PATH/include/plugin_interface \
 tools/vendor-acidulous.sh [PATH_TO_ACIDULOUS]
 ```
 
-copies the engine, the sequencer and the patch bank reader from the app into `third_party/acidulous`, and the factory banks into `data/banks`. It defaults to `~/Projects/AndroidStudioProjects/Acidulous`. The app's commit goes in `third_party/acidulous/VERSION`. Don't edit the copied files.
+copies the engine, the sequencer, the app's `EngineHost` and JNI bridge (with the shims its desktop and web builds use) and the patch bank reader from the app into `third_party/acidulous`, and the factory banks into `data/banks`. It defaults to `~/Projects/AndroidStudioProjects/Acidulous`. The app's commit goes in `third_party/acidulous/VERSION`. Don't edit the copied files.
 
 ## OSC access
 

@@ -25,20 +25,28 @@ find_library(LO_LIB lo)
 # The SuperCollider plugin needs SC's plugin headers.
 find_path(SC_INC SC_PlugIn.h PATH_SUFFIXES SuperCollider/plugin_interface)
 
-# The same files as the app's tools/host_engine.sh: every machine, effect and
-# dsp file and the parts of core, rack and format the Engine needs. No Link,
-# LAME or platform code.
-file(GLOB_RECURSE engine_src ${E}/machine/*.cpp ${E}/dsp/*.cpp ${E}/effect/*.cpp ${E}/inputmod/*.cpp)
+# The engine as the app's desktop and web builds compile it: every engine
+# source, the app's EngineHost and its JNI bridge (called through the web
+# build's fake JNI), with Android's log going to stderr and Link always off.
+# The audio driver is our own, which opens no device: the UGen pulls blocks
+# through it. MP3 is stubbed to an error instead of building LAME.
+file(GLOB_RECURSE engine_src ${E}/*.cpp)
+list(FILTER engine_src EXCLUDE REGEX "/format/Mp3(Reader|Writer)\\.cpp$")
 list(APPEND engine_src
-    ${E}/core/Utterance.cpp ${E}/core/Take.cpp ${E}/core/SampleEdit.cpp ${E}/core/Tuner.cpp
-    ${E}/core/Capture.cpp ${E}/core/ReelCache.cpp
-    ${E}/rack/Rack.cpp ${E}/rack/Engine.cpp ${E}/rack/TrackPool.cpp ${E}/rack/MasterBus.cpp
-    ${E}/format/WavStream.cpp ${E}/format/WavWriter.cpp ${E}/format/WavReader.cpp
-    ${E}/format/Decoded.cpp ${E}/format/AiffReader.cpp ${E}/format/FlacReader.cpp
-    ${E}/format/AudioDecoder.cpp)
+    ${ACID}/EngineHost.cpp
+    ${ACID}/platform/android/jni_bridge.cpp
+    ${ACID}/platform/web/LinkOff.cpp
+    src/norns/drivers/AudioDriver.cpp
+    src/norns/Mp3Off.cpp)
 
 add_library(acidulous-engine STATIC ${engine_src})
-target_include_directories(acidulous-engine PUBLIC ${ACID})
+# Our driver first, so EngineHost's <drivers/AudioDriver.h> is ours.
+target_include_directories(acidulous-engine PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/norns   # <drivers/AudioDriver.h>
+    ${ACID}                                 # <engine/...>, <sequencer/...>, EngineHost.h
+    ${ACID}/platform/desktop                # <android/log.h>
+    ${ACID}/platform                        # <link/LinkTimebase.h>
+    ${ACID}/platform/web)                   # <jni.h>
 target_compile_options(acidulous-engine PRIVATE -w)
 target_link_libraries(acidulous-engine PUBLIC Threads::Threads)
 # Also linked into the SuperCollider plugin.
