@@ -138,6 +138,11 @@ end
 
 local watch
 
+-- Starts the plugin with this script's banks, wherever it's installed.
+function P.start_engine()
+  engine.start(norns.state.path .. "data/banks")
+end
+
 function P.start(ready)
   on_ready = ready
   local tick = 0
@@ -461,9 +466,9 @@ watch = function()
     P.lost_at = now
     P.lost_tries = P.lost_tries + 1
     if P.lost_tries % 2 == 1 then
-      engine.start()
+      P.start_engine()
     else
-      engine.load("Acidulous", function() engine.start() end)
+      engine.load("Acidulous", P.start_engine)
     end
   end
   for i, part in ipairs(P.list) do

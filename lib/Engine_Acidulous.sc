@@ -1,6 +1,7 @@
 // Runs the Acidulous engine between the norns inputs and outputs.
-// Command: start. The script then talks to the plugin over OSC on port 57150
-// (see host/src/bridge.h). Patches are read from the script's data/banks.
+// Command: start(bank_folder). The script passes its data/banks folder, since
+// it can be installed under any name. It then talks to the plugin over OSC on
+// port 57150 (see host/src/bridge.h).
 Engine_Acidulous : CroneEngine {
     var synth;
 
@@ -15,13 +16,12 @@ Engine_Acidulous : CroneEngine {
         // The def has to reach scsynth before start makes the synth.
         context.server.sync;
 
-        this.addCommand("start", "", { arg msg;
-            this.startEngine;
+        this.addCommand("start", "s", { arg msg;
+            this.startEngine(msg[1].asString);
         });
     }
 
-    startEngine {
-        var banks = Platform.userHomeDir ++ "/dust/code/acidulous/data/banks";
+    startEngine { arg banks;
         synth !? { synth.free; synth = nil };
         context.server.sendMsg(\cmd, "AcidulousStart", banks);
         synth = Synth(\acidulous, [

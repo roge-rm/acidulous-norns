@@ -175,10 +175,18 @@ function view.omx(parts, state, list, omx)
   screen.font_size(8)
 end
 
-function view.starting(err)
+-- msg is wrapped over two lines if it's too wide.
+function view.starting(msg)
   screen.clear()
-  screen.level(err and 15 or 8)
-  text(64, 34, err or "starting", "center")
+  screen.level(msg and 15 or 8)
+  msg = msg or "starting"
+  local cut = screen.text_extents(msg) > 120 and msg:sub(1, 24):match(".*() ") or nil
+  if cut then
+    text(64, 30, msg:sub(1, cut - 1), "center")
+    text(64, 40, msg:sub(cut + 1), "center")
+  else
+    text(64, 34, msg, "center")
+  end
   screen.update()
 end
 

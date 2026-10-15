@@ -68,7 +68,7 @@ All of them run in real time on the Pi 4. The cheap ones (Genesis, Tine, Palm, T
 Copy `tools/cpu_test.cpp` and `tools/audition_material.h` from the app to the norns, and build them against the plugin's engine library:
 
 ```
-A=~/dust/code/acidulous
+A=~/dust/code/acidulous-norns
 g++ -O3 -ffast-math -fno-finite-math-only -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard \
     -std=c++17 -w -I $A/third_party/acidulous -I $A/third_party/acidulous/tools \
     cpu_test.cpp $A/host/build/libacidulous-engine.a -lpthread -o cpu_test

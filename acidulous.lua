@@ -24,6 +24,7 @@ local view = include("lib/view")
 local macros = include("lib/macros")
 local surfaces = include("lib/surfaces")
 local timer = include("lib/timer")
+local install = include("lib/install")
 
 local state = {sel = 1, k1 = false, page = "main", macro = 1}
 local auditioning = nil -- the part K3 is playing
@@ -290,11 +291,12 @@ local function ready()
 end
 
 function init()
-  osc.event = function(path, args) parts.osc(path, args) end
-  engine.start()
-  parts.start(ready)
   -- by name: norns holds its own redraw in the global while init runs
   timer.every(1 / 15, function() redraw() end)
+  if not install.check() then return end
+  osc.event = function(path, args) parts.osc(path, args) end
+  parts.start_engine()
+  parts.start(ready)
 end
 
 function cleanup()
@@ -322,7 +324,7 @@ end
 -- view clears the screen before drawing, and only it reaches screen.update.
 function redraw()
   if not parts.ready then
-    view.starting(parts.error)
+    view.starting(install.status or parts.error)
     return
   end
   state.mpe_missing = parts.mpe ~= nil and params:get("mpe_device") == 1 and mpe_detected() == nil

@@ -19,4 +19,18 @@ git -C "$src" log -1 --format='Acidulous %H (%cs)' > "$dst/VERSION"
 if [ -n "$(git -C "$src" status --porcelain -- app/src/main/cpp tools/banks tools/patchbank.h tools/audition_settings.h)" ]; then
     echo "with uncommitted changes" >> "$dst/VERSION"
 fi
+commit=$(git -C "$src" log -1 --format=%H)
+cat > "$dst/README.md" <<EOF
+# Acidulous engine
+
+Copied from the Acidulous app, https://github.com/roge-rm/Acidulous, at commit
+$commit (see VERSION), by tools/vendor-acidulous.sh:
+
+- engine/ and sequencer/ from app/src/main/cpp
+- tools/patchbank.h and tools/audition_settings.h
+- the factory banks, in data/banks at the top of this repo
+
+It's GPL-3.0-or-later, see LICENSE and NOTICE. Don't edit these files here;
+change them in the app and copy them again.
+EOF
 cat "$dst/VERSION"
