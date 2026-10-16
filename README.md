@@ -19,6 +19,7 @@ Dan
 - [MPE](#mpe)
 - [OMX-27](#omx-27)
 - [Machines](#machines)
+- [Samples](#samples)
 - [Saving](#saving)
 - [Credits](#credits)
 
@@ -54,6 +55,7 @@ The main page lists the parts, each with its channel, machine, patch and a level
 | **E3** | the part's volume |
 | **K2** | the macro page |
 | **K3** | play a note on the part |
+| **K1** held + **K3** | load samples, see [Samples](#samples) |
 
 The macro page has five of the machine's main controls, like cutoff, resonance, envmod, decay and accent on Reflux. **E2** picks one and **E3** sets it, with **K1** held for fine steps. **K2** goes back.
 
@@ -104,13 +106,32 @@ How many parts of each machine can play at once on a Pi 4. When you mix machines
 | Timber | 8 | Cipher | 5 |
 | Aviary | 8 | Cumulus | 4 |
 | Fret | 8 | Nexus | 1 to 2 |
-| Diction | 8 | | |
+| Diction | 8 | Forage | 8 |
+| Mosaic | 4 | Dice | 8 |
+| Pollen | 2 to 4 | Molt | 8 |
 
-The measurements are in [docs/machines.md](docs/machines.md). Diction sings a vowel with its built-in voice; the vowel macro picks which. Nexus's Listening, Talking and Sing to the Piano patches play the norns input, so they're silent without one. Changing one of Cumulus's spectrum params (partials to bodd in the params menu) rebuilds its sound, which cuts the notes that are held, so none of them are macros. A Nexus patch's macros are the knobs the patch sets, then the knobs of its modules. The machines that need samples or SoundFonts aren't here yet.
+The measurements are in [docs/machines.md](docs/machines.md). Diction sings a vowel with its built-in voice; the vowel macro picks which. Nexus's Listening, Talking and Sing to the Piano patches play the norns input, so they're silent without one. Changing one of Cumulus's spectrum params (partials to bodd in the params menu) rebuilds its sound, which cuts the notes that are held, so none of them are macros. A Nexus patch's macros are the knobs the patch sets, then the knobs of its modules. Bias isn't here yet.
+
+## Samples
+
+Forage, Mosaic, Dice, Pollen and Molt play your samples. Pick one of them on a part and press **K1** + **K3** to open the file list, starting in dust/audio, with a USB stick as a second place when one is in.
+
+| | |
+|---|---|
+| **E2** | move |
+| **K3** | open a folder, or hear the file |
+| **K1** held + **K3** | load the file |
+| **K2** | back, and close at the top |
+
+- **Forage** is a drum kit with 13 pads. **E3** picks the pad a file goes on, and it moves to the next pad after each one so you can build a kit. **use this folder** puts the folder's first 13 files, by name, on the pads.
+- **Mosaic** plays a SoundFont: pick the .sf2, then one of its presets with **K3**. Or **use this folder** on a folder of WAVs. Files named with a note, like `piano C4.wav` or `pad F#3.wav`, go on that note, and files without one are spread across the keys.
+- **Dice**, **Pollen** and **Molt** take one file each. Pollen with nothing loaded plays the norns input.
+
+WAV, AIFF and FLAC work, MP3 doesn't. SoundFonts over 64 MB are too big for the norns. Files on a USB stick are copied into dust/audio/acidulous when you load them, so the part still has them once the stick is out.
 
 ## Saving
 
-Machines, patches and any changed params save with norns PSETs, in **PARAMETERS > PSET**.
+Machines, patches, any changed params and the samples each part has loaded save with norns PSETs, in **PARAMETERS > PSET**. The samples stay where they are, so a PSET needs them in the same place to load them again.
 
 ## Credits
 

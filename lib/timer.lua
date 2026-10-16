@@ -8,19 +8,21 @@
 -- A tick already on its way when a timer is cancelled is dropped. Each timer
 -- marks its metro with a token, so cancel_all reaches the timers of every
 -- module that includes this one.
+-- A one-shot runs as a repeating metro stopped on its first tick. A norns
+-- one-shot metro's thread outlives its tick by a period, and starting the
+-- metro again just as that thread ends leaves matron's metro state wrong,
+-- which can later stop another metro's thread.
 
 local T = {}
 
-local function release(m, running)
+local function release(m)
   m.props.acid_token = nil
-  -- stopping a metro whose thread has ended logs an error, so a fired
-  -- one-shot is only handed back
-  if running then m:stop() end
+  m:stop()
   metro.available[m.props.id] = true
   metro.assigned[m.props.id] = false
 end
 
-local function start(seconds, count, fn)
+local function start(seconds, once, fn)
   local m = metro.init()
   if not m then
     print("acidulous: out of metros")
@@ -30,24 +32,24 @@ local function start(seconds, count, fn)
   m.props.acid_token = token
   m.event = function()
     if m.props.acid_token ~= token then return end
-    if count == 1 then release(m, false) end
+    if once then release(m) end
     fn()
   end
-  m:start(seconds, count)
+  m:start(seconds, -1)
   return {m = m, token = token}
 end
 
-function T.every(seconds, fn) return start(seconds, -1, fn) end
-function T.after(seconds, fn) return start(seconds, 1, fn) end
+function T.every(seconds, fn) return start(seconds, false, fn) end
+function T.after(seconds, fn) return start(seconds, true, fn) end
 
 function T.cancel(t)
-  if t and t.m.props.acid_token == t.token then release(t.m, true) end
+  if t and t.m.props.acid_token == t.token then release(t.m) end
 end
 
 function T.cancel_all()
   for i = 1, metro.num_script_metros do
     local m = metro.metros[i]
-    if m.props.acid_token then release(m, true) end
+    if m.props.acid_token then release(m) end
   end
 end
 

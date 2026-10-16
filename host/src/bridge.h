@@ -11,6 +11,18 @@
 //   /patch i:part s:machine s:patch    mounts the machine if it isn't there
 //   /mpe i:part i:members f:bend       members 0 turns MPE off
 //   /defs s:machine   /patches s:machine   /machines
+//   /load i:part s:kind s:path [i:arg]  decodes a file on the worker and
+//        mounts it into the part's machine. Kinds: "pad" (Forage, arg the
+//        pad 0-12), "kit" (Forage, a folder: its first 13 audio files by name
+//        on pads 0-12), "sf2" (Mosaic, arg the preset's index in /presets),
+//        "folder" (Mosaic, a folder of WAVs mapped by the note names in their
+//        names), "sample" (Dice, Pollen, Molt), "clear" (empties the part's
+//        machine). An empty path clears a pad or sample. WAV, AIFF and FLAC;
+//        SoundFonts over 64 MB are refused.
+//   /presets s:path                    a SoundFont's presets
+//   /shape s:path                      a file's length and shape, for the picker
+//   /hear [s:path]                     plays a file once over everything, up
+//        to 30 seconds of it; no path stops it
 //   /state i:part                      for tests
 //   /mpe_state                         for tests
 // Out (to `reply` on localhost, matron's 10111):
@@ -33,7 +45,16 @@
 //   /patches s:machine s:name...       /machines s:name...
 //   /load f:percent f:worst_percent    4 times a second
 //   /levels f:peak...                  each part's peak, 20 times a second
-//   /error s:text
+//   /loaded i:part s:kind s:path i:arg s:name   once it's mounted. A kit sends
+//        one "pad" per pad (path "" for an emptied one), then "kit" with arg
+//        the number of pads filled. name is the file's name without its
+//        extension, the preset's name or the folder's name.
+//   /presets s:path s:name...          in file order, none if it can't be read
+//   /shape s:path f:seconds i:rate i:cut f:column...   128 columns of the
+//        loudest point, 0-1 against the file's peak; cut is 1 if it's longer
+//        than the 30 seconds read. seconds 0 if it can't be read.
+//   /hear s:path f:seconds             once it starts, "" when stopped
+//   /error s:text [i:part s:kind s:path i:arg]   a failed /load has the rest
 #pragma once
 #include <string>
 

@@ -5,7 +5,14 @@
 #include <engine/core/Constants.h>
 #include <engine/core/Handover.h>
 #include <engine/core/Messages.h>
+#include <engine/core/Reel.h>
+#include <engine/core/Sample.h>
+#include <engine/core/SampleMap.h>
+#include <engine/core/Take.h>
+#include <engine/core/Utterance.h>
 #include <engine/dsp/Denormals.h>
+#include <engine/format/AudioDecoder.h>
+#include <engine/format/Sf2Reader.h>
 #include <engine/machine/MachineRegistry.h>
 #include <engine/machine/cumulus/Cloud.h>
 #include <engine/machine/cumulus/Cumulus.h>
@@ -21,7 +28,10 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <dirent.h>
+#include <map>
 #include <set>
+#include <sys/stat.h>
 
 namespace core
 {
@@ -35,6 +45,25 @@ static_assert(kParts <= kRackCount, "a part is a rack");
 // The channel strip params /channel takes by index, from Rack::ChannelParam.
 // Any other channel param can be set by name.
 static const char* const kChannelNames[] = {"gain", "pan", "mute", "solo"};
+
+// Forage's 13 pads and the shared sample above them.
+constexpr int kForagePads  = 13;
+constexpr int kForageSlots = kForagePads + 1;
+
+// The level a file is heard at from the picker, under the machines.
+constexpr float kHearGain = 0.5f;
+
+// The biggest SoundFont /load takes, in MB. A preset's samples are decoded
+// to floats, about twice the file's size, and the Pi has no swap.
+// ACIDULOUS_SF2_LIMIT_MB in the environment overrides it, for tests.
+constexpr long long kMaxSoundFontMB = 64;
+
+static long long max_soundfont_bytes()
+{
+    const char* env = std::getenv("ACIDULOUS_SF2_LIMIT_MB");
+    const long long mb = env && *env ? std::atoll(env) : kMaxSoundFontMB;
+    return mb * 1024 * 1024;
+}
 
 // Cumulus's params before this one shape its spectrum, so changing one
 // rebuilds the cloud (Cumulus::P, and CLOUD_PARAMS in the app's EngineSync).
@@ -86,6 +115,113 @@ bool lower_equal(const std::string& a, const std::string& b)
         if(std::tolower((unsigned char)a[i]) != std::tolower((unsigned char)b[i]))
             return false;
     return true;
+}
+
+// Params a patch leaves alone, by machine.
+bool patch_keeps(const std::string& machine, const char* param)
+{
+    if(machine != "Bias")
+        return false;
+    const std::string p = param;
+    return p.size() == 5 && (p.compare(0, 4, "lane") == 0 || p.compare(0, 4, "mute") == 0) && p[4] >= '1' &&
+           p[4] <= '4';
+}
+
+std::string lower(std::string s)
+{
+    for(char& c : s)
+        c = char(std::tolower((unsigned char)c));
+    return s;
+}
+
+std::string base_name(const std::string& path)
+{
+    std::string p = path;
+    while(p.size() > 1 && p.back() == '/')
+        p.pop_back();
+    const size_t slash = p.find_last_of('/');
+    return slash == std::string::npos ? p : p.substr(slash + 1);
+}
+
+std::string stem(const std::string& path)
+{
+    const std::string b   = base_name(path);
+    const size_t      dot = b.find_last_of('.');
+    return dot == std::string::npos || dot == 0 ? b : b.substr(0, dot);
+}
+
+bool has_ext(const std::string& name, std::initializer_list<const char*> exts)
+{
+    const std::string l = lower(name);
+    for(const char* e : exts)
+    {
+        const size_t n = std::strlen(e);
+        if(l.size() > n && l.compare(l.size() - n, n, e) == 0)
+            return true;
+    }
+    return false;
+}
+
+// The audio files in a folder, not its subfolders, sorted by name without
+// case. Hidden files (macOS leaves ._ files on sticks) are skipped.
+std::vector<std::string> audio_files(const std::string& folder, bool wav_only)
+{
+    std::vector<std::string> out;
+    DIR*                     d = opendir(folder.c_str());
+    if(!d)
+        return out;
+    std::string dir = folder;
+    if(!dir.empty() && dir.back() != '/')
+        dir += '/';
+    while(dirent* e = readdir(d))
+    {
+        const std::string name = e->d_name;
+        if(name.empty() || name[0] == '.')
+            continue;
+        const bool ok = wav_only ? has_ext(name, {".wav"}) : has_ext(name, {".wav", ".aif", ".aiff", ".flac"});
+        struct stat st{};
+        if(ok && stat((dir + name).c_str(), &st) == 0 && S_ISREG(st.st_mode))
+            out.push_back(dir + name);
+    }
+    closedir(d);
+    std::sort(out.begin(), out.end(), [](const std::string& a, const std::string& b) {
+        const std::string la = lower(a), lb = lower(b);
+        return la != lb ? la < lb : a < b;
+    });
+    return out;
+}
+
+// The last note name in a file name, as a MIDI note with C4 = 60, or -1:
+// a letter A-G not after another letter, an optional # or b, and an octave
+// -1 to 9 not followed by another digit. "Piano C#4 ff" is 61.
+int note_in_name(const std::string& name)
+{
+    static const int semis[] = {9, 11, 0, 2, 4, 5, 7}; // A B C D E F G
+    int              found   = -1;
+    for(size_t i = 0; i < name.size(); ++i)
+    {
+        const char c = char(std::toupper((unsigned char)name[i]));
+        if(c < 'A' || c > 'G' || (i > 0 && std::isalpha((unsigned char)name[i - 1])))
+            continue;
+        size_t j    = i + 1;
+        int    note = semis[c - 'A'];
+        if(j < name.size() && (name[j] == '#' || name[j] == 'b'))
+            note += name[j++] == '#' ? 1 : -1;
+        bool neg = false;
+        if(j < name.size() && name[j] == '-')
+            neg = true, ++j;
+        if(j >= name.size() || !std::isdigit((unsigned char)name[j]))
+            continue;
+        const int oct = (name[j] - '0') * (neg ? -1 : 1);
+        if(j + 1 < name.size() && std::isdigit((unsigned char)name[j + 1]))
+            continue;
+        if(neg && oct != -1)
+            continue;
+        const int midi = (oct + 1) * 12 + note;
+        if(midi >= 0 && midi <= 127)
+            found = midi;
+    }
+    return found;
 }
 
 } // namespace
@@ -143,6 +279,7 @@ Core::~Core()
     for(int tries = 0; tries < 50 && !AudioDriver::pull(in, out); ++tries)
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     host.stop();
+    delete hear_buf.exchange(nullptr);
 }
 
 // --- Audio thread ------------------------------------------------------------
@@ -182,11 +319,31 @@ void Core::process(const float* in_l, const float* in_r, float* out_l, float* ou
                 std::memcpy(fifo_out, early.front().data(), sizeof(fifo_out));
                 early.pop_front();
             }
+            mix_hear(fifo_out);
             mounts_queued = false;
             blocks.fetch_add(1, std::memory_order_release);
             fifo_pos = 0;
         }
     }
+}
+
+// Adds a block of the file being heard. Audio thread; seq_cst on hear_busy
+// and hear_buf, so hear() sees busy set or this sees the new buffer.
+void Core::mix_hear(float* out)
+{
+    hear_busy.store(true);
+    if(const std::vector<float>* b = hear_buf.load())
+    {
+        const int64_t total = int64_t(b->size() / 2);
+        int64_t       at    = hear_pos.load(std::memory_order_relaxed);
+        for(int i = 0; i < kBlockFrames && at < total; ++i, ++at)
+        {
+            out[i * 2] += kHearGain * (*b)[size_t(at) * 2];
+            out[i * 2 + 1] += kHearGain * (*b)[size_t(at) * 2 + 1];
+        }
+        hear_pos.store(at, std::memory_order_relaxed);
+    }
+    hear_busy.store(false);
 }
 
 float Core::load_percent() const
@@ -474,6 +631,30 @@ bool Core::command(const std::string& path, const Args& a)
         reply("/machines", out);
         return true;
     }
+    if(path == "/load" && a.size() >= 3)
+    {
+        const int part = to_int(a[0]);
+        if(part_ok(part))
+            post_part(part, [this, part, kind = to_str(a[1]), p = to_str(a[2]), arg = a.size() > 3 ? to_int(a[3]) : 0] {
+                load(part, kind, p, arg);
+            });
+        return true;
+    }
+    if(path == "/shape" && a.size() >= 1)
+    {
+        post([this, p = to_str(a[0])] { send_shape(p); });
+        return true;
+    }
+    if(path == "/hear")
+    {
+        post([this, p = a.empty() ? std::string() : to_str(a[0])] { hear(p); });
+        return true;
+    }
+    if(path == "/presets" && a.size() >= 1)
+    {
+        post([this, p = to_str(a[0])] { send_presets(p); });
+        return true;
+    }
     if(path == "/mpe" && a.size() >= 3)
     {
         // members 0 turns MPE off. The zone is the lower one: master channel
@@ -616,29 +797,43 @@ void Core::request_cloud(int part)
     cloud_cv.notify_one();
 }
 
-// Before a mount or unmount: takes the machine's cloud, graph or program out
-// so the engine frees it, since it isn't freed with the machine. Worker
-// thread, under the part's mount lock.
+// Before a mount or unmount, or a /load clear: takes the machine's cloud,
+// graph, program or samples out so the engine frees them, since they aren't
+// freed with the machine. Worker thread, under the part's mount lock.
 void Core::release_object(int part)
 {
     const std::string& m = parts[part].machine;
     void (*deleter)(void*) = nullptr;
+    int slots              = 1;
     if(m == "Cumulus")
         deleter = delete_as<machine::cumulus::CloudSet>;
     else if(m == "Nexus")
         deleter = delete_as<machine::nexus::Graph>;
     else if(m == "Formulate")
         deleter = delete_as<machine::formulate::Program>;
+    else if(m == "Forage")
+        deleter = delete_as<SampleData>, slots = kForageSlots;
+    else if(m == "Mosaic")
+        deleter = delete_as<SampleMap>;
+    else if(m == "Dice" || m == "Pollen")
+        deleter = delete_as<audio::Take>;
+    else if(m == "Molt")
+        deleter = delete_as<audio::Utterance>;
+    else if(m == "Bias")
+        deleter = delete_as<audio::Reel>;
     else
         return;
-    Mount mt;
-    mt.kind    = Mount::Kind::Object;
-    mt.rack    = part;
-    mt.slot    = 0;
-    mt.object  = nullptr;
-    mt.deleter = deleter;
-    if(!host.mountObjectWithRetry(mt))
-        error("mount queue full");
+    for(int slot = 0; slot < slots; ++slot)
+    {
+        Mount mt;
+        mt.kind    = Mount::Kind::Object;
+        mt.rack    = part;
+        mt.slot    = slot;
+        mt.object  = nullptr;
+        mt.deleter = deleter;
+        if(!host.mountObjectWithRetry(mt))
+            error("mount queue full");
+    }
 }
 
 // Before a mount or unmount, under the part's mount lock: the new machine has
@@ -861,11 +1056,21 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
         }
     }
 
-    // Every param, so nothing is left over from the last patch. mount() has
-    // waited for the new machine to be in place.
+    // Every param, so nothing is left over from the last patch, except the
+    // ones the machine keeps (Bias's lane levels and mutes, which are the mix
+    // of its takes, as the app's MachineUi.patchKeeps). mount() has waited
+    // for the new machine to be in place. Loaded samples stay too, since the
+    // machine isn't remounted.
     for(int32_t i = 0; i < count; ++i)
+    {
+        if(patch_keeps(machine, defs[i].name) && size_t(i) < parts[part].values.size())
+        {
+            r.norm[size_t(i)] = parts[part].values[size_t(i)];
+            continue;
+        }
         if(!push_param(part, "machine", defs[i].name, r.norm[size_t(i)]))
             return;
+    }
     parts[part].values = r.norm;
 
     // Formulate's formula and tables are compiled here and swapped in. A
@@ -1050,6 +1255,319 @@ void Core::send_patches(const std::string& machine)
         for(const auto& p : b->bank.patches)
             out.push_back(Value::s(p.name));
     reply("/patches", out);
+}
+
+// --- Samples -----------------------------------------------------------------
+
+void Core::loaded(int part, const std::string& kind, const std::string& path, int arg, const std::string& name)
+{
+    reply("/loaded", {Value::i(part), Value::s(kind), Value::s(path), Value::i(arg), Value::s(name)});
+}
+
+void Core::load_error(int part, const std::string& kind, const std::string& path, int arg, const std::string& why)
+{
+    const std::string text = (path.empty() ? kind : base_name(path)) + ": " + why;
+    std::fprintf(stderr, "acidulous: part %d %s\n", part, text.c_str());
+    reply("/error", {Value::s(text), Value::i(part), Value::s(kind), Value::s(path), Value::i(arg)});
+}
+
+// /load: decodes on this worker and mounts into the part's machine, under the
+// part's mount lock so nothing remounts the part meanwhile. An empty path
+// clears what the kind loads.
+void Core::load(int part, const std::string& kind, const std::string& path, int arg)
+{
+    const std::string& m    = parts[part].machine;
+    const auto         want = [&](std::initializer_list<const char*> machines) {
+        for(const char* x : machines)
+            if(m == x)
+                return true;
+        load_error(part, kind, path, arg, "part " + std::to_string(part + 1) + " has " + (m.empty() ? "no machine" : m));
+        return false;
+    };
+    // The machine has to be in place before anything goes into it.
+    settle();
+    std::lock_guard<std::mutex> lock(mount_locks[part]);
+    std::string                 why;
+    if(kind == "clear")
+    {
+        release_object(part);
+        loaded(part, kind, "", 0, "");
+        return;
+    }
+    struct stat found{};
+    if(!path.empty() && stat(path.c_str(), &found) != 0)
+        return load_error(part, kind, path, arg, "not found");
+    if(kind == "pad")
+    {
+        if(!want({"Forage"}))
+            return;
+        if(arg < 0 || arg >= kForagePads)
+            return load_error(part, kind, path, arg, "no pad " + std::to_string(arg + 1));
+        if(!host.loadSample(part, arg, path, why))
+            return load_error(part, kind, path, arg, why);
+        return loaded(part, kind, path, arg, path.empty() ? "" : stem(path));
+    }
+    if(kind == "kit")
+    {
+        if(!want({"Forage"}))
+            return;
+        int count = 0;
+        why       = load_kit(part, path, count);
+        if(!why.empty())
+            return load_error(part, kind, path, arg, why);
+        return loaded(part, kind, path, count, base_name(path));
+    }
+    if(kind == "sf2")
+    {
+        if(!want({"Mosaic"}))
+            return;
+        if(found.st_size > max_soundfont_bytes())
+            return load_error(part, kind, path, arg,
+                              "over " + std::to_string(max_soundfont_bytes() >> 20) + " MB, too big for the norns");
+        std::vector<Sf2Reader::PresetInfo> presets;
+        if(!Sf2Reader::listPresets(path, presets, why))
+            return load_error(part, kind, path, arg, why);
+        if(arg < 0 || size_t(arg) >= presets.size())
+            return load_error(part, kind, path, arg, "no preset " + std::to_string(arg));
+        if(!host.loadSoundFont(part, path, arg, why))
+            return load_error(part, kind, path, arg, why);
+        return loaded(part, kind, path, arg, presets[size_t(arg)].name);
+    }
+    if(kind == "folder")
+    {
+        if(!want({"Mosaic"}))
+            return;
+        why = load_folder_map(part, path);
+        if(!why.empty())
+            return load_error(part, kind, path, arg, why);
+        return loaded(part, kind, path, arg, base_name(path));
+    }
+    if(kind == "sample")
+    {
+        if(!want({"Dice", "Pollen", "Molt"}))
+            return;
+        why = load_take(part, path, m == "Molt");
+        if(!why.empty())
+            return load_error(part, kind, path, arg, why);
+        return loaded(part, kind, path, arg, path.empty() ? "" : stem(path));
+    }
+    load_error(part, kind, path, arg, "no such kind of load");
+}
+
+// Forage: the folder's first 13 audio files, sorted, on pads 1-13, and the
+// pads past the last file emptied. A /loaded for each pad, so the script
+// knows what's where.
+std::string Core::load_kit(int part, const std::string& folder, int& count)
+{
+    const auto files = audio_files(folder, false);
+    if(files.empty())
+        return "no audio files in it";
+    count = 0;
+    for(int pad = 0; pad < kForagePads; ++pad)
+    {
+        const std::string path = size_t(pad) < files.size() ? files[size_t(pad)] : "";
+        std::string       why;
+        if(!host.loadSample(part, pad, path, why))
+        {
+            load_error(part, "pad", path, pad, why);
+            continue;
+        }
+        if(!path.empty())
+            ++count;
+        loaded(part, "pad", path, pad, path.empty() ? "" : stem(path));
+    }
+    return count ? "" : "none of its files would load";
+}
+
+// Mosaic: the folder's WAVs as a map. Files with a note name (C4 = 60) play
+// from that note, each reaching halfway to its neighbours; files on the same
+// note are velocity layers, in name order. With no note names the files sit
+// side by side, up to an octave each, around middle C, with the end ones
+// stretched to the ends of the keyboard.
+std::string Core::load_folder_map(int part, const std::string& folder)
+{
+    const auto files = audio_files(folder, true);
+    if(files.empty())
+        return "no WAV files in it";
+    std::map<int, std::vector<std::string>> by_note;
+    for(const auto& f : files)
+    {
+        const int n = note_in_name(stem(f));
+        if(n >= 0)
+            by_note[n].push_back(f);
+    }
+    std::string spec;
+    const auto  zone = [&](const std::string& path, int lo, int hi, int root, int lo_vel, int hi_vel) {
+        spec += path + "|" + std::to_string(lo) + "|" + std::to_string(hi) + "|" + std::to_string(root) + "|" +
+                std::to_string(lo_vel) + "|" + std::to_string(hi_vel) + "|0|1|0|0\n";
+    };
+    if(!by_note.empty())
+    {
+        std::vector<int> roots;
+        for(const auto& kv : by_note)
+            roots.push_back(kv.first);
+        for(size_t k = 0; k < roots.size(); ++k)
+        {
+            const int lo = k == 0 ? 0 : (roots[k - 1] + roots[k]) / 2 + 1;
+            const int hi = k + 1 == roots.size() ? 127 : (roots[k] + roots[k + 1]) / 2;
+            const auto& layers = by_note[roots[k]];
+            const int   n      = int(layers.size());
+            for(int j = 0; j < n; ++j)
+                zone(layers[size_t(j)], lo, hi, roots[k], j * 128 / n, (j + 1) * 128 / n - 1);
+        }
+        if(by_note.size() < files.size())
+            std::fprintf(stderr, "acidulous: %s: %zu files have no note name and are left out\n", folder.c_str(),
+                         files.size() - by_note.size());
+    }
+    else
+    {
+        const int n     = int(std::min<size_t>(files.size(), 128));
+        const int w     = std::max(1, std::min(12, 128 / n));
+        const int start = std::max(0, std::min(128 - n * w, 60 - (n * w) / 2));
+        for(int k = 0; k < n; ++k)
+        {
+            const int lo = start + k * w, hi = lo + w - 1;
+            zone(files[size_t(k)], k == 0 ? 0 : lo, k + 1 == n ? 127 : hi, lo + w / 2, 0, 127);
+        }
+    }
+    std::string why;
+    if(!host.loadZoneMap(part, spec, base_name(folder), why))
+        return why;
+    return "";
+}
+
+// Dice and Pollen take a file with its transients found, Molt one summed to
+// mono with its pitch marks found, as EngineHost's loadTake and
+// loadUtterance do, but through the decoder that reads every format, and
+// only the first kMaxDecodeSeconds.
+std::string Core::load_take(int part, const std::string& path, bool sung)
+{
+    Mount mt;
+    mt.kind    = Mount::Kind::Object;
+    mt.rack    = part;
+    mt.slot    = 0;
+    mt.object  = nullptr;
+    mt.deleter = sung ? delete_as<audio::Utterance> : delete_as<audio::Take>;
+    if(path.empty())
+        return host.mountObjectWithRetry(mt) ? "" : "mount queue full";
+    std::string why;
+    auto        data = decodeAudio(path, kSampleRate, why, kMaxDecodeSeconds);
+    if(!data || data->frames <= 1)
+        return why.empty() ? "that file couldn't be read" : why;
+    if(sung)
+    {
+        auto u  = std::make_unique<audio::Utterance>();
+        u->name = data->name;
+        u->mono.resize(size_t(data->frames));
+        for(int32_t i = 0; i < data->frames; ++i)
+            u->mono[size_t(i)] = data->stereo ? 0.5f * (data->left[size_t(i)] + data->right[size_t(i)])
+                                              : data->left[size_t(i)];
+        u->analyse(float(kSampleRate));
+        mt.object = u.get();
+        if(!host.mountObjectWithRetry(mt))
+            return "mount queue full";
+        u.release();
+        return "";
+    }
+    auto t    = std::make_unique<audio::Take>();
+    t->name   = data->name;
+    t->frames = data->frames;
+    t->left   = std::move(data->left);
+    t->right  = data->stereo ? std::move(data->right) : t->left;
+    t->detect(float(kSampleRate));
+    mt.object = t.get();
+    if(!host.mountObjectWithRetry(mt))
+        return "mount queue full";
+    t.release();
+    return "";
+}
+
+// A SoundFont's presets, in file order: /load sf2's index.
+void Core::send_presets(const std::string& path)
+{
+    std::vector<Sf2Reader::PresetInfo> presets;
+    std::string                        why;
+    Args                               out{Value::s(path)};
+    if(!Sf2Reader::listPresets(path, presets, why))
+    {
+        load_error(-1, "presets", path, 0, why);
+        reply("/presets", out);
+        return;
+    }
+    for(const auto& p : presets)
+        out.push_back(Value::s(p.name));
+    reply("/presets", out);
+}
+
+// The shape of a file for the picker: its length in seconds, its own rate,
+// whether it's longer than a pad keeps, and 128 columns of its loudest
+// point, 0-1 against its peak. Only the first kMaxDecodeSeconds are read.
+void Core::send_shape(const std::string& path)
+{
+    constexpr int kColumns = 128;
+    std::string   why;
+    auto          data = decodeAudio(path, 0, why, kMaxDecodeSeconds);
+    Args          out{Value::s(path)};
+    if(!data || data->frames <= 0 || data->rate <= 0)
+    {
+        out.push_back(Value::f(0));
+        out.push_back(Value::i(0));
+        out.push_back(Value::i(0));
+        reply("/shape", out);
+        return;
+    }
+    out.push_back(Value::f(double(data->frames) / data->rate));
+    out.push_back(Value::i(data->rate));
+    out.push_back(Value::i(data->truncated ? 1 : 0));
+    std::vector<float> cols(kColumns, 0.f);
+    float              peak = 0.f;
+    for(int c = 0; c < kColumns; ++c)
+    {
+        const int64_t from = int64_t(data->frames) * c / kColumns;
+        const int64_t to   = std::max(from + 1, int64_t(data->frames) * (c + 1) / kColumns);
+        float         m    = 0.f;
+        for(int64_t i = from; i < to && i < data->frames; ++i)
+        {
+            m = std::max(m, std::fabs(data->left[size_t(i)]));
+            if(data->stereo)
+                m = std::max(m, std::fabs(data->right[size_t(i)]));
+        }
+        cols[size_t(c)] = m;
+        peak            = std::max(peak, m);
+    }
+    for(float v : cols)
+        out.push_back(Value::f(peak > 0.f ? v / peak : 0.f));
+    reply("/shape", out);
+}
+
+// Plays a file once over everything, for the picker, up to
+// kMaxDecodeSeconds of it. An empty path stops it.
+void Core::hear(const std::string& path)
+{
+    std::vector<float>* next = nullptr;
+    double              secs = 0;
+    if(!path.empty())
+    {
+        std::string why;
+        auto        data = decodeAudio(path, kSampleRate, why, kMaxDecodeSeconds);
+        if(!data || data->frames <= 0)
+            return load_error(-1, "hear", path, 0, why.empty() ? "that file couldn't be read" : why);
+        next = new std::vector<float>(size_t(data->frames) * 2);
+        for(int32_t i = 0; i < data->frames; ++i)
+        {
+            (*next)[size_t(i) * 2]     = data->left[size_t(i)];
+            (*next)[size_t(i) * 2 + 1] = data->stereo ? data->right[size_t(i)] : data->left[size_t(i)];
+        }
+        secs = double(data->frames) / kSampleRate;
+    }
+    // Out first, then wait for a block that may still be reading it.
+    std::vector<float>* old = hear_buf.exchange(nullptr);
+    while(hear_busy.load())
+        std::this_thread::yield();
+    delete old;
+    hear_pos.store(0);
+    hear_buf.store(next);
+    reply("/hear", {Value::s(path), Value::f(secs)});
 }
 
 } // namespace core

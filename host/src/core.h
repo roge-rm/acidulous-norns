@@ -124,6 +124,16 @@ class Core
     void forget_cloud(int part);
     void release_object(int part);
     void load_nexus(int part, const std::string& text);
+    void load(int part, const std::string& kind, const std::string& path, int arg);
+    std::string load_kit(int part, const std::string& folder, int& count);
+    std::string load_folder_map(int part, const std::string& folder);
+    std::string load_take(int part, const std::string& path, bool sung);
+    void loaded(int part, const std::string& kind, const std::string& path, int arg, const std::string& name);
+    void load_error(int part, const std::string& kind, const std::string& path, int arg, const std::string& why);
+    void send_presets(const std::string& path);
+    void send_shape(const std::string& path);
+    void hear(const std::string& path);
+    void mix_hear(float* out);
     Args nexus_macros(const acidulous::machine::nexus::Graph& g, const acidulous::audition::BankPatch& patch);
     void cloud_loop();
     void build_cloud(int part, const std::vector<float>& values, uint64_t epoch);
@@ -161,8 +171,8 @@ class Core
     std::mutex              cloud_lock;
     std::condition_variable cloud_cv;
     CloudRequest            clouds[kParts];
-    // Held across a cloud build and around queuing a part's mount or unmount.
-    // Taken before cloud_lock.
+    // Held across a cloud build, across a /load and around queuing a part's
+    // mount or unmount. Taken before cloud_lock.
     std::mutex              mount_locks[kParts];
     bool                    cloud_quit = false;
 
@@ -189,6 +199,14 @@ class Core
         int note = -1, bend = -1, pressure = -1, timbre = -1;
     };
     Finger fingers[16];
+
+    // A file being heard from the picker: interleaved stereo at the engine
+    // rate, mixed in after the engine. The worker swaps it; the audio thread
+    // sets hear_busy while it reads it, so the worker waits for that to clear
+    // before freeing the old one.
+    std::atomic<std::vector<float>*> hear_buf{nullptr};
+    std::atomic<int64_t>             hear_pos{0};
+    std::atomic<bool>                hear_busy{false};
 
     // FIFO, audio thread only.
     float fifo_in[64 * 2]  = {};

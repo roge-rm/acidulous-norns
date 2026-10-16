@@ -6,6 +6,12 @@
 -- E1 part, E2 patch, E3 volume
 -- K1 held + E2 machine
 -- K2 macros, K3 play a note
+-- K1 held + K3 opens files for
+-- Forage, Mosaic, Dice, Pollen
+-- or Molt, from dust/audio or
+-- a USB stick: K3 hears or opens,
+-- K1 held + K3 loads, K2 back,
+-- E3 pad on Forage
 -- on macros: E2 pick, E3 set,
 -- K1 held + E3 fine
 --
@@ -25,6 +31,9 @@ local macros = include("lib/macros")
 local surfaces = include("lib/surfaces")
 local timer = include("lib/timer")
 local install = include("lib/install")
+local picker = include("lib/picker")
+-- the picker's own copy, so it sees the stick the watcher mounts
+local library = picker.lib
 
 local state = {sel = 1, k1 = false, page = "main", macro = 1}
 local auditioning = nil -- the part K3 is playing
@@ -32,7 +41,8 @@ local omx_problem = nil  -- {text, at}: the OMX-27 can't do REMOTE mode
 
 -- For the REPL: acid.midi(port, bytes) plays as if from MIDI port `port`,
 -- acid.omx is the OMX-27 surface (call its key, pot, enc and enc_btn).
-acid = {parts = parts, state = state, macros = macros, surfaces = surfaces, omx = surfaces.kinds[1]}
+acid = {parts = parts, state = state, macros = macros, surfaces = surfaces, omx = surfaces.kinds[1],
+  picker = picker}
 
 -- ---- MIDI in ----------------------------------------------------------------
 
@@ -277,6 +287,10 @@ local function ready()
   parts.set_part(1, "Reflux", "Classic")
   parts.set_part(2, "Hexbeat", "Straight")
   for i = 1, parts.COUNT do parts.start_part(i) end
+  parts.on_presets = picker.presets
+  parts.on_shape = picker.shape
+  parts.on_hear = picker.heard
+  library.watch(picker.usb_changed)
   connect_midi()
   start_surfaces()
   midi.add = function(dev)
@@ -300,6 +314,8 @@ function init()
 end
 
 function cleanup()
+  library.stop()
+  picker.close()
   timer.cancel_all()
   surfaces.disconnect()
   for i = 1, parts.COUNT do
@@ -332,7 +348,9 @@ function redraw()
   surfaces.frame()
   surfaces.screens()
   local note = omx_problem and util.time() - omx_problem.at < 10 and omx_problem.text or nil
-  if state.page == "macros" then
+  if picker.active() then
+    view.picker(picker.screen())
+  elseif state.page == "macros" then
     view.macros(parts, state, part_macros(), note)
   else
     view.main(parts, state, note)
@@ -355,6 +373,10 @@ function key(n, z)
   if not parts.ready then return end
   if n == 1 then
     state.k1 = z == 1
+  elseif picker.active() then
+    picker.key(n, z, state.k1)
+  elseif n == 3 and z == 1 and state.k1 and picker.open(parts, state.sel) then
+    return
   elseif n == 2 and z == 1 then
     state.page = state.page == "main" and "macros" or "main"
   elseif n == 3 then
@@ -372,7 +394,9 @@ end
 function enc(n, d)
   if not parts.ready then return end
   local i = state.sel
-  if n == 1 then
+  if picker.active() then
+    if n ~= 1 then picker.enc(n, d) end
+  elseif n == 1 then
     state.sel = util.clamp(i + d, 1, parts.COUNT)
   elseif state.page == "macros" then
     if n == 2 then

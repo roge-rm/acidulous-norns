@@ -43,6 +43,12 @@ M.table = {
   -- (/macros), the knobs the patch sets and then its modules' knobs.
   Nexus = m({"morph", "morph"}, {"drive", "drive"}, {"glide", "glide"}, {"velocity", "vel"}, {"volume", "volume"}),
   Diction = m({"vowel", "vowel"}, {"formant", "throat"}, {"effort", "effort"}, {"breath", "breath"}, {"vibrato", "vib"}),
+  -- Forage has no kit-wide tone params, only per pad: kick, snare and closed hat.
+  Forage = m({"p00_pitch", "k tune"}, {"p00_decay", "k dec"}, {"p02_decay", "s dec"}, {"p07_decay", "h dec"}, {"accent", "accent"}),
+  Mosaic = m({"start", "start"}, {"gpos", "gpos"}, {"f_freq", "cutoff"}, {"f_res", "reso"}, {"a_release", "rel"}),
+  Dice = m({"swap", "swap"}, {"reverse", "rev"}, {"stutter", "stuttr"}, {"drop", "drop"}, {"jump", "jump"}),
+  Pollen = m({"position", "pos"}, {"size", "size"}, {"density", "dense"}, {"spread", "spread"}, {"bloom", "bloom"}),
+  Molt = m({"tune", "tune"}, {"rate", "rate"}, {"formant", "formnt"}, {"robot", "robot"}, {"amprelease", "rel"}),
 }
 
 -- The machine's macros with their slots: a list of {label, slot, def}, slot

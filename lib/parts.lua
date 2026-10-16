@@ -8,9 +8,9 @@ local P = {}
 P.COUNT = 8
 local PLUGIN = {"127.0.0.1", 57150}
 
--- The machines offered, in menu order: the ones that need no files and run
--- in real time on a Pi 4 (docs/machines.md). short is for the main page, note for
--- K3's audition.
+-- The machines offered, in menu order: the ones that run in real time on a
+-- Pi 4 (docs/machines.md), with the ones that play files last. short is for
+-- the main page, note for K3's audition.
 P.MACHINES = {
   {name = "Reflux", short = "Reflx", note = 36},
   {name = "Hexbeat", short = "Hexbt", note = 36},
@@ -37,6 +37,11 @@ P.MACHINES = {
   {name = "Cumulus", short = "Cumls"},
   {name = "Nexus", short = "Nexus"},
   {name = "Diction", short = "Dictn"},
+  {name = "Forage", short = "Forag", note = 36},
+  {name = "Mosaic", short = "Mosac", note = 60},
+  {name = "Dice", short = "Dice", note = 36},
+  {name = "Pollen", short = "Polln", note = 60},
+  {name = "Molt", short = "Molt", note = 57},
 }
 
 P.machines = {}  -- the ones the plugin has, from /machines: {name, short, note}
@@ -59,6 +64,13 @@ for i = 1, P.COUNT do
     sent = nil,     -- the patch last sent to the plugin
     edits = {},     -- slot -> value, set while a patch is on its way
     values_at = 0, values_retried = false,
+    -- what /load has put in the machine: "pad0".."pad12" or "main" ->
+    -- {kind, path, arg, name}. Saved in the part's "files" param.
+    files = {},
+    loading = nil,  -- {kind, name} while a load is on its way
+    problem = nil,  -- {text, at}: the last load that failed
+    last_path = nil, -- the last file or folder loaded, for the picker
+    resend_files = false, -- send the files after the next mount
   }
 end
 
@@ -256,6 +268,108 @@ local function patch_name(i)
   return names[params:get(id(i, "patch"))]
 end
 
+-- ---- files ---------------------------------------------------------------------
+
+-- The part's files as the "files" param holds them: a load per entry,
+-- "kind,arg,path", joined with "|".
+local function encode(files)
+  local keys = {}
+  for k in pairs(files) do keys[#keys + 1] = k end
+  table.sort(keys, function(a, b)
+    local na, nb = tonumber(a:match("%d+")), tonumber(b:match("%d+"))
+    if na and nb then return na < nb end
+    return a < b
+  end)
+  local out = {}
+  for _, k in ipairs(keys) do
+    local f = files[k]
+    out[#out + 1] = f.kind .. "," .. f.arg .. "," .. f.path
+  end
+  return table.concat(out, "|")
+end
+
+local function decode(s)
+  local files = {}
+  for entry in (s or ""):gmatch("[^|]+") do
+    local kind, arg, path = entry:match("^(%a+),(%-?%d+),(.+)$")
+    if kind then
+      arg = tonumber(arg)
+      files[kind == "pad" and ("pad" .. arg) or "main"] = {kind = kind, path = path, arg = arg}
+    end
+  end
+  return files
+end
+
+local function save_files(i)
+  params:set(id(i, "files"), encode(P.list[i].files), true)
+end
+
+local function base(path) return path:match("([^/]+)/*$") or path end
+local function stem(path) return (base(path):gsub("%.[^%.]*$", "")) end
+
+-- Sends /load. kind and arg as host/src/bridge.h has them.
+function P.load_file(i, kind, path, arg)
+  local part = P.list[i]
+  part.loading = {kind = kind, name = kind == "sf2" and base(path) or stem(path)}
+  part.problem = nil
+  send("/load", {i - 1, kind, path, arg or 0})
+end
+
+-- Sends the part's saved files again, after its machine is mounted.
+local function send_files(i)
+  local part = P.list[i]
+  part.resend_files = false
+  if not part.machine then return end
+  local list = {}
+  for k, f in pairs(part.files) do list[#list + 1] = f end
+  table.sort(list, function(a, b) return a.arg < b.arg end)
+  send("/load", {i - 1, "clear", "", 0})
+  for _, f in ipairs(list) do P.load_file(i, f.kind, f.path, f.arg) end
+end
+
+-- Forage's pads, 1-13: the name of what each has, or nil.
+function P.pad_names(i)
+  local names = {}
+  for pad = 0, 12 do
+    local f = P.list[i].files["pad" .. pad]
+    if f then names[pad + 1] = f.name or stem(f.path) end
+  end
+  return names
+end
+
+-- The last file or folder loaded, or one the part has.
+function P.loaded_path(i)
+  local part = P.list[i]
+  if part.last_path then return part.last_path end
+  for _, f in pairs(part.files) do return f.path end
+end
+
+-- What the part's machine has loaded, for the screen: "loading ...", the
+-- last load that failed for 5 seconds, or the files' names. nil for a
+-- machine that takes no files.
+function P.material(i)
+  local part = P.list[i]
+  if part.loading then return "loading " .. part.loading.name end
+  if part.problem and util.time() - part.problem.at < 5 then return part.problem.text end
+  local m = part.machine
+  if m == "Forage" then
+    local n, first = 0, nil
+    for pad = 0, 12 do
+      local f = part.files["pad" .. pad]
+      if f then
+        n = n + 1
+        first = first or f
+      end
+    end
+    if n == 0 then return "no samples" end
+    return base(first.path:match("^(.*)/[^/]+$") or "") .. ", " .. n .. (n == 1 and " pad" or " pads")
+  elseif m == "Mosaic" or m == "Dice" or m == "Pollen" or m == "Molt" then
+    local f = part.files.main
+    if f then return f.name or stem(f.path) end
+    return m == "Pollen" and "live input" or "nothing loaded"
+  end
+end
+
 -- Mounts the part's machine with its patch, or empties it.
 local function load_machine(i, with_values)
   local part = P.list[i]
@@ -275,6 +389,7 @@ local function load_machine(i, with_values)
   end
   part.patch = name
   part.sent = name
+  if part.resend_files then send_files(i) end
 end
 
 -- Runs fn after `wait` seconds unless called again first, so turning an
@@ -289,7 +404,8 @@ local function later(i, wait, fn)
 end
 
 -- Sends a part's whole state, after a PSET is read. The patch goes first,
--- which mounts the machine, then the saved params on top of it.
+-- which mounts the machine, then the saved params on top of it, then its
+-- files.
 function P.apply(i)
   local part = P.list[i]
   timer.cancel(part.pending)
@@ -303,6 +419,9 @@ function P.apply(i)
       send("/param", {i - 1, j - 1, params:get(id(i, "s" .. j))})
     end
   end
+  part.files = decode(params:get(id(i, "files")))
+  part.loading, part.last_path = nil, nil
+  if next(part.files) then send_files(i) end
 end
 
 function P.apply_all()
@@ -312,7 +431,7 @@ end
 
 local function add_part(i)
   local part = P.list[i]
-  params:add_group("part_" .. i, "part " .. i, 6 + P.slots)
+  params:add_group("part_" .. i, "part " .. i, 7 + P.slots)
 
   local chans = {"off"}
   for c = 1, 16 do chans[c + 1] = tostring(c) end
@@ -364,6 +483,9 @@ local function add_part(i)
     if machine == part.machine and not part.pending then return end -- a bang
     P.notes_off(i)
     part.edits = {}
+    -- the new machine starts empty
+    part.files, part.loading, part.problem, part.last_path = {}, nil, nil, nil
+    save_files(i)
     params:set(id(i, "patch"), 1, true)
     show_machine(i, machine, true)
     part.patch = patch_name(i)
@@ -379,6 +501,9 @@ local function add_part(i)
     part.edits = {}
     later(i, 0.2, function() load_machine(i, true) end)
   end)
+
+  -- the files loaded into the machine, for PSETs; never shown
+  params:add_text(id(i, "files"), "files", "")
 
   params:add_control(id(i, "volume"), "volume", controlspec.new(-60, 3, "lin", 0.5, 0, "dB"))
   params:set_action(id(i, "volume"), function()
@@ -412,6 +537,7 @@ function P.add_params()
   for i = 1, P.COUNT do
     show_mpe(i)
     show_machine(i, nil, true)
+    params:hide(id(i, "files"))
   end
   -- params:clear() removes this when the script ends.
   params.action_read = function(filename) P.after_read(filename) end
@@ -491,9 +617,11 @@ function P.resend()
   for i, part in ipairs(P.list) do
     if part.pending then
       P.send_volume(i) -- the pending patch mounts the machine
+      part.resend_files = next(part.files) ~= nil
     elseif part.want_values then
       -- the slots don't hold this patch's values yet, so ask for them again
       P.send_volume(i)
+      part.resend_files = next(part.files) ~= nil
       load_machine(i, true)
     else
       P.apply(i)
@@ -507,6 +635,11 @@ function P.set_part(i, machine, patch)
   local index = 1
   for k, m in ipairs(P.machines) do
     if m.name == machine then index = k + 1 end
+  end
+  local part = P.list[i]
+  if part.machine ~= machine then
+    part.files, part.loading, part.problem, part.last_path = {}, nil, nil, nil
+    save_files(i)
   end
   P.loading = true
   params:set(id(i, "machine"), index)
@@ -626,8 +759,36 @@ function P.osc(path, args)
     local machine = table.remove(args, 1)
     P.patches[machine] = args
     if waiting and waiting.kind == "patches" and waiting.machine == machine then ask_next() end
+  elseif path == "/loaded" then
+    local part = P.list[(args[1] or -1) + 1]
+    if not part then return end
+    local kind, fpath, arg, name = args[2], args[3], args[4], args[5]
+    if part.loading and part.loading.kind == kind then part.loading = nil end
+    if kind == "pad" then
+      part.files["pad" .. arg] = fpath ~= "" and {kind = kind, path = fpath, arg = arg, name = name} or nil
+    elseif kind == "sf2" or kind == "folder" or kind == "sample" then
+      part.files.main = fpath ~= "" and {kind = kind, path = fpath, arg = arg, name = name} or nil
+    end
+    if fpath ~= "" and kind ~= "pad" then part.last_path = fpath
+    elseif kind == "pad" and fpath ~= "" and not part.loading then part.last_path = fpath end
+    save_files(part.n)
+  elseif path == "/shape" then
+    local file, seconds, rate, cut = args[1], args[2], args[3], args[4]
+    local cols = {}
+    for k = 5, #args do cols[#cols + 1] = args[k] end
+    if P.on_shape then P.on_shape(file, seconds, rate, cut, cols) end
+  elseif path == "/hear" then
+    if P.on_hear then P.on_hear(args[1], args[2]) end
+  elseif path == "/presets" then
+    local file = table.remove(args, 1)
+    if P.on_presets then P.on_presets(file, args) end
   elseif path == "/error" then
     print("acidulous: " .. tostring(args[1]))
+    local part = args[2] and P.list[args[2] + 1]
+    if part then
+      if part.loading and (part.loading.kind == args[3] or args[3] ~= "pad") then part.loading = nil end
+      part.problem = {text = args[1], at = util.time()}
+    end
   end
 end
 

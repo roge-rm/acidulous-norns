@@ -1,0 +1,25 @@
+# Two bars of Dice's first eight slices in eighth notes at 120 bpm
+0.000 note 0 1 36 100
+0.240 note 0 1 36 0
+0.250 note 0 1 37 100
+0.490 note 0 1 37 0
+0.500 note 0 1 38 100
+0.740 note 0 1 38 0
+0.750 note 0 1 39 100
+0.990 note 0 1 39 0
+1.000 note 0 1 40 100
+1.240 note 0 1 40 0
+1.250 note 0 1 41 100
+1.490 note 0 1 41 0
+1.500 note 0 1 42 100
+1.740 note 0 1 42 0
+1.750 note 0 1 43 100
+1.990 note 0 1 43 0
+2.000 note 0 1 36 100
+2.490 note 0 1 36 0
+2.500 note 0 1 38 100
+2.990 note 0 1 38 0
+3.000 note 0 1 40 100
+3.490 note 0 1 40 0
+3.500 note 0 1 43 100
+3.990 note 0 1 43 0

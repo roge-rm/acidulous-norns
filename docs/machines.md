@@ -86,6 +86,28 @@ Listening, Talking and Sing to the Piano play the audio input, and there was non
 
 Nexus is the heavy one: two parts of most patches, one of Wall Pad. Cumulus's cloud is rebuilt on its own thread 50 ms after a spectrum param stops changing, which takes about 260 ms on the Pi 4 (Nimbus). Notes and other messages don't wait for it: while builds ran, replies from the plugin's worker came back in 2 to 6 ms. Diction without words sings the vowel param's vowel.
 
+## The sample machines
+
+Played on the norns the same way, with the test files from `host/tests/make_material.py` loaded (a 13-pad kit, test.sf2, short WAV and FLAC files). Bias isn't offered yet, as it follows song scenes and plays nothing from notes.
+
+| Machine | Patch | Loaded | Load % | Highest % | Worst % | scsynth CPU % |
+|---|---|---|---|---|---|---|
+| Forage | Init | kit | 5.5 | 6.1 | 13.0 | 7 |
+| Forage | Body | kit | 5.5 | 6.8 | 12.6 | 7 |
+| Mosaic | Init | test.sf2 | 6.7 | 9.0 | 18.0 | 7 |
+| Mosaic | Soft Pad | test.sf2 | 13.0 | 15.9 | 23.2 | 7 |
+| Dice | Init | loop.wav | 6.5 | 8.1 | 34.0 | 7 |
+| Dice | Stutter | loop.wav | 5.6 | 8.1 | 30.7 | 7 |
+| Pollen | Init | voice.wav | 13.5 | 16.8 | 25.6 | 7 |
+| Pollen | Boulders | voice.wav | 10.4 | 11.8 | 21.3 | 7 |
+| Pollen | Chord Dust | voice.flac | 21.9 | 24.9 | 35.8 | 10 |
+| Molt | Init | voice.wav | 5.6 | 6.8 | 15.1 | 7 |
+| Molt | Choir | voice.flac | 6.1 | 7.0 | 14.4 | 7 |
+
+Dice's worst blocks are when it swaps slices. Pollen's grains are the heavy part, Chord Dust most of all.
+
+Memory: scsynth sits at about 145 MB with acidulous running. A 62 MB SoundFont (65 samples) took it to 268 MB, and it went back to 146 MB once a small one replaced it. Reading a SoundFont briefly takes about three times its size, so files over 64 MB are refused with an error, which leaves room on a Pi 3 with 1 GB. Set `ACIDULOUS_SF2_LIMIT_MB` in scsynth's environment to change it. Dice, Pollen and Molt take the first 30 seconds of a file.
+
 ## The other pure-DSP machines
 
 At their default settings, which aren't patches anyone plays, so a real patch can cost twice this (Trinity's defaults measure 8% against 15 to 17% for its patches). Time a machine's heavy patches before adding it.

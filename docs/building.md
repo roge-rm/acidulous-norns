@@ -76,8 +76,20 @@ A script has a line per event, `seconds command args...`, with the same commands
 
 See the top of `host/src/render.cpp` for the options. `tools/render-tests.sh` renders two patches each of Reflux, Hexbeat, Trinity, Ratio and Formulate into `host/build/renders` and prints their peak, RMS and load.
 
+`tools/sample-tests.sh` does the same for Forage, Mosaic, Dice, Pollen and Molt with files loaded (`load PART KIND PATH ARG` in the script). It makes its test files first with `host/tests/make_material.py` into `host/build/material`: a kit with WAV, AIFF and FLAC pads, a folder of WAVs named by note, a SoundFont with two presets and a few longer sounds. `make_material.py DIR --big 60` adds a 60 MB SoundFont for memory tests.
+
 ## OSC
 
 The messages the plugin takes on port 57150 and what it sends back to matron on 10111 are listed at the top of `host/src/bridge.h`. Parts are 0 to 7 and channels 1 to 16.
 
 `acidulous-test BANK_DIR` (built with the plugin) runs the core with its worker thread and the OSC bridge: a note straight after `/patch`, reset, and starting and stopping the bridge and core twice. `tools/render-tests.sh` fails if a patch is missing or an output isn't finite.
+
+`acidulous-sample-test BANK_DIR MATERIAL_DIR [ROUNDS]` loads, reloads, remounts and clears samples on three parts while a fake audio thread plays them and files are heard as the picker does. Build it with AddressSanitizer to check nothing is used after it's freed or never freed:
+
+```
+cmake -S host -B host/build/asan -DCMAKE_CXX_FLAGS="-O1 -g -fsanitize=address -fno-omit-frame-pointer"
+cmake --build host/build/asan --target acidulous-sample-test
+host/build/asan/acidulous-sample-test data/banks host/build/material
+```
+
+SoundFonts bigger than 64 MB are refused. `ACIDULOUS_SF2_LIMIT_MB` in scsynth's environment changes the limit.
