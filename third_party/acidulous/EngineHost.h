@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <memory>
 #include <sequencer/Clip.h>
+#include <engine/core/Frozen.h>
 #include <engine/core/Reel.h>
 #include <engine/core/SampleEdit.h>
 #include <engine/format/AudioSink.h>
@@ -389,6 +390,16 @@ class EngineHost {
                               const std::vector<float> &bpms, const std::vector<int32_t> &ticks,
                               const std::vector<int32_t> &tails);
 
+    /**
+     * Adds one frozen clip to a rack's set, replacing any for that scene,
+     * read the same way as loadFrozenSet. Engine lines mount freezes this
+     * way (MountFrozen in EngineNative's list).
+     */
+    std::string mountFrozen(int rack, int64_t sceneId, const std::string &path, float bpm, int32_t ticks,
+                            int32_t tail);
+    /** Takes every rack's frozen clips away. Song lines start with it (ClearFrozen). */
+    void clearFrozen();
+
     // --- Settings that belong to the device -----------------------------
     /** Output buffer depth in bursts: 1 tight, 2 default, 4 safe. */
     void setBufferBursts(int32_t bursts);
@@ -542,6 +553,8 @@ class EngineHost {
     bool mountObjectWithRetry(struct Mount &m);
 
   private:
+    /** Mounts [entries] as a rack's frozen set and remembers them. Holds the mirror's lock. */
+    std::string mountFrozenEntries(int rack, std::vector<FrozenSet::Entry> entries);
     /** One file as a source: held in memory if short, mapped if long. */
     std::shared_ptr<const audio::Reel::Source> sourceFor(const std::string &path,
                                                          int64_t &residentFrames, int &mappedCount);

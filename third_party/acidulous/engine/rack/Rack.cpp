@@ -343,8 +343,9 @@ void Rack::allNotesOff() {
         if (modifiers[s] != nullptr) modifiers[s]->allNotesOff(sinks[s]);
     }
     if (machine != nullptr) machine->allNotesOff();
-    // Panic comes through here, so the frozen ring-out stops too.
+    // Panic comes through here, so the frozen ring-out stops too, at once.
     tailClip = nullptr;
+    fadeClip = nullptr;
     heldCount = 0;
     resetSentTo();
     resetPedals();
@@ -358,6 +359,21 @@ void Rack::onBlock(int64_t tickStart, int64_t tickEnd, float bpm) {
         if (effects[s] != nullptr) effects[s]->onBlock(tickStart, tickEnd, bpm);
     }
     if (machine != nullptr) machine->onBlock(tickStart, tickEnd, bpm);
+}
+
+/**
+ * Starts [f]'s ring-out on the tail cursor. One that's still ringing moves
+ * to the fade cursor and fades out over kTailFadeFrames instead of stopping
+ * dead, which would click.
+ */
+void Rack::armTail(const FrozenClip *f) {
+    if (tailClip != nullptr && tailCursor < static_cast<int64_t>(tailClip->frames) + tailClip->tail) {
+        fadeClip = tailClip;
+        fadeCursor = tailCursor;
+        fadeLeft = kTailFadeFrames;
+    }
+    tailClip = f;
+    tailCursor = f->frames;
 }
 
 /**
@@ -404,10 +420,11 @@ void Rack::updateFrozen(int64_t sceneId, float bpm, bool playing, bool ramping) 
     // included.
     //
     // On stop too, since a stop is note-offs and a live track fades out over
-    // a second or two. Only panic cuts it.
-    if (frozenNow != nullptr && want == nullptr && frozenNow->tail > 0) {
-        tailClip = frozenNow;
-        tailCursor = frozenNow->frames;
+    // a second or two, and into another frozen clip, which a live machine
+    // would ring over too. One cursor, so the newest tail wins. Only panic
+    // cuts it.
+    if (frozenNow != nullptr && frozenNow->tail > 0) {
+        armTail(frozenNow);
     }
     // Either way, stop whatever the machine was holding or it hangs while the
     // frozen audio plays and after it hands back.
@@ -472,8 +489,7 @@ void Rack::readFrozenPlain(int32_t frames) {
             // the bar line. Started here because this is where we know the audio
             // itself looped.
             if (f->tail > 0) {
-                tailClip = f;
-                tailCursor = f->frames;
+                armTail(f);
             }
         }
         bufL[i] = f->left[static_cast<size_t>(at)];
@@ -516,8 +532,7 @@ void Rack::render(int32_t frames) {
         // happens with a clip shorter than the one-bar ramp.
         while (made < frames) {
             if (f->tail > 0) {
-                tailClip = f;
-                tailCursor = f->frames;
+                armTail(f);
             }
             frozenStretch.seek(0);
             float *more[2] = {bufL + made, bufR + made};
@@ -530,8 +545,7 @@ void Rack::render(int32_t frames) {
         }
         if (frozenStretch.sourcePosition() >= f->frames) {
             if (f->tail > 0) {
-                tailClip = f;
-                tailCursor = f->frames;
+                armTail(f);
             }
             frozenStretch.seek(0);
         }
@@ -563,7 +577,7 @@ void Rack::render(int32_t frames) {
         stereo = false;
         // Nothing to render, but a tail may still be ringing from a clip this
         // rack played before its machine was removed.
-        if (tailClip == nullptr) {
+        if (tailClip == nullptr && fadeClip == nullptr) {
             for (int32_t i = 0; i < frames; ++i) keyBuf[i] = 0.0f;
             return;
         }
@@ -594,6 +608,26 @@ void Rack::render(int32_t frames) {
         }
         tailCursor = at;
         if (at >= end) tailClip = nullptr; // finished
+    }
+    // A replaced ring-out, fading to nothing. Linear over a few ms.
+    if (fadeClip != nullptr) {
+        const FrozenClip *t = fadeClip;
+        const int64_t end = static_cast<int64_t>(t->frames) + t->tail;
+        if (!stereo) {
+            for (int32_t i = 0; i < frames; ++i) bufR[i] = bufL[i];
+            stereo = true;
+        }
+        int64_t at = fadeCursor;
+        int32_t left = fadeLeft;
+        const float step = 1.0f / static_cast<float>(kTailFadeFrames);
+        for (int32_t i = 0; i < frames && at < end && left > 0; ++i, ++at, --left) {
+            const float g = static_cast<float>(left) * step;
+            bufL[i] += t->left[static_cast<size_t>(at)] * g;
+            bufR[i] += t->right[static_cast<size_t>(at)] * g;
+        }
+        fadeCursor = at;
+        fadeLeft = left;
+        if (at >= end || left <= 0) fadeClip = nullptr; // finished
     }
     // The sidechain tap: after the inserts, before the fader and mute.
     // Pre-fader so turning the kick down doesn't remove the ducking, and

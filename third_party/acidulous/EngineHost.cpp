@@ -834,10 +834,8 @@ std::string EngineHost::loadNexusPatch(int rack, const std::string &spec) {
     mount.slot = 0;
     mount.object = graph;
     mount.deleter = deleteAs<machine::nexus::Graph>;
-    if (!mountObjectWithRetry(mount)) {
-        delete graph;
-        return "mount queue full";
-    }
+    // On failure the retry has deleted it already.
+    if (!mountObjectWithRetry(mount)) return "mount queue full";
     return warn;
 }
 
@@ -1799,10 +1797,10 @@ std::string EngineHost::loadReel(int rack, const std::string &spec) {
     mount.machineType = "Bias";
     mount.rack = rack;
     mount.slot = 0;
-    mount.object = reel.get();
+    // Handed over before the mount: on failure the retry deletes it.
+    mount.object = reel.release();
     mount.deleter = deleteAs<audio::Reel>;
     if (!mountObjectWithRetry(mount)) return "mount queue full";
-    reel.release();
     return "";
 }
 
@@ -1828,10 +1826,10 @@ std::string EngineHost::buildCloud(int rack, const float *spectrum01, int32_t co
     mount.machineType = "Cumulus";
     mount.rack = rack;
     mount.slot = 0;
-    mount.object = set.get();
+    // Handed over before the mount: on failure the retry deletes it.
+    mount.object = set.release();
     mount.deleter = deleteAs<machine::cumulus::CloudSet>;
     if (!mountObjectWithRetry(mount)) return "mount queue full";
-    set.release();
     return "";
 }
 
@@ -1877,10 +1875,10 @@ std::string EngineHost::loadTake(int rack, const std::string &path) {
     mount.machineType = holderType;
     mount.rack = rack;
     mount.slot = 0;
-    mount.object = take.get();
+    // Handed over before the mount: on failure the retry deletes it.
+    mount.object = take.release();
     mount.deleter = deleteAs<audio::Take>;
     if (!mountObjectWithRetry(mount)) return "mount queue full";
-    take.release();
     return "";
 }
 
@@ -1897,10 +1895,10 @@ std::string mountUtterance(EngineHost &host, int rack, std::unique_ptr<audio::Ut
     mount.machineType = "Molt";
     mount.rack = rack;
     mount.slot = 0;
-    mount.object = utterance.get();
+    // Handed over before the mount: on failure the retry deletes it.
+    mount.object = utterance.release();
     mount.deleter = deleteAs<audio::Utterance>;
     if (!host.mountObjectWithRetry(mount)) return "mount queue full";
-    utterance.release();
     return "";
 }
 
@@ -1957,9 +1955,9 @@ std::string EngineHost::loadVoice(int rack, int slot, const std::string &spec) {
     if (voice->vowels.empty()) return firstError.empty() ? "no vowels in that voice" : firstError;
     LOGI("diction voice on rack %d: %zu vowels, %zu diphthongs, %zu consonants", rack, voice->vowels.size(),
          voice->diphthongs.size(), voice->joins.size());
-    mount.object = voice.get();
+    // Handed over before the mount: on failure the retry deletes it.
+    mount.object = voice.release();
     if (!mountObjectWithRetry(mount)) return "mount queue full";
-    voice.release();
     return "";
 }
 
@@ -1975,10 +1973,10 @@ std::string EngineHost::loadFormula(int rack, const std::string &formula, const 
     mount.machineType = "Formulate";
     mount.rack = rack;
     mount.slot = 0;
-    mount.object = program.get();
+    // Handed over before the mount: on failure the retry deletes it.
+    mount.object = program.release();
     mount.deleter = deleteAs<machine::formulate::Program>;
     if (!mountObjectWithRetry(mount)) return "mount queue full";
-    program.release();
     return "";
 }
 
@@ -1996,10 +1994,10 @@ std::string EngineHost::loadEffectFormula(int rack, const std::string &unit, con
     mount.kind = Mount::Kind::EffectObject;
     mount.rack = track ? rack : 0;
     mount.slot = static_cast<int32_t>(u);
-    mount.object = expr.get();
+    // Handed over before the mount: on failure the retry deletes it.
+    mount.object = expr.release();
     mount.deleter = deleteAs<machine::formulate::Expr>;
     if (!mountObjectWithRetry(mount)) return "mount queue full";
-    expr.release();
     return "";
 }
 
@@ -2247,36 +2245,83 @@ std::string EngineHost::freezeClip(int rack, int64_t sceneId, const std::string 
     return "";
 }
 
-std::string EngineHost::loadFrozenSet(int rack, const std::vector<std::pair<int64_t, std::string>> &clips,
-                                      const std::vector<float> &bpms, const std::vector<int32_t> &ticks,
-                                      const std::vector<int32_t> &tails) {
-    if (rack < 0 || rack >= kRackCount) return "no such rack";
+namespace {
+// What each rack's frozen set holds, kept here so mountFrozen can add one
+// clip to it. The clips are shared with the mounted sets, never copied.
+struct FrozenMirror {
+    std::mutex lock;
+    std::vector<FrozenSet::Entry> racks[kRackCount];
+} sFrozenMirror;
+
+/** Reads one freeze as loadFrozenSet always has. Null with [error] set if it can't. */
+std::shared_ptr<FrozenClip> readFrozen(const std::string &path, float bpm, int32_t ticks, int32_t tail,
+                                       std::string &error) {
+    auto data = WavReader::read(path, kSampleRate, error);
+    if (!data) return nullptr;
+    auto fc = std::make_shared<FrozenClip>();
+    // The file is the clip then its ring-out. `frames` is the loop length.
+    // Old freezes have a tail of 0 and the whole file is the loop.
+    fc->tail = tail > 0 && tail < data->frames ? tail : 0;
+    fc->frames = data->frames - fc->tail;
+    fc->left = std::move(data->left);
+    fc->right = data->stereo ? std::move(data->right) : fc->left;
+    fc->bpm = bpm;
+    fc->ticks = ticks;
+    return fc;
+}
+} // namespace
+
+std::string EngineHost::mountFrozenEntries(int rack, std::vector<FrozenSet::Entry> entries) {
     auto set = std::make_unique<FrozenSet>();
-    for (size_t i = 0; i < clips.size(); ++i) {
-        std::string error;
-        auto data = WavReader::read(clips[i].second, kSampleRate, error);
-        if (!data) return clips[i].second + ": " + error;
-        auto fc = std::make_shared<FrozenClip>();
-        // The file is the clip then its ring-out. `frames` is the loop length.
-        // Old freezes have a tail of 0 and the whole file is the loop.
-        const int32_t tail = i < tails.size() ? tails[i] : 0;
-        fc->tail = tail > 0 && tail < data->frames ? tail : 0;
-        fc->frames = data->frames - fc->tail;
-        fc->left = std::move(data->left);
-        fc->right = data->stereo ? std::move(data->right) : fc->left;
-        fc->bpm = i < bpms.size() ? bpms[i] : 120.0f;
-        fc->ticks = i < ticks.size() ? ticks[i] : 0;
-        set->entries.push_back({clips[i].first, std::move(fc)});
-    }
+    set->entries = entries;
     Mount m;
     m.kind = Mount::Kind::Frozen;
     m.rack = rack;
     m.slot = 0;
-    m.object = set.get();
+    // Handed over before the mount: on failure the retry deletes it.
+    m.object = set.release();
     m.deleter = deleteAs<FrozenSet>;
     if (!mountObjectWithRetry(m)) return "mount queue full";
-    set.release();
+    sFrozenMirror.racks[rack] = std::move(entries);
     return "";
+}
+
+std::string EngineHost::loadFrozenSet(int rack, const std::vector<std::pair<int64_t, std::string>> &clips,
+                                      const std::vector<float> &bpms, const std::vector<int32_t> &ticks,
+                                      const std::vector<int32_t> &tails) {
+    if (rack < 0 || rack >= kRackCount) return "no such rack";
+    std::vector<FrozenSet::Entry> entries;
+    for (size_t i = 0; i < clips.size(); ++i) {
+        std::string error;
+        auto fc = readFrozen(clips[i].second, i < bpms.size() ? bpms[i] : 120.0f, i < ticks.size() ? ticks[i] : 0,
+                             i < tails.size() ? tails[i] : 0, error);
+        if (!fc) return clips[i].second + ": " + error;
+        entries.push_back({clips[i].first, std::move(fc)});
+    }
+    std::lock_guard<std::mutex> hold(sFrozenMirror.lock);
+    return mountFrozenEntries(rack, std::move(entries));
+}
+
+void EngineHost::clearFrozen() {
+    std::lock_guard<std::mutex> hold(sFrozenMirror.lock);
+    for (int rack = 0; rack < kRackCount; ++rack) {
+        if (!sFrozenMirror.racks[rack].empty()) mountFrozenEntries(rack, {});
+    }
+}
+
+std::string EngineHost::mountFrozen(int rack, int64_t sceneId, const std::string &path, float bpm, int32_t ticks,
+                                    int32_t tail) {
+    if (rack < 0 || rack >= kRackCount) return "no such rack";
+    std::string error;
+    auto fc = readFrozen(path, bpm, ticks, tail, error);
+    if (!fc) return path + ": " + error;
+    std::lock_guard<std::mutex> hold(sFrozenMirror.lock);
+    std::vector<FrozenSet::Entry> entries;
+    for (const FrozenSet::Entry &e : sFrozenMirror.racks[rack]) {
+        if (e.sceneId != sceneId) entries.push_back(e);
+    }
+    entries.push_back({sceneId, std::move(fc)});
+    return mountFrozenEntries(rack, std::move(entries));
 }
 
 void EngineHost::setBufferBursts(int32_t bursts) { sAudio.setBufferBursts(bursts); }

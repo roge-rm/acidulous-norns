@@ -27,6 +27,8 @@ jstring Java_com_rm_acidulous_engine_EngineNative_nativeLoadReel(JNIEnv *, jobje
 jstring Java_com_rm_acidulous_engine_EngineNative_nativeLoadFormula(JNIEnv *, jobject, jint, jstring, jstring, jstring, jstring);
 jstring Java_com_rm_acidulous_engine_EngineNative_nativeLoadEffectFormula(JNIEnv *, jobject, jint, jstring, jstring);
 jstring Java_com_rm_acidulous_engine_EngineNative_nativeBuildCloud(JNIEnv *, jobject, jint, jfloatArray);
+void Java_com_rm_acidulous_engine_EngineNative_nativeClearFrozen(JNIEnv *, jobject);
+jstring Java_com_rm_acidulous_engine_EngineNative_nativeMountFrozen(JNIEnv *, jobject, jint, jlong, jstring, jfloat, jint, jint, jint, jfloat);
 void Java_com_rm_acidulous_engine_EngineNative_nativeSetTuning(JNIEnv *, jobject, jint, jfloatArray);
 void Java_com_rm_acidulous_engine_EngineNative_nativeSetLoopSong(JNIEnv *, jobject, jboolean);
 void Java_com_rm_acidulous_engine_EngineNative_nativeSetTempo(JNIEnv *, jobject, jfloat);
@@ -224,6 +226,26 @@ bool callBuildCloud(Reader &in, Replay &r) {
     return true;
 }
 
+bool callClearFrozen(Reader &in, Replay &r) {
+    if (!in.finish()) return false;
+    Java_com_rm_acidulous_engine_EngineNative_nativeClearFrozen(r.env, nullptr);
+    return true;
+}
+
+bool callMountFrozen(Reader &in, Replay &r) {
+    const jint rack = r.rack(in.i32());
+    const jlong sceneId = in.i64();
+    const jstring path = in.path();
+    const jfloat bpm = in.f32();
+    const jint ticks = in.i32();
+    const jint loopFrames = in.i32();
+    const jint tailFrames = in.i32();
+    const jfloat peak = in.f32();
+    if (!in.finish()) return false;
+    r.said("MountFrozen", Java_com_rm_acidulous_engine_EngineNative_nativeMountFrozen(r.env, nullptr, rack, sceneId, path, bpm, ticks, loopFrames, tailFrames, peak));
+    return true;
+}
+
 bool callSetTuning(Reader &in, Replay &r) {
     const jint rack = r.rack(in.i32());
     const jfloatArray ratios = in.floats();
@@ -347,6 +369,8 @@ const Call kCalls[] = {
     {"LoadFormula", callLoadFormula},
     {"LoadEffectFormula", callLoadEffectFormula},
     {"BuildCloud", callBuildCloud},
+    {"ClearFrozen", callClearFrozen},
+    {"MountFrozen", callMountFrozen},
     {"SetTuning", callSetTuning},
     {"SetLoopSong", callSetLoopSong},
     {"SetTempo", callSetTempo},
@@ -358,6 +382,6 @@ const Call kCalls[] = {
     {"SnapshotCommit", callSnapshotCommit},
     {"SnapshotAbandon", callSnapshotAbandon},
 };
-const int kCallCount = 31;
+const int kCallCount = 33;
 
 } // namespace acidulous::lines

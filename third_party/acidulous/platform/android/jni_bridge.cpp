@@ -710,6 +710,25 @@ Java_com_rm_acidulous_engine_EngineNative_nativeLoadFrozen(JNIEnv *env, jobject,
 }
 
 JNIEXPORT void JNICALL
+Java_com_rm_acidulous_engine_EngineNative_nativeClearFrozen(JNIEnv *, jobject) {
+    host().clearFrozen();
+}
+
+// loopFrames and peak are in the line for other hosts. The loop is the
+// file's length less the tail, as loadFrozenSet has it.
+JNIEXPORT jstring JNICALL
+Java_com_rm_acidulous_engine_EngineNative_nativeMountFrozen(JNIEnv *env, jobject, jint rack, jlong sceneId,
+                                                            jstring path, jfloat bpm, jint ticks, jint loopFrames,
+                                                            jint tailFrames, jfloat peak) {
+    (void)loopFrames;
+    (void)peak;
+    const char *p = env->GetStringUTFChars(path, nullptr);
+    const std::string file(p);
+    env->ReleaseStringUTFChars(path, p);
+    return env->NewStringUTF(host().mountFrozen(rack, static_cast<int64_t>(sceneId), file, bpm, ticks, tailFrames).c_str());
+}
+
+JNIEXPORT void JNICALL
 Java_com_rm_acidulous_engine_EngineNative_nativeSetBufferBursts(JNIEnv *, jobject, jint bursts) {
     host().setBufferBursts(bursts);
 }

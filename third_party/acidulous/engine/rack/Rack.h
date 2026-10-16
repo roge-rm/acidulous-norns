@@ -188,6 +188,7 @@ class Rack {
         // Stop any tail ringing out of the old set, since the tail clip belongs
         // to it.
         tailClip = nullptr;
+        fadeClip = nullptr;
         return old;
     }
 
@@ -369,6 +370,15 @@ class Rack {
      */
     const FrozenClip *tailClip = nullptr;
     int64_t tailCursor = 0;
+    /**
+     * A tail that a newer one replaced while it still rang, fading out (see
+     * armTail). kTailFadeFrames is 5 ms at 48 kHz.
+     */
+    static constexpr int32_t kTailFadeFrames = 240;
+    const FrozenClip *fadeClip = nullptr;
+    int64_t fadeCursor = 0;
+    int32_t fadeLeft = 0;
+    void armTail(const FrozenClip *f);
     /**
      * How fast the frozen audio is read, as a multiple of the rendered rate.
      * Exactly 1 except during a tempo ramp, and 1 uses the plain buffer read
