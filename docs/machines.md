@@ -37,6 +37,55 @@ The plugin's own load readout (`/load`) while `acidulous.lua` plays at 90 bpm, w
 
 No xruns in JACK's log while any of these played.
 
+## Cumulus, Nexus and Diction
+
+Played on the norns as above: 4-note chords on each beat at 90 bpm, three beats on and one off, for 12 seconds. Load is the mean and highest of the plugin's smoothed readout, and worst the slowest block seen. With one part doing nothing, load reads about 3% and worst about 10%.
+
+| Machine | Patch | Load % | Highest % | Worst % | scsynth CPU % |
+|---|---|---|---|---|---|
+| Cumulus | Drone Field | 11.3 | 12.8 | 31.7 | 15 |
+| Cumulus | Nimbus | 9.9 | 12.5 | 24.7 | 12 |
+| Cumulus | Deep Wash | 9.5 | 13.3 | 22.4 | 13 |
+| Cumulus | Fifth Up | 8.9 | 10.6 | 18.0 | 12 |
+| Cumulus | Bell Cloud | 7.4 | 8.7 | 19.0 | 10 |
+| Nexus | Wall Pad | 38.3 | 50.2 | 75.4 | 44 |
+| Nexus | Morphing | 28.2 | 31.4 | 49.3 | 33 |
+| Nexus | Rotor String | 26.7 | 28.6 | 55.6 | 31 |
+| Nexus | Plucked | 24.8 | 27.9 | 45.2 | 29 |
+| Nexus | Free Reeds | 24.2 | 34.4 | 52.7 | 27 |
+| Nexus | Horn in a Hall | 23.8 | 27.1 | 46.3 | 28 |
+| Nexus | One Knob, Four Things | 23.0 | 34.9 | 48.3 | 27 |
+| Nexus | Bytebeat | 20.7 | 31.2 | 60.4 | 24 |
+| Nexus | Feeding Back | 18.6 | 27.4 | 53.2 | 22 |
+| Nexus | Wavetable Drift | 18.2 | 26.7 | 51.0 | 21 |
+| Nexus | Sitar Hall | 17.3 | 20.3 | 30.4 | 21 |
+| Nexus | Two Operators | 17.2 | 26.6 | 36.5 | 21 |
+| Nexus | Talking Harp | 16.3 | 18.9 | 29.4 | 20 |
+| Nexus | Talking | 16.1 | 22.5 | 44.3 | 19 |
+| Nexus | Tonewheels | 15.9 | 25.3 | 42.1 | 20 |
+| Nexus | Macro Sweep | 15.9 | 23.4 | 46.3 | 19 |
+| Nexus | Init | 15.2 | 23.9 | 44.5 | 18 |
+| Nexus | Subtractive | 15.2 | 23.6 | 37.9 | 19 |
+| Nexus | Talk Box Guitar | 13.5 | 18.3 | 35.2 | 16 |
+| Nexus | Sample and Hold | 11.9 | 20.6 | 31.1 | 14 |
+| Nexus | Birds by the Brook | 10.9 | 15.2 | 28.7 | 14 |
+| Nexus | Runs Itself | 10.0 | 14.5 | 23.8 | 13 |
+| Nexus | Drum Echoes | 7.2 | 8.7 | 17.2 | 10 |
+| Nexus | Sing to the Piano | 4.2 | 5.6 | 12.2 | 7 |
+| Nexus | Listening | 3.7 | 4.1 | 11.4 | 6 |
+| Diction | Chorale | 4.4 | 6.6 | 13.3 | 7 |
+| Diction | Choir | 3.8 | 4.9 | 12.7 | 6 |
+| Diction | Harmony | 3.7 | 4.8 | 11.7 | 6 |
+| Diction | Crowd | 3.6 | 4.5 | 10.9 | 6 |
+| Diction | Ghosts | 3.6 | 4.3 | 11.8 | 6 |
+| Diction | Init | 2.8 | 3.8 | 10.2 | 5 |
+| Diction | Opera | 2.7 | 3.4 | 9.8 | 5 |
+| Diction | Whisper | 2.7 | 3.7 | 10.2 | 5 |
+
+Listening, Talking and Sing to the Piano play the audio input, and there was none, so they cost more with something coming in.
+
+Nexus is the heavy one: two parts of most patches, one of Wall Pad. Cumulus's cloud is rebuilt on the worker thread when a spectrum param changes, which takes about 270 ms on the Pi 4 (Nimbus); turning a knob rebuilds it a few times a second, not on every step. Diction without words sings the vowel param's vowel.
+
 ## The other pure-DSP machines
 
 At their default settings, which aren't patches anyone plays, so a real patch can cost twice this (Trinity's defaults measure 8% against 15 to 17% for its patches). Time a machine's heavy patches before adding it.

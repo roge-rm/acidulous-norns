@@ -21,6 +21,9 @@ cp "$cpp/platform/android/jni_bridge.cpp" "$dst/platform/android/"
 cp "$cpp/platform/web/jni.h" "$cpp/platform/web/LinkOff.cpp" "$dst/platform/web/"
 cp "$cpp/platform/desktop/android/log.h" "$dst/platform/desktop/android/"
 cp "$cpp/platform/link/LinkTimebase.h" "$dst/platform/link/"
+# The engine lines recorder and dispatcher, for replaying songs (not built yet).
+mkdir -p "$dst/platform/lines"
+cp "$cpp/platform/lines/EngineLines.h" "$cpp/platform/lines/EngineLines.cpp" "$cpp/platform/lines/lines_dispatch.cpp" "$dst/platform/lines/"
 # The patch bank reader and what it includes.
 cp "$src/tools/patchbank.h" "$src/tools/audition_settings.h" "$dst/tools/"
 cp "$src"/tools/banks/*.bank "$root/data/banks/"
@@ -38,7 +41,8 @@ $commit (see VERSION), by tools/vendor-acidulous.sh:
 - engine/, sequencer/ and EngineHost.cpp/.h from app/src/main/cpp
 - from app/src/main/cpp/platform: android/jni_bridge.cpp, web/jni.h (a fake
   JNI), web/LinkOff.cpp (Link always off), desktop/android/log.h (Android's
-  log call to stderr) and link/LinkTimebase.h
+  log call to stderr), link/LinkTimebase.h and lines/ (EngineLines.h/.cpp
+  and lines_dispatch.cpp, not its drivers)
 - tools/patchbank.h and tools/audition_settings.h
 - the factory banks, in data/banks at the top of this repo
 

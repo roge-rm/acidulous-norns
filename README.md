@@ -102,10 +102,11 @@ How many parts of each machine can play at once on a Pi 4. When you mix machines
 | Palm | 8 | Manual | 5 |
 | Tongue | 8 | Hammer | 5 |
 | Timber | 8 | Cipher | 5 |
-| Aviary | 8 | | |
-| Fret | 8 | | |
+| Aviary | 8 | Cumulus | 4 |
+| Fret | 8 | Nexus | 1 to 2 |
+| Diction | 8 | | |
 
-The measurements are in [docs/machines.md](docs/machines.md). The machines that need samples or SoundFonts aren't here yet.
+The measurements are in [docs/machines.md](docs/machines.md). Diction sings a vowel with its built-in voice; the vowel macro picks which. Nexus's Listening, Talking and Sing to the Piano patches play the norns input, so they're silent without one. Turning Cumulus's stretch or width rebuilds its sound, which cuts the notes that are held. The machines that need samples or SoundFonts aren't here yet.
 
 ## Saving
 

@@ -7,7 +7,9 @@
 #include <engine/core/Messages.h>
 #include <engine/dsp/Denormals.h>
 #include <engine/machine/MachineRegistry.h>
+#include <engine/machine/cumulus/Cumulus.h>
 #include <engine/machine/formulate/Program.h>
+#include <engine/machine/nexus/Graph.h>
 #include <tools/patchbank.h>
 
 #include <chrono>
@@ -15,6 +17,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <set>
 
 namespace core
 {
@@ -28,6 +31,10 @@ static_assert(kParts <= kRackCount, "a part is a rack");
 // The channel strip params /channel takes by index, from Rack::ChannelParam.
 // Any other channel param can be set by name.
 static const char* const kChannelNames[] = {"gain", "pan", "mute", "solo"};
+
+// Cumulus's params before this one shape its spectrum, so changing one
+// rebuilds the cloud (Cumulus::P, and CLOUD_PARAMS in the app's EngineSync).
+constexpr int32_t kCloudParams = machine::Cumulus::Morph;
 
 struct Core::BankCache
 {
@@ -389,7 +396,10 @@ bool Core::command(const std::string& path, const Args& a)
     {
         const int part = to_int(a[0]);
         if(part_ok(part))
-            post_part(part, [this, part, m = to_str(a[1])] { mount(part, m); });
+            post_part(part, [this, part, m = to_str(a[1])] {
+                if(mount(part, m) && parts[part].machine == "Cumulus")
+                    build_cloud(part);
+            });
         return true;
     }
     if(path == "/unmount" && a.size() >= 1)
@@ -502,6 +512,10 @@ bool Core::mount(int part, const std::string& name)
     wait_applied();
     parts[part] = Part{};
     parts[part].machine = type;
+    int32_t         count = 0;
+    const ParamDef* defs  = MachineRegistry::paramDefs(type.c_str(), count);
+    for(int32_t k = 0; k < count; ++k)
+        parts[part].values.push_back(defs[k].unmap(defs[k].def));
     reply("/mounted", {Value::i(part), Value::s(parts[part].machine)});
     return true;
 }
@@ -534,7 +548,48 @@ void Core::set_param(int part, const Value& which, float v01)
         error(p.machine + " has no param " + to_str(which));
         return;
     }
-    push_param(part, "machine", defs[index].name, v01);
+    if(!push_param(part, "machine", defs[index].name, v01))
+        return;
+    if(size_t(index) < p.values.size())
+        parts[part].values[size_t(index)] = v01 < 0.f ? 0.f : v01 > 1.f ? 1.f : v01;
+    if(p.machine == "Cumulus" && index < kCloudParams)
+        queue_cloud(part);
+}
+
+// Cumulus is silent until it has a cloud, built here from its spectrum params
+// and mounted. It takes tens of ms (more on a Pi), so worker thread only.
+void Core::build_cloud(int part)
+{
+    const Part& p = parts[part];
+    if(p.machine != "Cumulus")
+        return;
+    settle();
+    const std::string why = host.buildCloud(part, p.values.data(), int32_t(std::min<size_t>(p.values.size(), kCloudParams)));
+    if(!why.empty())
+        error("Cumulus: " + why);
+}
+
+// Turning a spectrum knob sends many params, so one rebuild waits on the
+// worker with the newest values. Not per part, so notes don't wait behind it.
+void Core::queue_cloud(int part)
+{
+    if(parts[part].cloud_queued)
+        return;
+    parts[part].cloud_queued = true;
+    post([this, part] {
+        parts[part].cloud_queued = false;
+        build_cloud(part);
+    });
+}
+
+// A Nexus patch's graph, a line per module and cable, built and mounted by
+// EngineHost.
+void Core::load_nexus(int part, const std::string& text)
+{
+    settle();
+    const std::string why = host.loadNexusPatch(part, text);
+    if(!why.empty())
+        error("Nexus: " + why);
 }
 
 // The track's channel strip, in Rack::ChannelParam's order. Applies with or
@@ -635,11 +690,50 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
     for(const auto& p : r.problems)
         std::fprintf(stderr, "acidulous: %s %s: %s\n", machine.c_str(), patch->name.c_str(), p.c_str());
 
+    // A Nexus patch names only the knobs it changes; the rest take their
+    // module's default from the graph, since every slot knob defaults to zero
+    // and an oscillator at level zero is silent. As the app's audition does.
+    std::string nexus;
+    if(machine == "Nexus")
+    {
+        for(const auto& kv : r.settings)
+            if(kv.first == "nexus")
+                nexus = kv.second;
+        std::string why;
+        std::unique_ptr<machine::nexus::Graph> g;
+        if(!nexus.empty())
+            g.reset(machine::nexus::Graph::parse(nexus, float(kSampleRate), why));
+        if(g)
+        {
+            namespace nx = machine::nexus;
+            std::vector<float> knobs(size_t(nx::kSlots) * nx::kKnobs, 0.f);
+            g->defaultKnobs(knobs.data());
+            std::set<std::string> named;
+            for(const auto& v : patch->values)
+                named.insert(v.name);
+            for(int32_t i = 0; i < count; ++i)
+            {
+                const std::string n = defs[i].name;
+                if(n.size() < 6 || n[0] != 's' || n[3] != '_' || n[4] != 'p' || named.count(n))
+                    continue;
+                const int slot = (n[1] - '0') * 10 + (n[2] - '0'), knob = n[5] - '1';
+                if(slot >= 0 && slot < nx::kSlots && knob >= 0 && knob < nx::kKnobs)
+                    r.norm[size_t(i)] = defs[i].unmap(knobs[size_t(slot) * nx::kKnobs + size_t(knob)]);
+            }
+        }
+        else if(!nexus.empty())
+        {
+            error(machine + " " + patch->name + ": " + why);
+            nexus.clear();
+        }
+    }
+
     // Every param, so nothing is left over from the last patch. mount() has
     // waited for the new machine to be in place.
     for(int32_t i = 0; i < count; ++i)
         if(!push_param(part, "machine", defs[i].name, r.norm[size_t(i)]))
             return;
+    parts[part].values = r.norm;
 
     // Formulate's formula and tables are compiled here and swapped in. A
     // patch without them clears the last one, which plays the plain oscillator.
@@ -683,6 +777,13 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
                 error("mount queue full");
         }
     }
+    else if(machine == "Nexus")
+    {
+        if(!nexus.empty())
+            load_nexus(part, nexus);
+    }
+    else if(machine == "Cumulus")
+        build_cloud(part);
     else if(!r.settings.empty())
         std::fprintf(stderr, "acidulous: %s %s: settings are not supported yet\n", machine.c_str(),
                      patch->name.c_str());

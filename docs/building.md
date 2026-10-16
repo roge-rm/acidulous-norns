@@ -54,7 +54,7 @@ cmake -S host -B host/build -DSC_INC=PATH/include/plugin_interface \
 tools/vendor-acidulous.sh [PATH_TO_ACIDULOUS]
 ```
 
-copies the engine, the sequencer, the app's `EngineHost` and JNI bridge (with the shims its desktop and web builds use) and the patch bank reader from the app into `third_party/acidulous`, and the factory banks into `data/banks`. It defaults to `~/Projects/AndroidStudioProjects/Acidulous`. The app's commit goes in `third_party/acidulous/VERSION`. Don't edit the copied files.
+copies the engine, the sequencer, the app's `EngineHost` and JNI bridge (with the shims its desktop and web builds use), its engine lines replayer (`platform/lines`, not built yet) and the patch bank reader from the app into `third_party/acidulous`, and the factory banks into `data/banks`. It defaults to `~/Projects/AndroidStudioProjects/Acidulous`, and copies the working tree, so point it at a clean clone to copy only committed code. The app's commit goes in `third_party/acidulous/VERSION`. Don't edit the copied files.
 
 ## OSC access
 

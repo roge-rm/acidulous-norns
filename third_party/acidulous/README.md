@@ -1,12 +1,13 @@
 # Acidulous engine
 
 Copied from the Acidulous app, https://github.com/roge-rm/Acidulous, at commit
-c07c90ecef257d7e314142471b8ea4ba47f88f9f (see VERSION), by tools/vendor-acidulous.sh:
+6d7a788774f2ce52782e423635da0f838df9fef9 (see VERSION), by tools/vendor-acidulous.sh:
 
 - engine/, sequencer/ and EngineHost.cpp/.h from app/src/main/cpp
 - from app/src/main/cpp/platform: android/jni_bridge.cpp, web/jni.h (a fake
   JNI), web/LinkOff.cpp (Link always off), desktop/android/log.h (Android's
-  log call to stderr) and link/LinkTimebase.h
+  log call to stderr), link/LinkTimebase.h and lines/ (EngineLines.h/.cpp
+  and lines_dispatch.cpp, not its drivers)
 - tools/patchbank.h and tools/audition_settings.h
 - the factory banks, in data/banks at the top of this repo
 

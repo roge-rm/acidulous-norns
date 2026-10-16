@@ -98,6 +98,9 @@ class Core
         std::string machine;
         std::string patch;
         bool        program = false; // a Formulate program is mounted
+        // The machine's params as last sent, 0-1, for Cumulus's cloud.
+        std::vector<float> values;
+        bool               cloud_queued = false; // a cloud rebuild is waiting
     };
 
     void post(std::function<void()> job);
@@ -109,6 +112,9 @@ class Core
 
     // Worker thread.
     bool mount(int part, const std::string& machine);
+    void build_cloud(int part);
+    void queue_cloud(int part);
+    void load_nexus(int part, const std::string& text);
     void unmount(int part);
     void load_patch(int part, const std::string& machine, const std::string& name);
     void send_defs(const std::string& machine);

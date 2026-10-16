@@ -37,6 +37,11 @@ M.table = {
   Manual = m({"ua_16", "16'"}, {"ua_8", "8'"}, {"perclvl", "perc"}, {"vibdepth", "vib"}, {"drive", "drive"}),
   Hammer = m({"hardness", "hard"}, {"tone", "tone"}, {"sustain", "sus"}, {"felt", "felt"}, {"lid", "lid"}),
   Cipher = m({"shift", "shift"}, {"stretch", "strtch"}, {"remapamt", "remap"}, {"smear", "smear"}, {"wet", "wet"}),
+  -- Stretch and bandwidth rebuild the cloud, which cuts held notes.
+  Cumulus = m({"stretch", "strtch"}, {"bandwidth", "width"}, {"morph", "morph"}, {"shimmer", "shimmr"}, {"cutoff", "cutoff"}),
+  -- The macros only do something in patches with a macro module.
+  Nexus = m({"macro1", "mac 1"}, {"macro2", "mac 2"}, {"macro3", "mac 3"}, {"morph", "morph"}, {"drive", "drive"}),
+  Diction = m({"vowel", "vowel"}, {"formant", "throat"}, {"effort", "effort"}, {"breath", "breath"}, {"vibrato", "vib"}),
 }
 
 -- The machine's macros with their slots: a list of {label, slot, def}, slot

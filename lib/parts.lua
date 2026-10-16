@@ -8,8 +8,8 @@ local P = {}
 P.COUNT = 8
 local PLUGIN = {"127.0.0.1", 57150}
 
--- The machines offered, in menu order: the pure-DSP ones that run in real
--- time on a Pi 4 (docs/machines.md). short is for the main page, note for
+-- The machines offered, in menu order: the ones that need no files and run
+-- in real time on a Pi 4 (docs/machines.md). short is for the main page, note for
 -- K3's audition.
 P.MACHINES = {
   {name = "Reflux", short = "Reflx", note = 36},
@@ -34,6 +34,9 @@ P.MACHINES = {
   {name = "Manual", short = "Manul"},
   {name = "Hammer", short = "Hammr"},
   {name = "Cipher", short = "Ciphr"},
+  {name = "Cumulus", short = "Cumls"},
+  {name = "Nexus", short = "Nexus"},
+  {name = "Diction", short = "Dictn"},
 }
 
 P.machines = {}  -- the ones the plugin has, from /machines: {name, short, note}
