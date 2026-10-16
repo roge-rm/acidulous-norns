@@ -165,6 +165,10 @@ void *Cumulus::swapObject(int32_t slot, void *object) {
     return old;
 }
 
+Cumulus::~Cumulus() {
+    delete cloud;
+}
+
 Cumulus::Voice *Cumulus::allocate() {
     for (auto &v : voices) if (!v.used) return &v;
     Voice *best = nullptr;

@@ -208,6 +208,10 @@ void *Molt::swapObject(int32_t slot, void *object) {
     return old;
 }
 
+Molt::~Molt() {
+    delete source;
+}
+
 float Molt::layGrain(Voice &v, float formantRatio, float tune, float rateSec, bool robot) {
     const audio::Utterance *u = source;
     const int32_t idx = u->epochAt(static_cast<float>(head));

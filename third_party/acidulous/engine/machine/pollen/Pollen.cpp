@@ -160,6 +160,10 @@ void *Pollen::swapObject(int32_t slot, void *object) {
     return old;
 }
 
+Pollen::~Pollen() {
+    delete source;
+}
+
 Pollen::Voice *Pollen::allocate() {
     for (auto &v : voices) if (!v.used) return &v;
     Voice *best = nullptr;

@@ -3,6 +3,7 @@
 #include <sequencer/LinkFollower.h>
 #include <sequencer/Song.h>
 #include <cmath>
+#include <cstring>
 #include <ctime>
 
 namespace acidulous {
@@ -1218,8 +1219,9 @@ void Engine::applyMount(const Mount &m) {
         break;
     case Mount::Kind::Object: {
         void *back = m.object;
-        if (m.rack >= 0 && m.rack < kRackCount && racks[m.rack].currentMachine() != nullptr) {
-            back = racks[m.rack].currentMachine()->swapObject(m.slot, m.object);
+        Machine *current = (m.rack >= 0 && m.rack < kRackCount) ? racks[m.rack].currentMachine() : nullptr;
+        if (current != nullptr && (m.machineType == nullptr || std::strcmp(current->typeName(), m.machineType) == 0)) {
+            back = current->swapObject(m.slot, m.object);
         }
         if (m.deleter != nullptr) retirer.retire(back, m.deleter);
         break;

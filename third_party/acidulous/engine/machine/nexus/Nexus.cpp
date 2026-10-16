@@ -153,6 +153,10 @@ void *Nexus::swapObject(int32_t slot, void *object) {
     return old;
 }
 
+Nexus::~Nexus() {
+    delete graph;
+}
+
 int32_t Nexus::readScope(float *dest, int32_t max) const {
     return graph != nullptr ? graph->scopePoints(dest, max) : 0;
 }

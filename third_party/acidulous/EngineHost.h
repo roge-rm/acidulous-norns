@@ -552,6 +552,8 @@ class EngineHost {
     /** The cores setting, kept so a restart of the stream keeps it. */
     int32_t coresWanted = 0;
     std::string mountedType[16];
+    // The type last queued per rack, ahead of the audio thread; object mounts are stamped with it.
+    const char *queuedType[16] = {};
     std::atomic<bool> rendering{false}, renderCancel{false};
     // The zone, read on the MIDI thread and written from the UI.
     std::atomic<int> mpeZoneKind{0};

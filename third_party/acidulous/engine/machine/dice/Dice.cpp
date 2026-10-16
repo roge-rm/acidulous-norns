@@ -116,6 +116,10 @@ void *Dice::swapObject(int32_t slot, void *object) {
     return old;
 }
 
+Dice::~Dice() {
+    delete take;
+}
+
 /**
  * Works out where the cuts fall: at the loop's transients (best for breaks)
  * or on an even grid (for pads, or when the detector finds nothing useful).

@@ -108,6 +108,10 @@ void *Formulate::swapObject(int32_t slot, void *object) {
     return old;
 }
 
+Formulate::~Formulate() {
+    delete program;
+}
+
 Formulate::Voice *Formulate::allocate() {
     for (auto &v : voices) if (!v.used) return &v;
     Voice *best = nullptr;

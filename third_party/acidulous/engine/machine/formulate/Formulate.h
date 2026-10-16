@@ -50,6 +50,8 @@ class Formulate final : public Machine {
     void controlChange(uint8_t cc, uint8_t value) override;
     bool render(float *L, float *R, int32_t frames) override;
     void *swapObject(int32_t slot, void *object) override;
+    // Frees what was mounted and not swapped back out (on the retire worker).
+    ~Formulate() override;
 
   private:
     struct Voice {

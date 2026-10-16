@@ -27,6 +27,8 @@ struct Mount {
     void *object = nullptr;
     // Object mounts: how to retire whatever the machine hands back (or this, if refused).
     void (*deleter)(void *) = nullptr;
+    // Object mounts: the machine type the object was built for; refused if the rack now holds another.
+    const char *machineType = nullptr;
 };
 
 struct Retire {

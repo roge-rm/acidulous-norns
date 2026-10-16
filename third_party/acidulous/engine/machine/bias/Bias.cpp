@@ -115,6 +115,10 @@ void *Bias::swapObject(int32_t slot, void *object) {
     return old;
 }
 
+Bias::~Bias() {
+    delete reel;
+}
+
 void Bias::onScene(int64_t sceneId, int64_t tick, bool isPlaying, bool clipMuted) {
     playing = isPlaying;
     muted = clipMuted;

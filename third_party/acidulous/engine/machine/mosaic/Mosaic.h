@@ -90,6 +90,8 @@ class Mosaic final : public Machine {
     void noteTimbre(uint8_t note, uint8_t value) override;
     bool render(float *L, float *R, int32_t frames) override;
     void *swapObject(int32_t slot, void *object) override;
+    // Frees what was mounted and not swapped back out (on the retire worker).
+    ~Mosaic() override;
 
     /** What the UI shows about the loaded instrument. Audio thread safe to read. */
     const SampleMap *currentMap() const { return map; }

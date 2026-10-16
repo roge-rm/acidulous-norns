@@ -63,6 +63,8 @@ class Pollen final : public Machine {
     void noteBend(uint8_t note, float semitones) override;
     bool render(float *L, float *R, int32_t frames) override;
     void *swapObject(int32_t slot, void *object) override;
+    // Frees what was mounted and not swapped back out (on the retire worker).
+    ~Pollen() override;
 
     // Grain counts for the test harness and the panel's readout.
     int64_t grainsBorn() const { return births; }

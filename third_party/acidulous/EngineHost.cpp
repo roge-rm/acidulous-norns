@@ -160,6 +160,7 @@ void EngineHost::stop() {
     sEngine.setWorkers(0);
     sEngine.stop();
     for (auto &t : mountedType) t.clear();
+    for (auto &t : queuedType) t = nullptr;
     for (auto &r : mountedEffectType) for (auto &t : r) t.clear();
     for (auto &r : mountedModifierType) for (auto &t : r) t.clear();
     LOGI("engine stopped");
@@ -193,6 +194,7 @@ bool EngineHost::mountMachine(int rack, const std::string &typeName) {
     m.object = machine;
     if (!mountWithRetry(m, deleteAs<Machine>)) return false;
     mountedType[rack] = typeName;
+    queuedType[rack] = machine->typeName(); // a static literal
     LOGI("queued %s for rack %d", typeName.c_str(), rack);
     return true;
 }
@@ -203,7 +205,7 @@ void EngineHost::unmountMachine(int rack) {
     m.kind = Mount::Kind::Machine;
     m.rack = rack;
     m.object = nullptr; // swap in nothing, and the old machine is retired
-    if (mountWithRetry(m, [](void *) {})) mountedType[rack].clear();
+    if (mountWithRetry(m, [](void *) {})) { mountedType[rack].clear(); queuedType[rack] = nullptr; }
 }
 
 bool EngineHost::mountInputEffect(int slot, const std::string &typeName) {
@@ -357,6 +359,7 @@ const char *EngineHost::mountedEffect(int rack, int slot) const {
 
 bool EngineHost::loadSample(int rack, int slot, const std::string &path, std::string &error, int maxSeconds) {
     if (rack < 0 || rack >= kRackCount) { error = "bad rack"; return false; }
+    const char *type = queuedType[rack];
     SampleData *sample = nullptr;
     if (!path.empty()) {
         // Use the general decoder, so a song that still names a .flac or .mp3
@@ -367,6 +370,7 @@ bool EngineHost::loadSample(int rack, int slot, const std::string &path, std::st
     }
     Mount m;
     m.kind = Mount::Kind::Object;
+    m.machineType = type;
     m.rack = rack;
     m.slot = slot;
     m.object = sample;
@@ -735,20 +739,22 @@ std::string EngineHost::soundFontPresets(const std::string &path, std::string &e
 namespace {
 Machine *awaitMachine(Engine &engine, int rack, const char *type);
 
-bool mountMap(EngineHost &host, Engine &engine, int rack, SampleMap *built, std::string &error);
+bool mountMap(EngineHost &host, Engine &engine, int rack, const char *type, SampleMap *built, std::string &error);
 }
 
 bool EngineHost::loadSoundFont(int rack, const std::string &path, int presetIndex, std::string &error) {
     if (rack < 0 || rack >= kRackCount) { error = "bad rack"; return false; }
+    const char *type = queuedType[rack];
     auto built = Sf2Reader::load(path, presetIndex, error);
     if (!built) return false;
     LOGI("soundfont '%s' preset %d: %zu zones, %zu samples", built->name.c_str(), presetIndex,
          built->zones.size(), built->samples.size());
-    return mountMap(*this, sEngine, rack, built.release(), error);
+    return mountMap(*this, sEngine, rack, type, built.release(), error);
 }
 
 bool EngineHost::loadZoneMap(int rack, const std::string &spec, const std::string &name, std::string &error) {
     if (rack < 0 || rack >= kRackCount) { error = "bad rack"; return false; }
+    const char *type = queuedType[rack];
     auto built = std::make_unique<SampleMap>();
     built->name = name;
     std::istringstream lines(spec);
@@ -792,13 +798,14 @@ bool EngineHost::loadZoneMap(int rack, const std::string &spec, const std::strin
     }
     if (built->zones.empty()) { error = "no zones"; return false; }
     LOGI("zone map '%s': %zu zones, %zu samples", name.c_str(), built->zones.size(), built->samples.size());
-    return mountMap(*this, sEngine, rack, built.release(), error);
+    return mountMap(*this, sEngine, rack, type, built.release(), error);
 }
 
 namespace {
-bool mountMap(EngineHost &host, Engine &, int rack, SampleMap *built, std::string &error) {
+bool mountMap(EngineHost &host, Engine &, int rack, const char *type, SampleMap *built, std::string &error) {
     Mount m;
     m.kind = Mount::Kind::Object;
+    m.machineType = type;
     m.rack = rack;
     m.slot = 0;
     m.object = built;
@@ -822,6 +829,7 @@ std::string EngineHost::loadNexusPatch(int rack, const std::string &spec) {
     const std::string warn = graph->warning();
     Mount mount;
     mount.kind = Mount::Kind::Object;
+    mount.machineType = "Nexus";
     mount.rack = rack;
     mount.slot = 0;
     mount.object = graph;
@@ -1788,6 +1796,7 @@ std::string EngineHost::loadReel(int rack, const std::string &spec) {
 
     Mount mount;
     mount.kind = Mount::Kind::Object;
+    mount.machineType = "Bias";
     mount.rack = rack;
     mount.slot = 0;
     mount.object = reel.get();
@@ -1816,6 +1825,7 @@ std::string EngineHost::buildCloud(int rack, const float *spectrum01, int32_t co
          rack, set->partialsUsed[0], set->partialsUsed[1], set->partialsUsed[2], set->buildMs);
     Mount mount;
     mount.kind = Mount::Kind::Object;
+    mount.machineType = "Cumulus";
     mount.rack = rack;
     mount.slot = 0;
     mount.object = set.get();
@@ -1828,14 +1838,21 @@ std::string EngineHost::buildCloud(int rack, const float *spectrum01, int32_t co
 std::string EngineHost::loadTake(int rack, const std::string &path) {
     if (rack < 0 || rack >= kRackCount) return "no such rack";
     // Either of the machines that play a take with transients.
-    if (awaitMachine(sEngine, rack, "Pollen") == nullptr && awaitMachine(sEngine, rack, "Dice") == nullptr) {
-        return "that rack takes no sample";
+    const Machine *holder = awaitMachine(sEngine, rack, "Pollen");
+    if (holder == nullptr) holder = awaitMachine(sEngine, rack, "Dice");
+    if (holder == nullptr) return "that rack takes no sample";
+    // A change of machine may be queued but not applied yet; stamp the one queued last.
+    const char *holderType = holder->typeName();
+    if (const char *queued = queuedType[rack]; queued != nullptr &&
+        (std::strcmp(queued, "Pollen") == 0 || std::strcmp(queued, "Dice") == 0)) {
+        holderType = queued;
     }
     if (path.empty()) {
         // An empty path clears the take, and the machine falls back to its
         // live ring.
         Mount clear;
         clear.kind = Mount::Kind::Object;
+        clear.machineType = holderType;
         clear.rack = rack;
         clear.slot = 0;
         clear.object = nullptr;
@@ -1857,6 +1874,7 @@ std::string EngineHost::loadTake(int rack, const std::string &path) {
          static_cast<double>(take->frames) / kSampleRate, take->onsets.size());
     Mount mount;
     mount.kind = Mount::Kind::Object;
+    mount.machineType = holderType;
     mount.rack = rack;
     mount.slot = 0;
     mount.object = take.get();
@@ -1876,6 +1894,7 @@ std::string mountUtterance(EngineHost &host, int rack, std::unique_ptr<audio::Ut
          static_cast<double>(utterance->rootHz));
     Mount mount;
     mount.kind = Mount::Kind::Object;
+    mount.machineType = "Molt";
     mount.rack = rack;
     mount.slot = 0;
     mount.object = utterance.get();
@@ -1893,6 +1912,7 @@ std::string EngineHost::loadUtterance(int rack, const std::string &path) {
     if (path.empty()) {
         Mount clear;
         clear.kind = Mount::Kind::Object;
+        clear.machineType = "Molt";
         clear.rack = rack;
         clear.slot = 0;
         clear.object = nullptr;
@@ -1924,6 +1944,7 @@ std::string EngineHost::loadVoice(int rack, int slot, const std::string &spec) {
     if (awaitMachine(sEngine, rack, "Diction") == nullptr) return "that rack is not a Diction";
     Mount mount;
     mount.kind = Mount::Kind::Object;
+    mount.machineType = "Diction";
     mount.rack = rack;
     mount.slot = slot;
     mount.object = nullptr;
@@ -1951,6 +1972,7 @@ std::string EngineHost::loadFormula(int rack, const std::string &formula, const 
     if (!program) return error.empty() ? "the formula couldn't be read" : error;
     Mount mount;
     mount.kind = Mount::Kind::Object;
+    mount.machineType = "Formulate";
     mount.rack = rack;
     mount.slot = 0;
     mount.object = program.get();

@@ -174,6 +174,10 @@ void *Mosaic::swapObject(int32_t slot, void *object) {
     return old;
 }
 
+Mosaic::~Mosaic() {
+    delete map;
+}
+
 Mosaic::Voice *Mosaic::allocate() {
     Voice *best = nullptr;
     for (auto &v : voices) if (!v.used) return &v;

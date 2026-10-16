@@ -122,6 +122,11 @@ void *Forage::swapObject(int32_t slot, void *object) {
     return old;
 }
 
+Forage::~Forage() {
+    delete shared;
+    for (auto &p : pads) delete p.sample;
+}
+
 void Forage::noteOn(uint8_t note, uint8_t velocity) {
     const int32_t pad = static_cast<int32_t>(note) - kBaseNote;
     if (pad < 0 || pad >= kPads) return;

@@ -76,6 +76,8 @@ class Bias final : public Machine {
 
     /** Slot 0 is the reel. Nothing else is mounted here. */
     void *swapObject(int32_t slot, void *object) override;
+    // Frees what was mounted and not swapped back out (on the retire worker).
+    ~Bias() override;
 
     // Bias ignores notes. What it plays depends on where the song is.
     void noteOn(uint8_t, uint8_t) override {}

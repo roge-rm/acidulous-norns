@@ -90,6 +90,8 @@ class Diction final : public Machine {
     bool render(float *L, float *R, int32_t frames) override;
     /** Slot 0 is a recorded voice (diction::RecordedVoice), or null for the built-in one. */
     void *swapObject(int32_t slot, void *object) override;
+    // Frees what was mounted and not swapped back out (on the retire worker).
+    ~Diction() override;
 
   private:
     /**

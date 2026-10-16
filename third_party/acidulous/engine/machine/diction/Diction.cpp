@@ -383,6 +383,11 @@ void *Diction::swapObject(int32_t slot, void *object) {
     return old;
 }
 
+Diction::~Diction() {
+    delete voice;
+    delete voiceB;
+}
+
 // --- a recorded voice ------------------------------------------------------------
 
 namespace {

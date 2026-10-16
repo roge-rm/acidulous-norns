@@ -68,11 +68,11 @@ inline bool mountNexusGraph(Machine *m, const std::string &text, float sampleRat
         m->params().set(i, defs[i].unmap(knobs[static_cast<size_t>(slot) * nx::kKnobs + knob]));
     }
     m->params().jumpAll();
-    // Swap first, then release the old graph. `swapObject` reads the old
-    // graph to carry playing voices over, so freeing it first would crash.
-    // Engine.cpp does the same.
-    m->swapObject(0, g);
-    store.reset(g);
+    // Swap first, then free the old graph. `swapObject` reads the old graph
+    // to carry playing voices over, so freeing it first would crash.
+    // The machine owns it from here and frees it with itself; the old one is freed here.
+    delete static_cast<nx::Graph *>(m->swapObject(0, g));
+    (void)store;
     return true;
 }
 
