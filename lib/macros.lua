@@ -37,18 +37,30 @@ M.table = {
   Manual = m({"ua_16", "16'"}, {"ua_8", "8'"}, {"perclvl", "perc"}, {"vibdepth", "vib"}, {"drive", "drive"}),
   Hammer = m({"hardness", "hard"}, {"tone", "tone"}, {"sustain", "sus"}, {"felt", "felt"}, {"lid", "lid"}),
   Cipher = m({"shift", "shift"}, {"stretch", "strtch"}, {"remapamt", "remap"}, {"smear", "smear"}, {"wet", "wet"}),
-  -- Stretch and bandwidth rebuild the cloud, which cuts held notes.
-  Cumulus = m({"stretch", "strtch"}, {"bandwidth", "width"}, {"morph", "morph"}, {"shimmer", "shimmr"}, {"cutoff", "cutoff"}),
-  -- The macros only do something in patches with a macro module.
-  Nexus = m({"macro1", "mac 1"}, {"macro2", "mac 2"}, {"macro3", "mac 3"}, {"morph", "morph"}, {"drive", "drive"}),
+  -- None of the spectrum params, which rebuild the cloud and cut held notes.
+  Cumulus = m({"morph", "morph"}, {"shimmer", "shimmr"}, {"cutoff", "cutoff"}, {"resonance", "reso"}, {"amprelease", "rel"}),
+  -- Until a patch is loaded: a Nexus patch's macros come from the plugin
+  -- (/macros), the knobs the patch sets and then its modules' knobs.
+  Nexus = m({"morph", "morph"}, {"drive", "drive"}, {"glide", "glide"}, {"velocity", "vel"}, {"volume", "volume"}),
   Diction = m({"vowel", "vowel"}, {"formant", "throat"}, {"effort", "effort"}, {"breath", "breath"}, {"vibrato", "vib"}),
 }
 
 -- The machine's macros with their slots: a list of {label, slot, def}, slot
--- nil if the machine has no param of that name.
-function M.resolve(machine, defs)
+-- nil if the machine has no param of that name. patch_list, if given, is the
+-- patch's own list of {param, label}, filled up from the machine's.
+function M.resolve(machine, defs, patch_list)
   local out = {}
   local list = M.table[machine] or {}
+  if patch_list then
+    local merged, seen = {}, {}
+    for _, mac in ipairs(patch_list) do
+      if #merged < M.COUNT then merged[#merged + 1] = mac; seen[mac.param] = true end
+    end
+    for _, mac in ipairs(list) do
+      if #merged < M.COUNT and not seen[mac.param] then merged[#merged + 1] = mac end
+    end
+    list = merged
+  end
   for k = 1, M.COUNT do
     local mac = list[k]
     local entry = {label = mac and mac.label or "-"}

@@ -14,6 +14,7 @@
 #pragma once
 
 #include <array>
+#include <chrono>
 #include <atomic>
 #include <condition_variable>
 #include <cstdint>
@@ -29,7 +30,15 @@
 namespace acidulous
 {
 class EngineHost;
+namespace machine::nexus
+{
+class Graph;
 }
+namespace audition
+{
+struct BankPatch;
+}
+} // namespace acidulous
 
 namespace core
 {
@@ -100,7 +109,6 @@ class Core
         bool        program = false; // a Formulate program is mounted
         // The machine's params as last sent, 0-1, for Cumulus's cloud.
         std::vector<float> values;
-        bool               cloud_queued = false; // a cloud rebuild is waiting
     };
 
     void post(std::function<void()> job);
@@ -112,9 +120,12 @@ class Core
 
     // Worker thread.
     bool mount(int part, const std::string& machine);
-    void build_cloud(int part);
-    void queue_cloud(int part);
+    void request_cloud(int part);
+    void forget_cloud(int part);
     void load_nexus(int part, const std::string& text);
+    Args nexus_macros(const acidulous::machine::nexus::Graph& g, const acidulous::audition::BankPatch& patch);
+    void cloud_loop();
+    void build_cloud(int part, const std::vector<float>& values, uint64_t epoch);
     void unmount(int part);
     void load_patch(int part, const std::string& machine, const std::string& name);
     void send_defs(const std::string& machine);
@@ -133,6 +144,23 @@ class Core
 
     Part                                       parts[kParts];
     std::map<std::string, std::shared_ptr<BankCache>> banks;
+
+    // Cumulus clouds build on their own thread, so notes and other jobs never
+    // wait behind one. A request waits kCloudSettleMs for more changes, and a
+    // newer one replaces it, so one build follows the last change.
+    struct CloudRequest
+    {
+        bool                                  want = false;
+        std::vector<float>                    values;
+        std::chrono::steady_clock::time_point due;
+        uint64_t                              epoch = 0; // bumped on each mount
+        std::vector<float>                    built;     // what the cloud was last built from
+    };
+    std::thread             cloud_thread;
+    std::mutex              cloud_lock;
+    std::condition_variable cloud_cv;
+    CloudRequest            clouds[kParts];
+    bool                    cloud_quit = false;
 
     std::thread                       worker;
     std::mutex                        jobs_lock;

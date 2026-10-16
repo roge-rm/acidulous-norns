@@ -84,7 +84,7 @@ Played on the norns as above: 4-note chords on each beat at 90 bpm, three beats 
 
 Listening, Talking and Sing to the Piano play the audio input, and there was none, so they cost more with something coming in.
 
-Nexus is the heavy one: two parts of most patches, one of Wall Pad. Cumulus's cloud is rebuilt on the worker thread when a spectrum param changes, which takes about 270 ms on the Pi 4 (Nimbus); turning a knob rebuilds it a few times a second, not on every step. Diction without words sings the vowel param's vowel.
+Nexus is the heavy one: two parts of most patches, one of Wall Pad. Cumulus's cloud is rebuilt on its own thread 50 ms after a spectrum param stops changing, which takes about 260 ms on the Pi 4 (Nimbus). Notes and other messages don't wait for it: while builds ran, replies from the plugin's worker came back in 2 to 6 ms. Diction without words sings the vowel param's vowel.
 
 ## The other pure-DSP machines
 

@@ -19,6 +19,8 @@
 //        empty engine, so the script sends its parts again
 //   /values i:part s:machine s:patch f:value01...   every param, sent just before
 //   /patch i:part s:machine s:patch    once it's applied
+//   /macros i:part s:machine s:patch (s:param s:label)...   a Nexus patch's
+//        macros, just before /values
 //   /state i:part s:machine s:patch f:gain01 f:value01...   what the engine
 //        holds once everything sent before has been applied
 //   /mpe_state i:kind i:members f:bend i:held_mask (i:ch i:note i:bend14

@@ -106,7 +106,7 @@ How many parts of each machine can play at once on a Pi 4. When you mix machines
 | Fret | 8 | Nexus | 1 to 2 |
 | Diction | 8 | | |
 
-The measurements are in [docs/machines.md](docs/machines.md). Diction sings a vowel with its built-in voice; the vowel macro picks which. Nexus's Listening, Talking and Sing to the Piano patches play the norns input, so they're silent without one. Turning Cumulus's stretch or width rebuilds its sound, which cuts the notes that are held. The machines that need samples or SoundFonts aren't here yet.
+The measurements are in [docs/machines.md](docs/machines.md). Diction sings a vowel with its built-in voice; the vowel macro picks which. Nexus's Listening, Talking and Sing to the Piano patches play the norns input, so they're silent without one. Changing one of Cumulus's spectrum params (partials to bodd in the params menu) rebuilds its sound, which cuts the notes that are held, so none of them are macros. A Nexus patch's macros are the knobs the patch sets, then the knobs of its modules. The machines that need samples or SoundFonts aren't here yet.
 
 ## Saving
 

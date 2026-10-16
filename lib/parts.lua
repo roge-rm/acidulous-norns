@@ -41,6 +41,7 @@ P.MACHINES = {
 
 P.machines = {}  -- the ones the plugin has, from /machines: {name, short, note}
 P.defs = {}      -- machine -> list of {name, min, max, default, unit, steps, curve}
+P.patch_macros = {} -- machine -> patch -> list of {param, label}, from /macros
 P.patches = {}   -- machine -> list of patch names
 P.slots = 0      -- param slots per part: the most any machine has
 P.ready = false
@@ -581,6 +582,11 @@ function P.osc(path, args)
       send("/param", {i - 1, j - 1, v})
     end
     part.edits = {}
+  elseif path == "/macros" then
+    local list = {}
+    for j = 4, #args - 1, 2 do list[#list + 1] = {param = args[j], label = args[j + 1]} end
+    P.patch_macros[args[2]] = P.patch_macros[args[2]] or {}
+    P.patch_macros[args[2]][args[3]] = list
   elseif path == "/hello" then
     if P.ready then P.resend() end
   elseif path == "/machines" then

@@ -10,8 +10,11 @@
 #include <engine/machine/cumulus/Cumulus.h>
 #include <engine/machine/formulate/Program.h>
 #include <engine/machine/nexus/Graph.h>
+#include <engine/machine/nexus/Modules.h>
 #include <tools/patchbank.h>
 
+#include <algorithm>
+#include <cctype>
 #include <chrono>
 #include <cmath>
 #include <cstdio>
@@ -98,12 +101,24 @@ Core::Core(const std::string& bank_dir_, Replier* replier_, bool inline_jobs_)
     // (on, ceiling 0.95) keeps four loud parts from clipping.
     host.setParam(0, "master", "volume", 1.f, false);
     if(!inline_jobs)
-        worker = std::thread([this] { worker_loop(); });
+    {
+        worker       = std::thread([this] { worker_loop(); });
+        cloud_thread = std::thread([this] { cloud_loop(); });
+    }
 }
 
 Core::~Core()
 {
     stopping = true;
+    if(cloud_thread.joinable())
+    {
+        {
+            std::lock_guard<std::mutex> l(cloud_lock);
+            cloud_quit = true;
+        }
+        cloud_cv.notify_all();
+        cloud_thread.join();
+    }
     if(worker.joinable())
     {
         {
@@ -398,7 +413,7 @@ bool Core::command(const std::string& path, const Args& a)
         if(part_ok(part))
             post_part(part, [this, part, m = to_str(a[1])] {
                 if(mount(part, m) && parts[part].machine == "Cumulus")
-                    build_cloud(part);
+                    request_cloud(part);
             });
         return true;
     }
@@ -510,6 +525,7 @@ bool Core::mount(int part, const std::string& name)
         return false;
     }
     wait_applied();
+    forget_cloud(part);
     parts[part] = Part{};
     parts[part].machine = type;
     int32_t         count = 0;
@@ -525,6 +541,7 @@ void Core::unmount(int part)
     mounts_queued = true;
     host.unmountMachine(part);
     wait_applied();
+    forget_cloud(part);
     parts[part] = Part{};
     reply("/mounted", {Value::i(part), Value::s("")});
 }
@@ -553,33 +570,94 @@ void Core::set_param(int part, const Value& which, float v01)
     if(size_t(index) < p.values.size())
         parts[part].values[size_t(index)] = v01 < 0.f ? 0.f : v01 > 1.f ? 1.f : v01;
     if(p.machine == "Cumulus" && index < kCloudParams)
-        queue_cloud(part);
+        request_cloud(part);
 }
 
-// Cumulus is silent until it has a cloud, built here from its spectrum params
-// and mounted. It takes tens of ms (more on a Pi), so worker thread only.
-void Core::build_cloud(int part)
+// How long a cloud request waits for more changes before it builds, so a
+// patch followed by its edits (a PSET) builds once.
+constexpr int kCloudSettleMs = 50;
+
+// Cumulus is silent until it has a cloud, built from its spectrum params and
+// mounted. Worker thread. Inline (the render tool) it builds now.
+void Core::request_cloud(int part)
 {
-    const Part& p = parts[part];
-    if(p.machine != "Cumulus")
+    const Part&        p = parts[part];
+    std::vector<float> values(p.values.begin(), p.values.begin() + std::min<size_t>(p.values.size(), kCloudParams));
+    if(inline_jobs)
+    {
+        settle();
+        if(values != clouds[part].built)
+            build_cloud(part, values, clouds[part].epoch);
         return;
-    settle();
-    const std::string why = host.buildCloud(part, p.values.data(), int32_t(std::min<size_t>(p.values.size(), kCloudParams)));
+    }
+    {
+        std::lock_guard<std::mutex> l(cloud_lock);
+        CloudRequest& c = clouds[part];
+        c.want   = true;
+        c.values = std::move(values);
+        c.due    = std::chrono::steady_clock::now() + std::chrono::milliseconds(kCloudSettleMs);
+    }
+    cloud_cv.notify_one();
+}
+
+// After a mount or unmount: the new machine has no cloud, and a waiting
+// request was for the old one. Worker thread.
+void Core::forget_cloud(int part)
+{
+    std::lock_guard<std::mutex> l(cloud_lock);
+    CloudRequest& c = clouds[part];
+    c.want = false;
+    c.built.clear();
+    ++c.epoch;
+}
+
+// Cloud thread, or the render tool's main loop.
+void Core::build_cloud(int part, const std::vector<float>& values, uint64_t epoch)
+{
+    const std::string why = host.buildCloud(part, values.data(), int32_t(values.size()));
+    {
+        std::lock_guard<std::mutex> l(cloud_lock);
+        if(clouds[part].epoch != epoch)
+            return; // remounted while it built: a request for the new one follows
+        if(why.empty())
+            clouds[part].built = values;
+    }
     if(!why.empty())
         error("Cumulus: " + why);
 }
 
-// Turning a spectrum knob sends many params, so one rebuild waits on the
-// worker with the newest values. Not per part, so notes don't wait behind it.
-void Core::queue_cloud(int part)
+void Core::cloud_loop()
 {
-    if(parts[part].cloud_queued)
-        return;
-    parts[part].cloud_queued = true;
-    post([this, part] {
-        parts[part].cloud_queued = false;
-        build_cloud(part);
-    });
+    std::unique_lock<std::mutex> l(cloud_lock);
+    for(;;)
+    {
+        if(cloud_quit)
+            return;
+        int  next = -1;
+        auto now  = std::chrono::steady_clock::now();
+        for(int p = 0; p < kParts; ++p)
+            if(clouds[p].want && (next < 0 || clouds[p].due < clouds[next].due))
+                next = p;
+        if(next < 0)
+        {
+            cloud_cv.wait(l);
+            continue;
+        }
+        if(clouds[next].due > now)
+        {
+            cloud_cv.wait_until(l, clouds[next].due);
+            continue;
+        }
+        CloudRequest&      c      = clouds[next];
+        c.want                    = false;
+        std::vector<float> values = c.values;
+        const uint64_t     epoch  = c.epoch;
+        if(values == c.built)
+            continue;
+        l.unlock();
+        build_cloud(next, values, epoch);
+        l.lock();
+    }
 }
 
 // A Nexus patch's graph, a line per module and cable, built and mounted by
@@ -694,6 +772,7 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
     // module's default from the graph, since every slot knob defaults to zero
     // and an oscillator at level zero is silent. As the app's audition does.
     std::string nexus;
+    Args        macros;
     if(machine == "Nexus")
     {
         for(const auto& kv : r.settings)
@@ -720,10 +799,11 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
                 if(slot >= 0 && slot < nx::kSlots && knob >= 0 && knob < nx::kKnobs)
                     r.norm[size_t(i)] = defs[i].unmap(knobs[size_t(slot) * nx::kKnobs + size_t(knob)]);
             }
+            macros = nexus_macros(*g, *patch);
         }
-        else if(!nexus.empty())
+        else
         {
-            error(machine + " " + patch->name + ": " + why);
+            error(machine + " " + patch->name + ": " + (nexus.empty() ? std::string("no graph") : why));
             nexus.clear();
         }
     }
@@ -781,19 +861,98 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
     {
         if(!nexus.empty())
             load_nexus(part, nexus);
+        else
+        {
+            // No graph: clear the last patch's, so the part is silent.
+            Mount mt;
+            mt.kind    = Mount::Kind::Object;
+            mt.rack    = part;
+            mt.slot    = 0;
+            mt.object  = nullptr;
+            mt.deleter = delete_as<machine::nexus::Graph>;
+            settle();
+            if(!host.mountObjectWithRetry(mt))
+                error("mount queue full");
+        }
     }
     else if(machine == "Cumulus")
-        build_cloud(part);
+        request_cloud(part);
     else if(!r.settings.empty())
         std::fprintf(stderr, "acidulous: %s %s: settings are not supported yet\n", machine.c_str(),
                      patch->name.c_str());
 
     parts[part].patch = patch->name;
+    if(!macros.empty())
+    {
+        Args out{Value::i(part), Value::s(machine), Value::s(patch->name)};
+        out.insert(out.end(), macros.begin(), macros.end());
+        reply("/macros", out);
+    }
     Args values{Value::i(part), Value::s(machine), Value::s(patch->name)};
     for(int32_t i = 0; i < count; ++i)
         values.push_back(Value::f(r.norm[size_t(i)]));
     reply("/values", values);
     reply("/patch", {Value::i(part), Value::s(machine), Value::s(patch->name)});
+}
+
+// A Nexus patch's macros: the knobs the patch sets, in its order, then the
+// knobs of the modules in its graph, as param and label pairs, up to five.
+Args Core::nexus_macros(const machine::nexus::Graph& g, const audition::BankPatch& patch)
+{
+    namespace nx = machine::nexus;
+    const char* knob_name[nx::kSlots][nx::kKnobs] = {};
+    for(int32_t i = 0; i < g.nodeCount(); ++i)
+    {
+        const auto& n = g.nodeAt(i);
+        if(n.slot < 0 || n.slot >= nx::kSlots || n.unknown)
+            continue;
+        const auto& info = nx::infoFor(n.type);
+        for(int k = 0; k < nx::kKnobs; ++k)
+            if(info.knob[k] && *info.knob[k])
+                knob_name[n.slot][k] = info.knob[k];
+    }
+    std::vector<std::pair<int, int>> picks;
+    const auto add = [&](int slot, int knob) {
+        if(picks.size() < 5 && knob_name[slot][knob] &&
+           std::find(picks.begin(), picks.end(), std::make_pair(slot, knob)) == picks.end())
+            picks.push_back({slot, knob});
+    };
+    for(const auto& v : patch.values)
+    {
+        const std::string& n = v.name;
+        if(n.size() != 6 || n[0] != 's' || n[3] != '_' || n[4] != 'p' || !std::isdigit((unsigned char)n[1]) ||
+           !std::isdigit((unsigned char)n[2]))
+            continue;
+        const int slot = (n[1] - '0') * 10 + (n[2] - '0'), knob = n[5] - '1';
+        if(slot < nx::kSlots && knob >= 0 && knob < nx::kKnobs)
+            add(slot, knob);
+    }
+    // Then the graph's own modules, leaving out its voice and output.
+    for(int32_t i = 0; i < g.nodeCount(); ++i)
+    {
+        const auto& n = g.nodeAt(i);
+        if(n.slot < 0 || n.slot >= nx::kSlots || n.unknown)
+            continue;
+        const char* type = nx::infoFor(n.type).name;
+        if(type && (!std::strcmp(type, "voice") || !std::strcmp(type, "out")))
+            continue;
+        for(int k = 0; k < nx::kKnobs; ++k)
+            add(n.slot, k);
+    }
+    Args                  out;
+    std::set<std::string> labels;
+    for(const auto& pk : picks)
+    {
+        char param[32];
+        std::snprintf(param, sizeof(param), "s%02d_p%d", pk.first, pk.second + 1);
+        std::string label = std::string(knob_name[pk.first][pk.second]).substr(0, 6);
+        if(labels.count(label))
+            label = (std::to_string(pk.first) + knob_name[pk.first][pk.second]).substr(0, 6);
+        labels.insert(label);
+        out.push_back(Value::s(param));
+        out.push_back(Value::s(label));
+    }
+    return out;
 }
 
 // What the engine holds for the part once everything queued before has been

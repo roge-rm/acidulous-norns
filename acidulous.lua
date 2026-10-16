@@ -317,7 +317,8 @@ end
 part_macros = function()
   local part = parts.list[state.sel]
   if not part.machine then return {} end
-  return macros.resolve(part.machine, parts.defs[part.machine])
+  local own = parts.patch_macros[part.machine]
+  return macros.resolve(part.machine, parts.defs[part.machine], own and own[part.patch])
 end
 
 -- The OMX-27's screen is drawn first and copied off with screen.peek; each
