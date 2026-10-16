@@ -32,6 +32,7 @@ class Fret final : public Machine {
         Strum, Direction, Slide, Vibrato,
         Drive, Feedback,
         Voices, VelocityAmount, BendRange, Octave, Volume,
+        Ring,
         Count
     };
     static_assert(Count <= kMaxParams, "too many parameters");

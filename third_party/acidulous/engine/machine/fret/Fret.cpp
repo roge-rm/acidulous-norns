@@ -95,6 +95,8 @@ const ParamDef *Fret::paramDefs(int32_t &count) const {
         {"bend", 0.0f, 12.0f, 2.0f, Curve::Linear, 0, "st"},
         {"octave", -2.0f, 2.0f, 0.0f, Curve::Stepped, 5, ""},
         {"volume", 0.0f, 1.0f, 0.7f, Curve::Linear, 0, ""},
+        // How long a released string keeps ringing: 0 the fingers stop it, 1 it rings out its sustain.
+        {"ring", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
     };
     count = Count;
     return defs;
@@ -188,7 +190,12 @@ void Fret::retune(Voice &v, float vibrato) {
     const float lowHz = noteHz(k.lowest);
     float t60 = k.sustain * std::pow(4.0f, paramOf(Sustain) - 0.5f) * std::sqrt(lowHz / std::fmax(f, lowHz));
     t60 *= 1.0f - 0.93f * mute;
-    if (!v.held) t60 = std::fmin(t60, kReleaseT60 * (k.lowest < 30.0f ? 1.6f : 1.0f));
+    if (!v.held) {
+        // Let go, the fingers stop the string; ring moves that from their
+        // short stop to the string's own time, on a log scale.
+        const float stopped = kReleaseT60 * (k.lowest < 30.0f ? 1.6f : 1.0f);
+        if (t60 > stopped) t60 = stopped * std::pow(t60 / stopped, clampf(paramOf(Ring), 0.0f, 1.0f));
+    }
     const float loop = std::pow(10.0f, -3.0f / (std::fmax(t60, 0.01f) * f));
     // The loop's one-pole: near 1 the string keeps its top for seconds; a
     // tenth lower and it's gone in a fraction of one. So the knob works in
