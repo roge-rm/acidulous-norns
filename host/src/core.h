@@ -122,6 +122,7 @@ class Core
     bool mount(int part, const std::string& machine);
     void request_cloud(int part);
     void forget_cloud(int part);
+    void release_object(int part);
     void load_nexus(int part, const std::string& text);
     Args nexus_macros(const acidulous::machine::nexus::Graph& g, const acidulous::audition::BankPatch& patch);
     void cloud_loop();
@@ -160,6 +161,9 @@ class Core
     std::mutex              cloud_lock;
     std::condition_variable cloud_cv;
     CloudRequest            clouds[kParts];
+    // Held across a cloud build and around queuing a part's mount or unmount.
+    // Taken before cloud_lock.
+    std::mutex              mount_locks[kParts];
     bool                    cloud_quit = false;
 
     std::thread                       worker;

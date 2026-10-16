@@ -7,6 +7,7 @@
 #include <engine/core/Messages.h>
 #include <engine/dsp/Denormals.h>
 #include <engine/machine/MachineRegistry.h>
+#include <engine/machine/cumulus/Cloud.h>
 #include <engine/machine/cumulus/Cumulus.h>
 #include <engine/machine/formulate/Program.h>
 #include <engine/machine/nexus/Graph.h>
@@ -131,7 +132,10 @@ Core::~Core()
     // Empties the racks so the next Core starts clean: the unmounts apply at
     // the top of a block, pulled here since the UGen no longer runs this core.
     for(int p = 0; p < kParts; ++p)
+    {
+        release_object(p);
         host.unmountMachine(p);
+    }
     host.setMpeZone(0, 15, 48);
     // The UGen has stopped calling process(), but a pull may still be
     // finishing, so this tries for up to 50 ms.
@@ -519,13 +523,21 @@ bool Core::mount(int part, const std::string& name)
     }
     const std::string type = MachineRegistry::name(i);
     mounts_queued = true;
-    if(!host.mountMachine(part, type))
+    bool queued;
+    {
+        // A cloud build in flight finishes first, and one not yet started is
+        // dropped, so no cloud is handed to the new machine.
+        std::lock_guard<std::mutex> l(mount_locks[part]);
+        forget_cloud(part);
+        release_object(part);
+        queued = host.mountMachine(part, type);
+    }
+    if(!queued)
     {
         error("mount queue full");
         return false;
     }
     wait_applied();
-    forget_cloud(part);
     parts[part] = Part{};
     parts[part].machine = type;
     int32_t         count = 0;
@@ -539,9 +551,13 @@ bool Core::mount(int part, const std::string& name)
 void Core::unmount(int part)
 {
     mounts_queued = true;
-    host.unmountMachine(part);
+    {
+        std::lock_guard<std::mutex> l(mount_locks[part]);
+        forget_cloud(part);
+        release_object(part);
+        host.unmountMachine(part);
+    }
     wait_applied();
-    forget_cloud(part);
     parts[part] = Part{};
     reply("/mounted", {Value::i(part), Value::s("")});
 }
@@ -600,8 +616,33 @@ void Core::request_cloud(int part)
     cloud_cv.notify_one();
 }
 
-// After a mount or unmount: the new machine has no cloud, and a waiting
-// request was for the old one. Worker thread.
+// Before a mount or unmount: takes the machine's cloud, graph or program out
+// so the engine frees it, since it isn't freed with the machine. Worker
+// thread, under the part's mount lock.
+void Core::release_object(int part)
+{
+    const std::string& m = parts[part].machine;
+    void (*deleter)(void*) = nullptr;
+    if(m == "Cumulus")
+        deleter = delete_as<machine::cumulus::CloudSet>;
+    else if(m == "Nexus")
+        deleter = delete_as<machine::nexus::Graph>;
+    else if(m == "Formulate")
+        deleter = delete_as<machine::formulate::Program>;
+    else
+        return;
+    Mount mt;
+    mt.kind    = Mount::Kind::Object;
+    mt.rack    = part;
+    mt.slot    = 0;
+    mt.object  = nullptr;
+    mt.deleter = deleter;
+    if(!host.mountObjectWithRetry(mt))
+        error("mount queue full");
+}
+
+// Before a mount or unmount, under the part's mount lock: the new machine has
+// no cloud, and a waiting request was for the old one. Worker thread.
 void Core::forget_cloud(int part)
 {
     std::lock_guard<std::mutex> l(cloud_lock);
@@ -611,10 +652,22 @@ void Core::forget_cloud(int part)
     ++c.epoch;
 }
 
-// Cloud thread, or the render tool's main loop.
+// Cloud thread, or the render tool's main loop. buildCloud checks the rack
+// holds a Cumulus and then mounts the cloud into whatever is there, so the
+// part's mount lock is held across it: a remount waits for it, and a request
+// from before a remount is dropped.
 void Core::build_cloud(int part, const std::vector<float>& values, uint64_t epoch)
 {
-    const std::string why = host.buildCloud(part, values.data(), int32_t(values.size()));
+    std::string why;
+    {
+        std::lock_guard<std::mutex> m(mount_locks[part]);
+        {
+            std::lock_guard<std::mutex> l(cloud_lock);
+            if(stopping || clouds[part].epoch != epoch)
+                return;
+        }
+        why = host.buildCloud(part, values.data(), int32_t(values.size()));
+    }
     {
         std::lock_guard<std::mutex> l(cloud_lock);
         if(clouds[part].epoch != epoch)
@@ -631,7 +684,7 @@ void Core::cloud_loop()
     std::unique_lock<std::mutex> l(cloud_lock);
     for(;;)
     {
-        if(cloud_quit)
+        if(cloud_quit || stopping)
             return;
         int  next = -1;
         auto now  = std::chrono::steady_clock::now();

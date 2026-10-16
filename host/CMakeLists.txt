@@ -63,6 +63,11 @@ target_compile_definitions(acidulous-render PRIVATE
     ACIDULOUS_DEFAULT_BANKS="${CMAKE_CURRENT_SOURCE_DIR}/../data/banks")
 target_link_libraries(acidulous-render acidulous-core)
 
+# Remounts a part while its Cumulus cloud builds.
+add_executable(acidulous-cloud-test tests/cloud_race.cpp)
+target_include_directories(acidulous-cloud-test PRIVATE src)
+target_link_libraries(acidulous-cloud-test acidulous-core)
+
 if(SC_INC AND LO_INC AND LO_LIB)
     # scsynth loads every plugin into one process, so nothing but the plugin
     # entry points may be visible.
