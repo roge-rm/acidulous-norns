@@ -127,7 +127,7 @@ Forage, Mosaic, Dice, Pollen and Molt play your samples. Pick one of them on a p
 - **Mosaic** plays a SoundFont: pick the .sf2, then one of its presets with **K3**. Or **use this folder** on a folder of WAVs. Files named with a note, like `piano C4.wav` or `pad F#3.wav`, go on that note, and files without one are spread across the keys.
 - **Dice**, **Pollen** and **Molt** take one file each. Pollen with nothing loaded plays the norns input.
 
-WAV, AIFF and FLAC work, MP3 doesn't. SoundFonts over 64 MB are too big for the norns. Files on a USB stick are copied into dust/audio/acidulous when you load them, so the part still has them once the stick is out.
+WAV, AIFF and FLAC work, MP3 doesn't. Dice, Pollen, Molt and Forage's pads take the first 30 seconds of a file. All the parts' samples together can take 320 MB of memory once loaded, and SoundFonts over 64 MB are too big for the norns; a load past either shows an error instead. Files on a USB stick are copied into dust/audio/acidulous/usb when you load them, so the part still has them once the stick is out. File names with a | in them can't be loaded.
 
 ## Saving
 

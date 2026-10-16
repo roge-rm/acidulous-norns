@@ -160,6 +160,7 @@ function P.start_engine()
 end
 
 function P.start(ready)
+  print("acidulous: asking the plugin for its machines")
   on_ready = ready
   local tick = 0
   local watching = false
@@ -307,9 +308,17 @@ end
 local function base(path) return path:match("([^/]+)/*$") or path end
 local function stem(path) return (base(path):gsub("%.[^%.]*$", "")) end
 
--- Sends /load. kind and arg as host/src/bridge.h has them.
+-- The machines that load files.
+P.SAMPLE_MACHINES = {Forage = true, Mosaic = true, Dice = true, Pollen = true, Molt = true}
+
+-- Sends /load. kind and arg as host/src/bridge.h has them. A path with | in
+-- it is refused, as | separates the files in the saved list.
 function P.load_file(i, kind, path, arg)
   local part = P.list[i]
+  if path:find("|", 1, true) then
+    part.problem = {text = base(path) .. ": names with | can't be loaded", at = util.time()}
+    return
+  end
   part.loading = {kind = kind, name = kind == "sf2" and base(path) or stem(path)}
   part.problem = nil
   send("/load", {i - 1, kind, path, arg or 0})
@@ -421,7 +430,8 @@ function P.apply(i)
   end
   part.files = decode(params:get(id(i, "files")))
   part.loading, part.last_path = nil, nil
-  if next(part.files) then send_files(i) end
+  -- with no files this still clears what the machine had before
+  if P.SAMPLE_MACHINES[part.machine] then send_files(i) end
 end
 
 function P.apply_all()
@@ -763,6 +773,8 @@ function P.osc(path, args)
     local part = P.list[(args[1] or -1) + 1]
     if not part then return end
     local kind, fpath, arg, name = args[2], args[3], args[4], args[5]
+    -- loaded into the machine the part had before a change, and gone with it
+    if args[6] ~= part.machine then return end
     if part.loading and part.loading.kind == kind then part.loading = nil end
     if kind == "pad" then
       part.files["pad" .. arg] = fpath ~= "" and {kind = kind, path = fpath, arg = arg, name = name} or nil
@@ -785,7 +797,7 @@ function P.osc(path, args)
   elseif path == "/error" then
     print("acidulous: " .. tostring(args[1]))
     local part = args[2] and P.list[args[2] + 1]
-    if part then
+    if part and args[6] == part.machine then
       if part.loading and (part.loading.kind == args[3] or args[3] ~= "pad") then part.loading = nil end
       part.problem = {text = args[1], at = util.time()}
     end

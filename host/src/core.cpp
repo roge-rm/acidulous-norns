@@ -49,12 +49,14 @@ static const char* const kChannelNames[] = {"gain", "pan", "mute", "solo"};
 // Forage's 13 pads and the shared sample above them.
 constexpr int kForagePads  = 13;
 constexpr int kForageSlots = kForagePads + 1;
+static_assert(kForageSlots <= Core::kHeldSlots, "a held entry per Forage slot");
 
 // The level a file is heard at from the picker, under the machines.
 constexpr float kHearGain = 0.5f;
 
-// The biggest SoundFont /load takes, in MB. A preset's samples are decoded
-// to floats, about twice the file's size, and the Pi has no swap.
+// The biggest SoundFont /load takes, in MB. Reading one holds the whole file
+// and then its preset's samples as floats, about three times the file's size
+// at the peak, and the Pi has no swap.
 // ACIDULOUS_SF2_LIMIT_MB in the environment overrides it, for tests.
 constexpr long long kMaxSoundFontMB = 64;
 
@@ -62,6 +64,19 @@ static long long max_soundfont_bytes()
 {
     const char* env = std::getenv("ACIDULOUS_SF2_LIMIT_MB");
     const long long mb = env && *env ? std::atoll(env) : kMaxSoundFontMB;
+    return mb * 1024 * 1024;
+}
+
+// All the decoded samples every part holds together, in MB, counting a load's
+// new samples before its old ones are freed. A Pi 4 norns has about 1.1 GB
+// free with scsynth running and a Pi 3 about half that, with no swap.
+// ACIDULOUS_SAMPLE_LIMIT_MB in the environment overrides it, for tests.
+constexpr long long kSampleBudgetMB = 320;
+
+static long long sample_budget_bytes()
+{
+    const char* env = std::getenv("ACIDULOUS_SAMPLE_LIMIT_MB");
+    const long long mb = env && *env ? std::atoll(env) : kSampleBudgetMB;
     return mb * 1024 * 1024;
 }
 
@@ -178,6 +193,12 @@ std::vector<std::string> audio_files(const std::string& folder, bool wav_only)
         const std::string name = e->d_name;
         if(name.empty() || name[0] == '.')
             continue;
+        // the zone spec and the script's saved file list use | and lines
+        if(name.find_first_of("|\n") != std::string::npos)
+        {
+            std::fprintf(stderr, "acidulous: %s: | in the name, left out\n", name.c_str());
+            continue;
+        }
         const bool ok = wav_only ? has_ext(name, {".wav"}) : has_ext(name, {".wav", ".aif", ".aiff", ".flac"});
         struct stat st{};
         if(ok && stat((dir + name).c_str(), &st) == 0 && S_ISREG(st.st_mode))
@@ -189,6 +210,98 @@ std::vector<std::string> audio_files(const std::string& folder, bool wav_only)
         return la != lb ? la < lb : a < b;
     });
     return out;
+}
+
+uint32_t le32(const unsigned char* b) { return b[0] | b[1] << 8 | b[2] << 16 | uint32_t(b[3]) << 24; }
+uint16_t le16(const unsigned char* b) { return uint16_t(b[0] | b[1] << 8); }
+uint32_t be32(const unsigned char* b) { return uint32_t(b[0]) << 24 | b[1] << 16 | b[2] << 8 | b[3]; }
+uint16_t be16(const unsigned char* b) { return uint16_t(b[0] << 8 | b[1]); }
+
+// A file's frames, rate and channels from its header, for WAV, AIFF and
+// FLAC. False if the header isn't one of those or doesn't say.
+bool probe_audio(const std::string& path, int64_t& frames, int& rate, int& channels)
+{
+    FILE* f = std::fopen(path.c_str(), "rb");
+    if(!f)
+        return false;
+    unsigned char h[12];
+    bool          ok = false;
+    frames = 0, rate = 0, channels = 0;
+    if(std::fread(h, 1, 12, f) == 12)
+    {
+        if(!std::memcmp(h, "RIFF", 4) && !std::memcmp(h + 8, "WAVE", 4))
+        {
+            int           bits = 0;
+            int64_t       data = -1;
+            unsigned char c[8];
+            while(std::fread(c, 1, 8, f) == 8)
+            {
+                const uint32_t size = le32(c + 4);
+                if(!std::memcmp(c, "fmt ", 4) && size >= 16)
+                {
+                    unsigned char fmt[16];
+                    if(std::fread(fmt, 1, 16, f) != 16)
+                        break;
+                    channels = le16(fmt + 2), rate = int(le32(fmt + 4)), bits = le16(fmt + 14);
+                    std::fseek(f, long(size - 16 + (size & 1)), SEEK_CUR);
+                }
+                else if(!std::memcmp(c, "data", 4))
+                {
+                    data = size;
+                    break;
+                }
+                else if(std::fseek(f, long(size + (size & 1)), SEEK_CUR) != 0)
+                    break;
+            }
+            if(data >= 0 && channels > 0 && bits >= 8)
+                frames = data / (channels * (bits / 8)), ok = true;
+        }
+        else if(!std::memcmp(h, "FORM", 4) && (!std::memcmp(h + 8, "AIFF", 4) || !std::memcmp(h + 8, "AIFC", 4)))
+        {
+            unsigned char c[8];
+            while(std::fread(c, 1, 8, f) == 8)
+            {
+                const uint32_t size = be32(c + 4);
+                if(!std::memcmp(c, "COMM", 4) && size >= 18)
+                {
+                    unsigned char m[18];
+                    if(std::fread(m, 1, 18, f) != 18)
+                        break;
+                    channels = be16(m), frames = be32(m + 2);
+                    // the rate is an 80-bit extended float
+                    const int exp  = ((m[8] & 0x7f) << 8 | m[9]) - 16383 - 31;
+                    const uint32_t hi = be32(m + 10);
+                    rate = int(std::ldexp(double(hi), exp));
+                    ok   = channels > 0;
+                    break;
+                }
+                if(std::fseek(f, long(size + (size & 1)), SEEK_CUR) != 0)
+                    break;
+            }
+        }
+        else if(!std::memcmp(h, "fLaC", 4))
+        {
+            // h[4..7] is the STREAMINFO block's header, then 34 bytes of it
+            unsigned char si[34];
+            if((h[4] & 0x7f) == 0 && std::fseek(f, 8, SEEK_SET) == 0 && std::fread(si, 1, 34, f) == 34)
+            {
+                rate     = si[10] << 12 | si[11] << 4 | si[12] >> 4;
+                channels = ((si[12] >> 1) & 7) + 1;
+                frames   = int64_t(si[13] & 15) << 32 | be32(si + 14);
+                ok       = frames > 0 && rate > 0;
+            }
+        }
+    }
+    std::fclose(f);
+    return ok && rate > 0 && channels > 0;
+}
+
+std::string mb(int64_t bytes)
+{
+    char text[32];
+    const double m = double(bytes) / (1 << 20);
+    std::snprintf(text, sizeof text, m < 10 ? "%.1f MB" : "%.0f MB", m);
+    return text;
 }
 
 // The last note name in a file name, as a MIDI note with C4 = 60, or -1:
@@ -225,6 +338,28 @@ int note_in_name(const std::string& name)
 }
 
 } // namespace
+
+// The bytes a file takes decoded to floats: at `to_rate` (0 keeps its own),
+// the first `max_seconds` (0 all of it), mono kept as one channel unless
+// `both` (a Take keeps two). A file whose header can't be read counts as
+// eight times its size, more than any 16-bit or compressed file decodes to.
+int64_t decoded_bytes(const std::string& path, int to_rate, int max_seconds, bool both)
+{
+    int64_t frames = 0;
+    int     rate = 0, channels = 0;
+    if(!probe_audio(path, frames, rate, channels))
+    {
+        struct stat st{};
+        return stat(path.c_str(), &st) == 0 ? int64_t(st.st_size) * 8 : 0;
+    }
+    if(max_seconds > 0)
+        frames = std::min<int64_t>(frames, int64_t(max_seconds) * rate);
+    if(to_rate > 0)
+        frames = frames * to_rate / rate + 1;
+    const int kept = both || channels > 1 ? 2 : 1;
+    return frames * kept * int64_t(sizeof(float));
+}
+
 
 Core::Core(const std::string& bank_dir_, Replier* replier_, bool inline_jobs_)
 : host(EngineHost::instance()), bank_dir(bank_dir_), replier(replier_), inline_jobs(inline_jobs_)
@@ -456,7 +591,18 @@ void Core::worker_loop()
         jobs.pop_front();
         busy = true;
         l.unlock();
-        job();
+        try
+        {
+            job();
+        }
+        catch(const std::exception& e)
+        {
+            error(std::string("worker: ") + e.what());
+        }
+        catch(...)
+        {
+            error("worker: unknown exception");
+        }
         l.lock();
         busy = false;
         if(jobs.empty())
@@ -823,6 +969,7 @@ void Core::release_object(int part)
         deleter = delete_as<audio::Reel>;
     else
         return;
+    clear_held(part);
     for(int slot = 0; slot < slots; ++slot)
     {
         Mount mt;
@@ -1261,20 +1408,75 @@ void Core::send_patches(const std::string& machine)
 
 void Core::loaded(int part, const std::string& kind, const std::string& path, int arg, const std::string& name)
 {
-    reply("/loaded", {Value::i(part), Value::s(kind), Value::s(path), Value::i(arg), Value::s(name)});
+    reply("/loaded", {Value::i(part), Value::s(kind), Value::s(path), Value::i(arg), Value::s(name),
+                      Value::s(part >= 0 ? parts[part].machine : "")});
 }
 
 void Core::load_error(int part, const std::string& kind, const std::string& path, int arg, const std::string& why)
 {
     const std::string text = (path.empty() ? kind : base_name(path)) + ": " + why;
     std::fprintf(stderr, "acidulous: part %d %s\n", part, text.c_str());
-    reply("/error", {Value::s(text), Value::i(part), Value::s(kind), Value::s(path), Value::i(arg)});
+    reply("/error", {Value::s(text), Value::i(part), Value::s(kind), Value::s(path), Value::i(arg),
+                     Value::s(part >= 0 ? parts[part].machine : "")});
+}
+
+// --- The sample budget: what each part's slots hold decoded ------------------
+
+int64_t Core::held_total()
+{
+    std::lock_guard<std::mutex> l(held_lock);
+    int64_t                     sum = 0;
+    for(const auto& p : held)
+        for(int64_t b : p)
+            sum += b;
+    return sum;
+}
+
+// Whether `need` more bytes fit, with everything held now still counted, as
+// the old samples live until the new ones are swapped in.
+bool Core::room_for(int64_t need, std::string& why)
+{
+    const int64_t now = held_total(), limit = sample_budget_bytes();
+    if(now + need <= limit)
+        return true;
+    why = "needs " + mb(need) + ", " + mb(now) + " of the " + mb(limit) + " for samples is in use";
+    return false;
+}
+
+void Core::set_held(int part, int slot, int64_t bytes)
+{
+    std::lock_guard<std::mutex> l(held_lock);
+    held[part][slot] = bytes;
+}
+
+void Core::clear_held(int part)
+{
+    std::lock_guard<std::mutex> l(held_lock);
+    for(int64_t& b : held[part])
+        b = 0;
 }
 
 // /load: decodes on this worker and mounts into the part's machine, under the
 // part's mount lock so nothing remounts the part meanwhile. An empty path
-// clears what the kind loads.
+// clears what the kind loads. Anything the engine's readers throw becomes an
+// /error.
 void Core::load(int part, const std::string& kind, const std::string& path, int arg)
+{
+    try
+    {
+        load_now(part, kind, path, arg);
+    }
+    catch(const std::exception& e)
+    {
+        load_error(part, kind, path, arg, std::string("couldn't load it: ") + e.what());
+    }
+    catch(...)
+    {
+        load_error(part, kind, path, arg, "couldn't load it");
+    }
+}
+
+void Core::load_now(int part, const std::string& kind, const std::string& path, int arg)
 {
     const std::string& m    = parts[part].machine;
     const auto         want = [&](std::initializer_list<const char*> machines) {
@@ -1294,6 +1496,8 @@ void Core::load(int part, const std::string& kind, const std::string& path, int 
         loaded(part, kind, "", 0, "");
         return;
     }
+    if(path.find_first_of("|\n") != std::string::npos)
+        return load_error(part, kind, path, arg, "names with | can't be loaded");
     struct stat found{};
     if(!path.empty() && stat(path.c_str(), &found) != 0)
         return load_error(part, kind, path, arg, "not found");
@@ -1303,8 +1507,12 @@ void Core::load(int part, const std::string& kind, const std::string& path, int 
             return;
         if(arg < 0 || arg >= kForagePads)
             return load_error(part, kind, path, arg, "no pad " + std::to_string(arg + 1));
+        const int64_t need = path.empty() ? 0 : decoded_bytes(path, kSampleRate, kMaxDecodeSeconds, false);
+        if(!room_for(need, why))
+            return load_error(part, kind, path, arg, why);
         if(!host.loadSample(part, arg, path, why))
             return load_error(part, kind, path, arg, why);
+        set_held(part, arg, need);
         return loaded(part, kind, path, arg, path.empty() ? "" : stem(path));
     }
     if(kind == "kit")
@@ -1323,7 +1531,10 @@ void Core::load(int part, const std::string& kind, const std::string& path, int 
             return;
         if(found.st_size > max_soundfont_bytes())
             return load_error(part, kind, path, arg,
-                              "over " + std::to_string(max_soundfont_bytes() >> 20) + " MB, too big for the norns");
+                              "over " + mb(max_soundfont_bytes()) + ", too big for the norns");
+        // the file is read whole, then its preset's 16-bit samples become floats
+        if(!room_for(int64_t(found.st_size) * 3, why))
+            return load_error(part, kind, path, arg, why);
         std::vector<Sf2Reader::PresetInfo> presets;
         if(!Sf2Reader::listPresets(path, presets, why))
             return load_error(part, kind, path, arg, why);
@@ -1331,6 +1542,7 @@ void Core::load(int part, const std::string& kind, const std::string& path, int 
             return load_error(part, kind, path, arg, "no preset " + std::to_string(arg));
         if(!host.loadSoundFont(part, path, arg, why))
             return load_error(part, kind, path, arg, why);
+        set_held(part, 0, int64_t(found.st_size) * 2);
         return loaded(part, kind, path, arg, presets[size_t(arg)].name);
     }
     if(kind == "folder")
@@ -1346,9 +1558,14 @@ void Core::load(int part, const std::string& kind, const std::string& path, int 
     {
         if(!want({"Dice", "Pollen", "Molt"}))
             return;
+        // a Take keeps both channels; Molt's mono copy and analysis fit in that too
+        const int64_t need = path.empty() ? 0 : decoded_bytes(path, kSampleRate, kMaxDecodeSeconds, true);
+        if(!room_for(need, why))
+            return load_error(part, kind, path, arg, why);
         why = load_take(part, path, m == "Molt");
         if(!why.empty())
             return load_error(part, kind, path, arg, why);
+        set_held(part, 0, need);
         return loaded(part, kind, path, arg, path.empty() ? "" : stem(path));
     }
     load_error(part, kind, path, arg, "no such kind of load");
@@ -1362,16 +1579,22 @@ std::string Core::load_kit(int part, const std::string& folder, int& count)
     const auto files = audio_files(folder, false);
     if(files.empty())
         return "no audio files in it";
+    int64_t need = 0;
+    for(size_t k = 0; k < files.size() && k < size_t(kForagePads); ++k)
+        need += decoded_bytes(files[k], kSampleRate, kMaxDecodeSeconds, false);
+    std::string why;
+    if(!room_for(need, why))
+        return why;
     count = 0;
     for(int pad = 0; pad < kForagePads; ++pad)
     {
         const std::string path = size_t(pad) < files.size() ? files[size_t(pad)] : "";
-        std::string       why;
         if(!host.loadSample(part, pad, path, why))
         {
             load_error(part, "pad", path, pad, why);
             continue;
         }
+        set_held(part, pad, path.empty() ? 0 : decoded_bytes(path, kSampleRate, kMaxDecodeSeconds, false));
         if(!path.empty())
             ++count;
         loaded(part, "pad", path, pad, path.empty() ? "" : stem(path));
@@ -1383,10 +1606,11 @@ std::string Core::load_kit(int part, const std::string& folder, int& count)
 // from that note, each reaching halfway to its neighbours; files on the same
 // note are velocity layers, in name order. With no note names the files sit
 // side by side, up to an octave each, around middle C, with the end ones
-// stretched to the ends of the keyboard.
+// stretched to the ends of the keyboard. The WAVs are read whole at their own
+// rate, so the folder's total is checked against the budget first.
 std::string Core::load_folder_map(int part, const std::string& folder)
 {
-    const auto files = audio_files(folder, true);
+    auto files = audio_files(folder, true);
     if(files.empty())
         return "no WAV files in it";
     std::map<int, std::vector<std::string>> by_note;
@@ -1396,6 +1620,18 @@ std::string Core::load_folder_map(int part, const std::string& folder)
         if(n >= 0)
             by_note[n].push_back(f);
     }
+    std::vector<std::string> used;
+    if(!by_note.empty())
+        for(const auto& kv : by_note)
+            used.insert(used.end(), kv.second.begin(), kv.second.end());
+    else
+        used.assign(files.begin(), files.begin() + long(std::min<size_t>(files.size(), 128)));
+    int64_t need = 0;
+    for(const auto& f : used)
+        need += decoded_bytes(f, 0, 0, false);
+    std::string why;
+    if(!room_for(need, why))
+        return why;
     std::string spec;
     const auto  zone = [&](const std::string& path, int lo, int hi, int root, int lo_vel, int hi_vel) {
         spec += path + "|" + std::to_string(lo) + "|" + std::to_string(hi) + "|" + std::to_string(root) + "|" +
@@ -1415,9 +1651,9 @@ std::string Core::load_folder_map(int part, const std::string& folder)
             for(int j = 0; j < n; ++j)
                 zone(layers[size_t(j)], lo, hi, roots[k], j * 128 / n, (j + 1) * 128 / n - 1);
         }
-        if(by_note.size() < files.size())
+        if(used.size() < files.size())
             std::fprintf(stderr, "acidulous: %s: %zu files have no note name and are left out\n", folder.c_str(),
-                         files.size() - by_note.size());
+                         files.size() - used.size());
     }
     else
     {
@@ -1430,9 +1666,9 @@ std::string Core::load_folder_map(int part, const std::string& folder)
             zone(files[size_t(k)], k == 0 ? 0 : lo, k + 1 == n ? 127 : hi, lo + w / 2, 0, 127);
         }
     }
-    std::string why;
     if(!host.loadZoneMap(part, spec, base_name(folder), why))
         return why;
+    set_held(part, 0, need);
     return "";
 }
 

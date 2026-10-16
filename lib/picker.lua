@@ -44,8 +44,11 @@ local function stop_hearing()
 end
 
 local function close()
-  if st then timer.cancel(st.asking) end
-  stop_hearing()
+  if not st then return end
+  timer.cancel(st.asking)
+  -- always, as a /hear may be on its way back
+  parts.send("/hear", {})
+  heard = nil
   st = nil
 end
 

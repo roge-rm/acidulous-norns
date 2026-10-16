@@ -18,7 +18,8 @@
 //        "folder" (Mosaic, a folder of WAVs mapped by the note names in their
 //        names), "sample" (Dice, Pollen, Molt), "clear" (empties the part's
 //        machine). An empty path clears a pad or sample. WAV, AIFF and FLAC;
-//        SoundFonts over 64 MB are refused.
+//        SoundFonts over 64 MB are refused, and so is a load that would take
+//        the decoded samples of every part past 320 MB, or a path with | in it.
 //   /presets s:path                    a SoundFont's presets
 //   /shape s:path                      a file's length and shape, for the picker
 //   /hear [s:path]                     plays a file once over everything, up
@@ -45,7 +46,8 @@
 //   /patches s:machine s:name...       /machines s:name...
 //   /load f:percent f:worst_percent    4 times a second
 //   /levels f:peak...                  each part's peak, 20 times a second
-//   /loaded i:part s:kind s:path i:arg s:name   once it's mounted. A kit sends
+//   /loaded i:part s:kind s:path i:arg s:name s:machine   once it's mounted,
+//        machine being what the part had when it loaded. A kit sends
 //        one "pad" per pad (path "" for an emptied one), then "kit" with arg
 //        the number of pads filled. name is the file's name without its
 //        extension, the preset's name or the folder's name.
@@ -54,7 +56,8 @@
 //        loudest point, 0-1 against the file's peak; cut is 1 if it's longer
 //        than the 30 seconds read. seconds 0 if it can't be read.
 //   /hear s:path f:seconds             once it starts, "" when stopped
-//   /error s:text [i:part s:kind s:path i:arg]   a failed /load has the rest
+//   /error s:text [i:part s:kind s:path i:arg s:machine]   a failed /load has
+//        the rest
 #pragma once
 #include <string>
 

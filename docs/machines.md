@@ -106,7 +106,14 @@ Played on the norns the same way, with the test files from `host/tests/make_mate
 
 Dice's worst blocks are when it swaps slices. Pollen's grains are the heavy part, Chord Dust most of all.
 
-Memory: scsynth sits at about 145 MB with acidulous running. A 62 MB SoundFont (65 samples) took it to 268 MB, and it went back to 146 MB once a small one replaced it. Reading a SoundFont briefly takes about three times its size, so files over 64 MB are refused with an error, which leaves room on a Pi 3 with 1 GB. Set `ACIDULOUS_SF2_LIMIT_MB` in scsynth's environment to change it. Dice, Pollen and Molt take the first 30 seconds of a file.
+Memory: the Pi 4 has 1851 MB and no swap, and with norns and acidulous running about 1165 MB is free, with scsynth at about 145 MB. A 62 MB SoundFont (65 samples) took scsynth to 268 MB, and it went back to 146 MB once a small one replaced it.
+
+Two limits keep loads from running it out of memory:
+
+- All the decoded samples every part holds together can't pass 320 MB. Each load works out its size from the files' headers before reading anything (floats, both channels for a stereo file, and the 30 seconds a pad or Dice, Pollen and Molt keep), and counts what the part held before as well, since that's freed only once the new samples are in. A Mosaic folder of WAVs is read whole, so a folder of long multisamples is the one most likely to hit it. 320 MB leaves the Pi 4 about 800 MB, and a Pi 3 with 1 GB would have about 150 MB left, which hasn't been tried.
+- SoundFonts over 64 MB are refused, as reading one holds the whole file and then its preset's samples as floats, about three times its size at the peak. A SoundFont counts as three times its size against the 320 MB while it loads and twice once it's in.
+
+`ACIDULOUS_SAMPLE_LIMIT_MB` and `ACIDULOUS_SF2_LIMIT_MB` in scsynth's environment change them.
 
 ## The other pure-DSP machines
 

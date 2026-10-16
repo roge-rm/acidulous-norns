@@ -73,6 +73,11 @@ add_executable(acidulous-sample-test tests/sample_race.cpp)
 target_include_directories(acidulous-sample-test PRIVATE src)
 target_link_libraries(acidulous-sample-test acidulous-core)
 
+# The sample budget and file names with | in them.
+add_executable(acidulous-limit-test tests/limit_test.cpp)
+target_include_directories(acidulous-limit-test PRIVATE src)
+target_link_libraries(acidulous-limit-test acidulous-core)
+
 if(SC_INC AND LO_INC AND LO_LIB)
     # scsynth loads every plugin into one process, so nothing but the plugin
     # entry points may be visible.

@@ -92,4 +92,6 @@ cmake --build host/build/asan --target acidulous-sample-test
 host/build/asan/acidulous-sample-test data/banks host/build/material
 ```
 
-SoundFonts bigger than 64 MB are refused. `ACIDULOUS_SF2_LIMIT_MB` in scsynth's environment changes the limit.
+`acidulous-limit-test BANK_DIR SCRATCH_DIR [MATERIAL_DIR]` checks the sample budget with a 4 MB limit: a Mosaic folder past it is refused, Forage pads fill it, and a clear or remount frees a part's share. It also loads a folder with a | in a file name and a path with one, which are refused or left out. With MATERIAL_DIR it checks the sizes read from WAV, AIFF and FLAC headers against a real decode.
+
+SoundFonts bigger than 64 MB are refused, and so is a load that takes all the parts' samples past 320 MB. `ACIDULOUS_SF2_LIMIT_MB` and `ACIDULOUS_SAMPLE_LIMIT_MB` in scsynth's environment change them.

@@ -66,9 +66,15 @@ struct Replier
 
 constexpr int kParts = 8;
 
+// The bytes a file takes decoded to floats: at `to_rate` (0 keeps its own),
+// the first `max_seconds` (0 all of it), mono as one channel unless `both`.
+// From the header for WAV, AIFF and FLAC, otherwise eight times the file's size.
+int64_t decoded_bytes(const std::string& path, int to_rate, int max_seconds, bool both);
+
 class Core
 {
   public:
+    static constexpr int kHeldSlots = 16;
     Core(const std::string& bank_dir, Replier* replier, bool inline_jobs);
     ~Core();
 
@@ -125,6 +131,11 @@ class Core
     void release_object(int part);
     void load_nexus(int part, const std::string& text);
     void load(int part, const std::string& kind, const std::string& path, int arg);
+    void load_now(int part, const std::string& kind, const std::string& path, int arg);
+    int64_t held_total();
+    bool room_for(int64_t need, std::string& why);
+    void set_held(int part, int slot, int64_t bytes);
+    void clear_held(int part);
     std::string load_kit(int part, const std::string& folder, int& count);
     std::string load_folder_map(int part, const std::string& folder);
     std::string load_take(int part, const std::string& path, bool sung);
@@ -174,6 +185,9 @@ class Core
     // Held across a cloud build, across a /load and around queuing a part's
     // mount or unmount. Taken before cloud_lock.
     std::mutex              mount_locks[kParts];
+    // Decoded bytes of samples each part's slots hold, for the sample budget.
+    std::mutex              held_lock;
+    int64_t                 held[kParts][kHeldSlots] = {};
     bool                    cloud_quit = false;
 
     std::thread                       worker;
