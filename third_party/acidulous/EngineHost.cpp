@@ -323,6 +323,74 @@ bool EngineHost::mountEffect(int rack, int slot, const std::string &typeName) {
     return true;
 }
 
+SendPlan EngineHost::applyPatchChain(int rack, const PatchChain &chain, PatchTrackState &state, float sendReverbNow,
+                                     float sendDelayNow, int32_t *skipped, int32_t *unknown) {
+    if (skipped != nullptr) *skipped = 0;
+    if (unknown != nullptr) *unknown = 0;
+    if (rack < 0 || rack >= kRackCount) return SendPlan();
+    const uint32_t owned = state.owned;
+    // An effect this build doesn't have (a patch from a newer one) is left
+    // out before the plan, so it never takes a slot.
+    std::vector<const PatchInsert *> inserts;
+    for (const PatchInsert &fx : chain.inserts) {
+        int32_t n = 0;
+        if (EffectRegistry::paramDefs(fx.type.c_str(), n) != nullptr && n > 0) {
+            inserts.push_back(&fx);
+        } else {
+            LOGE("patch chain: no effect called '%s'", fx.type.c_str());
+            if (unknown != nullptr) ++*unknown;
+        }
+    }
+    bool occupied[kEffectSlots];
+    for (int32_t s = 0; s < kEffectSlots; ++s) occupied[s] = !mountedEffectType[rack][s].empty();
+    const InsertPlan plan = planPatchInserts(occupied, owned, static_cast<int32_t>(inserts.size()));
+    // The param queue drains a block at a time, so a full one means waiting.
+    const auto set = [&](const std::string &type, const std::string &unit, const std::string &name, float v) {
+        if (paramIndex(type, unit, name) < 0) {
+            LOGE("patch chain: no %s parameter '%s'", unit.c_str(), name.c_str());
+            return;
+        }
+        for (int attempt = 0; attempt < 50; ++attempt) {
+            if (setParam(rack, unit, name, v, false)) return;
+            std::this_thread::sleep_for(std::chrono::milliseconds(2));
+        }
+        LOGE("param queue stayed full; dropped %s %s", unit.c_str(), name.c_str());
+    };
+    for (int32_t s = 0; s < kEffectSlots; ++s) {
+        if (((plan.clear >> s) & 1u) != 0 && ((plan.owned >> s) & 1u) == 0) mountEffect(rack, s, "");
+    }
+    uint32_t ownedNow = plan.owned;
+    int32_t failed = 0;
+    for (size_t i = 0; i < inserts.size() && i < static_cast<size_t>(kEffectSlots); ++i) {
+        const int32_t slot = plan.slotOf[i];
+        if (slot < 0) continue;
+        const PatchInsert &fx = *inserts[i];
+        // Always a fresh one, so nothing rings on from the last patch's.
+        // A slot that won't mount is emptied and not claimed.
+        if (!mountEffect(rack, slot, fx.type)) {
+            mountEffect(rack, slot, "");
+            ownedNow &= ~(1u << slot);
+            ++failed;
+            continue;
+        }
+        const std::string unit = "effect" + std::to_string(slot + 1);
+        for (const auto &kv : fx.params) set(fx.type, unit, kv.first, kv.second);
+        for (const auto &kv : fx.settings) {
+            if (kv.first != "formula") continue;
+            const std::string error = loadEffectFormula(rack, unit, kv.second);
+            if (!error.empty()) LOGE("patch formula on rack %d: %s", rack, error.c_str());
+        }
+    }
+    const SendPlan sends = planPatchSends(chain, sendReverbNow, sendDelayNow, state);
+    if (sends.set) {
+        set("", "channel", "sendreverb", sends.reverb);
+        set("", "channel", "senddelay", sends.delay);
+    }
+    state.owned = ownedNow;
+    if (skipped != nullptr) *skipped = plan.skipped + failed;
+    return sends;
+}
+
 bool EngineHost::mountInputMod(int rack, int slot, const std::string &typeName) {
     if (rack < 0 || rack >= kRackCount || slot < 0 || slot >= kInputModSlots) return false;
     InputMod *ev = nullptr;

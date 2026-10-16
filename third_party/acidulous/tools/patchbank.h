@@ -11,6 +11,8 @@
 #include <vector>
 
 #include <engine/core/Params.h>
+#include <engine/core/PatchChain.h>
+#include <engine/effect/EffectRegistry.h>
 
 // A machine's factory patches, as text.
 //
@@ -42,6 +44,20 @@
 // Values are always in the parameter's own units. The optional unit suffix
 // enforces that: `620` in a parameter measured in ms would go unnoticed, but
 // `620 Hz` is a parse error.
+//
+// A machine patch can bring up to two insert effects and its send levels.
+// `insert Type` starts an effect, and the values and `set` lines after it are
+// that effect's, in its own units, up to the next `insert` or `patch`. So the
+// machine's own values come first:
+//
+//     patch "Chorus Keys" family=keys
+//       cutoff     4000 Hz
+//       insert Chorus
+//         rate     0.6 Hz
+//         mix      0.4
+//       send reverb 0.25          # 0..1; naming one sets the other to 0
+//
+// A patch with no `send` line leaves the track's sends as they are.
 
 namespace acidulous::audition {
 
@@ -50,6 +66,14 @@ struct BankValue {
     double number = 0.0;
     std::string unit;   // as written, checked against ParamDef::unit
     int stepIndex = -1; // >= 0 when written as #N
+    int line = 0;
+};
+
+/** An insert effect a machine patch brings: `insert Chorus` and its values. */
+struct BankInsert {
+    std::string type;
+    std::vector<BankValue> values;
+    std::vector<std::pair<std::string, std::string>> settings;
     int line = 0;
 };
 
@@ -71,6 +95,10 @@ struct BankPatch {
     int low = -1, high = -1;
     std::vector<BankValue> values;
     std::vector<std::pair<std::string, std::string>> settings;
+    // Effects the patch puts on its track, at most kEffectSlots.
+    std::vector<BankInsert> inserts;
+    // Send levels 0..1, or -1 where the patch names none.
+    float sendReverb = -1.0f, sendDelay = -1.0f;
     int line = 0;
 };
 
@@ -209,6 +237,37 @@ inline bool readBankFrom(std::istream &in, const std::string &path, Bank &bank, 
         if (bank.patches.empty()) return fail("'" + head + "' before any patch");
         BankPatch &p = bank.patches.back();
 
+        if (head == "insert") {
+            if (bank.isEffect()) return fail("an effect's patch can't carry inserts");
+            BankInsert fx;
+            fx.line = lineNo;
+            if (!detail::token(line, at, fx.type)) return fail("an effect type is wanted after insert");
+            if (static_cast<int32_t>(p.inserts.size()) >= kEffectSlots) {
+                return fail("a patch carries at most " + std::to_string(kEffectSlots) + " inserts");
+            }
+            p.inserts.push_back(std::move(fx));
+            continue;
+        }
+        if (head == "send") {
+            if (bank.isEffect()) return fail("an effect's patch can't carry sends");
+            std::string which, num;
+            if (!detail::token(line, at, which) || !detail::token(line, at, num)) {
+                return fail("send wants reverb or delay and a level");
+            }
+            char *end = nullptr;
+            const double level = std::strtod(num.c_str(), &end);
+            if (end == num.c_str() || *end != '\0' || level < 0.0 || level > 1.0) {
+                return fail("a send level is 0..1, not '" + num + "'");
+            }
+            if (which == "reverb") p.sendReverb = static_cast<float>(level);
+            else if (which == "delay") p.sendDelay = static_cast<float>(level);
+            else return fail("send wants reverb or delay, not '" + which + "'");
+            continue;
+        }
+        // After an `insert`, values and settings are that effect's.
+        auto &values = p.inserts.empty() ? p.values : p.inserts.back().values;
+        auto &settings = p.inserts.empty() ? p.settings : p.inserts.back().settings;
+
         if (head == "set") {
             std::string key, value;
             if (!detail::token(line, at, key)) return fail("a key is wanted after set");
@@ -227,7 +286,7 @@ inline bool readBankFrom(std::istream &in, const std::string &path, Bank &bank, 
                 }
                 out += value[i];
             }
-            p.settings.emplace_back(key, out);
+            settings.emplace_back(key, out);
             continue;
         }
 
@@ -246,7 +305,7 @@ inline bool readBankFrom(std::istream &in, const std::string &path, Bank &bank, 
             if (end != nullptr && *end != '\0') v.unit = end;
         }
         if (v.unit.empty()) detail::token(line, at, v.unit);
-        p.values.push_back(std::move(v));
+        values.push_back(std::move(v));
     }
     if (bank.unit.empty()) {
         error = path + ": no `machine` or `effect` line";
@@ -365,6 +424,40 @@ inline Resolved resolve(const BankPatch &patch, const ParamDef *defs, int32_t co
     }
     r.problems.swap(once);
     return r;
+}
+
+/**
+ * A patch's inserts and sends, resolved against each effect's own parameter
+ * table: every parameter of each insert, the ones it leaves out at their
+ * defaults, so an insert sounds the same whatever was in the slot before.
+ * What can't be resolved goes in [problems] and the rest is still filled in.
+ */
+inline PatchChain resolveChain(const BankPatch &patch, std::vector<std::string> &problems) {
+    PatchChain chain;
+    for (const BankInsert &fx : patch.inserts) {
+        int32_t count = 0;
+        const ParamDef *defs = EffectRegistry::paramDefs(fx.type.c_str(), count);
+        if (defs == nullptr || count == 0) {
+            problems.push_back("line " + std::to_string(fx.line) + ": no effect called '" + fx.type + "'");
+            continue;
+        }
+        BankPatch as;
+        as.values = fx.values;
+        as.settings = fx.settings;
+        const Resolved r = resolve(as, defs, count);
+        for (const std::string &p : r.problems) problems.push_back(fx.type + ": " + p);
+        PatchInsert out;
+        out.type = fx.type;
+        for (int32_t i = 0; i < count; ++i) out.params.emplace_back(defs[i].name, r.norm[static_cast<size_t>(i)]);
+        out.settings = r.settings;
+        chain.inserts.push_back(std::move(out));
+    }
+    chain.hasSends = patch.sendReverb >= 0.0f || patch.sendDelay >= 0.0f;
+    if (chain.hasSends) {
+        chain.sendReverb = patch.sendReverb > 0.0f ? patch.sendReverb : 0.0f;
+        chain.sendDelay = patch.sendDelay > 0.0f ? patch.sendDelay : 0.0f;
+    }
+    return chain;
 }
 
 } // namespace acidulous::audition

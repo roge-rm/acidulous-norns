@@ -5,6 +5,7 @@
 #include <memory>
 #include <sequencer/Clip.h>
 #include <engine/core/Frozen.h>
+#include <engine/core/PatchChain.h>
 #include <engine/core/Reel.h>
 #include <engine/core/SampleEdit.h>
 #include <engine/format/AudioSink.h>
@@ -54,6 +55,19 @@ class EngineHost {
      */
     void setCacheRoot(const std::string &path) { cacheRoot = path; }
     const char *mountedEffect(int rack, int slot) const;
+    /**
+     * Puts a machine patch's effects on [rack]: its inserts and sends, by the
+     * rules in engine/core/PatchChain.h. [state] is the track's from the last
+     * patch load and is updated; keep it with the track. [sendReverbNow] and
+     * [sendDelayNow] are the track's send levels now, 0..1. [skipped], if
+     * given, is how many inserts found no free slot, and [unknown] how many
+     * name an effect this build doesn't have, which are left out. Every slot
+     * the patch fills gets a new effect, even of the same type. Returns the
+     * sends it set, so a host that keeps its own copy can follow. The
+     * machine's own parameters are the caller's.
+     */
+    SendPlan applyPatchChain(int rack, const PatchChain &chain, PatchTrackState &state, float sendReverbNow,
+                             float sendDelayNow, int32_t *skipped = nullptr, int32_t *unknown = nullptr);
     bool mountInputMod(int rack, int slot, const std::string &typeName);
     // Builds anything a machine needs before it can be mounted (Trinity's
     // wavetables). Safe to call from a worker at startup. Mounting waits on it.

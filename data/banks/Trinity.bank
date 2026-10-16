@@ -112,6 +112,16 @@ patch "Glass Pad" family=pad  note=55 range=36..79 role=pad
   o2_pos         0.6
   o2_wave        #4
   volume         0.96
+  # A wide, slow chorus and some room, the way a glass pad is usually heard.
+  insert Chorus
+    voices       #1
+    rate         #14
+    depth        0.35
+    spread       0.9
+    drift        0.1
+    mix          0.5
+    gain         -1.5 dB
+  send reverb    0.3
 
 patch "Drift Strings" family=ensemble  note=55 range=36..79 role=pad
   a_attack       0.35 s
@@ -940,6 +950,18 @@ patch "Saw Lead" family=lead  note=67 range=48..91 role=lead
   a_sustain      0.85
   a_release      0.3 s
   volume         0.39
+  # Crunch first, then eighth-note echoes across the stereo field.
+  insert Distortion
+    drive        6
+    tone         5000 Hz
+    mix          0.6
+    gain         -3.5 dB
+  insert Delay
+    time         #2
+    feedback     0.35
+    tone         6000 Hz
+    pingpong     #1
+    mix          0.25
 
 patch "Fifth Lead" family=lead  note=67 range=48..91 role=lead
   # The second oscillator a fifth above and the third an octave, which is a
