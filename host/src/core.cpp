@@ -402,11 +402,9 @@ Core::~Core()
     }
     // Empties the racks so the next Core starts clean: the unmounts apply at
     // the top of a block, pulled here since the UGen no longer runs this core.
+    // A retired machine frees what was mounted into it.
     for(int p = 0; p < kParts; ++p)
-    {
-        release_object(p);
         host.unmountMachine(p);
-    }
     host.setMpeZone(0, 15, 48);
     // The UGen has stopped calling process(), but a pull may still be
     // finishing, so this tries for up to 50 ms.
@@ -856,7 +854,7 @@ bool Core::mount(int part, const std::string& name)
         // dropped, so no cloud is handed to the new machine.
         std::lock_guard<std::mutex> l(mount_locks[part]);
         forget_cloud(part);
-        release_object(part);
+        clear_held(part);
         queued = host.mountMachine(part, type);
     }
     if(!queued)
@@ -881,7 +879,7 @@ void Core::unmount(int part)
     {
         std::lock_guard<std::mutex> l(mount_locks[part]);
         forget_cloud(part);
-        release_object(part);
+        clear_held(part);
         host.unmountMachine(part);
     }
     wait_applied();
@@ -943,10 +941,9 @@ void Core::request_cloud(int part)
     cloud_cv.notify_one();
 }
 
-// Before a mount or unmount, or a /load clear: takes the machine's cloud,
-// graph, program or samples out so the engine frees them, since they aren't
-// freed with the machine. Worker thread, under the part's mount lock.
-void Core::release_object(int part)
+// A /load clear: takes the machine's cloud, graph, program or samples out and
+// the engine frees them. Worker thread, under the part's mount lock.
+void Core::clear_objects(int part)
 {
     const std::string& m = parts[part].machine;
     void (*deleter)(void*) = nullptr;
@@ -1492,7 +1489,7 @@ void Core::load_now(int part, const std::string& kind, const std::string& path, 
     std::string                 why;
     if(kind == "clear")
     {
-        release_object(part);
+        clear_objects(part);
         loaded(part, kind, "", 0, "");
         return;
     }
@@ -1699,11 +1696,9 @@ std::string Core::load_take(int part, const std::string& path, bool sung)
             u->mono[size_t(i)] = data->stereo ? 0.5f * (data->left[size_t(i)] + data->right[size_t(i)])
                                               : data->left[size_t(i)];
         u->analyse(float(kSampleRate));
-        mt.object = u.get();
-        if(!host.mountObjectWithRetry(mt))
-            return "mount queue full";
-        u.release();
-        return "";
+        // The engine owns it from here and frees it if the queue stays full.
+        mt.object = u.release();
+        return host.mountObjectWithRetry(mt) ? "" : "mount queue full";
     }
     auto t    = std::make_unique<audio::Take>();
     t->name   = data->name;
@@ -1711,11 +1706,8 @@ std::string Core::load_take(int part, const std::string& path, bool sung)
     t->left   = std::move(data->left);
     t->right  = data->stereo ? std::move(data->right) : t->left;
     t->detect(float(kSampleRate));
-    mt.object = t.get();
-    if(!host.mountObjectWithRetry(mt))
-        return "mount queue full";
-    t.release();
-    return "";
+    mt.object = t.release();
+    return host.mountObjectWithRetry(mt) ? "" : "mount queue full";
 }
 
 // A SoundFont's presets, in file order: /load sf2's index.

@@ -128,7 +128,7 @@ class Core
     bool mount(int part, const std::string& machine);
     void request_cloud(int part);
     void forget_cloud(int part);
-    void release_object(int part);
+    void clear_objects(int part);
     void load_nexus(int part, const std::string& text);
     void load(int part, const std::string& kind, const std::string& path, int arg);
     void load_now(int part, const std::string& kind, const std::string& path, int arg);
