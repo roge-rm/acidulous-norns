@@ -861,6 +861,7 @@ return {
     {t = "strings", c = {
       {p = "sustain", l = "sus", k = "knob"},
       {p = "bright", l = "bright", k = "knob"},
+      {p = "ring", l = "ring", k = "knob"},
     }},
     {t = "pick", c = {
       {p = "stroke", l = "stroke", k = "step", o = {"pick", "finger", "slap"}},
