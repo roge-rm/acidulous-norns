@@ -67,13 +67,17 @@ end
 
 -- Runs a shell command in the background and calls done(ok, output),
 -- checking every quarter second, so sudo, mount and cp never hold up matron.
+-- Returns the background shell's pid.
 local runs = 0
 local function run(cmd, done)
   runs = runs + 1
   local out, marker = work() .. "/out" .. runs, work() .. "/done" .. runs
   os.remove(marker)
   os.execute("mkdir -p " .. q(work()))
-  os.execute("(" .. cmd .. " > " .. q(out) .. " 2>&1; echo $? > " .. q(marker) .. ") &")
+  local pidfile = work() .. "/pid" .. runs
+  os.execute("(" .. cmd .. " > " .. q(out) .. " 2>&1; echo $? > " .. q(marker) .. ") & echo $! > " .. q(pidfile))
+  local pid = tonumber(read_all(pidfile) or "")
+  os.remove(pidfile)
   local t
   t = timer.every(0.25, function()
     local code = read_all(marker)
@@ -84,6 +88,7 @@ local function run(cmd, done)
     os.remove(out)
     done(tonumber(code) == 0, text)
   end)
+  return pid
 end
 
 -- Read-only where possible. norns' usbmount may already have the stick
@@ -105,8 +110,9 @@ function lib.watch(on_change)
     local dev = find_device()
     if dev and dev ~= lib.device and dev ~= failed then
       mounting = dev
-      run(mount_cmd(dev), function(ok)
+      lib.mount_pid = run(mount_cmd(dev), function(ok)
         mounting = nil
+        lib.mount_pid = nil
         if not lib.watcher then return end
         if ok then
           lib.device = dev
@@ -130,6 +136,12 @@ end
 function lib.stop()
   timer.cancel(lib.watcher)
   lib.watcher = nil
+  if lib.mount_pid then
+    -- a mount still going: unmount once it's done
+    os.execute("(while kill -0 " .. lib.mount_pid .. " 2>/dev/null; do sleep 0.2; done; sudo umount -l "
+      .. lib.MOUNT .. ") >/dev/null 2>&1 &")
+    lib.mount_pid = nil
+  end
   if lib.device then
     os.execute("sudo umount -l " .. lib.MOUNT .. " >/dev/null 2>&1 &")
     lib.device = nil
@@ -190,14 +202,14 @@ function lib.import(path, is_dir, done)
   local dest = lib.copy_target(path)
   local cmd
   if is_dir then
-    local list = work() .. "/sizes"
-    cmd = "mkdir -p " .. q(work()) .. " " .. q(dest)
+    -- each file is copied and checked by itself, so no list file is shared
+    -- between imports and any name works
+    local each = "d=$1; shift; for f; do t=\"$d/${f##*/}\"; cp \"$f\" \"$t\""
+      .. " && [ \"$(stat -c %s \"$f\")\" = \"$(stat -c %s \"$t\")\" ]"
+      .. " || { echo \"${f##*/} didn't copy\"; exit 1; }; done"
+    cmd = "mkdir -p " .. q(dest)
       .. " && find " .. q(path) .. " -maxdepth 1 -type f ! -name '.*' " .. PATTERNS
-      .. " -printf '%f\\t%s\\n' > " .. q(list)
-      .. " && find " .. q(path) .. " -maxdepth 1 -type f ! -name '.*' " .. PATTERNS
-      .. " -exec cp -t " .. q(dest) .. " {} +"
-      .. " && while IFS=\"$(printf '\\t')\" read -r n s; do"
-      .. " [ \"$(stat -c %s " .. q(dest) .. "/\"$n\")\" = \"$s\" ] || { echo \"$n didn't copy\"; exit 1; }; done < " .. q(list)
+      .. " -exec sh -c " .. q(each) .. " sh " .. q(dest) .. " {} +"
   else
     cmd = "mkdir -p " .. q(lib.parent(dest)) .. " && cp " .. q(path) .. " " .. q(dest)
       .. " && [ \"$(stat -c %s " .. q(path) .. ")\" = \"$(stat -c %s " .. q(dest) .. ")\" ]"

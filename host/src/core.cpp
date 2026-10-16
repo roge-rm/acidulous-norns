@@ -522,8 +522,13 @@ void Core::post_part(int part, std::function<void()> job)
 {
     pending[part].fetch_add(1, std::memory_order_acq_rel);
     post([this, part, job = std::move(job)] {
+        // counted down even if the job throws
+        struct Done
+        {
+            std::atomic<int>& n;
+            ~Done() { n.fetch_sub(1, std::memory_order_acq_rel); }
+        } done{pending[part]};
         job();
-        pending[part].fetch_sub(1, std::memory_order_acq_rel);
     });
 }
 
@@ -1588,6 +1593,7 @@ std::string Core::load_kit(int part, const std::string& folder, int& count)
         const std::string path = size_t(pad) < files.size() ? files[size_t(pad)] : "";
         if(!host.loadSample(part, pad, path, why))
         {
+            // the engine keeps the pad's old sample, so its held entry stays
             load_error(part, "pad", path, pad, why);
             continue;
         }

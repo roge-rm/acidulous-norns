@@ -797,7 +797,9 @@ function P.osc(path, args)
   elseif path == "/error" then
     print("acidulous: " .. tostring(args[1]))
     local part = args[2] and P.list[args[2] + 1]
-    if part and args[6] == part.machine then
+    -- the plugin sends "" for no machine
+    local machine = args[6] ~= "" and args[6] or nil
+    if part and machine == part.machine then
       if part.loading and (part.loading.kind == args[3] or args[3] ~= "pad") then part.loading = nil end
       part.problem = {text = args[1], at = util.time()}
     end
