@@ -1,4 +1,4 @@
--- The norns screen: the parts list and a part's macro page, and the
+-- The norns screen: the parts list and a part's cards, and the
 -- OMX-27's 128x32 screen.
 
 local view = {}
@@ -24,109 +24,619 @@ local function meter(peak)
   return util.clamp(1 + (20 * math.log(peak, 10)) / 48, 0, 1)
 end
 
--- Load in the top right, and a warning on the left while the worst block has
--- been over 80% in the last 2 seconds, or `note` if there is one.
-local function header(parts, left, note)
+-- Load in the top right, or `right` if given, and a warning on the left
+-- while the worst block has been over 80% in the last 2 seconds, or `note`
+-- if there is one.
+local function header(parts, left, note, right)
   screen.level(4)
-  text(127, 6, string.format("%d%%", math.floor(parts.load + 0.5)), "right")
+  local w = right and 123 - screen.text_extents(right) or 104
+  text(127, 5, right or string.format("%d%%", math.floor(parts.load + 0.5)), "right")
   if note then
     screen.level(15)
-    text(0, 6, fit(note, 104))
+    text(0, 5, fit(note, w))
   elseif util.time() - parts.worst_at < 2 then
     screen.level(15)
-    text(0, 6, string.format("overload %d%%", math.floor(parts.worst + 0.5)))
+    text(0, 5, string.format("overload %d%%", math.floor(parts.worst + 0.5)))
   elseif left then
     screen.level(8)
-    text(0, 6, fit(left, 104))
+    text(0, 5, fit(left, w))
   end
 end
 
+local function fill_rect(x, y, w, h, lv)
+  screen.level(lv)
+  screen.rect(x, y, w, h)
+  screen.fill()
+end
+
+-- A 1 px outline, drawn as rects so it lands on whole pixels.
+local function frame(x, y, w, h, lv)
+  fill_rect(x, y, w, 1, lv)
+  fill_rect(x, y + h - 1, w, 1, lv)
+  fill_rect(x, y, 1, h, lv)
+  fill_rect(x + w - 1, y, 1, h, lv)
+end
+
+-- The part's machine in lowercase, or its short name if that's too wide.
+local function machine_name(parts, part, w)
+  local name = part.machine:lower()
+  if screen.text_extents(name) <= w then return name end
+  local m = parts.machine_info(part.machine)
+  return (m and m.short or name):lower()
+end
+
+local function title(parts, i)
+  local part = parts.list[i]
+  if not part.machine then return nil end
+  local files = parts.material(i)
+  return part.n .. " " .. part.machine:lower() .. "  " .. (files or part.patch or ""):lower()
+end
+
 -- state: sel (part), k1 (held). note: a line for the header, or nil
+-- A row per part: a 2 px bar, bright while the part sounds, its number,
+-- machine and patch, and its level on a dim track.
 function view.main(parts, state, note)
   screen.clear()
   screen.font_face(1)
   screen.font_size(8)
-  local sel = parts.list[state.sel]
-  local files = parts.material(state.sel)
-  header(parts, sel.machine and (sel.n .. " " .. sel.machine .. "  " .. (files or sel.patch or "")) or nil, note)
+  header(parts, title(parts, state.sel), note)
   for i, part in ipairs(parts.list) do
-    local y = 7 + 7 * i
+    local y = 13 + 7 * (i - 1)
     local on = i == state.sel
-    if on then
-      screen.level(3)
-      screen.rect(0, y - 6, 128, 7)
-      screen.fill()
-    end
-    local bright = part.machine and (on and 15 or 6) or (on and 8 or 2)
-    screen.level(bright)
-    text(1, y, tostring(i))
-    screen.level(math.max(1, bright - 4))
-    text(8, y, parts.mpe == i and "mpe" or part.channel > 0 and tostring(part.channel) or "-")
-    screen.level(bright)
-    local m = part.machine and parts.machine_info(part.machine)
-    if on and state.k1 then screen.level(15) end
-    text(20, y, m and m.short or "-")
-    screen.level(on and state.k1 and 6 or bright)
+    if on then fill_rect(0, y - 6, 128, 7, 3) end
+    local b = part.machine and (on and 15 or 7) or (on and 8 or 2)
+    local sounding = part.machine and (part.held > 0 or meter(part.level) > 0.1)
+    fill_rect(0, y - 5, 2, 5, sounding and 15 or (part.machine and 6 or 1))
+    screen.level(b)
+    text(4, y, tostring(i))
     if part.machine then
+      if on and state.k1 then screen.level(15) end
+      text(10, y, machine_name(parts, part, 31))
+      screen.level(on and state.k1 and 6 or math.max(1, b - 3))
       if parts.mpe == i and state.mpe_missing then
-        text(48, y, "mpe: no device")
+        text(44, y, "mpe: no device")
+      elseif state.mpe_mark == i then
+        text(44, y, fit((part.patch or ""):lower(), 60))
+        -- the mpe mark: three bars of different heights, one per finger
+        for k, h in ipairs({2, 4, 3}) do fill_rect(105 + 2 * k, y - h, 1, h, b) end
       else
-        text(48, y, fit(part.patch or "", 66))
+        text(44, y, fit((part.patch or ""):lower(), 68))
       end
+    else
+      text(10, y, "-")
     end
-    -- a dot while a note is held or just played, and the part's level
-    if part.held > 0 or util.time() - part.last_note < 0.15 then
-      screen.level(15)
-      screen.rect(116, y - 4, 2, 2)
-      screen.fill()
-    end
-    local w = math.floor(meter(part.level) * 7 + 0.5)
-    if w > 0 then
-      screen.level(on and 15 or 8)
-      screen.rect(120, y - 5, w, 4)
-      screen.fill()
-    end
+    fill_rect(114, y - 4, 12, 3, 1)
+    local w = math.floor(meter(part.level) * 12 + 0.5)
+    if w > 0 then fill_rect(114, y - 4, w, 3, on and 15 or 8) end
   end
   screen.update()
 end
 
--- The part's 5 macros, a row each: label, bar of the 0-1 value, readout.
--- state: sel, macro (selected row). list: from macros.resolve
--- Labels get a column wide enough for any 6-letter label.
-local LABEL_W, BAR_X, BAR_W = 36, 38, 44
-function view.macros(parts, state, list, note)
+-- ---- the card page ------------------------------------------------------------
+
+-- s cut to w pixels, without a dot.
+local function cut(s, w)
+  s = s or ""
+  while #s > 1 and screen.text_extents(s) > w do s = s:sub(1, -2) end
+  return s
+end
+
+-- A label in w pixels: vowels go from the end, keeping the first letter,
+-- then it's cut.
+local squeezed = {}
+local function squeeze(s, w)
+  local key = s .. "|" .. w
+  if squeezed[key] then return squeezed[key] end
+  local t = s
+  local k = #t
+  while screen.text_extents(t) > w and k > 1 do
+    if t:sub(k, k):find("[aeiou]") and t:sub(k - 1, k - 1) ~= " " then t = t:sub(1, k - 1) .. t:sub(k + 1) end
+    k = k - 1
+  end
+  t = cut(t, w)
+  squeezed[key] = t
+  return t
+end
+
+-- A value in few letters: 880, 1.2k, 70%, 210ms, +3st.
+local function short_value(parts, def, v)
+  local x = parts.map(def, v)
+  local unit = (def.unit or ""):lower()
+  local function num(n)
+    local a = math.abs(n)
+    local s
+    if a >= 100 then s = string.format("%d", math.floor(n + 0.5))
+    elseif a >= 10 then s = string.format("%.1f", n)
+    else s = string.format("%.2f", n) end
+    if s:find("%.") then s = s:gsub("0+$", ""):gsub("%.$", "") end
+    if s == "-0" then s = "0" end
+    return s
+  end
+  if unit == "" then
+    if def.curve ~= "step" and def.min >= -2 and def.max <= 2 then
+      return string.format("%d%%", math.floor(x * 100 + 0.5))
+    end
+    return num(x)
+  elseif unit == "hz" then
+    if x >= 1000 then return num(x / 1000) .. "k" end
+    return num(x)
+  elseif unit == "ms" then
+    if x >= 1000 then return num(x / 1000) .. "s" end
+    return num(x) .. "ms"
+  elseif unit == "%" then
+    return string.format("%d%%", math.floor(x + 0.5))
+  elseif unit == "st" or unit == "ct" or unit == "db" then
+    return (x > 0 and "+" or "") .. num(x) .. unit
+  end
+  return num(x) .. unit
+end
+
+-- Dots along a circle from angle a0 to a1 in degrees, 0 up and clockwise,
+-- as the mockups draw them.
+local function arc(cx, cy, r, a0, a1)
+  local step = 2 / math.max(r, 1) * 30
+  local a = a0
+  while a <= a1 do
+    local t = math.rad(a)
+    screen.pixel(math.floor(cx + r * math.sin(t) + 0.5), math.floor(cy - r * math.cos(t) + 0.5))
+    a = a + step
+  end
+  screen.fill()
+end
+
+-- A dial like the app's: a 270 degree track, the value arc and a pointer.
+-- A param that goes either side of 0 lights from the top.
+local function knob(cx, cy, r, v, lv_track, lv_val, bipolar, zero)
+  screen.level(lv_track)
+  arc(cx, cy, r, -135, 135)
+  screen.level(lv_val)
+  local a = -135 + 270 * v
+  if bipolar then
+    local z = -135 + 270 * zero
+    arc(cx, cy, r, math.min(z, a), math.max(z, a))
+  else
+    arc(cx, cy, r, -135, a)
+  end
+  local t = math.rad(a)
+  for k = 1, r - 1 do
+    screen.pixel(math.floor(cx + k * math.sin(t) + 0.5), math.floor(cy - k * math.cos(t) + 0.5))
+  end
+  screen.fill()
+end
+
+local KNOB_W = 24
+local CARD_W = 116
+
+-- How wide a control is on the card.
+local function control_w(ctl)
+  if (ctl.kind == "switch" and ctl.opts and #ctl.opts <= 3) or ctl.kind == "onoff" then
+    local w = 0
+    for _, o in ipairs(ctl.kind == "onoff" and {ctl.label} or ctl.opts) do
+      w = math.max(w, screen.text_extents(o))
+    end
+    return math.max(13, w + 4) + 4
+  end
+  return KNOB_W
+end
+
+-- A switch of up to 3 positions as the app's split square, or an on/off
+-- square lit when on.
+local function draw_switch(parts, ctl, x, w, v, sel)
+  local fw = w - 4
+  local fx = x + 2
+  frame(fx, 28, fw, 30, sel and 12 or 4)
+  if ctl.kind == "onoff" then
+    local lit = v >= 0.5
+    if lit then fill_rect(fx + 1, 29, fw - 2, 28, sel and 15 or 10) end
+    screen.level(lit and 0 or (sel and 8 or 5))
+    text(fx + fw // 2, 45, ctl.label, "center")
+    return
+  end
+  local n = #ctl.opts
+  local idx = math.floor(v * (n - 1) + 0.5) + 1
+  local hc = 28 // n
+  for k, o in ipairs(ctl.opts) do
+    local top = 29 + (k - 1) * hc
+    if k == idx then fill_rect(fx + 1, top, fw - 2, hc, sel and 15 or 10) end
+    screen.level(k == idx and 0 or (sel and 8 or 5))
+    text(fx + fw // 2, top + (hc - 5) // 2 + 5, o, "center")
+  end
+end
+
+-- ps: the part's card state {card, knob, first, tab_first, pad}.
+-- cards: from panel.cards. pads: from panel.pads, or nil.
+function view.card(parts, state, cards, ps, pads, panel, note)
   screen.clear()
   screen.font_face(1)
   screen.font_size(8)
+  header(parts, title(parts, state.sel), note)
   local part = parts.list[state.sel]
-  local files = parts.material(state.sel)
-  header(parts, files and (part.n .. " " .. (part.patch or "") .. "  " .. files)
-    or (part.n .. " " .. (part.machine or "none") .. "  " .. (part.patch or "")), note)
-  for k, mac in ipairs(list) do
-    local y = 7 + 11 * k
-    local on = k == state.macro
-    if on then
-      screen.level(3)
-      screen.rect(0, y - 8, 128, 11)
-      screen.fill()
-    end
-    local p = mac.slot and params:lookup_param(parts.id(state.sel, "s" .. mac.slot))
-    screen.level(p and (on and 15 or 6) or 2)
-    text(1, y, fit(mac.label, LABEL_W))
-    if p then
-      local v = p:get()
-      screen.level(on and 6 or 2)
-      screen.rect(BAR_X, y - 4, BAR_W, 3)
-      screen.fill()
-      screen.level(on and 15 or 8)
-      local w = math.floor(v * BAR_W + 0.5)
-      if w > 0 then
-        screen.rect(BAR_X, y - 4, w, 3)
-        screen.fill()
+  if not part.machine or #cards == 0 then
+    screen.level(4)
+    text(64, 36, part.machine and "no controls" or "no machine", "center")
+    screen.update()
+    return
+  end
+  -- the card tabs, scrolled so the current one shows
+  local widths = {}
+  for k, c in ipairs(cards) do widths[k] = screen.text_extents(c.title) end
+  if ps.card < ps.tab_first then ps.tab_first = ps.card end
+  local function span(a, b)
+    local w = 0
+    for k = a, b do w = w + widths[k] + (k > a and 6 or 0) end
+    return w
+  end
+  while ps.tab_first < ps.card and span(ps.tab_first, ps.card) > 128 do ps.tab_first = ps.tab_first + 1 end
+  local x = 0
+  for k = ps.tab_first, #cards do
+    if x >= 128 then break end
+    local on = k == ps.card
+    screen.level(on and 15 or 3)
+    text(x, 13, cards[k].title)
+    if on then fill_rect(x, 15, widths[k], 1, 15) end
+    x = x + widths[k] + 6
+  end
+  -- the card
+  local card = cards[ps.card]
+  frame(0, 18, CARD_W, 46, 4)
+  fill_rect(0, 18, CARD_W, 7, 4)
+  screen.level(0)
+  text(3, 24, card.title)
+  local list = card.controls
+  if ps.knob < ps.first then ps.first = ps.knob end
+  local function cw(a, b)
+    local w = 0
+    for k = a, b do w = w + control_w(list[k]) end
+    return w
+  end
+  while ps.first < ps.knob and cw(ps.first, ps.knob) > CARD_W - 3 do ps.first = ps.first + 1 end
+  x = 2
+  for k = ps.first, #list do
+    local ctl = list[k]
+    local w = control_w(ctl)
+    if x + w > CARD_W - 1 then break end
+    local sel = k == ps.knob
+    if ctl.kind == "pad" then
+      local n = pads and #pads or 1
+      local at = 1
+      for j, p in ipairs(pads or {}) do if p == ps.pad then at = j end end
+      local cx = x + 12
+      screen.level(sel and 15 or 6)
+      text(cx, 32, "pad", "center")
+      knob(cx, 43, 7, n > 1 and (at - 1) / (n - 1) or 0, 3, sel and 15 or 8)
+      screen.level(sel and 15 or 5)
+      text(cx, 60, tostring(at), "center")
+    else
+      local p = params:lookup_param(parts.id(state.sel, "s" .. ctl.slot))
+      local v = p and p:get() or 0
+      if w ~= KNOB_W then
+        draw_switch(parts, ctl, x, w, v, sel)
+      else
+        local cx = x + 12
+        local d = ctl.def
+        screen.level(sel and 15 or 6)
+        text(cx, 32, squeeze(ctl.label, 24), "center")
+        local bipolar = d.min < 0 and d.max > 0 and d.curve ~= "step"
+        knob(cx, 43, 7, v, 3, sel and 15 or 8, bipolar, bipolar and parts.unmap(d, 0) or 0)
+        screen.level(sel and 15 or 5)
+        text(cx, 60, squeeze(panel.option(ctl, v) or short_value(parts, d, v), 26), "center")
       end
-      screen.level(on and 15 or 6)
-      text(127, y, fit(parts.readout(mac.def, v), 127 - BAR_X - BAR_W - 3), "right")
     end
+    x = x + w
+  end
+  -- the next card's edge
+  if ps.card < #cards then
+    frame(120, 18, 12, 46, 2)
+    fill_rect(120, 18, 8, 7, 2)
+  end
+  screen.update()
+end
+
+-- ---- the machine picker and patch list ------------------------------------------
+
+-- 7x7 icons for the group tabs, after the app's GroupIcons.kt.
+local ICONS = {
+  synths = {"0000000", "0110000", "1001000", "1000100", "0000100", "0000011", "0000000"},
+  drums = {"0111110", "1000001", "0111110", "0100010", "0100010", "0011100", "0000000"},
+  keys = {"1111111", "1010101", "1010101", "1010101", "1111111", "1111111", "0000000"},
+  strings = {"0100010", "0100010", "0100010", "0100010", "0100010", "0100010", "0100010"},
+  winds = {"0000000", "1111110", "1000011", "1111110", "0000000", "0000000", "0000000"},
+  nature = {"0001000", "0011100", "0111110", "1111111", "0001000", "0001000", "0000000"},
+  samples = {"0001000", "0101000", "0101010", "1111111", "0101010", "0101000", "0001000"},
+  beyond = {"0011100", "0100010", "1001001", "1011101", "1001001", "0100010", "0011100"},
+}
+
+local function icon(x, y, name, lv)
+  local rows = ICONS[name]
+  if not rows then return end
+  for r, row in ipairs(rows) do
+    for c = 1, #row do
+      if row:sub(c, c) == "1" then fill_rect(x + c - 1, y + r - 1, 1, 1, lv) end
+    end
+  end
+end
+
+-- A scrollbar on a track at x, from y for h pixels.
+local function scrollbar(x, y, h, top, shown, count)
+  fill_rect(x + 1, y, 1, h, 2)
+  local bar = count > shown and math.max(3, math.floor(h * shown / count + 0.5)) or h
+  local at = count > shown and math.floor((h - bar) * (top - 1) / (count - shown) + 0.5) or 0
+  fill_rect(x, y + at, 3, bar, 9)
+end
+
+-- s: from lists.screen. Group tabs as icons, then a row per machine with
+-- its short line; the part's machine is brighter.
+function view.machines(parts, s)
+  screen.clear()
+  screen.font_face(1)
+  screen.font_size(8)
+  local tab = s.tabs[s.tab]
+  screen.level(4)
+  text(127, 5, tab.name, "right")
+  screen.level(8)
+  text(0, 5, fit("machine for part " .. s.part, 126 - screen.text_extents(tab.name) - 4))
+  for k, t in ipairs(s.tabs) do
+    local x = 1 + (k - 1) * 16
+    local on = k == s.tab
+    if on then fill_rect(x - 1, 8, 15, 11, 4) end
+    icon(x + 3, 10, t.icon, on and 15 or 5)
+  end
+  fill_rect(0, 20, 128, 1, 2)
+  local shown = 5
+  local scrolls = #s.rows > shown
+  local right = scrolls and 123 or 128
+  local col = 44
+  for _, row in ipairs(s.rows) do col = math.max(col, screen.text_extents(row.name:lower()) + 6) end
+  for k = s.top, math.min(#s.rows, s.top + shown - 1) do
+    local row = s.rows[k]
+    local y = 28 + (k - s.top) * 8
+    local on = k == s.cursor
+    if on then fill_rect(0, y - 6, right, 8, 3) end
+    screen.level(on and 15 or (row.name == s.current and 12 or 7))
+    text(2, y, row.name:lower())
+    screen.level(on and 8 or 3)
+    text(col, y, fit(row.about, right - col - 1))
+  end
+  if scrolls then scrollbar(124, 22, 41, s.top, shown, #s.rows) end
+  screen.update()
+end
+
+-- s: from lists.screen. Family tabs, scrolled so the current one shows, then
+-- a row per patch with "k3" on the cursor's; the part's patch is brighter.
+function view.patches(parts, s)
+  screen.clear()
+  screen.font_face(1)
+  screen.font_size(8)
+  screen.level(4)
+  text(127, 5, s.count, "right")
+  local w_count = screen.text_extents(s.count) + 4
+  screen.level(8)
+  text(0, 5, fit(s.part .. " " .. s.machine:lower() .. "  patch", 127 - w_count))
+  -- the tabs from first, up to 120 px, with < and > where more are
+  local widths = {}
+  for k, t in ipairs(s.tabs) do widths[k] = screen.text_extents(t.name) end
+  local function span(a, b)
+    local w = a > 1 and 6 or 0
+    for k = a, b do w = w + widths[k] + 5 end
+    return w
+  end
+  local first = 1
+  while first < s.tab and span(first, s.tab) > 120 do first = first + 1 end
+  local x = 0
+  if first > 1 then
+    screen.level(8)
+    text(0, 13, "<")
+    x = 6
+  end
+  for k = first, #s.tabs do
+    local w = widths[k]
+    if x + w > 120 then
+      screen.level(8)
+      text(127, 13, ">", "right")
+      break
+    end
+    if k == s.tab then
+      fill_rect(x, 7, w + 3, 8, 15)
+      screen.level(0)
+    else
+      screen.level(5)
+    end
+    text(x + 1, 13, s.tabs[k].name)
+    x = x + w + 5
+  end
+  fill_rect(0, 15, 128, 1, 15)
+  local shown = 6
+  for k = s.top, math.min(#s.rows, s.top + shown - 1) do
+    local row = s.rows[k]
+    local y = 23 + (k - s.top) * 7
+    local on = k == s.cursor
+    if on then fill_rect(0, y - 6, 120, 7, 3) end
+    screen.level(on and 15 or (row.name == s.current and 12 or 7))
+    text(2, y, fit(row.name:lower(), on and 102 or 116))
+    if on then
+      screen.level(6)
+      text(118, y, "k3", "right")
+    end
+  end
+  scrollbar(124, 17, 46, s.top, shown, #s.rows)
+  screen.update()
+end
+
+-- ---- the mixer, sends and scope ------------------------------------------------
+
+-- The fader's place for a volume in dB, 0-1.
+local function fader(db) return util.clamp((db + 60) / 63, 0, 1) end
+
+-- The strips' columns: 8 parts and the out strip, the selected one lit.
+-- out: the out strip is selected.
+local function strip_frame(parts, state, out)
+  for i = 1, 8 do
+    local x = 1 + (i - 1) * 13
+    local sel = not out and i == state.sel
+    if sel then fill_rect(x - 1, 7, 13, 57, 3) end
+    screen.level(sel and 15 or (parts.list[i].machine and 7 or 2))
+    text(x + 5, 13, tostring(i), "center")
+  end
+  if out then fill_rect(105, 7, 23, 57, 3) end
+  fill_rect(104, 7, 1, 57, 2)
+end
+
+-- The header's left side: the part and what the page sets, or "out". The
+-- machine's name goes if it doesn't fit in w.
+local function strip_title(parts, state, what, w)
+  local tail = what and "  " .. what or ""
+  if state.out then return "out" .. tail end
+  local part = parts.list[state.sel]
+  if not part.machine then return part.n .. " -" .. tail end
+  local t = part.n .. " " .. part.machine:lower() .. tail
+  if not w or screen.text_extents(t) <= w then return t end
+  local m = parts.machine_info(part.machine)
+  t = part.n .. " " .. (m and m.short or part.machine):lower() .. tail
+  if screen.text_extents(t) <= w then return t end
+  return part.n .. tail
+end
+
+local function db_text(db) return string.format("%.1f db", db) end
+
+-- Each part's meter and fader, pan below, and m or s when it's muted or
+-- soloed. The out strip has the master's meter and fader, and lim lit while
+-- the limiter is at its ceiling.
+function view.mixer(parts, state, note)
+  screen.clear()
+  screen.font_face(1)
+  screen.font_size(8)
+  local i = state.sel
+  local lufs = parts.lufs and parts.lufs > -60 and string.format("%d lufs", math.floor(parts.lufs + 0.5)) or ""
+  local w = 123 - screen.text_extents(lufs)
+  local left
+  if state.out then
+    left = strip_title(parts, state, db_text(params:get("master_level")), w)
+  else
+    left = strip_title(parts, state, db_text(params:get(parts.id(i, "volume"))) .. "  " ..
+      parts.pan_text(params:get(parts.id(i, "pan"))), w)
+  end
+  header(parts, left, note, lufs)
+  strip_frame(parts, state, state.out)
+  local top, bot = 15, 54
+  local h = bot - top
+  for k = 1, 8 do
+    local x = 1 + (k - 1) * 13
+    local sel = not state.out and k == i
+    local part = parts.list[k]
+    fill_rect(x + 1, top, 2, h, 1)
+    local m = math.floor(meter(part.level) * h + 0.5)
+    if m > 0 then fill_rect(x + 1, bot - m, 2, m, sel and 15 or 9) end
+    fill_rect(x + 7, top, 1, h, 4)
+    local fy = bot - math.floor(fader(params:get(parts.id(k, "volume"))) * h + 0.5)
+    fill_rect(x + 5, fy - 1, 5, 3, sel and 15 or 9)
+    fill_rect(x + 2, 57, 9, 1, 2)
+    local pan = x + 6 + math.floor(params:get(parts.id(k, "pan")) * 4 + 0.5)
+    fill_rect(pan, 56, 1, 2, sel and 15 or 9)
+    screen.level(15)
+    -- s reaches the baseline, so 63 keeps it on screen. Placed on a whole
+    -- pixel, as centring an even width blurs it.
+    local mark = params:get(parts.id(k, "mute")) == 2 and "m" or (params:get(parts.id(k, "solo")) == 2 and "s")
+    if mark then text(x + 6 - screen.text_extents(mark) // 2, 63, mark) end
+  end
+  -- out
+  local x = 106
+  screen.level(state.out and 15 or 10)
+  text(116, 13, "out", "center")
+  fill_rect(x + 1, top, 7, h, 1)
+  local m = math.floor(meter(parts.master_level or 0) * h + 0.5)
+  if m > 0 then fill_rect(x + 1, bot - m, 7, m, 12) end
+  fill_rect(x + 14, top, 1, h, 4)
+  local fy = bot - math.floor(fader(params:get("master_level")) * h + 0.5)
+  fill_rect(x + 12, fy - 1, 5, 3, state.out and 15 or 12)
+  screen.level((parts.master_peak or 0) >= 0.93 and 15 or 4)
+  text(116, 62, "lim", "center")
+  screen.update()
+end
+
+-- A rev and a dly knob per part, and the reverb's size and the delay's
+-- feedback on the out strip.
+function view.sends(parts, state, note)
+  screen.clear()
+  screen.font_face(1)
+  screen.font_size(8)
+  local i = state.sel
+  local right
+  if state.out then
+    right = string.format("size %d  fdbk %d", math.floor(params:get("rev_size") * 100 + 0.5),
+      math.floor(params:get("dly_feedback") * 100 + 0.5))
+  else
+    right = string.format("rev %d  dly %d", math.floor(params:get(parts.id(i, "rev")) * 100 + 0.5),
+      math.floor(params:get(parts.id(i, "dly")) * 100 + 0.5))
+  end
+  header(parts, strip_title(parts, state, nil, 123 - screen.text_extents(right)), note, right)
+  strip_frame(parts, state, state.out)
+  for k = 1, 8 do
+    local x = 1 + (k - 1) * 13
+    local sel = not state.out and k == i
+    knob(x + 5, 28, 5, params:get(parts.id(k, "rev")), 3, sel and 15 or 8)
+    knob(x + 5, 50, 5, params:get(parts.id(k, "dly")), 3, sel and 15 or 8)
+  end
+  screen.level(state.out and 15 or 6)
+  text(116, 21, "rev", "center")
+  knob(116, 30, 6, parts.send_param_01("rev_size"), 3, state.out and 15 or 10)
+  screen.level(state.out and 15 or 6)
+  text(116, 46, "dly", "center")
+  knob(116, 55, 6, parts.send_param_01("dly_feedback"), 3, state.out and 15 or 10)
+  screen.update()
+end
+
+-- sc: {part, mods = {{slot, type}...}, at, trace}. The patch's modules as
+-- boxes in a chain, the scope's module framed, and its output below.
+function view.scope(parts, sc)
+  screen.clear()
+  screen.font_face(1)
+  screen.font_size(8)
+  local part = parts.list[sc.part]
+  header(parts, part.n .. " " .. (part.machine or "-"):lower() .. "  " .. (part.patch or ""):lower(), nil, "scope")
+  local mods = sc.mods or {}
+  local widths = {}
+  for k, m in ipairs(mods) do widths[k] = screen.text_extents(m.type) + 4 end
+  -- from the first box that lets the framed one show
+  local first = 1
+  local function span(a, b)
+    local w = 0
+    for k = a, b do w = w + widths[k] + (k < b and 4 or 0) end
+    return w
+  end
+  while sc.at and first < sc.at and span(first, sc.at) > 128 do first = first + 1 end
+  local x = 0
+  for k = first, #mods do
+    if x >= 128 then break end
+    local on = k == sc.at
+    local w = widths[k]
+    frame(x, 9, w, 9, on and 15 or 4)
+    screen.level(on and 15 or 6)
+    text(x + 2, 15, mods[k].type)
+    if k < #mods then fill_rect(x + w, 13, 4, 1, 4) end
+    x = x + w + 4
+  end
+  if #mods == 0 then
+    screen.level(4)
+    text(0, 15, sc.mods and "no modules" or "")
+  end
+  frame(0, 22, 128, 42, 2)
+  fill_rect(1, 43, 126, 1, 2)
+  local trace = sc.trace
+  if trace and #trace > 1 then
+    screen.level(15)
+    local prev
+    for k = 1, math.min(126, #trace) do
+      local y = util.clamp(math.floor(43 - trace[k] * 19 + 0.5), 23, 62)
+      local a, b = y, y
+      if prev then a, b = math.min(prev, y), math.max(prev, y) end
+      screen.rect(k, a, 1, b - a + 1)
+      screen.fill()
+      prev = y
+    end
+  end
+  if sc.at and mods[sc.at] then
+    screen.level(5)
+    text(126, 28, mods[sc.at].type .. " out", "right")
   end
   screen.update()
 end
@@ -265,6 +775,74 @@ function view.picker(pick)
 end
 
 -- msg is wrapped over two lines if it's too wide.
+-- The app's icon, 47 px wide, one grey level (hex) a pixel.
+local SPLASH = {
+  "17999999700000799999700000799999700000799999971",
+  "79999999100000199999100000199999100000199999997",
+  "99999999000000099999000000099999000000099999999",
+  "99999999000000099999000000099999000000099999999",
+  "99999999000000099999000000099999000000099999999",
+  "99999999000000099999000000099999000000099999999",
+  "99999999000000099999000000099999000000099999999",
+  "99999999000000099999000000099999000000099999999",
+  "99999999000000099999000000099999000000099999999",
+  "99999999000000099999000000099999000000099999999",
+  "99999999000000099999000000099999000000099999999",
+  "99999999000000099999000000099999000000099999999",
+  "99999999000000099999000000099999000000099999999",
+  "99999999000000099999000000099999000000099999999",
+  "99999999000000099999000000099999000000099999999",
+  "99999999000000099999000000099999000000099999999",
+  "99999999000000099999000000099999000000099999999",
+  "99999999100000199999100000199999100000199999999",
+  "99999999710001799999710001799999710001799999999",
+  "99999999999099999999999099999999999099999999999",
+  "99999999999099999999999099999999999099999999999",
+  "99999999999099999999999099999999999099999999999",
+  "99999999999099999999999099999999999099999999999",
+  "99999999999099999999999099999999999099999999999",
+  "99999999999099999999999099999999999099999999999",
+  "99999999999099999999999099999999999099999999999",
+  "99999999999099999999999099999999999099999999999",
+  "aefffffffffffffffffffffffffffffffffffffffffffea",
+  "efffffffffffffffffffffffffffffffffffffffffffffe",
+  "fffffffffffffffffffffffffffffffffffffffffffffff",
+  "bfffffffffffffffffffffffffffffffffffffffffffffb",
+  "2bfffffffffffffffffffffffffffffffffffffffffffb2",
+  "006f10000000cff20000000000000009f40000000000000",
+  "008f300000009ff0000000000000000af50000000000000",
+  "00bf60000000aff0000000000000000cf70000000000000",
+  "005a20000000cff2000000000000001ff90000000000000",
+  "000000000000eff5000000000000002ffa0000000000000",
+  "000000000002fff80000000000000009d40000000000000",
+  "000000000005fffa0000000000000000000000000000000",
+  "000000000006fffb0000000000000000000000000000000",
+  "000000000002eff60000000000000000000000000000000",
+  "00000000000015300000000000000000000000000000000"
+}
+
+-- The splash, its levels scaled by fade (0-1), with a status line under it.
+function view.splash(fade, msg)
+  screen.clear()
+  local x0 = 64 - 23
+  for y, row in ipairs(SPLASH) do
+    local x = 1
+    while x <= #row do
+      local c = row:sub(x, x)
+      local e = x
+      while row:sub(e + 1, e + 1) == c do e = e + 1 end
+      local lv = math.floor(tonumber(c, 16) * fade + 0.5)
+      if lv > 0 then fill_rect(x0 + x - 1, 3 + y, e - x + 1, 1, lv) end
+      x = e + 1
+    end
+  end
+  if msg then
+    screen.level(math.floor(4 * fade + 0.5))
+    text(64, 60, msg, "center")
+  end
+  screen.update()
+end
+
 function view.starting(msg)
   screen.clear()
   screen.level(msg and 15 or 8)

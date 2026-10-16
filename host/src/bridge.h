@@ -7,7 +7,17 @@
 //   /pressure i:part i:ch i:val
 //   /param i:part s:name|i:index f:value01
 //   /channel i:part s:name|i:index f:value01   the track's strip: "gain"
-//        (0-1.5 linear, so 1/1.5 is unity), "pan", "mute", "solo"
+//        (0-1.5 linear, so 1/1.5 is unity), "pan" (0.5 centre), "mute",
+//        "solo", "sendreverb", "senddelay". A send above 0 mounts its effect
+//   /send i:slot s:name f:value01      a send effect's param: slot 0 the
+//        Reverb (size, damp, tone, predelay), 1 the Delay (time, feedback,
+//        tone, pingpong). Kept until the effect is mounted
+//   /master s:name f:value01           the master's params, e.g. "volume"
+//        (0-1.5 linear)
+//   /meters i:on                       sends /meters while on
+//   /graph i:part                      a Nexus part's modules
+//   /scope i:part i:slot               the scope on a Nexus module's first
+//        output; slot -1 closes it
 //   /patch i:part s:machine s:patch    mounts the machine if it isn't there
 //   /mpe i:part i:members f:bend       members 0 turns MPE off
 //   /defs s:machine   /patches s:machine   /machines
@@ -46,6 +56,13 @@
 //   /patches s:machine s:name...       /machines s:name...
 //   /load f:percent f:worst_percent    4 times a second
 //   /levels f:peak...                  each part's peak, 20 times a second
+//   /meters f:peak f:lufs              the master's peak and short-term
+//        loudness, 20 times a second while /meters is on
+//   /graph i:part s:patch (i:slot s:type)...   the patch's modules in slot
+//        order, without voice, perf, macro, out and scope; after each Nexus
+//        /patch too
+//   /scope i:part i:slot f:point...    126 points of the open scope, -1 to
+//        1, 12 samples apart (32 ms), 14 times a second
 //   /loaded i:part s:kind s:path i:arg s:name s:machine   once it's mounted,
 //        machine being what the part had when it loaded. A kit sends
 //        one "pad" per pad (path "" for an emptied one), then "kit" with arg

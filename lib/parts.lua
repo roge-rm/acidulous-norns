@@ -54,7 +54,7 @@ P.error = nil     -- shown instead of the parts, e.g. no machines
 P.loading = false -- a PSET is being read
 P.seen = 0        -- when the plugin last sent /load
 P.load, P.worst, P.worst_at = 0, 0, 0
-P.mpe = nil       -- the part that's MPE, or nil
+P.mpe = nil       -- the part getting MPE, or nil; set by the script from "mpe part"
 P.list = {}
 for i = 1, P.COUNT do
   P.list[i] = {
@@ -197,9 +197,103 @@ local function db_to_gain(db)
   return 10 ^ (db / 20)
 end
 
+P.db_to_gain = db_to_gain
+
 function P.send_volume(i)
   -- the strip's gain is 0-1.5 linear
   send("/channel", {i - 1, "gain", math.min(1, db_to_gain(params:get(id(i, "volume"))) / 1.5)})
+end
+
+-- The part's channel strip: pan, mute, solo and sends. A send above 0
+-- mounts its effect in the plugin.
+local STRIP = {pan = "pan", mute = "mute", solo = "solo", rev = "sendreverb", dly = "senddelay"}
+
+local function strip_value(i, what)
+  local v = params:get(id(i, what))
+  if what == "pan" then return (v + 1) / 2 end
+  if what == "mute" or what == "solo" then return v - 1 end
+  return v
+end
+
+function P.send_strip_param(i, what)
+  send("/channel", {i - 1, STRIP[what], strip_value(i, what)})
+end
+
+function P.send_strip(i)
+  P.send_volume(i)
+  for _, what in ipairs({"pan", "mute", "solo", "rev", "dly"}) do P.send_strip_param(i, what) end
+end
+
+-- ---- the sends and the master ----------------------------------------------------
+
+-- The send effects' params as the engine has them (Reverb and Delay in
+-- engine/effect/Effects.cpp), with the slot the plugin takes. time is in
+-- the delay's note values at the engine's tempo.
+P.DELAY_TIMES = {"1/32", "1/16", "1/8", "3/16", "1/4", "3/8", "1/2", "1 bar"}
+P.SEND_PARAMS = {
+  {id = "rev_size", name = "rev size", slot = 0, param = "size", min = 0, max = 1, default = 0.5},
+  {id = "rev_damp", name = "rev damp", slot = 0, param = "damp", min = 0, max = 1, default = 0.4},
+  {id = "rev_tone", name = "rev tone", slot = 0, param = "tone", min = 500, max = 18000, default = 9000, exp = true},
+  {id = "rev_predelay", name = "rev predelay", slot = 0, param = "predelay", min = 0, max = 200, default = 10, unit = "ms"},
+  {id = "dly_time", name = "dly time", slot = 1, param = "time", options = P.DELAY_TIMES, default = 4},
+  {id = "dly_feedback", name = "dly feedback", slot = 1, param = "feedback", min = 0, max = 0.95, default = 0.4},
+  {id = "dly_tone", name = "dly tone", slot = 1, param = "tone", min = 300, max = 18000, default = 6000, exp = true},
+  {id = "dly_pingpong", name = "dly ping pong", slot = 1, param = "pingpong", options = {"off", "on"}, default = 2},
+}
+
+local function send_param_value(sp)
+  local v = params:get(sp.id)
+  if sp.options then return (v - 1) / (#sp.options - 1) end
+  if sp.exp then return math.log(v / sp.min) / math.log(sp.max / sp.min) end
+  return (v - sp.min) / (sp.max - sp.min)
+end
+
+-- 0-1 for the screen's knobs.
+function P.send_param_01(pid)
+  for _, sp in ipairs(P.SEND_PARAMS) do
+    if sp.id == pid then return send_param_value(sp) end
+  end
+  return 0
+end
+
+local function send_send_param(sp)
+  send("/send", {sp.slot, sp.param, send_param_value(sp)})
+end
+
+function P.send_master()
+  -- the master fader is 0-1.5 linear; 0 dB here is its top, as the plugin starts
+  send("/master", {"volume", db_to_gain(params:get("master_level"))})
+  for _, sp in ipairs(P.SEND_PARAMS) do send_send_param(sp) end
+end
+
+local function percent(param) return string.format("%d%%", math.floor(param:get() * 100 + 0.5)) end
+
+function P.add_master_params()
+  params:add_group("mixer", "sends and master", 1 + #P.SEND_PARAMS)
+  params:add_control("master_level", "master level", controlspec.new(-60, 0, "lin", 0.5, 0, "dB"))
+  params:set_action("master_level", function()
+    if not P.loading then send("/master", {"volume", db_to_gain(params:get("master_level"))}) end
+  end)
+  for _, sp in ipairs(P.SEND_PARAMS) do
+    if sp.options then
+      params:add_option(sp.id, sp.name, sp.options, sp.default)
+    else
+      local unit = sp.unit or (sp.exp and "Hz" or "")
+      params:add_control(sp.id, sp.name,
+        controlspec.new(sp.min, sp.max, sp.exp and "exp" or "lin", 0, sp.default, unit, sp.exp and 0.005 or 0.01),
+        unit == "" and percent or nil)
+    end
+    params:set_action(sp.id, function()
+      if not P.loading then send_send_param(sp) end
+    end)
+  end
+end
+
+-- "l12", "c" or "r30", for a pan of -1 to 1.
+function P.pan_text(v)
+  local n = math.floor(math.abs(v) * 100 + 0.5)
+  if n == 0 then return "c" end
+  return (v < 0 and "l" or "r") .. n
 end
 
 -- The engine's MPE zone: the lower one, master channel 1 and members 2-16,
@@ -212,13 +306,10 @@ function P.send_mpe()
   end
 end
 
-local function show_mpe(i)
-  if params:get(id(i, "mpe")) == 2 then params:show(id(i, "mpe_bend")) else params:hide(id(i, "mpe_bend")) end
-end
-
 function P.notes_off(i)
   local part = P.list[i]
-  send("/cc", {i - 1, P.mpe == i and 1 or math.max(part.channel, 1), 123, 0})
+  -- with an MPE zone active every part plays on channel 1
+  send("/cc", {i - 1, P.mpe and 1 or math.max(part.channel, 1), 123, 0})
   part.held = 0
   if P.on_notes_off then P.on_notes_off(i) end
 end
@@ -420,7 +511,7 @@ function P.apply(i)
   timer.cancel(part.pending)
   part.pending = nil
   P.notes_off(i)
-  P.send_volume(i)
+  P.send_strip(i)
   load_machine(i, false)
   -- C++ waits for room in the engine's param queue, so none of these is lost
   if part.machine then
@@ -435,13 +526,14 @@ function P.apply(i)
 end
 
 function P.apply_all()
+  P.send_master()
   for i = 1, P.COUNT do P.apply(i) end
   P.send_mpe()
 end
 
 local function add_part(i)
   local part = P.list[i]
-  params:add_group("part_" .. i, "part " .. i, 7 + P.slots)
+  params:add_group("part_" .. i, "part " .. i, 12 + P.slots)
 
   local chans = {"off"}
   for c = 1, 16 do chans[c + 1] = tostring(c) end
@@ -451,30 +543,16 @@ local function add_part(i)
     part.channel = v - 1
   end)
 
-  -- One part at a time can be MPE: it gets every channel of the "mpe from"
-  -- device, and its own channel is unused.
+  -- Hidden: mirrors the global "mpe part", so older PSETs with a part's
+  -- mpe on still pick it.
   params:add_option(id(i, "mpe"), "mpe", {"off", "on"}, 1)
   params:set_action(id(i, "mpe"), function(v)
-    if v == 2 then
-      if P.mpe ~= i then
-        local old = P.mpe
-        P.mpe = i
-        if old then
-          params:set(id(old, "mpe"), 1)
-          if not P.loading then P.notes_off(old) end
-        end
-        if not P.loading then P.notes_off(i) end
-      end
-      if not P.loading then P.send_mpe() end
-    elseif P.mpe == i then
-      P.mpe = nil
-      if not P.loading then
-        P.notes_off(i)
-        P.send_mpe()
-      end
+    local cur = params:get("mpe_part")
+    if v == 2 and cur ~= i + 2 then
+      params:set("mpe_part", i + 2)
+    elseif v == 1 and cur == i + 2 then
+      params:set("mpe_part", 2)
     end
-    show_mpe(i)
-    rebuild_menu()
   end)
   params:add_number(id(i, "mpe_bend"), "mpe bend", 1, 96, 48, function(param) return param:get() .. " st" end)
   params:set_action(id(i, "mpe_bend"), function()
@@ -519,6 +597,17 @@ local function add_part(i)
   params:set_action(id(i, "volume"), function()
     if not P.loading then P.send_volume(i) end
   end)
+  params:add_control(id(i, "pan"), "pan", controlspec.new(-1, 1, "lin", 0.01, 0, "", 0.01),
+    function(param) return P.pan_text(param:get()) end)
+  params:add_option(id(i, "mute"), "mute", {"off", "on"}, 1)
+  params:add_option(id(i, "solo"), "solo", {"off", "on"}, 1)
+  params:add_control(id(i, "rev"), "rev send", controlspec.new(0, 1, "lin", 0.01, 0, "", 0.01), percent)
+  params:add_control(id(i, "dly"), "dly send", controlspec.new(0, 1, "lin", 0.01, 0, "", 0.01), percent)
+  for _, what in ipairs({"pan", "mute", "solo", "rev", "dly"}) do
+    params:set_action(id(i, what), function()
+      if not P.loading then P.send_strip_param(i, what) end
+    end)
+  end
 
   for j = 1, P.slots do
     local sid = id(i, "s" .. j)
@@ -544,8 +633,9 @@ end
 
 function P.add_params()
   for i = 1, P.COUNT do add_part(i) end
+  P.add_master_params()
   for i = 1, P.COUNT do
-    show_mpe(i)
+    params:hide(id(i, "mpe"))
     show_machine(i, nil, true)
     params:hide(id(i, "files"))
   end
@@ -572,13 +662,15 @@ function P.after_read(filename)
     end
     part.channel = params:get(id(i, "channel")) - 1
   end
-  -- the first part saved as MPE, in case a file has more than one
-  P.mpe = nil
+  -- the first part saved as MPE, in case a file has more than one; files
+  -- with none keep the "mpe part" they saved
+  local first
   for i = 1, P.COUNT do
-    if params:get(id(i, "mpe")) == 2 then
-      if P.mpe then params:set(id(i, "mpe"), 1, true) else P.mpe = i end
-    end
-    show_mpe(i)
+    if params:get(id(i, "mpe")) == 2 then first = first or i end
+  end
+  if first then
+    params:set("mpe_part", first + 2, true)
+    for i = 1, P.COUNT do params:set(id(i, "mpe"), i == first and 2 or 1, true) end
   end
   rebuild_menu()
   if changed and filename then
@@ -624,13 +716,15 @@ end
 function P.resend()
   P.lost = false
   print("acidulous: plugin started again, sending the parts")
+  P.send_master()
+  if P.on_resend then P.on_resend() end
   for i, part in ipairs(P.list) do
     if part.pending then
-      P.send_volume(i) -- the pending patch mounts the machine
+      P.send_strip(i) -- the pending patch mounts the machine
       part.resend_files = next(part.files) ~= nil
     elseif part.want_values then
       -- the slots don't hold this patch's values yet, so ask for them again
-      P.send_volume(i)
+      P.send_strip(i)
       part.resend_files = next(part.files) ~= nil
       load_machine(i, true)
     else
@@ -667,7 +761,7 @@ end
 -- Sends a part's volume and machine with its patch, which fills the slots
 -- with the patch's values when it's applied.
 function P.start_part(i)
-  P.send_volume(i)
+  P.send_strip(i)
   load_machine(i, true)
 end
 
@@ -703,6 +797,12 @@ function P.osc(path, args)
       local part = P.list[i]
       part.level = math.max(args[i] or 0, part.level * 0.7)
     end
+  elseif path == "/meters" then
+    P.master_level = math.max(args[1] or 0, (P.master_level or 0) * 0.7)
+    P.master_peak = args[1] or 0
+    P.lufs = args[2]
+  elseif path == "/graph" or path == "/scope" then
+    if P.on_scope then P.on_scope(path, args) end
   elseif path == "/load" then
     P.seen = util.time()
     if P.lost and P.ready then P.resend() end

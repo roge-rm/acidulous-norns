@@ -1,0 +1,679 @@
+#!/usr/bin/env python3
+"""Writes lib/cards.lua from the app's machine panels.
+
+Reads shared/.../ui/MachinePanel.kt (and the lists it uses from other files),
+finds each <Machine>Panel, and walks it with a small Kotlin evaluator: Group
+blocks become cards, PanelKnob, PanelStepKnob, PanelSwitch, PanelOnOff,
+PanelVowelKnob and Drawbars become controls, for loops and local vals and
+funs are expanded. A section's cards come in section order. A param name that
+depends on the selected pad is written with {pad} (or {pad+1}), which Lua fills.
+
+Usage: tools/gen-cards.py [APP_REPO] [OUT]
+  APP_REPO defaults to ~/Projects/AndroidStudioProjects/Acidulous,
+  OUT to lib/cards.lua next to this script.
+"""
+import os, re, sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+APP = sys.argv[1] if len(sys.argv) > 1 else os.path.expanduser("~/Projects/AndroidStudioProjects/Acidulous")
+OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(HERE, "..", "lib", "cards.lua")
+SRC = os.path.join(APP, "shared/src/commonMain/kotlin/com/rm/acidulous")
+PANEL = os.path.join(SRC, "ui/MachinePanel.kt")
+
+CONTROLS = {"PanelKnob": "knob", "PanelStepKnob": "step", "PanelSwitch": "switch",
+            "PanelOnOff": "onoff", "PanelVowelKnob": "knob", "PanelPair": "switch"}
+
+# ---- tokens --------------------------------------------------------------------
+
+TOKEN = re.compile(r"""
+    (?P<nl>\n) | (?P<ws>[ \t\r]+) | (?P<lc>//[^\n]*) | (?P<bc>/\*.*?\*/) |
+    (?P<str>"(?:\\.|\$\{(?:[^{}]|\{[^{}]*\})*\}|[^"\\])*") | (?P<chr>'(?:\\.|[^'\\])') |
+    (?P<num>\d+(?:\.\d+)?[fFL]?) | (?P<id>[A-Za-z_][A-Za-z_0-9]*) |
+    (?P<op>\.\.|->|::|\?\.|\?:|==|!=|<=|>=|&&|\|\||[-+*/%<>=!?.,;:(){}\[\]@&|^~$#\\])
+""", re.S | re.X)
+
+
+class Tok:
+    __slots__ = ("k", "v")
+
+    def __init__(self, k, v): self.k, self.v = k, v
+
+    def __repr__(self): return f"{self.k}:{self.v}"
+
+
+def tokenize(text):
+    out, pos = [], 0
+    while pos < len(text):
+        m = TOKEN.match(text, pos)
+        if not m:
+            pos += 1  # anything odd, e.g. non-ASCII outside strings
+            continue
+        pos = m.end()
+        k = m.lastgroup
+        if k in ("ws", "lc", "bc"):
+            if k == "bc" and "\n" in m.group():
+                out.append(Tok("nl", "\n"))
+            continue
+        out.append(Tok(k, m.group()))
+    return out
+
+
+def match_close(toks, i):
+    """Index of the bracket closing toks[i]."""
+    pairs = {"(": ")", "{": "}", "[": "]"}
+    o = toks[i].v
+    c = pairs[o]
+    depth = 0
+    for j in range(i, len(toks)):
+        if toks[j].k == "op":
+            if toks[j].v in pairs: depth += 1
+            elif toks[j].v in pairs.values():
+                depth -= 1
+                if depth == 0: return j
+    raise ValueError("unbalanced " + o)
+
+
+def split_args(toks, a, b):
+    """Top-level comma-separated ranges in toks[a:b]."""
+    args, depth, start = [], 0, a
+    for j in range(a, b):
+        v = toks[j].v if toks[j].k == "op" else None
+        if v in ("(", "{", "["): depth += 1
+        elif v in (")", "}", "]"): depth -= 1
+        elif v == "," and depth == 0:
+            args.append((start, j)); start = j + 1
+    if any(t.k != "nl" for t in toks[start:b]): args.append((start, b))
+    return args
+
+
+def statement_end(toks, i, end):
+    """End of the statement starting at i: a newline, ; or } at depth 0."""
+    depth, j = 0, i
+    while j < end:
+        t = toks[j]
+        if t.k == "op" and t.v in ("(", "{", "["): depth += 1
+        elif t.k == "op" and t.v in (")", "}", "]"):
+            if depth == 0: return j
+            depth -= 1
+            if depth == 0 and t.v == "}":
+                # a block ends the statement unless an else or a call follows
+                k = j + 1
+                while k < end and toks[k].k == "nl": k += 1
+                if not (k < end and (toks[k].v in ("else", ".") )): return j + 1
+        elif depth == 0 and (t.k == "nl" or t.v == ";") and j > i:
+            # a line ending in an operator carries on
+            prev = toks[j - 1]
+            if not (prev.k == "op" and prev.v in ("+", "-", "=", ",", "(", "->", "..", ".")):
+                return j
+        j += 1
+    return end
+
+
+# ---- values ----------------------------------------------------------------------
+
+class Fail(Exception):
+    pass
+
+
+class Pad:
+    """The selected pad, plus an offset."""
+
+    def __init__(self, off=0): self.off = off
+
+    def __add__(self, n): return Pad(self.off + n)
+
+    def __sub__(self, n): return Pad(self.off - n)
+
+    def text(self): return "{pad}" if self.off == 0 else "{pad%+d}" % self.off
+
+
+class Fun:
+    def __init__(self, params, toks, a, b, env):
+        self.params, self.toks, self.a, self.b, self.env = params, toks, a, b, env
+
+
+NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+
+
+def kformat(fmt, args):
+    out, k = [], 0
+    for m in re.finditer(r"%(-?0?\d*)(?:\.(\d+))?([dsf%])|[^%]+", fmt):
+        if not m.group(3):
+            out.append(m.group()); continue
+        if m.group(3) == "%":
+            out.append("%"); continue
+        a = args[k]; k += 1
+        if isinstance(a, Pad):
+            out.append(a.text())
+        elif m.group(3) == "d":
+            out.append(("%" + m.group(1) + "d") % int(a))
+        elif m.group(3) == "f":
+            out.append(("%" + m.group(1) + "." + (m.group(2) or "6") + "f") % float(a))
+        else:
+            out.append(str(a))
+    return "".join(out)
+
+
+class Evaluator:
+    def __init__(self, globals_):
+        self.globals = globals_  # name -> (toks, a, b) of a top-level val
+        self.cache = {}
+
+    def lookup(self, name, env):
+        if name in env:
+            v = env[name]
+            if v is None: raise Fail(name)
+            return v
+        if name in self.cache: return self.cache[name]
+        if name in self.globals:
+            toks, a, b = self.globals[name]
+            self.cache[name] = None
+            v = self.eval(toks, a, b, {})
+            self.cache[name] = v
+            return v
+        raise Fail(name)
+
+    def string(self, raw, env):
+        body = raw[1:-1]
+        out, i = [], 0
+        while i < len(body):
+            c = body[i]
+            if c == "\\" and i + 1 < len(body):
+                out.append({"n": "\n", "t": "\t"}.get(body[i + 1], body[i + 1])); i += 2
+            elif c == "$" and i + 1 < len(body) and body[i + 1] == "{":
+                depth, j = 0, i + 1
+                while True:
+                    if body[j] == "{": depth += 1
+                    elif body[j] == "}":
+                        depth -= 1
+                        if depth == 0: break
+                    j += 1
+                inner = tokenize(body[i + 2:j])
+                out.append(self.show(self.eval(inner, 0, len(inner), env)))
+                i = j + 1
+            elif c == "$" and i + 1 < len(body) and (body[i + 1].isalpha() or body[i + 1] == "_"):
+                m = re.match(r"[A-Za-z_][A-Za-z_0-9]*", body[i + 1:])
+                out.append(self.show(self.lookup(m.group(), env)))
+                i += 1 + m.end()
+            else:
+                out.append(c); i += 1
+        return "".join(out)
+
+    def show(self, v):
+        if isinstance(v, Pad): return v.text()
+        if isinstance(v, float) and v == int(v): return str(int(v))
+        return str(v)
+
+    def eval(self, toks, a, b, env):
+        while a < b and toks[a].k == "nl": a += 1
+        while b > a and toks[b - 1].k == "nl": b -= 1
+        if a >= b: raise Fail("empty")
+        # ranges bind loosest
+        for j in self.top_ops(toks, a, b, ("..", "until", "downTo")):
+            lo = self.eval(toks, a, j, env)
+            hi = self.eval(toks, j + 1, b, env)
+            op = toks[j].v
+            if op == "..": return list(range(int(lo), int(hi) + 1))
+            if op == "until": return list(range(int(lo), int(hi)))
+            return list(range(int(lo), int(hi) - 1, -1))
+        for j in self.top_ops(toks, a, b, ("to",)):
+            return (self.eval(toks, a, j, env), self.eval(toks, j + 1, b, env))
+        ops = self.top_ops(toks, a, b, ("+", "-"))
+        ops = [j for j in ops if j > a and not (toks[j - 1].k == "op" and toks[j - 1].v in ("(", ",", "=", "+", "-", "*"))]
+        if ops:
+            j = ops[-1]
+            left = self.eval(toks, a, j, env)
+            right = self.eval(toks, j + 1, b, env)
+            if toks[j].v == "+":
+                if isinstance(left, list): return left + (right if isinstance(right, list) else [right])
+                if isinstance(left, str) or isinstance(right, str): return self.show(left) + self.show(right)
+                return left + right
+            return left - right
+        if toks[a].v == "-" and toks[a].k == "op":
+            return -self.eval(toks, a + 1, b, env)
+        return self.postfix(toks, a, b, env)
+
+    def top_ops(self, toks, a, b, names):
+        out, depth = [], 0
+        for j in range(a, b):
+            t = toks[j]
+            if t.k == "op" and t.v in ("(", "{", "["): depth += 1
+            elif t.k == "op" and t.v in (")", "}", "]"): depth -= 1
+            elif depth == 0 and t.v in names and t.k in ("op", "id"): out.append(j)
+        return out
+
+    def primary(self, toks, a, b, env):
+        """Value of the primary at a, and the index after it."""
+        t = toks[a]
+        if t.k == "str": return self.string(t.v, env), a + 1
+        if t.k == "chr": return t.v[1:-1], a + 1
+        if t.k == "num":
+            v = t.v.rstrip("fFL")
+            return (float(v) if "." in v else int(v)), a + 1
+        if t.k == "op" and t.v == "(":
+            c = match_close(toks, a)
+            return self.eval(toks, a + 1, c, env), c + 1
+        if t.k == "id":
+            name = t.v
+            if a + 1 < b and toks[a + 1].v == "(":
+                c = match_close(toks, a + 1)
+                args = [self.eval(toks, x, y, env) for x, y in split_args(toks, a + 2, c)]
+                return self.call(name, args, env), c + 1
+            if name == "true": return True, a + 1
+            if name == "false": return False, a + 1
+            return self.lookup(name, env), a + 1
+        raise Fail(t.v)
+
+    def call(self, name, args, env):
+        if name in ("listOf", "arrayOf", "mutableListOf"): return list(args)
+        if name == "noteName": return NOTE_NAMES[args[0] % 12] + str(args[0] // 12 - 1)
+        f = env.get(name)
+        if isinstance(f, Fun):
+            e = dict(f.env); e.update(zip(f.params, args))
+            return self.eval(f.toks, f.a, f.b, e)
+        raise Fail(name)
+
+    def postfix(self, toks, a, b, env):
+        v, j = self.primary(toks, a, b, env)
+        while j < b:
+            if toks[j].v not in (".", "?."): raise Fail("after " + toks[j].v)
+            m = toks[j + 1].v
+            k = j + 2
+            args, lam = [], None
+            if k < b and toks[k].v == "(":
+                c = match_close(toks, k)
+                args = [self.eval(toks, x, y, env) for x, y in split_args(toks, k + 1, c)]
+                k = c + 1
+            if k < b and toks[k].v == "{":
+                c = match_close(toks, k)
+                lam = (k + 1, c)
+                k = c + 1
+            v = self.method(v, m, args, lam, toks, env)
+            j = k
+        return v
+
+    def method(self, v, m, args, lam, toks, env):
+        if m == "format": return kformat(v, args)
+        if m == "coerceIn": return v
+        if m in ("lowercase", "toString", "trim"): return v if isinstance(v, Pad) else str(v).lower() if m == "lowercase" else str(v)
+        if m == "uppercase": return str(v).upper()
+        if m == "replace": return v.replace(args[0], args[1])
+        if m == "size": return len(v)
+        if m in ("first",): return v[0]
+        if m in ("drop",): return v[args[0]:]
+        if m in ("take",): return v[:args[0]]
+        if m == "map" and lam:
+            a, b = lam
+            name = "it"
+            arrow = [j for j in range(a, b) if toks[j].v == "->"]
+            if arrow:
+                name = toks[a].v if toks[a].k == "id" else "it"
+                a = arrow[0] + 1
+            out = []
+            for x in v:
+                e = dict(env); e[name] = x
+                out.append(self.eval(toks, a, self.last_expr(toks, a, b), e))
+            return out
+        raise Fail("." + m)
+
+    def last_expr(self, toks, a, b):
+        return b
+
+
+# ---- walking a panel -------------------------------------------------------------
+
+class Card:
+    def __init__(self, title, section):
+        self.title, self.section, self.controls = title, section, []
+
+
+class Walker:
+    def __init__(self, ev, toks):
+        self.ev, self.toks = ev, toks
+        self.cards = []
+        self.problems = []
+
+    def card_for(self, ctx):
+        if ctx.get("card") is None:
+            c = Card(ctx.get("section_name") or "main", ctx.get("section", 0))
+            self.cards.append(c)
+            ctx["card"] = c
+        return ctx["card"]
+
+    def add(self, ctx, kind, name, label, opts=None):
+        if isinstance(name, Pad): name = name.text()
+        card = self.card_for(ctx)
+        if any(c["p"] == name for c in card.controls): return
+        card.controls.append({"p": name, "l": label, "k": kind, "o": opts})
+
+    def walk(self, a, b, env, ctx):
+        toks, ev = self.toks, self.ev
+        i = a
+        while i < b:
+            t = toks[i]
+            v = t.v
+            if t.k == "id" and v in ("val", "var") and i + 2 < b and toks[i + 1].k == "id":
+                name = toks[i + 1].v
+                j = i + 2
+                if toks[j].v == ":":  # a type
+                    while j < b and toks[j].v != "=" and toks[j].k != "nl": j += 1
+                if j < b and toks[j].v == "=":
+                    e = statement_end(toks, j + 1, b)
+                    if toks[j + 1].v == "remember" or toks[j + 1].v == "rememberSaveable":
+                        env[name] = None
+                    else:
+                        try: env[name] = ev.eval(toks, j + 1, e, env)
+                        except (Fail, Exception): env[name] = None
+                    i = e; continue
+                if j < b and toks[j].v == "by":
+                    env[name] = None
+                    i = statement_end(toks, j, b); continue
+                i += 1; continue
+            if t.k == "id" and v == "fun" and toks[i + 1].k == "id" and toks[i + 2].v == "(":
+                c = match_close(toks, i + 2)
+                params = [toks[x].v for x, y in split_args(toks, i + 3, c)]
+                j = c + 1
+                if toks[j].v == ":":
+                    while toks[j].v not in ("=", "{"): j += 1
+                if toks[j].v == "=":
+                    e = statement_end(toks, j + 1, b)
+                    env[toks[i + 1].v] = Fun(params, toks, j + 1, e, dict(env))
+                    i = e; continue
+                if toks[j].v == "{":  # a local helper with a body: not a card
+                    i = match_close(toks, j) + 1; continue
+            if t.k == "id" and v == "for" and toks[i + 1].v == "(":
+                i = self.for_loop(i, b, env, ctx); continue
+            if t.k == "id" and v == "forEachIndexed" and toks[i - 1].v == ".":
+                i += 1; continue
+            if t.k == "id" and v == "Group" and toks[i + 1].v == "(":
+                c = match_close(toks, i + 1)
+                args = split_args(toks, i + 2, c)
+                try: title = ev.eval(toks, args[0][0], args[0][1], env)
+                except Fail: title = "?"
+                j = c + 1
+                while toks[j].k == "nl": j += 1
+                if toks[j].v != "{": i = j; continue
+                e = match_close(toks, j)
+                card = Card(title, ctx.get("section", 0))
+                self.cards.append(card)
+                inner = dict(ctx); inner["card"] = card
+                self.walk(j + 1, e, dict(env), inner)
+                i = e + 1; continue
+            if t.k == "id" and v == "PanelSections" and toks[i + 1].v == "(":
+                i = self.sections(i, b, env, ctx); continue
+            if t.k == "op" and v == "{":
+                # a block or lambda: its vals stay in it
+                e = match_close(toks, i)
+                self.walk(i + 1, e, dict(env), ctx)
+                i = e + 1; continue
+            if t.k == "id" and v in CONTROLS and toks[i + 1].v == "(" and not (i > 0 and toks[i - 1].v == "fun"):
+                c = match_close(toks, i + 1)
+                self.control(v, split_args(toks, i + 2, c), env, ctx)
+                i = c + 1; continue
+            if t.k == "id" and v == "Drawbars" and toks[i + 1].v == "(" and toks[i - 1].v != "fun":
+                c = match_close(toks, i + 1)
+                args = split_args(toks, i + 2, c)
+                try:
+                    prefix = ev.eval(toks, args[1][0], args[1][1], env)
+                    names = ev.eval(toks, args[2][0], args[2][1], env)
+                    for lab in names:
+                        n = lab.replace("5⅓", "513").replace("2⅔", "223").replace("1⅗", "135").replace("1⅓", "113")
+                        self.add(ctx, "knob", prefix + n, short(ascii_label(lab)))
+                except Fail as f:
+                    self.problems.append("drawbars: " + str(f))
+                i = c + 1; continue
+            i += 1
+
+    def control(self, fn, args, env, ctx):
+        toks, ev = self.toks, self.ev
+        kind = CONTROLS[fn]
+        pos = [r for r in args if not (toks[r[0]].k == "id" and toks[r[0] + 1].v == "=" and toks[r[0] + 1].k == "op")]
+        named = {toks[r[0]].v: r for r in args if r not in pos}
+
+        def arg(k, key=None):
+            if key and key in named: r = named[key]; return ev.eval(toks, r[0] + 2, r[1], env)
+            if k < len(pos): return ev.eval(toks, pos[k][0], pos[k][1], env)
+            return None
+        try:
+            name = arg(1, "name")
+        except Fail as f:
+            self.problems.append(f"{fn}: name {f}")
+            return
+        opts = None
+        label = None
+        try:
+            if kind in ("step", "switch"):
+                try: opts = arg(2, "labels")
+                except Fail: opts = None
+                label = arg(3, "label")
+            else:
+                label = arg(2, "label")
+        except Fail:
+            label = None
+        if not isinstance(label, str): label = None
+        shown = name.text() if isinstance(name, Pad) else name
+        if label is None: label = re.sub(r"^p\{pad[^}]*\}_|^p\d\d_", "", shown)
+        if opts is not None:
+            if not (isinstance(opts, list) and all(isinstance(o, (str, int)) for o in opts)): opts = None
+            else: opts = [ascii_label(str(o)) for o in opts]
+        if kind == "switch" and opts is None: kind = "step"
+        self.add(ctx, kind, name, short(ascii_label(label)), opts)
+
+    def for_loop(self, i, b, env, ctx):
+        toks, ev = self.toks, self.ev
+        c = match_close(toks, i + 1)
+        head = i + 2
+        if toks[head].v == "(":  # destructuring
+            hc = match_close(toks, head)
+            names = [toks[x].v for x, y in split_args(toks, head + 1, hc)]
+            k = hc + 1
+        else:
+            names = [toks[head].v]
+            k = head + 1
+        assert toks[k].v == "in", toks[k]
+        body = c + 1
+        while toks[body].k == "nl": body += 1
+        if toks[body].v == "{":
+            e = match_close(toks, body)
+            ba, bb, nxt = body + 1, e, e + 1
+        else:
+            e = statement_end(toks, body, b)
+            ba, bb, nxt = body, e, e
+        try:
+            items = ev.eval(toks, k + 1, c, env)
+        except Fail as f:
+            self.problems.append("for: " + str(f))
+            return nxt
+        for item in items:
+            e2 = dict(env)
+            if len(names) == 1: e2[names[0]] = item
+            else:
+                for n, x in zip(names, item): e2[n] = x
+            self.walk(ba, bb, e2, dict(ctx))
+        return nxt
+
+    def sections(self, i, b, env, ctx):
+        toks, ev = self.toks, self.ev
+        c = match_close(toks, i + 1)
+        args = split_args(toks, i + 2, c)
+        try: names = ev.eval(toks, args[0][0], args[0][1], env)
+        except Fail: names = []
+        j = c + 1
+        if toks[j].v != "{": return j
+        e = match_close(toks, j)
+        # { sec -> when (sec) { 0 -> ...; else -> ... } }
+        w = j + 1
+        while w < e and toks[w].v != "when": w += 1
+        if w >= e:
+            self.walk(j + 1, e, env, ctx); return e + 1
+        wb = w
+        while toks[wb].v != "{": wb += 1
+        we = match_close(toks, wb)
+        branches = []
+        k = wb + 1
+        while k < we:
+            if toks[k].k == "nl": k += 1; continue
+            arrow = k
+            while toks[arrow].v != "->": arrow += 1
+            label = toks[k].v
+            body = arrow + 1
+            while toks[body].k == "nl": body += 1
+            if toks[body].v == "{":
+                be = match_close(toks, body)
+                branches.append((label, body + 1, be))
+                k = be + 1
+            else:
+                be = statement_end(toks, body, we)
+                branches.append((label, body, be))
+                k = be
+        used = {int(l) for l, _, _ in branches if l.isdigit()}
+        spare = [n for n in range(len(names)) if n not in used]
+        for label, ba, bb in branches:
+            sec = int(label) if label.isdigit() else (spare[0] if spare else len(names))
+            inner = dict(ctx); inner["section"] = sec; inner["card"] = None
+            inner["section_name"] = names[sec] if sec < len(names) else "more"
+            self.walk(ba, bb, dict(env), inner)
+        return e + 1
+
+
+# Short forms for labels over 6 letters, the most a knob's column fits.
+SHORT = {
+    "sustain": "sus", "release": "rel", "velocity": "vel", "transpose": "transp", "position": "pos",
+    "density": "dense", "pressure": "press", "stretch": "strtch", "hardness": "hard",
+    "stiffness": "stiff", "reverse": "rev", "pattern": "patt", "feedback": "fdbk", "threshold": "thresh",
+    "damping": "damp", "vibrato": "vib", "formant": "formnt", "tension": "tens", "strings": "string",
+    "scatter": "scattr", "how many": "count", "glide on": "glide", "by key": "by key", "odd/even": "odd/ev",
+    "whistle": "whistl", "whisper": "whispr", "unvoiced": "unvoic", "una corda": "corda",
+    "trigger": "trig", "tremolo": "trem", "tracker": "track", "tonebar": "tonbar", "sympathy": "sympth",
+    "surface": "surfce", "pitch env": "p env", "balance": "bal", "spread": "spread", "brightness": "bright",
+    "envelope": "env", "harmonics": "harm", "frequency": "freq", "resonance": "reso", "amount": "amount",
+    "attack": "attack", "detune": "detune", "octave": "octave", "shimmer": "shimmr", "voices": "voices",
+    "humanise": "human", "coupling": "couple", "listens": "listen", "bendtime": "b time",
+    "up the series": "series", "breath": "breath", "character": "char", "material": "matrl",
+    "duration": "length", "distance": "dist", "variation": "vary", "sensitivity": "sens",
+}
+
+
+def short(s):
+    """s in at most 6 letters."""
+    if len(s) <= 6: return s
+    if s in SHORT: return SHORT[s]
+    words = s.split()
+    if len(words) > 1:
+        t = words[0][0] + " " + " ".join(words[1:])
+        if len(t) <= 6: return t
+    # drop vowels from the end, keeping the first letter
+    t = list(s)
+    for k in range(len(t) - 1, 0, -1):
+        if len(t) <= 6: break
+        if t[k] in "aeiou" and t[k - 1] != " ": del t[k]
+    return "".join(t)[:6].strip()
+
+
+def ascii_label(s):
+    s = s.split("~")[0]
+    s = re.sub(r"^·\s*", "", s)
+    s = (s.replace("→", ">").replace("·", "-").replace("×", "x").replace("⅓", " 1/3")
+          .replace("⅔", " 2/3").replace("⅗", " 3/5").replace("ä", "a").replace("ö", "o")
+          .replace("é", "e").replace("♯", "#").replace("♭", "b").replace("∿", "~"))
+    s = s.encode("ascii", "replace").decode().replace("?", "")
+    return s.lower()
+
+
+# ---- the file ----------------------------------------------------------------------
+
+def top_vals(toks, into):
+    depth = 0
+    for i, t in enumerate(toks):
+        if t.k == "op" and t.v in ("{", "(", "["): depth += 1
+        elif t.k == "op" and t.v in ("}", ")", "]"): depth -= 1
+        elif depth == 0 and t.v == "val" and toks[i + 1].k == "id":
+            j = i + 2
+            if toks[j].v == ":":
+                while toks[j].v != "=" and toks[j].k != "nl": j += 1
+            if toks[j].v != "=": continue
+            into.setdefault(toks[i + 1].v, (toks, j + 1, statement_end(toks, j + 1, len(toks))))
+
+
+def panels(toks):
+    """name -> (start, end) of each private fun <Name>Panel body."""
+    out = {}
+    for i, t in enumerate(toks):
+        if t.v == "fun" and toks[i + 1].k == "id" and toks[i + 1].v.endswith("Panel") and toks[i + 2].v == "(":
+            name = toks[i + 1].v[:-5]
+            if not name or not name[0].isupper(): continue
+            c = match_close(toks, i + 2)
+            j = c + 1
+            while toks[j].v != "{": j += 1
+            params = []
+            for x, y in split_args(toks, i + 3, c):
+                while toks[x].k == "nl": x += 1
+                params.append(toks[x].v)
+            out[name] = (j + 1, match_close(toks, j), params)
+    return out
+
+
+def lua_str(s):
+    return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def main():
+    text = open(PANEL, encoding="utf-8").read()
+    toks = tokenize(text)
+    globals_ = {}
+    top_vals(toks, globals_)
+    for root, _, files in os.walk(SRC):
+        for f in sorted(files):
+            p = os.path.join(root, f)
+            if f.endswith(".kt") and p != PANEL:
+                t = open(p, encoding="utf-8").read()
+                if re.search(r"^(internal |private )?val [A-Z_]+ = (listOf|\d)", t, re.M):
+                    top_vals(tokenize(t), globals_)
+    ev = Evaluator(globals_)
+    # The machines MachinePanel dispatches to
+    dispatch = dict(re.findall(r'^\s*"(\w+)" -> (\w+)Panel\(', text, re.M))
+    found = panels(toks)
+    out, problems = {}, []
+    for machine, fn in sorted(dispatch.items()):
+        if fn not in found:
+            problems.append(f"{machine}: no {fn}Panel"); continue
+        a, b, params = found[fn]
+        env = {p.split(":")[0].strip(): None for p in params}
+        env["pad"] = Pad()
+        w = Walker(ev, toks)
+        try:
+            w.walk(a, b, env, {"section": 0})
+        except Exception as e:  # anything the evaluator can't follow
+            problems.append(f"{machine}: {type(e).__name__} {e}")
+            continue
+        cards = [c for c in sorted(w.cards, key=lambda c: c.section) if c.controls]
+        for p in w.problems: problems.append(f"{machine}: {p}")
+        if cards: out[machine] = cards
+        else: problems.append(f"{machine}: no cards")
+    lines = [
+        "-- Generated by tools/gen-cards.py from the app's MachinePanel.kt; don't edit.",
+        "-- machine -> list of cards {t = title, c = controls}, each control",
+        "-- {p = param, l = label, k = knob|step|switch|onoff, o = option labels}.",
+        "-- {pad} in a param name is the selected pad as two digits, {pad+1} one more.",
+        "return {",
+    ]
+    for machine in sorted(out):
+        lines.append(f"  {machine} = {{")
+        for c in out[machine]:
+            ctl = []
+            for x in c.controls:
+                s = f"{{p = {lua_str(x['p'])}, l = {lua_str(x['l'])}, k = {lua_str(x['k'])}"
+                if x["o"]: s += ", o = {" + ", ".join(lua_str(o) for o in x["o"]) + "}"
+                ctl.append(s + "}")
+            lines.append(f"    {{t = {lua_str(ascii_label(str(c.title)))}, c = {{")
+            for s in ctl: lines.append("      " + s + ",")
+            lines.append("    }},")
+        lines.append("  },")
+    lines.append("}")
+    with open(OUT, "w") as f: f.write("\n".join(lines) + "\n")
+    print(f"{len(out)} machines, {sum(len(v) for v in out.values())} cards -> {os.path.relpath(OUT)}")
+    for p in problems: print("  " + p)
+
+
+if __name__ == "__main__":
+    main()

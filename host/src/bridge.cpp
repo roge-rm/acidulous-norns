@@ -90,7 +90,7 @@ int on_any(const char* path, const char* types, lo_arg** a, int argc, lo_message
 
 void pump_main()
 {
-    int ticks = 0;
+    int ticks = 0, scope_ticks = 0;
     while(running)
     {
         // Short sleeps so stop() doesn't wait a quarter of a second.
@@ -106,6 +106,27 @@ void pump_main()
             for(float v : l)
                 args.push_back(core::Value::f(v));
             replier.reply("/levels", args);
+            if(target->metering_on())
+            {
+                float peak = 0, lufs = 0;
+                target->master_meters(peak, lufs);
+                replier.reply("/meters", {core::Value::f(peak), core::Value::f(lufs)});
+            }
+        }
+        // The scope about 14 times a second, under the screen's 15.
+        if(++scope_ticks == 7)
+        {
+            scope_ticks = 0;
+            float     trace[126];
+            int       part = -1, slot = -1;
+            const int n = target->scope_trace(trace, 126, part, slot);
+            if(n > 0)
+            {
+                core::Args args{core::Value::i(part), core::Value::i(slot)};
+                for(int i = 0; i < n; ++i)
+                    args.push_back(core::Value::f(trace[i]));
+                replier.reply("/scope", args);
+            }
         }
         if(ticks < 25)
             continue;

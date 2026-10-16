@@ -4,6 +4,8 @@ acidulous puts the machines from my [Acidulous](https://github.com/roge-rm/Acidu
 
 There are 8 parts. Each one plays a machine and patch on its own MIDI channel, so you can play a bassline, a beat and a pad from one keyboard or sequencer. One part at a time can take MPE.
 
+![The parts page](docs/images/parts.png) ![A Reflux card](docs/images/card.png) ![The patch list](docs/images/patches.png) ![The mixer](docs/images/mixer.png)
+
 This has been tested on my [shieldXL](https://github.com/okyeron/shieldXL) with a Pi 4 inside. It should run on a Pi 3 norns too, with fewer of the heavy machines at once. If you try it on one please let me know how it goes, or open an issue here.
 
 Enjoy!<br>
@@ -45,19 +47,47 @@ If SuperCollider won't start after you've been logged in over ssh, restart the n
 
 ## On the norns
 
-The main page lists the parts, each with its channel, machine, patch and a level meter.
+The parts page lists the parts, each with its machine, patch and a level meter. The bar on the left lights while a part is playing.
 
 | | |
 |---|---|
+| **K1** held + **E1** | page: parts, card, mixer, sends, a few detents a page |
 | **E1** | pick a part |
 | **E2** | patch |
 | **K1** held + **E2** | machine |
 | **E3** | the part's volume |
-| **K2** | the macro page |
+| **K2** | patch list |
+| **K1** held + **K2** | machine picker |
 | **K3** | play a note on the part |
-| **K1** held + **K3** | load samples, see [Samples](#samples) |
+| **K1** held + **K3** | load samples, see [Samples](#samples), or the scope on a Nexus part |
 
-The macro page has five of the machine's main controls, like cutoff, resonance, envmod, decay and accent on Reflux. **E2** picks one and **E3** sets it, with **K1** held for fine steps. **K2** goes back.
+The patch list has the machine's patches in families, like classic, motion and short on Reflux, and the machine picker has the machines in the app's groups, each with a short line. In both **E1** changes the tab, **E2** moves and **K3** loads the patch or mounts the machine. **K2** closes.
+
+The card page has the machine's controls in the same cards as the app, like osc, filter, play and out on Reflux. **E1** picks the card, **E2** the control and **E3** sets it, with **K1** held for fine steps. Cards for one pad of a kit start with a pad control. **K2** goes back.
+
+Pan and the card controls that go either side of 0 stop at the centre. Turn 3 more detents the same way to go past it.
+
+The mixer page has a strip per part, with its meter, fader and pan, and **m** or **s** under a muted or soloed part. The out strip on the right has the master meter and fader, and **lim** lights while the limiter is at its ceiling. The top right shows the loudness in LUFS over the last 3 seconds.
+
+| Mixer | |
+|---|---|
+| **E1** | pick a part, or out after part 8 |
+| **E2** | pan |
+| **E3** | level, or the master level on out |
+| **K2** | mute |
+| **K3** | solo |
+
+The sends page has a reverb and a delay knob per part. On out they're the reverb's size and the delay's feedback.
+
+| Sends | |
+|---|---|
+| **E1** | pick a part, or out after part 8 |
+| **E2** | reverb send |
+| **E3** | delay send |
+
+The reverb and delay start the first time a part sends to them, so they use no CPU until then. Their other settings are in **PARAMETERS > EDIT > sends and master**. The delay's time is in notes at 120 bpm.
+
+The scope shows a Nexus patch's modules in a chain, and the output of the framed one. **E2** picks the module, **K3** plays a note and **K2** closes. Picking a module dips the sound for a moment.
 
 Every param of every part is in **PARAMETERS > EDIT**, one group per part.
 
@@ -69,11 +99,13 @@ Part 1 listens on channel 1, part 2 on channel 2 and so on. To change it, set **
 
 ## MPE
 
-1. Put your controller in MPE mode, on the lower zone.
-2. Set **mpe** to **on** in one part's group. That part gets every channel of the MPE controller, with per-note bend, pressure and timbre.
-3. **mpe bend** is the bend range, 48 semitones by default. Set it to match your controller.
+Plug in your MPE controller, pick a part and play. The selected part gets every channel of the controller, with per-note bend, pressure and timbre, and the parts page marks it with three little bars before its meter. If **mpe part** is set to a part and the controller isn't plugged in, that part shows **mpe: no device**. Notes you're holding stop when you pick another part.
 
-**mpe from** is **auto** by default, which finds an Exquis or QuNexus by itself. For another controller, pick its port, or the MPE part stays silent. While a part is MPE, the other parts still play from **midi from**.
+- **mpe part** is **follow** by default, for the selected part. Set it to a part number to keep MPE on that part, or **off**.
+- **mpe from** is **auto** by default. It finds an Exquis or QuNexus by name, a controller that sends the MPE configuration message, or one that plays notes on more than one channel with bend or pressure on each. Until then its first note plays as normal MIDI. If yours isn't found, pick its port.
+- **mpe bend** in each part's group is the bend range, 48 semitones by default. It's set by itself from a controller that sends its range (RPN 0), and to 2 for a QuNexus. Otherwise set it to match your controller.
+
+The lower and upper zones both work. The MPE part still plays from **midi from** on its own channel, and so do the other parts.
 
 ## OMX-27
 
@@ -83,7 +115,7 @@ Plug it in by USB and acidulous puts it in REMOTE mode.
 - **AUX** + the two top left keys: octave down and up.
 - **AUX** + the first 8 bottom keys: pick parts 1 to 8.
 - The five pots are the part's macros. A pot takes over once you sweep it past where the macro is set.
-- The encoder picks the patch. Hold it and turn for the machine, and tap it to switch the norns page.
+- The encoder picks the patch. Hold it and turn for the machine, and tap it to swap the parts and card pages, or close the patch list or machine picker.
 - The little screen shows the part, the patch and the macro you're turning.
 
 **omx velocity** in **PARAMETERS > EDIT** sets how hard its keys play.

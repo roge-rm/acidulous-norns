@@ -65,6 +65,8 @@ struct Replier
 };
 
 constexpr int kParts = 8;
+// Send buses: 0 reverb, 1 delay.
+constexpr int kSends = 2;
 
 // The bytes a file takes decoded to floats: at `to_rate` (0 keeps its own),
 // the first `max_seconds` (0 all of it), mono as one channel unless `both`.
@@ -93,6 +95,16 @@ class Core
     void levels(float* out);
     // The worst block since the last call, as a percentage of a block's length.
     float worst_percent();
+    // Whether /meters asked for the master's meters. Any thread.
+    bool metering_on() const { return metering.load(); }
+    // The master's peak since the last call, linear, and its short-term
+    // loudness in LUFS. Measuring loudness costs the audio thread a little,
+    // and it stops a moment after the last call. One caller only.
+    void master_meters(float& peak, float& lufs);
+    // The open scope's trace, up to max points from -1 to 1, and its part.
+    // 0 when no scope is open. One caller only.
+    // slot is the module it's cabled from.
+    int scope_trace(float* out, int max, int& part, int& slot);
 
     // Control thread. Back to an empty engine: all notes off, every part
     // unmounted, MPE off. Returns once that has run.
@@ -115,6 +127,8 @@ class Core
         bool        program = false; // a Formulate program is mounted
         // The machine's params as last sent, 0-1, for Cumulus's cloud.
         std::vector<float> values;
+        std::string        nexus;           // a Nexus patch's graph as loaded
+        int                scope_slot = -1; // the module the scope is cabled from
     };
 
     void post(std::function<void()> job);
@@ -129,7 +143,7 @@ class Core
     void request_cloud(int part);
     void forget_cloud(int part);
     void clear_objects(int part);
-    void load_nexus(int part, const std::string& text);
+    bool load_nexus(int part, const std::string& text);
     void load(int part, const std::string& kind, const std::string& path, int arg);
     void load_now(int part, const std::string& kind, const std::string& path, int arg);
     int64_t held_total();
@@ -155,6 +169,10 @@ class Core
     void send_state(int part);
     void set_param(int part, const Value& which, float v01);
     void set_channel(int part, const Value& which, float v01);
+    void ensure_send(int slot);
+    void set_send(int slot, const std::string& name, float v01);
+    void send_graph(int part);
+    void set_scope(int part, int slot);
     bool push_param(int part, const char* unit, const std::string& name, float v01);
     struct BankCache;
     std::shared_ptr<BankCache> bank(const std::string& machine); // null if it can't be read
@@ -197,6 +215,18 @@ class Core
     bool                              busy = false;
     bool                              quitting = false;
     std::atomic<bool>                 stopping{false};
+
+    // Worker only: whether each send's effect is mounted, and its params as
+    // set, applied when it is.
+    bool                         send_mounted[kSends] = {};
+    std::map<std::string, float> send_values[kSends];
+    std::atomic<bool>            metering{false};
+    // The part whose scope is open, or -1, and the module slot it's cabled
+    // from. Written by the worker.
+    std::atomic<int> scope_part{-1}, scope_slot_live{-1};
+    // No trace before this, while the remounted scope's ring still holds the
+    // last module's, in steady_clock milliseconds.
+    std::atomic<int64_t> scope_from{0};
 
     // Jobs queued per part, so live messages know whether to wait behind them.
     std::atomic<int> pending[kParts] = {};

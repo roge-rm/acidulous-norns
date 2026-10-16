@@ -13,6 +13,7 @@
 #include <engine/dsp/Denormals.h>
 #include <engine/format/AudioDecoder.h>
 #include <engine/format/Sf2Reader.h>
+#include <engine/effect/EffectRegistry.h>
 #include <engine/machine/MachineRegistry.h>
 #include <engine/machine/cumulus/Cloud.h>
 #include <engine/machine/cumulus/Cumulus.h>
@@ -400,17 +401,27 @@ Core::~Core()
         jobs_cv.notify_all();
         worker.join();
     }
-    // Empties the racks so the next Core starts clean: the unmounts apply at
-    // the top of a block, pulled here since the UGen no longer runs this core.
-    // A retired machine frees what was mounted into it.
+    // Empties the racks and sends so the next Core starts clean: the
+    // unmounts apply at the top of a block, at most kMaxMountsPerBlock (8) a
+    // block, so a few blocks are pulled here since the UGen no longer runs
+    // this core. A retired machine frees what was mounted into it.
     for(int p = 0; p < kParts; ++p)
         host.unmountMachine(p);
+    for(int s = 0; s < kSends; ++s)
+        if(send_mounted[s])
+            host.mountSend(s, "");
     host.setMpeZone(0, 15, 48);
     // The UGen has stopped calling process(), but a pull may still be
-    // finishing, so this tries for up to 50 ms.
+    // finishing, so a pull that fails is tried again, for up to 50 ms. 10
+    // machines and sends take 2 blocks; 4 leaves room.
     float in[kBlockFrames * 2] = {}, out[kBlockFrames * 2];
-    for(int tries = 0; tries < 50 && !AudioDriver::pull(in, out); ++tries)
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    for(int tries = 0, pulled = 0; tries < 50 && pulled < 4; ++tries)
+    {
+        if(AudioDriver::pull(in, out))
+            ++pulled;
+        else
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
     host.stop();
     delete hear_buf.exchange(nullptr);
 }
@@ -835,6 +846,42 @@ bool Core::command(const std::string& path, const Args& a)
         });
         return true;
     }
+    if(path == "/send" && a.size() >= 3)
+    {
+        const int slot = to_int(a[0]);
+        if(slot >= 0 && slot < kSends)
+            post([this, slot, n = to_str(a[1]), v = to_float(a[2])] { set_send(slot, n, v); });
+        return true;
+    }
+    if(path == "/master" && a.size() >= 2)
+    {
+        post([this, n = to_str(a[0]), v = to_float(a[1])] {
+            if(host.paramIndex("", "master", n) < 0)
+                error("no master param " + n);
+            else
+                push_param(0, "master", n, v);
+        });
+        return true;
+    }
+    if(path == "/meters" && a.size() >= 1)
+    {
+        metering.store(to_int(a[0]) != 0);
+        return true;
+    }
+    if(path == "/graph" && a.size() >= 1)
+    {
+        const int part = to_int(a[0]);
+        if(part_ok(part))
+            post_part(part, [this, part] { send_graph(part); });
+        return true;
+    }
+    if(path == "/scope" && a.size() >= 2)
+    {
+        const int part = to_int(a[0]);
+        if(part_ok(part))
+            post_part(part, [this, part, slot = to_int(a[1])] { set_scope(part, slot); });
+        return true;
+    }
     return false;
 }
 
@@ -870,6 +917,8 @@ bool Core::mount(int part, const std::string& name)
     wait_applied();
     parts[part] = Part{};
     parts[part].machine = type;
+    if(scope_part.load() == part)
+        scope_part.store(-1);
     int32_t         count = 0;
     const ParamDef* defs  = MachineRegistry::paramDefs(type.c_str(), count);
     for(int32_t k = 0; k < count; ++k)
@@ -889,6 +938,8 @@ void Core::unmount(int part)
     }
     wait_applied();
     parts[part] = Part{};
+    if(scope_part.load() == part)
+        scope_part.store(-1);
     reply("/mounted", {Value::i(part), Value::s("")});
 }
 
@@ -1059,12 +1110,13 @@ void Core::cloud_loop()
 
 // A Nexus patch's graph, a line per module and cable, built and mounted by
 // EngineHost.
-void Core::load_nexus(int part, const std::string& text)
+bool Core::load_nexus(int part, const std::string& text)
 {
     settle();
     const std::string why = host.loadNexusPatch(part, text);
     if(!why.empty())
         error("Nexus: " + why);
+    return why.empty();
 }
 
 // The track's channel strip, in Rack::ChannelParam's order. Applies with or
@@ -1081,7 +1133,226 @@ void Core::set_channel(int part, const Value& which, float v01)
         error("no channel param " + to_str(which));
         return;
     }
+    // A send's effect is mounted the first time a part sends to it, so the
+    // reverb and delay cost nothing until then.
+    if(v01 > 0.f && (name == "sendreverb" || name == "senddelay"))
+        ensure_send(name == "sendreverb" ? 0 : 1);
     push_param(part, "channel", name, v01);
+}
+
+static int64_t now_ms()
+{
+    using namespace std::chrono;
+    return duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
+}
+
+// The two send buses, as the app starts them.
+static const char* const kSendTypes[] = {"Reverb", "Delay"};
+static const char* const kSendUnits[] = {"send1", "send2"};
+
+static bool send_has(int slot, const std::string& name)
+{
+    int32_t         n    = 0;
+    const ParamDef* defs = EffectRegistry::paramDefs(kSendTypes[slot], n);
+    for(int32_t i = 0; i < n; ++i)
+        if(name == defs[i].name)
+            return true;
+    return false;
+}
+
+// Mounts the send's effect, fully wet, with the values set so far.
+void Core::ensure_send(int slot)
+{
+    if(send_mounted[slot])
+        return;
+    if(!host.mountSend(slot, kSendTypes[slot]))
+    {
+        error("mount queue full");
+        return;
+    }
+    send_mounted[slot] = true;
+    for(const auto& kv : send_values[slot])
+        push_param(0, kSendUnits[slot], kv.first, kv.second);
+}
+
+// A send effect's param, kept for when it's mounted.
+void Core::set_send(int slot, const std::string& name, float v01)
+{
+    if(name == "mix" || !send_has(slot, name))
+    {
+        error("no send param " + name);
+        return;
+    }
+    send_values[slot][name] = v01;
+    if(send_mounted[slot])
+        push_param(0, kSendUnits[slot], name, v01);
+}
+
+namespace
+{
+// A Nexus graph's module lines as {slot, type}, in slot order.
+std::vector<std::pair<int, std::string>> graph_modules(const std::string& text)
+{
+    std::vector<std::pair<int, std::string>> out;
+    size_t at = 0;
+    while(at < text.size())
+    {
+        size_t end = text.find('\n', at);
+        if(end == std::string::npos)
+            end = text.size();
+        const std::string line = text.substr(at, end - at);
+        at = end + 1;
+        if(line.size() < 4 || line[0] != 'm' || line[1] != '|')
+            continue;
+        const size_t bar = line.find('|', 2);
+        if(bar == std::string::npos)
+            continue;
+        const size_t bar2 = line.find('|', bar + 1);
+        out.emplace_back(std::atoi(line.c_str() + 2), line.substr(bar + 1, bar2 == std::string::npos ? std::string::npos : bar2 - bar - 1));
+    }
+    std::sort(out.begin(), out.end());
+    return out;
+}
+
+int graph_cables(const std::string& text)
+{
+    int n = 0;
+    for(size_t at = 0; at < text.size();)
+    {
+        if(text[at] == 'c' && at + 1 < text.size() && text[at + 1] == '|')
+            ++n;
+        const size_t end = text.find('\n', at);
+        if(end == std::string::npos)
+            break;
+        at = end + 1;
+    }
+    return n;
+}
+
+// Modules that aren't in the signal chain, left off the scope's boxes.
+bool chain_module(const std::string& type)
+{
+    return type != "voice" && type != "perf" && type != "macro" && type != "out" && type != "scope" && type != "blank";
+}
+} // namespace
+
+// "/graph i:part s:patch (i:slot s:type)..." for the part's Nexus patch, or
+// just the part when it has none.
+void Core::send_graph(int part)
+{
+    Args out{Value::i(part), Value::s(parts[part].patch)};
+    for(const auto& m : graph_modules(parts[part].nexus))
+        if(chain_module(m.second))
+        {
+            out.push_back(Value::i(m.first));
+            out.push_back(Value::s(m.second));
+        }
+    reply("/graph", out);
+}
+
+// Points the scope at a module's first output: the patch is mounted again
+// with a scope module in a free slot, cabled from it. Its output goes
+// nowhere, so the sound is the same, but the remount dips the sound for a
+// block. slot -1 stops the trace and leaves the scope in until the next patch.
+void Core::set_scope(int part, int slot)
+{
+    Part& p = parts[part];
+    if(slot < 0 || p.machine != "Nexus" || p.nexus.empty())
+    {
+        if(scope_part.load() == part)
+            scope_part.store(-1);
+        return;
+    }
+    namespace nx = machine::nexus;
+    const auto mods = graph_modules(p.nexus);
+    bool found = false;
+    std::vector<bool> used(nx::kSlots, false);
+    for(const auto& m : mods)
+    {
+        if(m.first >= 0 && m.first < nx::kSlots)
+            used[size_t(m.first)] = true;
+        found = found || (m.first == slot && chain_module(m.second));
+    }
+    int free = -1;
+    for(int s = nx::kSlots - 1; s >= 0 && free < 0; --s)
+        if(!used[size_t(s)])
+            free = s;
+    if(!found || free < 0)
+    {
+        error("Nexus: no module in slot " + std::to_string(slot) + " for the scope");
+        return;
+    }
+    if(slot == p.scope_slot)
+    {
+        scope_slot_live.store(slot);
+        scope_part.store(part);
+        return;
+    }
+    // The scope's cable takes the next cable depth param, so there must be one.
+    const int cable = graph_cables(p.nexus);
+    if(cable >= nx::kCables)
+    {
+        error("Nexus: the patch has every cable in use, no room for the scope");
+        return;
+    }
+    // The scope's module line goes first, since the graph reads the first
+    // scope in the patch, and its cable last, so the patch's cables keep
+    // their depth params.
+    char head[48], tail[48];
+    std::snprintf(head, sizeof(head), "m|%d|scope|mono\n", free);
+    std::snprintf(tail, sizeof(tail), "\nc|%d.0|%d.0|1.0", slot, free);
+    // Zoom 3 of 64: a point every 4 samples, 512 points, about 43 ms.
+    char name[16];
+    std::snprintf(name, sizeof(name), "s%02d_p1", free);
+    push_param(part, "machine", name, 3.5f / 64.f);
+    for(const char* end : {"a", "b"})
+    {
+        std::snprintf(name, sizeof(name), "c%02d_%s", cable, end);
+        push_param(part, "machine", name, (1.f + 4.f) / 8.f);
+    }
+    scope_part.store(-1);
+    p.scope_slot = -1;
+    if(!load_nexus(part, head + p.nexus + tail))
+        return;
+    p.scope_slot = slot;
+    // The remounted scope keeps its ring, so the old module's trace is in it
+    // until 2048 samples have gone through: about 43 ms, and a little more.
+    scope_from.store(now_ms() + 60);
+    scope_slot_live.store(slot);
+    scope_part.store(part);
+}
+
+int Core::scope_trace(float* out, int max, int& part, int& slot)
+{
+    part = scope_part.load();
+    slot = scope_slot_live.load();
+    if(part < 0 || now_ms() < scope_from.load())
+        return 0;
+    float     ring[512];
+    const int n = host.nexusScope(part, ring, 512);
+    if(n < 512)
+        return 0;
+    // From the first rising zero crossing in the first quarter, so a steady
+    // note stands still.
+    int from = 0;
+    for(int i = 1; i < 128; ++i)
+        if(ring[i - 1] <= 0.f && ring[i] > 0.f)
+        {
+            from = i;
+            break;
+        }
+    const int count = std::min(max, (512 - 128) / 3);
+    for(int i = 0; i < count; ++i)
+        out[i] = ring[from + i * 3];
+    return count;
+}
+
+void Core::master_meters(float& peak, float& lufs)
+{
+    peak = host.peakLevel();
+    float l[4];
+    host.loudness(l);
+    lufs = l[1];
 }
 
 // The engine's param queue holds 512 and the audio thread empties it every
@@ -1266,6 +1537,10 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
     }
     else if(machine == "Nexus")
     {
+        parts[part].nexus      = nexus;
+        parts[part].scope_slot = -1;
+        if(scope_part.load() == part)
+            scope_part.store(-1);
         if(!nexus.empty())
             load_nexus(part, nexus);
         else
@@ -1300,6 +1575,8 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
         values.push_back(Value::f(r.norm[size_t(i)]));
     reply("/values", values);
     reply("/patch", {Value::i(part), Value::s(machine), Value::s(patch->name)});
+    if(machine == "Nexus")
+        send_graph(part);
 }
 
 // A Nexus patch's macros: the knobs the patch sets, in its order, then the
