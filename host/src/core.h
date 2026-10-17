@@ -25,6 +25,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include <engine/core/PatchChain.h>
@@ -133,6 +134,23 @@ class Core
         std::vector<float> values;
         std::string        nexus;           // a Nexus patch's graph as loaded
         int                scope_slot = -1; // the module the scope is cabled from
+        // A Formulate patch's formula, arp, duty and vol as loaded, for saving.
+        std::vector<std::pair<std::string, std::string>> program_settings;
+        // Mosaic's zones from a folder or a preset, one line per zone with its
+        // absolute path, as EngineHost::loadZoneMap takes them. "" for none.
+        std::string zones;
+        int         low = -1, high = -1; // the loaded patch's note range, -1 for none
+    };
+
+    // A patch to put on a part, from a bank or a preset file.
+    struct PatchSource
+    {
+        std::string                                      name;
+        std::vector<float>                               norm;     // every machine param, 0-1
+        std::vector<std::pair<std::string, std::string>> settings;
+        std::vector<std::string>                         named;    // the params it names, in its order
+        acidulous::PatchChain                            chain;
+        int                                              low = -1, high = -1;
     };
 
     void post(std::function<void()> job);
@@ -149,8 +167,10 @@ class Core
     void forget_cloud(int part);
     void clear_objects(int part);
     bool load_nexus(int part, const std::string& text);
-    void load(int part, const std::string& kind, const std::string& path, int arg);
-    void load_now(int part, const std::string& kind, const std::string& path, int arg);
+    void load(int part, const std::string& kind, const std::string& path, int arg,
+              const std::vector<std::string>& roots = {});
+    void load_now(int part, const std::string& kind, const std::string& path, int arg,
+                  const std::vector<std::string>& roots);
     int64_t held_total();
     bool room_for(int64_t need, std::string& why);
     void set_held(int part, int slot, int64_t bytes);
@@ -164,11 +184,24 @@ class Core
     void send_shape(const std::string& path);
     void hear(const std::string& path);
     void mix_hear(float* out);
-    Args nexus_macros(const acidulous::machine::nexus::Graph& g, const acidulous::audition::BankPatch& patch);
+    Args nexus_macros(const acidulous::machine::nexus::Graph& g, const std::vector<std::string>& named);
     void cloud_loop();
     void build_cloud(int part, const std::vector<float>& values, uint64_t epoch);
     void unmount(int part);
     void load_patch(int part, const std::string& machine, const std::string& name);
+    void patch_failed(int part, const std::string& what);
+    bool apply_patch(int part, const std::string& machine, PatchSource& src, const std::string& tag);
+    void load_preset(int part, const std::string& path, int index, const std::string& tag, bool files,
+                     const std::vector<std::string>& roots);
+    void load_preset_files(int part, const std::string& path, int index,
+                           const std::vector<std::pair<std::string, std::string>>& settings,
+                           const std::vector<std::string>& roots);
+    void save_preset(int part, const std::string& path, const std::string& name,
+                     std::vector<std::pair<std::string, std::string>> settings, const std::vector<std::string>& roots);
+    void scan_presets(const std::string& folder);
+    void delete_preset(const std::string& path, int index);
+    std::string load_zones(int part, const std::string& path, int index, const std::vector<std::string>& roots,
+                           int& missing);
     void send_defs(const std::string& machine);
     void send_patches(const std::string& machine);
     void send_state(int part);

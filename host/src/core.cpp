@@ -28,6 +28,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <cerrno>
 #include <cstring>
 #include <dirent.h>
 #include <map>
@@ -825,9 +826,54 @@ bool Core::command(const std::string& path, const Args& a)
     {
         const int part = to_int(a[0]);
         if(part_ok(part))
-            post_part(part, [this, part, kind = to_str(a[1]), p = to_str(a[2]), arg = a.size() > 3 ? to_int(a[3]) : 0] {
-                load(part, kind, p, arg);
-            });
+        {
+            std::vector<std::string> roots;
+            for(size_t k = 4; k < a.size(); ++k)
+                roots.push_back(to_str(a[k]));
+            post_part(part, [this, part, kind = to_str(a[1]), p = to_str(a[2]), arg = a.size() > 3 ? to_int(a[3]) : 0,
+                             roots] { load(part, kind, p, arg, roots); });
+        }
+        return true;
+    }
+    if(path == "/preset_save" && a.size() >= 4)
+    {
+        // i:part s:path s:name i:nroots s:root... (s:key s:value)...
+        const int part = to_int(a[0]);
+        if(!part_ok(part))
+            return true;
+        const size_t nroots = size_t(std::max(0, to_int(a[3])));
+        std::vector<std::string> roots;
+        for(size_t k = 4; k < a.size() && k < 4 + nroots; ++k)
+            roots.push_back(to_str(a[k]));
+        std::vector<std::pair<std::string, std::string>> settings;
+        for(size_t k = 4 + nroots; k + 1 < a.size(); k += 2)
+            settings.emplace_back(to_str(a[k]), to_str(a[k + 1]));
+        post_part(part, [this, part, p = to_str(a[1]), n = to_str(a[2]), settings, roots] {
+            save_preset(part, p, n, settings, roots);
+        });
+        return true;
+    }
+    if(path == "/preset_load" && a.size() >= 5)
+    {
+        // i:part s:path i:index s:tag i:files s:root...
+        const int part = to_int(a[0]);
+        if(!part_ok(part))
+            return true;
+        std::vector<std::string> roots;
+        for(size_t k = 5; k < a.size(); ++k)
+            roots.push_back(to_str(a[k]));
+        post_part(part, [this, part, p = to_str(a[1]), index = to_int(a[2]), tag = to_str(a[3]),
+                         files = to_int(a[4]) != 0, roots] { load_preset(part, p, index, tag, files, roots); });
+        return true;
+    }
+    if(path == "/preset_scan" && a.size() >= 1)
+    {
+        post([this, f = to_str(a[0])] { scan_presets(f); });
+        return true;
+    }
+    if(path == "/preset_delete" && a.size() >= 2)
+    {
+        post([this, p = to_str(a[0]), index = to_int(a[1])] { delete_preset(p, index); });
         return true;
     }
     if(path == "/shape" && a.size() >= 1)
@@ -1568,16 +1614,18 @@ std::shared_ptr<Core::BankCache> Core::bank(const std::string& machine)
     return cache;
 }
 
+// A /patch or /preset_load that fails takes the last patch's inserts off and
+// gives back the sends it held, so every one ends in one /inserts.
+void Core::patch_failed(int part, const std::string& what)
+{
+    host.setMacroNames(part, "");
+    apply_chain(part, acidulous::PatchChain{}, what);
+    send_macro_names(part);
+}
+
 void Core::load_patch(int part, const std::string& machine, const std::string& name)
 {
-    // A /patch that fails takes the last patch's inserts off and gives back
-    // the sends it held, so every /patch ends in one /inserts.
-    const auto fail = [&]
-    {
-        host.setMacroNames(part, "");
-        apply_chain(part, acidulous::PatchChain{}, machine + " " + name);
-        send_macro_names(part);
-    };
+    const auto fail = [&] { patch_failed(part, machine + " " + name); };
     const auto b = bank(machine);
     if(!b)
         return fail();
@@ -1603,6 +1651,36 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
     for(const auto& p : r.problems)
         std::fprintf(stderr, "acidulous: %s %s: %s\n", machine.c_str(), patch->name.c_str(), p.c_str());
 
+    PatchSource src;
+    src.name     = patch->name;
+    src.norm     = std::move(r.norm);
+    src.settings = std::move(r.settings);
+    for(const auto& v : patch->values)
+        src.named.push_back(v.name);
+    std::vector<std::string> fx_problems;
+    src.chain = ab::resolveChain(*patch, fx_problems);
+    for(const auto& p : fx_problems)
+        std::fprintf(stderr, "acidulous: %s %s: %s\n", machine.c_str(), patch->name.c_str(), p.c_str());
+    src.low  = patch->low;
+    src.high = patch->high;
+    apply_patch(part, machine, src, patch->name);
+}
+
+// Puts a patch on the part, which already has its machine: every param, its
+// settings, macro names and effects, then /macros, /macro_names, /values and
+// /patch with [tag] as the patch's name. False if it failed part way, which
+// has taken the last patch's effects off.
+bool Core::apply_patch(int part, const std::string& machine, PatchSource& src, const std::string& tag)
+{
+    const auto fail = [&] {
+        patch_failed(part, machine + " " + src.name);
+        return false;
+    };
+    int32_t         count = 0;
+    const ParamDef* defs  = MachineRegistry::paramDefs(machine.c_str(), count);
+    if(src.norm.size() != size_t(count))
+        return fail();
+
     // A Nexus patch names only the knobs it changes; the rest take their
     // module's default from the graph, since every slot knob defaults to zero
     // and an oscillator at level zero is silent. As the app's audition does.
@@ -1610,7 +1688,7 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
     Args        macros;
     if(machine == "Nexus")
     {
-        for(const auto& kv : r.settings)
+        for(const auto& kv : src.settings)
             if(kv.first == "nexus")
                 nexus = kv.second;
         std::string why;
@@ -1622,9 +1700,7 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
             namespace nx = machine::nexus;
             std::vector<float> knobs(size_t(nx::kSlots) * nx::kKnobs, 0.f);
             g->defaultKnobs(knobs.data());
-            std::set<std::string> named;
-            for(const auto& v : patch->values)
-                named.insert(v.name);
+            std::set<std::string> named(src.named.begin(), src.named.end());
             for(int32_t i = 0; i < count; ++i)
             {
                 const std::string n = defs[i].name;
@@ -1632,40 +1708,39 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
                     continue;
                 const int slot = (n[1] - '0') * 10 + (n[2] - '0'), knob = n[5] - '1';
                 if(slot >= 0 && slot < nx::kSlots && knob >= 0 && knob < nx::kKnobs)
-                    r.norm[size_t(i)] = defs[i].unmap(knobs[size_t(slot) * nx::kKnobs + size_t(knob)]);
+                    src.norm[size_t(i)] = defs[i].unmap(knobs[size_t(slot) * nx::kKnobs + size_t(knob)]);
             }
-            macros = nexus_macros(*g, *patch);
+            macros = nexus_macros(*g, src.named);
         }
         else
         {
-            error(machine + " " + patch->name + ": " + (nexus.empty() ? std::string("no graph") : why));
+            error(machine + " " + src.name + ": " + (nexus.empty() ? std::string("no graph") : why));
             nexus.clear();
         }
     }
 
     // Every param, so nothing is left over from the last patch, except the
     // ones the machine keeps (Bias's lane levels and mutes, which are the mix
-    // of its takes, as the app's MachineUi.patchKeeps). mount() has waited
-    // for the new machine to be in place. Loaded samples stay too, since the
-    // machine isn't remounted.
+    // of its takes, as the app's MachineUi.patchKeeps). The new machine is in
+    // place. Loaded samples stay too, since the machine isn't remounted.
     for(int32_t i = 0; i < count; ++i)
     {
         if(patch_keeps(machine, defs[i].name) && size_t(i) < parts[part].values.size())
         {
-            r.norm[size_t(i)] = parts[part].values[size_t(i)];
+            src.norm[size_t(i)] = parts[part].values[size_t(i)];
             continue;
         }
-        if(!push_param(part, "machine", defs[i].name, r.norm[size_t(i)]))
+        if(!push_param(part, "machine", defs[i].name, src.norm[size_t(i)]))
             return fail();
     }
-    parts[part].values = r.norm;
+    parts[part].values = src.norm;
 
     // Formulate's formula and tables are compiled here and swapped in. A
     // patch without them clears the last one, which plays the plain oscillator.
     if(machine == "Formulate")
     {
         std::string formula, arp, duty, vol;
-        for(const auto& kv : r.settings)
+        for(const auto& kv : src.settings)
         {
             if(kv.first == "formula")
                 formula = kv.second;
@@ -1676,13 +1751,19 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
             else if(kv.first == "vol")
                 vol = kv.second;
         }
+        parts[part].program_settings.clear();
+        const std::pair<const char*, const std::string*> program_keys[] = {
+            {"formula", &formula}, {"arp", &arp}, {"duty", &duty}, {"vol", &vol}};
+        for(const auto& kv : program_keys)
+            if(!kv.second->empty())
+                parts[part].program_settings.emplace_back(kv.first, *kv.second);
         std::unique_ptr<machine::formulate::Program> program;
         if(!(formula.empty() && arp.empty() && duty.empty() && vol.empty()))
         {
             std::string why;
             program = machine::formulate::compile(formula, arp, duty, vol, why);
             if(!program)
-                error(machine + " " + patch->name + ": " + why);
+                error(machine + " " + src.name + ": " + why);
         }
         if(program || parts[part].program)
         {
@@ -1726,9 +1807,6 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
     }
     else if(machine == "Cumulus")
         request_cloud(part);
-    else if(machine != "Trinity" && !r.settings.empty())
-        std::fprintf(stderr, "acidulous: %s %s: settings are not supported yet\n", machine.c_str(),
-                     patch->name.c_str());
 
     // A Trinity's macro names, macro1..macro8 joined by newlines, or "" when
     // the patch names none. Other machines clear them.
@@ -1741,7 +1819,7 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
             {
                 const std::string key = "macro" + std::to_string(k);
                 std::string       v;
-                for(const auto& kv : r.settings)
+                for(const auto& kv : src.settings)
                     if(kv.first == key)
                         v = kv.second;
                 any = any || !v.empty();
@@ -1755,32 +1833,31 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
 
     // The patch's inserts and sends. One without them takes the last patch's
     // inserts off and gives back the sends it held.
-    std::vector<std::string> fx_problems;
-    const acidulous::PatchChain chain = ab::resolveChain(*patch, fx_problems);
-    for(const auto& p : fx_problems)
-        std::fprintf(stderr, "acidulous: %s %s: %s\n", machine.c_str(), patch->name.c_str(), p.c_str());
-    apply_chain(part, chain, machine + " " + patch->name);
+    apply_chain(part, src.chain, machine + " " + src.name);
 
-    parts[part].patch = patch->name;
+    parts[part].patch = tag;
+    parts[part].low   = src.low;
+    parts[part].high  = src.high;
     if(!macros.empty())
     {
-        Args out{Value::i(part), Value::s(machine), Value::s(patch->name)};
+        Args out{Value::i(part), Value::s(machine), Value::s(tag)};
         out.insert(out.end(), macros.begin(), macros.end());
         reply("/macros", out);
     }
     send_macro_names(part);
-    Args values{Value::i(part), Value::s(machine), Value::s(patch->name)};
+    Args values{Value::i(part), Value::s(machine), Value::s(tag)};
     for(int32_t i = 0; i < count; ++i)
-        values.push_back(Value::f(r.norm[size_t(i)]));
+        values.push_back(Value::f(src.norm[size_t(i)]));
     reply("/values", values);
-    reply("/patch", {Value::i(part), Value::s(machine), Value::s(patch->name)});
+    reply("/patch", {Value::i(part), Value::s(machine), Value::s(tag)});
     if(machine == "Nexus")
         send_graph(part);
+    return true;
 }
 
 // A Nexus patch's macros: the knobs the patch sets, in its order, then the
 // knobs of the modules in its graph, as param and label pairs, up to five.
-Args Core::nexus_macros(const machine::nexus::Graph& g, const audition::BankPatch& patch)
+Args Core::nexus_macros(const machine::nexus::Graph& g, const std::vector<std::string>& named)
 {
     namespace nx = machine::nexus;
     const char* knob_name[nx::kSlots][nx::kKnobs] = {};
@@ -1800,9 +1877,8 @@ Args Core::nexus_macros(const machine::nexus::Graph& g, const audition::BankPatc
            std::find(picks.begin(), picks.end(), std::make_pair(slot, knob)) == picks.end())
             picks.push_back({slot, knob});
     };
-    for(const auto& v : patch.values)
+    for(const auto& n : named)
     {
-        const std::string& n = v.name;
         if(n.size() != 6 || n[0] != 's' || n[3] != '_' || n[4] != 'p' || !std::isdigit((unsigned char)n[1]) ||
            !std::isdigit((unsigned char)n[2]))
             continue;
@@ -1938,11 +2014,12 @@ void Core::clear_held(int part)
 // part's mount lock so nothing remounts the part meanwhile. An empty path
 // clears what the kind loads. Anything the engine's readers throw becomes an
 // /error.
-void Core::load(int part, const std::string& kind, const std::string& path, int arg)
+void Core::load(int part, const std::string& kind, const std::string& path, int arg,
+                const std::vector<std::string>& roots)
 {
     try
     {
-        load_now(part, kind, path, arg);
+        load_now(part, kind, path, arg, roots);
     }
     catch(const std::exception& e)
     {
@@ -1954,7 +2031,8 @@ void Core::load(int part, const std::string& kind, const std::string& path, int 
     }
 }
 
-void Core::load_now(int part, const std::string& kind, const std::string& path, int arg)
+void Core::load_now(int part, const std::string& kind, const std::string& path, int arg,
+                    const std::vector<std::string>& roots)
 {
     const std::string& m    = parts[part].machine;
     const auto         want = [&](std::initializer_list<const char*> machines) {
@@ -1970,6 +2048,7 @@ void Core::load_now(int part, const std::string& kind, const std::string& path, 
     std::string                 why;
     if(kind == "clear")
     {
+        parts[part].zones.clear();
         clear_objects(part);
         loaded(part, kind, "", 0, "");
         return;
@@ -2020,6 +2099,7 @@ void Core::load_now(int part, const std::string& kind, const std::string& path, 
             return load_error(part, kind, path, arg, "no preset " + std::to_string(arg));
         if(!host.loadSoundFont(part, path, arg, why))
             return load_error(part, kind, path, arg, why);
+        parts[part].zones.clear();
         set_held(part, 0, int64_t(found.st_size) * 2);
         return loaded(part, kind, path, arg, presets[size_t(arg)].name);
     }
@@ -2031,6 +2111,20 @@ void Core::load_now(int part, const std::string& kind, const std::string& path, 
         if(!why.empty())
             return load_error(part, kind, path, arg, why);
         return loaded(part, kind, path, arg, base_name(path));
+    }
+    if(kind == "zones")
+    {
+        if(!want({"Mosaic"}))
+            return;
+        int missing = 0;
+        why         = load_zones(part, path, arg, roots, missing);
+        if(!why.empty())
+            return load_error(part, kind, path, arg, why);
+        loaded(part, kind, path, arg, stem(path));
+        if(missing > 0)
+            load_error(part, kind, path, arg,
+                       std::to_string(missing) + (missing == 1 ? " file" : " files") + " not found");
+        return;
     }
     if(kind == "sample")
     {
@@ -2147,6 +2241,7 @@ std::string Core::load_folder_map(int part, const std::string& folder)
     }
     if(!host.loadZoneMap(part, spec, base_name(folder), why))
         return why;
+    parts[part].zones = spec;
     set_held(part, 0, need);
     return "";
 }
@@ -2278,6 +2373,454 @@ void Core::hear(const std::string& path)
     hear_pos.store(0);
     hear_buf.store(next);
     reply("/hear", {Value::s(path), Value::f(secs)});
+}
+
+// --- Preset files (.acpreset) ------------------------------------------------
+
+namespace
+{
+
+// The app's settings that hold paths to the user's files (PresetFile.isMediaKey,
+// less a recorded voice's, which the norns hasn't got).
+bool media_key(const std::string& k)
+{
+    return k == "sample" || k == "slice_sample" || k == "sf2" || k == "zones" ||
+           (k.size() > 7 && k.compare(k.size() - 7, 7, "_sample") == 0);
+}
+
+// Each path [value] holds, put through [fn]: the first field of each line for
+// zones, the whole value otherwise.
+template <typename Fn> std::string map_paths(const std::string& key, const std::string& value, Fn fn)
+{
+    if(value.empty() || !media_key(key))
+        return value;
+    if(key != "zones")
+        return fn(value);
+    std::string out;
+    size_t      at = 0;
+    while(at < value.size())
+    {
+        size_t end = value.find('\n', at);
+        if(end == std::string::npos)
+            end = value.size();
+        const std::string line = value.substr(at, end - at);
+        const size_t      bar  = line.find('|');
+        const std::string path = line.substr(0, bar);
+        if(!out.empty())
+            out += '\n';
+        out += path.empty() ? line : fn(path) + (bar == std::string::npos ? "" : line.substr(bar));
+        at = end + 1;
+    }
+    return out;
+}
+
+std::string dir_of(const std::string& path)
+{
+    const size_t slash = path.find_last_of('/');
+    return slash == std::string::npos ? std::string() : path.substr(0, slash + 1);
+}
+
+bool exists(const std::string& path)
+{
+    struct stat st{};
+    return !path.empty() && stat(path.c_str(), &st) == 0;
+}
+
+// [path] with each run of slashes made one, as norns's script path can end in "//".
+std::string squash(const std::string& path)
+{
+    std::string out;
+    for(const char ch : path)
+        if(ch != '/' || out.empty() || out.back() != '/')
+            out += ch;
+    return out;
+}
+
+// [path] under the first of [roots] it's in, without it, or as it is.
+std::string relative_to(const std::string& path, const std::vector<std::string>& roots)
+{
+    const std::string p = squash(path);
+    for(const auto& root : roots)
+    {
+        std::string r = squash(root);
+        if(!r.empty() && r.back() != '/')
+            r += '/';
+        if(r.size() > 1 && p.size() > r.size() && p.compare(0, r.size(), r) == 0)
+            return p.substr(r.size());
+    }
+    return p;
+}
+
+// Where a path from a preset is: as it is if absolute, else under the first
+// of [roots] that has it, then the preset's own folder, else under the first
+// root (so a "not found" names it).
+std::string resolve(const std::string& path, const std::vector<std::string>& roots, const std::string& own)
+{
+    if(path.empty() || path[0] == '/')
+        return path;
+    for(const auto& root : roots)
+    {
+        const std::string r = root.empty() || root.back() == '/' ? root : root + "/";
+        if(!r.empty() && exists(r + path))
+            return squash(r + path);
+    }
+    if(!own.empty() && exists(own + path))
+        return own + path;
+    return squash(roots.empty() || roots[0].empty() ? own + path
+                                                   : roots[0] + (roots[0].back() == '/' ? "" : "/") + path);
+}
+
+// Presets with media from the app can be big; patches are read from the first
+// 64 MB only, which is far more than any without media.
+constexpr long kMaxPresetFile = 64L << 20;
+
+bool read_preset(const std::string& path, Preset& out, std::string& why)
+{
+    FILE* f = std::fopen(path.c_str(), "rb");
+    if(!f)
+    {
+        why = "can't be read";
+        return false;
+    }
+    std::fseek(f, 0, SEEK_END);
+    const long size = std::ftell(f);
+    std::fseek(f, 0, SEEK_SET);
+    if(size <= 0 || size > kMaxPresetFile)
+    {
+        std::fclose(f);
+        why = size <= 0 ? "empty" : "too big";
+        return false;
+    }
+    std::vector<uint8_t> data(static_cast<size_t>(size));
+    const bool           ok = std::fread(data.data(), 1, data.size(), f) == data.size();
+    std::fclose(f);
+    if(!ok)
+    {
+        why = "can't be read";
+        return false;
+    }
+    return EngineHost::readPreset(data.data(), data.size(), out, why);
+}
+
+// Makes [dir] and the folders above it.
+bool make_dirs(const std::string& dir)
+{
+    for(size_t at = 1; at <= dir.size(); ++at)
+        if(at == dir.size() || dir[at] == '/')
+        {
+            const std::string sub = dir.substr(0, at);
+            if(mkdir(sub.c_str(), 0755) != 0 && errno != EEXIST)
+                return false;
+        }
+    return true;
+}
+
+// Writes [bytes] beside [path] and moves them over it, so a failed write
+// leaves the old file.
+bool write_file(const std::string& path, const std::vector<uint8_t>& bytes, std::string& why)
+{
+    if(!make_dirs(dir_of(path)))
+    {
+        why = std::string("can't make its folder: ") + std::strerror(errno);
+        return false;
+    }
+    const std::string tmp = path + ".tmp";
+    FILE*             f   = std::fopen(tmp.c_str(), "wb");
+    if(!f)
+    {
+        why = std::string("can't write it: ") + std::strerror(errno);
+        return false;
+    }
+    bool ok = std::fwrite(bytes.data(), 1, bytes.size(), f) == bytes.size();
+    ok      = std::fclose(f) == 0 && ok;
+    if(!ok || std::rename(tmp.c_str(), path.c_str()) != 0)
+    {
+        why = std::string("can't write it: ") + std::strerror(errno);
+        std::remove(tmp.c_str());
+        return false;
+    }
+    return true;
+}
+
+} // namespace
+
+// Saves the part's sound as a preset at [path], with [settings] (the files
+// the script knows, as absolute paths) and what the core holds: a Nexus
+// graph, a Formulate program, Mosaic's zones. File paths are written
+// relative to the first of [roots] they're under. Replies /preset_saved.
+void Core::save_preset(int part, const std::string& path, const std::string& name,
+                       std::vector<std::pair<std::string, std::string>> settings,
+                       const std::vector<std::string>& roots)
+{
+    const auto done = [&](const std::string& why) {
+        if(!why.empty())
+            std::fprintf(stderr, "acidulous: saving %s: %s\n", path.c_str(), why.c_str());
+        reply("/preset_saved", {Value::i(part), Value::s(path), Value::s(why.empty() ? "ok" : why)});
+    };
+    const Part& p = parts[part];
+    if(p.machine.empty())
+        return done("no machine");
+    if(name.empty())
+        return done("no name");
+    const auto set = [&](const std::string& key, const std::string& value) {
+        for(auto& kv : settings)
+            if(kv.first == key)
+            {
+                kv.second = value;
+                return;
+            }
+        settings.emplace_back(key, value);
+    };
+    if(p.machine == "Nexus" && !p.nexus.empty())
+        set("nexus", p.nexus);
+    if(p.machine == "Formulate")
+        for(const auto& kv : p.program_settings)
+            set(kv.first, kv.second);
+    if(p.machine == "Mosaic" && !p.zones.empty())
+        set("zones", p.zones);
+    for(auto& kv : settings)
+        kv.second = map_paths(kv.first, kv.second, [&](const std::string& f) { return relative_to(f, roots); });
+
+    // The values come from the engine, so it has to have run since the last
+    // change, and a mount still queued makes it fail: wait a few blocks.
+    std::vector<uint8_t> bytes;
+    std::string          why;
+    for(int tries = 0; tries < 10 && bytes.empty() && !stopping; ++tries)
+    {
+        mounts_queued = true;
+        settle();
+        bytes = host.writePreset(part, name, why, settings, p.low, p.high, true, &patch_fx[part]);
+    }
+    if(bytes.empty())
+        return done(why.empty() ? "busy" : why);
+    if(!write_file(path, bytes, why))
+        return done(why);
+    done("");
+}
+
+// Puts patch [index] of the preset at [path] on the part, as /patch does, its
+// replies naming it [tag]. With [files] its samples are loaded too, found by
+// resolve(). Ends with /preset_loaded i:part s:tag s:name s:error.
+void Core::load_preset(int part, const std::string& path, int index, const std::string& tag, bool files,
+                       const std::vector<std::string>& roots)
+{
+    const auto done = [&](const std::string& name, const std::string& why) {
+        if(!why.empty())
+            std::fprintf(stderr, "acidulous: %s: %s\n", path.c_str(), why.c_str());
+        reply("/preset_loaded", {Value::i(part), Value::s(tag), Value::s(name), Value::s(why)});
+    };
+    const auto fail = [&](const std::string& why) {
+        patch_failed(part, path);
+        done("", why);
+    };
+    Preset      preset;
+    std::string why;
+    if(!read_preset(path, preset, why))
+        return fail(why);
+    if(preset.kind != "machine")
+        return fail("an effect preset");
+    if(index < 0 || size_t(index) >= preset.patches.size())
+        return fail("no patch " + std::to_string(index + 1));
+    PresetPatch& pp = preset.patches[size_t(index)];
+    if(pp.version < kPatchVersion)
+        return fail("from an older app, save it again there");
+    int32_t m = 0;
+    while(m < MachineRegistry::count() && !lower_equal(MachineRegistry::name(m), pp.machine))
+        ++m;
+    if(m == MachineRegistry::count())
+        return fail("no machine " + pp.machine);
+    const std::string machine = MachineRegistry::name(m);
+    if(parts[part].machine != machine && !mount(part, machine))
+        return fail("can't mount " + machine);
+
+    int32_t         count = 0;
+    const ParamDef* defs  = MachineRegistry::paramDefs(machine.c_str(), count);
+    PatchSource     src;
+    src.name = pp.name;
+    for(int32_t i = 0; i < count; ++i)
+        src.norm.push_back(defs[i].unmap(defs[i].def));
+    int unknown = 0;
+    for(const auto& kv : pp.params)
+    {
+        int32_t i = 0;
+        while(i < count && kv.first != defs[i].name)
+            ++i;
+        if(i == count)
+        {
+            ++unknown;
+            continue;
+        }
+        src.norm[size_t(i)] = kv.second < 0.f ? 0.f : kv.second > 1.f ? 1.f : kv.second;
+        src.named.push_back(kv.first);
+    }
+    if(unknown > 0)
+        std::fprintf(stderr, "acidulous: %s: %d param(s) %s hasn't got\n", path.c_str(), unknown, machine.c_str());
+    src.settings = pp.settings;
+    src.chain    = pp.chain;
+    src.low      = pp.low;
+    src.high     = pp.high;
+    if(!apply_patch(part, machine, src, tag))
+        return done("", "couldn't apply it");
+    if(files)
+        load_preset_files(part, path, index, src.settings, roots);
+    done(pp.name, "");
+}
+
+// Loads the files a preset's settings name into the part's machine, each
+// with a /loaded or an /error. Files it doesn't name stay.
+void Core::load_preset_files(int part, const std::string& path, int index,
+                             const std::vector<std::pair<std::string, std::string>>& settings,
+                             const std::vector<std::string>& roots)
+{
+    const std::string  own = dir_of(path);
+    const std::string& m   = parts[part].machine;
+    std::string        sf2;
+    int                sf2preset = 0;
+    bool               zones     = false;
+    for(const auto& kv : settings)
+    {
+        const std::string& k = kv.first;
+        if(kv.second.empty())
+            continue;
+        if(m == "Forage" && k.size() == 10 && k[0] == 'p' && std::isdigit((unsigned char)k[1]) &&
+           std::isdigit((unsigned char)k[2]) && k.compare(3, 7, "_sample") == 0)
+        {
+            const int pad = (k[1] - '0') * 10 + (k[2] - '0');
+            if(pad < kForagePads)
+                load(part, "pad", resolve(kv.second, roots, own), pad, roots);
+        }
+        else if(m == "Forage" && k == "slice_sample")
+            load_error(part, "slices", kv.second, 0, "slices can't be loaded here");
+        else if(k == "sample" && (m == "Dice" || m == "Pollen" || m == "Molt"))
+            load(part, "sample", resolve(kv.second, roots, own), 0, roots);
+        else if(k == "sf2" && m == "Mosaic")
+            sf2 = kv.second;
+        else if(k == "sf2preset")
+            sf2preset = std::max(0, std::atoi(kv.second.c_str()));
+        else if(k == "zones" && m == "Mosaic")
+            zones = true;
+    }
+    if(!sf2.empty())
+        load(part, "sf2", resolve(sf2, roots, own), sf2preset, roots);
+    else if(zones)
+        load(part, "zones", path, index, roots);
+}
+
+// Mosaic: the zones of patch [index] of the preset at [path], their files
+// found by resolve(). Zones whose file is missing are left out and counted in
+// [missing]. Worker, under the part's mount lock.
+std::string Core::load_zones(int part, const std::string& path, int index, const std::vector<std::string>& roots,
+                             int& missing)
+{
+    Preset      preset;
+    std::string why;
+    if(!read_preset(path, preset, why))
+        return why;
+    if(index < 0 || size_t(index) >= preset.patches.size())
+        return "no patch " + std::to_string(index + 1);
+    std::string text;
+    for(const auto& kv : preset.patches[size_t(index)].settings)
+        if(kv.first == "zones")
+            text = kv.second;
+    const std::string own = dir_of(path);
+    std::string       spec;
+    int64_t           need = 0;
+    missing                = 0;
+    // the zones whose file is there, one per line
+    const std::string all = map_paths("zones", text, [&](const std::string& f) { return resolve(f, roots, own); });
+    size_t            at  = 0;
+    while(at < all.size())
+    {
+        size_t end = all.find('\n', at);
+        if(end == std::string::npos)
+            end = all.size();
+        const std::string line = all.substr(at, end - at);
+        const size_t      bar  = line.find('|');
+        at                     = end + 1;
+        if(bar == 0 || bar == std::string::npos)
+            continue;
+        const std::string file = line.substr(0, bar);
+        if(!exists(file))
+        {
+            ++missing;
+            continue;
+        }
+        need += decoded_bytes(file, 0, 0, false);
+        spec += line + "\n";
+    }
+    if(spec.empty())
+        return text.empty() ? "no zones in it" : "none of its files found";
+    if(!room_for(need, why))
+        return why;
+    if(!host.loadZoneMap(part, spec, stem(path), why))
+        return why;
+    parts[part].zones = spec;
+    set_held(part, 0, need);
+    return "";
+}
+
+// "/preset_scan s:folder (s:file i:index s:name s:unit)..." for every patch
+// of every .acpreset in [folder], by file name. Files that can't be read are
+// left out.
+void Core::scan_presets(const std::string& folder)
+{
+    std::vector<std::string> names;
+    if(DIR* d = opendir(folder.c_str()))
+    {
+        while(const dirent* e = readdir(d))
+        {
+            const std::string n = e->d_name;
+            if(n.size() > 9 && n[0] != '.' && lower(n.substr(n.size() - 9)) == ".acpreset")
+                names.push_back(n);
+        }
+        closedir(d);
+    }
+    std::sort(names.begin(), names.end(), [](const std::string& a, const std::string& b) { return lower(a) < lower(b); });
+    const std::string dir = folder.empty() || folder.back() == '/' ? folder : folder + "/";
+    Args              out{Value::s(folder)};
+    // one UDP message: a few hundred rows fit
+    constexpr size_t kMaxRows = 300;
+    for(const auto& n : names)
+    {
+        Preset      preset;
+        std::string why;
+        if(!read_preset(dir + n, preset, why))
+        {
+            std::fprintf(stderr, "acidulous: %s: %s\n", (dir + n).c_str(), why.c_str());
+            continue;
+        }
+        if(preset.kind != "machine")
+            continue;
+        for(size_t k = 0; k < preset.patches.size() && out.size() < 1 + 4 * kMaxRows; ++k)
+        {
+            out.push_back(Value::s(n));
+            out.push_back(Value::i(int(k)));
+            out.push_back(Value::s(preset.patches[k].name));
+            out.push_back(Value::s(preset.unit));
+        }
+    }
+    reply("/preset_scan", out);
+}
+
+// Takes patch [index] out of the preset at [path], or deletes the file when
+// it's the only one. Replies "/preset_deleted s:path i:index s:ok|error".
+void Core::delete_preset(const std::string& path, int index)
+{
+    const auto done = [&](const std::string& why) {
+        reply("/preset_deleted", {Value::s(path), Value::i(index), Value::s(why.empty() ? "ok" : why)});
+    };
+    Preset      preset;
+    std::string why;
+    if(!read_preset(path, preset, why))
+        return done(why);
+    if(index < 0 || size_t(index) >= preset.patches.size())
+        return done("no patch " + std::to_string(index + 1));
+    if(preset.patches.size() == 1)
+        return done(std::remove(path.c_str()) == 0 ? "" : std::string("can't delete it: ") + std::strerror(errno));
+    preset.patches.erase(preset.patches.begin() + index);
+    if(!write_file(path, presetfile::write(preset), why))
+        return done(why);
+    done("");
 }
 
 } // namespace core

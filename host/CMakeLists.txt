@@ -78,6 +78,11 @@ add_executable(acidulous-limit-test tests/limit_test.cpp)
 target_include_directories(acidulous-limit-test PRIVATE src)
 target_link_libraries(acidulous-limit-test acidulous-core)
 
+# Saves parts as .acpreset files and loads them back.
+add_executable(acidulous-preset-test tests/preset_test.cpp)
+target_include_directories(acidulous-preset-test PRIVATE src)
+target_link_libraries(acidulous-preset-test acidulous-core)
+
 if(SC_INC AND LO_INC AND LO_LIB)
     # scsynth loads every plugin into one process, so nothing but the plugin
     # entry points may be visible.

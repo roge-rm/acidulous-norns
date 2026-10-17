@@ -32,6 +32,24 @@
 //        machine). An empty path clears a pad or sample. WAV, AIFF and FLAC;
 //        SoundFonts over 64 MB are refused, and so is a load that would take
 //        the decoded samples of every part past 320 MB, or a path with | in it.
+//        "zones" (Mosaic, path a .acpreset, arg its patch index) loads the
+//        patch's zones, its files found as /preset_load does with the
+//        s:root args after arg.
+//   /preset_save i:part s:path s:name i:nroots s:root... (s:key s:value)...
+//        writes the part's sound as a .acpreset the app can read, making its
+//        folder. The settings are the files the script knows (sample,
+//        pNN_sample, sf2, sf2preset) as absolute paths; the plugin adds a
+//        Nexus graph, a Formulate program and Mosaic's zones, and writes
+//        every file path relative to the first root it's under. Waits for a
+//        queued mount; "busy" if it never lands
+//   /preset_load i:part s:path i:index s:tag i:files s:root...   puts patch
+//        index of the file on the part as /patch does, mounting its machine,
+//        with tag as the patch name in its replies. files 1 loads the files
+//        it names too, a relative path from the first root that has it, then
+//        the file's own folder. A patch from before version 3 is refused
+//   /preset_scan s:folder              the patches of the .acpreset files in it
+//   /preset_delete s:path i:index      takes the patch out of the file, or
+//        deletes the file when it's the last
 //   /presets s:path                    a SoundFont's presets
 //   /shape s:path                      a file's length and shape, for the picker
 //   /hear [s:path]                     plays a file once over everything, up
@@ -85,6 +103,13 @@
 //   /hear s:path f:seconds             once it starts, "" when stopped
 //   /error s:text [i:part s:kind s:path i:arg s:machine]   a failed /load has
 //        the rest
+//   /preset_saved i:part s:path s:result   "ok" or what went wrong
+//   /preset_loaded i:part s:tag s:name s:error   after its /values and /patch
+//        and the /loaded for its files; error "" when it loaded. A missing
+//        file is an /error of its own and the rest still loads
+//   /preset_scan s:folder (s:file i:index s:name s:unit)...   by file name,
+//        unit the machine; files that can't be read are left out
+//   /preset_deleted s:path i:index s:result   "ok" or what went wrong
 #pragma once
 #include <string>
 
