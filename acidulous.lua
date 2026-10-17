@@ -577,6 +577,14 @@ local function part_cards()
     if not ok then ps.pad = pads[1] end
   end
   local cards = panel.cards(part.machine, defs, ps.pad)
+  local fx = panel.fx_cards(part.fx)
+  if #fx > 0 then
+    -- a new list, as the machine's is cached
+    local all = {}
+    for _, c in ipairs(cards) do all[#all + 1] = c end
+    for _, c in ipairs(fx) do all[#all + 1] = c end
+    cards = all
+  end
   ps.card = util.clamp(ps.card, 1, math.max(1, #cards))
   local card = cards[ps.card]
   ps.knob = util.clamp(ps.knob, 1, card and #card.controls or 1)
@@ -700,14 +708,20 @@ local function turn_control(d)
   local step = state.k1 and 0.001 or 0.01
   local n = panel.positions(ctl)
   if n > 1 then step = 1 / (n - 1) end
-  local sid = parts.id(state.sel, "s" .. ctl.slot)
-  local old = params:get(sid)
+  -- an insert's param, or the machine's slot
+  local sid = ctl.fx and ("fx" .. ctl.fx .. ":" .. ctl.index) or parts.id(state.sel, "s" .. ctl.slot)
+  local old = ctl.fx and parts.fx_value(state.sel, ctl) or params:get(sid)
   local v = util.clamp(old + d * step, 0, 1)
+  if ctl.fx and n > 1 then v = math.floor(v * (n - 1) + 0.5) / (n - 1) end
   local def = ctl.def
   if def and def.min < 0 and def.max > 0 and def.curve ~= "step" then
     v = sticky(sid, old, v, parts.unmap(def, 0), d)
   end
-  params:set(sid, v)
+  if ctl.fx then
+    if v ~= old then parts.set_fx(state.sel, ctl, v) end
+  else
+    params:set(sid, v)
+  end
 end
 
 -- K1+E1 moves a page every PAGE_DETENTS detents, so it's easy to stop on one.

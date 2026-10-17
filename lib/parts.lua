@@ -72,6 +72,12 @@ for i = 1, P.COUNT do
     problem = nil,  -- {text, at}: the last load that failed
     last_path = nil, -- the last file or folder loaded, for the picker
     resend_files = false, -- send the files after the next mount
+    -- the inserts the plugin last listed, slot 0 or 1 -> {type, params},
+    -- each param a def with its 0-1 value; from /inserts
+    fx = {},
+    -- insert params moved by hand, "slot:name" -> 0-1. Saved in the part's
+    -- "fx" param and sent again over the patch's after a PSET is read.
+    fx_edits = {},
   }
 end
 
@@ -399,6 +405,69 @@ local function save_files(i)
   params:set(id(i, "files"), encode(P.list[i].files), true)
 end
 
+-- ---- insert effects --------------------------------------------------------------
+
+-- The part's insert edits as the "fx" param holds them: "slot,name,value"
+-- per edit, joined with "|".
+local function encode_fx(edits)
+  local keys = {}
+  for k in pairs(edits) do keys[#keys + 1] = k end
+  table.sort(keys)
+  local out = {}
+  for _, k in ipairs(keys) do
+    local slot, name = k:match("^(%d):(.+)$")
+    out[#out + 1] = string.format("%s,%s,%.4f", slot, name, edits[k])
+  end
+  return table.concat(out, "|")
+end
+
+local function decode_fx(s)
+  local edits = {}
+  for entry in (s or ""):gmatch("[^|]+") do
+    local slot, name, v = entry:match("^([01]),([^,]+),([%d%.eE+-]+)$")
+    if slot and tonumber(v) then edits[slot .. ":" .. name] = util.clamp(tonumber(v), 0, 1) end
+  end
+  return edits
+end
+
+local function save_fx(i)
+  params:set(id(i, "fx"), encode_fx(P.list[i].fx_edits), true)
+end
+
+-- Drops the part's insert edits, for a newly picked patch.
+local function clear_fx(i)
+  P.list[i].fx_edits = {}
+  save_fx(i)
+end
+
+-- An insert control's 0-1 value (ctl from panel.fx_cards).
+function P.fx_value(i, ctl)
+  local e = P.list[i].fx[ctl.fx]
+  local d = e and e.params[ctl.index]
+  return d and d.value or 0
+end
+
+function P.set_fx(i, ctl, v)
+  local part = P.list[i]
+  local e = part.fx[ctl.fx]
+  local d = e and e.params[ctl.index]
+  -- a patch on its way brings its own inserts
+  if not d or part.pending then return end
+  d.value = v
+  part.fx_edits[ctl.fx .. ":" .. d.name] = v
+  save_fx(i)
+  send("/fx", {i - 1, ctl.fx, d.name, v})
+end
+
+-- Sends the part's insert edits, after its /patch. The plugin runs them after
+-- the patch, so they go on top of its inserts.
+local function send_fx_edits(i)
+  for k, v in pairs(P.list[i].fx_edits) do
+    local slot, name = k:match("^(%d):(.+)$")
+    send("/fx", {i - 1, tonumber(slot), name, v})
+  end
+end
+
 local function base(path) return path:match("([^/]+)/*$") or path end
 local function stem(path) return (base(path):gsub("%.[^%.]*$", "")) end
 
@@ -481,13 +550,16 @@ local function load_machine(i, with_values)
   part.want_values = false
   if not with_values then part.edits = {} end
   if not part.machine then
+    part.fx = {}
     send("/unmount", {i - 1})
     name = nil
   elseif name then
     part.want_values = with_values
     part.values_at, part.values_retried = util.time(), false
     part.sends_moved = {}
+    part.fx = {} -- until /inserts lists the patch's
     send("/patch", {i - 1, part.machine, name})
+    send_fx_edits(i)
   else
     send("/mount", {i - 1, part.machine})
   end
@@ -516,6 +588,7 @@ function P.apply(i)
   part.pending = nil
   P.notes_off(i)
   P.send_strip(i)
+  part.fx_edits = decode_fx(params:get(id(i, "fx")))
   load_machine(i, false)
   -- the PSET's sends go on top of the ones the patch carries
   P.send_strip_param(i, "rev")
@@ -540,7 +613,7 @@ end
 
 local function add_part(i)
   local part = P.list[i]
-  params:add_group("part_" .. i, "part " .. i, 12 + P.slots)
+  params:add_group("part_" .. i, "part " .. i, 13 + P.slots)
 
   local chans = {"off"}
   for c = 1, 16 do chans[c + 1] = tostring(c) end
@@ -578,6 +651,7 @@ local function add_part(i)
     if machine == part.machine and not part.pending then return end -- a bang
     P.notes_off(i)
     part.edits = {}
+    clear_fx(i)
     -- the new machine starts empty
     part.files, part.loading, part.problem, part.last_path = {}, nil, nil, nil
     save_files(i)
@@ -594,11 +668,14 @@ local function add_part(i)
     if name == part.sent and not part.pending then return end -- a bang
     part.patch = name
     part.edits = {}
+    clear_fx(i)
     later(i, 0.2, function() load_machine(i, true) end)
   end)
 
   -- the files loaded into the machine, for PSETs; never shown
   params:add_text(id(i, "files"), "files", "")
+  -- insert params moved by hand, for PSETs; never shown
+  params:add_text(id(i, "fx"), "fx", "")
 
   params:add_control(id(i, "volume"), "volume", controlspec.new(-60, 3, "lin", 0.5, 0, "dB"))
   params:set_action(id(i, "volume"), function()
@@ -645,6 +722,7 @@ function P.add_params()
     params:hide(id(i, "mpe"))
     show_machine(i, nil, true)
     params:hide(id(i, "files"))
+    params:hide(id(i, "fx"))
   end
   -- params:clear() removes this when the script ends.
   params.action_read = function(filename) P.after_read(filename) end
@@ -752,6 +830,7 @@ function P.set_part(i, machine, patch)
     part.files, part.loading, part.problem, part.last_path = {}, nil, nil, nil
     save_files(i)
   end
+  clear_fx(i)
   P.loading = true
   params:set(id(i, "machine"), index)
   show_machine(i, P.list[i].machine, true)
@@ -839,6 +918,30 @@ function P.osc(path, args)
     if not part then return end
     if not part.sends_moved.rev then params:set(id(i, "rev"), args[2], true) end
     if not part.sends_moved.dly then params:set(id(i, "dly"), args[3], true) end
+  elseif path == "/inserts" then
+    -- the part's inserts after a patch or unmount, with the edits on top
+    local i = (args[1] or -1) + 1
+    local part = P.list[i]
+    if not part then return end
+    local fx, k = {}, 2
+    while k + 2 <= #args do
+      local slot, type, count = args[k], args[k + 1], args[k + 2]
+      k = k + 3
+      local list = {}
+      for _ = 1, count do
+        if k + 7 > #args then break end
+        local d = {
+          name = args[k], min = args[k + 1], max = args[k + 2], default = args[k + 3],
+          unit = args[k + 4], steps = args[k + 5], curve = args[k + 6], value = args[k + 7],
+        }
+        local edit = part.fx_edits[slot .. ":" .. d.name]
+        if edit then d.value = edit end
+        list[#list + 1] = d
+        k = k + 8
+      end
+      fx[slot] = {type = type, params = list}
+    end
+    part.fx = fx
   elseif path == "/macros" then
     local list = {}
     for j = 4, #args - 1, 2 do list[#list + 1] = {param = args[j], label = args[j + 1]} end

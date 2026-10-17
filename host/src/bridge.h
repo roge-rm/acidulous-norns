@@ -12,6 +12,8 @@
 //   /send i:slot s:name f:value01      a send effect's param: slot 0 the
 //        Reverb (size, damp, tone, predelay), 1 the Delay (time, feedback,
 //        tone, pingpong). Kept until the effect is mounted
+//   /fx i:part i:slot s:name f:value01  a param of the part's insert in slot
+//        0 or 1, by name, as /inserts lists them
 //   /master s:name f:value01           the master's params, e.g. "volume"
 //        (0-1.5 linear)
 //   /meters i:on                       sends /meters while on
@@ -50,6 +52,10 @@
 //        i:pressure i:cc74)...   the zone, the member channels the engine
 //        holds a note on (bit 0 is channel 1), and what each member channel
 //        holding a note last sent, -1 for nothing
+//   /inserts i:part (i:slot s:type i:count (s:name f:min f:max f:default
+//        s:unit i:steps s:curve f:value01)*count)*   the part's inserts, after
+//        each /patch and /unmount; just the part when it has none. Params as
+//        /def has them; values are the patch's, or the defaults
 //   /def s:machine i:index s:name f:min f:max f:default s:unit i:steps s:curve
 //        steps is 0 unless stepped; curve is "lin", "exp" or "step"
 //   /defs_end s:machine i:count

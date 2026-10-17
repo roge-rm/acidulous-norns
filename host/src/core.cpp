@@ -861,6 +861,13 @@ bool Core::command(const std::string& path, const Args& a)
             post([this, slot, n = to_str(a[1]), v = to_float(a[2])] { set_send(slot, n, v); });
         return true;
     }
+    if(path == "/fx" && a.size() >= 4)
+    {
+        const int part = to_int(a[0]), slot = to_int(a[1]);
+        if(part_ok(part) && slot >= 0 && slot < kEffectSlots)
+            post_part(part, [this, part, slot, n = to_str(a[2]), v = to_float(a[3])] { set_fx(part, slot, n, v); });
+        return true;
+    }
     if(path == "/master" && a.size() >= 2)
     {
         post([this, n = to_str(a[0]), v = to_float(a[1])] {
@@ -1208,6 +1215,7 @@ void Core::apply_chain(int part, const acidulous::PatchChain& chain, const std::
         std::fprintf(stderr, "acidulous: %s: %d insert(s) found no free slot\n", what.c_str(), int(skipped));
     if(unknown > 0)
         std::fprintf(stderr, "acidulous: %s: %d insert(s) name no effect this build has\n", what.c_str(), int(unknown));
+    send_inserts(part, chain);
     if(!plan.set)
         return;
     part_sends[part][0] = plan.reverb;
@@ -1216,6 +1224,73 @@ void Core::apply_chain(int part, const acidulous::PatchChain& chain, const std::
         if(part_sends[part][s] > 0.f)
             ensure_send(s);
     reply("/sends", {Value::i(part), Value::f(plan.reverb), Value::f(plan.delay)});
+}
+
+// "/inserts i:part" and per mounted insert slot "i:slot s:type i:count" and
+// count params of "s:name f:min f:max f:default s:unit i:steps s:curve
+// f:value01", as /def has them. The values are the ones the patch set, or the
+// defaults. The slots the patch filled hold its known inserts in order, so a
+// slot takes the next one of its type.
+void Core::send_inserts(int part, const acidulous::PatchChain& chain)
+{
+    Args   out{Value::i(part)};
+    size_t next = 0;
+    for(int slot = 0; slot < kEffectSlots; ++slot)
+    {
+        const std::string type = host.mountedEffect(part, slot);
+        int32_t           count = 0;
+        const ParamDef*   defs  = type.empty() ? nullptr : EffectRegistry::paramDefs(type.c_str(), count);
+        if(!defs || count <= 0)
+            continue;
+        const acidulous::PatchInsert* fx = nullptr;
+        if((patch_fx[part].owned >> slot) & 1u)
+            for(; next < chain.inserts.size() && !fx; ++next)
+                if(chain.inserts[next].type == type)
+                    fx = &chain.inserts[next];
+        out.push_back(Value::i(slot));
+        out.push_back(Value::s(type));
+        out.push_back(Value::i(count));
+        for(int32_t i = 0; i < count; ++i)
+        {
+            const ParamDef& d = defs[i];
+            float           v = d.unmap(d.def);
+            if(fx)
+                for(const auto& kv : fx->params)
+                    if(kv.first == d.name)
+                        v = kv.second;
+            out.push_back(Value::s(d.name));
+            out.push_back(Value::f(d.min));
+            out.push_back(Value::f(d.max));
+            out.push_back(Value::f(d.def));
+            out.push_back(Value::s(d.unit ? d.unit : ""));
+            out.push_back(Value::i(d.curve == Curve::Stepped ? d.steps : 0));
+            out.push_back(Value::s(d.curve == Curve::Exponential ? "exp" : d.curve == Curve::Stepped ? "step" : "lin"));
+            out.push_back(Value::f(v < 0.f ? 0.f : v > 1.f ? 1.f : v));
+        }
+    }
+    reply("/inserts", out);
+}
+
+// One of the part's insert's params, by name.
+void Core::set_fx(int part, int slot, const std::string& name, float v01)
+{
+    const std::string type = host.mountedEffect(part, slot);
+    if(type.empty())
+    {
+        error("no insert in slot " + std::to_string(slot));
+        return;
+    }
+    int32_t         count = 0;
+    const ParamDef* defs  = EffectRegistry::paramDefs(type.c_str(), count);
+    bool            found = false;
+    for(int32_t i = 0; i < count && !found; ++i)
+        found = name == defs[i].name;
+    if(!found)
+    {
+        error("no " + type + " param " + name);
+        return;
+    }
+    push_param(part, slot == 0 ? "effect1" : "effect2", name, v01);
 }
 
 // A send effect's param, kept for when it's mounted.

@@ -307,8 +307,13 @@ function view.card(parts, state, cards, ps, pads, panel, note)
       screen.level(sel and 15 or 5)
       text(cx, 60, tostring(at), "center")
     else
-      local p = params:lookup_param(parts.id(state.sel, "s" .. ctl.slot))
-      local v = p and p:get() or 0
+      local v
+      if ctl.fx then
+        v = parts.fx_value(state.sel, ctl)
+      else
+        local p = params:lookup_param(parts.id(state.sel, "s" .. ctl.slot))
+        v = p and p:get() or 0
+      end
       if w ~= KNOB_W then
         draw_switch(parts, ctl, x, w, v, sel)
       else
