@@ -95,6 +95,8 @@ The scope shows a Nexus patch's modules in a chain, and the output of the framed
 
 Every param of every part is in **PARAMETERS > EDIT**, one group per part.
 
+After 3 minutes without input the screen, and the OMX-27's, go to an acid bath screensaver. A norns key or encoder only wakes it, while notes and the OMX-27 wake it and play as normal. **screensaver after** in **PARAMETERS > EDIT** sets the time, or **off**.
+
 ## Parts and MIDI
 
 Part 1 listens on channel 1, part 2 on channel 2 and so on. To change it, set **channel** in the part's group. Two parts on the same channel play together, and **off** leaves a part silent.

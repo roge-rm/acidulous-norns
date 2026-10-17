@@ -4,6 +4,7 @@
 --   AUX (0) held:        keys 1 and 2 octave down and up, keys 11-18 pick part 1-8
 --   pots 0-4             the selected part's macros, with pickup
 --   encoder              patch; held and turned, machine; a tap, norns page
+-- Keys, the encoder and pots wake the screensaver and still do their job.
 
 local omx = include("lib/omx")
 
@@ -92,6 +93,7 @@ function surf.key(n, ev)
   local a = surf.actions
   local z = ev == "down" and 1 or (ev == "up" and 0 or nil)
   if z == nil then return end
+  if z == 1 then a.touch() end
   if n == 0 then
     aux = z == 1
     return
@@ -120,6 +122,7 @@ end
 
 function surf.enc(d)
   local a = surf.actions
+  a.touch()
   if enc_down then
     enc_turned = true
     a.machine(d)
@@ -129,6 +132,7 @@ function surf.enc(d)
 end
 
 function surf.enc_btn(z)
+  surf.actions.touch()
   if z == 1 then
     enc_down, enc_turned = true, false
   else
@@ -145,6 +149,12 @@ function surf.pot(n, pos)
   local p = pots[n] or {}
   pots[n] = p
   if p.last and math.abs(pos - p.last) < 0.002 then return end -- jitter
+  -- a jittering pot shouldn't keep the screensaver away: it counts once it
+  -- has moved 1% from where it last counted
+  if not p.anchor or math.abs(pos - p.anchor) > 0.01 then
+    p.anchor = pos
+    a.touch()
+  end
   local last = p.last
   p.last = pos
   local mac = a.macros()[n + 1]
@@ -200,6 +210,11 @@ function surf.frame()
   local a = surf.actions
   local sel = a.selected()
   local colour = surf.COLOURS[sel]
+  if a.saving() then
+    a.saver_leds(omx.led, colour)
+    omx.led_show()
+    return
+  end
   for n = 1, 26 do omx.led(n, 0, 0, 0) end
   omx.led(0, scaled(colour, 0.6))
   if aux then

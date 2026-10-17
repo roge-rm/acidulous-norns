@@ -60,6 +60,7 @@ local picker = include("lib/picker")
 local lists = include("lib/lists")
 local scope = include("lib/scope")
 local draw = include("lib/draw")
+local saver = include("lib/saver")
 -- the picker's own copy, so it sees the stick the watcher mounts
 local library = picker.lib
 
@@ -72,9 +73,10 @@ local auditioning = nil -- the part K3 is playing
 local omx_problem = nil  -- {text, at}: the OMX-27 can't do REMOTE mode
 
 -- For the REPL: acid.midi(port, bytes) plays as if from MIDI port `port`,
--- acid.omx is the OMX-27 surface (call its key, pot, enc and enc_btn).
+-- acid.omx is the OMX-27 surface (call its key, pot, enc and enc_btn),
+-- acid.saver the screensaver (set its delay in seconds).
 acid = {parts = parts, state = state, macros = macros, panel = panel, surfaces = surfaces, omx = surfaces.kinds[1],
-  picker = picker, scope = scope}
+  picker = picker, scope = scope, saver = saver}
 
 -- ---- MIDI in ----------------------------------------------------------------
 
@@ -448,6 +450,7 @@ local function midi_event(port, data)
   end
   sync_mpe()
   if parts.mpe and mpe_source(port) then
+    if kind == 0x90 then saver.touch() end
     play_mpe(data, port)
     return
   end
@@ -457,6 +460,7 @@ local function midi_event(port, data)
     watch_keys(port_name(port), kind, ch, d2)
   end
   if kind and is_keys(port) then
+    if kind == 0x90 then saver.touch() end
     play_keys(data, port)
     return
   end
@@ -560,11 +564,31 @@ local function start_surfaces()
     print("acidulous: OMX-27 firmware " .. v .. " has no REMOTE mode, needs 1.15.4")
   end
   a.answered = function() omx_problem = nil end
-  a.draw = function(surf) view.omx(parts, state, part_macros(), surf) end
+  a.draw = function(surf)
+    if saver.active() then saver.draw(parts, true) else view.omx(parts, state, part_macros(), surf) end
+  end
+  a.touch = saver.touch
+  a.saving = saver.active
+  a.saver_leds = function(led, colour) saver.leds(parts, led, colour) end
   surfaces.connect_all()
 end
 
 -- ---- start-up ----------------------------------------------------------------
+
+-- Settings kept between runs, outside PSETs.
+local SETTINGS_FILE = _path.data .. "acidulous/settings.lua"
+local SAVER_TIMES = {60, 180, 600, math.huge} -- seconds, by "screensaver after"
+
+local function save_settings()
+  util.make_dir(_path.data .. "acidulous")
+  tab.save({saver = params:get("saver")}, SETTINGS_FILE)
+end
+
+local function load_settings()
+  local t = tab.load(SETTINGS_FILE)
+  if t and t.saver then params:set("saver", t.saver, true) end
+  saver.delay = SAVER_TIMES[params:get("saver")]
+end
 
 local function ready()
   params:add_separator("acidulous", "acidulous")
@@ -598,6 +622,13 @@ local function ready()
     sync_mpe()
   end)
   params:add_number("omx_velocity", "omx velocity", 1, 127, 100)
+  params:add_option("saver", "screensaver after", {"1 min", "3 min", "10 min", "off"}, 2)
+  params:set_action("saver", function(i)
+    saver.delay = SAVER_TIMES[i]
+    save_settings()
+  end)
+  params:set_save("saver", false)
+  load_settings()
   parts.add_params()
   local names = {}
   for _, m in ipairs(parts.machines) do names[#names + 1] = m.name end
@@ -771,6 +802,12 @@ function redraw()
   local note = omx_problem and util.time() - omx_problem.at < 10 and omx_problem.text or nil
   scope.check(parts)
   update_energy()
+  if saver.active() then
+    want_meters(false)
+    saver.draw(parts, false)
+    screen.update()
+    return
+  end
   local overlay = picker.active() or lists.active(parts) or scope.active()
   want_meters(state.page == "mixer" and not overlay)
   if picker.active() then
@@ -1057,12 +1094,29 @@ local function handle_enc(n, d)
   end
 end
 
+-- A norns key or encoder only wakes the screensaver; a key pressed to wake
+-- it is let go without doing anything either.
+local woke_by = {}
+
 function key(n, z)
+  local asleep = saver.active()
+  saver.touch()
+  if z == 1 and asleep then
+    woke_by[n] = true
+    return
+  end
+  if z == 0 and woke_by[n] then
+    woke_by[n] = nil
+    return
+  end
   handle_key(n, z)
   if parts.ready then set_encoders() end
 end
 
 function enc(n, d)
+  local asleep = saver.active()
+  saver.touch()
+  if asleep then return end
   handle_enc(n, d)
   if parts.ready then set_encoders() end
 end
