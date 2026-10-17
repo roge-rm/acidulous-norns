@@ -47,11 +47,13 @@ If SuperCollider won't start after you've been logged in over ssh, restart the n
 
 ## On the norns
 
+The play page opens first. It shows the selected part's machine and patch, its 5 macros with a knob each, and along the bottom the part number, the MPE mark or **mpe: no device**, **keys** while a keys port is connected, and the load. **E1** changes the machine, **E2** moves between the patch and the macros and **E3** sets what's picked, the next patch or the macro's value, with **K1** held for fine steps. **K2** opens the patch list, **K1** held + **K2** the machine picker and **K3** plays a note. The macros are the same ones as the OMX-27's pots.
+
 The parts page lists the parts, each with its machine, patch and a level meter. The bar on the left lights while a part is playing.
 
 | | |
 |---|---|
-| **K1** held + **E1** | page: parts, card, mixer, sends, a few detents a page |
+| **K1** held + **E1** | page: play, parts, card, mixer, sends, a few detents a page |
 | **E1** | pick a part |
 | **E2** | patch |
 | **K1** held + **E2** | machine |
@@ -63,7 +65,7 @@ The parts page lists the parts, each with its machine, patch and a level meter. 
 
 The patch list has the machine's patches in families, like classic, motion and short on Reflux, and the machine picker has the machines in the app's groups, each with a short line. In both **E1** changes the tab, **E2** moves and **K3** loads the patch or mounts the machine. **K2** closes.
 
-The card page has the machine's controls in the same cards as the app, like osc, filter, play and out on Reflux. **E1** picks the card, **E2** the control and **E3** sets it, with **K1** held for fine steps. Cards for one pad of a kit start with a pad control. A patch's effects, like Saw Lead's distortion and delay, have cards after the machine's. Effect settings you change are saved in a PSET and go when you pick another patch. **K2** goes back.
+The card page has the machine's controls in the same cards as the app, like osc, filter, play and out on Reflux. **E1** picks the card, **E2** the control and **E3** sets it, with **K1** held for fine steps. Cards for one pad of a kit start with a pad control. A patch's effects, like Saw Lead's distortion and delay, have cards after the machine's. Effect settings you change are saved in a PSET and go when you pick another patch. **K2** goes back to the play page.
 
 Pan and the card controls that go either side of 0 stop at the centre. Turn 3 more detents the same way to go past it.
 

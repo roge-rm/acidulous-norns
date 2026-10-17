@@ -3,8 +3,12 @@
 --
 -- 8 parts, each on its own
 -- MIDI channel
--- K1 held + E1 page: parts,
--- card, mixer, sends
+-- K1 held + E1 page: play,
+-- parts, card, mixer, sends
+-- play: E1 machine, E2 patch or
+-- macro, E3 sets it, K2 patch
+-- list, K1 held + K2 machines,
+-- K3 play a note
 -- parts: E1 part, E2 patch,
 -- E3 volume, K2 patch list,
 -- K1 held + K2 machines,
@@ -37,12 +41,14 @@
 -- OMX-27: keys play the part,
 -- AUX + top keys 1 2 octave,
 -- AUX + bottom keys 1-8 part,
--- pots macros, encoder patch
+-- pots macros, encoder patch,
+-- tap swaps play and card
 
 engine.name = "Acidulous"
 
 local parts = include("lib/parts")
 local view = include("lib/view")
+local playpage = include("lib/play")
 local macros = include("lib/macros")
 local panel = include("lib/panel")
 local surfaces = include("lib/surfaces")
@@ -54,10 +60,11 @@ local scope = include("lib/scope")
 -- the picker's own copy, so it sees the stick the watcher mounts
 local library = picker.lib
 
-local PAGES = {"parts", "card", "mixer", "sends"}
+local PAGES = {"play", "parts", "card", "mixer", "sends"}
 -- cards: part -> its card page {machine, card, knob, first, tab_first, pad}
+-- play: part -> its play page {focus}, 0 the patch, 1-5 a macro
 -- out: the out strip is selected on the mixer and sends pages
-local state = {sel = 1, k1 = false, page = "parts", cards = {}, out = false}
+local state = {sel = 1, k1 = false, page = "play", cards = {}, play = {}, out = false}
 local auditioning = nil -- the part K3 is playing
 local omx_problem = nil  -- {text, at}: the OMX-27 can't do REMOTE mode
 
@@ -525,10 +532,10 @@ local function start_surfaces()
     if parts.list[state.sel].machine then params:delta(parts.id(state.sel, "patch"), d) end
   end
   a.machine = function(d) params:delta(parts.id(state.sel, "machine"), d) end
-  -- the encoder's tap closes a list, or swaps the parts and card pages
+  -- the encoder's tap closes a list, or swaps the play and card pages
   a.page = function()
     if lists.active(parts) then lists.close()
-    else state.page, state.out = state.page == "parts" and "card" or "parts", false end
+    else state.page, state.out = state.page == "play" and "card" or "play", false end
   end
   a.macros = function() return part_macros() end
   a.slot_id = function(slot) return parts.id(state.sel, "s" .. slot) end
@@ -708,6 +715,16 @@ local function draw_splash()
   return true
 end
 
+-- The selected part's play page state.
+local function play_state()
+  local ps = state.play[state.sel]
+  if not ps then
+    ps = {focus = 0}
+    state.play[state.sel] = ps
+  end
+  return ps
+end
+
 function redraw()
   if install.status or parts.error then
     splash_at = nil
@@ -736,6 +753,8 @@ function redraw()
     if s.kind == "machines" then view.machines(parts, s) else view.patches(parts, s) end
   elseif scope.active() then
     view.scope(parts, scope.screen())
+  elseif state.page == "play" then
+    playpage.draw(parts, state, part_macros(), play_state(), note, keys_active())
   elseif state.page == "card" then
     local ps, cards, pads = part_cards()
     view.card(parts, state, cards, ps, pads, panel, note)
@@ -770,6 +789,20 @@ local function sticky(key, old, new, centre, d)
   return new
 end
 
+-- Where d detents take a 0-1 value: about 100 for the whole range (0.001 with
+-- K1 held), one position a detent for n > 1 positions, rounded to one if
+-- `round`. A param that goes either side of 0 sticks there.
+local function turned(key, def, n, old, d, round)
+  local step = state.k1 and 0.001 or 0.01
+  if n > 1 then step = 1 / (n - 1) end
+  local v = util.clamp(old + d * step, 0, 1)
+  if round then v = math.floor(v * (n - 1) + 0.5) / (n - 1) end
+  if def and def.min < 0 and def.max > 0 and def.curve ~= "step" then
+    v = sticky(key, old, v, parts.unmap(def, 0), d)
+  end
+  return v
+end
+
 -- E3 on a card's control: about 100 detents for the whole range (0.001 with
 -- K1 held), one position a detent for a stepped one, or the next pad.
 local function turn_control(d)
@@ -786,18 +819,11 @@ local function turn_control(d)
     end
     return
   end
-  local step = state.k1 and 0.001 or 0.01
   local n = panel.positions(ctl)
-  if n > 1 then step = 1 / (n - 1) end
   -- an insert's param, or the machine's slot
   local sid = ctl.fx and ("fx" .. ctl.fx .. ":" .. ctl.index) or parts.id(state.sel, "s" .. ctl.slot)
   local old = ctl.fx and parts.fx_value(state.sel, ctl) or params:get(sid)
-  local v = util.clamp(old + d * step, 0, 1)
-  if ctl.fx and n > 1 then v = math.floor(v * (n - 1) + 0.5) / (n - 1) end
-  local def = ctl.def
-  if def and def.min < 0 and def.max > 0 and def.curve ~= "step" then
-    v = sticky(sid, old, v, parts.unmap(def, 0), d)
-  end
+  local v = turned(sid, ctl.def, n, old, d, ctl.fx and n > 1)
   if ctl.fx then
     if v ~= old then parts.set_fx(state.sel, ctl, v) end
   else
@@ -818,11 +844,11 @@ local function step_page(d)
   for k, p in ipairs(PAGES) do
     if p == state.page then
       state.page = PAGES[util.clamp(k + d, 1, #PAGES)]
-      if state.page == "parts" or state.page == "card" then state.out = false end
+      if state.page ~= "mixer" and state.page ~= "sends" then state.out = false end
       return
     end
   end
-  state.page = "parts"
+  state.page = "play"
 end
 
 -- E1 on the mixer and sends pages: the parts, then the out strip.
@@ -848,6 +874,10 @@ local enc_mode = {}
 local function selecting(n)
   if n == 1 or picker.active() or lists.active(parts) or scope.active() then return true end
   if n == 2 then return state.page ~= "mixer" and state.page ~= "sends" end
+  if state.page == "play" then
+    local mac = part_macros()[play_state().focus]
+    return mac == nil or mac.slot == nil or panel.positions({def = mac.def}) > 1
+  end
   if state.page ~= "card" then return false end
   local ps, cards = part_cards()
   local card = cards[ps.card]
@@ -887,11 +917,11 @@ local function handle_key(n, z)
     if z == 1 and not scope.open(parts, state.sel) then picker.open(parts, state.sel) end
   elseif state.page == "mixer" and not scope.active() and (n == 2 or n == 3) then
     if z == 1 and not state.out then toggle(parts.id(state.sel, n == 2 and "mute" or "solo")) end
-  elseif n == 2 and z == 1 and state.page == "parts" then
+  elseif n == 2 and z == 1 and (state.page == "parts" or state.page == "play") then
     -- the patch list, or the machine picker with K1 or on an empty part
     if state.k1 or not lists.open_patches(parts, state.sel) then lists.open_machines(parts, state.sel) end
   elseif n == 2 and z == 1 and state.page == "card" then
-    state.page = "parts"
+    state.page = "play"
   elseif n == 3 then
     if z == 1 then
       if auditioning then parts.audition(auditioning, 0) end
@@ -934,6 +964,22 @@ local function handle_enc(n, d)
       params:delta(parts.id(i, "volume"), d)
     else
       params:delta(parts.id(i, n == 2 and "rev" or "dly"), d)
+    end
+  elseif state.page == "play" then
+    local ps = play_state()
+    if n == 1 then
+      params:delta(parts.id(i, "machine"), d)
+    elseif n == 2 then
+      ps.focus = util.clamp(ps.focus + d, 0, macros.COUNT)
+    elseif ps.focus == 0 then
+      if parts.list[i].machine then params:delta(parts.id(i, "patch"), d) end
+    else
+      local mac = part_macros()[ps.focus]
+      if mac and mac.slot then
+        local sid = parts.id(i, "s" .. mac.slot)
+        local old = params:get(sid)
+        params:set(sid, turned(sid, mac.def, panel.positions({def = mac.def}), old, d))
+      end
     end
   elseif state.page == "card" then
     local ps, cards = part_cards()
