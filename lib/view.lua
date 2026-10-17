@@ -320,10 +320,10 @@ function view.patches(parts, s)
     local on = k == s.cursor
     if on then fill_rect(0, y - 6, 120, 7, 3) end
     screen.level(on and 15 or (row.name == s.current and 12 or 7))
-    text(2, y, fit(row.name:lower(), on and 102 or 116))
+    text(2, y, fit(row.name:lower(), on and 90 or 116))
     if on then
       screen.level(6)
-      text(118, y, "k3", "right")
+      text(118, y, (s.kind == "patches" and row.name == s.current) and "reset" or "k3", "right")
     end
   end
   scrollbar(124, 17, 46, s.top, shown, #s.rows)

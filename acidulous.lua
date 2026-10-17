@@ -14,7 +14,7 @@
 -- K1 held + K2 machines,
 -- K3 play a note
 -- lists: E1 tab, E2 move,
--- K3 load, K2 close
+-- K3 load or reset, K2 close
 -- K1 held + K3 opens files for
 -- Forage, Mosaic, Dice, Pollen
 -- or Molt, from dust/audio or

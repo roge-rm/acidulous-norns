@@ -126,7 +126,8 @@ function L.enc(parts, n, d)
 end
 
 -- K3 mounts the machine and closes, or loads the patch and stays open, so
--- you can play through a family.
+-- you can play through a family. K3 on the part's current patch loads it
+-- again with its own values.
 function L.key(parts, n, z)
   if z ~= 1 then return end
   if n == 2 then
@@ -141,6 +142,10 @@ function L.key(parts, n, z)
       end
       open = nil
     elseif parts.list[i].machine == open.machine then
+      if row.name == parts.list[i].patch then
+        parts.reset_patch(i)
+        return
+      end
       params:set(parts.id(i, "patch"), row.index)
     else
       open = nil -- the machine changed under the list

@@ -1025,6 +1025,19 @@ function P.set_part(i, machine, patch)
   P.list[i].patch = patch_name(i)
 end
 
+-- Loads the part's current patch again with its own values: forgets what the
+-- run remembered for it and drops the edits.
+function P.reset_patch(i)
+  local part = P.list[i]
+  if not part.machine then return end
+  P.notes_off(i)
+  memory[mem_key(i) or ""] = nil
+  part.edits = {}
+  clear_fx(i)
+  recall(i)
+  later(i, 0.2, function() load_machine(i, true) end)
+end
+
 -- Sends a part's volume and machine with its patch, which fills the slots
 -- with the patch's values when it's applied.
 function P.start_part(i)
