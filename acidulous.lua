@@ -28,6 +28,11 @@
 -- an MPE controller plays the
 -- selected part, or the one
 -- set in "mpe part"
+-- a port sending on one channel
+-- is keys and plays the selected
+-- part, on two or more it's a
+-- sequencer and plays by channel
+-- ("keys from" overrides)
 --
 -- OMX-27: keys play the part,
 -- AUX + top keys 1 2 octave,
@@ -86,6 +91,11 @@ local rpn = {} -- port name -> channel -> {msb, lsb}, for the MCM and RPN 0
 local port_bend = {} -- port name -> member bend range from its RPN 0
 -- port name -> part -> the range last put on that part's "mpe bend"
 local bend_set = {}
+
+-- Channels each port has sent note ons on, by port name: ch -> true. Two or
+-- more makes it a sequencer for the rest of the run.
+local note_chs = {}
+local sequencers = {}
 
 local PROBE_NOTES = 16 -- note ons "auto" watches before giving up on a port
 
@@ -207,6 +217,37 @@ local function mpe_source(port)
   if sel == 1 then return is_mpe_port(port) end
   return sel == 2 or sel - 2 == port
 end
+
+-- Counts a note on's channel for the port, outside MPE and surfaces.
+local function watch_keys(name, kind, ch, d2)
+  if kind ~= 0x90 or d2 == 0 or sequencers[name] or is_surface(name) then return end
+  local chs = note_chs[name]
+  if not chs then chs = {}; note_chs[name] = chs end
+  chs[ch] = true
+  local n = 0
+  for _ in pairs(chs) do n = n + 1 end
+  if n >= 2 then sequencers[name] = true end
+end
+
+-- True if port plays the selected part: the one "keys from" names, or with
+-- "auto" a port that has only sent on one channel.
+local function is_keys(port)
+  local sel = params:get("keys_from")
+  if sel == 2 then return false end
+  if sel > 2 then return sel - 2 == port end
+  local name = port_name(port)
+  return note_chs[name] ~= nil and not sequencers[name] and not is_surface(name)
+    and not is_mpe_port(port)
+end
+
+-- True while a keys port is connected, for the screen.
+local function keys_active()
+  for i = 1, 16 do
+    if midi.vports[i].device and is_keys(i) then return true end
+  end
+  return false
+end
+acid.keys_active = keys_active
 
 -- Where each held note went, so its note off goes to the same places whatever
 -- has changed since. Keyed by source (a port, or "omx"), channel and note;
@@ -366,6 +407,23 @@ local function play_mpe(data, src)
   end
 end
 
+-- A keys port's message as if on the selected part's channel, so parts layered
+-- on it play too, or straight to the part on channel 1 if its channel is off.
+-- Note offs go by the incoming channel, as the note on was remembered.
+local function play_keys(data, port)
+  local kind, ch, d1, d2 = unpack_midi(data)
+  local i = state.sel
+  local part = parts.list[i]
+  if part.channel > 0 then
+    play({(data[1] & 0xF0) | (part.channel - 1), d1, d2}, port, ch)
+  elseif part.machine and not is_off(kind, d2) then
+    send_to(i, kind, 1, d1, d2)
+    if kind == 0x90 then remember(port, ch, d1, i, 1) end
+  else
+    release(port, ch, d1)
+  end
+end
+
 local function midi_event(port, data)
   local kind, ch, d1, d2 = unpack_midi(data)
   if kind and is_off(kind, d2) then
@@ -385,6 +443,13 @@ local function midi_event(port, data)
   end
   local dev = params:get("midi_device")
   if dev > 1 and dev - 1 ~= port then return end
+  if kind and not (parts.mpe and mpe_source(port)) then
+    watch_keys(port_name(port), kind, ch, d2)
+  end
+  if kind and is_keys(port) then
+    play_keys(data, port)
+    return
+  end
   play(data, port)
 end
 acid.midi = midi_event
@@ -409,6 +474,13 @@ local function device_names()
   return names
 end
 
+local function keys_device_names()
+  local names = device_names()
+  names[1] = "auto"
+  table.insert(names, 2, "none")
+  return names
+end
+
 local function mpe_device_names()
   local names = device_names()
   table.insert(names, 1, "auto")
@@ -428,9 +500,12 @@ end
 local function refresh_devices()
   -- norns puts the device on its port after this is called
   timer.after(0.5, function()
-    for _, pid in ipairs({"midi_device", "mpe_device"}) do
+    for _, pid in ipairs({"midi_device", "mpe_device", "keys_from"}) do
       local p = params:lookup_param(pid)
-      if p then p.options = pid == "mpe_device" and mpe_device_names() or device_names() end
+      if p then
+        p.options = pid == "mpe_device" and mpe_device_names()
+          or pid == "keys_from" and keys_device_names() or device_names()
+      end
     end
   end)
 end
@@ -477,6 +552,12 @@ local function ready()
   params:add_option("midi_device", "midi from", device_names(), 1)
   -- notes held on the old device would never get their note offs
   params:set_action("midi_device", function()
+    for i = 1, parts.COUNT do
+      if parts.list[i].machine then parts.notes_off(i) end
+    end
+  end)
+  params:add_option("keys_from", "keys from", keys_device_names(), 1)
+  params:set_action("keys_from", function()
     for i = 1, parts.COUNT do
       if parts.list[i].machine then parts.notes_off(i) end
     end
