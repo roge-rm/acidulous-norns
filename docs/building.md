@@ -4,7 +4,7 @@ The plugin must be built for 32-bit ARM, so build it on a norns (or another 32-b
 
 ## On the norns
 
-`;install` puts the script in `~/dust/code/acidulous-norns`, so build there. Nothing depends on the folder's name.
+The script lives in `~/dust/code/acidulous`, so build there. Nothing in the code depends on the folder's name, but **SELECT** shows it as acidulous only when the folder is called that.
 
 You need cmake, the SuperCollider plugin headers (on norns in `/usr/local/include/SuperCollider`) and liblo. All are on a stock norns.
 

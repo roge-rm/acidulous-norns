@@ -34,7 +34,7 @@ Dan
 
 ## Installing
 
-1. In maiden, type `;install https://github.com/roge-rm/acidulous-norns` into the REPL.
+1. In maiden, open the project list, find acidulous and press **install**. Or over ssh, `git clone https://github.com/roge-rm/acidulous-norns ~/dust/code/acidulous`. The folder needs to be called acidulous for it to show as acidulous in **SELECT**.
 2. Load acidulous from **SELECT**.
 3. The first time, it installs its SuperCollider plugin and restarts SuperCollider, then loads by itself. This takes about 20 seconds.
 
@@ -42,7 +42,7 @@ If SuperCollider won't start after you've been logged in over ssh, restart the n
 
 ## Updating
 
-1. In maiden, open the project list, find acidulous-norns and press **update**.
+1. In maiden, open the project list, find acidulous and press **update**.
 2. Load acidulous again. If the plugin has changed it installs it and restarts SuperCollider, then loads by itself.
 
 ## On the norns
