@@ -308,6 +308,9 @@ function P.add_master_params()
       if not P.loading then send_send_param(sp) end
     end)
   end
+  -- the wavetable count a PSET was saved with, for P.after_read; never shown
+  params:add_number("wave_tables", "wave tables", 0, 1024, P.WAVE_TABLES)
+  params:hide("wave_tables")
 end
 
 -- "l12", "c" or "r30", for a pan of -1 to 1.
@@ -740,6 +743,74 @@ function P.add_params()
   params.action_read = function(filename) P.after_read(filename) end
 end
 
+-- ---- old PSETs ---------------------------------------------------------------------
+
+-- The wavetables there are now. A PSET saves it in "wave_tables"; one without
+-- it was written when there were 8. Slots hold 0-1 values, so when the bank
+-- grows every saved wave choice moves unless it's rescaled, as the engine's
+-- TableCounts.h does for engine lines.
+P.WAVE_TABLES = 32
+local TRINITY_WAVES_BEFORE, TRINITY_WAVES = 12, 4 + P.WAVE_TABLES
+local NEXUS_TABLES_BEFORE, NEXUS_TABLES = 8, P.WAVE_TABLES
+
+-- The "wave_tables" a PSET file was written with, or 8 if it has none.
+local function saved_tables(filename)
+  local f = filename and io.open(filename, "r")
+  if not f then return P.WAVE_TABLES end
+  local n = 8
+  for line in f:lines() do
+    local v = line:match('^"wave_tables"%s*:%s*(%d+)')
+    if v then n = tonumber(v) break end
+  end
+  f:close()
+  return n
+end
+
+-- The slots holding a wtosc in a Nexus patch's graph, from its bank, as a
+-- set of slot numbers.
+local function wtosc_slots(patch)
+  local slots, current = {}, nil
+  local f = patch and io.open(norns.state.path .. "data/banks/Nexus.bank")
+  if not f then return slots end
+  for line in f:lines() do
+    local rest = line:match("^%s*patch%s+(.*)$")
+    if rest then
+      current = rest:match('^"([^"]*)"') or rest:match("^(%S+)")
+    elseif current == patch then
+      local graph = line:match('^%s*set%s+nexus%s+"(.*)"')
+      if graph then
+        for s in graph:gmatch("m|(%d+)|wtosc") do slots[tonumber(s)] = true end
+      end
+    end
+  end
+  f:close()
+  return slots
+end
+
+-- Rescales a part's saved wave choices from a PSET made with 8 wavetables:
+-- Trinity's o1-o3_wave from 12 steps to 36, the same wave, and a Nexus wtosc's
+-- table knob (its slot's first knob) from 8 tables to 32, the middle of the
+-- same table.
+local function migrate_waves(i)
+  local machine = P.list[i].machine
+  if machine ~= "Trinity" and machine ~= "Nexus" then return end
+  local wt = machine == "Nexus" and wtosc_slots(patch_name(i)) or {}
+  for j, d in ipairs(P.defs[machine] or {}) do
+    local sid = id(i, "s" .. j)
+    local v = util.clamp(params:get(sid), 0, 1)
+    local new
+    if machine == "Trinity" and d.name:match("^o[123]_wave$") then
+      new = math.floor(v * (TRINITY_WAVES_BEFORE - 1) + 0.5) / (TRINITY_WAVES - 1)
+    elseif machine == "Nexus" then
+      local slot = d.name:match("^s(%d%d)_p1$")
+      if slot and wt[tonumber(slot)] then
+        new = (math.floor(math.min(v, 0.9999) * NEXUS_TABLES_BEFORE) + 0.5) / NEXUS_TABLES
+      end
+    end
+    if new then params:set(sid, new, true) end
+  end
+end
+
 -- After a PSET is read, sends every part again, in order, so each machine is
 -- mounted before its params arrive. A silent read doesn't run the machine
 -- actions, so the menus are fixed here and the file read again to put the
@@ -776,6 +847,10 @@ function P.after_read(filename)
     rereading = false
     if not ok then print("acidulous: pset read failed: " .. tostring(err)) end
   end
+  if saved_tables(filename) < P.WAVE_TABLES then
+    for i = 1, P.COUNT do migrate_waves(i) end
+  end
+  params:set("wave_tables", P.WAVE_TABLES, true)
   P.loading = false
   P.apply_all()
 end
