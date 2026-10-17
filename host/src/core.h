@@ -192,7 +192,9 @@ class Core
     void patch_failed(int part, const std::string& what);
     bool apply_patch(int part, const std::string& machine, PatchSource& src, const std::string& tag);
     void load_preset(int part, const std::string& path, int index, const std::string& tag, bool files,
+                     const std::string& want_machine, const std::string& want_name,
                      const std::vector<std::string>& roots);
+    void patch_failed_on(int part, const std::string& machine, const std::string& tag, const std::string& what);
     void load_preset_files(int part, const std::string& path, int index,
                            const std::vector<std::pair<std::string, std::string>>& settings,
                            const std::vector<std::string>& roots);

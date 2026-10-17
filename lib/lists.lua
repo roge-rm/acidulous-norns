@@ -196,7 +196,22 @@ end
 local function save_as(parts, i, name)
   name = name and name:gsub("^%s+", ""):gsub("%s+$", "") or ""
   if name == "" or not open then return end
-  local path = parts.preset_dir(open.machine) .. parts.preset_file(name)
+  local dir = parts.preset_dir(open.machine)
+  local path = dir .. parts.preset_file(name)
+  -- a file with more than one patch, or the app's samples, is kept: the
+  -- name gets a number instead
+  local function shared(p)
+    for _, sv in ipairs(parts.saved[open.machine] or {}) do
+      if sv.path == p and (sv.count > 1 or sv.packed) then return true end
+    end
+    return false
+  end
+  local n = 1
+  while util.file_exists(path) and shared(path) do
+    n = n + 1
+    path = dir .. parts.preset_file(name .. " " .. n)
+  end
+  if n > 1 then name = name .. " " .. n end
   local function save()
     parts.save_preset(i, path, name)
     if open then open.follow = true end
@@ -214,7 +229,14 @@ local function save_or_delete(parts, row)
   local i = open.part
   if row and row.saved then
     local sv = row.saved
-    open.confirm = {text = "delete " .. sv.name .. "?", yes = function() parts.delete_preset(sv) end}
+    if sv.packed and sv.count > 1 then
+      -- the app's samples can't be kept in a rewrite, so it's the whole file
+      local file = sv.file:gsub("%.acpreset$", "")
+      open.confirm = {text = "delete file " .. file .. ", " .. sv.count .. " patches?",
+        yes = function() parts.delete_preset({path = sv.path, index = -1}) end}
+    else
+      open.confirm = {text = "delete " .. sv.name .. "?", yes = function() parts.delete_preset(sv) end}
+    end
     return
   end
   if L.before_text then L.before_text() end

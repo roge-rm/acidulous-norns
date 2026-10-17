@@ -40,16 +40,22 @@
 //        folder. The settings are the files the script knows (sample,
 //        pNN_sample, sf2, sf2preset) as absolute paths; the plugin adds a
 //        Nexus graph, a Formulate program and Mosaic's zones, and writes
-//        every file path relative to the first root it's under. Waits for a
-//        queued mount; "busy" if it never lands
-//   /preset_load i:part s:path i:index s:tag i:files s:root...   puts patch
-//        index of the file on the part as /patch does, mounting its machine,
-//        with tag as the patch name in its replies. files 1 loads the files
-//        it names too, a relative path from the first root that has it, then
-//        the file's own folder. A patch from before version 3 is refused
+//        every file path relative to the first root it's under: a root
+//        "/dir/" as "path", one "label=/dir/" as "label:path". Waits for a
+//        queued mount; "busy" if it never lands. Won't replace a file of
+//        more than one patch or with the app's samples in it
+//   /preset_load i:part s:path i:index s:tag i:files s:machine s:name s:root...
+//        puts the patch called name (or at index, if none is) on the part as
+//        /patch does, mounting its machine, with tag as the patch name in its
+//        replies. files 1 loads the files it names too: "label:path" under
+//        that root, a plain relative path from the first unlabelled root that
+//        has it, then the file's own folder. A patch from before version 3 is
+//        refused. When it fails the part still gets machine, as does a /patch
+//        that can't be found, with /values of what it has
 //   /preset_scan s:folder              the patches of the .acpreset files in it
 //   /preset_delete s:path i:index      takes the patch out of the file, or
-//        deletes the file when it's the last
+//        deletes the file when it's the last or index is -1. A file with the
+//        app's samples (media/ or engine/) isn't rewritten
 //   /presets s:path                    a SoundFont's presets
 //   /shape s:path                      a file's length and shape, for the picker
 //   /hear [s:path]                     plays a file once over everything, up
@@ -104,11 +110,12 @@
 //   /error s:text [i:part s:kind s:path i:arg s:machine]   a failed /load has
 //        the rest
 //   /preset_saved i:part s:path s:result   "ok" or what went wrong
-//   /preset_loaded i:part s:tag s:name s:error   after its /values and /patch
+//   /preset_loaded i:part s:tag s:name s:error i:index   after its /values and /patch
 //        and the /loaded for its files; error "" when it loaded. A missing
 //        file is an /error of its own and the rest still loads
-//   /preset_scan s:folder (s:file i:index s:name s:unit)...   by file name,
-//        unit the machine; files that can't be read are left out
+//   /preset_scan s:folder (s:file i:index s:name s:unit i:count i:packed)...
+//        by file name, unit the machine, count the file's patches, packed 1
+//        when it has the app's samples; files that can't be read are left out
 //   /preset_deleted s:path i:index s:result   "ok" or what went wrong
 #pragma once
 #include <string>

@@ -182,11 +182,15 @@ int main(int argc, char** argv)
         Reply r;
         return log.wait("/preset_saved", r) && r.args.size() > 2 ? r.args[2].str : std::string("no reply");
     };
-    const auto load = [&](int part, const std::string& path, int index, int files, Reply& r) {
+    const auto load_as = [&](int part, const std::string& path, int index, int files, const std::string& machine,
+                             const std::string& name, Reply& r) {
         log.clear();
         cmd("/preset_load", {Value::i(part), Value::s(path), Value::i(index), Value::s("@t"), Value::i(files),
-                             Value::s(mat + "/")});
-        return log.wait("/preset_loaded", r) && r.args.size() > 3;
+                             Value::s(machine), Value::s(name), Value::s(mat + "/")});
+        return log.wait("/preset_loaded", r) && r.args.size() > 4;
+    };
+    const auto load = [&](int part, const std::string& path, int index, int files, Reply& r) {
+        return load_as(part, path, index, files, "Trinity", "", r);
     };
     const auto no_roots = core::Args{Value::i(0)};
 
@@ -230,6 +234,31 @@ int main(int argc, char** argv)
     check(load(0, fixtures + "/app-bank.acpreset", 1, 1, r) && r.args[2].str == "Fixture Init", "its second patch");
     check(load(0, fixtures + "/native-bank.acpreset", 0, 1, r) && r.args[3].str.empty(), "the engine's fixture");
     check(load(0, fixtures + "/app-bank.acpreset", 5, 1, r) && !r.args[3].str.empty(), "no patch 6");
+    check(load_as(0, fixtures + "/app-bank.acpreset", 0, 1, "Trinity", "Fixture Init", r) &&
+              r.args[2].str == "Fixture Init" && r.args[4].num == 1,
+          "found by name before index");
+
+    // A failed load still gives the part the script's machine, with its values.
+    cmd("/unmount", {Value::i(3)});
+    check(load_as(3, scratch + "/nowhere.acpreset", 0, 1, "Reflux", "", r) && !r.args[3].str.empty() &&
+              log.count("/values") == 1,
+          "a missing file still mounts its machine");
+    {
+        log.clear();
+        cmd("/state", {Value::i(3)});
+        Reply st;
+        check(log.wait("/state", st) && st.args[1].str == "Reflux", "the part has Reflux");
+    }
+    log.clear();
+    cmd("/unmount", {Value::i(4)});
+    cmd("/patch", {Value::i(4), Value::s("Reflux"), Value::s("No Such Patch")});
+    c->drain();
+    {
+        log.clear();
+        cmd("/state", {Value::i(4)});
+        Reply st;
+        check(log.wait("/state", st) && st.args[1].str == "Reflux", "a missing bank patch still mounts its machine");
+    }
 
     // A patch from before version 3 isn't loaded.
     {
@@ -251,6 +280,24 @@ int main(int argc, char** argv)
     cmd("/patch", {Value::i(1), Value::s("Dice"), Value::s("Init")});
     cmd("/load", {Value::i(1), Value::s("sample"), Value::s(mat + "/loop.wav")});
     const std::string dice = scratch + "/Dice/loop.acpreset";
+    // a labelled root writes label:path
+    check(save(1, scratch + "/Dice/labelled.acpreset", "Labelled",
+               {Value::i(1), Value::s("script=" + mat + "/"), Value::s("sample"), Value::s(mat + "/loop.wav")}) == "ok",
+          "save with a labelled root");
+    if(read_file(scratch + "/Dice/labelled.acpreset", p) && !p.patches.empty())
+        check(setting(p.patches[0], "sample") == "script:loop.wav", "a labelled path");
+    log.clear();
+    cmd("/preset_load", {Value::i(1), Value::s(scratch + "/Dice/labelled.acpreset"), Value::i(0), Value::s("@l"),
+                         Value::i(1), Value::s("Dice"), Value::s(""), Value::s("/nowhere/"),
+                         Value::s("script=" + mat + "/")});
+    {
+        Reply x;
+        log.wait("/preset_loaded", x);
+        bool found = false;
+        for(const auto& y : log.all("/loaded"))
+            found = found || y.args[2].str == mat + "/loop.wav";
+        check(found, "a labelled path found again");
+    }
     // norns's script path can end in "//"
     check(save(1, dice, "Loop", {Value::i(1), Value::s(mat + "//"), Value::s("sample"), Value::s(mat + "//loop.wav")}) ==
               "ok",
@@ -296,7 +343,7 @@ int main(int argc, char** argv)
     std::system(("cp '" + fixtures + "/app-bank.acpreset' '" + scratch + "/Trinity/'").c_str());
     log.clear();
     cmd("/preset_scan", {Value::s(scratch + "/Trinity")});
-    check(log.wait("/preset_scan", r) && (r.args.size() - 1) / 4 == 5, "scan: 5 rows");
+    check(log.wait("/preset_scan", r) && (r.args.size() - 1) / 6 == 5, "scan: 5 rows");
     log.clear();
     cmd("/preset_delete", {Value::s(scratch + "/Trinity/app-bank.acpreset"), Value::i(0)});
     check(log.wait("/preset_deleted", r) && r.args[2].str == "ok" && read_file(scratch + "/Trinity/app-bank.acpreset", p) &&
@@ -306,6 +353,20 @@ int main(int argc, char** argv)
     cmd("/preset_delete", {Value::s(scratch + "/Trinity/app-bank.acpreset"), Value::i(0)});
     check(log.wait("/preset_deleted", r) && r.args[2].str == "ok" && !exists(scratch + "/Trinity/app-bank.acpreset"),
           "delete the last one");
+
+    // A file with the app's samples in it isn't rewritten or replaced.
+    std::system(("cp '" + fixtures + "/packed-bank.acpreset' '" + scratch + "/Trinity/'").c_str());
+    log.clear();
+    cmd("/preset_delete", {Value::s(scratch + "/Trinity/packed-bank.acpreset"), Value::i(0)});
+    check(log.wait("/preset_deleted", r) && r.args[2].str != "ok" && exists(scratch + "/Trinity/packed-bank.acpreset"),
+          "a packed file isn't rewritten");
+    cmd("/patch", {Value::i(0), Value::s("Trinity"), Value::s("Saw Lead")});
+    check(save(0, scratch + "/Trinity/packed-bank.acpreset", "Over", no_roots) != "ok", "nor saved over");
+    check(save(0, lead, "Over", no_roots) == "ok", "a one-patch file is saved over");
+    log.clear();
+    cmd("/preset_delete", {Value::s(scratch + "/Trinity/packed-bank.acpreset"), Value::i(-1)});
+    check(log.wait("/preset_deleted", r) && r.args[2].str == "ok" && !exists(scratch + "/Trinity/packed-bank.acpreset"),
+          "the whole file deleted");
 
     // An empty part can't be saved.
     check(save(5, scratch + "/none.acpreset", "None", no_roots) == "no machine", "an empty part");

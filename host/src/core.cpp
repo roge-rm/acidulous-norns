@@ -853,17 +853,19 @@ bool Core::command(const std::string& path, const Args& a)
         });
         return true;
     }
-    if(path == "/preset_load" && a.size() >= 5)
+    if(path == "/preset_load" && a.size() >= 7)
     {
-        // i:part s:path i:index s:tag i:files s:root...
+        // i:part s:path i:index s:tag i:files s:machine s:name s:root...
         const int part = to_int(a[0]);
         if(!part_ok(part))
             return true;
         std::vector<std::string> roots;
-        for(size_t k = 5; k < a.size(); ++k)
+        for(size_t k = 7; k < a.size(); ++k)
             roots.push_back(to_str(a[k]));
         post_part(part, [this, part, p = to_str(a[1]), index = to_int(a[2]), tag = to_str(a[3]),
-                         files = to_int(a[4]) != 0, roots] { load_preset(part, p, index, tag, files, roots); });
+                         files = to_int(a[4]) != 0, m = to_str(a[5]), n = to_str(a[6]), roots] {
+            load_preset(part, p, index, tag, files, m, n, roots);
+        });
         return true;
     }
     if(path == "/preset_scan" && a.size() >= 1)
@@ -1623,9 +1625,28 @@ void Core::patch_failed(int part, const std::string& what)
     send_macro_names(part);
 }
 
+// The same, for a patch that couldn't be read at all: the part still gets
+// [machine], at its defaults if it's new, so it isn't silent, and its values
+// go to the script as /values named [tag].
+void Core::patch_failed_on(int part, const std::string& machine, const std::string& tag, const std::string& what)
+{
+    int32_t i = 0;
+    while(i < MachineRegistry::count() && !lower_equal(MachineRegistry::name(i), machine))
+        ++i;
+    if(i < MachineRegistry::count() && parts[part].machine != MachineRegistry::name(i))
+        mount(part, MachineRegistry::name(i));
+    patch_failed(part, what);
+    if(parts[part].machine.empty() || !lower_equal(parts[part].machine, machine))
+        return;
+    Args values{Value::i(part), Value::s(parts[part].machine), Value::s(tag)};
+    for(const float v : parts[part].values)
+        values.push_back(Value::f(v));
+    reply("/values", values);
+}
+
 void Core::load_patch(int part, const std::string& machine, const std::string& name)
 {
-    const auto fail = [&] { patch_failed(part, machine + " " + name); };
+    const auto fail = [&] { patch_failed_on(part, machine, name, machine + " " + name); };
     const auto b = bank(machine);
     if(!b)
         return fail();
@@ -2436,38 +2457,131 @@ std::string squash(const std::string& path)
     return out;
 }
 
-// [path] under the first of [roots] it's in, without it, or as it is.
+// A root as the script sends it: "/dir/" for one whose files are written
+// relative to it, as the app's are to its user folder, or "label=/dir/" for
+// one whose files are written "label:path", so a path is never read against
+// the wrong folder.
+struct Root
+{
+    std::string label, dir; // dir ends in '/'
+};
+
+Root parse_root(const std::string& root)
+{
+    Root         r;
+    const size_t eq = root.find('=');
+    if(eq != std::string::npos && eq > 0 && root.find('/') > eq)
+    {
+        r.label = root.substr(0, eq);
+        r.dir   = root.substr(eq + 1);
+    }
+    else
+        r.dir = root;
+    r.dir = squash(r.dir);
+    if(!r.dir.empty() && r.dir.back() != '/')
+        r.dir += '/';
+    return r;
+}
+
+// [path] under the first of [roots] it's in, written for that root, or as it is.
 std::string relative_to(const std::string& path, const std::vector<std::string>& roots)
 {
     const std::string p = squash(path);
     for(const auto& root : roots)
     {
-        std::string r = squash(root);
-        if(!r.empty() && r.back() != '/')
-            r += '/';
-        if(r.size() > 1 && p.size() > r.size() && p.compare(0, r.size(), r) == 0)
-            return p.substr(r.size());
+        const Root r = parse_root(root);
+        if(r.dir.size() > 1 && p.size() > r.dir.size() && p.compare(0, r.dir.size(), r.dir) == 0)
+            return (r.label.empty() ? "" : r.label + ":") + p.substr(r.dir.size());
     }
     return p;
 }
 
-// Where a path from a preset is: as it is if absolute, else under the first
-// of [roots] that has it, then the preset's own folder, else under the first
-// root (so a "not found" names it).
+// Where a path from a preset is: as it is if absolute, "label:path" under
+// that root, else under the first unlabelled root that has it, then the
+// preset's own folder, else under the first unlabelled root (so a "not
+// found" names it).
 std::string resolve(const std::string& path, const std::vector<std::string>& roots, const std::string& own)
 {
     if(path.empty() || path[0] == '/')
         return path;
+    const size_t colon = path.find(':');
+    if(colon != std::string::npos && colon > 0 && path.find('/') > colon)
+        for(const auto& root : roots)
+        {
+            const Root r = parse_root(root);
+            if(!r.label.empty() && path.compare(0, colon, r.label) == 0)
+                return squash(r.dir + path.substr(colon + 1));
+        }
+    std::string first;
     for(const auto& root : roots)
     {
-        const std::string r = root.empty() || root.back() == '/' ? root : root + "/";
-        if(!r.empty() && exists(r + path))
-            return squash(r + path);
+        const Root r = parse_root(root);
+        if(!r.label.empty() || r.dir.empty())
+            continue;
+        if(first.empty())
+            first = r.dir;
+        if(exists(r.dir + path))
+            return squash(r.dir + path);
     }
     if(!own.empty() && exists(own + path))
         return own + path;
-    return squash(roots.empty() || roots[0].empty() ? own + path
-                                                   : roots[0] + (roots[0].back() == '/' ? "" : "/") + path);
+    return squash((first.empty() ? own : first) + path);
+}
+
+// Whether a zip has entries under media/ or engine/, which the app writes
+// and presetfile::write doesn't. Reads only the central directory. True when
+// it can't tell, so nothing is rewritten by mistake.
+bool has_packed_entries(const std::string& path)
+{
+    FILE* f = std::fopen(path.c_str(), "rb");
+    if(!f)
+        return true;
+    std::fseek(f, 0, SEEK_END);
+    const long size = std::ftell(f);
+    const long tail = std::min<long>(size, 22 + 0xffff);
+    std::vector<unsigned char> end(size_t(tail > 0 ? tail : 0));
+    std::fseek(f, size - tail, SEEK_SET);
+    bool packed = true;
+    if(tail >= 22 && std::fread(end.data(), 1, end.size(), f) == end.size())
+    {
+        for(long at = tail - 22; at >= 0; --at)
+        {
+            const unsigned char* e = end.data() + at;
+            if(!(e[0] == 0x50 && e[1] == 0x4b && e[2] == 0x05 && e[3] == 0x06))
+                continue;
+            const uint32_t count = e[10] | e[11] << 8;
+            const uint32_t dsize = e[12] | e[13] << 8 | e[14] << 16 | uint32_t(e[15]) << 24;
+            const uint32_t dat   = e[16] | e[17] << 8 | e[18] << 16 | uint32_t(e[19]) << 24;
+            std::vector<unsigned char> dir(dsize);
+            if(long(dat) + long(dsize) > size || std::fseek(f, long(dat), SEEK_SET) != 0 ||
+               std::fread(dir.data(), 1, dir.size(), f) != dir.size())
+                break;
+            packed    = false;
+            size_t at2 = 0;
+            for(uint32_t k = 0; k < count; ++k)
+            {
+                if(at2 + 46 > dir.size())
+                {
+                    packed = true;
+                    break;
+                }
+                const unsigned char* c = dir.data() + at2;
+                const size_t n = c[28] | c[29] << 8, skip = size_t(c[30] | c[31] << 8) + size_t(c[32] | c[33] << 8);
+                if(at2 + 46 + n > dir.size())
+                {
+                    packed = true;
+                    break;
+                }
+                const std::string name(reinterpret_cast<const char*>(c + 46), n);
+                if(name.rfind("media/", 0) == 0 || name.rfind("engine/", 0) == 0)
+                    packed = true;
+                at2 += 46 + n + skip;
+            }
+            break;
+        }
+    }
+    std::fclose(f);
+    return packed;
 }
 
 // Presets with media from the app can be big; patches are read from the first
@@ -2593,6 +2707,13 @@ void Core::save_preset(int part, const std::string& path, const std::string& nam
     }
     if(bytes.empty())
         return done(why.empty() ? "busy" : why);
+    // Only a file of one patch is replaced, so a bank's other patches stay.
+    {
+        Preset      old;
+        std::string ignore;
+        if(exists(path) && (!read_preset(path, old, ignore) || old.patches.size() > 1 || has_packed_entries(path)))
+            return done("would replace more than one patch");
+    }
     if(!write_file(path, bytes, why))
         return done(why);
     done("");
@@ -2602,15 +2723,17 @@ void Core::save_preset(int part, const std::string& path, const std::string& nam
 // replies naming it [tag]. With [files] its samples are loaded too, found by
 // resolve(). Ends with /preset_loaded i:part s:tag s:name s:error.
 void Core::load_preset(int part, const std::string& path, int index, const std::string& tag, bool files,
+                       const std::string& want_machine, const std::string& want_name,
                        const std::vector<std::string>& roots)
 {
     const auto done = [&](const std::string& name, const std::string& why) {
         if(!why.empty())
             std::fprintf(stderr, "acidulous: %s: %s\n", path.c_str(), why.c_str());
-        reply("/preset_loaded", {Value::i(part), Value::s(tag), Value::s(name), Value::s(why)});
+        reply("/preset_loaded", {Value::i(part), Value::s(tag), Value::s(name), Value::s(why), Value::i(index)});
     };
+    // The part still gets the machine the script has for it.
     const auto fail = [&](const std::string& why) {
-        patch_failed(part, path);
+        patch_failed_on(part, want_machine, tag, path);
         done("", why);
     };
     Preset      preset;
@@ -2619,6 +2742,15 @@ void Core::load_preset(int part, const std::string& path, int index, const std::
         return fail(why);
     if(preset.kind != "machine")
         return fail("an effect preset");
+    // By name first, as a patch deleted from the file moves the ones after it.
+    if(!want_name.empty() && !(index >= 0 && size_t(index) < preset.patches.size() &&
+                               preset.patches[size_t(index)].name == want_name))
+        for(size_t k = 0; k < preset.patches.size(); ++k)
+            if(preset.patches[k].name == want_name)
+            {
+                index = int(k);
+                break;
+            }
     if(index < 0 || size_t(index) >= preset.patches.size())
         return fail("no patch " + std::to_string(index + 1));
     PresetPatch& pp = preset.patches[size_t(index)];
@@ -2759,7 +2891,8 @@ std::string Core::load_zones(int part, const std::string& path, int index, const
     return "";
 }
 
-// "/preset_scan s:folder (s:file i:index s:name s:unit)..." for every patch
+// "/preset_scan s:folder (s:file i:index s:name s:unit i:count i:packed)..."
+// for every patch
 // of every .acpreset in [folder], by file name. Files that can't be read are
 // left out.
 void Core::scan_presets(const std::string& folder)
@@ -2791,12 +2924,15 @@ void Core::scan_presets(const std::string& folder)
         }
         if(preset.kind != "machine")
             continue;
-        for(size_t k = 0; k < preset.patches.size() && out.size() < 1 + 4 * kMaxRows; ++k)
+        const bool packed = has_packed_entries(dir + n);
+        for(size_t k = 0; k < preset.patches.size() && out.size() < 1 + 6 * kMaxRows; ++k)
         {
             out.push_back(Value::s(n));
             out.push_back(Value::i(int(k)));
             out.push_back(Value::s(preset.patches[k].name));
             out.push_back(Value::s(preset.unit));
+            out.push_back(Value::i(int(preset.patches.size())));
+            out.push_back(Value::i(packed ? 1 : 0));
         }
     }
     reply("/preset_scan", out);
@@ -2811,10 +2947,16 @@ void Core::delete_preset(const std::string& path, int index)
     };
     Preset      preset;
     std::string why;
+    // index -1 deletes the whole file, whatever is in it
+    if(index < 0)
+        return done(std::remove(path.c_str()) == 0 ? "" : std::string("can't delete it: ") + std::strerror(errno));
     if(!read_preset(path, preset, why))
         return done(why);
-    if(index < 0 || size_t(index) >= preset.patches.size())
+    if(size_t(index) >= preset.patches.size())
         return done("no patch " + std::to_string(index + 1));
+    // The app's samples and engine lines would be lost in a rewrite.
+    if(preset.patches.size() > 1 && has_packed_entries(path))
+        return done("it has samples, delete the whole file");
     if(preset.patches.size() == 1)
         return done(std::remove(path.c_str()) == 0 ? "" : std::string("can't delete it: ") + std::strerror(errno));
     preset.patches.erase(preset.patches.begin() + index);
