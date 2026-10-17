@@ -532,6 +532,8 @@ local part_macros -- below
 -- is only for parts left empty.
 local function turn_machine(i, d)
   local pid = parts.id(i, "machine")
+  -- an encoder can turn before the params exist, while the script loads
+  if not params.lookup[pid] then return end
   local v = params:get(pid)
   local new = util.clamp(v + d, 2, #params:lookup_param(pid).options)
   if new ~= v then params:set(pid, new) end

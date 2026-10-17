@@ -8,9 +8,9 @@ local P = {}
 P.COUNT = 8
 local PLUGIN = {"127.0.0.1", 57150}
 
--- The machines offered, in menu order: the ones that run in real time on a
--- Pi 4 (docs/machines.md), with the ones that play files last. short is for
--- the main page, note for K3's audition.
+-- The machines offered, with short for the main page and note for K3's
+-- audition. The order here doesn't matter: they are put in the picker's order
+-- (lib/machines.lua) just below.
 P.MACHINES = {
   {name = "Reflux", short = "Reflx", note = 36},
   {name = "Hexbeat", short = "Hexbt", note = 36},
@@ -43,6 +43,28 @@ P.MACHINES = {
   {name = "Pollen", short = "Polln", note = 60},
   {name = "Molt", short = "Molt", note = 57},
 }
+
+-- The machine order before it followed the picker. Old PSETs saved the
+-- machine as an index into this list (less the machines the plugin lacked).
+local OLD_ORDER = {}
+for k, m in ipairs(P.MACHINES) do OLD_ORDER[k] = m.name end
+
+-- Puts P.MACHINES in the picker's order: its groups in turn, alphabetical in
+-- each. Any machine in no group goes last.
+do
+  local by = {}
+  for _, m in ipairs(P.MACHINES) do by[m.name] = m end
+  local sorted = {}
+  for _, g in ipairs(include("lib/machines").groups) do
+    for _, name in ipairs(g.machines) do
+      if by[name] then sorted[#sorted + 1] = by[name]; by[name] = nil end
+    end
+  end
+  for _, name in ipairs(OLD_ORDER) do
+    if by[name] then sorted[#sorted + 1] = by[name] end
+  end
+  P.MACHINES = sorted
+end
 
 P.machines = {}  -- the ones the plugin has, from /machines: {name, short, note}
 P.defs = {}      -- machine -> list of {name, min, max, default, unit, steps, curve}
@@ -1003,6 +1025,7 @@ local function add_part(i)
   params:add_option(id(i, "machine"), "machine", names, 1)
   params:set_action(id(i, "machine"), function(v)
     local machine = v > 1 and P.machines[v - 1].name or nil
+    params:set(id(i, "machine_name"), machine or "", true)
     if P.loading then
       show_machine(i, machine, false)
       part.dim = false
@@ -1045,6 +1068,9 @@ local function add_part(i)
   params:add_text(id(i, "preset"), "preset", "")
   -- the modifiers, "slot,type,bypass,name=value..." per slot, for PSETs; never shown
   params:add_text(id(i, "mods"), "mods", "")
+  -- the machine's name, for PSETs, as the machine option's index depends on
+  -- which machines there are; never shown
+  params:add_text(id(i, "machine_name"), "machine name", "")
 
   params:add_control(id(i, "volume"), "volume", controlspec.new(-60, 3, "lin", 0.5, 0, "dB"))
   params:set_action(id(i, "volume"), function()
@@ -1100,6 +1126,7 @@ function P.add_params()
     params:hide(id(i, "fx"))
     params:hide(id(i, "preset"))
     params:hide(id(i, "mods"))
+    params:hide(id(i, "machine_name"))
   end
   -- params:clear() removes this when the script ends.
   params.action_read = function(filename) P.after_read(filename) end
@@ -1207,13 +1234,45 @@ end
 -- patch and slots in the right options.
 local rereading = false
 
+-- The machine a PSET has for part i, by name. A PSET from before the name
+-- was saved has an index into OLD_ORDER, less the machines the plugin lacks.
+local function saved_machine(filename, i, v)
+  if saved_has(filename, id(i, "machine_name")) then
+    local name = params:get(id(i, "machine_name"))
+    return name ~= "" and name or nil
+  end
+  local have = {}
+  for _, m in ipairs(P.machines) do have[m.name] = true end
+  local k = 1
+  for _, name in ipairs(OLD_ORDER) do
+    if have[name] then
+      k = k + 1
+      if k == v then return name end
+    end
+  end
+  return nil
+end
+
+-- Sets the machine option to the machine's place in the menu, without
+-- running its action.
+local function set_machine_option(i, machine)
+  local index = 1
+  for k, m in ipairs(P.machines) do
+    if m.name == machine then index = k + 1 end
+  end
+  params:set(id(i, "machine"), index, true)
+  params:set(id(i, "machine_name"), machine or "", true)
+end
+
 function P.after_read(filename)
   if rereading then return end
   P.loading = true
   local changed = false
+  local saved = {}
   for i, part in ipairs(P.list) do
-    local v = params:get(id(i, "machine"))
-    local machine = v > 1 and P.machines[v - 1] and P.machines[v - 1].name or nil
+    local machine = saved_machine(filename, i, params:get(id(i, "machine")))
+    saved[i] = machine or false
+    set_machine_option(i, machine)
     if machine ~= part.machine then
       show_machine(i, machine, false)
       changed = true
@@ -1236,6 +1295,8 @@ function P.after_read(filename)
     local ok, err = pcall(params.read, params, filename, true)
     rereading = false
     if not ok then print("acidulous: pset read failed: " .. tostring(err)) end
+    -- the read put the saved index back
+    for i = 1, P.COUNT do set_machine_option(i, saved[i] or nil) end
   end
   if saved_tables(filename) < P.WAVE_TABLES then
     for i = 1, P.COUNT do migrate_waves(i) end
