@@ -10,6 +10,9 @@ local play = {}
 -- The motif box, top right.
 local MOTIF = {x = 84, y = 0, w = 44, h = 26}
 local COL_W = 25.6
+-- Labels and values are squeezed to this, leaving a gap between columns;
+-- spaces in a label go so a gap inside it isn't read as a column gap.
+local FIT = 23
 
 local machines = include("lib/machines")
 
@@ -184,7 +187,7 @@ function looks.nature.macro(v, cx, cy, lv, zero)
 end
 
 -- samples: brackets round the box, a timeline, waveform bars.
-looks.samples = {face = 61, sizes = {16}, y = 13}
+looks.samples = {face = 49, sizes = {16}, y = 13}
 local WAVE = {2, 4, 6, 3, 5, 6, 4, 2, 5, 3, 1}
 function looks.samples.frame(m)
   for _, x in ipairs({m.x, m.x + m.w - 1}) do fill_rect(x, m.y, 1, m.h, 5) end
@@ -355,14 +358,14 @@ function play.draw(parts, state, macs, ps, note, keys)
     local cx = math.floor((k - 0.5) * COL_W + 0.5)
     local sel = ps.focus == k
     screen.level(sel and 15 or 6)
-    text(cx, 35, squeeze(mac.label, 25), "center")
+    text(cx, 35, squeeze((mac.label:gsub(" ", "")), FIT), "center")
     if mac.slot then
       local v = params:get(parts.id(i, "s" .. mac.slot))
       local d = mac.def
       local zero = d.min < 0 and d.max > 0 and d.curve ~= "step" and parts.unmap(d, 0) or nil
       style.macro(v, cx, 44, sel and 15 or 8, zero, struck)
       screen.level(sel and 15 or 5)
-      text(cx, 56, squeeze(short_value(parts, mac.def, v), 25), "center")
+      text(cx, 56, squeeze(short_value(parts, mac.def, v), FIT), "center")
     else
       screen.level(sel and 15 or 5)
       text(cx, 47, "-", "center")
