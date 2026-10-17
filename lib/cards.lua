@@ -2216,7 +2216,7 @@ return {
   },
   Trinity = {
     {t = "osc 1", c = {
-      {p = "o1_wave", l = "wave", k = "step", o = {"saw", "square", "tri", "sine", "sweep", "glass", "vowel", "bell", "comb", "fold", "grit", "organ"}},
+      {p = "o1_wave", l = "wave", k = "step", o = {"saw", "square", "tri", "sine", "sweep", "glass", "vowel", "bell", "comb", "fold", "grit", "organ", "hollow", "even", "round", "sync", "twin", "reso", "index", "reed", "bent", "ping", "crush", "stair", "choir", "nasal", "bow", "brass", "dust", "metal", "chip", "spiral", "tilt", "prime", "stack", "pluck"}},
       {p = "o1_pos", l = "pos", k = "knob"},
       {p = "o1_warp", l = "warp", k = "knob"},
       {p = "o1_coarse", l = "coarse", k = "knob"},
@@ -2230,7 +2230,7 @@ return {
       {p = "o1_level", l = "level", k = "knob"},
     }},
     {t = "osc 2", c = {
-      {p = "o2_wave", l = "wave", k = "step", o = {"saw", "square", "tri", "sine", "sweep", "glass", "vowel", "bell", "comb", "fold", "grit", "organ"}},
+      {p = "o2_wave", l = "wave", k = "step", o = {"saw", "square", "tri", "sine", "sweep", "glass", "vowel", "bell", "comb", "fold", "grit", "organ", "hollow", "even", "round", "sync", "twin", "reso", "index", "reed", "bent", "ping", "crush", "stair", "choir", "nasal", "bow", "brass", "dust", "metal", "chip", "spiral", "tilt", "prime", "stack", "pluck"}},
       {p = "o2_pos", l = "pos", k = "knob"},
       {p = "o2_warp", l = "warp", k = "knob"},
       {p = "o2_coarse", l = "coarse", k = "knob"},
@@ -2244,7 +2244,7 @@ return {
       {p = "o2_level", l = "level", k = "knob"},
     }},
     {t = "osc 3", c = {
-      {p = "o3_wave", l = "wave", k = "step", o = {"saw", "square", "tri", "sine", "sweep", "glass", "vowel", "bell", "comb", "fold", "grit", "organ"}},
+      {p = "o3_wave", l = "wave", k = "step", o = {"saw", "square", "tri", "sine", "sweep", "glass", "vowel", "bell", "comb", "fold", "grit", "organ", "hollow", "even", "round", "sync", "twin", "reso", "index", "reed", "bent", "ping", "crush", "stair", "choir", "nasal", "bow", "brass", "dust", "metal", "chip", "spiral", "tilt", "prime", "stack", "pluck"}},
       {p = "o3_pos", l = "pos", k = "knob"},
       {p = "o3_warp", l = "warp", k = "knob"},
       {p = "o3_coarse", l = "coarse", k = "knob"},
