@@ -1058,6 +1058,17 @@ Java_com_rm_acidulous_engine_EngineNative_nativeSetTuning(JNIEnv *env, jobject, 
 }
 
 JNIEXPORT void JNICALL
+Java_com_rm_acidulous_engine_EngineNative_nativeSetMacroNames(JNIEnv *env, jobject, jint rack, jstring names) {
+    std::string text;
+    if (names != nullptr) {
+        const char *p = env->GetStringUTFChars(names, nullptr);
+        text = p;
+        env->ReleaseStringUTFChars(names, p);
+    }
+    host().setMacroNames(rack, text);
+}
+
+JNIEXPORT void JNICALL
 Java_com_rm_acidulous_engine_EngineNative_nativeSetLink(JNIEnv *, jobject, jboolean on) {
     host().setLinkEnabled(on == JNI_TRUE);
 }

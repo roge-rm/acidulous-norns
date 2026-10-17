@@ -197,6 +197,19 @@ patch "FM Bass" family=bass  note=36 range=24..55 role=bass
   volume         1.00
 
 patch "Electric Piano" family=keys  note=60 range=36..84 role=keys
+  set macro1 "Mellow"
+  set macro2 "Bark"
+  set macro3 "Tine"
+  set macro4 "Honk"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #23
+  mac1_a1  -0.6
+  mac2_d1  #21
+  mac2_a1  0.45
+  mac3_d1  #9
+  mac3_a1  0.3
+  mac4_d1  #25
+  mac4_a1  0.5
   # Two sines a fifth apart with a little FM between them and a hard decay:
   # the tine, without a sample of one anywhere.
   o1_wave        #3
@@ -372,6 +385,19 @@ patch "Pluck Wide" family=keys  note=55 range=40..79 role=arp
   volume         0.98
 
 patch "Warm Pad" family=pad  note=55 range=36..79 role=pad
+  set macro1 "Bright"
+  set macro2 "Width"
+  set macro3 "Air"
+  set macro4 "Breath"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #23
+  mac1_a1  0.6
+  mac2_d1  #17
+  mac2_a1  0.5
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac4_d1  #18
+  mac4_a1  0.5
   # Three saws, gently detuned, a long way open and slow at both ends. The
   # one a bank is incomplete without.
   o1_wave        #0
@@ -680,6 +706,21 @@ patch "Soft Horn" family=ensemble  note=55 range=36..79 role=pad
   volume         0.35
 
 patch "Analog Strings" family=ensemble  note=55 range=36..79 role=pad
+  set macro1 "Bright"
+  set macro2 "Width"
+  set macro3 "Hollow"
+  set macro4 "Wander"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #23
+  mac1_a1  0.5
+  mac2_d1  #17
+  mac2_a1  0.6
+  mac3_d1  #12
+  mac3_a1  0.6
+  mac4_d1  #31
+  mac4_a1  0.8
+  mac4_d2  #23
+  mac4_a2  0.2
   # Saw and square a shade apart with the drift up, filtered gently and with
   # a slow sweep on the cutoff. The string machine rather than the string.
   o1_wave        #0
@@ -763,6 +804,21 @@ patch Reese family=bass  note=36 range=24..55 role=bass
   volume         0.48
 
 patch Wobble family=bass  note=36 range=24..55 role=bass
+  set macro1 "Open"
+  set macro2 "Bite"
+  set macro3 "Speed"
+  set macro4 "Grit"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #23
+  mac1_a1  0.45
+  mac2_d1  #25
+  mac2_a1  0.35
+  mac2_d2  #28
+  mac2_a2  0.2
+  mac3_d1  #31
+  mac3_a1  0.5
+  mac4_d1  #21
+  mac4_a1  0.5
   # The Reese's two saws through a resonant low pass that LFO 1 opens and
   # closes in eighth triplets, restarting with each note. Lock l1_sync on the
   # steps (1/4, 1/8, 1/8T, 1/16) and the bass talks.
@@ -930,6 +986,24 @@ patch "Square Lead" family=lead  note=67 range=48..91 role=lead
   volume         0.27
 
 patch "Saw Lead" family=lead  note=67 range=48..91 role=lead
+  set macro1 "Open"
+  set macro2 "Bite"
+  set macro3 "Thin"
+  set macro4 "Ring"
+  set macro5 "Fizz"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #23
+  mac1_a1  0.5
+  mac2_d1  #25
+  mac2_a1  0.5
+  mac3_d1  #9
+  mac3_a1  -0.9
+  mac3_d2  #10
+  mac3_a2  -0.7
+  mac4_d1  #19
+  mac4_a1  0.35
+  mac5_d1  #21
+  mac5_a1  0.3
   # Three saws, two of them a cent or two out, with the filter tracking the
   # keyboard so the top of the range does not turn to mud.
   o1_wave        #0
@@ -1091,6 +1165,19 @@ patch Whistle family=lead  note=67 range=48..91 role=lead
   volume         0.36
 
 patch "Noise Sweep" family=texture  note=55 range=36..79 role=pad
+  set macro1 "Open"
+  set macro2 "Ring"
+  set macro3 "Dark"
+  set macro4 "Hush"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #23
+  mac1_a1  0.8
+  mac2_d1  #25
+  mac2_a1  0.45
+  mac3_d1  #23
+  mac3_a1  -0.5
+  mac4_d1  #29
+  mac4_a1  -0.5
   # All noise, with a resonant low-pass opening over three seconds. No
   # oscillator at all: proof the filter is an instrument on its own.
   o1_level       0.00

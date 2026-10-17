@@ -23,6 +23,7 @@ class Trinity final : public Machine {
     static constexpr int kEnvs = 6;
     static constexpr int kLfos = 3;
     static constexpr int kMatrixSlots = 12;
+    static constexpr int kMacros = 8;
     static constexpr int kVoices = 16;
     /** How many released voices can ring at once in lean mode (see cutTails). */
     static constexpr int kLeanTails = 6;
@@ -75,7 +76,12 @@ class Trinity final : public Machine {
         // What the mod wheel does when the matrix doesn't use it: opens the
         // filters.
         WheelFilter,
-        Count
+        // Eight macro knobs, each with four routes: a destination (a ModDest)
+        // and a depth. Block rate like the matrix; a macro's knob value times
+        // a route's depth is added to the destination.
+        MacroBase,
+        MacroParams = 9,                               // knob, 4 destinations, 4 depths
+        Count = MacroBase + kMacros * MacroParams
     };
     // Offsets inside a block.
     enum OscP { OWave, OPos, OWarp, OCoarse, OFine, OLevel, ODensity, ODetune, OSync, OHard, OPw, ODrift };

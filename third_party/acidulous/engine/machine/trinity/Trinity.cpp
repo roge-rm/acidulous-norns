@@ -58,9 +58,9 @@ Trinity::Trinity() { initParams(); }
 
 // --- Parameters ------------------------------------------------------------------
 //
-// 178 of them, in regular blocks so the table can be generated: three
+// 253 of them, in regular blocks so the table can be generated: three
 // oscillators, the mixer, two filters, six envelopes, three LFOs, twelve
-// matrix slots and the voice section.
+// matrix slots, the voice section and eight macros of four routes each.
 
 const ParamDef *Trinity::paramDefs(int32_t &count) const {
     static ParamDef defs[Count];
@@ -169,6 +169,18 @@ const ParamDef *Trinity::paramDefs(int32_t &count) const {
         // How far the mod wheel (often a controller's tilt) opens the filters,
         // regardless of the matrix.
         putN(WheelFilter, "wheel", 0.0f, 1.0f, 0.5f, Curve::Linear, 0, "");
+        for (int k = 0; k < kMacros; ++k) {
+            const int32_t b = MacroBase + k * MacroParams;
+            const int n = k + 1;
+            put(b, "mac%d", n, 0.0f, 1.0f, 0.0f, Curve::Linear, 0, "");
+            for (int r = 0; r < 4; ++r) {
+                char fmt[16];
+                std::snprintf(fmt, sizeof(fmt), "mac%%d_d%d", r + 1);
+                put(b + 1 + r, fmt, n, 0.0f, DestCount - 1.0f, 0.0f, Curve::Stepped, DestCount, "");
+                std::snprintf(fmt, sizeof(fmt), "mac%%d_a%d", r + 1);
+                put(b + 5 + r, fmt, n, -1.0f, 1.0f, 0.0f, Curve::Linear, 0, "");
+            }
+        }
         built = true;
     }
     count = Count;
@@ -397,6 +409,16 @@ void Trinity::updateVoiceMod(Voice &v, float blockSeconds) {
         const float a = sourceValue(v, src);
         const float bmul = src2 == SrcOff ? 1.0f : sourceValue(v, src2);
         v.mod[dest] += a * bmul * paramOf(b + XDepth);
+    }
+    // Macros: each knob times a route's depth, added to the route's destination.
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = paramOf(b);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            const int dest = stepOf(b + 1 + r);
+            if (dest != DstOff) v.mod[dest] += knob * paramOf(b + 5 + r);
+        }
     }
     // A finger's pressure makes it brighter and louder, whatever the matrix says.
     const float prs = glidePressure(v.prsGlide, v.pressure, aftertouch) * paramOf(MpePressure);

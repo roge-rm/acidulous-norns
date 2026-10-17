@@ -3,6 +3,7 @@
 #include <atomic>
 #include <cstdint>
 #include <memory>
+#include <mutex>
 #include <sequencer/Clip.h>
 #include <engine/core/Frozen.h>
 #include <engine/core/PatchChain.h>
@@ -269,6 +270,12 @@ class EngineHost {
     void setExternalSync(bool on);
     /** A track's tuning: 128 ratios to equal temperament, or null for none. */
     void setTuning(int rack, const float *ratios);
+    /**
+     * A rack's macro knob names, eight lines joined by newlines. Kept for
+     * whoever shows the knobs (the norns reads them); no sound depends on it.
+     */
+    void setMacroNames(int rack, const std::string &names);
+    std::string macroNames(int rack) const;
 
     // --- Ableton Link -------------------------------------------------------
     /** Turning it on opens the discovery sockets and offers our tempo. */
@@ -353,6 +360,8 @@ class EngineHost {
 
     // --- Freeze ---------------------------------------------------------
   private:
+    mutable std::mutex macroNamesLock_;
+    std::string macroNames_[16];
     bool renderTargets(const std::vector<RenderTarget> &targets, float tailSeconds, AudioFormat format,
                        int32_t bits, std::string &error, int32_t startScene, float maxSeconds,
                        dsp::Loudness *measure = nullptr);

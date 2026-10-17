@@ -1456,6 +1456,17 @@ void EngineHost::setTuning(int rack, const float *ratios) {
     sEngine.racks[rack].setTuning(ratios);
 }
 
+void EngineHost::setMacroNames(int rack, const std::string &names) {
+    if (rack < 0 || rack >= kRackCount) return;
+    std::lock_guard<std::mutex> lock(macroNamesLock_);
+    macroNames_[rack] = names;
+}
+std::string EngineHost::macroNames(int rack) const {
+    if (rack < 0 || rack >= kRackCount) return {};
+    std::lock_guard<std::mutex> lock(macroNamesLock_);
+    return macroNames_[rack];
+}
+
 // --- Ableton Link -----------------------------------------------------------
 //
 // The timebase is given to the engine once and lives as long as the host, so

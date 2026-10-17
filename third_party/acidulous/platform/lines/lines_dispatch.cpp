@@ -30,6 +30,7 @@ jstring Java_com_rm_acidulous_engine_EngineNative_nativeBuildCloud(JNIEnv *, job
 void Java_com_rm_acidulous_engine_EngineNative_nativeClearFrozen(JNIEnv *, jobject);
 jstring Java_com_rm_acidulous_engine_EngineNative_nativeMountFrozen(JNIEnv *, jobject, jint, jlong, jstring, jfloat, jint, jint, jint, jfloat);
 void Java_com_rm_acidulous_engine_EngineNative_nativeSetTuning(JNIEnv *, jobject, jint, jfloatArray);
+void Java_com_rm_acidulous_engine_EngineNative_nativeSetMacroNames(JNIEnv *, jobject, jint, jstring);
 void Java_com_rm_acidulous_engine_EngineNative_nativeSetLoopSong(JNIEnv *, jobject, jboolean);
 void Java_com_rm_acidulous_engine_EngineNative_nativeSetTempo(JNIEnv *, jobject, jfloat);
 jlong Java_com_rm_acidulous_engine_EngineNative_nativeSnapshotBegin(JNIEnv *, jobject);
@@ -254,6 +255,14 @@ bool callSetTuning(Reader &in, Replay &r) {
     return true;
 }
 
+bool callSetMacroNames(Reader &in, Replay &r) {
+    const jint rack = r.rack(in.i32());
+    const jstring names = in.str();
+    if (!in.finish()) return false;
+    Java_com_rm_acidulous_engine_EngineNative_nativeSetMacroNames(r.env, nullptr, rack, names);
+    return true;
+}
+
 bool callSetLoopSong(Reader &in, Replay &r) {
     const jboolean on = in.flag();
     if (!in.finish()) return false;
@@ -372,6 +381,7 @@ const Call kCalls[] = {
     {"ClearFrozen", callClearFrozen},
     {"MountFrozen", callMountFrozen},
     {"SetTuning", callSetTuning},
+    {"SetMacroNames", callSetMacroNames},
     {"SetLoopSong", callSetLoopSong},
     {"SetTempo", callSetTempo},
     {"SnapshotBegin", callSnapshotBegin},
@@ -382,6 +392,6 @@ const Call kCalls[] = {
     {"SnapshotCommit", callSnapshotCommit},
     {"SnapshotAbandon", callSnapshotAbandon},
 };
-const int kCallCount = 33;
+const int kCallCount = 34;
 
 } // namespace acidulous::lines
