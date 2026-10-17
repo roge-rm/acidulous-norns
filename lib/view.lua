@@ -170,7 +170,9 @@ function view.card(parts, state, cards, ps, pads, panel, note)
       text(cx, 60, tostring(at), "center")
     else
       local v
-      if ctl.fx then
+      if ctl.mod then
+        v = parts.mod_value(state.sel, ctl)
+      elseif ctl.fx then
         v = parts.fx_value(state.sel, ctl)
       else
         local p = params:lookup_param(parts.id(state.sel, "s" .. ctl.slot))
@@ -184,7 +186,7 @@ function view.card(parts, state, cards, ps, pads, panel, note)
         screen.level(sel and 15 or 6)
         text(cx, 32, ctl.cut and cut(ctl.label, 24) or squeeze(ctl.label, 24), "center")
         local bipolar = d.min < 0 and d.max > 0 and d.curve ~= "step"
-        local dim = parts.list[state.sel].dim and not ctl.fx
+        local dim = parts.list[state.sel].dim and not ctl.fx and not ctl.mod
         knob(cx, 43, 7, v, 3, dim and 2 or sel and 15 or 8, bipolar, bipolar and parts.unmap(d, 0) or 0)
         screen.level(dim and 2 or sel and 15 or 5)
         text(cx, 60, squeeze(panel.option(ctl, v) or short_value(parts, d, v), 26), "center")

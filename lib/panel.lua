@@ -2,12 +2,15 @@
 -- tools/gen-cards.py) names each card's params, matched here to the part's
 -- slots by their /defs names. A machine with no cards there gets one card of
 -- its macros and then its params four to a card. The part's insert effects
--- follow as cards of their own (fx_cards).
+-- follow as cards of their own (fx_cards), then its modifiers (mod_cards).
 
 local generated = include("lib/cards")
+local modcards = include("lib/modcards")
 local macros = include("lib/macros")
 
 local M = {}
+
+local TYPES = {"Scale", "Chord", "Arp"} -- as parts.MOD_TYPES
 
 local cache = {} -- machine .. ":" .. pad -> cards
 
@@ -177,6 +180,46 @@ function M.fx_cards(fx)
     end
   end
   fx.cards = cards
+  return cards
+end
+
+-- The part's modifier cards, after the inserts': a "mods" card with each
+-- slot's type and on, then each modifier's cards from lib/modcards.lua.
+-- mods is parts.list[i].mods, defs parts.mod_defs. Each control has mod (the
+-- slot) and what ("type", "on") or p (the param) instead of a machine slot.
+local TYPE_DEF = {name = "type", min = 0, max = 3, default = 0, unit = "", steps = 4, curve = "step"}
+local mod_cache = {}
+
+function M.mod_cards(mods, defs)
+  local types = {}
+  for slot = 0, 1 do types[#types + 1] = mods[slot] and mods[slot].type or "" end
+  local key = table.concat(types, "|")
+  for _, t in ipairs(types) do
+    if t ~= "" and not defs[t] then key = nil end -- not cached until its defs come
+  end
+  if key and mod_cache[key] then return mod_cache[key] end
+  local opts = {"none"}
+  for k, t in ipairs(TYPES) do opts[k + 1] = t:lower() end
+  local first = {}
+  for slot = 0, 1 do
+    first[#first + 1] = {label = "mod " .. (slot + 1), kind = "step", mod = slot, what = "type", def = TYPE_DEF, opts = opts}
+    first[#first + 1] = {label = "on", kind = "onoff", mod = slot, what = "on"}
+  end
+  local cards = {{title = "mods", controls = first}}
+  for slot = 0, 1 do
+    local m = mods[slot]
+    local by = m and defs[m.type] and defs[m.type].by
+    for _, card in ipairs(by and modcards[m.type] or {}) do
+      local list = {}
+      for _, c in ipairs(card.c) do
+        if by[c.p] then
+          list[#list + 1] = {label = c.l, kind = c.k, mod = slot, p = c.p, def = by[c.p], opts = c.o}
+        end
+      end
+      if #list > 0 then cards[#cards + 1] = {title = card.t, controls = list} end
+    end
+  end
+  if key then mod_cache[key] = cards end
   return cards
 end
 

@@ -318,13 +318,19 @@ local function pips(parts)
   end
 end
 
--- The part number, then the MPE mark or keys, as the parts page marks them.
+-- The part number, then the MPE mark or keys, as the parts page marks them,
+-- and on the right the part's key and scale when it has a Scale.
 local function status(parts, state, keys, note)
   local y = 62
   local n = state.sel
   pips(parts)
   local shown = header(parts, tostring(n), note, "", y)
   if not shown then return end
+  local scale = parts.scale_text(n)
+  if scale then
+    screen.level(8)
+    text(113, y, scale, "right")
+  end
   local x = 8
   screen.level(8)
   if parts.mpe == n and state.mpe_missing then

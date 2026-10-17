@@ -55,6 +55,9 @@ P.loading = false -- a PSET is being read
 P.seen = 0        -- when the plugin last sent /load
 P.load, P.worst, P.worst_at = 0, 0, 0
 P.mpe = nil       -- the part getting MPE, or nil; set by the script from "mpe part"
+P.MOD_TYPES = {"Scale", "Chord", "Arp"} -- the modifiers, in menu order
+P.mod_defs = {}   -- modifier -> list of defs as P.defs, with by = name -> def; from /mod_defs
+P.mod_defs_asked = 0
 P.list = {}
 for i = 1, P.COUNT do
   P.list[i] = {
@@ -89,6 +92,10 @@ for i = 1, P.COUNT do
     -- the saved preset the part plays instead of a bank patch, or nil:
     -- {path, index, name}. Saved in the part's "preset" param.
     preset = nil,
+    -- the modifiers, slot 0 and 1 -> {type, bypass, values = name -> 0-1}
+    -- or nil. They belong to the part, so a machine or patch change keeps
+    -- them. Saved in the part's "mods" param.
+    mods = {},
   }
 end
 
@@ -594,6 +601,148 @@ local function send_fx_edits(i)
   end
 end
 
+-- ---- modifiers ---------------------------------------------------------------------
+
+-- The part's modifiers as the "mods" param holds them: per slot
+-- "slot,type,bypass" then ",name=value" per param, joined with "|".
+local function encode_mods(mods)
+  local out = {}
+  for slot = 0, 1 do
+    local m = mods[slot]
+    if m then
+      local names = {}
+      for k in pairs(m.values) do names[#names + 1] = k end
+      table.sort(names)
+      local e = {string.format("%d,%s,%d", slot, m.type, m.bypass and 1 or 0)}
+      for _, k in ipairs(names) do e[#e + 1] = string.format("%s=%.4f", k, m.values[k]) end
+      out[#out + 1] = table.concat(e, ",")
+    end
+  end
+  return table.concat(out, "|")
+end
+
+local function decode_mods(s)
+  local mods = {}
+  for entry in (s or ""):gmatch("[^|]+") do
+    local slot, type, bypass, rest = entry:match("^([01]),(%a+),([01])(.*)$")
+    if slot and tab.contains(P.MOD_TYPES, type) then
+      local values = {}
+      for name, v in rest:gmatch(",([%w_]+)=([%d%.eE+-]+)") do
+        if tonumber(v) then values[name] = util.clamp(tonumber(v), 0, 1) end
+      end
+      mods[tonumber(slot)] = {type = type, bypass = bypass == "1", values = values}
+    end
+  end
+  return mods
+end
+
+local function save_mods(i)
+  params:set(id(i, "mods"), encode_mods(P.list[i].mods), true)
+end
+
+-- Sends the part's modifiers, both slots, emptying the ones it has none in.
+local function send_mods(i)
+  for slot = 0, 1 do
+    local m = P.list[i].mods[slot]
+    send("/mod", {i - 1, slot, m and m.type or ""})
+    if m then
+      if m.bypass then send("/mod_bypass", {i - 1, slot, 1}) end
+      for name, v in pairs(m.values) do send("/mod_param", {i - 1, slot, name, v}) end
+    end
+  end
+end
+
+local function mod_def(type, name)
+  local defs = P.mod_defs[type]
+  return defs and defs.by[name]
+end
+
+-- A modifier param's 0-1 value: what was set, or its default.
+local function mod_param_value(m, name)
+  if m.values[name] then return m.values[name] end
+  local d = mod_def(m.type, name)
+  return d and P.unmap(d, d.default) or 0
+end
+
+-- Scale and Chord on one part share key and scale.
+local SHARED = {key = true, scale = true}
+local function shares(m) return m and (m.type == "Scale" or m.type == "Chord") end
+
+local function set_mod_param(i, slot, name, v)
+  local m = P.list[i].mods[slot]
+  m.values[name] = v
+  send("/mod_param", {i - 1, slot, name, v})
+end
+
+-- Puts a modifier type (or nil) in the part's slot, on and with its
+-- defaults. A Scale or Chord takes key and scale from one in the other slot.
+function P.set_mod_type(i, slot, type)
+  local part = P.list[i]
+  local old = part.mods[slot]
+  if (old and old.type) == type then return end
+  part.mods[slot] = type and {type = type, bypass = false, values = {}} or nil
+  send("/mod", {i - 1, slot, type or ""})
+  local other = part.mods[1 - slot]
+  if type and shares(part.mods[slot]) and shares(other) then
+    for name in pairs(SHARED) do set_mod_param(i, slot, name, mod_param_value(other, name)) end
+  end
+  save_mods(i)
+end
+
+-- A modifier control's 0-1 value (ctl from panel.mod_cards): the slot's
+-- type, on, or a param.
+function P.mod_value(i, ctl)
+  local m = P.list[i].mods[ctl.mod]
+  if ctl.what == "type" then
+    local at = m and tab.key(P.MOD_TYPES, m.type) or 0
+    return at / #P.MOD_TYPES
+  elseif ctl.what == "on" then
+    return (m and not m.bypass) and 1 or 0
+  end
+  return m and mod_param_value(m, ctl.p) or 0
+end
+
+function P.set_mod(i, ctl, v)
+  local part = P.list[i]
+  local m = part.mods[ctl.mod]
+  if ctl.what == "type" then
+    local at = math.floor(v * #P.MOD_TYPES + 0.5)
+    P.set_mod_type(i, ctl.mod, P.MOD_TYPES[at])
+    return
+  end
+  if not m then return end
+  if ctl.what == "on" then
+    local bypass = v < 0.5
+    if bypass == m.bypass then return end
+    m.bypass = bypass
+    send("/mod_bypass", {i - 1, ctl.mod, bypass and 1 or 0})
+  else
+    set_mod_param(i, ctl.mod, ctl.p, v)
+    local other = part.mods[1 - ctl.mod]
+    if SHARED[ctl.p] and shares(m) and shares(other) then set_mod_param(i, 1 - ctl.mod, ctl.p, v) end
+  end
+  save_mods(i)
+end
+
+-- The part's key and scale as "D dor" when it has a Scale, else nil.
+local KEYS = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}
+P.SCALE_SHORT = {"maj", "dor", "phr", "lyd", "mix", "min", "loc", "hmin", "mmin", "maj5", "min5",
+  "majbl", "minbl", "egy", "hunm", "byz", "pers", "hira", "insen", "iwato", "enig", "phrdom",
+  "neapm", "neapM", "alt", "lyddom", "lydaug", "loc2", "bebd", "bebM", "whole", "dimwh", "dimhw"}
+function P.scale_text(i)
+  local mods = P.list[i].mods
+  for slot = 0, 1 do
+    local m = mods[slot]
+    if m and m.type == "Scale" then
+      local kd, sd = mod_def("Scale", "key"), mod_def("Scale", "scale")
+      if not (kd and sd) then return nil end
+      local key = math.floor(P.map(kd, mod_param_value(m, "key")) + 0.5)
+      local scale = math.floor(P.map(sd, mod_param_value(m, "scale")) + 0.5)
+      return (KEYS[key + 1] or "?") .. " " .. (P.SCALE_SHORT[scale + 1] or tostring(scale + 1))
+    end
+  end
+end
+
 local function base(path) return path:match("([^/]+)/*$") or path end
 local function stem(path) return (base(path):gsub("%.[^%.]*$", "")) end
 
@@ -780,6 +929,8 @@ function P.apply(i)
   part.loading, part.last_path = nil, nil
   -- with no files this still clears what the machine had before
   if P.SAMPLE_MACHINES[part.machine] then send_files(i) end
+  part.mods = decode_mods(params:get(id(i, "mods")))
+  send_mods(i)
 end
 
 function P.apply_all()
@@ -790,7 +941,7 @@ end
 
 local function add_part(i)
   local part = P.list[i]
-  params:add_group("part_" .. i, "part " .. i, 14 + P.slots)
+  params:add_group("part_" .. i, "part " .. i, 15 + P.slots)
 
   local chans = {"off"}
   for c = 1, 16 do chans[c + 1] = tostring(c) end
@@ -861,6 +1012,8 @@ local function add_part(i)
   params:add_text(id(i, "fx"), "fx", "")
   -- the saved preset the part plays, "index|path", for PSETs; never shown
   params:add_text(id(i, "preset"), "preset", "")
+  -- the modifiers, "slot,type,bypass,name=value..." per slot, for PSETs; never shown
+  params:add_text(id(i, "mods"), "mods", "")
 
   params:add_control(id(i, "volume"), "volume", controlspec.new(-60, 3, "lin", 0.5, 0, "dB"))
   params:set_action(id(i, "volume"), function()
@@ -915,6 +1068,7 @@ function P.add_params()
     params:hide(id(i, "files"))
     params:hide(id(i, "fx"))
     params:hide(id(i, "preset"))
+    params:hide(id(i, "mods"))
   end
   -- params:clear() removes this when the script ends.
   params.action_read = function(filename) P.after_read(filename) end
@@ -1058,6 +1212,8 @@ function P.after_read(filename)
   params:set("wave_tables", P.WAVE_TABLES, true)
   for i = 1, P.COUNT do
     if filename and not saved_has(filename, id(i, "preset")) then params:set(id(i, "preset"), "", true) end
+    -- a PSET from before modifiers has none
+    if filename and not saved_has(filename, id(i, "mods")) then params:set(id(i, "mods"), "", true) end
   end
   if filename and not saved_has(filename, "macro_params") then
     for i = 1, P.COUNT do reset_macros(i) end
@@ -1087,6 +1243,10 @@ watch = function()
       engine.load("Acidulous", P.start_engine)
     end
   end
+  if next(P.mod_defs) == nil and now - P.mod_defs_asked > 2 then
+    P.mod_defs_asked = now
+    send("/mod_defs", {})
+  end
   for i, part in ipairs(P.list) do
     if part.want_values and not part.values_retried and now - part.values_at > 2 then
       part.values_retried = true
@@ -1108,11 +1268,13 @@ function P.resend()
     if part.pending then
       P.send_strip(i) -- the pending patch mounts the machine
       part.resend_files = next(part.files) ~= nil
+      send_mods(i)
     elseif part.want_values then
       -- the slots don't hold this patch's values yet, so ask for them again
       P.send_strip(i)
       part.resend_files = next(part.files) ~= nil
       load_machine(i, true)
+      send_mods(i)
     else
       P.apply(i)
     end
@@ -1441,6 +1603,8 @@ function P.osc(path, args)
   elseif path == "/machines" then
     if asked_machines then return end
     asked_machines = true
+    P.mod_defs_asked = util.time()
+    send("/mod_defs", {})
     local have = {}
     for _, name in ipairs(args) do have[name] = true end
     for _, m in ipairs(P.MACHINES) do
@@ -1456,6 +1620,19 @@ function P.osc(path, args)
       return
     end
     ask_next()
+  elseif path == "/mod_defs" then
+    local list, by, k = {}, {}, 3
+    for _ = 1, args[2] or 0 do
+      if k + 6 > #args then break end
+      local d = {
+        name = args[k], min = args[k + 1], max = args[k + 2], default = args[k + 3],
+        unit = args[k + 4], steps = args[k + 5], curve = args[k + 6],
+      }
+      list[#list + 1], by[d.name] = d, d
+      k = k + 7
+    end
+    list.by = by
+    P.mod_defs[args[1]] = list
   elseif path == "/def" then
     local d = P.defs[args[1]]
     if d then

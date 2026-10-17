@@ -67,6 +67,8 @@ The patch list has the machine's patches in families, like classic, motion and s
 
 The card page has the machine's controls in the same cards as the app, like osc, filter, play and out on Reflux. **E1** picks the card, **E2** the control and **E3** sets it, with **K1** held for fine steps. **K1** held + **E2** right jumps to the amp envelope card, left goes back to the card you left. Cards for one pad of a kit start with a pad control. A patch's effects, like Saw Lead's distortion and delay, have cards after the machine's. Effect settings you change are saved in a PSET and go when you pick another patch. **K2** goes back to the play page.
 
+Each part can have up to two modifiers on the notes it plays: Scale, Chord and Arp, as in the app. The **mods** card, after the effects' cards, sets each slot to none, scale, chord or arp and turns it on or off, and the modifier's own cards follow. Notes go through slot 1, then slot 2. A Scale and a Chord on the same part share key and scale. Modifiers stay when you change the machine or patch, and a PSET saves them. With a Scale on, the play page shows its key and scale at the bottom, like "D dor".
+
 Pan and the card controls that go either side of 0 stop at the centre. Turn 3 more detents the same way to go past it.
 
 The mixer page has a strip per part, with its meter, fader and pan, and **m** or **s** under a muted or soloed part. The out strip on the right has the master meter and fader, and **lim** lights while the limiter is at its ceiling. The top right shows the loudness in LUFS over the last 3 seconds.

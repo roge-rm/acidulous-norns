@@ -8,6 +8,10 @@ PanelVowelKnob and Drawbars become controls, for loops and local vals and
 funs are expanded. A section's cards come in section order. A param name that
 depends on the selected pad is written with {pad} (or {pad+1}), which Lua fills.
 
+Also writes lib/modcards.lua, the modifiers' cards (Scale, Chord, Arp), from
+SlotsPanel.kt: its PANEL_GROUPS, switchLabels and SHORT_LABELS, with the
+params of the vendored engine's InputMods.cpp.
+
 Usage: tools/gen-cards.py [APP_REPO] [OUT]
   APP_REPO defaults to ~/Projects/AndroidStudioProjects/Acidulous,
   OUT to lib/cards.lua next to this script.
@@ -19,6 +23,10 @@ APP = sys.argv[1] if len(sys.argv) > 1 else os.path.expanduser("~/Projects/Andro
 OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(HERE, "..", "lib", "cards.lua")
 SRC = os.path.join(APP, "shared/src/commonMain/kotlin/com/rm/acidulous")
 PANEL = os.path.join(SRC, "ui/MachinePanel.kt")
+SLOTS = os.path.join(SRC, "ui/SlotsPanel.kt")
+MOD_OUT = os.path.join(os.path.dirname(OUT), "modcards.lua")
+INPUT_MODS = os.path.join(HERE, "..", "third_party/acidulous/engine/inputmod/InputMods.cpp")
+MOD_TYPES = ("Scale", "Chord", "Arp")
 
 CONTROLS = {"PanelKnob": "knob", "PanelStepKnob": "step", "PanelSwitch": "switch",
             "PanelOnOff": "onoff", "PanelVowelKnob": "knob", "PanelPair": "switch"}
@@ -208,6 +216,12 @@ class Evaluator:
         while a < b and toks[a].k == "nl": a += 1
         while b > a and toks[b - 1].k == "nl": b -= 1
         if a >= b: raise Fail("empty")
+        if toks[a].v == "if" and toks[a + 1].v == "(":
+            c = match_close(toks, a + 1)
+            e = [j for j in self.top_ops(toks, c + 1, b, ("else",))]
+            if not e: raise Fail("if without else")
+            if test(self, toks, a + 2, c, env): return self.eval(toks, c + 1, e[0], env)
+            return self.eval(toks, e[0] + 1, b, env)
         # ranges bind loosest
         for j in self.top_ops(toks, a, b, ("..", "until", "downTo")):
             lo = self.eval(toks, a, j, env)
@@ -580,6 +594,186 @@ def ascii_label(s):
     return s.lower()
 
 
+# ---- conditions ------------------------------------------------------------------
+
+def test(ev, toks, a, b, env):
+    """A Kotlin condition in toks[a:b]: ||, &&, ==, !=, <, >, <=, >=, !, brackets."""
+    while a < b and toks[a].k == "nl": a += 1
+    while b > a and toks[b - 1].k == "nl": b -= 1
+    for ops in (("||",), ("&&",)):
+        js = ev.top_ops(toks, a, b, ops)
+        if js:
+            parts, last = [], a
+            for j in js + [b]:
+                parts.append((last, j)); last = j + 1
+            vals = (test(ev, toks, x, y, env) for x, y in parts)
+            return any(vals) if ops == ("||",) else all(vals)
+    for op in ("==", "!=", "<=", ">=", "<", ">"):
+        js = ev.top_ops(toks, a, b, (op,))
+        if js:
+            j = js[0]
+            l, r = ev.eval(toks, a, j, env), ev.eval(toks, j + 1, b, env)
+            return {"==": l == r, "!=": l != r, "<=": l <= r, ">=": l >= r, "<": l < r, ">": l > r}[op]
+    if toks[a].v == "!": return not test(ev, toks, a + 1, b, env)
+    if toks[a].v == "(" and match_close(toks, a) == b - 1: return test(ev, toks, a + 1, b - 1, env)
+    if toks[a].k == "id" and toks[a].v in ("true", "false") and a + 1 == b: return toks[a].v == "true"
+    if toks[a].k == "id" and toks[a].v == "else": return True
+    raise Fail("condition " + " ".join(t.v for t in toks[a:b]))
+
+
+# ---- modifier cards ----------------------------------------------------------------
+
+def block_after(text, head):
+    """The text inside the brackets that open right after `head`."""
+    i = text.index(head) + len(head)
+    while text[i] not in "({": i += 1
+    toks = tokenize(text[i:])
+    return toks, 1, match_close(toks, 0)
+
+
+def engine_params(src, type_):
+    """The modifier's param names in engine order, from InputMods.cpp."""
+    i = src.index("const ParamDef *%s::paramDefs" % type_)
+    body = src[i:src.index("count = Count;", i)]
+    names = []
+    for m in re.finditer(r'\{"(\w+)",\s*-?[\d.]+f?,|stepNames\[\d+\]\s*=\s*\{([^}]*)\}', body):
+        if m.group(1): names.append(m.group(1))
+        else:
+            # the steps come where the loop over stepNames is
+            names.append(("*steps", re.findall(r'"(\w+)"', m.group(2))))
+    out = []
+    for n in names:
+        if isinstance(n, tuple): continue
+        out.append(n)
+    steps = [n for n in names if isinstance(n, tuple)]
+    if steps:
+        # stepNames is declared before the loop that adds them, after "length"
+        at = out.index("length") + 1 if "length" in out else len(out)
+        out[at:at] = steps[0][1]
+    return out
+
+
+def switch_labels(ev, toks, a, b):
+    """switchLabels's branches as [(cond range, expr range)]."""
+    i = a
+    while toks[i].v != "when": i += 1
+    i += 1
+    while toks[i].v != "{": i += 1
+    end = match_close(toks, i)
+    arrows = []
+    depth = 0
+    for j in range(i + 1, end):
+        t = toks[j]
+        if t.k == "op" and t.v in ("(", "{", "["): depth += 1
+        elif t.k == "op" and t.v in (")", "}", "]"): depth -= 1
+        elif depth == 0 and t.v == "->": arrows.append(j)
+    out = []
+    for n, j in enumerate(arrows):
+        k = j - 1
+        while k > i and toks[k].k != "nl": k -= 1
+        start = k + 1
+        if n + 1 < len(arrows):
+            nk = arrows[n + 1] - 1
+            while toks[nk].k != "nl": nk -= 1
+            stop = nk
+        else:
+            stop = end
+        out.append(((start, j), (j + 1, stop)))
+    return out
+
+
+def mod_cards(ev):
+    text = open(SLOTS, encoding="utf-8").read()
+    src = open(INPUT_MODS, encoding="utf-8").read()
+    toks = tokenize(text)
+    # PANEL_GROUPS: type -> [(title, [names])]
+    groups = {}
+    for m in re.finditer(r'"(\w+)" to listOf\((.*?)\n    \)', text[text.index("private val PANEL_GROUPS"):], re.S):
+        if m.group(1) not in MOD_TYPES or m.group(1) in groups: continue
+        groups[m.group(1)] = [(t, re.findall(r'"(\w+)"', names))
+                              for t, names in re.findall(r'"([\w ]+)" to listOf\(([^)]*)\)', m.group(2))]
+    st, sa, sb = block_after(text, "private val SHORT_LABELS")
+    shorts = dict(re.findall(r'"(\w+)" to "([^"]+)"', "".join(t.v + " " for t in st[sa:sb])))
+    hidden = re.search(r'CHORD_MEMORY_NOTE = Regex\("([^"]+)"\)', text).group(1)
+    # switchLabels's body
+    fi = next(i for i, t in enumerate(toks) if t.v == "switchLabels" and toks[i - 1].v == "fun")
+    branches = switch_labels(ev, toks, fi, len(toks))
+    problems = []
+
+    def labels(type_, name, steps):
+        env = {"type": type_, "name": name, "steps": steps}
+        for (ca, cb), (ea, eb) in branches:
+            try:
+                if not test(ev, toks, ca, cb, env): continue
+            except Fail as e:
+                problems.append(f"{type_}.{name}: {e}"); continue
+            if toks[ea].v == "null": return None
+            try:
+                return [str(x) for x in ev.eval(toks, ea, eb, env)]
+            except Fail as e:
+                problems.append(f"{type_}.{name}: {e}"); return None
+        return None
+
+    # name -> steps for the stepped params (0 when the count isn't a plain number)
+    stepped = {m.group(1): int(m.group(3)) if m.group(3).isdigit() else 0
+               for m in re.finditer(r'\{"(\w+)",[^{}]*?Curve::(Stepped),\s*([^,]+?),', src)}
+
+    out = {}
+    for type_ in MOD_TYPES:
+        names = engine_params(src, type_)
+        steps_p = [n for n in names if type_ == "Arp" and re.fullmatch(r"s\d\d", n)]
+        shown = [n for n in names if n not in steps_p and not (type_ == "Chord" and re.fullmatch(hidden, n))]
+
+        def control(n):
+            # as the app: a stepped param with words for its steps is a switch
+            # of up to 4, or a knob that names its step
+            o = labels(type_, n, stepped[n]) if n in stepped else None
+            if o: o = [x.replace("↑", " up").replace("↓", " dn") for x in o]
+            kind = "knob"
+            if o == ["off", "on"]: kind = "onoff"
+            elif o and len(o) <= 4: kind = "switch"
+            elif o: kind = "step"
+            lab = short(ascii_label(shorts.get(n, n)))
+            return {"p": n, "l": lab, "k": kind, "o": [ascii_label(x) if kind != "onoff" else x for x in o] if o else None}
+
+        cards, taken = [], set()
+        for title, ns in groups.get(type_, []):
+            here = [n for n in ns if n in shown]
+            if not here: continue
+            taken.update(here)
+            cards.append((title, [control(n) for n in here]))
+        rest = [n for n in shown if n not in taken]
+        if rest: cards.append(("more", [control(n) for n in rest]))
+        if steps_p:
+            cards.append(("steps", [{"p": n, "l": str(int(n[1:])), "k": "onoff", "o": None} for n in steps_p]))
+        out[type_] = [((t if type_.lower() in t else type_.lower() + " " + t), c) for t, c in cards]
+    return out, problems
+
+
+def write_mod_cards(ev):
+    cards, problems = mod_cards(ev)
+    lines = [
+        "-- Generated by tools/gen-cards.py from the app's SlotsPanel.kt; don't edit.",
+        "-- modifier -> list of cards {t = title, c = controls}, each control",
+        "-- {p = param, l = label, k = knob|step|switch|onoff, o = option labels}.",
+        "return {",
+    ]
+    for type_ in MOD_TYPES:
+        lines.append(f"  {type_} = {{")
+        for title, ctl in cards[type_]:
+            lines.append(f"    {{t = {lua_str(title)}, c = {{")
+            for x in ctl:
+                s = f"{{p = {lua_str(x['p'])}, l = {lua_str(x['l'])}, k = {lua_str(x['k'])}"
+                if x["o"]: s += ", o = {" + ", ".join(lua_str(o) for o in x["o"]) + "}"
+                lines.append("      " + s + "},")
+            lines.append("    }},")
+        lines.append("  },")
+    lines.append("}")
+    with open(MOD_OUT, "w") as f: f.write("\n".join(lines) + "\n")
+    print(f"{len(cards)} modifiers, {sum(len(v) for v in cards.values())} cards -> {os.path.relpath(MOD_OUT)}")
+    for p in problems: print("  " + p)
+
+
 # ---- the file ----------------------------------------------------------------------
 
 def top_vals(toks, into):
@@ -698,6 +892,7 @@ def main():
     with open(OUT, "w") as f: f.write("\n".join(lines) + "\n")
     print(f"{len(out)} machines, {sum(len(v) for v in out.values())} cards -> {os.path.relpath(OUT)}")
     for p in problems: print("  " + p)
+    write_mod_cards(ev)
 
 
 if __name__ == "__main__":

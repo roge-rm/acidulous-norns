@@ -681,14 +681,12 @@ local function part_cards()
     if not ok then ps.pad = pads[1] end
   end
   local cards = panel.cards(part.machine, defs, ps.pad, part.macro_names)
-  local fx = panel.fx_cards(part.fx)
-  if #fx > 0 then
-    -- a new list, as the machine's is cached
-    local all = {}
-    for _, c in ipairs(cards) do all[#all + 1] = c end
-    for _, c in ipairs(fx) do all[#all + 1] = c end
-    cards = all
-  end
+  -- then the inserts' and the modifiers', in a new list, as the machine's is cached
+  local all = {}
+  for _, c in ipairs(cards) do all[#all + 1] = c end
+  for _, c in ipairs(panel.fx_cards(part.fx)) do all[#all + 1] = c end
+  for _, c in ipairs(panel.mod_cards(part.mods, parts.mod_defs)) do all[#all + 1] = c end
+  cards = all
   ps.card = util.clamp(ps.card, 1, math.max(1, #cards))
   local card = cards[ps.card]
   ps.knob = util.clamp(ps.knob, 1, card and #card.controls or 1)
@@ -849,6 +847,13 @@ local function turn_control(d)
     return
   end
   local n = panel.positions(ctl)
+  if ctl.mod then
+    -- a modifier's type, on or param
+    local old = parts.mod_value(state.sel, ctl)
+    local v = turned("mod" .. ctl.mod .. ":" .. (ctl.p or ctl.what), ctl.def, n, old, d, n > 1)
+    if v ~= old then parts.set_mod(state.sel, ctl, v) end
+    return
+  end
   -- an insert's param, or the machine's slot
   local sid = ctl.fx and ("fx" .. ctl.fx .. ":" .. ctl.index) or parts.id(state.sel, "s" .. ctl.slot)
   local old = ctl.fx and parts.fx_value(state.sel, ctl) or params:get(sid)
