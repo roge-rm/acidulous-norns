@@ -63,6 +63,7 @@ for i = 1, P.COUNT do
     want_values = false, pending = nil,
     sent = nil,     -- the patch last sent to the plugin
     edits = {},     -- slot -> value, set while a patch is on its way
+    sends_moved = {}, -- "rev"/"dly" -> true when moved since the last /patch
     values_at = 0, values_retried = false,
     -- what /load has put in the machine: "pad0".."pad12" or "main" ->
     -- {kind, path, arg, name}. Saved in the part's "files" param.
@@ -216,6 +217,8 @@ local function strip_value(i, what)
 end
 
 function P.send_strip_param(i, what)
+  -- a send moved after a /patch keeps its level when the patch's /sends comes back
+  if what == "rev" or what == "dly" then P.list[i].sends_moved[what] = true end
   send("/channel", {i - 1, STRIP[what], strip_value(i, what)})
 end
 
@@ -483,6 +486,7 @@ local function load_machine(i, with_values)
   elseif name then
     part.want_values = with_values
     part.values_at, part.values_retried = util.time(), false
+    part.sends_moved = {}
     send("/patch", {i - 1, part.machine, name})
   else
     send("/mount", {i - 1, part.machine})
@@ -504,8 +508,8 @@ local function later(i, wait, fn)
 end
 
 -- Sends a part's whole state, after a PSET is read. The patch goes first,
--- which mounts the machine, then the saved params on top of it, then its
--- files.
+-- which mounts the machine, then the saved params and sends on top of it,
+-- then its files.
 function P.apply(i)
   local part = P.list[i]
   timer.cancel(part.pending)
@@ -513,6 +517,9 @@ function P.apply(i)
   P.notes_off(i)
   P.send_strip(i)
   load_machine(i, false)
+  -- the PSET's sends go on top of the ones the patch carries
+  P.send_strip_param(i, "rev")
+  P.send_strip_param(i, "dly")
   -- C++ waits for room in the engine's param queue, so none of these is lost
   if part.machine then
     for j = 1, #P.defs[part.machine] do
@@ -828,9 +835,10 @@ function P.osc(path, args)
   elseif path == "/sends" then
     -- a patch set the part's sends, or gave the player's back
     local i = (args[1] or -1) + 1
-    if not P.list[i] then return end
-    params:set(id(i, "rev"), args[2], true)
-    params:set(id(i, "dly"), args[3], true)
+    local part = P.list[i]
+    if not part then return end
+    if not part.sends_moved.rev then params:set(id(i, "rev"), args[2], true) end
+    if not part.sends_moved.dly then params:set(id(i, "dly"), args[3], true) end
   elseif path == "/macros" then
     local list = {}
     for j = 4, #args - 1, 2 do list[#list + 1] = {param = args[j], label = args[j + 1]} end
