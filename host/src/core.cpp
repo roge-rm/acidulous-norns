@@ -498,6 +498,11 @@ void Core::mix_hear(float* out)
     hear_busy.store(false);
 }
 
+std::string Core::macro_names(int part) const
+{
+    return host.macroNames(part);
+}
+
 float Core::load_percent() const
 {
     return host.loadPercent();
@@ -930,6 +935,7 @@ bool Core::mount(int part, const std::string& name)
         return false;
     }
     wait_applied();
+    host.setMacroNames(part, "");
     parts[part] = Part{};
     parts[part].machine = type;
     if(scope_part.load() == part)
@@ -955,6 +961,7 @@ void Core::unmount(int part)
     // and the sends they hold go back to the player's.
     apply_chain(part, acidulous::PatchChain{}, "unmount");
     wait_applied();
+    host.setMacroNames(part, "");
     parts[part] = Part{};
     if(scope_part.load() == part)
         scope_part.store(-1);
@@ -1695,9 +1702,32 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
     }
     else if(machine == "Cumulus")
         request_cloud(part);
-    else if(!r.settings.empty())
+    else if(machine != "Trinity" && !r.settings.empty())
         std::fprintf(stderr, "acidulous: %s %s: settings are not supported yet\n", machine.c_str(),
                      patch->name.c_str());
+
+    // A Trinity's macro names, macro1..macro8 joined by newlines, or "" when
+    // the patch names none. Other machines clear them.
+    {
+        std::string names;
+        if(machine == "Trinity")
+        {
+            bool any = false;
+            for(int k = 1; k <= 8; ++k)
+            {
+                const std::string key = "macro" + std::to_string(k);
+                std::string       v;
+                for(const auto& kv : r.settings)
+                    if(kv.first == key)
+                        v = kv.second;
+                any = any || !v.empty();
+                names += (k > 1 ? "\n" : "") + v;
+            }
+            if(!any)
+                names.clear();
+        }
+        host.setMacroNames(part, names);
+    }
 
     // The patch's inserts and sends. One without them takes the last patch's
     // inserts off and gives back the sends it held.

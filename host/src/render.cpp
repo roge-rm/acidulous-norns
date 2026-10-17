@@ -243,6 +243,17 @@ int main(int argc, char** argv)
     std::printf("load: engine %.1f%% (max %.1f%%), worst block %.1f%%, whole render %.1f%% of real time\n",
                 c.load_percent(), load_max, c.worst_percent(), 100.0 * took / end_s);
 
+    for(int p = 0; p < 8; ++p)
+    {
+        std::string names = c.macro_names(p);
+        if(names.empty())
+            continue;
+        for(char& ch : names)
+            if(ch == '\n')
+                ch = '|';
+        std::printf("macro names, part %d: %s\n", p, names.c_str());
+    }
+
     if(!write_wav(files[1], lr, pcm16))
     {
         std::fprintf(stderr, "cannot write %s\n", files[1]);

@@ -311,6 +311,9 @@ function P.add_master_params()
   -- the wavetable count a PSET was saved with, for P.after_read; never shown
   params:add_number("wave_tables", "wave tables", 0, 1024, P.WAVE_TABLES)
   params:hide("wave_tables")
+  -- 1 in a PSET saved with Trinity's macro params, for P.after_read; never shown
+  params:add_number("macro_params", "macro params", 0, 1, 1)
+  params:hide("macro_params")
 end
 
 -- "l12", "c" or "r30", for a pan of -1 to 1.
@@ -766,6 +769,28 @@ local function saved_tables(filename)
   return n
 end
 
+-- Resets a Trinity part's macro params to their defaults (knobs at 0, no
+-- destinations). A PSET from before they existed has nothing for them, and a
+-- hidden slot can hold what another machine left there.
+local function reset_macros(i)
+  if P.list[i].machine ~= "Trinity" then return end
+  for j, d in ipairs(P.defs.Trinity or {}) do
+    if d.name:match("^mac%d") then params:set(id(i, "s" .. j), P.unmap(d, d.default), true) end
+  end
+end
+
+-- Whether a PSET file has the param.
+local function saved_has(filename, key)
+  local f = filename and io.open(filename, "r")
+  if not f then return true end
+  local found = false
+  for line in f:lines() do
+    if line:match('^"' .. key .. '"%s*:') then found = true break end
+  end
+  f:close()
+  return found
+end
+
 -- The slots holding a wtosc in a Nexus patch's graph, from its bank, as a
 -- set of slot numbers.
 local function wtosc_slots(patch)
@@ -851,6 +876,10 @@ function P.after_read(filename)
     for i = 1, P.COUNT do migrate_waves(i) end
   end
   params:set("wave_tables", P.WAVE_TABLES, true)
+  if filename and not saved_has(filename, "macro_params") then
+    for i = 1, P.COUNT do reset_macros(i) end
+  end
+  params:set("macro_params", 1, true)
   P.loading = false
   P.apply_all()
 end
