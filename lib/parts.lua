@@ -825,6 +825,12 @@ function P.osc(path, args)
       send("/param", {i - 1, j - 1, v})
     end
     part.edits = {}
+  elseif path == "/sends" then
+    -- a patch set the part's sends, or gave the player's back
+    local i = (args[1] or -1) + 1
+    if not P.list[i] then return end
+    params:set(id(i, "rev"), args[2], true)
+    params:set(id(i, "dly"), args[3], true)
   elseif path == "/macros" then
     local list = {}
     for j = 4, #args - 1, 2 do list[#list + 1] = {param = args[j], label = args[j + 1]} end

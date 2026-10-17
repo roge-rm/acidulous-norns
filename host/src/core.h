@@ -27,6 +27,8 @@
 #include <thread>
 #include <vector>
 
+#include <engine/core/PatchChain.h>
+
 namespace acidulous
 {
 class EngineHost;
@@ -170,6 +172,7 @@ class Core
     void set_param(int part, const Value& which, float v01);
     void set_channel(int part, const Value& which, float v01);
     void ensure_send(int slot);
+    void apply_chain(int part, const acidulous::PatchChain& chain, const std::string& what);
     void set_send(int slot, const std::string& name, float v01);
     void send_graph(int part);
     void set_scope(int part, int slot);
@@ -220,6 +223,12 @@ class Core
     // set, applied when it is.
     bool                         send_mounted[kSends] = {};
     std::map<std::string, float> send_values[kSends];
+    // Worker only: each part's reverb and delay send levels as last set, 0-1,
+    // and what its patches put on its track (the insert slots they filled and
+    // the sends they hold). Both outlive a machine swap, like the track's
+    // inserts and channel do.
+    float                       part_sends[kParts][kSends] = {};
+    acidulous::PatchTrackState  patch_fx[kParts];
     std::atomic<bool>            metering{false};
     // The part whose scope is open, or -1, and the module slot it's cabled
     // from. Written by the worker.

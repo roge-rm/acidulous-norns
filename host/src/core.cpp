@@ -406,16 +406,24 @@ Core::~Core()
     // block, so a few blocks are pulled here since the UGen no longer runs
     // this core. A retired machine frees what was mounted into it.
     for(int p = 0; p < kParts; ++p)
+    {
         host.unmountMachine(p);
+        for(int s = 0; s < kEffectSlots; ++s)
+        {
+            const char* fx = host.mountedEffect(p, s);
+            if(fx && *fx)
+                host.mountEffect(p, s, "");
+        }
+    }
     for(int s = 0; s < kSends; ++s)
         if(send_mounted[s])
             host.mountSend(s, "");
     host.setMpeZone(0, 15, 48);
     // The UGen has stopped calling process(), but a pull may still be
-    // finishing, so a pull that fails is tried again, for up to 50 ms. 10
-    // machines and sends take 2 blocks; 4 leaves room.
+    // finishing, so a pull that fails is tried again, for up to 50 ms. 8
+    // machines, 16 inserts and 2 sends take 4 blocks; 6 leaves room.
     float in[kBlockFrames * 2] = {}, out[kBlockFrames * 2];
-    for(int tries = 0, pulled = 0; tries < 50 && pulled < 4; ++tries)
+    for(int tries = 0, pulled = 0; tries < 50 && pulled < 6; ++tries)
     {
         if(AudioDriver::pull(in, out))
             ++pulled;
@@ -936,6 +944,9 @@ void Core::unmount(int part)
         clear_held(part);
         host.unmountMachine(part);
     }
+    // An empty part keeps no patch effects: the inserts its patches put in go
+    // and the sends they hold go back to the player's.
+    apply_chain(part, acidulous::PatchChain{}, "unmount");
     wait_applied();
     parts[part] = Part{};
     if(scope_part.load() == part)
@@ -1135,8 +1146,13 @@ void Core::set_channel(int part, const Value& which, float v01)
     }
     // A send's effect is mounted the first time a part sends to it, so the
     // reverb and delay cost nothing until then.
-    if(v01 > 0.f && (name == "sendreverb" || name == "senddelay"))
-        ensure_send(name == "sendreverb" ? 0 : 1);
+    if(name == "sendreverb" || name == "senddelay")
+    {
+        const int slot        = name == "sendreverb" ? 0 : 1;
+        part_sends[part][slot] = v01 < 0.f ? 0.f : v01 > 1.f ? 1.f : v01;
+        if(v01 > 0.f)
+            ensure_send(slot);
+    }
     push_param(part, "channel", name, v01);
 }
 
@@ -1173,6 +1189,33 @@ void Core::ensure_send(int slot)
     send_mounted[slot] = true;
     for(const auto& kv : send_values[slot])
         push_param(0, kSendUnits[slot], kv.first, kv.second);
+}
+
+// Puts a patch's inserts and sends on the part's track, by EngineHost's rule
+// (engine/core/PatchChain.h): it empties the slots the last patch filled,
+// mounts a new effect for each insert in a free slot and sets the sends, or
+// gives the player's back. The effects go through the mount queue and are the
+// engine's from then on. An empty chain takes the last patch's effects off.
+// Sends it changes go to the script as "/sends i:part f:reverb f:delay".
+void Core::apply_chain(int part, const acidulous::PatchChain& chain, const std::string& what)
+{
+    if(!chain.inserts.empty() || patch_fx[part].owned != 0)
+        mounts_queued = true;
+    int32_t                   skipped = 0, unknown = 0;
+    const acidulous::SendPlan plan    = host.applyPatchChain(part, chain, patch_fx[part], part_sends[part][0],
+                                                             part_sends[part][1], &skipped, &unknown);
+    if(skipped > 0)
+        std::fprintf(stderr, "acidulous: %s: %d insert(s) found no free slot\n", what.c_str(), int(skipped));
+    if(unknown > 0)
+        std::fprintf(stderr, "acidulous: %s: %d insert(s) name no effect this build has\n", what.c_str(), int(unknown));
+    if(!plan.set)
+        return;
+    part_sends[part][0] = plan.reverb;
+    part_sends[part][1] = plan.delay;
+    for(int s = 0; s < kSends; ++s)
+        if(part_sends[part][s] > 0.f)
+            ensure_send(s);
+    reply("/sends", {Value::i(part), Value::f(plan.reverb), Value::f(plan.delay)});
 }
 
 // A send effect's param, kept for when it's mounted.
@@ -1562,6 +1605,14 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
     else if(!r.settings.empty())
         std::fprintf(stderr, "acidulous: %s %s: settings are not supported yet\n", machine.c_str(),
                      patch->name.c_str());
+
+    // The patch's inserts and sends. One without them takes the last patch's
+    // inserts off and gives back the sends it held.
+    std::vector<std::string> fx_problems;
+    const acidulous::PatchChain chain = ab::resolveChain(*patch, fx_problems);
+    for(const auto& p : fx_problems)
+        std::fprintf(stderr, "acidulous: %s %s: %s\n", machine.c_str(), patch->name.c_str(), p.c_str());
+    apply_chain(part, chain, machine + " " + patch->name);
 
     parts[part].patch = patch->name;
     if(!macros.empty())
