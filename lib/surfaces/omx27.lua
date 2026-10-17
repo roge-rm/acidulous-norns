@@ -1,7 +1,7 @@
 -- The OMX-27 in REMOTE mode (lib/omx.lua), as a surface for Acidulous.
---   bottom keys 12-26    white keys, two octaves C to C
+--   bottom keys 11-26    white keys, B and then two octaves C to C
 --   top keys 1-10        black keys
---   AUX (0) held:        keys 1 and 2 octave down and up, keys 12-19 pick part 1-8
+--   AUX (0) held:        keys 1 and 2 octave down and up, keys 11-18 pick part 1-8
 --   pots 0-4             the selected part's macros, with pickup
 --   encoder              patch; held and turned, machine; a tap, norns page
 
@@ -11,7 +11,7 @@ local surf = {name = "OMX-27"}
 surf.actions = nil -- set by lib/surfaces.lua
 
 local OCT_DOWN, OCT_UP = 1, 2
-local PART_KEY = 12 -- AUX + keys 12-19 pick parts 1-8
+local PART_KEY = 11 -- AUX + keys 11-18 pick parts 1-8
 local BASE = 48     -- the lowest key's note at octave 0
 local FLASH = 1.2   -- seconds a turned pot shows on the screen
 local PICKUP = 0.02 -- a pot this close to the value takes over
@@ -30,6 +30,7 @@ do
       w = w + 1
     end
   end
+  SEMI[11] = -1 -- the bottom left key, B below the lowest C
 end
 
 -- one colour a part, r g b 0-255
