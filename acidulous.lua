@@ -630,6 +630,10 @@ function init()
   timer.every(1 / 15, function() redraw() end)
   if not install.check() then return end
   osc.event = function(path, args) parts.osc(path, args) end
+  parts.on_saved = function(machine) lists.refresh(parts, machine) end
+  parts.on_preset_note = function(text) lists.note(text) end
+  -- text entry takes the keys, so K1's release never comes here
+  lists.before_text = function() state.k1 = false end
   parts.start_engine()
   parts.start(ready)
 end
@@ -656,7 +660,7 @@ part_macros = function()
   local part = parts.list[state.sel]
   if not part.machine then return {} end
   local own = parts.patch_macros[part.machine]
-  return macros.resolve(part.machine, parts.defs[part.machine], own and own[part.patch])
+  return macros.resolve(part.machine, parts.defs[part.machine], own and own[parts.patch_key(state.sel)])
 end
 
 -- The selected part's card page state, its cards and pads.
@@ -774,7 +778,7 @@ function redraw()
   if picker.active() then
     view.picker(picker.screen())
   elseif lists.active(parts) then
-    local s = lists.screen(parts)
+    local s = lists.screen(parts, state.k1)
     if s.kind == "machines" then view.machines(parts, s) else view.patches(parts, s) end
   elseif scope.active() then
     view.scope(parts, scope.screen())
@@ -934,7 +938,7 @@ local function handle_key(n, z)
   elseif picker.active() then
     picker.key(n, z, state.k1)
   elseif lists.active(parts) then
-    lists.key(parts, n, z)
+    lists.key(parts, n, z, state.k1)
   elseif scope.active() and n == 2 then
     if z == 1 then scope.close(parts) end
   elseif n == 3 and state.k1 and not scope.active() then

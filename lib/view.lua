@@ -313,17 +313,25 @@ function view.patches(parts, s)
     x = x + w + 5
   end
   fill_rect(0, 15, 128, 1, 15)
+  if s.confirm then
+    screen.level(15)
+    text(64, 34, fit(s.confirm:lower(), 124), "center")
+    screen.level(6)
+    text(64, 50, "k2 no   k3 yes", "center")
+    screen.update()
+    return
+  end
   local shown = 6
   for k = s.top, math.min(#s.rows, s.top + shown - 1) do
     local row = s.rows[k]
     local y = 23 + (k - s.top) * 7
     local on = k == s.cursor
     if on then fill_rect(0, y - 6, 120, 7, 3) end
-    screen.level(on and 15 or (row.name == s.current and 12 or 7))
+    screen.level(on and 15 or (row.current and 12 or 7))
     text(2, y, fit(row.name:lower(), on and 90 or 116))
     if on then
       screen.level(6)
-      text(118, y, (s.kind == "patches" and row.name == s.current) and "reset" or "k3", "right")
+      text(118, y, s.hint or "k3", "right")
     end
   end
   scrollbar(124, 17, 46, s.top, shown, #s.rows)

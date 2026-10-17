@@ -169,6 +169,10 @@ WAV, AIFF and FLAC work, MP3 doesn't. Dice, Pollen, Molt and Forage's pads take 
 
 Machines, patches, any changed params and the samples each part has loaded save with norns PSETs, in **PARAMETERS > PSET**. The samples stay where they are, so a PSET needs them in the same place to load them again.
 
+You can save a part's sound as a patch of your own, which the Acidulous app can open too. In the patch list press **K1** + **K3**, type a name and pick **OK**. It's saved with its edits, macros and effects in dust/data/acidulous/presets/ under the machine's name, and shows in a **saved** tab at the start of the list. **K3** loads it like any patch, and **K1** + **K3** on it deletes it after asking. A PSET remembers a saved patch a part was playing.
+
+Presets copied over from the app go in the same folder and show up the next time you open the list. Sample paths are saved relative to dust/audio, so put the files there in the same place. The samples inside an app preset aren't read, so a file that isn't there shows as not found and the rest still loads.
+
 ## Credits
 
 acidulous is GPL-3.0, see [LICENSE](LICENSE). The engine in `third_party/acidulous` is copied from the Acidulous app, see [its README](third_party/acidulous/README.md).

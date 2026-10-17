@@ -86,6 +86,9 @@ for i = 1, P.COUNT do
     -- a Trinity patch's macro names, 8 strings ("" for unnamed), or nil when
     -- it names none; from /macro_names, not saved
     macro_names = nil,
+    -- the saved preset the part plays instead of a bank patch, or nil:
+    -- {path, index, name}. Saved in the part's "preset" param.
+    preset = nil,
   }
 end
 
@@ -393,13 +396,64 @@ local function patch_name(i)
   return names[params:get(id(i, "patch"))]
 end
 
+-- ---- saved presets -----------------------------------------------------------------
+
+-- Saved presets go in a folder per machine. File paths in them are relative
+-- to the first of P.ROOTS they're under, and found again the same way.
+P.PRESETS = _path.data .. "acidulous/presets/"
+P.ROOTS = {(_path.audio:gsub("/+", "/")), (norns.state.path:gsub("/+", "/"))}
+P.saved = {} -- machine -> list of {file, path, index, name}, from /preset_scan
+
+function P.preset_dir(machine) return P.PRESETS .. machine .. "/" end
+
+-- Asks the plugin for the machine's saved presets; /preset_scan answers.
+function P.scan_presets(machine)
+  if machine then send("/preset_scan", {P.preset_dir(machine)}) end
+end
+
+-- What the plugin's replies call a preset, in place of a patch name.
+local function preset_tag(pr) return "@" .. pr.index .. "|" .. pr.path end
+
+-- The part's patch as /values and /macros name it.
+function P.patch_key(i)
+  local part = P.list[i]
+  return part.preset and preset_tag(part.preset) or part.patch
+end
+
+local function saved_name(path, index)
+  local file = path:match("([^/]+)$")
+  for _, list in pairs(P.saved) do
+    for _, s in ipairs(list) do
+      if s.path == path and s.index == index then return s.name end
+    end
+  end
+  return ((file or path):gsub("%.acpreset$", ""))
+end
+
+local function save_preset_param(i)
+  local pr = P.list[i].preset
+  params:set(id(i, "preset"), pr and (pr.index .. "|" .. pr.path) or "", true)
+end
+
+local function decode_preset(s)
+  local index, path = (s or ""):match("^(%d+)|(.+)$")
+  if not index then return nil end
+  index = tonumber(index)
+  return {path = path, index = index, name = saved_name(path, index)}
+end
+
+local function forget_preset(i)
+  P.list[i].preset = nil
+  save_preset_param(i)
+end
+
 -- The slot values each machine and patch last had, for the run: key ->
 -- {slot -> 0-1 value}. Shown at once when the part switches back.
 local memory = {}
 
 local function mem_key(i)
   local part = P.list[i]
-  return part.machine and (part.machine .. "/" .. (part.patch or ""))
+  return part.machine and (part.machine .. "/" .. (P.patch_key(i) or ""))
 end
 
 local function remember(i)
@@ -425,7 +479,7 @@ local function recall(i)
       params:set(id(i, "s" .. j), v, true)
       part.edits[j] = v
     end
-  elseif patch_name(i) then
+  elseif patch_name(i) or part.preset then
     for j, d in ipairs(P.defs[part.machine]) do
       params:set(id(i, "s" .. j), P.unmap(d, d.default), true)
     end
@@ -548,7 +602,7 @@ function P.load_file(i, kind, path, arg)
   end
   part.loading = {kind = kind, name = kind == "sf2" and base(path) or stem(path)}
   part.problem = nil
-  send("/load", {i - 1, kind, path, arg or 0})
+  send("/load", {i - 1, kind, path, arg or 0, table.unpack(P.ROOTS)})
 end
 
 -- Empties the part's files and the machine's samples. Pollen then plays the
@@ -635,16 +689,33 @@ function P.material(i)
 end
 
 -- Mounts the part's machine with its patch, or empties it.
+-- Sends /preset_load for the part's saved preset. Its files come with it
+-- unless the part's own files are sent after.
+local function send_preset(i)
+  local part, pr = P.list[i], P.list[i].preset
+  send_patch(i, "/preset_load", {i - 1, pr.path, pr.index, preset_tag(pr), pr.files and 1 or 0,
+    table.unpack(P.ROOTS)})
+end
+
 local function load_machine(i, with_values)
   local part = P.list[i]
   part.pending = nil
   local name = patch_name(i)
+  local pr = part.machine and part.preset
   part.want_values = false
   if not with_values then part.edits = {} end
   if not part.machine then
     part.fx = {}
     send_patch(i, "/unmount", {i - 1})
     name = nil
+  elseif pr then
+    part.want_values = with_values
+    part.values_at, part.values_retried = util.time(), false
+    part.sends_moved = {}
+    part.fx = {}
+    pr.files = with_values and not part.resend_files
+    send_preset(i)
+    send_fx_edits(i)
   elseif name then
     part.want_values = with_values
     part.values_at, part.values_retried = util.time(), false
@@ -655,8 +726,8 @@ local function load_machine(i, with_values)
   else
     send("/mount", {i - 1, part.machine})
   end
-  part.patch = name
-  part.sent = name
+  part.patch = pr and pr.name or name
+  part.sent = pr and preset_tag(pr) or name
   if not part.want_values then part.dim = false end
   if part.resend_files then send_files(i) end
   if part.want_default then load_default(i) end
@@ -683,6 +754,7 @@ function P.apply(i)
   P.notes_off(i)
   P.send_strip(i)
   part.fx_edits = decode_fx(params:get(id(i, "fx")))
+  part.preset = decode_preset(params:get(id(i, "preset")))
   part.want_default = false -- a PSET's files stay as saved
   load_machine(i, false)
   -- the PSET's sends go on top of the ones the patch carries
@@ -710,7 +782,7 @@ end
 
 local function add_part(i)
   local part = P.list[i]
-  params:add_group("part_" .. i, "part " .. i, 13 + P.slots)
+  params:add_group("part_" .. i, "part " .. i, 14 + P.slots)
 
   local chans = {"off"}
   for c = 1, 16 do chans[c + 1] = tostring(c) end
@@ -750,6 +822,7 @@ local function add_part(i)
     P.notes_off(i)
     part.edits = {}
     clear_fx(i)
+    forget_preset(i)
     -- the new machine starts empty
     part.files, part.loading, part.problem, part.last_path = {}, nil, nil, nil
     part.want_default = P.SAMPLE_MACHINES[machine] or false
@@ -769,6 +842,7 @@ local function add_part(i)
     part.patch = name
     part.edits = {}
     clear_fx(i)
+    forget_preset(i)
     recall(i)
     later(i, 0.2, function() load_machine(i, true) end)
   end)
@@ -777,6 +851,8 @@ local function add_part(i)
   params:add_text(id(i, "files"), "files", "")
   -- insert params moved by hand, for PSETs; never shown
   params:add_text(id(i, "fx"), "fx", "")
+  -- the saved preset the part plays, "index|path", for PSETs; never shown
+  params:add_text(id(i, "preset"), "preset", "")
 
   params:add_control(id(i, "volume"), "volume", controlspec.new(-60, 3, "lin", 0.5, 0, "dB"))
   params:set_action(id(i, "volume"), function()
@@ -830,6 +906,7 @@ function P.add_params()
     show_machine(i, nil, true)
     params:hide(id(i, "files"))
     params:hide(id(i, "fx"))
+    params:hide(id(i, "preset"))
   end
   -- params:clear() removes this when the script ends.
   params.action_read = function(filename) P.after_read(filename) end
@@ -971,6 +1048,9 @@ function P.after_read(filename)
     for i = 1, P.COUNT do migrate_waves(i) end
   end
   params:set("wave_tables", P.WAVE_TABLES, true)
+  for i = 1, P.COUNT do
+    if filename and not saved_has(filename, id(i, "preset")) then params:set(id(i, "preset"), "", true) end
+  end
   if filename and not saved_has(filename, "macro_params") then
     for i = 1, P.COUNT do reset_macros(i) end
   end
@@ -1004,7 +1084,7 @@ watch = function()
       part.values_retried = true
       part.values_at = now
       part.dim = false
-      send_patch(i, "/patch", {i - 1, part.machine, part.sent})
+      if part.preset then send_preset(i) else send_patch(i, "/patch", {i - 1, part.machine, part.sent}) end
     end
   end
 end
@@ -1045,6 +1125,7 @@ function P.set_part(i, machine, patch)
     save_files(i)
   end
   clear_fx(i)
+  forget_preset(i)
   P.loading = true
   params:set(id(i, "machine"), index)
   show_machine(i, P.list[i].machine, true)
@@ -1069,6 +1150,63 @@ function P.reset_patch(i)
   clear_fx(i)
   recall(i)
   later(i, 0.2, function() load_machine(i, true) end)
+end
+
+-- Puts saved preset s (from P.saved) on the part, its files too.
+function P.load_preset(i, s)
+  local part = P.list[i]
+  if not part.machine then return end
+  P.notes_off(i)
+  timer.cancel(part.pending)
+  part.pending = nil
+  part.preset = {path = s.path, index = s.index, name = s.name}
+  save_preset_param(i)
+  part.patch = s.name
+  part.edits = {}
+  clear_fx(i)
+  recall(i)
+  load_machine(i, true)
+end
+
+-- A file name for a preset called name, as the app makes them.
+function P.preset_file(name)
+  local safe = name:gsub("^%s+", ""):gsub("%s+$", ""):gsub("[^%w _-]", "_")
+  return (safe ~= "" and safe or "patch") .. ".acpreset"
+end
+
+-- Saves the part's sound as the preset at path, called name. /preset_saved
+-- answers, and the part then plays it.
+function P.save_preset(i, path, name)
+  local part = P.list[i]
+  if not part.machine then return end
+  local args = {i - 1, path, name, #P.ROOTS}
+  for _, r in ipairs(P.ROOTS) do args[#args + 1] = r end
+  local function set(k, v)
+    args[#args + 1] = k
+    args[#args + 1] = tostring(v)
+  end
+  local keys = {}
+  for k in pairs(part.files) do keys[#keys + 1] = k end
+  table.sort(keys)
+  for _, k in ipairs(keys) do
+    local f = part.files[k]
+    if f.kind == "pad" then
+      set(string.format("p%02d_sample", f.arg), f.path)
+    elseif f.kind == "sample" then
+      set("sample", f.path)
+    elseif f.kind == "sf2" then
+      set("sf2", f.path)
+      set("sf2preset", f.arg)
+    end
+    -- a folder's or preset's zones are the plugin's to add
+  end
+  part.saving = {path = path, name = name}
+  send("/preset_save", args)
+end
+
+-- Takes saved preset s out of its file; /preset_deleted answers.
+function P.delete_preset(s)
+  send("/preset_delete", {s.path, s.index})
 end
 
 -- Sends a part's volume and machine with its patch, which fills the slots
@@ -1196,6 +1334,70 @@ function P.osc(path, args)
     for j = 4, #args - 1, 2 do list[#list + 1] = {param = args[j], label = args[j + 1]} end
     P.patch_macros[args[2]] = P.patch_macros[args[2]] or {}
     P.patch_macros[args[2]][args[3]] = list
+  elseif path == "/preset_scan" then
+    local folder = args[1] or ""
+    local machine = folder:match("([^/]+)/*$")
+    if not machine then return end
+    local dir = folder:match("/$") and folder or folder .. "/"
+    local list = {}
+    for k = 2, #args - 3, 4 do
+      if args[k + 3] == machine then
+        list[#list + 1] = {file = args[k], path = dir .. args[k], index = args[k + 1], name = args[k + 2]}
+      end
+    end
+    P.saved[machine] = list
+    if P.on_saved then P.on_saved(machine) end
+  elseif path == "/preset_saved" then
+    local i = (args[1] or -1) + 1
+    local part = P.list[i]
+    if not part then return end
+    local saving = part.saving
+    part.saving = nil
+    local ok = args[3] == "ok"
+    if not ok then print("acidulous: saving " .. tostring(args[2]) .. ": " .. tostring(args[3])) end
+    if ok and saving and saving.path == args[2] and part.machine then
+      -- the part plays what it saved, with the values it has
+      local values = {}
+      for j = 1, #(P.defs[part.machine] or {}) do values[j] = params:get(id(i, "s" .. j)) end
+      part.preset = {path = saving.path, index = 0, name = saving.name}
+      save_preset_param(i)
+      part.patch = saving.name
+      if not part.pending and not part.want_values then part.sent = preset_tag(part.preset) end
+      memory[mem_key(i)] = values
+    end
+    if P.on_preset_note then P.on_preset_note(ok and "saved" or args[3]) end
+    P.scan_presets(part.machine)
+  elseif path == "/preset_deleted" then
+    local ok = args[3] == "ok"
+    if not ok then print("acidulous: deleting " .. tostring(args[1]) .. ": " .. tostring(args[3])) end
+    -- a part playing it keeps its sound, but no longer as that preset
+    for i, part in ipairs(P.list) do
+      if ok and part.preset and part.preset.path == args[1] then
+        if part.preset.index == args[2] then
+          forget_preset(i)
+        elseif part.preset.index > args[2] then
+          part.preset.index = part.preset.index - 1
+          save_preset_param(i)
+          if not part.pending and not part.want_values then part.sent = preset_tag(part.preset) end
+        end
+      end
+    end
+    if P.on_preset_note then P.on_preset_note(ok and "deleted" or args[3]) end
+    local machine = args[1]:match("([^/]+)/[^/]+$")
+    P.scan_presets(machine)
+  elseif path == "/preset_loaded" then
+    local i = (args[1] or -1) + 1
+    local part = P.list[i]
+    if not part then return end
+    local tag, name, err = args[2], args[3], args[4] or ""
+    if err ~= "" then
+      print("acidulous: " .. tag .. ": " .. err)
+      part.problem = {text = err, at = util.time()}
+      if part.preset and preset_tag(part.preset) == tag and P.on_preset_note then P.on_preset_note(err) end
+    elseif part.preset and preset_tag(part.preset) == tag and name ~= "" then
+      part.preset.name = name
+      part.patch = name
+    end
   elseif path == "/hello" then
     if P.ready then P.resend() end
   elseif path == "/machines" then
@@ -1244,7 +1446,7 @@ function P.osc(path, args)
     if part.loading and part.loading.kind == kind then part.loading = nil end
     if kind == "pad" then
       part.files["pad" .. arg] = fpath ~= "" and {kind = kind, path = fpath, arg = arg, name = name} or nil
-    elseif kind == "sf2" or kind == "folder" or kind == "sample" then
+    elseif kind == "sf2" or kind == "folder" or kind == "sample" or kind == "zones" then
       part.files.main = fpath ~= "" and {kind = kind, path = fpath, arg = arg, name = name} or nil
     end
     if fpath ~= "" and kind ~= "pad" then part.last_path = fpath
