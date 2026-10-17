@@ -195,6 +195,7 @@ bool EngineHost::mountMachine(int rack, const std::string &typeName) {
     if (!mountWithRetry(m, deleteAs<Machine>)) return false;
     mountedType[rack] = typeName;
     queuedType[rack] = machine->typeName(); // a static literal
+    queuedMachine_[rack] = machine;
     LOGI("queued %s for rack %d", typeName.c_str(), rack);
     return true;
 }
@@ -205,7 +206,7 @@ void EngineHost::unmountMachine(int rack) {
     m.kind = Mount::Kind::Machine;
     m.rack = rack;
     m.object = nullptr; // swap in nothing, and the old machine is retired
-    if (mountWithRetry(m, [](void *) {})) { mountedType[rack].clear(); queuedType[rack] = nullptr; }
+    if (mountWithRetry(m, [](void *) {})) { mountedType[rack].clear(); queuedType[rack] = nullptr; queuedMachine_[rack] = nullptr; }
 }
 
 bool EngineHost::mountInputEffect(int slot, const std::string &typeName) {
@@ -319,6 +320,8 @@ bool EngineHost::mountEffect(int rack, int slot, const std::string &typeName) {
     m.object = fx;
     if (!mountWithRetry(m, deleteAs<Effect>)) return false;
     mountedEffectType[rack][slot] = typeName;
+    queuedEffect_[rack][slot] = fx;
+    effectFormula_[rack][slot].clear();
     LOGI("queued effect '%s' for rack %d slot %d", typeName.c_str(), rack, slot);
     return true;
 }
@@ -346,7 +349,7 @@ SendPlan EngineHost::applyPatchChain(int rack, const PatchChain &chain, PatchTra
     const InsertPlan plan = planPatchInserts(occupied, owned, static_cast<int32_t>(inserts.size()));
     // The param queue drains a block at a time, so a full one means waiting.
     const auto set = [&](const std::string &type, const std::string &unit, const std::string &name, float v) {
-        if (paramIndex(type, unit, name) < 0) {
+        if (paramIndex(type, unit, name) == -1) { // bypass is -2
             LOGE("patch chain: no %s parameter '%s'", unit.c_str(), name.c_str());
             return;
         }
@@ -375,6 +378,7 @@ SendPlan EngineHost::applyPatchChain(int rack, const PatchChain &chain, PatchTra
         }
         const std::string unit = "effect" + std::to_string(slot + 1);
         for (const auto &kv : fx.params) set(fx.type, unit, kv.first, kv.second);
+        if (fx.bypass) set(fx.type, unit, "bypass", 1.0f);
         for (const auto &kv : fx.settings) {
             if (kv.first != "formula") continue;
             const std::string error = loadEffectFormula(rack, unit, kv.second);
@@ -389,6 +393,102 @@ SendPlan EngineHost::applyPatchChain(int rack, const PatchChain &chain, PatchTra
     state.owned = ownedNow;
     if (skipped != nullptr) *skipped = plan.skipped + failed;
     return sends;
+}
+
+bool EngineHost::mountsLanded(int rack) const {
+    const auto live = sEngine.readLive(); // it may be being replaced (see Retirer::ReadGuard)
+    const Rack &r = sEngine.racks[rack];
+    if (r.currentMachine() != queuedMachine_[rack]) return false;
+    for (int32_t s = 0; s < kEffectSlots; ++s) {
+        if (r.currentEffect(s) != queuedEffect_[rack][s]) return false;
+    }
+    return true;
+}
+
+PresetPatch EngineHost::rackPatch(int rack, const std::string &name, std::string &error, bool withEffects,
+                                  const PatchTrackState *state) const {
+    PresetPatch p;
+    p.name = name;
+    error.clear();
+    if (rack < 0 || rack >= kRackCount || mountedType[rack].empty()) {
+        error = "no machine on the track";
+        return p;
+    }
+    // Until the audio thread takes a mount, the rack still has the old unit,
+    // whose values would be read under the new one's names.
+    if (!mountsLanded(rack)) {
+        error = "a machine or insert is still being mounted";
+        return p;
+    }
+    p.machine = mountedType[rack];
+    int32_t n = 0;
+    const ParamDef *defs = MachineRegistry::paramDefs(p.machine.c_str(), n);
+    for (int32_t i = 0; i < n; ++i) {
+        const float v = paramNormalized(rack, "machine", defs[i].name);
+        if (v >= 0.0f) p.params.emplace_back(defs[i].name, v);
+    }
+    // The app keeps them as macro1..macro8; an unnamed one isn't written.
+    const std::string macros = macroNames(rack);
+    size_t from = 0;
+    for (int k = 1; k <= 8 && from <= macros.size(); ++k) {
+        const size_t to = std::min(macros.find('\n', from), macros.size());
+        if (to > from) p.settings.emplace_back("macro" + std::to_string(k), macros.substr(from, to - from));
+        from = to + 1;
+    }
+    if (!withEffects) return p;
+    for (int32_t s = 0; s < kEffectSlots; ++s) {
+        const std::string &type = mountedEffectType[rack][s];
+        if (type.empty()) continue;
+        const std::string unit = "effect" + std::to_string(s + 1);
+        PatchInsert fx;
+        fx.type = type;
+        int32_t count = 0;
+        const ParamDef *fxDefs = EffectRegistry::paramDefs(type.c_str(), count);
+        for (int32_t i = 0; i < count; ++i) {
+            const float v = paramNormalized(rack, unit, fxDefs[i].name);
+            if (v >= 0.0f) fx.params.emplace_back(fxDefs[i].name, v);
+        }
+        fx.bypass = paramNormalized(rack, unit, "bypass") >= 0.5f;
+        if (!effectFormula_[rack][s].empty()) fx.settings.emplace_back("formula", effectFormula_[rack][s]);
+        p.chain.inserts.push_back(std::move(fx));
+    }
+    // As the app's PatchChain.withEffectsOf: sends the patch still holds, even
+    // at zero, and the player's when either is up. The player's at zero aren't
+    // saved, so loading the patch leaves another track's alone.
+    const float reverb = paramNormalized(rack, "channel", "sendreverb");
+    const float delay = paramNormalized(rack, "channel", "senddelay");
+    const bool held = state != nullptr && state->sendsHeld && reverb == state->patchReverb && delay == state->patchDelay;
+    if (held || reverb > 0.0f || delay > 0.0f) {
+        p.chain.hasSends = true;
+        p.chain.sendReverb = std::max(reverb, 0.0f);
+        p.chain.sendDelay = std::max(delay, 0.0f);
+    }
+    return p;
+}
+
+std::vector<uint8_t> EngineHost::writePreset(int rack, const std::string &name, std::string &error,
+                                             const std::vector<std::pair<std::string, std::string>> &settings,
+                                             int32_t low, int32_t high, bool withEffects,
+                                             const PatchTrackState *state) const {
+    PresetPatch p = rackPatch(rack, name, error, withEffects, state);
+    if (p.machine.empty()) return {};
+    for (const auto &kv : settings) {
+        bool replaced = false;
+        for (auto &have : p.settings) {
+            if (have.first == kv.first) { have.second = kv.second; replaced = true; }
+        }
+        if (!replaced) p.settings.push_back(kv);
+    }
+    p.low = low;
+    p.high = high;
+    Preset preset;
+    preset.unit = p.machine;
+    preset.patches.push_back(std::move(p));
+    return presetfile::write(preset);
+}
+
+bool EngineHost::readPreset(const uint8_t *data, size_t size, Preset &out, std::string &error) {
+    return presetfile::read(data, size, out, error);
 }
 
 bool EngineHost::mountInputMod(int rack, int slot, const std::string &typeName) {
@@ -2077,6 +2177,7 @@ std::string EngineHost::loadEffectFormula(int rack, const std::string &unit, con
     mount.object = expr.release();
     mount.deleter = deleteAs<machine::formulate::Expr>;
     if (!mountObjectWithRetry(mount)) return "mount queue full";
+    if (track) effectFormula_[rack][u == Unit::Effect1 ? 0 : 1] = formula;
     return "";
 }
 

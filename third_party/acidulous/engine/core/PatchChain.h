@@ -25,6 +25,7 @@ struct PatchInsert {
     std::string type;                                            // an EffectRegistry name
     std::vector<std::pair<std::string, float>> params;           // normalised 0..1, by name
     std::vector<std::pair<std::string, std::string>> settings;   // words, like a Formula's "formula"
+    bool bypass = false;                                         // in the slot but out of the signal path
 };
 
 struct PatchChain {

@@ -7,6 +7,7 @@
 #include <sequencer/Clip.h>
 #include <engine/core/Frozen.h>
 #include <engine/core/PatchChain.h>
+#include <engine/core/PresetFile.h>
 #include <engine/core/Reel.h>
 #include <engine/core/SampleEdit.h>
 #include <engine/format/AudioSink.h>
@@ -69,6 +70,42 @@ class EngineHost {
      */
     SendPlan applyPatchChain(int rack, const PatchChain &chain, PatchTrackState &state, float sendReverbNow,
                              float sendDelayNow, int32_t *skipped = nullptr, int32_t *unknown = nullptr);
+
+    // --- Preset files (.acpreset, see engine/core/PresetFile.h) -------------
+    /**
+     * [rack]'s machine as it is now, as a patch called [name]: its type, every
+     * parameter by name normalised 0..1 and its macro names (macro1..8). With
+     * [withEffects], its inserts (parameters, bypass, a Formula's formula) and
+     * its send levels when either is up or [state] (the track's, from
+     * applyPatchChain) says the patch still holds them, as the app saves a
+     * patch with effects. Settings only the host knows, like file paths or a
+     * Nexus graph, are the caller's to add. UI thread.
+     *
+     * Values come from the mounted units, so read after the engine has run a
+     * block since the last change. While a machine or insert mount is still
+     * queued this fails: the patch has no machine and [error] says why, as it
+     * does for a rack with no machine.
+     */
+    PresetPatch rackPatch(int rack, const std::string &name, std::string &error, bool withEffects = true,
+                          const PatchTrackState *state = nullptr) const;
+    /**
+     * [rack]'s patch (see rackPatch) as .acpreset bytes the app can import.
+     * [settings] are added to the patch's, replacing any of the same name;
+     * [low] and [high] are its note range, -1 for none. No media goes in, so
+     * file settings are left as given. Empty, with [error] set, when
+     * rackPatch fails.
+     */
+    std::vector<uint8_t> writePreset(int rack, const std::string &name, std::string &error,
+                                     const std::vector<std::pair<std::string, std::string>> &settings = {},
+                                     int32_t low = -1, int32_t high = -1, bool withEffects = true,
+                                     const PatchTrackState *state = nullptr) const;
+    /**
+     * Every patch in .acpreset bytes, a bank file's too. Put one on a track
+     * by mounting its machine, setting its params on "machine", its settings
+     * the host's own way, and passing its chain to applyPatchChain. Returns
+     * false with [error] set if the bytes aren't a preset file.
+     */
+    static bool readPreset(const uint8_t *data, size_t size, Preset &out, std::string &error);
     bool mountInputMod(int rack, int slot, const std::string &typeName);
     // Builds anything a machine needs before it can be mounted (Trinity's
     // wavetables). Safe to call from a worker at startup. Mounting waits on it.
@@ -596,6 +633,13 @@ class EngineHost {
     std::atomic<int> mpeZoneMembers{15};
     std::atomic<float> renderSeconds{0.0f}, renderPeak{0.0f};
     std::string mountedEffectType[16][2];
+    /** The formula last loaded into each insert, kept for rackPatch. Cleared when the slot is mounted again. */
+    std::string effectFormula_[16][2];
+    /** The last machine and inserts queued per rack, to tell when the audio thread has them. Never dereferenced. */
+    const void *queuedMachine_[16] = {};
+    const void *queuedEffect_[16][2] = {};
+    /** Whether the audio thread has the rack's last queued machine and inserts. */
+    bool mountsLanded(int rack) const;
     /** What is on each send bus, for resolving its parameters by name. */
     std::string mountedSendType[2];
     std::string mountedMasterInsertType[2];
