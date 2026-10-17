@@ -522,6 +522,15 @@ end
 
 local part_macros -- below
 
+-- Steps part i's machine; turning stops at the first machine, as "none"
+-- is only for parts left empty.
+local function turn_machine(i, d)
+  local pid = parts.id(i, "machine")
+  local v = params:get(pid)
+  local new = util.clamp(v + d, 2, #params:lookup_param(pid).options)
+  if new ~= v then params:set(pid, new) end
+end
+
 local function start_surfaces()
   local a = surfaces.actions
   a.note = part_note
@@ -532,7 +541,7 @@ local function start_surfaces()
   a.patch = function(d)
     if parts.list[state.sel].machine then params:delta(parts.id(state.sel, "patch"), d) end
   end
-  a.machine = function(d) params:delta(parts.id(state.sel, "machine"), d) end
+  a.machine = function(d) turn_machine(state.sel, d) end
   -- the encoder's tap closes a list, or swaps the play and card pages
   a.page = function()
     if lists.active(parts) then lists.close()
@@ -982,7 +991,7 @@ local function handle_enc(n, d)
   elseif state.page == "play" then
     local ps = play_state()
     if n == 1 then
-      params:delta(parts.id(i, "machine"), d)
+      turn_machine(i, d)
     elseif n == 2 then
       ps.focus = util.clamp(ps.focus + d, 0, macros.COUNT)
     elseif ps.focus == 0 then
@@ -1012,7 +1021,7 @@ local function handle_enc(n, d)
     return
   elseif n == 2 then
     if state.k1 then
-      params:delta(parts.id(i, "machine"), d)
+      turn_machine(i, d)
     elseif parts.list[i].machine then
       params:delta(parts.id(i, "patch"), d)
     end
