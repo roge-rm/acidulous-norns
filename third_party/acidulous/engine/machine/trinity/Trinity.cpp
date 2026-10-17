@@ -2,6 +2,7 @@
 #include "Trinity.h"
 #include <engine/machine/Voices.h>
 #include <engine/dsp/Lfo.h>
+#include <engine/machine/TableCounts.h>
 
 #include <cstdio>
 #include <cstring>
@@ -12,6 +13,8 @@ using dsp::clampf;
 using dsp::kTwoPi;
 using dsp::mtof;
 using dsp::WavetableBank;
+// Saved songs rescale against this count; see TableCounts.h.
+static_assert(Trinity::WaveCount == tables::kTrinityWaves, "a new wave needs a migration");
 
 namespace {
 

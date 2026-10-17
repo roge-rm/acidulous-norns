@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <functional>
 #include <initializer_list>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -51,6 +52,20 @@ struct Replay {
     void answered(const char *call, bool ok);
     void problem(const std::string &what);
     int line = 0;
+
+    /** The file's version, from its first line. */
+    int version = 2;
+    /**
+     * A version 1 line on today's counts: Trinity's waves and Nexus's wtosc
+     * tables rescaled (engine/machine/TableCounts.h). Tracks what each rack
+     * holds, as written, to know which parameters those are.
+     */
+    std::string upgradeLine(const std::string &line);
+    /** Notes the wtosc slots of a LoadNexusPatch line; run over a version 1 file before replaying it. */
+    void noteTables(const std::string &line);
+    std::map<int, std::string> machineOf;
+    /** Per rack, a bit for each Nexus slot holding a wtosc in any of the file's patches. */
+    std::map<int, uint32_t> tableSlotsOf;
 };
 
 /** Reads one line's arguments, in order. A bad argument sets !ok and reads as zero. */

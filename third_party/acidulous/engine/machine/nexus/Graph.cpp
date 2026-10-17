@@ -62,8 +62,10 @@ Graph *Graph::parse(const std::string &text, float sampleRate, std::string &erro
         if (line.empty() || line[0] == '#') continue;
         const auto f = split(line, '|');
         if (f[0] == "v" && f.size() >= 2) {
+            // 2: wtosc's table knob spans 32 tables, not 8. The
+            // knob is a parameter, so the app rescales it when it reads a 1.
             version = toInt(f[1], 1);
-            if (version > 1) {
+            if (version > 2) {
                 error = "this patch was written by a newer version";
                 delete g;
                 return nullptr;

@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <vector>
 
-// Our own wavetables: eight tables of eight frames, band-limited into mip
+// Our own wavetables: 32 tables of eight frames, band-limited into mip
 // levels so a scan never aliases. Built once, on a normal thread, and shared
 // by every voice of every Trinity (the data is read-only after construction).
 //
@@ -13,13 +13,13 @@ namespace acidulous::dsp {
 
 class WavetableBank {
   public:
-    static constexpr int kTables = 8;
+    static constexpr int kTables = 32;
     static constexpr int kFrames = 8;
     static constexpr int kMips = 10;
     static constexpr int kSize = 1024;
     static constexpr int kMaxHarmonics = 256;
 
-    // Blocks on first call while the tables are built (~0.2 s); mount-thread only.
+    // Blocks on first call while the tables are built; mount-thread only.
     static const WavetableBank &instance();
 
     static const char *tableName(int table);

@@ -1,5 +1,7 @@
 #include "EngineLines.h"
 
+#include <engine/machine/TableCounts.h>
+
 #include <cctype>
 #include <cerrno>
 #include <cstdint>
@@ -10,7 +12,10 @@
 namespace acidulous::lines {
 
 namespace {
-constexpr const char *kHeader = "acidulous-engine 1";
+constexpr const char *kHeader = "acidulous-engine 2";
+// Version 1 stored Trinity's waves over 12 steps and Nexus's wtosc table over
+// 8; upgradeLine moves them onto today's counts.
+constexpr const char *kHeaderV1 = "acidulous-engine 1";
 constexpr const char *kZip = "zip:";
 
 bool isSpace(char c) { return c == ' ' || c == '\t' || c == '\r'; }
@@ -277,6 +282,135 @@ bool Reader::finish() {
     return ok && (i >= s.size() || s[i] == '\n');
 }
 
+namespace {
+
+/** A line's words, with a quoted string as one word. Each is [from, to) in the line. */
+std::vector<std::pair<size_t, size_t>> words(const std::string &line) {
+    std::vector<std::pair<size_t, size_t>> out;
+    size_t i = 0;
+    while (i < line.size()) {
+        while (i < line.size() && isSpace(line[i])) ++i;
+        if (i >= line.size()) break;
+        const size_t from = i;
+        if (line[i] == '"') {
+            ++i;
+            while (i < line.size() && line[i] != '"') i += line[i] == '\\' ? 2 : 1;
+            if (i < line.size()) ++i;
+        } else {
+            while (i < line.size() && !isSpace(line[i])) ++i;
+        }
+        out.emplace_back(from, i < line.size() ? i : line.size());
+    }
+    return out;
+}
+
+/** A quoted word's text with its escapes undone. Only what the upgrade compares needs to be exact. */
+std::string unquote(const std::string &w) {
+    if (w.size() < 2 || w.front() != '"') return w;
+    std::string out;
+    for (size_t k = 1; k + 1 < w.size(); ++k) {
+        if (w[k] != '\\' || k + 2 >= w.size()) { out += w[k]; continue; }
+        const char e = w[++k];
+        out += e == 'n' ? '\n' : e == 'r' ? '\r' : e == 't' ? '\t' : e;
+    }
+    return out;
+}
+
+/** A float as text that reads back as the same float. */
+std::string floatText(float v) {
+    char b[32];
+    std::snprintf(b, sizeof b, "%.9g", static_cast<double>(v));
+    return b;
+}
+
+} // namespace
+
+void Replay::noteTables(const std::string &line) {
+    const auto w = words(line);
+    if (w.size() < 3) return;
+    auto text = [&](size_t k) { return line.substr(w[k].first, w[k].second - w[k].first); };
+    const std::string call = text(0);
+    if (call == "LoadNexusPatch") {
+        // Which slots hold a wtosc, so their first knob can be moved.
+        uint32_t slots = 0;
+        const std::string spec = unquote(text(2));
+        size_t at = 0;
+        while (at < spec.size()) {
+            size_t end = spec.find('\n', at);
+            if (end == std::string::npos) end = spec.size();
+            const std::string l = spec.substr(at, end - at);
+            at = end + 1;
+            if (l.size() > 2 && l[0] == 'm' && l[1] == '|') {
+                const size_t bar = l.find('|', 2);
+                if (bar == std::string::npos) continue;
+                std::string type = l.substr(bar + 1);
+                type = type.substr(0, type.find('|'));
+                const int slot = std::atoi(l.substr(2, bar - 2).c_str());
+                if (type == "wtosc" && slot >= 0 && slot < 32) slots |= 1u << slot;
+            }
+        }
+        tableSlotsOf[std::atoi(text(1).c_str())] |= slots;
+    }
+}
+
+std::string Replay::upgradeLine(const std::string &line) {
+    const auto w = words(line);
+    if (w.size() < 2) return line;
+    auto text = [&](size_t k) { return line.substr(w[k].first, w[k].second - w[k].first); };
+    const std::string call = text(0);
+    if (call == "MountMachine" && w.size() >= 3) {
+        machineOf[std::atoi(text(1).c_str())] = unquote(text(2));
+        return line;
+    }
+    if (call == "UnmountMachine") {
+        machineOf.erase(std::atoi(text(1).c_str()));
+        return line;
+    }
+    // Which rule a parameter of a machine follows, if any.
+    auto ruleFor = [&](const std::string &machine, int rack, const std::string &name) -> float (*)(float) {
+        if (machine == "Trinity" && tables::isTrinityWave(name)) return tables::trinityWave;
+        if (machine == "Nexus") {
+            const int slot = tables::nexusFirstKnobSlot(name);
+            const auto it = tableSlotsOf.find(rack);
+            if (slot >= 0 && it != tableSlotsOf.end() && ((it->second >> slot) & 1u) != 0) return tables::nexusTable;
+        }
+        return nullptr;
+    };
+    if (call == "SetParam" && w.size() >= 5) {
+        const int rack = std::atoi(text(1).c_str());
+        if (unquote(text(2)) != "machine") return line;
+        const auto m = machineOf.find(rack);
+        if (m == machineOf.end()) return line;
+        const auto rule = ruleFor(m->second, rack, unquote(text(3)));
+        if (rule == nullptr) return line;
+        const float v = std::strtof(text(4).c_str(), nullptr);
+        return line.substr(0, w[4].first) + floatText(rule(v)) + line.substr(w[4].second);
+    }
+    if (call == "SnapshotSetLane" && w.size() >= 9) {
+        // @h rack scene "machine" "unit" "name" linear f[n: tick value ...]
+        const int rack = std::atoi(text(2).c_str());
+        if (unquote(text(5)) != "machine") return line;
+        const auto rule = ruleFor(unquote(text(4)), rack, unquote(text(6)));
+        if (rule == nullptr) return line;
+        std::string out = line.substr(0, w[8].second);
+        // Points are pairs from word 9 on; every second one is a value, and -1 means the knob's own value.
+        size_t last = w[8].second;
+        for (size_t k = 9; k < w.size(); ++k) {
+            std::string word = text(k);
+            const bool closes = !word.empty() && word.back() == ']';
+            if (closes) word.pop_back();
+            if ((k - 9) % 2 == 1) {
+                const float v = std::strtof(word.c_str(), nullptr);
+                if (v != -1.0f) word = floatText(rule(v));
+            }
+            out += line.substr(last, w[k].first - last) + word + (closes ? "]" : "");
+            last = w[k].second;
+        }
+        return out + line.substr(last);
+    }
+    return line;
+}
+
 bool replay(const std::string &text, Replay &r) {
     size_t at = 0;
     r.line = 0;
@@ -288,12 +422,25 @@ bool replay(const std::string &text, Replay &r) {
         if (!line.empty() && line.back() == '\r') line.pop_back();
         at = end + 1;
         if (r.line == 1) {
-            if (line != kHeader) {
+            if (line == kHeaderV1) {
+                r.version = 1;
+                // The app loads a Nexus patch after setting its knobs, so
+                // find every rack's wtosc slots before replaying any line.
+                for (size_t from = 0; from < text.size();) {
+                    size_t to = text.find('\n', from);
+                    if (to == std::string::npos) to = text.size();
+                    r.noteTables(text.substr(from, to - from));
+                    from = to + 1;
+                }
+            }
+            else if (line == kHeader) r.version = 2;
+            else {
                 r.problem("not engine lines (the first line should be \"" + std::string(kHeader) + "\")");
                 return false;
             }
             continue;
         }
+        if (r.version < 2) line = r.upgradeLine(line);
         size_t from = 0;
         while (from < line.size() && isSpace(line[from])) ++from;
         if (from == line.size() || line[from] == '#') continue;

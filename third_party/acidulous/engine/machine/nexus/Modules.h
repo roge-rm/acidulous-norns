@@ -225,7 +225,7 @@ class WtOscMod final : public Module {
     void prepare(float sr, int32_t) override { rate = sr; bank = &WavetableBank::instance(); }
     void reset() override { phase = 0.0f; }
     void setKnobs(const float *k) override {
-        table = stepOf(k[0], 8);
+        table = stepOf(k[0], WavetableBank::kTables);
         frame = clampf(k[1], 0.0f, 0.999f);
         semis = lin(k[2], -24.0f, 24.0f);
         fmAmount = lin(k[3], 0.0f, 48.0f);

@@ -37,12 +37,12 @@ patch Init family=basic
   # fourteen decibels louder than any real patch and made every other one in
   # the bank measure quiet against it. This is the smallest graph anybody
   # would actually keep - oscillator, filter, envelope, amplifier.
-  set nexus "v|1\nm|0|voice\nm|1|osc\nm|2|filter\nm|3|env\nm|4|vca\nm|5|out|mono\nc|1.0|2.0|1.0\nc|2.0|4.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0"
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|filter\nm|3|env\nm|4|vca\nm|5|out|mono\nc|1.0|2.0|1.0\nc|2.0|4.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0"
 
 patch Subtractive family=basic
   # The patch everybody builds first, so it is here already: an oscillator
   # through a filter, opened by an envelope.
-  set nexus "v|1\nm|0|voice\nm|1|osc\nm|2|filter\nm|3|env\nm|4|vca\nm|5|out|mono\nc|1.0|2.0|1.0\nc|2.0|4.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0"
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|filter\nm|3|env\nm|4|vca\nm|5|out|mono\nc|1.0|2.0|1.0\nc|2.0|4.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0"
   s02_p2         0.45
   s02_p3         0.35
   s03_p2         0.05
@@ -53,7 +53,7 @@ patch Subtractive family=basic
 patch Plucked family=house
   # Filament's string, plucked by a burst of noise. No other modular has this
   # block, because no other app has Filament.
-  set nexus "v|1\nm|0|voice\nm|1|noise\nm|2|env\nm|3|vca\nm|4|string\nm|5|out|mono\nc|1.0|3.0|1.0\nc|0.1|2.0|1.0\nc|2.0|3.1|1.0\nc|3.0|4.0|1.0\nc|4.0|5.0|1.0"
+  set nexus "v|2\nm|0|voice\nm|1|noise\nm|2|env\nm|3|vca\nm|4|string\nm|5|out|mono\nc|1.0|3.0|1.0\nc|0.1|2.0|1.0\nc|2.0|3.1|1.0\nc|3.0|4.0|1.0\nc|4.0|5.0|1.0"
   s02_p2         0.0
   s02_p3         0.02
   s02_p4         0.0
@@ -69,7 +69,7 @@ patch "Rotor String" family=house
   # one - because a rotary speaker heard through a single microphone is not one.
   # Until the sink grew a second input there was nowhere for that cable to go,
   # and this patch was two bit-identical channels.
-  set nexus "v|1\nm|0|voice\nm|1|noise\nm|2|env\nm|3|vca\nm|4|string\nm|5|rotary|mono\nm|6|out|mono\nc|1.0|3.0|1.0\nc|0.1|2.0|1.0\nc|2.0|3.1|1.0\nc|3.0|4.0|1.0\nc|4.0|5.0|1.0\nc|5.0|6.0|1.0\nc|5.1|6.2|1.0"
+  set nexus "v|2\nm|0|voice\nm|1|noise\nm|2|env\nm|3|vca\nm|4|string\nm|5|rotary|mono\nm|6|out|mono\nc|1.0|3.0|1.0\nc|0.1|2.0|1.0\nc|2.0|3.1|1.0\nc|3.0|4.0|1.0\nc|4.0|5.0|1.0\nc|5.0|6.0|1.0\nc|5.1|6.2|1.0"
   s02_p2         0.0
   s02_p3         0.02
   s02_p4         0.0
@@ -79,7 +79,7 @@ patch "Rotor String" family=house
 
 patch "Two Operators" family=house
   # Two operators and the rest of Ratio taken apart and patched by hand.
-  set nexus "v|1\nm|0|voice\nm|1|op\nm|2|op\nm|3|env\nm|4|vca\nm|5|out|mono\nc|1.0|2.0|1.0\nc|2.0|4.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0"
+  set nexus "v|2\nm|0|voice\nm|1|op\nm|2|op\nm|3|env\nm|4|vca\nm|5|out|mono\nc|1.0|2.0|1.0\nc|2.0|4.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0"
   s01_p2         0.1
   s03_p3         0.5
   s05_p1         0.35
@@ -89,7 +89,7 @@ patch "Runs Itself" family=generative
   # A patch that plays itself: the transport drives a Euclidean pattern, the
   # pattern drives a random, the random is quantised to a scale, and nothing
   # here is waiting for a key.
-  set nexus "v|1\nm|0|clock|mono\nm|1|euclid|mono\nm|2|rand|mono\nm|3|quant|mono\nm|4|osc\nm|5|env\nm|6|vca\nm|7|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nc|2.0|3.0|1.0\nc|3.0|4.0|1.0\nc|1.0|5.0|1.0\nc|4.0|6.0|1.0\nc|5.0|6.1|1.0\nc|6.0|7.0|1.0"
+  set nexus "v|2\nm|0|clock|mono\nm|1|euclid|mono\nm|2|rand|mono\nm|3|quant|mono\nm|4|osc\nm|5|env\nm|6|vca\nm|7|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nc|2.0|3.0|1.0\nc|3.0|4.0|1.0\nc|1.0|5.0|1.0\nc|4.0|6.0|1.0\nc|5.0|6.1|1.0\nc|6.0|7.0|1.0"
   s01_p2         0.3
   s05_p2         0.05
   s05_p4         0.25
@@ -103,7 +103,7 @@ patch Listening family=house input=break
   # render that happens to end on a swell reads as a tail getting louder,
   # which is what a runaway looks like from outside. Rotor String next door
   # is where the cabinet belongs, under something that decays.
-  set nexus "v|1\nm|0|audioin|mono\nm|1|grain|mono\nm|2|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0"
+  set nexus "v|2\nm|0|audioin|mono\nm|1|grain|mono\nm|2|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0"
   s01_p2         0.18
   s01_p3         0.6
   s01_p6         0.9
@@ -114,7 +114,7 @@ patch "Macro Sweep" family=macro
   # carrying one of the eight macro parameters - so you assign a macro by
   # patching it, not by choosing it from a list. Here macro 1 goes to the
   # filter's cutoff, and turning it sweeps the patch.
-  set nexus "v|1\nm|0|voice\nm|1|osc\nm|2|filter\nm|3|env\nm|4|vca\nm|5|macro|mono\nm|6|out|mono\nc|1.0|2.0|1.0\nc|2.0|4.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|6.0|1.0\nc|5.0|2.1|0.8"
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|filter\nm|3|env\nm|4|vca\nm|5|macro|mono\nm|6|out|mono\nc|1.0|2.0|1.0\nc|2.0|4.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|6.0|1.0\nc|5.0|2.1|0.8"
   macro1         0.45
   s02_p2         0.3
   s02_p3         0.45
@@ -127,7 +127,7 @@ patch "One Knob, Four Things" family=macro
   # The same macro into four places, each cable at its own depth - which is
   # the whole argument for every cable being a VCA. One knob opens the filter
   # a lot, detunes the second oscillator a little, and brings up the noise.
-  set nexus "v|1\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|noise\nm|4|mix|mono\nm|5|filter\nm|6|env\nm|7|vca\nm|8|macro|mono\nm|9|out|mono\nc|1.0|4.0|1.0\nc|2.0|4.1|0.6\nc|3.0|4.2|0.25\nc|4.0|5.0|1.0\nc|5.0|7.0|1.0\nc|0.1|6.0|1.0\nc|6.0|7.1|1.0\nc|7.0|9.0|1.0\nc|8.0|5.1|0.9\nc|8.0|2.0|0.1\nc|8.0|4.2|0.5"
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|noise\nm|4|mix|mono\nm|5|filter\nm|6|env\nm|7|vca\nm|8|macro|mono\nm|9|out|mono\nc|1.0|4.0|1.0\nc|2.0|4.1|0.6\nc|3.0|4.2|0.25\nc|4.0|5.0|1.0\nc|5.0|7.0|1.0\nc|0.1|6.0|1.0\nc|6.0|7.1|1.0\nc|7.0|9.0|1.0\nc|8.0|5.1|0.9\nc|8.0|2.0|0.1\nc|8.0|4.2|0.5"
   macro1         0.4
   s02_p2         0.52
   s05_p2         0.25
@@ -142,7 +142,7 @@ patch Morphing family=morph
   # - so one control rewires the patch while it plays. At morph 0 the string
   # is plucked by noise; at 1 it is driven by the oscillator instead, and
   # everything in between is a blend of the two.
-  set nexus "v|1\nm|0|voice\nm|1|noise\nm|2|osc\nm|3|env\nm|4|vca\nm|5|string\nm|6|out|mono\nc|1.0|4.0|1.0|0.0\nc|2.0|4.0|0.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0\nc|5.0|6.0|1.0"
+  set nexus "v|2\nm|0|voice\nm|1|noise\nm|2|osc\nm|3|env\nm|4|vca\nm|5|string\nm|6|out|mono\nc|1.0|4.0|1.0|0.0\nc|2.0|4.0|0.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0\nc|5.0|6.0|1.0"
   morph          0.35
   s03_p1         0.0
   s03_p2         0.03
@@ -155,7 +155,7 @@ patch Tonewheels family=house
   # Manual's generator as a block. Ninety-one wheels turning, through a filter
   # and an envelope - an organ nobody built, because the generator is not
   # supposed to come out of the organ.
-  set nexus "v|1\nm|0|voice\nm|1|wheels\nm|2|filter\nm|3|env\nm|4|vca\nm|5|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nc|2.0|4.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0"
+  set nexus "v|2\nm|0|voice\nm|1|wheels\nm|2|filter\nm|3|env\nm|4|vca\nm|5|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nc|2.0|4.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0"
   s02_p2         0.55
   s03_p1         0.04
   s03_p4         0.2
@@ -166,7 +166,7 @@ patch "Wavetable Drift" family=house
   # Trinity's wavetable bank, with an LFO walking through the frames. The
   # table is a module here, so the thing that scans it can be anything - and
   # an LFO is only the least surprising choice.
-  set nexus "v|1\nm|0|voice\nm|1|wtosc\nm|2|lfo|mono\nm|3|filter\nm|4|env\nm|5|vca\nm|6|out|mono\nc|0.0|1.0|1.0\nc|2.0|1.2|0.7\nc|1.0|3.0|1.0\nc|3.0|5.0|1.0\nc|0.1|4.0|1.0\nc|4.0|5.1|1.0\nc|5.0|6.0|1.0"
+  set nexus "v|2\nm|0|voice\nm|1|wtosc\nm|2|lfo|mono\nm|3|filter\nm|4|env\nm|5|vca\nm|6|out|mono\nc|0.0|1.0|1.0\nc|2.0|1.2|0.7\nc|1.0|3.0|1.0\nc|3.0|5.0|1.0\nc|0.1|4.0|1.0\nc|4.0|5.1|1.0\nc|5.0|6.0|1.0"
   s02_p2         0.22
   s03_p2         0.6
   s04_p1         0.08
@@ -178,7 +178,7 @@ patch Talking family=house input=break
   # Cipher's band map as a block: what is plugged in shapes the oscillators.
   # A vocoder wired by hand, and the carrier is whatever you patch to it
   # rather than whatever the machine decided.
-  set nexus "v|1\nm|0|voice\nm|1|osc\nm|2|audioin|mono\nm|3|bands|mono\nm|4|env\nm|5|vca\nm|6|out|mono\nc|0.0|1.0|1.0\nc|1.0|3.0|1.0\nc|2.0|3.1|1.0\nc|3.0|5.0|1.0\nc|0.1|4.0|1.0\nc|4.0|5.1|1.0\nc|5.0|6.0|1.0"
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|audioin|mono\nm|3|bands|mono\nm|4|env\nm|5|vca\nm|6|out|mono\nc|0.0|1.0|1.0\nc|1.0|3.0|1.0\nc|2.0|3.1|1.0\nc|3.0|5.0|1.0\nc|0.1|4.0|1.0\nc|4.0|5.1|1.0\nc|5.0|6.0|1.0"
   s01_p1         0.25
   s04_p1         0.02
   s04_p4         0.2
@@ -189,7 +189,7 @@ patch "Sample and Hold" family=generative
   # A clock, a random, and a sample-and-hold quantised to a scale: the oldest
   # trick in modular, and it needs no keyboard. The envelope is fired by the
   # same clock that moves the pitch, so every note is on the grid.
-  set nexus "v|1\nm|0|clock|mono\nm|1|rand|mono\nm|2|quant|mono\nm|3|osc\nm|4|env\nm|5|vca\nm|6|filter\nm|7|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nc|2.0|3.0|1.0\nc|0.0|4.0|1.0\nc|3.0|6.0|1.0\nc|6.0|5.0|1.0\nc|4.0|5.1|1.0\nc|5.0|7.0|1.0"
+  set nexus "v|2\nm|0|clock|mono\nm|1|rand|mono\nm|2|quant|mono\nm|3|osc\nm|4|env\nm|5|vca\nm|6|filter\nm|7|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nc|2.0|3.0|1.0\nc|0.0|4.0|1.0\nc|3.0|6.0|1.0\nc|6.0|5.0|1.0\nc|4.0|5.1|1.0\nc|5.0|7.0|1.0"
   s00_p1         0.3
   s04_p1         0.01
   s04_p4         0.18
@@ -203,7 +203,7 @@ patch "Feeding Back" family=texture
   # the filter - so the repeats are filtered again each time round and the
   # patch settles into a resonance of its own. Kept under the point where it
   # runs away, which is not far from here.
-  set nexus "v|1\nm|0|voice\nm|1|osc\nm|2|filter\nm|3|delay|mono\nm|4|env\nm|5|vca\nm|6|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nc|2.0|5.0|1.0\nc|5.0|3.0|0.5\nc|3.0|2.0|0.35\nc|0.1|4.0|1.0\nc|4.0|5.1|1.0\nc|5.0|6.0|1.0"
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|filter\nm|3|delay|mono\nm|4|env\nm|5|vca\nm|6|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nc|2.0|5.0|1.0\nc|5.0|3.0|0.5\nc|3.0|2.0|0.35\nc|0.1|4.0|1.0\nc|4.0|5.1|1.0\nc|5.0|6.0|1.0"
   s02_p2         0.4
   s02_p3         0.5
   s03_p1         0.3
@@ -215,7 +215,7 @@ patch "Feeding Back" family=texture
 
 patch "Horn in a Hall" family=house
   # Brazen's horn blown by an envelope, into the reverb.
-  set nexus "v|1\nm|0|voice\nm|1|env\nm|2|bore\nm|3|reverb|mono\nm|4|out|mono\nc|0.1|1.0|1.0\nc|1.0|2.0|1.0\nc|0.0|2.1|1.0\nc|2.0|3.0|1.0\nc|3.0|4.0|1.0\nc|3.1|4.2|1.0"
+  set nexus "v|2\nm|0|voice\nm|1|env\nm|2|bore\nm|3|reverb|mono\nm|4|out|mono\nc|0.1|1.0|1.0\nc|1.0|2.0|1.0\nc|0.0|2.1|1.0\nc|2.0|3.0|1.0\nc|3.0|4.0|1.0\nc|3.1|4.2|1.0"
   s01_p1         0.08
   s01_p3         0.8
   s01_p4         0.25
@@ -224,7 +224,7 @@ patch "Horn in a Hall" family=house
 
 patch "Talking Harp" family=house
   # Tongue's jaw harp through Diction's throat, an LFO moving the vowel.
-  set nexus "v|1\nm|0|voice\nm|1|jaw\nm|2|lfo|mono\nm|3|throat\nm|4|out|mono\nc|0.1|1.0|1.0\nc|0.0|1.1|1.0\nc|1.0|3.0|1.0\nc|2.1|3.1|0.8\nc|3.0|4.0|1.0"
+  set nexus "v|2\nm|0|voice\nm|1|jaw\nm|2|lfo|mono\nm|3|throat\nm|4|out|mono\nc|0.1|1.0|1.0\nc|0.0|1.1|1.0\nc|1.0|3.0|1.0\nc|2.1|3.1|0.8\nc|3.0|4.0|1.0"
   s01_p8         0.9
   s02_p2         0.25
   s03_p1         0.1
@@ -233,7 +233,7 @@ patch "Talking Harp" family=house
 
 patch Bytebeat family=generative
   # A formula as an oscillator at the note's pitch, through the bitcrusher.
-  set nexus "v|1\nm|0|voice\nm|1|formula\nm|2|env\nm|3|vca\nm|4|crush\nm|5|out|mono\nc|0.0|1.1|1.0\nc|1.0|3.0|1.0\nc|0.1|2.0|1.0\nc|2.0|3.1|1.0\nc|3.0|4.0|1.0\nc|4.0|5.0|1.0\ne|01|t * (t >> 5 | t >> 8)"
+  set nexus "v|2\nm|0|voice\nm|1|formula\nm|2|env\nm|3|vca\nm|4|crush\nm|5|out|mono\nc|0.0|1.1|1.0\nc|1.0|3.0|1.0\nc|0.1|2.0|1.0\nc|2.0|3.1|1.0\nc|3.0|4.0|1.0\nc|4.0|5.0|1.0\ne|01|t * (t >> 5 | t >> 8)"
   s01_p2         0.3
   s02_p3         0.6
   s04_p1         0.6
@@ -242,13 +242,13 @@ patch Bytebeat family=generative
 
 patch "Sing to the Piano" family=house input=break
   # Hum into the phone and Hammer's piano follows your pitch.
-  set nexus "v|1\nm|0|audioin|mono\nm|1|follow|mono\nm|2|piano|mono\nm|3|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nc|1.1|2.1|1.0\nc|2.0|3.0|1.0\nc|2.1|3.2|1.0"
+  set nexus "v|2\nm|0|audioin|mono\nm|1|follow|mono\nm|2|piano|mono\nm|3|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nc|1.1|2.1|1.0\nc|2.0|3.0|1.0\nc|2.1|3.2|1.0"
   s01_p3         1.0
   volume         1.00
 
 patch "Wall Pad" family=texture
   # A saw pad with Swell on every voice and a chorus after.
-  set nexus "v|1\nm|0|voice\nm|1|osc\nm|2|env\nm|3|vca\nm|4|swell\nm|5|chorus|mono\nm|6|out|mono\nc|1.0|3.0|1.0\nc|0.1|2.0|1.0\nc|2.0|3.1|1.0\nc|3.0|4.0|1.0\nc|4.0|5.0|1.0\nc|5.0|6.0|1.0\nc|5.1|6.2|1.0"
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|env\nm|3|vca\nm|4|swell\nm|5|chorus|mono\nm|6|out|mono\nc|1.0|3.0|1.0\nc|0.1|2.0|1.0\nc|2.0|3.1|1.0\nc|3.0|4.0|1.0\nc|4.0|5.0|1.0\nc|5.0|6.0|1.0\nc|5.1|6.2|1.0"
   s01_p1         0.66
   s02_p1         0.4
   s02_p4         0.6
@@ -258,7 +258,7 @@ patch "Wall Pad" family=texture
 
 patch "Free Reeds" family=house
   # Draw's accordion reed with a slow bellows attack, and a pipe an octave down.
-  set nexus "v|1\nm|0|voice\nm|1|env\nm|2|reed\nm|3|pipe\nm|4|mix\nm|5|out|mono\nc|0.1|1.0|1.0\nc|1.0|2.0|1.0\nc|1.0|3.0|0.9\nc|0.0|2.1|1.0\nc|0.0|3.1|1.0\nc|2.0|4.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0"
+  set nexus "v|2\nm|0|voice\nm|1|env\nm|2|reed\nm|3|pipe\nm|4|mix\nm|5|out|mono\nc|0.1|1.0|1.0\nc|1.0|2.0|1.0\nc|1.0|3.0|0.9\nc|0.0|2.1|1.0\nc|0.0|3.1|1.0\nc|2.0|4.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0"
   s01_p1         0.2
   s01_p3         0.9
   s02_p1         0.3
@@ -268,7 +268,7 @@ patch "Free Reeds" family=house
 
 patch "Talk Box Guitar" family=house
   # Fret's guitar, driven, through Diction's throat with an LFO on the vowel.
-  set nexus "v|1\nm|0|voice\nm|1|guitar|mono\nm|2|lfo|mono\nm|3|throat\nm|4|out|mono\nc|0.0|1.0|1.0\nc|0.1|1.1|1.0\nc|0.2|1.2|1.0\nc|1.0|3.0|1.0\nc|2.1|3.1|0.8\nc|3.0|4.0|1.0"
+  set nexus "v|2\nm|0|voice\nm|1|guitar|mono\nm|2|lfo|mono\nm|3|throat\nm|4|out|mono\nc|0.0|1.0|1.0\nc|0.1|1.1|1.0\nc|0.2|1.2|1.0\nc|1.0|3.0|1.0\nc|2.1|3.1|0.8\nc|3.0|4.0|1.0"
   s01_p7         0.8
   s02_p2         0.2
   s03_p5         1.0
@@ -277,7 +277,7 @@ patch "Talk Box Guitar" family=house
 
 patch "Birds by the Brook" family=texture
   # Aviary's warbling birds over Fathom's stream, both from the same key.
-  set nexus "v|1\nm|0|voice\nm|1|bird|mono\nm|2|water|mono\nm|3|mix\nm|4|out|mono\nc|0.0|1.0|1.0\nc|0.1|1.1|1.0\nc|0.2|1.2|1.0\nc|0.0|2.0|1.0\nc|0.1|2.1|1.0\nc|1.0|3.0|1.0\nc|2.0|3.1|1.0\nc|3.0|4.0|1.0"
+  set nexus "v|2\nm|0|voice\nm|1|bird|mono\nm|2|water|mono\nm|3|mix\nm|4|out|mono\nc|0.0|1.0|1.0\nc|0.1|1.1|1.0\nc|0.2|1.2|1.0\nc|0.0|2.0|1.0\nc|0.1|2.1|1.0\nc|1.0|3.0|1.0\nc|2.0|3.1|1.0\nc|3.0|4.0|1.0"
   s01_p1         0.6
   s01_p7         0.5
   s02_p1         0.5
@@ -286,14 +286,14 @@ patch "Birds by the Brook" family=texture
 
 patch "Drum Echoes" family=generative
   # Palm's tabla, struck by each note, into a delay that feeds back.
-  set nexus "v|1\nm|0|voice\nm|1|drum|mono\nm|2|delay|mono\nm|3|out|mono\nc|0.0|1.0|1.0\nc|0.1|1.1|1.0\nc|0.2|1.2|1.0\nc|1.0|2.0|1.0\nc|2.0|3.0|1.0"
+  set nexus "v|2\nm|0|voice\nm|1|drum|mono\nm|2|delay|mono\nm|3|out|mono\nc|0.0|1.0|1.0\nc|0.1|1.1|1.0\nc|0.2|1.2|1.0\nc|1.0|2.0|1.0\nc|2.0|3.0|1.0"
   s01_p1         0.0
   s02_p2         0.55
   volume         1.00
 
 patch "Sitar Hall" family=texture
   # Sympath's sitar into a long reverb, the sympathetic strings up.
-  set nexus "v|1\nm|0|voice\nm|1|sitar|mono\nm|2|reverb|mono\nm|3|out|mono\nc|0.0|1.0|1.0\nc|0.1|1.1|1.0\nc|0.2|1.2|1.0\nc|1.0|2.0|1.0\nc|2.0|3.0|1.0\nc|2.1|3.2|1.0"
+  set nexus "v|2\nm|0|voice\nm|1|sitar|mono\nm|2|reverb|mono\nm|3|out|mono\nc|0.0|1.0|1.0\nc|0.1|1.1|1.0\nc|0.2|1.2|1.0\nc|1.0|2.0|1.0\nc|2.0|3.0|1.0\nc|2.1|3.2|1.0"
   s01_p8         0.9
   s02_p1         0.8
   s02_p5         0.45
