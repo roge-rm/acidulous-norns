@@ -46,8 +46,13 @@ P.MACHINES = {
 
 -- The machine order before it followed the picker. Old PSETs saved the
 -- machine as an index into this list (less the machines the plugin lacked).
-local OLD_ORDER = {}
-for k, m in ipairs(P.MACHINES) do OLD_ORDER[k] = m.name end
+-- Never change it.
+local OLD_ORDER = {
+  "Reflux", "Hexbeat", "Trinity", "Ratio", "Formulate", "Genesis", "Tine",
+  "Palm", "Tongue", "Timber", "Aviary", "Fret", "Chanter", "Brazen", "Fathom",
+  "Resonance", "Draw", "Sympath", "Filament", "Manual", "Hammer", "Cipher",
+  "Cumulus", "Nexus", "Diction", "Forage", "Mosaic", "Dice", "Pollen", "Molt",
+}
 
 -- Puts P.MACHINES in the picker's order: its groups in turn, alphabetical in
 -- each. Any machine in no group goes last.
@@ -60,8 +65,8 @@ do
       if by[name] then sorted[#sorted + 1] = by[name]; by[name] = nil end
     end
   end
-  for _, name in ipairs(OLD_ORDER) do
-    if by[name] then sorted[#sorted + 1] = by[name] end
+  for _, m in ipairs(P.MACHINES) do
+    if by[m.name] then sorted[#sorted + 1] = m end
   end
   P.MACHINES = sorted
 end
@@ -1239,7 +1244,10 @@ local rereading = false
 local function saved_machine(filename, i, v)
   if saved_has(filename, id(i, "machine_name")) then
     local name = params:get(id(i, "machine_name"))
-    return name ~= "" and name or nil
+    for _, m in ipairs(P.machines) do
+      if m.name == name then return name end
+    end
+    return nil -- "none", or a machine this plugin lacks
   end
   local have = {}
   for _, m in ipairs(P.machines) do have[m.name] = true end

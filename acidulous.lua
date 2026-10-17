@@ -1126,7 +1126,11 @@ function enc(n, d)
     enc_woke[n] = util.time()
     return
   end
-  if enc_woke[n] and util.time() - enc_woke[n] < 0.3 then return end
+  if enc_woke[n] then
+    local since = util.time() - enc_woke[n]
+    if since >= 0 and since < 0.3 then return end
+    enc_woke[n] = nil
+  end
   handle_enc(n, d)
   if parts.ready then set_encoders() end
 end
