@@ -78,6 +78,8 @@ See the top of `host/src/render.cpp` for the options. `tools/render-tests.sh` re
 
 `tools/sample-tests.sh` does the same for Forage, Mosaic, Dice, Pollen and Molt with files loaded (`load PART KIND PATH ARG` in the script). It makes its test files first with `host/tests/make_material.py` into `host/build/material`: a kit with WAV, AIFF and FLAC pads, a folder of WAVs named by note, a SoundFont with two presets and a few longer sounds. `make_material.py DIR --big 60` adds a 60 MB SoundFont for memory tests.
 
+`tools/make-keys-sf2.py` makes Mosaic's default, `data/samples/acidulous-soft-horn.sf2`: Trinity's Soft Horn rendered every 6 semitones from C1 to C7, mono at 24 kHz, each with a crossfaded sustain loop.
+
 ## OSC
 
 The messages the plugin takes on port 57150 and what it sends back to matron on 10111 are listed at the top of `host/src/bridge.h`. Parts are 0 to 7 and channels 1 to 16.

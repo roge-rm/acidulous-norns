@@ -73,6 +73,7 @@ for i = 1, P.COUNT do
     problem = nil,  -- {text, at}: the last load that failed
     last_path = nil, -- the last file or folder loaded, for the picker
     resend_files = false, -- send the files after the next mount
+    want_default = false, -- load the machine's default after the next mount
     -- the inserts the plugin last listed, slot 0 or 1 -> {type, params},
     -- each param a def with its 0-1 value; from /inserts
     fx = {},
@@ -550,6 +551,25 @@ function P.load_file(i, kind, path, arg)
   send("/load", {i - 1, kind, path, arg or 0})
 end
 
+-- What a sample machine loads when a part switches to it with no files:
+-- {kind, path}, from the audio that comes with norns or our own data.
+P.DEFAULTS = {
+  Forage = {kind = "kit", path = _path.audio .. "common/808"},
+  Mosaic = {kind = "sf2", path = norns.state.path .. "data/samples/acidulous-soft-horn.sf2"},
+  Dice = {kind = "sample", path = _path.audio .. "tehn/drumev.wav"},
+  Pollen = {kind = "sample", path = _path.audio .. "hermit_leaves.wav"},
+  Molt = {kind = "sample", path = _path.audio .. "tehn/whirl1.aif"},
+}
+
+-- Loads the machine's default if the part has no files and it's there.
+local function load_default(i)
+  local part = P.list[i]
+  part.want_default = false
+  local d = part.machine and P.DEFAULTS[part.machine]
+  if not d or next(part.files) ~= nil or part.loading then return end
+  if util.file_exists(d.path) then P.load_file(i, d.kind, d.path, 0) end
+end
+
 -- Sends the part's saved files again, after its machine is mounted.
 local function send_files(i)
   local part = P.list[i]
@@ -596,12 +616,12 @@ function P.material(i)
         first = first or f
       end
     end
-    if n == 0 then return "no samples" end
+    if n == 0 then return "empty, k1+k3" end
     return base(first.path:match("^(.*)/[^/]+$") or "") .. ", " .. n .. (n == 1 and " pad" or " pads")
   elseif m == "Mosaic" or m == "Dice" or m == "Pollen" or m == "Molt" then
     local f = part.files.main
     if f then return f.name or stem(f.path) end
-    return m == "Pollen" and "live input" or "nothing loaded"
+    return m == "Pollen" and "live input" or "empty, k1+k3"
   end
 end
 
@@ -630,6 +650,7 @@ local function load_machine(i, with_values)
   part.sent = name
   if not part.want_values then part.dim = false end
   if part.resend_files then send_files(i) end
+  if part.want_default then load_default(i) end
 end
 
 -- Runs fn after `wait` seconds unless called again first, so turning an
@@ -653,6 +674,7 @@ function P.apply(i)
   P.notes_off(i)
   P.send_strip(i)
   part.fx_edits = decode_fx(params:get(id(i, "fx")))
+  part.want_default = false -- a PSET's files stay as saved
   load_machine(i, false)
   -- the PSET's sends go on top of the ones the patch carries
   P.send_strip_param(i, "rev")
@@ -721,6 +743,7 @@ local function add_part(i)
     clear_fx(i)
     -- the new machine starts empty
     part.files, part.loading, part.problem, part.last_path = {}, nil, nil, nil
+    part.want_default = P.SAMPLE_MACHINES[machine] or false
     save_files(i)
     params:set(id(i, "patch"), 1, true)
     show_machine(i, machine, true)
@@ -1009,6 +1032,7 @@ function P.set_part(i, machine, patch)
   local part = P.list[i]
   if part.machine ~= machine then
     part.files, part.loading, part.problem, part.last_path = {}, nil, nil, nil
+    part.want_default = P.SAMPLE_MACHINES[machine] or false
     save_files(i)
   end
   clear_fx(i)
