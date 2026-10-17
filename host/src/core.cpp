@@ -957,9 +957,22 @@ bool Core::command(const std::string& path, const Args& a)
         const int part = to_int(a[0]), slot = to_int(a[1]);
         if(part_ok(part) && slot >= 0 && slot < kModSlots)
             post_part(part, [this, part, slot, on = to_int(a[2]) != 0] {
-                if(!mod_types[part][slot].empty())
-                    push_param(part, kModUnits[slot], "bypass", on ? 1.f : 0.f);
+                if(mod_types[part][slot].empty())
+                    return;
+                // note offs sent before land first, so none goes to the
+                // modifier coming back on
+                if(!on)
+                    settle();
+                mod_bypass[part][slot] = on;
+                push_param(part, kModUnits[slot], "bypass", on ? 1.f : 0.f);
             });
+        return true;
+    }
+    if(path == "/mods_off" && a.size() >= 1)
+    {
+        const int part = to_int(a[0]);
+        if(part_ok(part))
+            post_part(part, [this, part] { mods_off(part); });
         return true;
     }
     if(path == "/mod_param" && a.size() >= 4)
@@ -1438,12 +1451,31 @@ void Core::set_mod(int part, int slot, const std::string& type)
     }
     if(type.empty() && mod_types[part][slot].empty())
         return;
+    // Note offs sent before land first, so none goes to the new modifier,
+    // and params sent after land on it, not the old one.
+    settle();
+    mounts_queued = true;
     if(!host.mountInputMod(part, slot, type))
     {
         error("can't mount modifier " + type);
         return;
     }
+    settle();
     mod_types[part][slot] = type;
+    mod_bypass[part][slot] = false;
+}
+
+// Ends what the part's modifiers are playing and forgets their held and
+// latched notes, keeping their params: each one that's on is bypassed and
+// put back, as bypassing calls its allNotesOff.
+void Core::mods_off(int part)
+{
+    for(int slot = 0; slot < kModSlots; ++slot)
+        if(!mod_types[part][slot].empty() && !mod_bypass[part][slot])
+        {
+            push_param(part, kModUnits[slot], "bypass", 1.f);
+            push_param(part, kModUnits[slot], "bypass", 0.f);
+        }
 }
 
 void Core::set_mod_param(int part, int slot, const std::string& name, float v01)
@@ -1522,6 +1554,7 @@ void Core::clear_mods(int part)
         {
             host.mountInputMod(part, slot, "");
             mod_types[part][slot].clear();
+            mod_bypass[part][slot] = false;
         }
 }
 

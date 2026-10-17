@@ -21,6 +21,8 @@
 //   /mod_bypass i:part i:slot i:bypass   1 bypasses the slot's modifier
 //   /mod_param i:part i:slot s:name f:value01   a param of the slot's
 //        modifier, by name, as /mod_defs lists them
+//   /mods_off i:part   ends what the part's modifiers play and forgets
+//        their held and latched notes, keeping their params
 //   /mods i:part   /mod_defs
 //   /master s:name f:value01           the master's params, e.g. "volume"
 //        (0-1.5 linear)

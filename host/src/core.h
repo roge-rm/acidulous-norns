@@ -221,6 +221,7 @@ class Core
     void send_mods(int part);
     void send_mod_defs();
     void clear_mods(int part);
+    void mods_off(int part);
     void send_graph(int part);
     void set_scope(int part, int slot);
     bool push_param(int part, const char* unit, const std::string& name, float v01);
@@ -277,6 +278,7 @@ class Core
     float                       part_sends[kParts][kSends] = {};
     acidulous::PatchTrackState  patch_fx[kParts];
     std::string                 mod_types[kParts][kModSlots]; // on the worker: what each modifier slot has
+    bool                        mod_bypass[kParts][kModSlots] = {}; // on the worker
     std::atomic<bool>            metering{false};
     // The part whose scope is open, or -1, and the module slot it's cabled
     // from. Written by the worker.

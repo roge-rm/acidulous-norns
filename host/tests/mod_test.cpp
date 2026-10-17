@@ -250,6 +250,76 @@ int main(int argc, char** argv)
         check(ons(notes) == std::set<int>{62}, "chord unmounted: 60 plays 62 " + show(ons(notes)));
     }
 
+    // A note off sent just before a mount or an un-bypass reaches the
+    // machine, so the note doesn't hang (the script sends its held notes'
+    // offs first).
+    const auto has_off = [](const std::vector<Note>& notes, int note) {
+        for(const auto& n : notes)
+            if(!n.on && n.note == note)
+                return true;
+        return false;
+    };
+    cmd("/mod", {Value::i(0), Value::i(0), Value::s("")});
+    settle();
+    drain();
+    cmd("/note", {Value::i(0), Value::i(1), Value::i(60), Value::i(100)});
+    std::this_thread::sleep_for(60ms);
+    cmd("/note", {Value::i(0), Value::i(1), Value::i(60), Value::i(0)});
+    cmd("/mod", {Value::i(0), Value::i(0), Value::s("Scale")});
+    settle();
+    check(has_off(drain(), 60), "a note off just before a mount reaches the machine");
+    mod_param(0, "key", 2.0 / 11.0);
+    mod_param(0, "scale", 1.0 / 32.0);
+    mod_param(0, "mode", 1.0);
+    cmd("/mod_bypass", {Value::i(0), Value::i(0), Value::i(1)});
+    settle();
+    drain();
+    cmd("/note", {Value::i(0), Value::i(1), Value::i(64), Value::i(100)});
+    std::this_thread::sleep_for(60ms);
+    cmd("/note", {Value::i(0), Value::i(1), Value::i(64), Value::i(0)});
+    cmd("/mod_bypass", {Value::i(0), Value::i(0), Value::i(0)});
+    settle();
+    check(has_off(drain(), 64), "a note off just before an un-bypass reaches the machine");
+    check(ons(play(60)) == std::set<int>{62}, "the scale is back on");
+
+    // A latched arp keeps going after its key is up, until /mods_off, which
+    // keeps its params.
+    cmd("/mod", {Value::i(0), Value::i(0), Value::s("")});
+    cmd("/mod", {Value::i(0), Value::i(1), Value::s("Arp")});
+    mod_param(1, "latch", 1.0);
+    settle();
+    drain();
+    cmd("/note", {Value::i(0), Value::i(1), Value::i(60), Value::i(100)});
+    std::this_thread::sleep_for(60ms);
+    cmd("/note", {Value::i(0), Value::i(1), Value::i(60), Value::i(0)});
+    std::this_thread::sleep_for(400ms);
+    {
+        auto notes = drain();
+        check(ons(notes).count(60) == 1, "latched arp plays with the key up");
+        std::this_thread::sleep_for(300ms);
+        notes = drain();
+        int count = 0;
+        for(const auto& n : notes)
+            count += n.on;
+        check(count > 0, "latched arp still stepping");
+        cmd("/mods_off", {Value::i(0)});
+        r = settle();
+        std::this_thread::sleep_for(100ms);
+        drain();
+        std::this_thread::sleep_for(400ms);
+        notes = drain();
+        count = 0;
+        for(const auto& n : notes)
+            count += n.on;
+        check(count == 0, "/mods_off stops a latched arp");
+        float latch = -1;
+        for(size_t k = 0; k + 1 < r.args.size(); ++k)
+            if(r.args[k].type == 's' && r.args[k].str == "latch")
+                latch = float(r.args[k + 1].num);
+        check(latch == 1.f, "/mods_off keeps the arp's latch on");
+    }
+    mod_param(1, "latch", 0.0);
+
     // An arp with the transport stopped: hold a key for a second.
     cmd("/mod", {Value::i(0), Value::i(0), Value::s("")});
     cmd("/mod", {Value::i(0), Value::i(1), Value::s("Arp")});

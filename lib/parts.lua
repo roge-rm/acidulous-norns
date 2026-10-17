@@ -354,6 +354,8 @@ function P.notes_off(i)
   send("/cc", {i - 1, P.mpe and 1 or math.max(part.channel, 1), 123, 0})
   part.held = 0
   if P.on_notes_off then P.on_notes_off(i) end
+  -- and what the modifiers hold or latched, keeping their params
+  if next(part.mods) then send("/mods_off", {i - 1}) end
 end
 
 -- The machine's params live in pre-made slots, renamed and given the new
@@ -640,15 +642,26 @@ local function save_mods(i)
   params:set(id(i, "mods"), encode_mods(P.list[i].mods), true)
 end
 
+-- Sends a slot's modifier with its bypass and params, or empties the slot.
+local function send_mod(i, slot)
+  local m = P.list[i].mods[slot]
+  send("/mod", {i - 1, slot, m and m.type or ""})
+  if m then
+    if m.bypass then send("/mod_bypass", {i - 1, slot, 1}) end
+    for name, v in pairs(m.values) do send("/mod_param", {i - 1, slot, name, v}) end
+  end
+end
+
 -- Sends the part's modifiers, both slots, emptying the ones it has none in.
+-- A type change still waiting to be sent goes with them.
 local function send_mods(i)
+  local part = P.list[i]
   for slot = 0, 1 do
-    local m = P.list[i].mods[slot]
-    send("/mod", {i - 1, slot, m and m.type or ""})
-    if m then
-      if m.bypass then send("/mod_bypass", {i - 1, slot, 1}) end
-      for name, v in pairs(m.values) do send("/mod_param", {i - 1, slot, name, v}) end
+    if part.mod_pending then
+      timer.cancel(part.mod_pending[slot])
+      part.mod_pending[slot] = nil
     end
+    send_mod(i, slot)
   end
 end
 
@@ -669,24 +682,38 @@ local SHARED = {key = true, scale = true}
 local function shares(m) return m and (m.type == "Scale" or m.type == "Chord") end
 
 local function set_mod_param(i, slot, name, v)
-  local m = P.list[i].mods[slot]
-  m.values[name] = v
+  local part = P.list[i]
+  part.mods[slot].values[name] = v
+  -- a type on its way is sent with its values
+  if part.mod_pending and part.mod_pending[slot] then return end
   send("/mod_param", {i - 1, slot, name, v})
 end
 
 -- Puts a modifier type (or nil) in the part's slot, on and with its
 -- defaults. A Scale or Chord takes key and scale from one in the other slot.
-function P.set_mod_type(i, slot, type)
+-- With wait it's sent once no other type has come for 0.3 s, so turning
+-- through the types mounts only the one it stops on. Held notes are let go
+-- first, as their note offs would go to the new modifier.
+function P.set_mod_type(i, slot, type, wait)
   local part = P.list[i]
   local old = part.mods[slot]
   if (old and old.type) == type then return end
-  part.mods[slot] = type and {type = type, bypass = false, values = {}} or nil
-  send("/mod", {i - 1, slot, type or ""})
+  local m = type and {type = type, bypass = false, values = {}} or nil
+  part.mods[slot] = m
   local other = part.mods[1 - slot]
-  if type and shares(part.mods[slot]) and shares(other) then
-    for name in pairs(SHARED) do set_mod_param(i, slot, name, mod_param_value(other, name)) end
+  if shares(m) and shares(other) then
+    for name in pairs(SHARED) do m.values[name] = mod_param_value(other, name) end
   end
   save_mods(i)
+  part.mod_pending = part.mod_pending or {}
+  timer.cancel(part.mod_pending[slot])
+  part.mod_pending[slot] = nil
+  local function go()
+    part.mod_pending[slot] = nil
+    P.notes_off(i)
+    send_mod(i, slot)
+  end
+  if wait then part.mod_pending[slot] = timer.after(0.3, go) else go() end
 end
 
 -- A modifier control's 0-1 value (ctl from panel.mod_cards): the slot's
@@ -707,7 +734,7 @@ function P.set_mod(i, ctl, v)
   local m = part.mods[ctl.mod]
   if ctl.what == "type" then
     local at = math.floor(v * #P.MOD_TYPES + 0.5)
-    P.set_mod_type(i, ctl.mod, P.MOD_TYPES[at])
+    P.set_mod_type(i, ctl.mod, P.MOD_TYPES[at], true)
     return
   end
   if not m then return end
@@ -715,6 +742,10 @@ function P.set_mod(i, ctl, v)
     local bypass = v < 0.5
     if bypass == m.bypass then return end
     m.bypass = bypass
+    -- a type on its way brings its bypass
+    if part.mod_pending and part.mod_pending[ctl.mod] then save_mods(i) return end
+    -- held notes are let go, as their note offs would miss the notes
+    P.notes_off(i)
     send("/mod_bypass", {i - 1, ctl.mod, bypass and 1 or 0})
   else
     set_mod_param(i, ctl.mod, ctl.p, v)
