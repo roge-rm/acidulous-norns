@@ -613,8 +613,10 @@ function P.apply(i)
   P.send_strip_param(i, "dly")
   -- C++ waits for room in the engine's param queue, so none of these is lost
   if part.machine then
-    for j = 1, #P.defs[part.machine] do
-      send("/param", {i - 1, j - 1, params:get(id(i, "s" .. j))})
+    for j, d in ipairs(P.defs[part.machine]) do
+      if not (part.macs_from_patch and d.name:match("^mac%d")) then
+        send("/param", {i - 1, j - 1, params:get(id(i, "s" .. j))})
+      end
     end
   end
   part.files = decode(params:get(id(i, "files")))
@@ -769,11 +771,17 @@ local function saved_tables(filename)
   return n
 end
 
--- Resets a Trinity part's macro params to their defaults (knobs at 0, no
--- destinations). A PSET from before they existed has nothing for them, and a
--- hidden slot can hold what another machine left there.
+-- Readies a Trinity part's macro params for a PSET from before they existed,
+-- which has nothing for them, and a hidden slot can hold what another machine
+-- left there. With a patch, P.apply leaves them out and /values fills them
+-- with the patch's own routes. Without one they go to their defaults (knobs
+-- at 0, no destinations).
 local function reset_macros(i)
   if P.list[i].machine ~= "Trinity" then return end
+  if patch_name(i) then
+    P.list[i].macs_from_patch = true
+    return
+  end
   for j, d in ipairs(P.defs.Trinity or {}) do
     if d.name:match("^mac%d") then params:set(id(i, "s" .. j), P.unmap(d, d.default), true) end
   end
@@ -1016,8 +1024,16 @@ function P.osc(path, args)
   elseif path == "/values" then
     local i = (args[1] or -1) + 1
     local part = P.list[i]
-    if not part or not part.want_values or part.pending then return end
+    if not part or part.pending then return end
     if part.machine ~= args[2] or part.sent ~= args[3] then return end
+    if part.macs_from_patch then
+      -- an old PSET: only the macro slots take the patch's values
+      part.macs_from_patch = false
+      for j, d in ipairs(P.defs[part.machine] or {}) do
+        if d.name:match("^mac%d") and args[j + 3] then params:set(id(i, "s" .. j), args[j + 3], true) end
+      end
+    end
+    if not part.want_values then return end
     part.want_values = false
     for j = 4, #args do
       local sid = id(i, "s" .. (j - 3))

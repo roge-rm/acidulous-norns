@@ -1553,7 +1553,11 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
 {
     // A /patch that fails takes the last patch's inserts off and gives back
     // the sends it held, so every /patch ends in one /inserts.
-    const auto fail = [&] { apply_chain(part, acidulous::PatchChain{}, machine + " " + name); };
+    const auto fail = [&]
+    {
+        host.setMacroNames(part, "");
+        apply_chain(part, acidulous::PatchChain{}, machine + " " + name);
+    };
     const auto b = bank(machine);
     if(!b)
         return fail();
