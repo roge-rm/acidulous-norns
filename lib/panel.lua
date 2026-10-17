@@ -87,12 +87,12 @@ local function named(cards, names)
     end
     local n = tonumber(card.title:match("^macro (%d)$"))
     local title = n and (names[n] or "") ~= "" and names[n]:lower() or card.title
-    if #list > 0 then out[#out + 1] = {title = title, controls = list} end
+    if #list > 0 then out[#out + 1] = {title = title, controls = list, env = card.env} end
   end
   return out
 end
 
--- The machine's cards for this pad: a list of {title, controls}, each
+-- The machine's cards for this pad: a list of {title, controls, env}, env set on the amp envelope card, each
 -- control {label, kind, slot, def, opts, p}, or {label = "pad", kind = "pad"}
 -- first on a card of per-pad params. names: the patch's macro names, or nil.
 function M.cards(machine, defs, pad, names)
@@ -117,7 +117,7 @@ function M.cards(machine, defs, pad, names)
       end
     end
     if padded then table.insert(list, 1, {label = "pad", kind = "pad"}) end
-    if #list > 0 then cards[#cards + 1] = {title = card.t, controls = list} end
+    if #list > 0 then cards[#cards + 1] = {title = card.t, controls = list, env = card.e} end
   end
   if #cards == 0 then cards = fallback(machine, defs) end
   cache[key] = cards
