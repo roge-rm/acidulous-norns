@@ -44,6 +44,9 @@
 //        empty engine, so the script sends its parts again
 //   /values i:part s:machine s:patch f:value01...   every param, sent just before
 //   /patch i:part s:machine s:patch    once it's applied
+//   /macro_names i:part s:names        a Trinity patch's macro names, 8 joined
+//        by "|", or "" when it names none; just before /values, and after
+//        each /mounted and a failed /patch with ""
 //   /macros i:part s:machine s:patch (s:param s:label)...   a Nexus patch's
 //        macros, just before /values
 //   /state i:part s:machine s:patch f:gain01 f:value01...   what the engine

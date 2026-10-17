@@ -141,6 +141,7 @@ class Core
     void worker_loop();
     void reply(const char* path, const Args& args);
     void error(const std::string& text);
+    void send_macro_names(int part);
 
     // Worker thread.
     bool mount(int part, const std::string& machine);

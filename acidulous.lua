@@ -576,7 +576,7 @@ local function part_cards()
     for _, p in ipairs(pads) do ok = ok or p == ps.pad end
     if not ok then ps.pad = pads[1] end
   end
-  local cards = panel.cards(part.machine, defs, ps.pad)
+  local cards = panel.cards(part.machine, defs, ps.pad, part.macro_names)
   local fx = panel.fx_cards(part.fx)
   if #fx > 0 then
     -- a new list, as the machine's is cached

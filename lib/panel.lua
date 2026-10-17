@@ -66,12 +66,43 @@ local function fallback(machine, defs)
   return cards
 end
 
+-- The cards with a patch's macro names (parts.list[i].macro_names): a mac1..
+-- mac8 knob takes its name cut to 6 letters, or goes when it has none, and a
+-- "macro N" card is titled with its name. Unnamed macros keep their card, so
+-- their routes can still be set.
+local function named(cards, names)
+  local out = {}
+  for _, card in ipairs(cards) do
+    local list = {}
+    for _, ctl in ipairs(card.controls) do
+      local n = ctl.p and tonumber(ctl.p:match("^mac(%d)$"))
+      if not n then
+        list[#list + 1] = ctl
+      elseif (names[n] or "") ~= "" then
+        local c = {}
+        for k, v in pairs(ctl) do c[k] = v end
+        c.label, c.cut = names[n]:sub(1, 6), true
+        list[#list + 1] = c
+      end
+    end
+    local n = tonumber(card.title:match("^macro (%d)$"))
+    local title = n and (names[n] or "") ~= "" and names[n]:lower() or card.title
+    if #list > 0 then out[#out + 1] = {title = title, controls = list} end
+  end
+  return out
+end
+
 -- The machine's cards for this pad: a list of {title, controls}, each
--- control {label, kind, slot, def, opts}, or {label = "pad", kind = "pad"}
--- first on a card of per-pad params.
-function M.cards(machine, defs, pad)
+-- control {label, kind, slot, def, opts, p}, or {label = "pad", kind = "pad"}
+-- first on a card of per-pad params. names: the patch's macro names, or nil.
+function M.cards(machine, defs, pad, names)
   pad = pad or 0
   local key = machine .. ":" .. pad
+  if names then
+    local nkey = key .. ":" .. table.concat(names, "|")
+    if not cache[nkey] then cache[nkey] = named(M.cards(machine, defs, pad), names) end
+    return cache[nkey]
+  end
   if cache[key] then return cache[key] end
   defs = defs or {}
   local by = slots(defs)
@@ -81,7 +112,7 @@ function M.cards(machine, defs, pad)
     for _, c in ipairs(card.c) do
       local slot = by[fill(c.p, pad)]
       if slot then
-        list[#list + 1] = {label = c.l, kind = c.k, slot = slot, def = defs[slot], opts = c.o}
+        list[#list + 1] = {label = c.l, kind = c.k, slot = slot, def = defs[slot], opts = c.o, p = c.p}
         if c.p:find("{pad", 1, true) then padded = true end
       end
     end

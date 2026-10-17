@@ -503,6 +503,16 @@ std::string Core::macro_names(int part) const
     return host.macroNames(part);
 }
 
+// The part's macro names as /macro_names, joined with "|".
+void Core::send_macro_names(int part)
+{
+    std::string names = host.macroNames(part);
+    for(char& ch : names)
+        if(ch == '\n')
+            ch = '|';
+    reply("/macro_names", {Value::i(part), Value::s(names)});
+}
+
 float Core::load_percent() const
 {
     return host.loadPercent();
@@ -945,6 +955,7 @@ bool Core::mount(int part, const std::string& name)
     for(int32_t k = 0; k < count; ++k)
         parts[part].values.push_back(defs[k].unmap(defs[k].def));
     reply("/mounted", {Value::i(part), Value::s(parts[part].machine)});
+    send_macro_names(part);
     return true;
 }
 
@@ -966,6 +977,7 @@ void Core::unmount(int part)
     if(scope_part.load() == part)
         scope_part.store(-1);
     reply("/mounted", {Value::i(part), Value::s("")});
+    send_macro_names(part);
 }
 
 void Core::set_param(int part, const Value& which, float v01)
@@ -1557,6 +1569,7 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
     {
         host.setMacroNames(part, "");
         apply_chain(part, acidulous::PatchChain{}, machine + " " + name);
+        send_macro_names(part);
     };
     const auto b = bank(machine);
     if(!b)
@@ -1748,6 +1761,7 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
         out.insert(out.end(), macros.begin(), macros.end());
         reply("/macros", out);
     }
+    send_macro_names(part);
     Args values{Value::i(part), Value::s(machine), Value::s(patch->name)};
     for(int32_t i = 0; i < count; ++i)
         values.push_back(Value::f(r.norm[size_t(i)]));

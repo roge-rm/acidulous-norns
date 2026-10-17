@@ -320,7 +320,7 @@ function view.card(parts, state, cards, ps, pads, panel, note)
         local cx = x + 12
         local d = ctl.def
         screen.level(sel and 15 or 6)
-        text(cx, 32, squeeze(ctl.label, 24), "center")
+        text(cx, 32, ctl.cut and cut(ctl.label, 24) or squeeze(ctl.label, 24), "center")
         local bipolar = d.min < 0 and d.max > 0 and d.curve ~= "step"
         knob(cx, 43, 7, v, 3, sel and 15 or 8, bipolar, bipolar and parts.unmap(d, 0) or 0)
         screen.level(sel and 15 or 5)

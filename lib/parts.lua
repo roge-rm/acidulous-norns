@@ -81,6 +81,9 @@ for i = 1, P.COUNT do
     -- /patch and /unmount sent and not yet answered by /inserts, and when the
     -- last went, so only the newest one's /inserts is shown
     fx_wait = 0, fx_asked = 0,
+    -- a Trinity patch's macro names, 8 strings ("" for unnamed), or nil when
+    -- it names none; from /macro_names, not saved
+    macro_names = nil,
   }
 end
 
@@ -375,6 +378,7 @@ end
 
 -- Updates the menu for the part's machine. `defaults` resets the slots.
 local function show_machine(i, machine, defaults)
+  if P.list[i].machine ~= machine then P.list[i].macro_names = nil end
   P.list[i].machine = machine
   set_patch_options(i, machine)
   set_slots(i, machine, defaults)
@@ -1078,6 +1082,17 @@ function P.osc(path, args)
       fx[slot] = {type = type, params = list}
     end
     part.fx = fx
+  elseif path == "/macro_names" then
+    local part = P.list[(args[1] or -1) + 1]
+    if not part then return end
+    local s = args[2] or ""
+    if s == "" then
+      part.macro_names = nil
+    else
+      local names = {}
+      for name in (s .. "|"):gmatch("([^|]*)|") do names[#names + 1] = name end
+      part.macro_names = names
+    end
   elseif path == "/macros" then
     local list = {}
     for j = 4, #args - 1, 2 do list[#list + 1] = {param = args[j], label = args[j + 1]} end
