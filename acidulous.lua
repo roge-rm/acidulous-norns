@@ -57,6 +57,7 @@ local install = include("lib/install")
 local picker = include("lib/picker")
 local lists = include("lib/lists")
 local scope = include("lib/scope")
+local draw = include("lib/draw")
 -- the picker's own copy, so it sees the stick the watcher mounts
 local library = picker.lib
 
@@ -715,6 +716,18 @@ local function draw_splash()
   return true
 end
 
+-- Each part's energy for the play page's motifs and pads, 0-1 from its
+-- level: per frame it rises most of the way to the level at once and falls
+-- smoothly, by 15% of the gap.
+local function update_energy()
+  for _, part in ipairs(parts.list) do
+    local m = draw.meter(part.level)
+    local e = part.energy or 0
+    e = e + (m - e) * (m > e and 0.7 or 0.15)
+    part.energy = e < 0.005 and 0 or e
+  end
+end
+
 -- The selected part's play page state.
 local function play_state()
   local ps = state.play[state.sel]
@@ -744,6 +757,7 @@ function redraw()
   surfaces.screens()
   local note = omx_problem and util.time() - omx_problem.at < 10 and omx_problem.text or nil
   scope.check(parts)
+  update_energy()
   local overlay = picker.active() or lists.active(parts) or scope.active()
   want_meters(state.page == "mixer" and not overlay)
   if picker.active() then

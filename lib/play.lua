@@ -3,16 +3,18 @@
 local draw = include("lib/draw")
 local text, fit, meter, header = draw.text, draw.fit, draw.meter, draw.header
 local fill_rect, frame = draw.fill_rect, draw.frame
-local cut, squeeze, short_value, knob = draw.cut, draw.squeeze, draw.short_value, draw.knob
+local squeeze, fit_value, knob = draw.squeeze, draw.fit_value, draw.knob
+local motifs = include("lib/motifs")
 
 local play = {}
 
 -- The motif box, top right.
 local MOTIF = {x = 84, y = 0, w = 44, h = 26}
 local COL_W = 25.6
--- Labels and values are squeezed to this, leaving a gap between columns;
--- spaces in a label go so a gap inside it isn't read as a column gap.
-local FIT = 23
+-- Labels are at most LABEL_W wide and values VALUE_W, and narrower where
+-- two neighbours would come closer than GAP px. Spaces in a label go so a
+-- gap inside it isn't read as a column gap.
+local LABEL_W, VALUE_W, GAP = 25, 23, 3
 
 local machines = include("lib/machines")
 
@@ -59,10 +61,12 @@ function looks.drums.frame(m)
   frame(m.x + 1, m.y + 1, m.w - 2, m.h - 2, 5)
   for k = 0, 15 do fill_rect(k * 8 + 1, 27, 6, 1, k % 4 == 0 and 5 or 2) end
 end
-function looks.drums.macro(v, cx, cy, lv, zero, hit)
+-- flash is 0-1, from the part's energy and held notes.
+function looks.drums.macro(v, cx, cy, lv, zero, flash)
   local x, y, s = cx - 6, cy - 6, 13
-  if hit then fill_rect(x, y, s, s, 4) end
-  frame(x, y, s, s, hit and 15 or 3)
+  local hit = flash > 0.5
+  if flash > 0.1 then fill_rect(x, y, s, s, math.floor(1 + 4 * flash + 0.5)) end
+  frame(x, y, s, s, math.floor(3 + 12 * flash + 0.5))
   local a, b = span(v, zero)
   local top = y + s - 1 - math.floor(b * (s - 2) + 0.5)
   local bot = y + s - 1 - math.floor(a * (s - 2) + 0.5)
@@ -259,14 +263,30 @@ local function look(machine)
   return by_machine[machine] or looks.synths
 end
 
--- Notes on the selected part, for the drum pads' flash: held, or a note
--- started in the last 0.15 s.
-local hits = {held = 0, at = 0}
-local function hit(part)
-  local now = util.time()
-  if part.held > hits.held then hits.at = now end
-  hits.held = part.held
-  return part.held > 0 or now - hits.at < 0.15
+-- Strings for the columns centred at xs, each at most cap wide and narrow
+-- enough that neighbours keep GAP px apart; get(k, w) gives column k's
+-- string in w px.
+local function columns(xs, cap, get)
+  local out, ws = {}, {}
+  for k = 1, #xs do
+    out[k] = get(k, cap)
+    ws[k] = screen.text_extents(out[k])
+  end
+  for k = 1, #xs - 1 do
+    local room = 2 * (xs[k + 1] - xs[k] - GAP)
+    if ws[k] + ws[k + 1] > room then
+      -- the wider one gives way first, then the other if still needed
+      local a = ws[k] >= ws[k + 1] and k or k + 1
+      local b = a == k and k + 1 or k
+      out[a] = get(a, room - ws[b])
+      ws[a] = screen.text_extents(out[a])
+      if ws[a] + ws[b] > room then
+        out[b] = get(b, room - ws[a])
+        ws[b] = screen.text_extents(out[b])
+      end
+    end
+  end
+  return out
 end
 
 -- Sets the style's font at the largest size the name fits in w pixels at,
@@ -336,6 +356,13 @@ function play.draw(parts, state, macs, ps, note, keys)
   end
   local style = look(part.machine)
   style.frame(MOTIF)
+  local motif = motifs[part.machine]
+  if motif then
+    -- inside the frame, cleared of the look's own marks
+    local x, y, w, h = MOTIF.x + 2, MOTIF.y + 2, MOTIF.w - 4, MOTIF.h - 4
+    fill_rect(x, y, w, h, 0)
+    motif(x, y, w, h, util.time() % 1000, part.energy or 0, part.held)
+  end
   -- the machine, and the patch with its place in the list
   local name = part.machine:lower()
   local size = big_name(style, name, MOTIF.x - 6)
@@ -353,19 +380,30 @@ function play.draw(parts, state, macs, ps, note, keys)
   text(1, 24, fit((part.patch or ""):lower(), MOTIF.x - 8 - cw))
   text(MOTIF.x - 4, 24, count, "right")
   -- the macros
-  local struck = hit(part)
+  local flash = math.max(part.energy or 0, part.held > 0 and 0.6 or 0)
+  local xs, vs = {}, {}
   for k, mac in ipairs(macs) do
-    local cx = math.floor((k - 0.5) * COL_W + 0.5)
+    xs[k] = math.floor((k - 0.5) * COL_W + 0.5)
+    vs[k] = mac.slot and params:get(parts.id(i, "s" .. mac.slot)) or nil
+  end
+  local labels = columns(xs, LABEL_W, function(k, w)
+    return squeeze((macs[k].label:gsub(" ", "")), w)
+  end)
+  local values = columns(xs, VALUE_W, function(k, w)
+    return vs[k] and fit_value(parts, macs[k].def, vs[k], w) or ""
+  end)
+  for k, mac in ipairs(macs) do
+    local cx = xs[k]
     local sel = ps.focus == k
     screen.level(sel and 15 or 6)
-    text(cx, 35, squeeze((mac.label:gsub(" ", "")), FIT), "center")
+    text(cx, 35, labels[k], "center")
     if mac.slot then
-      local v = params:get(parts.id(i, "s" .. mac.slot))
+      local v = vs[k]
       local d = mac.def
       local zero = d.min < 0 and d.max > 0 and d.curve ~= "step" and parts.unmap(d, 0) or nil
-      style.macro(v, cx, 44, sel and 15 or 8, zero, struck)
+      style.macro(v, cx, 44, sel and 15 or 8, zero, flash)
       screen.level(sel and 15 or 5)
-      text(cx, 56, squeeze(short_value(parts, mac.def, v), FIT), "center")
+      text(cx, 56, values[k], "center")
     else
       screen.level(sel and 15 or 5)
       text(cx, 47, "-", "center")

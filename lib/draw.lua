@@ -110,10 +110,43 @@ local function short_value(parts, def, v)
     return num(x) .. "ms"
   elseif unit == "%" then
     return string.format("%d%%", math.floor(x + 0.5))
-  elseif unit == "st" or unit == "ct" or unit == "db" then
+  elseif unit == "st" or unit == "ct" or unit == "db" or unit == "c" or unit == "cents" then
+    if unit == "c" or unit == "cents" then unit = "ct" end
     return (x > 0 and "+" or "") .. num(x) .. unit
+  elseif unit == "beats" then
+    return num(x) .. "bt"
   end
   return num(x) .. unit
+end
+
+-- s without a 0 before the point: 0.28s -> .28s, -0.5 -> -.5.
+local function no_lead(s)
+  return (s:gsub("^([+-]?)0%.", "%1."))
+end
+
+-- A short value from short_value in w pixels: ms at 100 or more as seconds,
+-- then no 0 before the point, then fewer decimals, and only then squeezed.
+-- The unit is kept whole until that last step.
+local function fit_value(parts, def, v, w)
+  local s = short_value(parts, def, v)
+  if screen.text_extents(s) <= w then return s end
+  local x = parts.map(def, v)
+  if (def.unit or ""):lower() == "ms" and x >= 100 and x < 1000 then
+    s = string.format("%.2f", x / 1000):gsub("0+$", ""):gsub("%.$", "") .. "s"
+  end
+  s = no_lead(s)
+  if screen.text_extents(s) <= w then return s end
+  local sign, n, rest = s:match("^([+-]?)([%d%.]+)(.*)$")
+  if n and n:find("%.") then
+    local f = tonumber(n:sub(1, 1) == "." and "0" .. n or n)
+    for places = 1, 0, -1 do
+      local t = string.format("%." .. places .. "f", f)
+      if t:find("%.") then t = t:gsub("0+$", ""):gsub("%.$", "") end
+      t = no_lead(sign .. t .. rest)
+      if screen.text_extents(t) <= w then return t end
+    end
+  end
+  return squeeze(s, w)
 end
 
 -- Dots along a circle from angle a0 to a1 in degrees, 0 up and clockwise,
@@ -152,5 +185,6 @@ end
 draw.text, draw.fit, draw.meter, draw.header = text, fit, meter, header
 draw.fill_rect, draw.frame = fill_rect, frame
 draw.cut, draw.squeeze, draw.short_value, draw.knob = cut, squeeze, short_value, knob
+draw.fit_value = fit_value
 
 return draw
