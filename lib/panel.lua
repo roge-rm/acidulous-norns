@@ -81,7 +81,7 @@ local function named(cards, names)
       elseif (names[n] or "") ~= "" then
         local c = {}
         for k, v in pairs(ctl) do c[k] = v end
-        c.label, c.cut = names[n]:sub(1, 6), true
+        c.label, c.cut = names[n]:sub(1, (utf8.offset(names[n], 7) or #names[n] + 1) - 1), true
         list[#list + 1] = c
       end
     end

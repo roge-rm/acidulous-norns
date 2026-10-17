@@ -117,7 +117,7 @@ end
 -- s cut to w pixels, without a dot.
 local function cut(s, w)
   s = s or ""
-  while #s > 1 and screen.text_extents(s) > w do s = s:sub(1, -2) end
+  while #s > 1 and screen.text_extents(s) > w do s = s:sub(1, (utf8.offset(s, -1) or #s) - 1) end
   return s
 end
 

@@ -503,14 +503,21 @@ std::string Core::macro_names(int part) const
     return host.macroNames(part);
 }
 
-// The part's macro names as /macro_names, joined with "|".
+// The part's macro names as /macro_names, 8 strings, all "" to clear.
 void Core::send_macro_names(int part)
 {
     std::string names = host.macroNames(part);
-    for(char& ch : names)
-        if(ch == '\n')
-            ch = '|';
-    reply("/macro_names", {Value::i(part), Value::s(names)});
+    Args args = {Value::i(part)};
+    size_t at = 0;
+    for(int k = 0; k < 8; ++k)
+    {
+        size_t end = names.find('\n', at);
+        if(end == std::string::npos)
+            end = names.size();
+        args.push_back(Value::s(at < names.size() ? names.substr(at, end - at) : ""));
+        at = end + 1;
+    }
+    reply("/macro_names", args);
 }
 
 float Core::load_percent() const

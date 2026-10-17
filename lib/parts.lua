@@ -1085,14 +1085,12 @@ function P.osc(path, args)
   elseif path == "/macro_names" then
     local part = P.list[(args[1] or -1) + 1]
     if not part then return end
-    local s = args[2] or ""
-    if s == "" then
-      part.macro_names = nil
-    else
-      local names = {}
-      for name in (s .. "|"):gmatch("([^|]*)|") do names[#names + 1] = name end
-      part.macro_names = names
+    local names, any = {}, false
+    for n = 1, 8 do
+      names[n] = args[n + 1] or ""
+      if names[n] ~= "" then any = true end
     end
+    part.macro_names = any and names or nil
   elseif path == "/macros" then
     local list = {}
     for j = 4, #args - 1, 2 do list[#list + 1] = {param = args[j], label = args[j + 1]} end
