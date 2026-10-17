@@ -53,8 +53,9 @@
 //        holds a note on (bit 0 is channel 1), and what each member channel
 //        holding a note last sent, -1 for nothing
 //   /inserts i:part (i:slot s:type i:count (s:name f:min f:max f:default
-//        s:unit i:steps s:curve f:value01)*count)*   the part's inserts, after
-//        each /patch and /unmount; just the part when it has none. Params as
+//        s:unit i:steps s:curve f:value01)*count)*   the part's inserts, one
+//        after each /patch and /unmount (a /patch that fails takes the last
+//        patch's inserts off); just the part when it has none. Params as
 //        /def has them; values are the patch's, or the defaults
 //   /def s:machine i:index s:name f:min f:max f:default s:unit i:steps s:curve
 //        steps is 0 unless stepped; curve is "lin", "exp" or "step"

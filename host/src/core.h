@@ -173,7 +173,7 @@ class Core
     void set_channel(int part, const Value& which, float v01);
     void ensure_send(int slot);
     void apply_chain(int part, const acidulous::PatchChain& chain, const std::string& what);
-    void send_inserts(int part, const acidulous::PatchChain& chain);
+    void send_inserts(int part, const acidulous::PatchInsert* const at[acidulous::kEffectSlots]);
     void set_fx(int part, int slot, const std::string& name, float v01);
     void set_send(int slot, const std::string& name, float v01);
     void send_graph(int part);

@@ -1208,6 +1208,25 @@ void Core::apply_chain(int part, const acidulous::PatchChain& chain, const std::
 {
     if(!chain.inserts.empty() || patch_fx[part].owned != 0)
         mounts_queued = true;
+    // Which insert each slot gets, worked out as applyPatchChain does: the
+    // inserts this build has, placed by planPatchInserts on the slots as they
+    // are now. A slot whose mount fails isn't owned after, so it shows none.
+    std::vector<const acidulous::PatchInsert*> known;
+    for(const auto& fx : chain.inserts)
+    {
+        int32_t n = 0;
+        if(EffectRegistry::paramDefs(fx.type.c_str(), n) && n > 0)
+            known.push_back(&fx);
+    }
+    bool occupied[kEffectSlots];
+    for(int s = 0; s < kEffectSlots; ++s)
+        occupied[s] = !std::string(host.mountedEffect(part, s)).empty();
+    const acidulous::InsertPlan slots = acidulous::planPatchInserts(occupied, patch_fx[part].owned, int32_t(known.size()));
+    const acidulous::PatchInsert* at[kEffectSlots] = {};
+    for(size_t i = 0; i < known.size() && i < size_t(kEffectSlots); ++i)
+        if(slots.slotOf[i] >= 0)
+            at[slots.slotOf[i]] = known[i];
+
     int32_t                   skipped = 0, unknown = 0;
     const acidulous::SendPlan plan    = host.applyPatchChain(part, chain, patch_fx[part], part_sends[part][0],
                                                              part_sends[part][1], &skipped, &unknown);
@@ -1215,7 +1234,7 @@ void Core::apply_chain(int part, const acidulous::PatchChain& chain, const std::
         std::fprintf(stderr, "acidulous: %s: %d insert(s) found no free slot\n", what.c_str(), int(skipped));
     if(unknown > 0)
         std::fprintf(stderr, "acidulous: %s: %d insert(s) name no effect this build has\n", what.c_str(), int(unknown));
-    send_inserts(part, chain);
+    send_inserts(part, at);
     if(!plan.set)
         return;
     part_sends[part][0] = plan.reverb;
@@ -1229,12 +1248,10 @@ void Core::apply_chain(int part, const acidulous::PatchChain& chain, const std::
 // "/inserts i:part" and per mounted insert slot "i:slot s:type i:count" and
 // count params of "s:name f:min f:max f:default s:unit i:steps s:curve
 // f:value01", as /def has them. The values are the ones the patch set, or the
-// defaults. The slots the patch filled hold its known inserts in order, so a
-// slot takes the next one of its type.
-void Core::send_inserts(int part, const acidulous::PatchChain& chain)
+// defaults. [at] is the insert the patch put in each slot, or null.
+void Core::send_inserts(int part, const acidulous::PatchInsert* const at[kEffectSlots])
 {
-    Args   out{Value::i(part)};
-    size_t next = 0;
+    Args out{Value::i(part)};
     for(int slot = 0; slot < kEffectSlots; ++slot)
     {
         const std::string type = host.mountedEffect(part, slot);
@@ -1243,10 +1260,8 @@ void Core::send_inserts(int part, const acidulous::PatchChain& chain)
         if(!defs || count <= 0)
             continue;
         const acidulous::PatchInsert* fx = nullptr;
-        if((patch_fx[part].owned >> slot) & 1u)
-            for(; next < chain.inserts.size() && !fx; ++next)
-                if(chain.inserts[next].type == type)
-                    fx = &chain.inserts[next];
+        if(((patch_fx[part].owned >> slot) & 1u) && at[slot] && at[slot]->type == type)
+            fx = at[slot];
         out.push_back(Value::i(slot));
         out.push_back(Value::s(type));
         out.push_back(Value::i(count));
@@ -1529,9 +1544,12 @@ std::shared_ptr<Core::BankCache> Core::bank(const std::string& machine)
 
 void Core::load_patch(int part, const std::string& machine, const std::string& name)
 {
+    // A /patch that fails takes the last patch's inserts off and gives back
+    // the sends it held, so every /patch ends in one /inserts.
+    const auto fail = [&] { apply_chain(part, acidulous::PatchChain{}, machine + " " + name); };
     const auto b = bank(machine);
     if(!b)
-        return;
+        return fail();
     const ab::BankPatch* patch = nullptr;
     for(const auto& p : b->bank.patches)
         if(p.name == name)
@@ -1543,10 +1561,10 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
     if(!patch)
     {
         error("no " + machine + " patch " + name);
-        return;
+        return fail();
     }
     if(parts[part].machine != machine && !mount(part, machine))
-        return;
+        return fail();
 
     int32_t         count = 0;
     const ParamDef* defs  = MachineRegistry::paramDefs(machine.c_str(), count);
@@ -1607,7 +1625,7 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
             continue;
         }
         if(!push_param(part, "machine", defs[i].name, r.norm[size_t(i)]))
-            return;
+            return fail();
     }
     parts[part].values = r.norm;
 

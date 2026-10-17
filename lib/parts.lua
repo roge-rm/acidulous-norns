@@ -78,11 +78,23 @@ for i = 1, P.COUNT do
     -- insert params moved by hand, "slot:name" -> 0-1. Saved in the part's
     -- "fx" param and sent again over the patch's after a PSET is read.
     fx_edits = {},
+    -- /patch and /unmount sent and not yet answered by /inserts, and when the
+    -- last went, so only the newest one's /inserts is shown
+    fx_wait = 0, fx_asked = 0,
   }
 end
 
 local function send(path, args) osc.send(PLUGIN, path, args) end
 P.send = send
+
+-- Sends /patch or /unmount, which the plugin answers with one /inserts each.
+-- A count left over for more than 2 s is a lost reply, so it starts again.
+local function send_patch(i, path, args)
+  local part, now = P.list[i], util.time()
+  part.fx_wait = (now - part.fx_asked > 2) and 1 or part.fx_wait + 1
+  part.fx_asked = now
+  send(path, args)
+end
 
 local function id(i, what) return "p" .. i .. "_" .. what end
 P.id = id
@@ -551,14 +563,14 @@ local function load_machine(i, with_values)
   if not with_values then part.edits = {} end
   if not part.machine then
     part.fx = {}
-    send("/unmount", {i - 1})
+    send_patch(i, "/unmount", {i - 1})
     name = nil
   elseif name then
     part.want_values = with_values
     part.values_at, part.values_retried = util.time(), false
     part.sends_moved = {}
     part.fx = {} -- until /inserts lists the patch's
-    send("/patch", {i - 1, part.machine, name})
+    send_patch(i, "/patch", {i - 1, part.machine, name})
     send_fx_edits(i)
   else
     send("/mount", {i - 1, part.machine})
@@ -792,7 +804,7 @@ watch = function()
     if part.want_values and not part.values_retried and now - part.values_at > 2 then
       part.values_retried = true
       part.values_at = now
-      send("/patch", {i - 1, part.machine, part.sent})
+      send_patch(i, "/patch", {i - 1, part.machine, part.sent})
     end
   end
 end
@@ -804,6 +816,7 @@ function P.resend()
   P.send_master()
   if P.on_resend then P.on_resend() end
   for i, part in ipairs(P.list) do
+    part.fx_wait = 0 -- the old plugin's replies won't come
     if part.pending then
       P.send_strip(i) -- the pending patch mounts the machine
       part.resend_files = next(part.files) ~= nil
@@ -923,6 +936,9 @@ function P.osc(path, args)
     local i = (args[1] or -1) + 1
     local part = P.list[i]
     if not part then return end
+    -- an earlier /patch's, with a later one on its way
+    part.fx_wait = math.max(part.fx_wait - 1, 0)
+    if part.fx_wait > 0 then return end
     local fx, k = {}, 2
     while k + 2 <= #args do
       local slot, type, count = args[k], args[k + 1], args[k + 2]
