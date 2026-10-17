@@ -151,7 +151,9 @@ function surf.pot(n, pos)
   if p.last and math.abs(pos - p.last) < 0.002 then return end -- jitter
   -- a jittering pot shouldn't keep the screensaver away: it counts once it
   -- has moved 1% from where it last counted
-  if not p.anchor or math.abs(pos - p.anchor) > 0.01 then
+  if not p.anchor then
+    p.anchor = pos -- the first report is the pot's position, not a move
+  elseif math.abs(pos - p.anchor) > 0.01 then
     p.anchor = pos
     a.touch()
   end

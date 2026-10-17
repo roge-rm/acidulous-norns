@@ -34,6 +34,7 @@ local dev_id -- the norns device id, which stays the same while it's plugged in
 local remote = false
 local rx = {}
 local leds, shown = {}, {}
+local led_payload = {0, 27} -- reused by led_show, which fills in the 81 colour bytes
 
 -- screen: one frame in flight; the OMX acks each frame with 52 04
 local frame_pending = false
@@ -227,24 +228,27 @@ end
 
 -- r, g, b 0-255
 function omx.led(n, r, g, b)
-  leds[n] = {r >> 1, g >> 1, b >> 1}
+  local c = leds[n]
+  c[1], c[2], c[3] = r >> 1, g >> 1, b >> 1
 end
 
 -- Sends the LEDs that changed since the last call.
 function omx.led_show()
   if not dev or not remote then return end
-  local payload, any = {0, 27}, false
+  local payload, any = led_payload, false
   for n = 0, 26 do
     local c, s = leds[n], shown[n]
     if c[1] ~= s[1] or c[2] ~= s[2] or c[3] ~= s[3] then any = true end
-    payload[#payload + 1] = c[1]
-    payload[#payload + 1] = c[2]
-    payload[#payload + 1] = c[3]
+    local k = 3 + n * 3
+    payload[k], payload[k + 1], payload[k + 2] = c[1], c[2], c[3]
   end
   if not any then return end
   send(0x5A, payload)
   send(0x5B)
-  for n = 0, 26 do shown[n] = {leds[n][1], leds[n][2], leds[n][3]} end
+  for n = 0, 26 do
+    local c, s = leds[n], shown[n]
+    s[1], s[2], s[3] = c[1], c[2], c[3]
+  end
 end
 
 -- 8 bytes for every 7: a byte of high bits, then the 7 bytes' low 7 bits.

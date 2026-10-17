@@ -1115,10 +1115,18 @@ function key(n, z)
   if parts.ready then set_encoders() end
 end
 
+-- Encoders that woke the saver: n -> when. Their detents for the next 0.3 s
+-- are dropped, so a fast spin only wakes it.
+local enc_woke = {}
+
 function enc(n, d)
   local asleep = saver.active()
   saver.touch()
-  if asleep then return end
+  if asleep then
+    enc_woke[n] = util.time()
+    return
+  end
+  if enc_woke[n] and util.time() - enc_woke[n] < 0.3 then return end
   handle_enc(n, d)
   if parts.ready then set_encoders() end
 end
