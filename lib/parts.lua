@@ -551,6 +551,15 @@ function P.load_file(i, kind, path, arg)
   send("/load", {i - 1, kind, path, arg or 0})
 end
 
+-- Empties the part's files and the machine's samples. Pollen then plays the
+-- norns input.
+function P.clear_files(i)
+  local part = P.list[i]
+  part.files, part.loading, part.problem, part.last_path = {}, nil, nil, nil
+  send("/load", {i - 1, "clear", "", 0})
+  save_files(i)
+end
+
 -- What a sample machine loads when a part switches to it with no files:
 -- {kind, path}, from the audio that comes with norns or our own data.
 P.DEFAULTS = {

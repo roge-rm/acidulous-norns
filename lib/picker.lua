@@ -5,7 +5,8 @@
 --   Forage: E3 picks the pad a file goes on. A folder puts its first 13
 --     files by name on pads 1-13.
 --   Mosaic: a SoundFont and then its preset, or a folder of WAVs
---   Dice, Pollen, Molt: a file
+--   Dice, Pollen, Molt: a file. Pollen's first list also has "live input",
+--     which empties the part (K3 or K1 + K3).
 -- Files on the USB stick are copied to dust/audio/acidulous when loaded.
 
 local lib = include("lib/library")
@@ -76,6 +77,7 @@ end
 local function fill()
   st.rows = {}
   if not st.dir then
+    if st.machine == "Pollen" then st.rows[1] = {label = "live input", live = true} end
     for _, r in ipairs(lib.roots()) do
       st.rows[#st.rows + 1] = {label = r.name, path = r.path, dir = true}
     end
@@ -246,7 +248,10 @@ function P.key(n, z, k1)
     elseif st.mode == "browse" then
       local row = st.rows[st.cursor]
       if not row or row.none then return end
-      if row.this then
+      if row.live then
+        parts.clear_files(st.i)
+        close()
+      elseif row.this then
         pick(st.dir, true)
       elseif row.dir then
         enter(row.path)

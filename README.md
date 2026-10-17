@@ -161,7 +161,7 @@ Picking one on a part loads a sound to start with: the 808 kit from dust/audio/c
 
 - **Forage** is a drum kit with 13 pads. **E3** picks the pad a file goes on, and it moves to the next pad after each one so you can build a kit. **use this folder** puts the folder's first 13 files, by name, on the pads.
 - **Mosaic** plays a SoundFont: pick the .sf2, then one of its presets with **K3**. Or **use this folder** on a folder of WAVs. Files named with a note, like `piano C4.wav` or `pad F#3.wav`, go on that note, and files without one are spread across the keys.
-- **Dice**, **Pollen** and **Molt** take one file each. Pollen with nothing loaded, as in a PSET saved that way, plays the norns input.
+- **Dice**, **Pollen** and **Molt** take one file each. Pollen with nothing loaded, as in a PSET saved that way, plays the norns input, and **live input** at the top of the file list empties it again.
 
 WAV, AIFF and FLAC work, MP3 doesn't. Dice, Pollen, Molt and Forage's pads take the first 30 seconds of a file. All the parts' samples together can take 320 MB of memory once loaded, and SoundFonts over 64 MB are too big for the norns; a load past either shows an error instead. Files on a USB stick are copied into dust/audio/acidulous/usb when you load them, so the part still has them once the stick is out. File names with a | in them can't be loaded.
 
