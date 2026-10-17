@@ -65,7 +65,7 @@ The parts page lists the parts, each with its machine, patch and a level meter. 
 
 The patch list has the machine's patches in families, like classic, motion and short on Reflux, and the machine picker has the machines in the app's groups, each with a short line. In both **E1** changes the tab, **E2** moves and **K3** loads the patch or mounts the machine, and on the patch you're playing it loads it again with its own values. **K2** closes.
 
-The card page has the machine's controls in the same cards as the app, like osc, filter, play and out on Reflux. **E1** picks the card, **E2** the control and **E3** sets it, with **K1** held for fine steps. **K1** held + **E2** jumps to the amp envelope card and back to the card you left. Cards for one pad of a kit start with a pad control. A patch's effects, like Saw Lead's distortion and delay, have cards after the machine's. Effect settings you change are saved in a PSET and go when you pick another patch. **K2** goes back to the play page.
+The card page has the machine's controls in the same cards as the app, like osc, filter, play and out on Reflux. **E1** picks the card, **E2** the control and **E3** sets it, with **K1** held for fine steps. **K1** held + **E2** right jumps to the amp envelope card, left goes back to the card you left. Cards for one pad of a kit start with a pad control. A patch's effects, like Saw Lead's distortion and delay, have cards after the machine's. Effect settings you change are saved in a PSET and go when you pick another patch. **K2** goes back to the play page.
 
 Pan and the card controls that go either side of 0 stop at the centre. Turn 3 more detents the same way to go past it.
 

@@ -25,7 +25,8 @@
 -- E2 module, K2 close
 -- card: E1 card, E2 knob,
 -- E3 value, K1 held + E3 fine,
--- K1 held + E2 envelope card
+-- K1 held + E2 to envelope card
+-- and back
 -- mixer: E1 part, E2 pan,
 -- E3 level, K2 mute, K3 solo
 -- sends: E1 part, E2 rev, E3 dly
@@ -1011,16 +1012,20 @@ local function handle_enc(n, d)
       local c = util.clamp(ps.card + d, 1, math.max(1, #cards))
       if c ~= ps.card then ps.card, ps.knob, ps.first = c, 1, 1 end
     elseif n == 2 and state.k1 then
-      -- K1 held + E2: to the amp envelope card and back to the card you left
+      -- K1 held + E2: right to the amp envelope card, left back to the card
+      -- you left, so a turn of several steps doesn't flip between them
       local env
       for j, c in ipairs(cards) do
         if c.env then env = j; break end
       end
       if env then
-        local to = env
-        if ps.card == env then to = ps.back or 1 else ps.back = ps.card end
-        to = util.clamp(to, 1, #cards)
-        if to ~= ps.card then ps.card, ps.knob, ps.first = to, 1, 1 end
+        local to
+        if d > 0 and ps.card ~= env then
+          ps.back, to = ps.card, env
+        elseif d < 0 and ps.card == env then
+          to = util.clamp(ps.back or 1, 1, #cards)
+        end
+        if to and to ~= ps.card then ps.card, ps.knob, ps.first = to, 1, 1 end
       end
     elseif n == 2 then
       local card = cards[ps.card]
