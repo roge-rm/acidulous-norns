@@ -401,8 +401,8 @@ function play.draw(parts, state, macs, ps, note, keys)
       local v = vs[k]
       local d = mac.def
       local zero = d.min < 0 and d.max > 0 and d.curve ~= "step" and parts.unmap(d, 0) or nil
-      style.macro(v, cx, 44, sel and 15 or 8, zero, flash)
-      screen.level(sel and 15 or 5)
+      style.macro(v, cx, 44, part.dim and 2 or sel and 15 or 8, zero, flash)
+      screen.level(part.dim and 2 or sel and 15 or 5)
       text(cx, 56, values[k], "center")
     else
       screen.level(sel and 15 or 5)

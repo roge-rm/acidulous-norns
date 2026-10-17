@@ -184,8 +184,9 @@ function view.card(parts, state, cards, ps, pads, panel, note)
         screen.level(sel and 15 or 6)
         text(cx, 32, ctl.cut and cut(ctl.label, 24) or squeeze(ctl.label, 24), "center")
         local bipolar = d.min < 0 and d.max > 0 and d.curve ~= "step"
-        knob(cx, 43, 7, v, 3, sel and 15 or 8, bipolar, bipolar and parts.unmap(d, 0) or 0)
-        screen.level(sel and 15 or 5)
+        local dim = parts.list[state.sel].dim and not ctl.fx
+        knob(cx, 43, 7, v, 3, dim and 2 or sel and 15 or 8, bipolar, bipolar and parts.unmap(d, 0) or 0)
+        screen.level(dim and 2 or sel and 15 or 5)
         text(cx, 60, squeeze(panel.option(ctl, v) or short_value(parts, d, v), 26), "center")
       end
     end

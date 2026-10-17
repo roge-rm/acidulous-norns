@@ -65,6 +65,7 @@ for i = 1, P.COUNT do
     edits = {},     -- slot -> value, set while a patch is on its way
     sends_moved = {}, -- "rev"/"dly" -> true when moved since the last /patch
     values_at = 0, values_retried = false,
+    dim = false,    -- the slots hold defaults until the plugin's values come
     -- what /load has put in the machine: "pad0".."pad12" or "main" ->
     -- {kind, path, arg, name}. Saved in the part's "files" param.
     files = {},
@@ -391,6 +392,46 @@ local function patch_name(i)
   return names[params:get(id(i, "patch"))]
 end
 
+-- The slot values each machine and patch last had, for the run: key ->
+-- {slot -> 0-1 value}. Shown at once when the part switches back.
+local memory = {}
+
+local function mem_key(i)
+  local part = P.list[i]
+  return part.machine and (part.machine .. "/" .. (part.patch or ""))
+end
+
+local function remember(i)
+  local part = P.list[i]
+  local key = mem_key(i)
+  if not key then return end
+  local t = {}
+  for j = 1, #P.defs[part.machine] do t[j] = params:get(id(i, "s" .. j)) end
+  memory[key] = t
+end
+
+-- After a machine or patch switch: the slots take what the patch last had,
+-- or its machine's defaults, dimmed until the plugin's values come.
+local function recall(i)
+  local part = P.list[i]
+  part.dim = false
+  local key = mem_key(i)
+  if not key then return end
+  local t = memory[key]
+  if t then
+    -- also put on top of the patch's values when they arrive, so they stay
+    for j, v in pairs(t) do
+      params:set(id(i, "s" .. j), v, true)
+      part.edits[j] = v
+    end
+  elseif patch_name(i) then
+    for j, d in ipairs(P.defs[part.machine]) do
+      params:set(id(i, "s" .. j), P.unmap(d, d.default), true)
+    end
+    part.dim = true
+  end
+end
+
 -- ---- files ---------------------------------------------------------------------
 
 -- The part's files as the "files" param holds them: a load per entry,
@@ -587,6 +628,7 @@ local function load_machine(i, with_values)
   end
   part.patch = name
   part.sent = name
+  if not part.want_values then part.dim = false end
   if part.resend_files then send_files(i) end
 end
 
@@ -670,6 +712,7 @@ local function add_part(i)
     local machine = v > 1 and P.machines[v - 1].name or nil
     if P.loading then
       show_machine(i, machine, false)
+      part.dim = false
       return
     end
     if machine == part.machine and not part.pending then return end -- a bang
@@ -682,6 +725,7 @@ local function add_part(i)
     params:set(id(i, "patch"), 1, true)
     show_machine(i, machine, true)
     part.patch = patch_name(i)
+    recall(i)
     later(i, 0.3, function() load_machine(i, true) end)
   end)
 
@@ -693,6 +737,7 @@ local function add_part(i)
     part.patch = name
     part.edits = {}
     clear_fx(i)
+    recall(i)
     later(i, 0.2, function() load_machine(i, true) end)
   end)
 
@@ -729,6 +774,12 @@ local function add_part(i)
       if P.loading or not part.machine or j > #P.defs[part.machine] then return end
       -- An edit made while a patch is on its way goes on top of the patch
       -- once its values arrive.
+      local mem = memory[mem_key(i) or ""]
+      if mem then
+        mem[j] = v
+      elseif not (part.pending or part.want_values) then
+        remember(i)
+      end
       if part.pending then
         part.edits[j] = v
         return
@@ -920,6 +971,7 @@ watch = function()
     if part.want_values and not part.values_retried and now - part.values_at > 2 then
       part.values_retried = true
       part.values_at = now
+      part.dim = false
       send_patch(i, "/patch", {i - 1, part.machine, part.sent})
     end
   end
@@ -1048,6 +1100,8 @@ function P.osc(path, args)
       send("/param", {i - 1, j - 1, v})
     end
     part.edits = {}
+    part.dim = false
+    remember(i)
   elseif path == "/sends" then
     -- a patch set the part's sends, or gave the player's back
     local i = (args[1] or -1) + 1
