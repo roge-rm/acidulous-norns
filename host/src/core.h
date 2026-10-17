@@ -70,6 +70,8 @@ struct Replier
 constexpr int kParts = 8;
 // Send buses: 0 reverb, 1 delay.
 constexpr int kSends = 2;
+// Modifier slots a part has. The engine has 3, but EngineHost keeps names for 2.
+constexpr int kModSlots = 2;
 
 // The bytes a file takes decoded to floats: at `to_rate` (0 keeps its own),
 // the first `max_seconds` (0 all of it), mono as one channel unless `both`.
@@ -214,6 +216,11 @@ class Core
     void send_inserts(int part, const acidulous::PatchInsert* const at[acidulous::kEffectSlots]);
     void set_fx(int part, int slot, const std::string& name, float v01);
     void set_send(int slot, const std::string& name, float v01);
+    void set_mod(int part, int slot, const std::string& type);
+    void set_mod_param(int part, int slot, const std::string& name, float v01);
+    void send_mods(int part);
+    void send_mod_defs();
+    void clear_mods(int part);
     void send_graph(int part);
     void set_scope(int part, int slot);
     bool push_param(int part, const char* unit, const std::string& name, float v01);
@@ -269,6 +276,7 @@ class Core
     // inserts and channel do.
     float                       part_sends[kParts][kSends] = {};
     acidulous::PatchTrackState  patch_fx[kParts];
+    std::string                 mod_types[kParts][kModSlots]; // on the worker: what each modifier slot has
     std::atomic<bool>            metering{false};
     // The part whose scope is open, or -1, and the module slot it's cabled
     // from. Written by the worker.

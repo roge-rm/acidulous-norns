@@ -14,6 +14,14 @@
 //        tone, pingpong). Kept until the effect is mounted
 //   /fx i:part i:slot s:name f:value01  a param of the part's insert in slot
 //        0 or 1, by name, as /inserts lists them
+//   /mod i:part i:slot s:type          mounts a modifier ("Scale", "Chord",
+//        "Arp") in the part's slot 0 or 1, on and with its defaults, or
+//        empties the slot with "". Notes go through slot 0, then slot 1.
+//        They belong to the part: machine and patch changes keep them
+//   /mod_bypass i:part i:slot i:bypass   1 bypasses the slot's modifier
+//   /mod_param i:part i:slot s:name f:value01   a param of the slot's
+//        modifier, by name, as /mod_defs lists them
+//   /mods i:part   /mod_defs
 //   /master s:name f:value01           the master's params, e.g. "volume"
 //        (0-1.5 linear)
 //   /meters i:on                       sends /meters while on
@@ -84,6 +92,11 @@
 //        after each /patch and /unmount (a /patch that fails takes the last
 //        patch's inserts off); just the part when it has none. Params as
 //        /def has them; values are the patch's, or the defaults
+//   /mods i:part (i:slot s:type i:bypass i:count (s:name f:value01)*count)*
+//        both slots as the engine holds them once everything sent before
+//        has landed; an empty slot has type "" and count 0
+//   /mod_defs s:type i:count (s:name f:min f:max f:default s:unit i:steps
+//        s:curve)*count   one per modifier type, params as /def has them
 //   /def s:machine i:index s:name f:min f:max f:default s:unit i:steps s:curve
 //        steps is 0 unless stepped; curve is "lin", "exp" or "step"
 //   /defs_end s:machine i:count

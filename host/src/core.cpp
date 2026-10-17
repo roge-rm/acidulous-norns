@@ -14,6 +14,7 @@
 #include <engine/format/AudioDecoder.h>
 #include <engine/format/Sf2Reader.h>
 #include <engine/effect/EffectRegistry.h>
+#include <engine/inputmod/InputModRegistry.h>
 #include <engine/machine/MachineRegistry.h>
 #include <engine/machine/cumulus/Cloud.h>
 #include <engine/machine/cumulus/Cumulus.h>
@@ -47,6 +48,8 @@ static_assert(kParts <= kRackCount, "a part is a rack");
 // The channel strip params /channel takes by index, from Rack::ChannelParam.
 // Any other channel param can be set by name.
 static const char* const kChannelNames[] = {"gain", "pan", "mute", "solo"};
+// The engine units of the part's modifier slots.
+static const char* const kModUnits[] = {"mod1", "mod2"};
 
 // Forage's 13 pads and the shared sample above them.
 constexpr int kForagePads  = 13;
@@ -409,6 +412,7 @@ Core::~Core()
     for(int p = 0; p < kParts; ++p)
     {
         host.unmountMachine(p);
+        clear_mods(p);
         for(int s = 0; s < kEffectSlots; ++s)
         {
             const char* fx = host.mountedEffect(p, s);
@@ -612,7 +616,10 @@ void Core::reset()
     mpe_members.store(15);
     host.setMpeZone(0, 15, mpe_bend.load());
     for(int p = 0; p < kParts; ++p)
-        post_part(p, [this, p] { unmount(p); });
+        post_part(p, [this, p] {
+            unmount(p);
+            clear_mods(p);
+        });
     drain();
 }
 
@@ -936,6 +943,42 @@ bool Core::command(const std::string& path, const Args& a)
         const int part = to_int(a[0]), slot = to_int(a[1]);
         if(part_ok(part) && slot >= 0 && slot < kEffectSlots)
             post_part(part, [this, part, slot, n = to_str(a[2]), v = to_float(a[3])] { set_fx(part, slot, n, v); });
+        return true;
+    }
+    if(path == "/mod" && a.size() >= 3)
+    {
+        const int part = to_int(a[0]), slot = to_int(a[1]);
+        if(part_ok(part) && slot >= 0 && slot < kModSlots)
+            post_part(part, [this, part, slot, t = to_str(a[2])] { set_mod(part, slot, t); });
+        return true;
+    }
+    if(path == "/mod_bypass" && a.size() >= 3)
+    {
+        const int part = to_int(a[0]), slot = to_int(a[1]);
+        if(part_ok(part) && slot >= 0 && slot < kModSlots)
+            post_part(part, [this, part, slot, on = to_int(a[2]) != 0] {
+                if(!mod_types[part][slot].empty())
+                    push_param(part, kModUnits[slot], "bypass", on ? 1.f : 0.f);
+            });
+        return true;
+    }
+    if(path == "/mod_param" && a.size() >= 4)
+    {
+        const int part = to_int(a[0]), slot = to_int(a[1]);
+        if(part_ok(part) && slot >= 0 && slot < kModSlots)
+            post_part(part, [this, part, slot, n = to_str(a[2]), v = to_float(a[3])] { set_mod_param(part, slot, n, v); });
+        return true;
+    }
+    if(path == "/mods" && a.size() >= 1)
+    {
+        const int part = to_int(a[0]);
+        if(part_ok(part))
+            post_part(part, [this, part] { send_mods(part); });
+        return true;
+    }
+    if(path == "/mod_defs")
+    {
+        post([this] { send_mod_defs(); });
         return true;
     }
     if(path == "/master" && a.size() >= 2)
@@ -1380,6 +1423,106 @@ void Core::set_fx(int part, int slot, const std::string& name, float v01)
         return;
     }
     push_param(part, slot == 0 ? "effect1" : "effect2", name, v01);
+}
+
+// Mounts a modifier (Scale, Chord, Arp) in the part's slot 0 or 1, or empties
+// it with "". It starts on, with its defaults. Modifiers belong to the part,
+// so machine and patch changes leave them.
+void Core::set_mod(int part, int slot, const std::string& type)
+{
+    int32_t count = 0;
+    if(!type.empty() && !InputModRegistry::paramDefs(type.c_str(), count))
+    {
+        error("no modifier " + type);
+        return;
+    }
+    if(type.empty() && mod_types[part][slot].empty())
+        return;
+    if(!host.mountInputMod(part, slot, type))
+    {
+        error("can't mount modifier " + type);
+        return;
+    }
+    mod_types[part][slot] = type;
+}
+
+void Core::set_mod_param(int part, int slot, const std::string& name, float v01)
+{
+    const std::string& type  = mod_types[part][slot];
+    int32_t            count = 0;
+    const ParamDef*    defs  = type.empty() ? nullptr : InputModRegistry::paramDefs(type.c_str(), count);
+    bool               found = false;
+    for(int32_t i = 0; i < count && !found; ++i)
+        found = name == defs[i].name;
+    if(!found)
+    {
+        error(type.empty() ? "no modifier in slot " + std::to_string(slot) : "no " + type + " param " + name);
+        return;
+    }
+    push_param(part, kModUnits[slot], name, v01);
+}
+
+// "/mods i:part" and per slot "i:slot s:type i:bypass i:count" and count
+// "s:name f:value01", read back from the engine once what was sent before has
+// landed. An empty slot has type "" and no params.
+void Core::send_mods(int part)
+{
+    wait_applied();
+    Args out{Value::i(part)};
+    for(int slot = 0; slot < kModSlots; ++slot)
+    {
+        const std::string& type  = mod_types[part][slot];
+        int32_t            count = 0;
+        const ParamDef*    defs  = type.empty() ? nullptr : InputModRegistry::paramDefs(type.c_str(), count);
+        out.push_back(Value::i(slot));
+        out.push_back(Value::s(type));
+        out.push_back(Value::i(defs ? host.paramNormalized(part, kModUnits[slot], "bypass") >= 0.5f : 0));
+        out.push_back(Value::i(defs ? count : 0));
+        for(int32_t i = 0; defs && i < count; ++i)
+        {
+            out.push_back(Value::s(defs[i].name));
+            out.push_back(Value::f(host.paramNormalized(part, kModUnits[slot], defs[i].name)));
+        }
+    }
+    reply("/mods", out);
+}
+
+// "/mod_defs s:type i:count" and count "s:name f:min f:max f:default s:unit
+// i:steps s:curve", as /def has them, for each modifier type.
+void Core::send_mod_defs()
+{
+    for(int32_t t = 0; t < InputModRegistry::count(); ++t)
+    {
+        const char*     type  = InputModRegistry::name(t);
+        int32_t         count = 0;
+        const ParamDef* defs  = InputModRegistry::paramDefs(type, count);
+        if(!defs)
+            continue;
+        Args out{Value::s(type), Value::i(count)};
+        for(int32_t i = 0; i < count; ++i)
+        {
+            const ParamDef& d = defs[i];
+            out.push_back(Value::s(d.name));
+            out.push_back(Value::f(d.min));
+            out.push_back(Value::f(d.max));
+            out.push_back(Value::f(d.def));
+            out.push_back(Value::s(d.unit ? d.unit : ""));
+            out.push_back(Value::i(d.curve == Curve::Stepped ? d.steps : 0));
+            out.push_back(Value::s(d.curve == Curve::Exponential ? "exp" : d.curve == Curve::Stepped ? "step" : "lin"));
+        }
+        reply("/mod_defs", out);
+    }
+}
+
+// Empties the part's modifier slots.
+void Core::clear_mods(int part)
+{
+    for(int slot = 0; slot < kModSlots; ++slot)
+        if(!mod_types[part][slot].empty())
+        {
+            host.mountInputMod(part, slot, "");
+            mod_types[part][slot].clear();
+        }
 }
 
 // A send effect's param, kept for when it's mounted.

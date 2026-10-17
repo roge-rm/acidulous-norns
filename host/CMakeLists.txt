@@ -83,6 +83,11 @@ add_executable(acidulous-preset-test tests/preset_test.cpp)
 target_include_directories(acidulous-preset-test PRIVATE src)
 target_link_libraries(acidulous-preset-test acidulous-core)
 
+# Scale, Chord and Arp on a part, and the notes that reach the machine.
+add_executable(acidulous-mod-test tests/mod_test.cpp)
+target_include_directories(acidulous-mod-test PRIVATE src)
+target_link_libraries(acidulous-mod-test acidulous-core)
+
 if(SC_INC AND LO_INC AND LO_LIB)
     # scsynth loads every plugin into one process, so nothing but the plugin
     # entry points may be visible.
