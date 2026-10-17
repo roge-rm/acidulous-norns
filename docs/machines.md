@@ -141,6 +141,44 @@ At their default settings, which aren't patches anyone plays, so a real patch ca
 
 All of them run in real time on the Pi 4. The cheap ones (Genesis, Tine, Palm, Tongue, Timber, Aviary, Fret, Chanter) are the easiest to add next.
 
+## Insert effects
+
+One Trinity part holding a 4-note chord of Glass Pad without its chorus or reverb, then the same with one insert at its default settings. The scsynth figures are norns' `cpu_avg` and `cpu_peak` polls, averaged and the highest over 6 seconds, and load is the plugin's own readout. Reflux and Hexbeat were mounted on two other parts, doing nothing. With no insert, scsynth reads 12.1% avg and 12.6% peak and load 6.4%; the same run at the end read 12.2% and 14.3%.
+
+| Effect | scsynth avg % | scsynth peak % | Load % | Added avg % |
+|---|---|---|---|---|
+| Amp | 22.9 | 23.7 | 17.1 | +10.8 |
+| Spectral | 20.9 | 21.3 | 15.4 | +8.8 |
+| Reverb | 17.7 | 20.4 | 11.8 | +5.6 |
+| Resonator | 17.0 | 17.7 | 11.2 | +4.9 |
+| Swell | 15.6 | 15.9 | 9.7 | +3.5 |
+| Magneto | 15.5 | 15.9 | 9.7 | +3.4 |
+| Smash | 13.9 | 14.3 | 8.1 | +1.8 |
+| Grain | 13.8 | 14.2 | 8.0 | +1.7 |
+| Tape | 13.8 | 14.4 | 8.1 | +1.7 |
+| Harmonizer | 13.7 | 14.3 | 7.9 | +1.6 |
+| Chorus | 13.6 | 14.0 | 7.8 | +1.5 |
+| Horn | 13.5 | 14.1 | 7.6 | +1.4 |
+| Rotary | 13.3 | 13.8 | 7.5 | +1.2 |
+| Acid | 13.3 | 13.9 | 7.5 | +1.2 |
+| Mouth | 13.3 | 13.8 | 7.6 | +1.2 |
+| Shifter | 12.8 | 14.5 | 7.1 | +0.7 |
+| Eq | 12.7 | 13.0 | 6.8 | +0.6 |
+| Distortion | 12.7 | 13.3 | 6.9 | +0.6 |
+| Tremolo | 12.7 | 13.3 | 6.9 | +0.6 |
+| Slicer | 12.7 | 13.5 | 7.0 | +0.6 |
+| Compressor | 12.6 | 13.0 | 6.9 | +0.5 |
+| Delay | 12.5 | 13.0 | 6.8 | +0.4 |
+| Phaser | 12.5 | 12.9 | 6.8 | +0.4 |
+| Flanger | 12.5 | 13.1 | 6.8 | +0.4 |
+| Gate | 12.5 | 12.9 | 6.7 | +0.4 |
+| Bitcrusher | 12.4 | 12.8 | 6.6 | +0.3 |
+| Filter | 12.3 | 13.1 | 6.7 | +0.2 |
+| Width | 12.3 | 12.8 | 6.5 | +0.2 |
+| Formula | 12.1 | 12.6 | 6.4 | +0.0 |
+
+Amp is the only one that adds more than 10% to a part, and Spectral, Reverb and Resonator about 5 to 9%. The rest add under 4%. Formula's default formula does nothing, so it costs nothing here; a real formula will cost more.
+
 ## Running the test
 
 Copy `tools/cpu_test.cpp` and `tools/audition_material.h` from the app to the norns, and build them against the plugin's engine library:
