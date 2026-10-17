@@ -29,11 +29,13 @@ end
 -- Other script folders with the engine class in them. sclang compiles every
 -- .sc file in the scripts, so a second copy (an old one from development, say)
 -- is a duplicate class and the engine won't load.
+-- Paths are compared with repeated slashes made one, as norns.state.path
+-- ends in "//" when the script starts with norns.
 local function other_copies()
-  local mine = norns.state.path .. "lib/Engine_Acidulous.sc"
+  local mine = (norns.state.path .. "lib/Engine_Acidulous.sc"):gsub("/+", "/")
   local found = {}
   for _, f in ipairs(lines("find " .. _path.code .. " -name Engine_Acidulous.sc 2>/dev/null")) do
-    if f ~= mine then found[#found + 1] = f end
+    if f:gsub("/+", "/") ~= mine then found[#found + 1] = f end
   end
   return found
 end
