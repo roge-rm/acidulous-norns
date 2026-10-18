@@ -1093,7 +1093,7 @@ end
 
 local function add_part(i)
   local part = P.list[i]
-  params:add_group("part_" .. i, "part " .. i, 16 + P.slots)
+  params:add_group("part_" .. i, "part " .. i, 17 + P.slots)
 
   local chans = {"off"}
   for c = 1, 16 do chans[c + 1] = tostring(c) end
