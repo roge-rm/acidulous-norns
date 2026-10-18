@@ -370,6 +370,9 @@ function P.add_master_params()
   -- the wavetable count a PSET was saved with, for P.after_read; never shown
   params:add_number("wave_tables", "wave tables", 0, 1024, P.WAVE_TABLES)
   params:hide("wave_tables")
+  -- Trinity's destination count a PSET was saved with, for P.after_read; never shown
+  params:add_number("trinity_dests", "trinity dests", 0, 1024, P.TRINITY_DESTS)
+  params:hide("trinity_dests")
   -- 1 in a PSET saved with Trinity's macro params, for P.after_read; never shown
   params:add_number("macro_params", "macro params", 0, 1, 1)
   params:hide("macro_params")
@@ -1236,17 +1239,29 @@ P.WAVE_TABLES = 32
 local TRINITY_WAVES_BEFORE, TRINITY_WAVES = 12, 4 + P.WAVE_TABLES
 local NEXUS_TABLES_BEFORE, NEXUS_TABLES = 8, P.WAVE_TABLES
 
--- The "wave_tables" a PSET file was written with, or 8 if it has none.
-local function saved_tables(filename)
+-- Trinity's matrix and macro destinations (mNN_dest, macN_dN), 34 before
+-- the LFO step ones were added at the end. A PSET saves the count in
+-- "trinity_dests".
+P.TRINITY_DESTS = 37
+local TRINITY_DESTS_BEFORE = 34
+
+-- A count a PSET file was written with: the number saved under key, before
+-- if it has none, or now with no file.
+local function saved_count(filename, key, before, now)
   local f = filename and io.open(filename, "r")
-  if not f then return P.WAVE_TABLES end
-  local n = 8
+  if not f then return now end
+  local n = before
   for line in f:lines() do
-    local v = line:match('^"wave_tables"%s*:%s*(%d+)')
+    local v = line:match('^"' .. key .. '"%s*:%s*(%d+)')
     if v then n = tonumber(v) break end
   end
   f:close()
   return n
+end
+
+-- The "wave_tables" a PSET file was written with, or 8 if it has none.
+local function saved_tables(filename)
+  return saved_count(filename, "wave_tables", 8, P.WAVE_TABLES)
 end
 
 -- Readies a Trinity part's macro params for a PSET from before they existed,
@@ -1319,6 +1334,20 @@ local function migrate_waves(i)
       end
     end
     if new then params:set(sid, new, true) end
+  end
+end
+
+-- Moves a Trinity part's saved destinations from a PSET made with 34 onto
+-- the 37 there are now, the same destination, as the engine's
+-- tables::trinityDest does.
+local function migrate_dests(i)
+  if P.list[i].machine ~= "Trinity" then return end
+  for j, d in ipairs(P.defs.Trinity or {}) do
+    if d.name:match("^m%d%d_dest$") or d.name:match("^mac[1-8]_d[1-4]$") then
+      local sid = id(i, "s" .. j)
+      local v = util.clamp(params:get(sid), 0, 1)
+      params:set(sid, math.floor(v * (TRINITY_DESTS_BEFORE - 1) + 0.5) / (P.TRINITY_DESTS - 1), true)
+    end
   end
 end
 
@@ -1399,6 +1428,10 @@ function P.after_read(filename)
     for i = 1, P.COUNT do migrate_waves(i) end
   end
   params:set("wave_tables", P.WAVE_TABLES, true)
+  if saved_count(filename, "trinity_dests", TRINITY_DESTS_BEFORE, P.TRINITY_DESTS) < P.TRINITY_DESTS then
+    for i = 1, P.COUNT do migrate_dests(i) end
+  end
+  params:set("trinity_dests", P.TRINITY_DESTS, true)
   for i = 1, P.COUNT do
     if filename and not saved_has(filename, id(i, "preset")) then params:set(id(i, "preset"), "", true) end
     -- a PSET from before modifiers has none
