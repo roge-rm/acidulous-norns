@@ -1,5 +1,6 @@
 #pragma once
 #include <engine/dsp/Wavetable.h>
+#include <cctype>
 #include <cmath>
 #include <string>
 
@@ -32,6 +33,28 @@ inline float nexusTable(float v) {
     const float c = v < 0.0f ? 0.0f : (v > 0.9999f ? 0.9999f : v);
     const int step = static_cast<int>(c * static_cast<float>(kNexusTablesBefore));
     return (static_cast<float>(step) + 0.5f) / static_cast<float>(kNexusTables);
+}
+
+/**
+ * Trinity's matrix and macro destinations (mNN_dest, macN_dN) grew from 34
+ * to 37 with the LFO step ones at the end. Songs and patches before version
+ * 4 and engine lines before `acidulous-engine 3` hold the old count.
+ */
+constexpr int kTrinityDestsBefore = 34;
+constexpr int kTrinityDests = 37;
+
+/** A Trinity destination stored over 34 steps, on the new count: same destination. */
+inline float trinityDest(float v) {
+    const float c = v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v);
+    const int step = static_cast<int>(std::floor(c * static_cast<float>(kTrinityDestsBefore - 1) + 0.5f));
+    return static_cast<float>(step) / static_cast<float>(kTrinityDests - 1);
+}
+
+/** m01_dest .. m12_dest and mac1_d1 .. mac8_d4. */
+inline bool isTrinityDest(const std::string &name) {
+    if (name.size() == 8 && name[0] == 'm' && name.compare(3, 5, "_dest") == 0) return std::isdigit(static_cast<unsigned char>(name[1])) && std::isdigit(static_cast<unsigned char>(name[2]));
+    return name.size() == 7 && name.compare(0, 3, "mac") == 0 && name[3] >= '1' && name[3] <= '8' && name[4] == '_' && name[5] == 'd' &&
+           name[6] >= '1' && name[6] <= '4';
 }
 
 inline bool isTrinityWave(const std::string &name) {

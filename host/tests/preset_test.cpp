@@ -3,7 +3,8 @@
 // - a Trinity patch with an edit, its macro names and insert, read back with
 //   EngineHost::readPreset and loaded over another patch
 // - a save straight after a /patch, while its insert mount is still queued
-// - the app's fixture (host/tests/acpreset), and a patch too old to load
+// - the app's version 3 fixture (host/tests/acpreset), a patch too old to load
+//   and Trinity destinations moved on a version 3 patch
 // - Dice's sample and Mosaic's folder saved as relative paths and found again,
 //   and a missing file that leaves the rest loaded
 // - /preset_scan and /preset_delete
@@ -274,6 +275,32 @@ int main(int argc, char** argv)
             .write(reinterpret_cast<const char*>(bytes.data()), std::streamsize(bytes.size()));
         check(load(0, scratch + "/Trinity/old.acpreset", 0, 1, r) && !r.args[3].str.empty(), "an old patch refused");
         std::printf("  %s\n", r.args.size() > 3 ? r.args[3].str.c_str() : "");
+    }
+
+    // A version 3 Trinity patch has its destinations moved from 34 steps to
+    // 37, the same destination; a version 4 one keeps them.
+    {
+        const int dest = index_of("Trinity", "m01_dest"), mac = index_of("Trinity", "mac1_d1");
+        for(int version : {3, 4})
+        {
+            acidulous::Preset v;
+            v.unit = "Trinity";
+            acidulous::PresetPatch pp;
+            pp.machine = "Trinity";
+            pp.name    = "V" + std::to_string(version);
+            pp.version = version;
+            pp.params.push_back({"m01_dest", 1.f});
+            pp.params.push_back({"mac1_d1", 20.f / 33.f});
+            v.patches.push_back(pp);
+            const auto        bytes = acidulous::presetfile::write(v);
+            const std::string f     = scratch + "/Trinity/v" + std::to_string(version) + ".acpreset";
+            std::ofstream(f, std::ios::binary).write(reinterpret_cast<const char*>(bytes.data()), std::streamsize(bytes.size()));
+            check(load(0, f, 0, 1, r) && r.args[3].str.empty(), version == 3 ? "a version 3 patch loads" : "a version 4 patch loads");
+            const double want_dest = version == 3 ? 33.0 / 36.0 : 1.0, want_mac = version == 3 ? 20.0 / 36.0 : 20.0 / 33.0;
+            check(std::fabs(state(0, dest) - want_dest) < 1e-4 && std::fabs(state(0, mac) - want_mac) < 1e-4,
+                  version == 3 ? "its destinations moved" : "its destinations kept");
+            std::remove(f.c_str());
+        }
     }
 
     // Dice: its sample, relative to the root.

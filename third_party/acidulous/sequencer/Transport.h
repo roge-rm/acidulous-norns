@@ -98,19 +98,39 @@ class Transport {
     // next clip.
 
     /**
-     * Who owns the tempo: off, MIDI clock or Link. Only one at a time.
+     * Who owns the tempo: off, MIDI clock, Link or the host (a beat handed
+     * in through EngineHost::alignBeat). Only one at a time.
      *
      * Everything that sets a tempo checks `externalSync()` first, including
      * the four places in the scheduler, so a new source only has to set this.
      */
-    enum Sync : int32_t { SyncOff = 0, SyncMidi = 1, SyncLink = 2 };
+    enum Sync : int32_t { SyncOff = 0, SyncMidi = 1, SyncLink = 2, SyncHost = 3 };
     void setSyncSource(int32_t s) {
-        syncFlag.store(s < 0 || s > SyncLink ? SyncOff : s, std::memory_order_relaxed);
+        syncFlag.store(s < 0 || s > SyncHost ? SyncOff : s, std::memory_order_relaxed);
     }
     int32_t syncSource() const { return syncFlag.load(std::memory_order_relaxed); }
-    bool externalSync() const { return syncSource() != SyncOff; }
+    bool externalSync() const {
+        const int32_t s = syncSource();
+        return s != SyncOff && !(s == SyncHost && hostAsideFlag.load(std::memory_order_relaxed));
+    }
+    /**
+     * Audio thread: the host's beat is set aside while rendering to a file,
+     * so the song's tempo rules the render. The source stays Host.
+     */
+    void setHostAside(bool aside) { hostAsideFlag.store(aside, std::memory_order_relaxed); }
     bool followingMidi() const { return syncSource() == SyncMidi; }
     bool followingLink() const { return syncSource() == SyncLink; }
+    bool followingHost() const { return syncSource() == SyncHost; }
+    /** Any thread: the host takes the tempo, only if nobody has it. */
+    void takeHost() {
+        int32_t want = SyncOff;
+        syncFlag.compare_exchange_strong(want, SyncHost, std::memory_order_relaxed);
+    }
+    /** Any thread: back to Off if the host has the tempo, and nobody else does. */
+    void releaseHost() {
+        int32_t want = SyncHost;
+        syncFlag.compare_exchange_strong(want, SyncOff, std::memory_order_relaxed);
+    }
     /** On/off switch for MIDI clock sync. */
     void setExternalSync(bool on) {
         if (on) setSyncSource(SyncMidi);
@@ -285,6 +305,7 @@ class Transport {
     std::atomic<bool> fillFlag{false};
     std::atomic<bool> clockOutFlag{false};
     std::atomic<int32_t> syncFlag{SyncOff};
+    std::atomic<bool> hostAsideFlag{false};
     std::atomic<bool> continued{false};
     std::atomic<int64_t> syncForUi{0};
     std::atomic<int32_t> launchQ{0};

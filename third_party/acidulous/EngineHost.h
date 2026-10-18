@@ -329,6 +329,26 @@ class EngineHost {
     void midiClockIn(int64_t frame, uint8_t status, uint8_t d1, uint8_t d2);
     int64_t syncState() const;
 
+    /**
+     * Follow the host's clock, like the norns': it was at [beat] (any origin)
+     * at [bpm] when the engine had rendered [frame] frames. [frame] must be a
+     * value read from framesRendered(), taken when [beat] was read.
+     *
+     * Our bar is pulled into line with the host's by easing the tick rate,
+     * never by moving the tick. While stopped, play waits for the host's next
+     * bar line. Call it a few times a second from one thread, not the audio
+     * thread. The first call takes the tempo over if nothing else has it;
+     * releaseBeat(), or no call for over a second, hands it back to the song.
+     */
+    void alignBeat(double beat, double bpm, int64_t frame);
+    /** Stop following the host's beat. The song's tempo rules again. */
+    void releaseBeat();
+    /**
+     * Frames the engine has rendered, for stamping alignBeat. Any thread.
+     * Exports and freezes run the same engine, so they move it on too.
+     */
+    int64_t framesRendered() const;
+
     // Drain stamped live events into `out`, 5 longs per event:
     //   absTick, sceneId, tickInIteration, (rack << 24 | cmd << 16 | p1 << 8 | p2),
     //   and for parameter events (cmd 0xf0, p1 = unit): (index << 32 | float bits of value)
@@ -646,7 +666,7 @@ class EngineHost {
     std::string mountedGroupInsertType[4][2];
     /** What is on each input slot, for resolving its parameters by name. */
     std::string mountedInputType[2];
-    std::string mountedModifierType[16][2];
+    std::string mountedModifierType[16][kInputModSlots];
     std::unordered_map<int64_t, std::shared_ptr<const seq::Clip>> clipCache;
 };
 

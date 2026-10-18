@@ -12,6 +12,7 @@
 #include <engine/core/Handover.h>
 #include <engine/core/Messages.h>
 #include <engine/core/RtQueue.h>
+#include <engine/core/HostTimebase.h>
 #include <engine/core/Timebase.h>
 #include <engine/core/Tuner.h>
 #include <sequencer/RecordQueue.h>
@@ -65,6 +66,16 @@ class Engine : public Rack::ModifiedNoteSink {
      * uses it when the transport says Link controls the tempo.
      */
     std::atomic<Timebase *> timebase{nullptr};
+    /**
+     * The host's beat (EngineHost::alignBeat), followed like Link when the
+     * transport's source is SyncHost. Written by the host thread, read here.
+     */
+    HostTimebase hostTimebase;
+    /**
+     * framesRendered, published for the host to stamp its beats with. Offline
+     * renders move it on too, as they run the same engine.
+     */
+    std::atomic<int64_t> framesOut{0};
     /** Whether a peer starting or stopping starts and stops us too. */
     std::atomic<bool> syncStartStop{true};
     MasterBus master;
@@ -373,6 +384,19 @@ class Engine : public Rack::ModifiedNoteSink {
     /** What the session was last seen doing, and whether we've looked yet. */
     bool linkSawPlaying = false;
     bool linkSeen = false;
+    /** The sync source last block, to start fresh when it changes. */
+    int32_t lastSyncSource = -1;
+    /** Rendering to a file: the host's beat is ignored this block. */
+    bool hostAside = false;
+    /**
+     * After a render the host's last beat was stamped against frames that ran
+     * faster than real time, so it isn't followed until a new one comes, or
+     * a second passes. [hostHeldStamp] is HostTimebase::stamp() at the end of
+     * the render, [hostHeldFrames] the frames since.
+     */
+    bool hostHeld = false;
+    uint32_t hostHeldStamp = 0;
+    int64_t hostHeldFrames = 0;
     /** Frames the engine has produced since the stream started. Same timeline
      *  the audio stream presents on, so a MIDI event's frame can be turned
      *  into a clock time. */

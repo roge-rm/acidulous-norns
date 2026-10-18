@@ -12,10 +12,12 @@
 namespace acidulous::lines {
 
 namespace {
-constexpr const char *kHeader = "acidulous-engine 2";
+constexpr const char *kHeader = "acidulous-engine 3";
 // Version 1 stored Trinity's waves over 12 steps and Nexus's wtosc table over
-// 8; upgradeLine moves them onto today's counts.
+// 8, and versions 1 and 2 Trinity's destinations over 34; upgradeLine moves
+// them onto today's counts.
 constexpr const char *kHeaderV1 = "acidulous-engine 1";
+constexpr const char *kHeaderV2 = "acidulous-engine 2";
 constexpr const char *kZip = "zip:";
 
 bool isSpace(char c) { return c == ' ' || c == '\t' || c == '\r'; }
@@ -368,6 +370,8 @@ std::string Replay::upgradeLine(const std::string &line) {
     }
     // Which rule a parameter of a machine follows, if any.
     auto ruleFor = [&](const std::string &machine, int rack, const std::string &name) -> float (*)(float) {
+        if (machine == "Trinity" && tables::isTrinityDest(name)) return tables::trinityDest;
+        if (version >= 2) return nullptr;
         if (machine == "Trinity" && tables::isTrinityWave(name)) return tables::trinityWave;
         if (machine == "Nexus") {
             const int slot = tables::nexusFirstKnobSlot(name);
@@ -433,14 +437,15 @@ bool replay(const std::string &text, Replay &r) {
                     from = to + 1;
                 }
             }
-            else if (line == kHeader) r.version = 2;
+            else if (line == kHeaderV2) r.version = 2;
+            else if (line == kHeader) r.version = 3;
             else {
                 r.problem("not engine lines (the first line should be \"" + std::string(kHeader) + "\")");
                 return false;
             }
             continue;
         }
-        if (r.version < 2) line = r.upgradeLine(line);
+        if (r.version < 3) line = r.upgradeLine(line);
         size_t from = 0;
         while (from < line.size() && isSpace(line[from])) ++from;
         if (from == line.size() || line[from] == '#') continue;

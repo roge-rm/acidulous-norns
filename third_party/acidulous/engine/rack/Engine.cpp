@@ -2,6 +2,7 @@
 #include <sequencer/ClockFollower.h>
 #include <sequencer/LinkFollower.h>
 #include <sequencer/Song.h>
+#include <engine/core/Settings.h>
 #include <cmath>
 #include <cstring>
 #include <ctime>
@@ -68,6 +69,15 @@ static int64_t threadCpuUs() {
 void Engine::renderBlock(const float *in, float *out) {
     const auto t0 = std::chrono::steady_clock::now();
     const int64_t cpu0 = threadCpuUs();
+    // An export or freeze runs its frames faster than real time, so the host's
+    // beat means nothing to it: the song's tempo rules, and play starts at once.
+    hostAside = EngineSettings::get().offlineRender.load(std::memory_order_relaxed);
+    transport.setHostAside(hostAside);
+    if (hostAside) {
+        hostHeld = true;
+        hostHeldStamp = hostTimebase.stamp();
+        hostHeldFrames = 0;
+    }
     // If the tracks will be spread this block, the workers wake while the
     // input and the sequencer run, rather than after.
     {
@@ -163,8 +173,12 @@ void Engine::renderBlock(const float *in, float *out) {
             // Only when there are peers. Link is often left on with nobody else
             // in the session, and waiting up to a bar alone just looks like play
             // is broken.
-            linkWaiting = startPending && transport.followingLink() &&
-                          timebase.load(std::memory_order_acquire) != nullptr && linkInSession;
+            //
+            // The host's beat always waits: stopped is the one time the phase
+            // can be set outright, so play starts on the host's bar line.
+            linkWaiting = startPending && linkInSession &&
+                          ((transport.followingLink() && timebase.load(std::memory_order_acquire) != nullptr) ||
+                           (transport.followingHost() && !hostAside));
             if (linkWaiting) startPending = false;
         } else {
             scheduler.allNotesOff();
@@ -493,6 +507,7 @@ void Engine::renderBlock(const float *in, float *out) {
     if (timing) playedFrames += kBlockFrames;
     transport.publishElapsed(playedFrames * 1000 / kSampleRate);
     framesRendered += kBlockFrames;
+    framesOut.store(framesRendered, std::memory_order_release);
 
     // Block budget at 48 kHz / 64 frames is 1333 us.
     const auto tEnd = std::chrono::steady_clock::now();
@@ -799,10 +814,30 @@ void Engine::followExternal() {
  * Phase, not position. Link doesn't know about songs, only where in the
  * bar everyone is, so two devices playing different songs at the same tempo
  * are in time.
+ *
+ * The host's beat (HostTimebase) is followed the same way. Play always waits
+ * for its bar line, and it has no start/stop to follow.
  */
 void Engine::followTimebase() {
-    Timebase *tb = timebase.load(std::memory_order_acquire);
-    if (tb == nullptr || !transport.followingLink()) {
+    // Link or the host's beat, whichever the transport follows. Same maths.
+    const bool host = transport.followingHost() && !hostAside;
+    Timebase *tb = host ? &hostTimebase
+                        : (transport.followingLink() ? timebase.load(std::memory_order_acquire) : nullptr);
+    if (host) hostTimebase.setRate(clock.rate());
+    // A new source starts with nothing seen. A play waiting on the old one's
+    // downbeat starts now rather than never.
+    const int32_t source = transport.syncSource();
+    if (source != lastSyncSource) {
+        lastSyncSource = source;
+        linkSeen = false;
+        linkSawPlaying = false;
+        linkToldPlaying = false;
+        if (linkWaiting) {
+            linkWaiting = false;
+            startPending = true;
+        }
+    }
+    if (tb == nullptr) {
         linkWaiting = false;
         linkSeen = false;
         linkToldPlaying = false;
@@ -815,14 +850,40 @@ void Engine::followTimebase() {
     if (barTicks > 0.0) tb->setQuantum(barTicks / static_cast<double>(kPPQN));
 
     const Timebase::State s = tb->capture(framesRendered);
+    // Just after a render: the host's tempo, no pull, until a new beat or a second.
+    if (host && hostHeld) {
+        hostHeldFrames += kBlockFrames;
+        if (hostTimebase.stamp() != hostHeldStamp) {
+            hostHeld = false;
+        } else if (hostHeldFrames <= static_cast<int64_t>(clock.rate())) {
+            linkInSession = false;
+            clock.setExternalFramesPerTick(clock.framesPerTickAt(s.bpm));
+            return;
+        } else {
+            hostHeld = false;
+            transport.releaseHost();
+            transport.publishSync(0);
+            return;
+        }
+    }
     if (!s.valid || s.bpm < 1.0) {
         linkInSession = false;
+        // The host stopped calling for over a second: the song's tempo rules
+        // again from the next block. Nothing to do before its first beat.
+        if (host && hostTimebase.hasBeat()) {
+            transport.releaseHost();
+            transport.publishSync(0);
+            if (linkWaiting) {
+                linkWaiting = false;
+                startPending = true;
+            }
+        }
         return;
     }
     // Read every block, because the decision that uses it (whether play
     // waits for a downbeat) is made at the top of a block before this runs.
-    // A block old is close enough.
-    linkInSession = seq::LinkFollower::waitsForDownbeat(s);
+    // A block old is close enough. The host counts as someone to wait for.
+    linkInSession = host || seq::LinkFollower::waitsForDownbeat(s);
 
     const double perTick = clock.framesPerTickAt(s.bpm);
     const seq::LinkFollower::Advice advice = seq::LinkFollower::advise(
@@ -844,27 +905,30 @@ void Engine::followTimebase() {
     // Waiting for the downbeat isn't playing yet, so it isn't announced, or a
     // peer following it would start a bar before we did.
     const bool reallyPlaying = playing && !linkWaiting;
-    if (!linkSeen) {
-        linkSawPlaying = s.playing;
-        linkToldPlaying = reallyPlaying;
-        linkSeen = true;
-    }
-    if (syncStartStop.load(std::memory_order_relaxed)) {
-        if (reallyPlaying != linkToldPlaying) {
-            tb->proposePlaying(reallyPlaying);
+    // The host never says whether it's playing; the plugin starts and stops us.
+    if (!host) {
+        if (!linkSeen) {
+            linkSawPlaying = s.playing;
+            linkToldPlaying = reallyPlaying;
+            linkSeen = true;
+        }
+        if (syncStartStop.load(std::memory_order_relaxed)) {
+            if (reallyPlaying != linkToldPlaying) {
+                tb->proposePlaying(reallyPlaying);
+                linkToldPlaying = reallyPlaying;
+            }
+            if (s.playing != linkSawPlaying) {
+                if (s.playing && !playing) {
+                    transport.requestPlay(seq::Transport::kCurrentScene);
+                } else if (!s.playing && playing) {
+                    transport.requestStop();
+                }
+            }
+        } else {
             linkToldPlaying = reallyPlaying;
         }
-        if (s.playing != linkSawPlaying) {
-            if (s.playing && !playing) {
-                transport.requestPlay(seq::Transport::kCurrentScene);
-            } else if (!s.playing && playing) {
-                transport.requestStop();
-            }
-        }
-    } else {
-        linkToldPlaying = reallyPlaying;
+        linkSawPlaying = s.playing;
     }
-    linkSawPlaying = s.playing;
 
     // Same packing as the MIDI follower so one readout handles both: locked,
     // the tempo in hundredths, and the error in microseconds.

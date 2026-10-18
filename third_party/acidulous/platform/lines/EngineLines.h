@@ -54,11 +54,12 @@ struct Replay {
     int line = 0;
 
     /** The file's version, from its first line. */
-    int version = 2;
+    int version = 3;
     /**
-     * A version 1 line on today's counts: Trinity's waves and Nexus's wtosc
-     * tables rescaled (engine/machine/TableCounts.h). Tracks what each rack
-     * holds, as written, to know which parameters those are.
+     * An older line on today's counts: Trinity's destinations rescaled, and
+     * for version 1 its waves and Nexus's wtosc tables too
+     * (engine/machine/TableCounts.h). Tracks what each rack holds, as
+     * written, to know which parameters those are.
      */
     std::string upgradeLine(const std::string &line);
     /** Notes the wtosc slots of a LoadNexusPatch line; run over a version 1 file before replaying it. */

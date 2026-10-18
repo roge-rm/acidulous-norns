@@ -1613,6 +1613,17 @@ void EngineHost::midiClockIn(int64_t frame, uint8_t status, uint8_t d1, uint8_t 
 }
 int64_t EngineHost::syncState() const { return sEngine.transport.syncState(); }
 
+// The values first, so the audio thread never follows the host before it has
+// a beat. MIDI clock or Link keep the tempo if either is on.
+void EngineHost::alignBeat(double beat, double bpm, int64_t frame) {
+    // A frame already over a second old would only be released again.
+    const int32_t rate = sAudio.getSampleRate() > 0 ? sAudio.getSampleRate() : kSampleRate;
+    if (sEngine.framesOut.load(std::memory_order_acquire) - frame > rate) return;
+    if (sEngine.hostTimebase.set(beat, bpm, frame)) sEngine.transport.takeHost();
+}
+void EngineHost::releaseBeat() { sEngine.transport.releaseHost(); }
+int64_t EngineHost::framesRendered() const { return sEngine.framesOut.load(std::memory_order_acquire); }
+
 void EngineHost::cancelLaunch(int32_t rack) { sEngine.transport.launchClip(rack, seq::Launcher::kCancelId); }
 void EngineHost::launchStates(int64_t *out, int32_t count) const {
     for (int32_t r = 0; r < count && r < kRackCount; ++r) {

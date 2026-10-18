@@ -35,6 +35,11 @@ class LfoGen {
         return out;
     }
     float value() const { return out; }
+    /** Still in its delay, so the next advance won't move the phase. */
+    bool delaying() const { return delayLeft > 0.0f; }
+    float phaseNow() const { return phase; }
+    /** Moves the phase without touching the output, which follows on the next advance. */
+    void setPhase(float p) { phase = p - std::floor(p); }
 
   private:
     float shape(int wave, float p, float prev) {

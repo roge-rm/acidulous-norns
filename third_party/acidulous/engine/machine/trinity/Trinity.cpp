@@ -4,6 +4,8 @@
 #include <engine/dsp/Lfo.h>
 #include <engine/machine/TableCounts.h>
 
+#include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 
@@ -15,6 +17,8 @@ using dsp::mtof;
 using dsp::WavetableBank;
 // Saved songs rescale against this count; see TableCounts.h.
 static_assert(Trinity::WaveCount == tables::kTrinityWaves, "a new wave needs a migration");
+static_assert(Trinity::DestCount == tables::kTrinityDests && Trinity::kDestCountBefore == tables::kTrinityDestsBefore,
+              "a new destination needs a migration");
 
 namespace {
 
@@ -207,6 +211,13 @@ void Trinity::reset() {
         for (auto &f : v.filter) f.reset();
         for (auto &o : v.osc) o = OscState();
         for (auto &m : v.mod) m = 0.0f;
+        // Phase and the sample-and-hold seed, so a panic replays the same steps.
+        for (auto &l : v.lfo) l = dsp::LfoGen();
+        for (int l = 0; l < kLfos; ++l) {
+            v.lfoStep[l] = v.lfoStepNext[l] = 0;
+            v.lfoCycles[l] = 0.0;
+            v.lfoSnap[l] = false;
+        }
         v.rng = Voice::kSeed;
         v.bend = 0.0f;
         v.pressure = v.timbre = -1.0f;
@@ -256,7 +267,11 @@ void Trinity::startVoice(Voice &v, uint8_t note, uint8_t velocity, bool retrigge
         }
         for (int l = 0; l < kLfos; ++l) {
             const int32_t b = LfoBase + l * LfoParams;
-            if (targetOf(b + LKeySync) >= 0.5f) v.lfo[l].trigger(targetOf(b + LPhase), targetOf(b + LDelay));
+            if (targetOf(b + LKeySync) >= 0.5f) {
+                v.lfo[l].trigger(targetOf(b + LPhase), targetOf(b + LDelay));
+                v.lfoCycles[l] = 0.0;
+                v.lfoSnap[l] = true;
+            }
         }
         for (int k = 0; k < kOscs; ++k) {
             // Random start phases, not evenly spread. Evenly spaced saws cancel
@@ -395,7 +410,37 @@ void Trinity::updateVoiceMod(Voice &v, float blockSeconds) {
         const int sync = stepOf(b + LSync);
         float hz = paramOf(b + LRate);
         if (sync > 0) hz = bpm / (60.0f * syncBeats(sync));
-        hz *= std::exp2(v.mod[DstLfo1Rate + l] * 4.0f);
+        // The step destinations. A free LFO changes step at once and its
+        // phase carries on. A synced one waits for a point where the old and
+        // new note values both start a cycle, a whole cycle of the slower
+        // one, and changes there inside the block, so it stays on its grid.
+        const bool moving = !v.lfo[l].delaying();
+        int now = v.lfoStep[l];
+        const int next = v.lfoStepNext[l];
+        float stepMul = std::ldexp(1.0f, now);
+        if (next != now && sync <= 0) {
+            now = next;
+            stepMul = std::ldexp(1.0f, now);
+        } else if (next != now && moving) {
+            const double period = std::ldexp(1.0, -std::min(now, next));
+            const double c0 = v.lfoCycles[l];
+            const double c1 = c0 + static_cast<double>(hz) * blockSeconds;
+            const double meet = std::ceil(c0 / period - 1e-9) * period;
+            if (c1 >= meet) {
+                const float f = c1 > c0 ? static_cast<float>((meet - c0) / (c1 - c0)) : 0.0f;
+                stepMul = f * std::ldexp(1.0f, now) + (1.0f - f) * std::ldexp(1.0f, next);
+                now = next;
+            }
+        }
+        v.lfoStep[l] = static_cast<int8_t>(now);
+        if (moving) {
+            // Cycles of the unstepped rate, kept under the longest shared cycle.
+            double c = v.lfoCycles[l] + static_cast<double>(hz) * blockSeconds;
+            constexpr double kWrap = 1 << kMaxLfoSteps;
+            if (c >= kWrap) c -= kWrap * std::floor(c / kWrap);
+            v.lfoCycles[l] = c;
+        }
+        hz *= stepMul * std::exp2(v.mod[DstLfo1Rate + l] * 4.0f);
         v.lfo[l].advance(stepOf(b + LWave), hz, blockSeconds, paramOf(b + LSlew), paramOf(b + LOneShot) >= 0.5f);
     }
     for (auto &m : v.mod) m = 0.0f;
@@ -429,6 +474,22 @@ void Trinity::updateVoiceMod(Voice &v, float blockSeconds) {
     const float wheel = modWheel * paramOf(WheelFilter) * 0.8f;
     v.mod[DstF1Freq] += wheel;
     v.mod[DstF2Freq] += wheel;
+    // The step each LFO moves to: 0.25 of depth is an octave, as on the
+    // rate destination. An LFO that just restarted takes it now, with the
+    // little of its first block it has run scaled to the new rate.
+    for (int l = 0; l < kLfos; ++l) {
+        const float m = v.mod[DstLfo1Step + l] * static_cast<float>(kMaxLfoSteps);
+        const int step = std::clamp(static_cast<int>(std::floor(m + 0.5f)), -kMaxLfoSteps, kMaxLfoSteps);
+        v.lfoStepNext[l] = static_cast<int8_t>(step);
+        if (!v.lfoSnap[l]) continue;
+        v.lfoSnap[l] = false;
+        if (step == v.lfoStep[l]) continue;
+        const float start = targetOf(LfoBase + l * LfoParams + LPhase);
+        float ran = v.lfo[l].phaseNow() - start;
+        if (ran < 0.0f) ran += 1.0f;
+        v.lfo[l].setPhase(start + ran * std::ldexp(1.0f, step - v.lfoStep[l]));
+        v.lfoStep[l] = static_cast<int8_t>(step);
+    }
 }
 
 // --- Render ----------------------------------------------------------------------

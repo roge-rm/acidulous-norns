@@ -62,8 +62,9 @@
 //        replies. files 1 loads the files it names too: "label:path" under
 //        that root, a plain relative path from the first unlabelled root that
 //        has it, then the file's own folder. A patch from before version 3 is
-//        refused. When it fails the part still gets machine, as does a /patch
-//        that can't be found, with /values of what it has
+//        refused; a version 3 Trinity patch has its destinations moved. When
+//        it fails the part still gets machine, as does a /patch that can't be
+//        found, with /values of what it has
 //   /preset_scan s:folder              the patches of the .acpreset files in it
 //   /preset_delete s:path i:index      takes the patch out of the file, or
 //        deletes the file when it's the last or index is -1. A file with the

@@ -42,8 +42,17 @@ class Trinity final : public Machine {
         DstPw1, DstPw2, DstPw3, DstSync1, DstSync2, DstSync3,
         DstDetune, DstNoise, DstRing12, DstRing23, DstFm21, DstFm32,
         DstF1Freq, DstF2Freq, DstF1Res, DstF2Res, DstBalance, DstDrive,
-        DstAmp, DstPan, DstLfo1Rate, DstLfo2Rate, DstLfo3Rate, DestCount
+        DstAmp, DstPan, DstLfo1Rate, DstLfo2Rate, DstLfo3Rate,
+        // An LFO's rate in whole octaves: a synced one doubles or halves its
+        // note value and stays on the beat, a free one doubles or halves its
+        // Hz. Added at the end; saved destinations before song and patch
+        // version 4 are moved onto the longer list (TableMigration.kt).
+        DstLfo1Step, DstLfo2Step, DstLfo3Step, DestCount
     };
+    /** How many destinations there were before the step ones. */
+    static constexpr int kDestCountBefore = DstLfo1Step;
+    /** The furthest a step destination moves an LFO, in octaves either way. */
+    static constexpr int kMaxLfoSteps = 4;
 
     // Parameter indices. Blocks are regular so the table can be generated.
     enum P : int32_t {
@@ -146,6 +155,13 @@ class Trinity final : public Machine {
         dsp::LfoGen lfo[kLfos];
         dsp::MultiFilter filter[2];
         float mod[DestCount]{};
+        // Each LFO's octave step from the step destinations: the one it runs
+        // at, the one it's moving to, and its age in cycles of its unstepped
+        // rate (kept under 2^kMaxLfoSteps), which says when the two grids
+        // meet. snap means the LFO just restarted and takes the new step now.
+        int8_t lfoStep[kLfos]{}, lfoStepNext[kLfos]{};
+        double lfoCycles[kLfos]{};
+        bool lfoSnap[kLfos]{};
         static constexpr uint32_t kSeed = 0x2f6e2b1u;
         uint32_t rng = kSeed;
     };

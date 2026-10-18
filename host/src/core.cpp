@@ -16,6 +16,7 @@
 #include <engine/effect/EffectRegistry.h>
 #include <engine/inputmod/InputModRegistry.h>
 #include <engine/machine/MachineRegistry.h>
+#include <engine/machine/TableCounts.h>
 #include <engine/machine/cumulus/Cloud.h>
 #include <engine/machine/cumulus/Cumulus.h>
 #include <engine/machine/formulate/Program.h>
@@ -2943,7 +2944,8 @@ void Core::load_preset(int part, const std::string& path, int index, const std::
     if(index < 0 || size_t(index) >= preset.patches.size())
         return fail("no patch " + std::to_string(index + 1));
     PresetPatch& pp = preset.patches[size_t(index)];
-    if(pp.version < kPatchVersion)
+    // Version 3 differs only in Trinity's destinations, moved below.
+    if(pp.version < 3)
         return fail("from an older app, save it again there");
     int32_t m = 0;
     while(m < MachineRegistry::count() && !lower_equal(MachineRegistry::name(m), pp.machine))
@@ -2971,7 +2973,10 @@ void Core::load_preset(int part, const std::string& path, int index, const std::
             ++unknown;
             continue;
         }
-        src.norm[size_t(i)] = kv.second < 0.f ? 0.f : kv.second > 1.f ? 1.f : kv.second;
+        float v = kv.second < 0.f ? 0.f : kv.second > 1.f ? 1.f : kv.second;
+        if(pp.version < 4 && machine == "Trinity" && tables::isTrinityDest(kv.first))
+            v = tables::trinityDest(v);
+        src.norm[size_t(i)] = v;
         src.named.push_back(kv.first);
     }
     if(unknown > 0)
