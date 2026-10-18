@@ -120,9 +120,13 @@ Plug it in by USB and acidulous puts it in REMOTE mode.
 - The keys play the selected part.
 - **AUX** + the two top left keys: octave down and up.
 - **AUX** + the first 8 bottom keys: pick parts 1 to 8.
+- **AUX** + the top keys 3 to 6 turn the part's scale, chord, arp and latch on and off, lit while on. Latch is the arp's, or the chord's when there's no arp. A part has 2 modifier slots; with both taken the screen says **slots full**. Off keeps the modifier's settings.
+- **AUX** + key 3 held: a key picks the root and the encoder the scale, and tapping the encoder swaps snap and degree. In degree mode the white keys play the scale, starting from the root.
+- **AUX** + key 4 held: the encoder picks the chord type.
+- With **AUX** held the pots are the arp's rate, gate, mode and octaves and the chord type, picked up the same way as the macros.
 - The five pots are the part's macros. A pot takes over once you sweep it past where the macro is set.
 - The encoder picks the patch. Hold it and turn for the machine, and tap it to swap the parts and card pages, or close the patch list or machine picker.
-- The little screen shows the part, the patch and the macro you're turning.
+- The little screen shows the part, the patch and the macro you're turning, or the scale, chord or arp you've changed.
 
 **omx velocity** in **PARAMETERS > EDIT** sets how hard its keys play.
 

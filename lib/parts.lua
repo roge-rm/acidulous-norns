@@ -799,6 +799,74 @@ function P.set_mod(i, ctl, v)
   save_mods(i)
 end
 
+-- The slot holding a modifier type on part i, or nil.
+function P.mod_slot(i, type)
+  local mods = P.list[i].mods
+  for slot = 0, 1 do
+    if mods[slot] and mods[slot].type == type then return slot end
+  end
+end
+
+-- True while part i has the type mounted and on.
+function P.mod_on(i, type)
+  local s = P.mod_slot(i, type)
+  return s ~= nil and not P.list[i].mods[s].bypass
+end
+
+-- A control for a param of the type on part i, as panel.mod_cards makes
+-- them, or nil while it has none or its defs haven't come.
+function P.mod_ctl(i, type, name)
+  local s = P.mod_slot(i, type)
+  local d = s and mod_def(type, name)
+  if d then return {mod = s, p = name, def = d} end
+end
+
+-- Moves a slot's modifier, with its bypass and params, to the empty slot.
+local function move_mod(i, from, to)
+  local part = P.list[i]
+  if part.mod_pending then
+    for slot = 0, 1 do
+      timer.cancel(part.mod_pending[slot])
+      part.mod_pending[slot] = nil
+    end
+  end
+  part.mods[to], part.mods[from] = part.mods[from], nil
+  save_mods(i)
+  P.notes_off(i)
+  send_mod(i, to)
+  send_mod(i, from)
+end
+
+-- The chain runs slot 0 first: scale before chord before arp.
+local MOD_RANK = {Scale = 1, Chord = 2, Arp = 3}
+
+-- Turns a modifier on part i on or off. Off bypasses it and keeps its
+-- params; on un-bypasses it, or mounts it in a free slot, moving the other
+-- one so the chain stays in order. Returns "on", "off", or "full" when both
+-- slots hold other modifiers.
+function P.toggle_mod(i, type)
+  local part = P.list[i]
+  local s = P.mod_slot(i, type)
+  if s then
+    local on = part.mods[s].bypass
+    P.set_mod(i, {mod = s, what = "on"}, on and 1 or 0)
+    return on and "on" or "off"
+  end
+  local free
+  for slot = 1, 0, -1 do
+    if not part.mods[slot] then free = slot end
+  end
+  if not free then return "full" end
+  local other = part.mods[1 - free]
+  local want = free
+  if other then
+    want = MOD_RANK[type] < MOD_RANK[other.type] and 0 or 1
+    if want ~= free then move_mod(i, 1 - free, free) end
+  end
+  P.set_mod_type(i, want, type)
+  return "on"
+end
+
 -- The part's key and scale as "D dor" when it has a Scale, else nil.
 local KEYS = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}
 P.SCALE_SHORT = {"maj", "dor", "phr", "lyd", "mix", "min", "loc", "hmin", "mmin", "maj5", "min5",

@@ -523,21 +523,37 @@ end
 -- screen.update: pixels at level 8 or more are lit on the OMX.
 -- Part, machine and octave on top and the patch below, or for a second after
 -- a pot is turned, its macro: label, readout and a bar. While the pot is
--- waiting to pick up the value, a tick shows where the pot is.
--- list: from macros.resolve. omx: the surface (octave, showing()).
+-- waiting to pick up the value, a tick shows where the pot is. A modifier
+-- change shows instead for a moment, or while AUX + key 3 or 4 is held.
+-- list: from macros.resolve. omx: the surface (octave, showing(),
+-- message(), mod_readout()).
 function view.omx(parts, state, list, omx)
   screen.clear()
   screen.font_face(1)
   screen.font_size(8)
   screen.level(15)
   local part = parts.list[state.sel]
+  local top, big = omx.message()
+  if top then
+    text(0, 7, top)
+    screen.font_size(16)
+    if screen.text_extents(big) > 127 then screen.font_size(8) end
+    text(0, 28, fit(big, 127))
+    screen.font_size(8)
+    return
+  end
   local f = omx.showing()
-  local mac = f and list[f.k]
-  local p = mac and mac.slot and params:lookup_param(parts.id(state.sel, "s" .. mac.slot))
-  if p then
-    local v = p:get()
-    text(0, 7, mac.label)
-    text(127, 7, fit(parts.readout(mac.def, v), 80), "right")
+  local label, v, readout
+  if f and f.mod then
+    label, v, readout = omx.mod_readout(f)
+  else
+    local mac = f and list[f.k]
+    local p = mac and mac.slot and params:lookup_param(parts.id(state.sel, "s" .. mac.slot))
+    if p then label, v, readout = mac.label, p:get(), parts.readout(mac.def, p:get()) end
+  end
+  if label then
+    text(0, 7, label)
+    text(127, 7, fit(readout, 80), "right")
     screen.rect(0.5, 12.5, 127, 9)
     screen.stroke()
     local w = math.floor(v * 125 + 0.5)

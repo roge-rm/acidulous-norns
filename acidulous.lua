@@ -556,6 +556,7 @@ local function start_surfaces()
     else state.page, state.out = state.page == "play" and "card" or "play", false end
   end
   a.macros = function() return part_macros() end
+  a.parts = parts
   a.slot_id = function(slot) return parts.id(state.sel, "s" .. slot) end
   a.midi = midi_event
   -- the OMX-27's port is a regular MIDI port again
