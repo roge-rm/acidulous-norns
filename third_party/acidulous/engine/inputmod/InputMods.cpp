@@ -481,6 +481,9 @@ void Chord::onBlock(int64_t tickStart, int64_t tickEnd, float bpmNow, MidiSink &
     nowTick = tickStart;
     const int rhythm = stepOf(params_, Rhythm);
     if (patternSrc >= 0 && rhythm > 0 && nextStep >= 0) {
+        // A clock jump forward drops the skipped strokes rather than playing them at once.
+        if (tickStart - nextStep >= kStepTicks)
+            nextStep += ((tickStart - nextStep + kStepTicks - 1) / kStepTicks) * kStepTicks;
         const char *pattern = kPatterns[std::min(rhythm, kPatternCount) - 1];
         const int len = static_cast<int>(std::strlen(pattern));
         while (nextStep < tickEnd) {
@@ -676,6 +679,13 @@ void Arp::onBlock(int64_t tickStart, int64_t tickEnd, float, MidiSink &out) {
         anchor = 0;
     }
     if (stepOf(p, Sync) == 1 && playing) anchor = 0;
+    // The clock jumped forward (onto a host's beat): the skipped steps are
+    // dropped rather than played at once, and the grid and step count kept.
+    if (nextStep >= 0 && tickStart - nextStep >= rate) {
+        const int64_t skipped = (tickStart - nextStep + rate - 1) / rate;
+        nextStep += skipped * rate;
+        stepCounter += static_cast<int>(skipped);
+    }
     while (playing && nextStep < tickEnd) {
         const int64_t stepTick = nextStep;
         const int stepNo = stepCounter++;

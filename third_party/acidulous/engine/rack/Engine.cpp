@@ -829,6 +829,7 @@ void Engine::followTimebase() {
     const int32_t source = transport.syncSource();
     if (source != lastSyncSource) {
         lastSyncSource = source;
+        hostPhaseSet = false;
         linkSeen = false;
         linkSawPlaying = false;
         linkToldPlaying = false;
@@ -838,6 +839,7 @@ void Engine::followTimebase() {
         }
     }
     if (tb == nullptr) {
+        hostPhaseSet = false;
         linkWaiting = false;
         linkSeen = false;
         linkToldPlaying = false;
@@ -852,6 +854,7 @@ void Engine::followTimebase() {
     const Timebase::State s = tb->capture(framesRendered);
     // Just after a render: the host's tempo, no pull, until a new beat or a second.
     if (host && hostHeld) {
+        hostPhaseSet = false;
         hostHeldFrames += kBlockFrames;
         if (hostTimebase.stamp() != hostHeldStamp) {
             hostHeld = false;
@@ -867,6 +870,7 @@ void Engine::followTimebase() {
         }
     }
     if (!s.valid || s.bpm < 1.0) {
+        hostPhaseSet = false;
         linkInSession = false;
         // The host stopped calling for over a second: the song's tempo rules
         // again from the next block. Nothing to do before its first beat.
@@ -886,9 +890,33 @@ void Engine::followTimebase() {
     linkInSession = host || seq::LinkFollower::waitsForDownbeat(s);
 
     const double perTick = clock.framesPerTickAt(s.bpm);
-    const seq::LinkFollower::Advice advice = seq::LinkFollower::advise(
-        s, static_cast<double>(scheduler.currentTickInIteration()), barTicks, perTick,
-        playing && !linkWaiting);
+    double ourTick = static_cast<double>(scheduler.currentTickInIteration());
+    bool pulling = playing && !linkWaiting;
+    // Stopped and following the host, the free-running tick (arps, synced
+    // LFOs and delays) is pulled instead. The pull is too slow to close a
+    // beat, so the first time the host's phase is seen, or if it drifts more
+    // than a quarter beat, the tick jumps forward onto it in one go.
+    if (host && !playing && !linkWaiting && barTicks > 0.0 && s.quantum > 0.0) {
+        clock.setExternalFramesPerTick(perTick);
+        double theirs = std::fmod(s.beat, s.quantum) / s.quantum * barTicks;
+        if (theirs < 0.0) theirs += barTicks;
+        const double ours = std::fmod(clock.phase(), barTicks);
+        double err = ours - theirs;
+        if (err > barTicks * 0.5) err -= barTicks;
+        if (err < -barTicks * 0.5) err += barTicks;
+        if (!hostPhaseSet || std::fabs(err) > static_cast<double>(kPPQN) / 4.0) {
+            double ahead = theirs - ours;
+            if (ahead < 0.0) ahead += barTicks;
+            clock.skipForward(ahead);
+            hostPhaseSet = true;
+        }
+        ourTick = clock.phase();
+        pulling = true;
+    } else {
+        hostPhaseSet = false;
+    }
+    const seq::LinkFollower::Advice advice =
+        seq::LinkFollower::advise(s, ourTick, barTicks, perTick, pulling);
     clock.setExternalFramesPerTick(advice.framesPerTick);
 
     // The downbeat we were waiting for.

@@ -5966,7 +5966,9 @@ patch Spinet family=keys  note=60 range=36..84 role=keys
   mac1_d1  #23
   mac1_a1  0.3
   mac2_d1  #14
-  mac2_a1  0.3
+  mac2_a1  0.15
+  mac2_d2  #29
+  mac2_a2  -0.08
   mac3_d1  #11
   mac3_a1  0.3
   mac4_d1  #23

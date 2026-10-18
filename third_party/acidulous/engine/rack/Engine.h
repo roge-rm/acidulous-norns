@@ -395,6 +395,12 @@ class Engine : public Rack::ModifiedNoteSink {
      * the render, [hostHeldFrames] the frames since.
      */
     bool hostHeld = false;
+    /**
+     * Stopped and following the host: whether the free-running tick has been
+     * jumped onto the host's phase yet. Cleared whenever that phase is lost or
+     * the transport plays, so the next stopped block jumps again.
+     */
+    bool hostPhaseSet = false;
     uint32_t hostHeldStamp = 0;
     int64_t hostHeldFrames = 0;
     /** Frames the engine has produced since the stream started. Same timeline

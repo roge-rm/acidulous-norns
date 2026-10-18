@@ -93,6 +93,22 @@ class TickClock {
         end = tick;
     }
 
+    /**
+     * Between blocks: move forward [ticks] in one go, to land on another
+     * clock's phase. Never back, so the tick count only grows. The next
+     * block starts at the new tick; the skipped ticks are in no block.
+     */
+    void skipForward(double ticks) {
+        if (!(ticks > 0.0)) return;
+        const double frames = sampleRemainder + ticks * samplesPerTick;
+        const auto whole = static_cast<int64_t>(frames / samplesPerTick);
+        tick += whole;
+        sampleRemainder = frames - static_cast<double>(whole) * samplesPerTick;
+    }
+
+    /** The position with its sub-tick phase, in ticks. */
+    double phase() const { return static_cast<double>(tick) + sampleRemainder / samplesPerTick; }
+
     double samplesPerTickNow() const { return samplesPerTick; }
 
     /** How long a tick would be at [bpm], without setting anything. */
