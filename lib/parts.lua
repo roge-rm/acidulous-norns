@@ -248,7 +248,10 @@ function P.start(ready)
   end)
   send("/machines", {})
   P.tempo_timer = timer.every(0.25, function()
-    if P.ready then P.send_tempo() end
+    if P.ready then
+      P.send_tempo()
+      P.send_beat()
+    end
   end)
 end
 
@@ -339,6 +342,18 @@ function P.send_tempo(force)
     sent_tempo = bpm
     send("/tempo", {bpm + 0.0})
   end
+end
+
+-- The norns clock's beat, so the engine's arps, synced LFOs and delays land
+-- on it. /tempo stays the tempo the engine falls back to without a beat.
+-- OSC floats are 32-bit, so the beat wraps at 960, a whole number of bars
+-- of 3, 4, 5, 6 or 8 beats.
+function P.send_beat()
+  send("/beat", {clock.get_beats() % 960 + 0.0, clock.get_tempo() + 0.0})
+end
+
+function P.release_beat()
+  send("/beat_release", {})
 end
 
 function P.send_master()

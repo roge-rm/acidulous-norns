@@ -29,6 +29,11 @@
 //   /meters i:on                       sends /meters while on
 //   /tempo f:bpm                       the engine's tempo (20-999); with
 //        no args it replies /tempo with the tempo the engine runs at
+//   /beat f:beat f:bpm                 the norns clock's beat and tempo, a
+//        few times a second. The engine follows it (arps, synced LFOs and
+//        delays) and play waits for its next bar line; beat 0 mod 4 is a bar
+//   /beat_release                      back to the /tempo tempo; a second
+//        with no /beat does the same
 //   /graph i:part                      a Nexus part's modules
 //   /scope i:part i:slot               the scope on a Nexus module's first
 //        output; slot -1 closes it

@@ -1018,6 +1018,20 @@ bool Core::command(const std::string& path, const Args& a)
             });
         return true;
     }
+    if(path == "/beat" && a.size() >= 2)
+    {
+        // norns' clock beat and tempo. The frame is read as it arrives,
+        // which is a few ms after the script read the beat; alignBeat can't
+        // be called on the audio thread, so this is as close as it gets.
+        // One thread only: the OSC thread.
+        host.alignBeat(to_float(a[0]), to_float(a[1]), host.framesRendered());
+        return true;
+    }
+    if(path == "/beat_release")
+    {
+        host.releaseBeat();
+        return true;
+    }
     if(path == "/meters" && a.size() >= 1)
     {
         metering.store(to_int(a[0]) != 0);

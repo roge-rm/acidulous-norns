@@ -6,11 +6,14 @@
 // - /mods reads back the types, bypass and values
 // - bypass, a machine change keeping the modifiers, and unmounting
 // - an Arp stepping with the transport stopped, at the tempo /tempo sets
+// - /beat takes the tempo from a host beat, the arp keeps a steady phase to
+//   it, and /beat_release hands the tempo back to /tempo
 // Usage: acidulous-mod-test BANK_DIR
 #include "core.h"
 
 #include <EngineHost.h>
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cmath>
@@ -370,6 +373,88 @@ int main(int argc, char** argv)
     }
     cmd("/tempo", {Value::f(120.f)});
     check(std::fabs(tempo_now() - 120.0) < 0.01, "/tempo 120 reads back 120");
+
+    // /beat: a host whose beat 0 was at frame origin, at 132 bpm, sent every
+    // 50 ms as the script does (wrapped at 960). The arp at 1/4, free.
+    {
+        auto&           h      = acidulous::EngineHost::instance();
+        const double    bpm    = 132.0;
+        const double    rate   = acidulous::kSampleRate;
+        const int64_t   origin = h.framesRendered();
+        const auto      beat_at = [&](int64_t f) { return double(f - origin) * bpm / (60.0 * rate); };
+        std::atomic<bool> beating{true};
+        std::thread       beater([&] {
+            while(beating)
+            {
+                const int64_t at = h.framesRendered();
+                cmd("/beat", {Value::f(std::fmod(beat_at(at), 960.0)), Value::f(bpm)});
+                std::this_thread::sleep_for(50ms);
+            }
+        });
+        mod_param(1, "rate", 3.0 / 9.0); // 1/4
+        mod_param(1, "sync", 1.0);       // free
+        std::this_thread::sleep_for(300ms);
+        check(std::fabs(tempo_now() - bpm) < 1.0, "/beat takes the tempo (" + std::to_string(tempo_now()) + ")");
+
+        // Note-on frames from the arp while a key is held for [frames].
+        const auto steps_for = [&](int64_t frames) {
+            std::vector<int64_t> at;
+            int64_t              buf[256];
+            const int64_t        end = h.framesRendered() + frames;
+            while(h.framesRendered() < end)
+            {
+                const int n = h.drainMidiOut(buf, 128);
+                for(int k = 0; k < n; ++k)
+                {
+                    const int64_t v = buf[k * 2 + 1];
+                    if(((v >> 16) & 0xf0) == 0x90 && (v & 0x7f) > 0)
+                        at.push_back(buf[k * 2]);
+                }
+                std::this_thread::sleep_for(2ms);
+            }
+            return at;
+        };
+        drain();
+        cmd("/note", {Value::i(0), Value::i(1), Value::i(60), Value::i(100)});
+        steps_for(int64_t(rate * 4)); // settles
+        const auto at = steps_for(int64_t(rate * 8));
+        cmd("/note", {Value::i(0), Value::i(1), Value::i(60), Value::i(0)});
+        // Each step's phase to the host's beat, -0.5..0.5 beats, and the gaps.
+        double lo = 1, hi = -1, gap_err = 0;
+        for(size_t k = 0; k < at.size(); ++k)
+        {
+            double ph = std::fmod(beat_at(at[k]), 1.0);
+            if(ph >= 0.5)
+                ph -= 1.0;
+            lo = std::min(lo, ph);
+            hi = std::max(hi, ph);
+            if(k > 0)
+                gap_err = std::max(gap_err, std::fabs(beat_at(at[k]) - beat_at(at[k - 1]) - 1.0));
+        }
+        const double ms_per_beat = 60000.0 / bpm;
+        std::printf("  /beat: %zu steps, phase to the host beat %.1f to %.1f ms, worst gap error %.2f ms\n",
+                    at.size(), lo * ms_per_beat, hi * ms_per_beat, gap_err * ms_per_beat);
+        check(at.size() >= 15, "arp steps while following /beat");
+        check(gap_err * ms_per_beat < 3.0, "arp steps a host beat apart");
+        check((hi - lo) * ms_per_beat < 3.0, "arp keeps a steady phase to the host beat");
+
+        beating = false;
+        beater.join();
+        cmd("/beat_release", {});
+        std::this_thread::sleep_for(100ms);
+        check(std::fabs(tempo_now() - 120.0) < 0.01, "/beat_release hands back the /tempo tempo");
+
+        // A second (of frames) with no /beat hands it back too.
+        cmd("/beat", {Value::f(std::fmod(beat_at(h.framesRendered()), 960.0)), Value::f(bpm)});
+        std::this_thread::sleep_for(50ms);
+        check(std::fabs(tempo_now() - bpm) < 1.0, "/beat takes it again");
+        const int64_t quiet = h.framesRendered() + int64_t(rate * 1.2);
+        while(h.framesRendered() < quiet)
+            std::this_thread::sleep_for(10ms);
+        check(std::fabs(tempo_now() - 120.0) < 0.01, "no /beat for a second: the /tempo tempo again");
+        mod_param(1, "sync", 0.0);
+        mod_param(1, "rate", 5.0 / 9.0);
+    }
 
     cmd("/mod", {Value::i(0), Value::i(1), Value::s("")});
     r = settle();

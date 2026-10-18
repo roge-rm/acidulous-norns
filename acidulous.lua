@@ -677,6 +677,7 @@ function cleanup()
   picker.close()
   scope.close(parts)
   timer.cancel_all()
+  parts.release_beat()
   surfaces.disconnect()
   for i = 1, parts.COUNT do
     if parts.list[i].machine then parts.notes_off(i) end
