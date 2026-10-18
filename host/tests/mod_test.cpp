@@ -5,7 +5,7 @@
 //   a key plays the chord of its scale degree
 // - /mods reads back the types, bypass and values
 // - bypass, a machine change keeping the modifiers, and unmounting
-// - an Arp stepping with the transport stopped
+// - an Arp stepping with the transport stopped, at the tempo /tempo sets
 // Usage: acidulous-mod-test BANK_DIR
 #include "core.h"
 
@@ -340,6 +340,37 @@ int main(int argc, char** argv)
         check(count >= 3 && ons(notes) == std::set<int>{60, 64}, "arp steps with the transport stopped");
         check(offs_match(notes), "arp: every note let go");
     }
+    // /tempo sets the engine's tempo with the transport stopped, and the arp
+    // follows it.
+    const auto tempo_now = [&] {
+        log.clear();
+        cmd("/tempo", {});
+        Reply t;
+        return log.wait("/tempo", t) && !t.args.empty() ? t.args[0].num : -1.0;
+    };
+    const auto steps_in = [&](double bpm) {
+        cmd("/tempo", {Value::f(bpm)});
+        tempo_now();
+        drain();
+        cmd("/note", {Value::i(0), Value::i(1), Value::i(60), Value::i(100)});
+        std::this_thread::sleep_for(1000ms);
+        cmd("/note", {Value::i(0), Value::i(1), Value::i(60), Value::i(0)});
+        std::this_thread::sleep_for(100ms);
+        int count = 0;
+        for(const auto& n : drain())
+            count += n.on;
+        return count;
+    };
+    cmd("/tempo", {Value::f(90.f)});
+    check(std::fabs(tempo_now() - 90.0) < 0.01, "/tempo 90 reads back 90");
+    {
+        const int slow = steps_in(40), fast = steps_in(240);
+        std::printf("  arp: %d steps at 40 bpm, %d at 240\n", slow, fast);
+        check(slow >= 1 && fast >= 3 * slow, "the arp follows /tempo");
+    }
+    cmd("/tempo", {Value::f(120.f)});
+    check(std::fabs(tempo_now() - 120.0) < 0.01, "/tempo 120 reads back 120");
+
     cmd("/mod", {Value::i(0), Value::i(1), Value::s("")});
     r = settle();
     check(r.args.size() > 6 && r.args[2].str.empty() && r.args[6].str.empty(), "both slots empty");

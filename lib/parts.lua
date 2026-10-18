@@ -245,6 +245,9 @@ function P.start(ready)
     end
   end)
   send("/machines", {})
+  P.tempo_timer = timer.every(0.25, function()
+    if P.ready then P.send_tempo() end
+  end)
 end
 
 -- ---- params -------------------------------------------------------------------
@@ -323,10 +326,24 @@ local function send_send_param(sp)
   send("/send", {sp.slot, sp.param, send_param_value(sp)})
 end
 
+-- The engine's clock runs at norns' tempo, whatever the clock source. norns
+-- has no tempo callback for every source, so P.start's timer checks it a
+-- few times a second and sends a change.
+local sent_tempo = nil
+
+function P.send_tempo(force)
+  local bpm = clock.get_tempo()
+  if force or not sent_tempo or math.abs(bpm - sent_tempo) > 0.01 then
+    sent_tempo = bpm
+    send("/tempo", {bpm + 0.0})
+  end
+end
+
 function P.send_master()
   -- the master fader is 0-1.5 linear; 0 dB here is its top, as the plugin starts
   send("/master", {"volume", db_to_gain(params:get("master_level"))})
   for _, sp in ipairs(P.SEND_PARAMS) do send_send_param(sp) end
+  P.send_tempo(true)
 end
 
 local function percent(param) return string.format("%d%%", math.floor(param:get() * 100 + 0.5)) end

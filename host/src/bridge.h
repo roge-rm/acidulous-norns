@@ -27,6 +27,8 @@
 //   /master s:name f:value01           the master's params, e.g. "volume"
 //        (0-1.5 linear)
 //   /meters i:on                       sends /meters while on
+//   /tempo f:bpm                       the engine's tempo (20-999); with
+//        no args it replies /tempo with the tempo the engine runs at
 //   /graph i:part                      a Nexus part's modules
 //   /scope i:part i:slot               the scope on a Nexus module's first
 //        output; slot -1 closes it
@@ -97,6 +99,7 @@
 //   /mods i:part (i:slot s:type i:bypass i:count (s:name f:value01)*count)*
 //        both slots as the engine holds them once everything sent before
 //        has landed; an empty slot has type "" and count 0
+//   /tempo f:bpm                       once everything sent before has landed
 //   /mod_defs s:type i:count (s:name f:min f:max f:default s:unit i:steps
 //        s:curve)*count   one per modifier type, params as /def has them
 //   /def s:machine i:index s:name f:min f:max f:default s:unit i:steps s:curve

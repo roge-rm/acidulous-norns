@@ -1004,6 +1004,19 @@ bool Core::command(const std::string& path, const Args& a)
         });
         return true;
     }
+    if(path == "/tempo")
+    {
+        // The engine's tempo, which its clock runs at with the transport
+        // stopped too (arps, synced delays and LFOs). Any thread may set it.
+        if(!a.empty())
+            host.setTempo(to_float(a[0]));
+        else
+            post([this] {
+                wait_applied();
+                reply("/tempo", {Value::f(host.tempo())});
+            });
+        return true;
+    }
     if(path == "/meters" && a.size() >= 1)
     {
         metering.store(to_int(a[0]) != 0);
