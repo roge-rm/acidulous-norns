@@ -792,7 +792,11 @@ function P.set_mod(i, ctl, v)
     P.notes_off(i)
     send("/mod_bypass", {i - 1, ctl.mod, bypass and 1 or 0})
   else
+    local was = mod_param_value(m, ctl.p)
     set_mod_param(i, ctl.mod, ctl.p, v)
+    -- the engine only lets latched notes go on the next note on, so latch
+    -- off lets them go now; this also ends notes on keys still held
+    if ctl.p == "latch" and was >= 0.5 and v < 0.5 and not m.bypass then P.notes_off(i) end
     local other = part.mods[1 - ctl.mod]
     if SHARED[ctl.p] and shares(m) and shares(other) then set_mod_param(i, 1 - ctl.mod, ctl.p, v) end
   end

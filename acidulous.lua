@@ -721,8 +721,22 @@ local function part_cards()
   for _, c in ipairs(panel.fx_cards(part.fx)) do all[#all + 1] = c end
   for _, c in ipairs(panel.mod_cards(part.mods, parts.mod_defs)) do all[#all + 1] = c end
   cards = all
+  -- mounting or reordering modifiers moves their cards: follow the one open
+  local types = {}
+  for slot = 0, 1 do types[#types + 1] = part.mods[slot] and part.mods[slot].type or "" end
+  local mods_key = table.concat(types, "|")
+  if ps.mod_title and ps.mods_key ~= mods_key then
+    for k, c in ipairs(cards) do
+      if c.title == ps.mod_title and c.controls[1] and c.controls[1].mod ~= nil then
+        ps.card = k
+        break
+      end
+    end
+  end
+  ps.mods_key = mods_key
   ps.card = util.clamp(ps.card, 1, math.max(1, #cards))
   local card = cards[ps.card]
+  ps.mod_title = card and card.controls[1] and card.controls[1].mod ~= nil and card.title or nil
   ps.knob = util.clamp(ps.knob, 1, card and #card.controls or 1)
   return ps, cards, pads
 end

@@ -261,17 +261,17 @@ function surf.key(n, ev)
   if aux then
     if n == OCT_DOWN then surf.octave = math.max(surf.octave - 1, -4)
     elseif n == OCT_UP then surf.octave = math.min(surf.octave + 1, 4)
-    elseif n == KEY_SCALE or n == KEY_CHORD then
-      mod_key, mod_used = n, false
-      say(n == KEY_SCALE and "scale" or "chord")
     elseif mod_key == KEY_SCALE and SEMI[n] then
-      -- before arp and latch, so keys 5 and 6 can set A# and C#
+      -- before the modifier keys, so keys 4 to 6 set G#, A# and C#
       mod_used = true
       local ctl, P, i = edit_ctl("Scale", "key", true)
       if ctl then
         P.set_mod(i, ctl, (SEMI[n] % 12) / 11)
         say("scale")
       end
+    elseif n == KEY_SCALE or n == KEY_CHORD then
+      mod_key, mod_used = n, false
+      say(n == KEY_SCALE and "scale" or "chord")
     elseif n == KEY_ARP then toggle("Arp")
     elseif n == KEY_LATCH then toggle_latch()
     elseif n >= PART_KEY and n < PART_KEY + 8 then a.select(n - PART_KEY + 1) end
@@ -471,7 +471,8 @@ function surf.frame()
     local on = {[KEY_SCALE] = P.mod_on(sel, "Scale"), [KEY_CHORD] = P.mod_on(sel, "Chord"),
       [KEY_ARP] = P.mod_on(sel, "Arp")}
     on[KEY_LATCH] = (on[KEY_ARP] and latched(P, sel, "Arp"))
-      or (not P.mod_slot(sel, "Arp") and on[KEY_CHORD] and latched(P, sel, "Chord"))
+      or (not P.mod_slot(sel, "Arp") and on[KEY_CHORD] and latched(P, sel, "Chord")
+        and option(P, sel, "Chord", "play") == "strum keys")
     for k = KEY_SCALE, KEY_LATCH do
       omx.led(k, scaled(MOD_COLOURS[k], on[k] and 0.9 or 0.06))
     end
