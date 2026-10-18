@@ -1577,7 +1577,8 @@ function P.osc(path, args)
     -- a patch set the part's sends, or gave the player's back
     local i = (args[1] or -1) + 1
     local part = P.list[i]
-    if not part then return end
+    -- a reply to an earlier script's resend can come before the params exist
+    if not part or not params.lookup[id(i, "rev")] then return end
     if not part.sends_moved.rev then params:set(id(i, "rev"), args[2], true) end
     if not part.sends_moved.dly then params:set(id(i, "dly"), args[3], true) end
   elseif path == "/inserts" then
