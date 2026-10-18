@@ -2,6 +2,8 @@
 -- A part n is the plugin's part n - 1 (an engine track).
 
 local timer = include("lib/timer")
+-- bank patch names before pN_patch_name, for old PSETs
+local OLD_PATCHES = include("lib/oldpatches")
 
 local P = {}
 
@@ -1091,7 +1093,7 @@ end
 
 local function add_part(i)
   local part = P.list[i]
-  params:add_group("part_" .. i, "part " .. i, 15 + P.slots)
+  params:add_group("part_" .. i, "part " .. i, 16 + P.slots)
 
   local chans = {"off"}
   for c = 1, 16 do chans[c + 1] = tostring(c) end
@@ -1140,12 +1142,14 @@ local function add_part(i)
     params:set(id(i, "patch"), 1, true)
     show_machine(i, machine, true)
     part.patch = patch_name(i)
+    params:set(id(i, "patch_name"), part.patch or "", true)
     recall(i)
     later(i, 0.3, function() load_machine(i, true) end)
   end)
 
   params:add_option(id(i, "patch"), "patch", {"-"}, 1)
   params:set_action(id(i, "patch"), function()
+    params:set(id(i, "patch_name"), patch_name(i) or "", true)
     if P.loading or not part.machine then return end
     local name = patch_name(i)
     if name == part.sent and not part.pending then return end -- a bang
@@ -1168,6 +1172,9 @@ local function add_part(i)
   -- the machine's name, for PSETs, as the machine option's index depends on
   -- which machines there are; never shown
   params:add_text(id(i, "machine_name"), "machine name", "")
+  -- the bank patch's name, for PSETs, as its index changes when the bank
+  -- does; never shown
+  params:add_text(id(i, "patch_name"), "patch name", "")
 
   params:add_control(id(i, "volume"), "volume", controlspec.new(-60, 3, "lin", 0.5, 0, "dB"))
   params:set_action(id(i, "volume"), function()
@@ -1224,6 +1231,7 @@ function P.add_params()
     params:hide(id(i, "preset"))
     params:hide(id(i, "mods"))
     params:hide(id(i, "machine_name"))
+    params:hide(id(i, "patch_name"))
   end
   -- params:clear() removes this when the script ends.
   params.action_read = function(filename) P.after_read(filename) end
@@ -1379,6 +1387,28 @@ local function saved_machine(filename, i, v)
   return nil
 end
 
+-- Puts part i on the bank patch a PSET means, without loading it: by its
+-- saved name when this machine's bank has it, else, for a PSET from before
+-- the name was saved, by the name its index had in OLD_PATCHES, else the
+-- saved index as it is.
+local function set_saved_patch(filename, i)
+  local machine = P.list[i].machine
+  local names = machine and P.patches[machine] or {}
+  local want
+  if saved_has(filename, id(i, "patch_name")) then
+    want = params:get(id(i, "patch_name"))
+  elseif OLD_PATCHES[machine] then
+    want = OLD_PATCHES[machine][params:get(id(i, "patch"))]
+  end
+  for k, name in ipairs(names) do
+    if name == want then
+      params:set(id(i, "patch"), k, true)
+      break
+    end
+  end
+  params:set(id(i, "patch_name"), patch_name(i) or "", true)
+end
+
 -- Sets the machine option to the machine's place in the menu, without
 -- running its action.
 local function set_machine_option(i, machine)
@@ -1424,6 +1454,7 @@ function P.after_read(filename)
     -- the read put the saved index back
     for i = 1, P.COUNT do set_machine_option(i, saved[i] or nil) end
   end
+  for i = 1, P.COUNT do set_saved_patch(filename, i) end
   if saved_tables(filename) < P.WAVE_TABLES then
     for i = 1, P.COUNT do migrate_waves(i) end
   end
