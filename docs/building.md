@@ -4,7 +4,7 @@ The plugin must be built for 32-bit ARM, so build it on a norns (or another 32-b
 
 ## On the norns
 
-The script lives in `~/dust/code/acidulous`, so build there. Nothing in the code depends on the folder's name, but **SELECT** shows it as acidulous only when the folder is called that.
+Build in `~/dust/code/acidulous`. The folder name makes it appear as acidulous in SELECT.
 
 You need cmake, the SuperCollider plugin headers (on norns in `/usr/local/include/SuperCollider`) and liblo. All are on a stock norns.
 
@@ -58,7 +58,7 @@ copies the engine, the sequencer, the app's `EngineHost` and JNI bridge (with th
 
 ## OSC access
 
-The plugin listens on UDP port 57150 and drops any message that doesn't come from this machine (liblo can only bind every interface, so it filters instead). To accept other machines, for desktop testing, start scsynth with `ACIDULOUS_OSC_ALL=1` in its environment.
+The plugin listens on UDP port 57150 and accepts only messages from this machine. Liblo binds every interface, so the plugin checks the sender. To accept other machines, for desktop testing, start scsynth with `ACIDULOUS_OSC_ALL=1` in its environment.
 
 ## Testing offline
 

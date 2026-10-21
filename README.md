@@ -47,9 +47,17 @@ If SuperCollider won't start after you've been logged in over ssh, restart the n
 
 ## On the norns
 
-The play page opens first. It shows the selected part's machine and patch, its 5 macros with a knob each, and along the bottom the part number, the MPE mark or **mpe: no device**, **keys** while a keys port is connected, and the load. **E1** changes the machine, **E2** moves between the patch and the macros and **E3** sets what's picked, the next patch or the macro's value, with **K1** held for fine steps. **K2** opens the patch list, **K1** held + **K2** the machine picker and **K3** plays a note. The macros are the same ones as the OMX-27's pots.
+### Play
 
-The parts page lists the parts, each with its machine, patch and a level meter. The bar on the left lights while a part is playing.
+The play page shows the selected part's machine, patch and five macros. The bottom shows the part number, MPE status, keys connection and load. The macros match the OMX-27's pots.
+
+- E1 changes machine, E2 picks the patch or a macro and E3 changes it. Hold K1 for fine steps.
+- K2 opens patches, K1 + K2 opens machines and K3 plays a note.
+- Hold K1 and turn E1 to change pages: play, parts, card, mixer and sends.
+
+### Parts and patches
+
+The parts page shows each machine, patch and level meter. The bar on the left lights when the part plays.
 
 | | |
 |---|---|
@@ -63,15 +71,23 @@ The parts page lists the parts, each with its machine, patch and a level meter. 
 | **K3** | play a note on the part |
 | **K1** held + **K3** | load samples, see [Samples](#samples), or the scope on a Nexus part |
 
-The patch list has the machine's patches in families, like classic, motion and short on Reflux, and the machine picker has the machines in the app's groups, each with a short line. In both **E1** changes the tab, **E2** moves and **K3** loads the patch or mounts the machine, and on the patch you're playing it loads it again with its own values. **K2** closes.
+Patches are grouped into families and machines into the app's groups. In either picker, E1 changes tab, E2 selects, K3 loads and K2 closes. Loading the current patch again restores its values.
 
-The card page has the machine's controls in the same cards as the app, like osc, filter, play and out on Reflux. **E1** picks the card, **E2** the control and **E3** sets it, with **K1** held for fine steps. **K1** held + **E2** right jumps to the amp envelope card, left goes back to the card you left. Cards for one pad of a kit start with a pad control. A patch's effects, like Saw Lead's distortion and delay, have cards after the machine's. Effect settings you change are saved in a PSET and go when you pick another patch. **K2** goes back to the play page.
+### Cards
 
-Each part can have up to two modifiers on the notes it plays: Scale, Chord and Arp, as in the app. The **mods** card, after the effects' cards, sets each slot to none, scale, chord or arp and turns it on or off, and the modifier's own cards follow. Notes go through slot 1, then slot 2. A Scale and a Chord on the same part share key and scale. Modifiers stay when you change the machine or patch, and a PSET saves them. With a Scale on, the play page shows its key and scale at the bottom, like "D dor". The arp, synced LFOs and the delay follow the norns clock's tempo and beat (**PARAMETERS > CLOCK**) from any clock source. An arp with sync on free lands on the clock's beats; on restart it starts with the first key.
+Cards group the machine's controls as in the app. E1 picks a card, E2 a control and E3 changes it. Hold K1 for fine steps. Hold K1 and turn E2 right to jump to the amp envelope, or left to return. Kit cards start with a pad selector. K2 returns to play.
 
-Pan and the card controls that go either side of 0 stop at the centre. Turn 3 more detents the same way to go past it.
+Effect cards follow the machine's. Their edits save in PSETs and reset when you choose a different patch.
 
-The mixer page has a strip per part, with its meter, fader and pan, and **m** or **s** under a muted or soloed part. The out strip on the right has the master meter and fader, and **lim** lights while the limiter is at its ceiling. The top right shows the loudness in LUFS over the last 3 seconds.
+Each part has two note modifier slots for Scale, Chord or Arp. Set them on the mods card, then use their cards to change settings. Notes pass through slot 1, then slot 2. Scale and Chord share key and scale. Modifiers stay when you change patches or machines and save in PSETs. An active Scale shows its key and scale on the play page.
+
+The arp, synced LFOs and delay follow PARAMETERS > CLOCK, from any clock source. Arp sync free follows clock beats; restart begins with the first key.
+
+Pan and other controls that cross zero stop at the centre. Turn three more detents to pass it.
+
+### Mixer and sends
+
+The mixer has a meter, fader and pan for each part, with m for mute and s for solo. The out strip has master level and a lim indicator when the limiter is active. Loudness at the top right covers the last three seconds in LUFS.
 
 | Mixer | |
 |---|---|
@@ -81,7 +97,7 @@ The mixer page has a strip per part, with its meter, fader and pan, and **m** or
 | **K2** | mute |
 | **K3** | solo |
 
-The sends page has a reverb and a delay knob per part. On out they're the reverb's size and the delay's feedback.
+The sends page has reverb and delay sends for each part. On out, the knobs change reverb size and delay feedback.
 
 | Sends | |
 |---|---|
@@ -89,13 +105,13 @@ The sends page has a reverb and a delay knob per part. On out they're the reverb
 | **E2** | reverb send |
 | **E3** | delay send |
 
-The reverb and delay start the first time a part sends to them, so they use no CPU until then. Their other settings are in **PARAMETERS > EDIT > sends and master**. The delay's time is in notes at the norns tempo.
+Reverb and delay start when first used. Other settings are under PARAMETERS > EDIT > sends and master. Delay time is in notes at the norns tempo.
 
-The scope shows a Nexus patch's modules in a chain, and the output of the framed one. **E2** picks the module, **K3** plays a note and **K2** closes. Picking a module dips the sound for a moment.
+### Scope and settings
 
-Every param of every part is in **PARAMETERS > EDIT**, one group per part.
+The Nexus scope shows its modules and the selected module's output. E2 selects, K3 plays a note and K2 closes. Changing modules briefly dips the sound.
 
-After 3 minutes without input the screen, and the OMX-27's, go to an acid bath screensaver. A norns key or encoder only wakes it, while notes and the OMX-27 wake it and play as normal. **screensaver after** in **PARAMETERS > EDIT** sets the time, or **off**.
+PARAMETERS > EDIT has every part's settings. After three minutes without input, both screens show the acid bath screensaver. Norns keys and encoders wake it without acting; notes and OMX-27 controls wake it and play normally. Set screensaver after to another time or off.
 
 ## Parts and MIDI
 
@@ -171,7 +187,9 @@ Picking one on a part loads a sound to start with: the 808 kit from dust/audio/c
 - **Mosaic** plays a SoundFont: pick the .sf2, then one of its presets with **K3**. Or **use this folder** on a folder of WAVs. Files named with a note, like `piano C4.wav` or `pad F#3.wav`, go on that note, and files without one are spread across the keys.
 - **Dice**, **Pollen** and **Molt** take one file each. Pollen with nothing loaded, as in a PSET saved that way, plays the norns input, and **live input** at the top of the file list empties it again.
 
-WAV, AIFF and FLAC work, MP3 doesn't. Dice, Pollen, Molt and Forage's pads take the first 30 seconds of a file. All the parts' samples together can take 320 MB of memory once loaded, and SoundFonts over 64 MB are too big for the norns; a load past either shows an error instead. Files on a USB stick are copied into dust/audio/acidulous/usb when you load them, so the part still has them once the stick is out. File names with a | in them can't be loaded.
+WAV, AIFF and FLAC are supported. MP3 files cannot be loaded. Dice, Pollen, Molt and Forage's pads use the first 30 seconds of a file. Samples across all parts can use 320 MB, with a 64 MB limit per SoundFont. Loads past either limit show an error.
+
+USB files are copied to dust/audio/acidulous/usb, so they stay available after the stick is removed. File names containing `|` cannot be loaded.
 
 ## Saving
 
