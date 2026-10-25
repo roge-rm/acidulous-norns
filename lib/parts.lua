@@ -85,6 +85,7 @@ P.seen = 0        -- when the plugin last sent /load
 P.load, P.worst, P.worst_at = 0, 0, 0
 P.mpe = nil       -- the part getting MPE, or nil; set by the script from "mpe part"
 P.MOD_TYPES = {"Scale", "Chord", "Arp"} -- the modifiers, in menu order
+P.MOD_SLOTS = 3 -- modifier slots a part has, 0 to 2
 P.mod_defs = {}   -- modifier -> list of defs as P.defs, with by = name -> def; from /mod_defs
 P.mod_defs_asked = 0
 P.list = {}
@@ -121,7 +122,7 @@ for i = 1, P.COUNT do
     -- the saved preset the part plays instead of a bank patch, or nil:
     -- {path, index, name}. Saved in the part's "preset" param.
     preset = nil,
-    -- the modifiers, slot 0 and 1 -> {type, bypass, values = name -> 0-1}
+    -- the modifiers, slot 0 to 2 -> {type, bypass, values = name -> 0-1}
     -- or nil. They belong to the part, so a machine or patch change keeps
     -- them. Saved in the part's "mods" param.
     mods = {},
@@ -673,7 +674,7 @@ end
 -- "slot,type,bypass" then ",name=value" per param, joined with "|".
 local function encode_mods(mods)
   local out = {}
-  for slot = 0, 1 do
+  for slot = 0, P.MOD_SLOTS - 1 do
     local m = mods[slot]
     if m then
       local names = {}
@@ -690,8 +691,8 @@ end
 local function decode_mods(s)
   local mods = {}
   for entry in (s or ""):gmatch("[^|]+") do
-    local slot, type, bypass, rest = entry:match("^([01]),(%a+),([01])(.*)$")
-    if slot and tab.contains(P.MOD_TYPES, type) then
+    local slot, type, bypass, rest = entry:match("^([0-9]),(%a+),([01])(.*)$")
+    if slot and tonumber(slot) < P.MOD_SLOTS and tab.contains(P.MOD_TYPES, type) then
       local values = {}
       for name, v in rest:gmatch(",([%w_]+)=([%d%.eE+-]+)") do
         if tonumber(v) then values[name] = util.clamp(tonumber(v), 0, 1) end
@@ -716,11 +717,11 @@ local function send_mod(i, slot)
   end
 end
 
--- Sends the part's modifiers, both slots, emptying the ones it has none in.
+-- Sends the part's modifiers, all slots, emptying the ones it has none in.
 -- A type change still waiting to be sent goes with them.
 local function send_mods(i)
   local part = P.list[i]
-  for slot = 0, 1 do
+  for slot = 0, P.MOD_SLOTS - 1 do
     if part.mod_pending then
       timer.cancel(part.mod_pending[slot])
       part.mod_pending[slot] = nil
@@ -745,6 +746,13 @@ end
 local SHARED = {key = true, scale = true}
 local function shares(m) return m and (m.type == "Scale" or m.type == "Chord") end
 
+-- Another slot of the part holding a Scale or Chord, or nil.
+local function shared_with(part, slot)
+  for s = 0, P.MOD_SLOTS - 1 do
+    if s ~= slot and shares(part.mods[s]) then return part.mods[s] end
+  end
+end
+
 local function set_mod_param(i, slot, name, v)
   local part = P.list[i]
   part.mods[slot].values[name] = v
@@ -764,8 +772,8 @@ function P.set_mod_type(i, slot, type, wait)
   if (old and old.type) == type then return end
   local m = type and {type = type, bypass = false, values = {}} or nil
   part.mods[slot] = m
-  local other = part.mods[1 - slot]
-  if shares(m) and shares(other) then
+  local other = shared_with(part, slot)
+  if shares(m) and other then
     for name in pairs(SHARED) do m.values[name] = mod_param_value(other, name) end
   end
   save_mods(i)
@@ -817,8 +825,11 @@ function P.set_mod(i, ctl, v)
     -- the engine only lets latched notes go on the next note on, so latch
     -- off lets them go now; this also ends notes on keys still held
     if ctl.p == "latch" and was >= 0.5 and v < 0.5 and not m.bypass then P.notes_off(i) end
-    local other = part.mods[1 - ctl.mod]
-    if SHARED[ctl.p] and shares(m) and shares(other) then set_mod_param(i, 1 - ctl.mod, ctl.p, v) end
+    if SHARED[ctl.p] and shares(m) then
+      for s = 0, P.MOD_SLOTS - 1 do
+        if s ~= ctl.mod and shares(part.mods[s]) then set_mod_param(i, s, ctl.p, v) end
+      end
+    end
   end
   save_mods(i)
 end
@@ -826,7 +837,7 @@ end
 -- The slot holding a modifier type on part i, or nil.
 function P.mod_slot(i, type)
   local mods = P.list[i].mods
-  for slot = 0, 1 do
+  for slot = 0, P.MOD_SLOTS - 1 do
     if mods[slot] and mods[slot].type == type then return slot end
   end
 end
@@ -845,29 +856,35 @@ function P.mod_ctl(i, type, name)
   if d then return {mod = s, p = name, def = d} end
 end
 
--- Moves a slot's modifier, with its bypass and params, to the empty slot.
-local function move_mod(i, from, to)
+-- Puts the part's modifiers in the slots layout names (slot -> old slot),
+-- with their bypass and params, and sends every slot that changed.
+local function rearrange(i, layout)
   local part = P.list[i]
+  local waiting = {}
   if part.mod_pending then
-    for slot = 0, 1 do
+    for slot = 0, P.MOD_SLOTS - 1 do
+      waiting[slot] = part.mod_pending[slot] ~= nil
       timer.cancel(part.mod_pending[slot])
       part.mod_pending[slot] = nil
     end
   end
-  part.mods[to], part.mods[from] = part.mods[from], nil
+  local old, new = part.mods, {}
+  for slot, from in pairs(layout) do new[slot] = old[from] end
+  part.mods = new
   save_mods(i)
   P.notes_off(i)
-  send_mod(i, to)
-  send_mod(i, from)
+  for slot = 0, P.MOD_SLOTS - 1 do
+    if new[slot] ~= old[slot] or waiting[slot] then send_mod(i, slot) end
+  end
 end
 
 -- The chain runs slot 0 first: scale before chord before arp.
 local MOD_RANK = {Scale = 1, Chord = 2, Arp = 3}
 
 -- Turns a modifier on part i on or off. Off bypasses it and keeps its
--- params; on un-bypasses it, or mounts it in a free slot, moving the other
--- one so the chain stays in order. Returns "on", "off", or "full" when both
--- slots hold other modifiers.
+-- params; on un-bypasses it, or mounts it in a free slot, moving the others
+-- only if the chain would be out of order. Returns "on", "off", or "full"
+-- when every slot holds other modifiers.
 function P.toggle_mod(i, type)
   local part = P.list[i]
   local s = P.mod_slot(i, type)
@@ -876,16 +893,38 @@ function P.toggle_mod(i, type)
     P.set_mod(i, {mod = s, what = "on"}, on and 1 or 0)
     return on and "on" or "off"
   end
-  local free
-  for slot = 1, 0, -1 do
-    if not part.mods[slot] then free = slot end
+  -- the first free slot that keeps the ranks rising along the slots
+  local want
+  for free = 0, P.MOD_SLOTS - 1 do
+    if not part.mods[free] then
+      local ok, last = true, 0
+      for slot = 0, P.MOD_SLOTS - 1 do
+        local t = slot == free and type or (part.mods[slot] and part.mods[slot].type)
+        if t then
+          if MOD_RANK[t] < last then ok = false end
+          last = MOD_RANK[t]
+        end
+      end
+      if ok then want = free break end
+    end
   end
-  if not free then return "full" end
-  local other = part.mods[1 - free]
-  local want = free
-  if other then
-    want = MOD_RANK[type] < MOD_RANK[other.type] and 0 or 1
-    if want ~= free then move_mod(i, 1 - free, free) end
+  if not want then
+    -- none does: pack them in rank order from slot 0
+    local list = {}
+    for slot = 0, P.MOD_SLOTS - 1 do
+      if part.mods[slot] then list[#list + 1] = {rank = MOD_RANK[part.mods[slot].type], from = slot} end
+    end
+    if #list >= P.MOD_SLOTS then return "full" end
+    list[#list + 1] = {rank = MOD_RANK[type]}
+    table.sort(list, function(a, b)
+      if a.rank ~= b.rank then return a.rank < b.rank end
+      return (a.from or 9) < (b.from or 9)
+    end)
+    local layout = {}
+    for k, e in ipairs(list) do
+      if e.from then layout[k - 1] = e.from else want = k - 1 end
+    end
+    rearrange(i, layout)
   end
   P.set_mod_type(i, want, type)
   return "on"
@@ -898,7 +937,7 @@ P.SCALE_SHORT = {"maj", "dor", "phr", "lyd", "mix", "min", "loc", "hmin", "mmin"
   "neapm", "neapM", "alt", "lyddom", "lydaug", "loc2", "bebd", "bebM", "whole", "dimwh", "dimhw"}
 function P.scale_text(i)
   local mods = P.list[i].mods
-  for slot = 0, 1 do
+  for slot = 0, P.MOD_SLOTS - 1 do
     local m = mods[slot]
     if m and m.type == "Scale" then
       local kd, sd = mod_def("Scale", "key"), mod_def("Scale", "scale")

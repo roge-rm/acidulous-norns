@@ -139,7 +139,7 @@ end
 
 -- The ctl for a param of the type on the selected part, turning the type on
 -- first if the part has none. key and scale can come from a Chord, as Scale
--- and Chord share them. nil if both slots are full.
+-- and Chord share them. nil if every slot is full.
 local function edit_ctl(type, name, shared)
   local P, i = surf.actions.parts, surf.actions.selected()
   local t = type

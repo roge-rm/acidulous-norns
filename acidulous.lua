@@ -724,7 +724,7 @@ local function part_cards()
   cards = all
   -- mounting or reordering modifiers moves their cards: follow the one open
   local types = {}
-  for slot = 0, 1 do types[#types + 1] = part.mods[slot] and part.mods[slot].type or "" end
+  for slot = 0, parts.MOD_SLOTS - 1 do types[#types + 1] = part.mods[slot] and part.mods[slot].type or "" end
   local mods_key = table.concat(types, "|")
   if ps.mod_title and ps.mods_key ~= mods_key then
     for k, c in ipairs(cards) do

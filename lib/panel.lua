@@ -160,7 +160,7 @@ function M.fx_cards(fx)
   if not fx then return {} end
   if fx.cards then return fx.cards end
   local cards = {}
-  for slot = 0, 1 do
+  for slot = 0, MOD_SLOTS - 1 do
     local e = fx[slot]
     if e and #e.params > 0 then
       local title = e.type:lower()
@@ -189,10 +189,11 @@ end
 -- slot) and what ("type", "on") or p (the param) instead of a machine slot.
 local TYPE_DEF = {name = "type", min = 0, max = 3, default = 0, unit = "", steps = 4, curve = "step"}
 local mod_cache = {}
+local MOD_SLOTS = 3 -- as parts.MOD_SLOTS
 
 function M.mod_cards(mods, defs)
   local types = {}
-  for slot = 0, 1 do types[#types + 1] = mods[slot] and mods[slot].type or "" end
+  for slot = 0, MOD_SLOTS - 1 do types[#types + 1] = mods[slot] and mods[slot].type or "" end
   local key = table.concat(types, "|")
   for _, t in ipairs(types) do
     if t ~= "" and not defs[t] then key = nil end -- not cached until its defs come
@@ -201,12 +202,12 @@ function M.mod_cards(mods, defs)
   local opts = {"none"}
   for k, t in ipairs(TYPES) do opts[k + 1] = t:lower() end
   local first = {}
-  for slot = 0, 1 do
+  for slot = 0, MOD_SLOTS - 1 do
     first[#first + 1] = {label = "mod " .. (slot + 1), kind = "step", mod = slot, what = "type", def = TYPE_DEF, opts = opts}
     first[#first + 1] = {label = "on", kind = "onoff", mod = slot, what = "on"}
   end
   local cards = {{title = "mods", controls = first}}
-  for slot = 0, 1 do
+  for slot = 0, MOD_SLOTS - 1 do
     local m = mods[slot]
     local by = m and defs[m.type] and defs[m.type].by
     for _, card in ipairs(by and modcards[m.type] or {}) do

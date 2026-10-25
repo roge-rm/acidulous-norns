@@ -79,7 +79,7 @@ Cards group the machine's controls as in the app. E1 picks a card, E2 a control 
 
 Effect cards follow the machine's. Their edits save in PSETs and reset when you choose a different patch.
 
-Each part has two note modifier slots for Scale, Chord or Arp. Set them on the mods card, then use their cards to change settings. Notes pass through slot 1, then slot 2. Scale and Chord share key and scale. Modifiers stay when you change patches or machines and save in PSETs. An active Scale shows its key and scale on the play page.
+Each part has three note modifier slots for Scale, Chord or Arp. Set them on the mods card, then use their cards to change settings. Notes pass through slot 1, then 2, then 3. Scale and Chord share key and scale. Modifiers stay when you change patches or machines and save in PSETs. An active Scale shows its key and scale on the play page.
 
 The arp, synced LFOs and delay follow PARAMETERS > CLOCK, from any clock source. Arp sync free follows clock beats; restart begins with the first key.
 
