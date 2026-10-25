@@ -50,7 +50,8 @@ static_assert(kParts <= kRackCount, "a part is a rack");
 // Any other channel param can be set by name.
 static const char* const kChannelNames[] = {"gain", "pan", "mute", "solo"};
 // The engine units of the part's modifier slots.
-static const char* const kModUnits[] = {"mod1", "mod2"};
+static const char* const kModUnits[] = {"mod1", "mod2", "mod3"};
+static_assert(sizeof(kModUnits) / sizeof(kModUnits[0]) == kModSlots, "a unit name per modifier slot");
 
 // Forage's 13 pads and the shared sample above them.
 constexpr int kForagePads  = 13;
@@ -1466,7 +1467,7 @@ void Core::set_fx(int part, int slot, const std::string& name, float v01)
     push_param(part, slot == 0 ? "effect1" : "effect2", name, v01);
 }
 
-// Mounts a modifier (Scale, Chord, Arp) in the part's slot 0 or 1, or empties
+// Mounts a modifier (Scale, Chord, Arp) in the part's slot 0 to 2, or empties
 // it with "". It starts on, with its defaults. Modifiers belong to the part,
 // so machine and patch changes leave them.
 void Core::set_mod(int part, int slot, const std::string& type)

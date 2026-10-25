@@ -28,6 +28,7 @@
 #include <utility>
 #include <vector>
 
+#include <engine/core/Constants.h>
 #include <engine/core/PatchChain.h>
 
 namespace acidulous
@@ -70,8 +71,8 @@ struct Replier
 constexpr int kParts = 8;
 // Send buses: 0 reverb, 1 delay.
 constexpr int kSends = 2;
-// Modifier slots a part has. The engine has 3, but EngineHost keeps names for 2.
-constexpr int kModSlots = 2;
+// Modifier slots a part has.
+constexpr int kModSlots = acidulous::kInputModSlots;
 
 // The bytes a file takes decoded to floats: at `to_rate` (0 keeps its own),
 // the first `max_seconds` (0 all of it), mono as one channel unless `both`.

@@ -3,6 +3,7 @@
 // machine come back out of EngineHost::drainMidiOut.
 // - Scale (D dorian, degree mode) then Chord (diatonic) in slots 0 and 1:
 //   a key plays the chord of its scale degree
+// - Scale, Chord and Arp together in slots 0, 1 and 2
 // - /mods reads back the types, bypass and values
 // - bypass, a machine change keeping the modifiers, and unmounting
 // - an Arp stepping with the transport stopped, at the tempo /tempo sets
@@ -285,6 +286,56 @@ int main(int argc, char** argv)
     check(has_off(drain(), 64), "a note off just before an un-bypass reaches the machine");
     check(ons(play(60)) == std::set<int>{62}, "the scale is back on");
 
+    // Scale, Chord and Arp together in slots 0, 1 and 2: a held key arps the
+    // chord of its scale degree.
+    cmd("/mod", {Value::i(0), Value::i(1), Value::s("Chord")});
+    mod_param(1, "key", 2.0 / 11.0);
+    mod_param(1, "scale", 1.0 / 32.0);
+    mod_param(1, "mode", 1.0);
+    cmd("/mod", {Value::i(0), Value::i(2), Value::s("Arp")});
+    r = settle();
+    {
+        const auto& a = r.args;
+        bool        ok = a.size() > 1 && a[0].num == 0;
+        int         slots_seen = 0;
+        for(size_t k = 1; ok && k + 3 < a.size() && slots_seen < 3;)
+        {
+            check(int(a[k].num) == slots_seen, "/mods lists slot " + std::to_string(slots_seen) + " in order");
+            ++slots_seen;
+            k += 4 + 2 * size_t(a[k + 3].num);
+        }
+        check(slots_seen == 3, "/mods lists three slots");
+        bool arp = false;
+        for(size_t k = 1; k + 1 < a.size(); ++k)
+            arp = arp || (a[k].type == 's' && a[k].str == "Arp" && int(a[k - 1].num) == 2);
+        check(arp, "/mods lists the arp in slot 2");
+    }
+    drain();
+    cmd("/note", {Value::i(0), Value::i(1), Value::i(60), Value::i(100)});
+    std::this_thread::sleep_for(1000ms);
+    cmd("/note", {Value::i(0), Value::i(1), Value::i(60), Value::i(0)});
+    std::this_thread::sleep_for(150ms);
+    {
+        const auto notes = drain();
+        check(ons(notes) == std::set<int>{62, 65, 69}, "scale + chord + arp: 60 arps D minor " + show(ons(notes)));
+        check(offs_match(notes), "scale + chord + arp: every note let go");
+    }
+    // The third slot takes its own bypass and param.
+    cmd("/mod_bypass", {Value::i(0), Value::i(2), Value::i(1)});
+    mod_param(2, "latch", 1.0);
+    r = settle();
+    {
+        auto notes = play(60);
+        check(ons(notes) == std::set<int>{62, 65, 69}, "arp bypassed: scale + chord play D minor " + show(ons(notes)));
+    }
+    mod_param(2, "latch", 0.0);
+    cmd("/mod", {Value::i(0), Value::i(2), Value::s("")});
+    cmd("/mod", {Value::i(0), Value::i(1), Value::s("")});
+    // A fourth slot is ignored.
+    cmd("/mod", {Value::i(0), Value::i(3), Value::s("Arp")});
+    settle();
+    check(ons(play(60)) == std::set<int>{62}, "slots 1 and 2 emptied: the scale alone");
+
     // A latched arp keeps going after its key is up, until /mods_off, which
     // keeps its params.
     cmd("/mod", {Value::i(0), Value::i(0), Value::s("")});
@@ -458,7 +509,7 @@ int main(int argc, char** argv)
 
     cmd("/mod", {Value::i(0), Value::i(1), Value::s("")});
     r = settle();
-    check(r.args.size() > 6 && r.args[2].str.empty() && r.args[6].str.empty(), "both slots empty");
+    check(r.args.size() > 6 && r.args[2].str.empty() && r.args[6].str.empty(), "first two slots empty");
 
     go = false;
     audio.join();

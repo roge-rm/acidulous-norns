@@ -15,8 +15,8 @@
 //   /fx i:part i:slot s:name f:value01  a param of the part's insert in slot
 //        0 or 1, by name, as /inserts lists them
 //   /mod i:part i:slot s:type          mounts a modifier ("Scale", "Chord",
-//        "Arp") in the part's slot 0 or 1, on and with its defaults, or
-//        empties the slot with "". Notes go through slot 0, then slot 1.
+//        "Arp") in the part's slot 0 to 2, on and with its defaults, or
+//        empties the slot with "". Notes go through slot 0, then 1, then 2.
 //        They belong to the part: machine and patch changes keep them
 //   /mod_bypass i:part i:slot i:bypass   1 bypasses the slot's modifier
 //   /mod_param i:part i:slot s:name f:value01   a param of the slot's
