@@ -160,7 +160,7 @@ function M.fx_cards(fx)
   if not fx then return {} end
   if fx.cards then return fx.cards end
   local cards = {}
-  for slot = 0, MOD_SLOTS - 1 do
+  for slot = 0, 1 do
     local e = fx[slot]
     if e and #e.params > 0 then
       local title = e.type:lower()
