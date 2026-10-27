@@ -2034,26 +2034,23 @@ bool Core::apply_patch(int part, const std::string& machine, PatchSource& src, c
     else if(machine == "Cumulus")
         request_cloud(part);
 
-    // A Trinity's macro names, macro1..macro8 joined by newlines, or "" when
-    // the patch names none. Other machines clear them.
+    // The patch's macro names, macro1..macro8 joined by newlines, or "" when
+    // it names none.
     {
         std::string names;
-        if(machine == "Trinity")
+        bool        any = false;
+        for(int k = 1; k <= 8; ++k)
         {
-            bool any = false;
-            for(int k = 1; k <= 8; ++k)
-            {
-                const std::string key = "macro" + std::to_string(k);
-                std::string       v;
-                for(const auto& kv : src.settings)
-                    if(kv.first == key)
-                        v = kv.second;
-                any = any || !v.empty();
-                names += (k > 1 ? "\n" : "") + v;
-            }
-            if(!any)
-                names.clear();
+            const std::string key = "macro" + std::to_string(k);
+            std::string       v;
+            for(const auto& kv : src.settings)
+                if(kv.first == key)
+                    v = kv.second;
+            any = any || !v.empty();
+            names += (k > 1 ? "\n" : "") + v;
         }
+        if(!any)
+            names.clear();
         host.setMacroNames(part, names);
     }
 

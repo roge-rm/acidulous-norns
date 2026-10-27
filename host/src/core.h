@@ -97,7 +97,7 @@ class Core
     bool command(const std::string& path, const Args& args);
 
     float load_percent() const;
-    // The part's Trinity macro names, joined by newlines, "" for none. For tests.
+    // The part's patch macro names, joined by newlines, "" for none. For tests.
     std::string macro_names(int part) const;
     // Each part's output peak since the last call, linear. Any thread.
     void levels(float* out);

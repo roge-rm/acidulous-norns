@@ -116,7 +116,7 @@ for i = 1, P.COUNT do
     -- /patch and /unmount sent and not yet answered by /inserts, and when the
     -- last went, so only the newest one's /inserts is shown
     fx_wait = 0, fx_asked = 0,
-    -- a Trinity patch's macro names, 8 strings ("" for unnamed), or nil when
+    -- a patch's macro names, 8 strings ("" for unnamed), or nil when
     -- it names none; from /macro_names, not saved
     macro_names = nil,
     -- the saved preset the part plays instead of a bank patch, or nil:
