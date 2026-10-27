@@ -4,6 +4,8 @@
 local timer = include("lib/timer")
 -- bank patch names before pN_patch_name, for old PSETs
 local OLD_PATCHES = include("lib/oldpatches")
+-- machine params saved by an older engine, for old PSETs
+local LAYOUT = include("lib/layout")
 
 local P = {}
 
@@ -394,6 +396,9 @@ function P.add_master_params()
   -- 1 in a PSET saved with Trinity's macro params, for P.after_read; never shown
   params:add_number("macro_params", "macro params", 0, 1, 1)
   params:hide("macro_params")
+  -- the machine param layout a PSET was saved with, for P.after_read; never shown
+  params:add_number("param_layout", "param layout", 0, 1024, LAYOUT.NOW)
+  params:hide("param_layout")
 end
 
 -- "l12", "c" or "r30", for a pan of -1 to 1.
@@ -1413,6 +1418,21 @@ local function migrate_dests(i)
   end
 end
 
+-- Moves a part's saved machine params from a PSET made with an older param
+-- layout (lib/layout.lua). The new params take their defaults, and new
+-- macros come from the part's patch when it has one, as reset_macros does.
+local function migrate_layout(i)
+  local part = P.list[i]
+  local defs = part.machine and P.defs[part.machine]
+  if not defs then return end
+  local values = {}
+  for j = 1, #defs do values[j] = params:get(id(i, "s" .. j)) end
+  if LAYOUT.migrate(part.machine, values, defs, P.unmap) and patch_name(i) then
+    part.macs_from_patch = true
+  end
+  for j = 1, #defs do params:set(id(i, "s" .. j), values[j], true) end
+end
+
 -- After a PSET is read, sends every part again, in order, so each machine is
 -- mounted before its params arrive. A silent read doesn't run the machine
 -- actions, so the menus are fixed here and the file read again to put the
@@ -1526,6 +1546,10 @@ function P.after_read(filename)
     for i = 1, P.COUNT do reset_macros(i) end
   end
   params:set("macro_params", 1, true)
+  if saved_count(filename, "param_layout", 1, LAYOUT.NOW) < LAYOUT.NOW then
+    for i = 1, P.COUNT do migrate_layout(i) end
+  end
+  params:set("param_layout", LAYOUT.NOW, true)
   P.loading = false
   P.apply_all()
 end
