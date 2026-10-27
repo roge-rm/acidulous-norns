@@ -1,6 +1,8 @@
 #include "Filament.h"
+#include "SymLevel.h"
 #include <engine/machine/Voices.h>
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 
@@ -10,6 +12,15 @@ namespace acidulous::machine {
 // level. Measured before volume 0.8, peak -8.6 dB. Set it too high and the
 // drive knob acts like a volume knob.
 constexpr float kNominal = 0.14f;
+// How loud the sympathetic bank is. Each of its strings is driven only
+// where the played note lands within its narrow resonance, so it needs a
+// lot of gain to be heard at all.
+// Files from before it was this loud are rescaled on load (SymLevel.h).
+constexpr float kSymOut = filament_levels::kOut;
+static_assert(Filament::DstSympathetic == filament_levels::kDstSympathetic && Filament::DestCount == filament_levels::kDests,
+              "SymLevel.h finds the bank among the matrix destinations");
+// Glide times at or under this are no glide: the knob's bottom is 1 ms.
+constexpr float kGlideOff = 0.0015f;
 using namespace dsp;
 
 namespace {
@@ -23,9 +34,46 @@ const int kSymIntervals[Filament::SymCount][Filament::kSympathetic] = {
     {0, 12, 19, 24, 28, 31},     // harmonic series, near enough
     {-1, 0, 1, 11, 12, 13},      // unison, detuned: a course of six
 };
+// The body's resonances at size 0.5, in Hz, and how much of each is heard.
+// The lowest is the air in the box, the next few the top and back plates.
+const float kBodyHz[Filament::kBodyModes] = {98.0f, 196.0f, 285.0f, 420.0f, 610.0f, 940.0f};
+const float kBodyGain[Filament::kBodyModes] = {2.2f, 1.8f, 1.5f, 1.2f, 1.0f, 0.8f};
+// How much of the string reaches the ear without the body.
+constexpr float kBodyDirect = 0.35f;
+// Keeps a string about as loud at full body as with none.
+constexpr float kBodyLevel = 1.4f;
+// How many of a string's harmonics bodyLevelAt reads. Their power is taken
+// to fall as 1/k, which measured closer than a sawtooth's 1/k^2.
+constexpr int kBodyHarmonics = 8;
 } // namespace
 
 Filament::Filament() { initParams(); }
+
+float Filament::bodyLevelAt(float hz) const {
+    // Each resonance as its analogue prototype, jx/Q / (1 - x^2 + jx/Q) at
+    // x = f/f0, which is close enough this far under Nyquist and needs no
+    // trig. Each harmonic is weighted by its power.
+    float sum = 0.0f, weights = 0.0f;
+    for (int k = 1; k <= kBodyHarmonics; ++k) {
+        const float f = hz * static_cast<float>(k);
+        if (f > sampleRate * 0.45f) break;
+        const float w = 1.0f / static_cast<float>(k);
+        for (const auto &side : bodyHz) {
+            float re = kBodyDirect, im = 0.0f;
+            for (int i = 0; i < kBodyModes; ++i) {
+                const float x = f / side[i], bw = x / bodyQ;
+                const float dr = 1.0f - x * x, den = dr * dr + bw * bw;
+                // (j bw) / (dr + j bw) = (bw^2 + j bw dr) / den
+                const float g = kBodyGain[i] * bodyWet / den;
+                re += g * bw * bw;
+                im += g * bw * dr;
+            }
+            sum += 0.5f * w * (re * re + im * im);
+        }
+        weights += w;
+    }
+    return weights > 0.0f ? std::sqrt(sum / weights) : 1.0f;
+}
 
 const ParamDef *Filament::paramDefs(int32_t &count) const {
     static ParamDef defs[Count];
@@ -77,14 +125,16 @@ const ParamDef *Filament::paramDefs(int32_t &count) const {
 
         step(SympatheticOn, "sympathy", 2, 0.0f);
         step(SympatheticTune, "symtune", SymCount, 0.0f);
-        lin(SympatheticLevel, "symlevel", 0.0f, 1.0f, 0.35f);
+        lin(SympatheticLevel, "symlevel", 0.0f, 1.0f, 0.09f); // 0.35 when the bank was 15x quieter, see SymLevel.h
         lin(SympatheticDamping, "symsustain", 0.0f, 1.0f, 0.9f);
         lin(SympatheticSpread, "symwide", 0.0f, 1.0f, 0.7f);
 
         step(BodyOn, "body", 2, 1.0f);
         lin(BodySize, "size", 0.0f, 1.0f, 0.5f);
         lin(BodyMix, "bodymix", 0.0f, 1.0f, 0.35f);
-        lin(BodyDamp, "bodydamp", 0.0f, 1.0f, 0.5f);
+        // Past 1 the Q goes on down from 3 to 1 at the top, 29/27. A value in
+        // 0..1 comes back exactly from a round trip through that range.
+        lin(BodyDamp, "bodydamp", 0.0f, 29.0f / 27.0f, 0.5f);
 
         lin(Drive, "drive", 0.0f, 1.0f, 0.1f);
         // Goes up to 1.5 so quieter patches like Steel can reach the
@@ -129,10 +179,87 @@ const ParamDef *Filament::paramDefs(int32_t &count) const {
         lin(Fine, "fine", -50.0f, 50.0f, 0.0f, "c");
         lin(VelocityAmount, "velocity", 0.0f, 1.0f, 1.0f);
         step(Release, "on release", 2, 1.0f); // ring on, or damp
+        exp_(VibRate, "vibrate", 0.5f, 10.0f, 5.0f, "Hz");
+        lin(VibDepth, "vibdepth", 0.0f, 100.0f, 0.0f, "c");
+        lin(VibDelay, "vibdelay", 0.0f, 2.0f, 0.0f, "s");
+        for (int k = 0; k < kMacros; ++k) {
+            char n[12];
+            const int32_t b = MacroBase + k * MacroParams;
+            std::snprintf(n, sizeof(n), "mac%d", k + 1);
+            lin(b, n, 0.0f, 1.0f, 0.0f);
+            for (int r = 0; r < 4; ++r) {
+                std::snprintf(n, sizeof(n), "mac%d_d%d", k + 1, r + 1);
+                step(b + 1 + r, n, MacroDestCount, 0.0f);
+                std::snprintf(n, sizeof(n), "mac%d_a%d", k + 1, r + 1);
+                lin(b + 5 + r, n, -1.0f, 1.0f, 0.0f);
+            }
+        }
+        lin(Evenness, "evenness", 0.0f, 1.0f, 0.5f);
         built = true;
     }
     count = Count;
     return defs;
+}
+
+namespace {
+// The macro destination each param answers to, or -1 for none.
+struct DestMap {
+    int8_t of[Filament::Count];
+    DestMap() {
+        using F = Filament;
+        for (auto &d : of) d = -1;
+        const int32_t pairs[][2] = {
+            {F::Position, F::McPosition}, {F::Hardness, F::McHardness}, {F::Pressure, F::McPressure},
+            {F::Speed, F::McSpeed}, {F::Noise, F::McGrit}, {F::ExcitLength, F::McLength},
+            {F::ExternalGain, F::McInGain}, {F::Damping, F::McSustain}, {F::DampingKey, F::McSustainKey},
+            {F::Tone, F::McTone}, {F::ToneKey, F::McToneKey}, {F::Dispersion, F::McStiffness},
+            {F::Tension, F::McTension}, {F::DamperPos, F::McDamperAt}, {F::DamperPressure, F::McDamper},
+            {F::Rattle, F::McRattle}, {F::RattleThreshold, F::McRattleAt}, {F::Detune, F::McDetune},
+            {F::Spread, F::McSpread}, {F::Couple, F::McCouple}, {F::SympatheticLevel, F::McSymLevel},
+            {F::SympatheticDamping, F::McSymSustain}, {F::BodySize, F::McBodySize},
+            {F::BodyMix, F::McBodyMix}, {F::BodyDamp, F::McBodyDamp}, {F::Drive, F::McDrive},
+            {F::Volume, F::McVolume}, {F::Pan, F::McPan}, {F::Dry, F::McExciterOut},
+            {F::AmpRelease, F::McDampTime},
+            {F::Eg1A, F::McEg1A}, {F::Eg1D, F::McEg1D}, {F::Eg1S, F::McEg1S}, {F::Eg1R, F::McEg1R},
+            {F::Eg2A, F::McEg2A}, {F::Eg2D, F::McEg2D}, {F::Eg2S, F::McEg2S}, {F::Eg2R, F::McEg2R},
+            {F::Lfo1Rate, F::McLfo1Rate}, {F::Lfo1Depth, F::McLfo1Depth},
+            {F::Lfo2Rate, F::McLfo2Rate}, {F::Lfo2Depth, F::McLfo2Depth},
+            {F::VelocityAmount, F::McVelocity}, {F::MpeTimbre, F::McMpeTimbre},
+            {F::MpePressure, F::McMpePressure},
+            {F::VibRate, F::McVibRate}, {F::VibDepth, F::McVibDepth}, {F::VibDelay, F::McVibDelay},
+            {F::Evenness, F::McEvenness},
+        };
+        for (const auto &pr : pairs) of[pr[0]] = static_cast<int8_t>(pr[1]);
+    }
+};
+const DestMap &destMap() {
+    static const DestMap m;
+    return m;
+}
+} // namespace
+
+float Filament::val(int32_t p, bool goal) const {
+    const float v = read(p, goal);
+    const int d = destMap().of[p];
+    const float off = d < 0 ? 0.0f : mac_[d];
+    if (off == 0.0f) return v;
+    const ParamDef &def = params_.def(p);
+    return def.map(def.unmap(v) + off);
+}
+
+void Filament::updateMacros(bool goal) {
+    for (float &m : mac_) m = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = read(b, goal);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            const int dest = static_cast<int>(read(b + 1 + r, goal) + 0.5f);
+            if (dest > McOff && dest < MacroDestCount) mac_[dest] += knob * read(b + 5 + r, goal);
+        }
+    }
+    // Two octaves either way.
+    mac_[McPitch] = std::clamp(mac_[McPitch], -1.0f, 1.0f);
 }
 
 int32_t Filament::steppedOf(int32_t p) const { return static_cast<int32_t>(paramOf(p) + 0.5f); }
@@ -150,6 +277,7 @@ void Filament::prepare(int32_t sr) {
     for (auto &s : sympathetic) s.prepare(sampleRate);
     for (auto &e : eg) e.setSampleRate(sampleRate);
     lastTuning = -1;
+    bodySizeAt = bodyDampAt = bodyEvenAt = -1.0f; // the body's coefficients follow the rate
     reset();
 }
 
@@ -171,16 +299,26 @@ void Filament::reset() {
         v.bend = 0.0f;
         v.pressure = v.timbre = -1.0f;
         v.prsGlide = 0.0f;
+        v.vibPhase = 0.0f;
+        v.vibStart = v.vibAt = 0;
+        v.glidePos = 1.0f;
+        v.glideAt = 0;
+        v.bodyG = v.bodyGoal = 1.0f;
+        v.bodyHzAt = -1.0f;
     }
+    heldCount = 0;
+    clock_ = 0;
+    for (auto &m : mac_) m = 0.0f;
     for (auto &s : sympathetic) s.clear();
     dampersUp = false;
     damperMix = 0.0f;
     // Retune from the next note instead of keeping the last one.
     lastRoot = 0.0f;
     lastTuning = -1;
-    for (auto &l : lfo) l.reset(0.0f);
+    // The random waves start from the same seed after a panic.
+    for (auto &l : lfo) { l = dsp::LfoGen{}; l.reset(0.0f); }
     lfoValue[0] = lfoValue[1] = 0.0f;
-    for (auto &bq : body) bq.reset();
+    for (auto &side : body) for (auto &bq : side) bq.reset();
     for (auto &e : eg) e.reset();
     stringLevel = 0.0f;
     rngState = kRngSeed;
@@ -206,6 +344,7 @@ void Filament::retuneSympathetic(float rootHz) {
 }
 
 void Filament::noteOn(uint8_t note, uint8_t velocity) {
+    updateMacros(true); // a note reads where the knobs are going, so renders repeat
     // The two mod envelopes belong to the machine, like the LFOs. They start
     // on the first note of a phrase and release when the last note does. A
     // note added on top of a held one doesn't restart them, which would
@@ -214,8 +353,27 @@ void Filament::noteOn(uint8_t note, uint8_t velocity) {
     for (const auto &cand : voices) if (cand.used && cand.gate) { held = true; break; }
     if (!held) for (auto &e : eg) e.retrigger();
 
+    // Mono and legato play one string. Legato over a held note moves its
+    // pitch without plucking, bowing or blowing it again, like a hammer-on.
+    // Glide works in both, from wherever the string is sounding now.
+    const int32_t voiceMode = steppedTargetOf(VoiceMode); // 0 poly, 1 mono, 2 legato
     Voice *v = nullptr;
-    for (auto &cand : voices) if (!cand.used) { v = &cand; break; }
+    if (voiceMode == 1 || voiceMode == 2) {
+        if (heldCount == kHeld) {
+            for (int32_t i = 0; i + 1 < kHeld; ++i) keys[i] = keys[i + 1];
+            --heldCount;
+        }
+        keys[heldCount++] = note;
+        v = &voices[0];
+        if (voiceMode == 2 && v->used && v->gate) {
+            moveTo(note);
+            return;
+        }
+        aim(*v, note);
+    } else {
+        heldCount = 0;
+    }
+    if (v == nullptr) for (auto &cand : voices) if (!cand.used) { v = &cand; break; }
     if (v == nullptr) {
         // Steal the quietest string instead of the oldest, since it'll be
         // missed least.
@@ -231,19 +389,25 @@ void Filament::noteOn(uint8_t note, uint8_t velocity) {
     v->bend = 0.0f;
     v->pressure = v->timbre = -1.0f;
     v->prsGlide = 0.0f;
+    v->vibPhase = 0.0f;
+    v->vibStart = v->vibAt = clock_;
     v->velocity = static_cast<float>(velocity) / 127.0f;
     v->key01 = clampf((static_cast<float>(note) - 24.0f) / 72.0f, 0.0f, 1.0f);
-    v->target = noteHz(static_cast<float>(note));
-    v->freq = v->target;
+    if (voiceMode != 1 && voiceMode != 2) {
+        v->target = noteHz(static_cast<float>(note));
+        v->freq = v->target;
+        v->glidePos = 1.0f;
+    }
     v->damp = 0.0f;
+    v->bodyHzAt = -1.0f; // the body gain jumps to this note's at its first update
     rngState = rngState * 1664525u + 1013904223u;
     v->pan = ((static_cast<float>((rngState >> 9) & 0xffff) / 32768.0f) - 1.0f);
-    const float velAmt = targetOf(VelocityAmount);
+    const float velAmt = goalOf(VelocityAmount);
     v->exciteGain = velocityGain(v->velocity, velAmt);
     const int32_t mode = steppedTargetOf(ExciterMode);
     const float lengthSeconds = mode == Bow || mode == Breath || mode == External
                                     ? 0.0f
-                                    : targetOf(ExcitLength);
+                                    : goalOf(ExcitLength);
     // A pluck or pick displaces the whole string, so its excitation lasts at
     // least one full turn of the loop. A shorter burst would just go round as
     // a pulse train instead of sounding like a string.
@@ -252,21 +416,62 @@ void Filament::noteOn(uint8_t note, uint8_t velocity) {
     // Its contact time scales with the note instead (`length` is the time at
     // middle C), like a piano's lighter treble hammers, so high notes aren't
     // much quieter than low ones.
-    const float turn = sampleRate / std::max(20.0f, v->target);
+    //
+    // Both follow the pitch the string sounds at when it's struck, which is
+    // where a glide starts rather than where it's going.
+    const float sounding = std::max(20.0f, v->freq);
+    const float turn = sampleRate / sounding;
     const bool spread = mode == Pluck || mode == Pick;
-    const float contact = mode == Hammer ? lengthSeconds * 261.63f / std::max(20.0f, v->target)
-                                         : lengthSeconds;
+    const float contact = mode == Hammer ? lengthSeconds * 261.63f / sounding : lengthSeconds;
     // A shorter contact carries less energy, so the gain goes up with pitch
     // to keep the level even across the range.
     if (mode == Hammer) {
-        v->exciteGain *= clampf(std::sqrt(v->target / 261.63f), 0.35f, 3.0f);
+        v->exciteGain *= clampf(std::sqrt(sounding / 261.63f), 0.35f, 3.0f);
     }
     v->exciteLeft = static_cast<int32_t>(spread ? std::max(contact * sampleRate, turn)
                                                 : contact * sampleRate);
+    v->exciteTotal = std::max(1, v->exciteLeft);
     retuneSympathetic(v->target);
 }
 
+void Filament::aim(Voice &v, uint8_t note) {
+    const float hz = noteHz(static_cast<float>(note));
+    const bool gliding = goalOf(Glide) > kGlideOff && v.used;
+    v.glideFrom = gliding ? v.freq : hz;
+    v.glidePos = gliding ? 0.0f : 1.0f;
+    v.glideAt = clock_;
+    if (!gliding) v.freq = hz;
+    v.target = hz;
+}
+
+void Filament::moveTo(uint8_t note) {
+    Voice &v = voices[0];
+    aim(v, note);
+    v.note = note;
+    v.key01 = clampf((static_cast<float>(note) - 24.0f) / 72.0f, 0.0f, 1.0f);
+    v.bend = 0.0f;
+    v.pressure = v.timbre = -1.0f;
+    retuneSympathetic(v.target);
+}
+
 void Filament::noteOff(uint8_t note) {
+    // Mono and legato: a key that's still held keeps the string sounding,
+    // and letting go of the newest goes back to the one before without
+    // exciting the string again. The newest copy of a key goes first.
+    int32_t found = -1;
+    for (int32_t i = heldCount - 1; i >= 0; --i) {
+        if (keys[i] == note) { found = i; break; }
+    }
+    if (found >= 0) {
+        const bool wasTop = found == heldCount - 1;
+        for (int32_t i = found; i + 1 < heldCount; ++i) keys[i] = keys[i + 1];
+        --heldCount;
+        if (heldCount > 0) {
+            const Voice &v = voices[0];
+            if (wasTop && v.used && v.gate && keys[heldCount - 1] != v.note) moveTo(keys[heldCount - 1]);
+            return;
+        }
+    }
     for (auto &v : voices) {
         if (v.used && v.gate && v.note == note) {
             v.gate = false;
@@ -281,6 +486,7 @@ void Filament::noteOff(uint8_t note) {
 }
 
 void Filament::allNotesOff() {
+    heldCount = 0;
     for (auto &v : voices) { v.gate = false; v.damp = 1.0f; }
     for (auto &e : eg) e.release();
 }
@@ -337,6 +543,9 @@ void Filament::applyMatrix(const Voice &v, float *dest) {
 
 bool Filament::render(float *L, float *R, int32_t frames) {
     params_.tick();
+    updateMacros();
+    const int64_t blockStart = clock_;
+    clock_ += frames;
     const float dt = static_cast<float>(frames) / sampleRate;
     static const float kSyncBeats[6] = {0.0f, 4.0f, 2.0f, 1.0f, 0.5f, 1.0f / 3.0f};
     for (int i = 0; i < 2; ++i) {
@@ -366,7 +575,7 @@ bool Filament::render(float *L, float *R, int32_t frames) {
     if (!anyVoice && quietBlocks >= 2) {
         if (!asleep) {
             for (auto &sym : sympathetic) sym.clear();
-            for (auto &bq : body) bq.reset();
+            for (auto &side : body) for (auto &bq : side) bq.reset();
             asleep = true;
         }
         damperMix = dampersUp ? 1.0f : 0.0f;
@@ -409,19 +618,45 @@ bool Filament::render(float *L, float *R, int32_t frames) {
     // the drive.
     const float exciteDcCoeff = 1.0f - std::exp(-2.0f * kPiF * 30.0f / sampleRate);
     const float pitchScale = std::pow(2.0f, (bendSemis + paramOf(Octave) * 12.0f + paramOf(Transpose) +
-                                             paramOf(Fine) * 0.01f) / 12.0f);
+                                             paramOf(Fine) * 0.01f + mac_[McPitch] * 24.0f) / 12.0f);
+    const float vibRate = paramOf(VibRate);
+    const float vibDepth = paramOf(VibDepth);
+    const float vibDelay = paramOf(VibDelay);
+    // How far a glide moves in a sample. It steps with the string's settings
+    // by the samples since its last step, whatever the block size.
+    const float glideSecondsNow = paramOf(Glide);
+    const float glideStep = glideSecondsNow > kGlideOff ? 1.0f / (glideSecondsNow * sampleRate) : -1.0f;
+    const float mpeTimbre = paramOf(MpeTimbre);
     const float releaseCoeff = 1.0f - std::exp(-1.0f / std::fmax(1.0f, paramOf(AmpRelease) * sampleRate));
     const float rattle = paramOf(Rattle);
     const float rattleAt = paramOf(RattleThreshold);
 
     if (bodyOn) {
-        // Four resonant modes for the body. Size moves them together, damp
-        // widens them.
-        static const float kModeHz[kBodyModes] = {110.0f, 220.0f, 400.0f, 780.0f};
-        const float size = std::pow(2.0f, (0.5f - paramOf(BodySize)) * 2.2f);
-        const float q = 1.0f + (1.0f - paramOf(BodyDamp)) * 9.0f;
-        for (int i = 0; i < kBodyModes; ++i) {
-            body[i].peak(clampf(kModeHz[i] * size, 40.0f, 6000.0f), 9.0f, q, sampleRate);
+        // The body's resonances, low air mode first. Size moves them together
+        // and damp widens them. Only worked out again when either moves.
+        const float sizeNow = paramOf(BodySize), dampNow = paramOf(BodyDamp);
+        if (sizeNow != bodySizeAt || dampNow != bodyDampAt) {
+            bodySizeAt = sizeNow;
+            bodyDampAt = dampNow;
+            const float size = std::pow(2.0f, (0.5f - sizeNow) * 2.2f);
+            const float q = std::fmax(1.0f, 3.0f + (1.0f - dampNow) * 27.0f);
+            // A wider resonance passes more of a string's partials, so the
+            // modes are scaled to pass about the same energy at any width.
+            bodyWet = std::sqrt(q / 16.5f);
+            ++bodyGen;
+            bodyQ = q;
+            for (int i = 0; i < kBodyModes; ++i) {
+                bodyHz[0][i] = clampf(kBodyHz[i] * size, 40.0f, 9000.0f);
+                bodyHz[1][i] = clampf(kBodyHz[i] * size * 1.07f, 40.0f, 9000.0f);
+                body[0][i].bandpass(bodyHz[0][i], q, sampleRate);
+                body[1][i].bandpass(bodyHz[1][i], q, sampleRate);
+            }
+        }
+        // Each note's evening out is worked out again when the knob moves.
+        const float evenNow = paramOf(Evenness);
+        if (evenNow != bodyEvenAt) {
+            bodyEvenAt = evenNow;
+            ++bodyGen;
         }
     }
     for (int i = 0; i < kSympathetic; ++i) {
@@ -442,11 +677,17 @@ bool Filament::render(float *L, float *R, int32_t frames) {
     float symMod = 0.0f;
     // The same for the body and the drive.
     float bodyMod = 0.0f, driveMod = 0.0f;
+    // The body gain of the last voice that sounded, for the sympathetic bank,
+    // and how fast a voice's body gain follows its note (5 ms).
+    float bodyGLast = 1.0f;
+    const float bodyGlide = 1.0f - std::exp(-1.0f / (0.005f * sampleRate));
     float driveKNow = driveK, driveNormNow = driveNorm, driveSolved = drive;
 
     for (int32_t n = 0; n < frames; ++n) {
         if (egWanted) { eg[0].next(); eg[1].next(); }
         float mixL = 0.0f, mixR = 0.0f, exciterOut = 0.0f;
+        // What goes into the body: the strings, each with its body gain.
+        float bodyInL = 0.0f, bodyInR = 0.0f;
         float sumForSympathy = 0.0f;
         float loudest = 0.0f;
 
@@ -472,7 +713,31 @@ bool Filament::render(float *L, float *R, int32_t frames) {
             // darker (tonekey) and ring shorter, like real short strings.
             const float keyTone = 1.0f - paramOf(ToneKey) * v.key01 * 0.5f;
             const float tone = clampf((paramOf(Tone) + v.mod[DstTone]) * keyTone, 0.02f, 1.0f);
-            const float freq = v.freq * pitchScale * noteBendMul(v) * std::pow(2.0f, v.mod[DstPitch]);
+            if (v.glidePos < 1.0f) {
+                // Even in pitch, so a glide up and a glide down take as long.
+                const int64_t now = blockStart + n;
+                v.glidePos = glideStep < 0.0f ? 1.0f : std::fmin(1.0f, v.glidePos + glideStep * static_cast<float>(now - v.glideAt));
+                v.glideAt = now;
+                v.freq = v.glidePos >= 1.0f ? v.target
+                                            : v.glideFrom * std::exp2(std::log2(v.target / v.glideFrom) * v.glidePos);
+            }
+            float freq = v.freq * pitchScale * noteBendMul(v) * std::pow(2.0f, v.mod[DstPitch]);
+
+            // Vibrato. The phase runs from the note-on whether the depth is
+            // up or not, so a macro raising it mid-note joins in time; the
+            // depth fades in over `vibdelay`.
+            {
+                const int64_t now = blockStart + n;
+                v.vibPhase += vibRate * static_cast<float>(now - v.vibAt) / sampleRate;
+                v.vibPhase -= std::floor(v.vibPhase);
+                v.vibAt = now;
+                if (vibDepth > 0.0f) {
+                    const float age = static_cast<float>(now - v.vibStart) / sampleRate;
+                    const float fade = vibDelay > 0.0f ? std::fmin(1.0f, age / vibDelay) : 1.0f;
+                    const float cents = vibDepth * fade * std::sin(2.0f * kPiF * v.vibPhase);
+                    freq *= std::exp2(cents / 1200.0f);
+                }
+            }
 
             // How long the string rings is a time, not a loop gain. A string
             // goes round f times a second, so a fixed gain per turn would make
@@ -493,6 +758,17 @@ bool Filament::render(float *L, float *R, int32_t frames) {
                 0.99995f, std::exp(-1.0f / (std::fmax(20.0f, freq) * std::fmax(0.002f, ring))));
 
             v.freqNow = freq;
+            // The body's level follows the note's own pitch, not the vibrato,
+            // bend, glide or pitch modulation, so it is worked out at note-on
+            // and on a real note change only.
+                        const float bodyHz = v.target * pitchScale / std::pow(2.0f, bendSemis / 12.0f);
+            if (bodyOn && (v.bodyGenAt != bodyGen || v.bodyHzAt < 0.0f || std::fabs(bodyHz - v.bodyHzAt) > v.bodyHzAt * 0.002f)) {
+                v.bodyGoal = std::pow(kBodyLevel * bodyLevelAt(bodyHz), -bodyEvenAt);
+                if (v.bodyHzAt < 0.0f) v.bodyG = v.bodyGoal;
+                v.bodyGenAt = bodyGen;
+                v.bodyHzAt = bodyHz;
+
+            }
             v.a.setFrequency(freq);
             v.b.setFrequency(freq * std::pow(2.0f, (detune + v.mod[DstDetune] * 50.0f) / 1200.0f));
             v.a.setDamping(damped, tone);
@@ -537,7 +813,9 @@ bool Filament::render(float *L, float *R, int32_t frames) {
                 if (v.exciteLeft > 0) {
                     // A hammer is a soft impulse, softened further by the
                     // hardness setting, like felt compressing.
-                    const float t = 1.0f - static_cast<float>(v.exciteLeft) / std::fmax(1.0f, paramOf(ExcitLength) * sampleRate);
+                    // One bump over the contact this note was given, so it starts and
+                    // ends at zero whatever the note.
+                    const float t = 1.0f - static_cast<float>(v.exciteLeft) / static_cast<float>(v.exciteTotal);
                     const float soft = std::sin(kPiF * t);
                     excite = soft * soft * (1.0f - hardNow * 0.6f) * v.exciteGain * 2.0f;
                     --v.exciteLeft;
@@ -592,7 +870,7 @@ bool Filament::render(float *L, float *R, int32_t frames) {
             // MPE slide moves the pick along the string.
             const float slide = v.timbre >= 0.0f ? v.timbre : 0.0f;
             const float pos = clampf(position + v.mod[DstPosition] +
-                                         slide * paramOf(MpeTimbre) * 0.28f,
+                                         slide * mpeTimbre * 0.28f,
                                      0.02f, 0.5f);
             // Pluck, pick and hammer act at one point and leave, so they get
             // the comb (like a piano hammer placed to lose the 7th harmonic).
@@ -638,6 +916,12 @@ bool Filament::render(float *L, float *R, int32_t frames) {
 
             mixL += voiceOut * v.panL * 1.4142f;
             mixR += voiceOut * v.panR * 1.4142f;
+            if (bodyOn) {
+                v.bodyG += (v.bodyGoal - v.bodyG) * bodyGlide;
+                bodyInL += voiceOut * v.panL * 1.4142f * v.bodyG;
+                bodyInR += voiceOut * v.panR * 1.4142f * v.bodyG;
+                bodyGLast = v.bodyG;
+            }
             symMod = v.mod[DstSympathetic];
             bodyMod = v.mod[DstBody];
             driveMod = v.mod[DstDrive];
@@ -658,21 +942,37 @@ bool Filament::render(float *L, float *R, int32_t frames) {
             float symOut = 0.0f;
             for (int i = 0; i < kSympathetic; ++i)
                 symOut += sympathetic[i].step(symFeed * sympathetic[i].turnScale());
-            symOut *= 0.2f * clampf(symLevel + symMod, 0.0f, 1.0f) * symGate;
+            symOut *= kSymOut * clampf(symLevel + symMod, 0.0f, 1.0f) * symGate;
             mixL += symOut;
             mixR += symOut * 0.85f;
+            bodyInL += symOut * bodyGLast;
+            bodyInR += symOut * 0.85f * bodyGLast;
         }
 
         float outL = mixL, outR = mixR;
         if (bodyOn) {
+            // The body is what a listener mostly hears: a little of the string
+            // straight through and the rest through its resonances. The mix
+            // fades from the bare string to that.
             float bl = 0.0f, br = 0.0f;
             for (int i = 0; i < kBodyModes; ++i) {
-                const float s = body[i].process(i == 0 ? mixL : mixR);
-                if (i % 2 == 0) bl += s; else br += s;
+                bl += body[0][i].process(bodyInL) * kBodyGain[i];
+                br += body[1][i].process(bodyInR) * kBodyGain[i];
             }
+            bl = bodyInL * kBodyDirect + bl * bodyWet;
+            br = bodyInR * kBodyDirect + br * bodyWet;
             const float mixNow = bodyMod == 0.0f ? bodyMix : clampf(bodyMix + bodyMod, 0.0f, 1.0f);
-            outL = mixL * (1.0f - mixNow) + bl * mixNow * 0.5f;
-            outR = mixR * (1.0f - mixNow) + br * mixNow * 0.5f;
+            if (mixNow != bodyMixAt) {
+                // Between a straight fade and an equal-power one: away from
+                // its resonances the body is out of phase with the bare
+                // string, so a straight fade dips in the middle, and near them
+                // it's in phase, so an equal-power fade bulges.
+                bodyMixAt = mixNow;
+                bodyDryGain = mixNow >= 1.0f ? 0.0f : std::pow(std::cos(mixNow * 0.5f * kPiF), 1.5f);
+                bodyWetGain = std::pow(std::sin(mixNow * 0.5f * kPiF), 1.5f) * kBodyLevel;
+            }
+            outL = mixL * bodyDryGain + bl * bodyWetGain;
+            outR = mixR * bodyDryGain + br * bodyWetGain;
         }
         outL += exciterOut * dry;
         outR += exciterOut * dry;

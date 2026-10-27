@@ -36,8 +36,41 @@ class Timber final : public Machine {
         // Added later. Parameters are looked up by name, so older patches get
         // the default.
         MpeTimbre,
+        // A swell in the breath from each note-on: positive starts the breath
+        // low and rises to the set pressure, negative starts above it and
+        // falls back. 0 is off. A slurred note carries on the one it joined.
+        Swell, SwellTime,
+        // Eight macro knobs, each with four routes: a destination (a
+        // MacroDest) and a depth. A macro's knob times a route's depth is
+        // added to the destination, in its own 0..1 range. Block rate. Pitch
+        // is 24 semitones per unit.
+        MacroBase,
+        MacroParams = 9, // knob, 4 destinations, 4 depths
+        // Added after the macros. Mono only, and the same as Brazen's.
+        // Legato on slurs a note onto a held key, gliding over `glide` or
+        // jumping at 0; off tongues it, unless glide is on. Choke on makes a
+        // note after a release cut the old tail: it slurs from it with glide
+        // on, and is tongued on that voice at 0. Off lets the tail ring on
+        // its own voice.
+        Legato = MacroBase + 8 * MacroParams, Choke,
         Count
     };
+    // Where a macro route goes. Continuous params only: family, bore,
+    // register, filter type, mono and the tuning steps are left out.
+    enum MacroDest : int32_t {
+        McOff, McBody, McLattice, McHoles, McFingering, McBelow, McAnswer,
+        McReed, McEmbouchure, McPressure, McBreath, McJet, McAim,
+        McBell, McLoss,
+        McTongue, McTongueTime, McFlutter, McFlutterRate, McKeys,
+        McAttack, McDecay, McSustain, McRelease,
+        McVibrato, McVibratoRate, McVibratoDelay,
+        McCutoff, McResonance, McGlide, McVelocity,
+        McDrive, McVolume, McPan, McMpeTimbre,
+        McSwell, McSwellTime,
+        McPitch,
+        MacroDestCount
+    };
+    static constexpr int kMacros = 8;
     static_assert(Count <= kMaxParams, "Timber declares more parameters than a unit can hold");
 
     Timber();
@@ -87,9 +120,19 @@ class Timber final : public Machine {
         // channel bend. `pressure` and `timbre` are -1 until the note sends
         // them, so a normal keyboard falls back to the channel values.
         float bend = 0.0f, pressure = -1.0f, timbre = -1.0f;
+        // The breath swell: the pressure it starts at as a fraction of the
+        // set one, how far through it is (0..1) and how far a sample moves it.
+        float swellFrom = 1.0f, swellPos = 1.0f, swellStep = 0.0f;
     };
 
-    float paramOf(int32_t p) const { return params_.get(p); }
+    /** Param [p], smoothed, with the macros' routes to it added. */
+    float paramOf(int32_t p) const { return val(p, false); }
+    /** Param [p]'s target with the macros' targets added, for note-on seeds. */
+    float goalOf(int32_t p) const { return val(p, true); }
+    float val(int32_t p, bool goal) const;
+    /** Fills [mac_] from the macro knobs, smoothed or (when [goal]) their targets. */
+    void updateMacros(bool goal = false);
+    float read(int32_t p, bool goal) const { return goal ? params_.target(p) : params_.get(p); }
     int32_t steppedOf(int32_t p) const { return static_cast<int32_t>(paramOf(p) + 0.5f); }
     Voice *allocate();
     void startVoice(Voice &v, uint8_t note, uint8_t velocity, bool slurred);
@@ -102,6 +145,7 @@ class Timber final : public Machine {
     static constexpr uint32_t kRngSeed = 0x2f6e2b1u;
     uint32_t rng = kRngSeed;
     float lastLattice = 1500.0f;
+    float mac_[MacroDestCount]{};
 };
 
 } // namespace acidulous::machine

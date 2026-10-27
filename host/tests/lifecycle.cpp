@@ -83,7 +83,7 @@ int main(int argc, char** argv)
 
         Audio audio(*c);
         c->command("/patch", {core::Value::i(0), core::Value::s("Reflux"), core::Value::s("Classic")});
-        c->command("/patch", {core::Value::i(1), core::Value::s("Hexbeat"), core::Value::s("Straight")});
+        c->command("/patch", {core::Value::i(1), core::Value::s("Hexbeat"), core::Value::s("Squared")});
         c->drain();
         // The part has another machine; the note follows the remount at once.
         c->command("/patch", {core::Value::i(0), core::Value::s("Trinity"), core::Value::s("Wide Saws")});

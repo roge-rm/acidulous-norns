@@ -1,4 +1,4 @@
-# Molt - twenty-four patches, voiced against the debug build.
+# Molt - thirty-seven patches and an Init, voiced against the debug build.
 #
 # The last machine in the app to get a bank, and the one where "a bank" needs
 # explaining. Molt has no sound of its own. It takes a take somebody sang,
@@ -8,7 +8,7 @@
 # a voice you supply**, the same shape of thing Dice's eighteen store for a
 # loop. Mount a different take and every patch still means what it says.
 #
-# That is why there are twenty-four and not forty. Sweeping `formant` across
+# That is why there are thirty-seven and not sixty. Sweeping `formant` across
 # its range would be twelve near-duplicates of one voice; what earns a patch
 # is doing something nameable.
 #
@@ -73,6 +73,18 @@
 #   bendrange  0..24 semitones, so #12 is an octave
 #
 # Families: tune, robot, size, tone, shape, play.
+#
+# Every patch but Init carries eight named macros. Destinations are numbered
+# as in Molt.h's MacroDest: #1 start, #2 tune, #3 rate, #4 formant, #5 mega,
+# #6 cutoff, #7 resonance, #8 attack, #9 decay, #10 sustain, #11 release,
+# #12 velocity, #13 drive, #14 volume, #15 pan, #16 pitch (24 semitones a
+# unit). Each family has its own set of eight. A macro whose knob has no room
+# left goes the other way under the opposite name (Smaller, Brighter, Clean,
+# Octave Up...). Where a macro at full moves the level by more than a
+# decibel, a volume route takes it back out; where the volume is already at
+# the top, the macro moves less instead. Talkbox and Telephone have Slow In
+# where the others have Later: moving the start lands their narrow band on
+# a different vowel and the level jumps with it.
 
 machine Molt
 
@@ -86,6 +98,79 @@ patch Natural family=tune
   tune           0.0
   rate           40 ms
   volume         0.75
+  set macro1 "Pull"
+  mac1_d1  #2
+  mac1_a1  0.55
+  mac1_d2  #14
+  mac1_a2  0.108
+  set macro2 "Slower"
+  mac2_d1  #3
+  mac2_a1  0.3
+  set macro3 "Bigger"
+  mac3_d1  #4
+  mac3_a1  -0.2
+  mac3_d2  #14
+  mac3_a2  0.182
+  set macro4 "Darker"
+  mac4_d1  #6
+  mac4_a1  -0.25
+  set macro5 "Grit"
+  mac5_d1  #13
+  mac5_a1  0.5
+  mac5_d2  #14
+  mac5_a2  -0.219
+  set macro6 "Horn"
+  mac6_d1  #5
+  mac6_a1  0.6
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.167
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  0.101
+
+patch Nudge family=tune
+  # A little way onto the note, slowly, so the sung line keeps its shape and
+  # only the notes furthest out are pulled in. Between Natural and Correct.
+  tune           0.45
+  rate           120 ms
+  volume         0.89
+  set macro1 "Pull"
+  mac1_d1  #2
+  mac1_a1  0.55
+  set macro2 "Slower"
+  mac2_d1  #3
+  mac2_a1  0.3
+  set macro3 "Bigger"
+  mac3_d1  #4
+  mac3_a1  -0.2
+  set macro4 "Darker"
+  mac4_d1  #6
+  mac4_a1  -0.25
+  set macro5 "Grit"
+  mac5_d1  #13
+  mac5_a1  0.5
+  mac5_d2  #14
+  mac5_a2  -0.286
+  set macro6 "Horn"
+  mac6_d1  #5
+  mac6_a1  0.6
+  mac6_d2  #14
+  mac6_a2  -0.188
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.198
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.082
 
 patch Correct family=tune
   # A singer correcting themselves: most of the way onto the note, over about
@@ -94,6 +179,40 @@ patch Correct family=tune
   tune           0.78
   rate           60 ms
   volume         0.9
+  set macro1 "Looser"
+  mac1_d1  #2
+  mac1_a1  -0.5
+  mac1_d2  #14
+  mac1_a2  -0.083
+  set macro2 "Slower"
+  mac2_d1  #3
+  mac2_a1  0.3
+  set macro3 "Bigger"
+  mac3_d1  #4
+  mac3_a1  -0.2
+  set macro4 "Darker"
+  mac4_d1  #6
+  mac4_a1  -0.25
+  set macro5 "Grit"
+  mac5_d1  #13
+  mac5_a1  0.5
+  mac5_d2  #14
+  mac5_a2  -0.296
+  set macro6 "Horn"
+  mac6_d1  #5
+  mac6_a1  0.6
+  mac6_d2  #14
+  mac6_a2  -0.199
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.267
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.095
 
 patch Hard family=tune
   # The one everybody knows. Every moment on the note, arrived at instantly,
@@ -108,6 +227,40 @@ patch Hard family=tune
   cutoff         7000 Hz
   filtertype     #1
   volume         0.59
+  set macro1 "Looser"
+  mac1_d1  #2
+  mac1_a1  -0.5
+  set macro2 "Slower"
+  mac2_d1  #3
+  mac2_a1  0.3
+  set macro3 "Bigger"
+  mac3_d1  #4
+  mac3_a1  -0.2
+  mac3_d2  #14
+  mac3_a2  -0.035
+  set macro4 "Darker"
+  mac4_d1  #6
+  mac4_a1  -0.25
+  set macro5 "Grit"
+  mac5_d1  #13
+  mac5_a1  0.5
+  mac5_d2  #14
+  mac5_a2  -0.062
+  set macro6 "Horn"
+  mac6_d1  #5
+  mac6_a1  0.6
+  mac6_d2  #14
+  mac6_a2  -0.105
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.119
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.043
 
 patch "Catch Up" family=tune
   # Full correction arriving late, so every note is scooped into from
@@ -121,6 +274,77 @@ patch "Catch Up" family=tune
   tune           0.95
   rate           250 ms
   volume         0.93
+  set macro1 "Looser"
+  mac1_d1  #2
+  mac1_a1  -0.5
+  set macro2 "Quicker"
+  mac2_d1  #3
+  mac2_a1  -0.5
+  set macro3 "Bigger"
+  mac3_d1  #4
+  mac3_a1  -0.2
+  set macro4 "Darker"
+  mac4_d1  #6
+  mac4_a1  -0.25
+  set macro5 "Grit"
+  mac5_d1  #13
+  mac5_a1  0.5
+  mac5_d2  #14
+  mac5_a2  -0.309
+  set macro6 "Horn"
+  mac6_d1  #5
+  mac6_a1  0.6
+  mac6_d2  #14
+  mac6_a2  -0.176
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.236
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.110
+
+patch Drag family=tune
+  # Every note scooped into from a long way off, slower than Catch Up, so a
+  # quick line never quite lands and a held note slides home.
+  tune           0.97
+  rate           400 ms
+  volume         0.93
+  set macro1 "Looser"
+  mac1_d1  #2
+  mac1_a1  -0.5
+  set macro2 "Quicker"
+  mac2_d1  #3
+  mac2_a1  -0.5
+  set macro3 "Bigger"
+  mac3_d1  #4
+  mac3_a1  -0.2
+  set macro4 "Darker"
+  mac4_d1  #6
+  mac4_a1  -0.25
+  set macro5 "Grit"
+  mac5_d1  #13
+  mac5_a1  0.5
+  mac5_d2  #14
+  mac5_a2  -0.302
+  set macro6 "Horn"
+  mac6_d1  #5
+  mac6_a1  0.6
+  mac6_d2  #14
+  mac6_a2  -0.171
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.256
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.092
 
 patch Robot family=robot
   # Every mark takes the written pitch, voiced or not, so the consonants come
@@ -128,6 +352,40 @@ patch Robot family=robot
   # headline and it needs no filter to be itself.
   robot          #1
   volume         0.91
+  set macro1 "Bigger"
+  mac1_d1  #4
+  mac1_a1  -0.2
+  mac1_d2  #14
+  mac1_a2  -0.053
+  set macro2 "Horn"
+  mac2_d1  #5
+  mac2_a1  0.6
+  mac2_d2  #14
+  mac2_a2  -0.187
+  set macro3 "Darker"
+  mac3_d1  #6
+  mac3_a1  -0.25
+  set macro4 "Resonant"
+  mac4_d1  #7
+  mac4_a1  0.5
+  set macro5 "Grit"
+  mac5_d1  #13
+  mac5_a1  0.5
+  mac5_d2  #14
+  mac5_a2  -0.303
+  set macro6 "Longer"
+  mac6_d1  #11
+  mac6_a1  0.3
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.221
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.096
 
 patch Choir family=robot
   # The signature. One read head, four voices: draw a chord and the take
@@ -138,6 +396,87 @@ patch Choir family=robot
   glide          0.12 s
   amprelease     0.4 s
   volume         0.91
+  set macro1 "Bigger"
+  mac1_d1  #4
+  mac1_a1  -0.2
+  mac1_d2  #14
+  mac1_a2  -0.053
+  set macro2 "Horn"
+  mac2_d1  #5
+  mac2_a1  0.6
+  mac2_d2  #14
+  mac2_a2  -0.187
+  set macro3 "Darker"
+  mac3_d1  #6
+  mac3_a1  -0.25
+  set macro4 "Resonant"
+  mac4_d1  #7
+  mac4_a1  0.5
+  set macro5 "Grit"
+  mac5_d1  #13
+  mac5_a1  0.5
+  mac5_d2  #14
+  mac5_a2  -0.303
+  set macro6 "Longer"
+  mac6_d1  #11
+  mac6_a1  0.3
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.221
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.096
+
+patch "Tin Voice" family=robot
+  # The monotone through a little of the horn and a slightly smaller throat,
+  # so the voice sounds like it comes out of a toy.
+  robot          #1
+  mega           0.35
+  formant        +2 st
+  cutoff         5000 Hz
+  filtertype     #1
+  drive          0.2
+  volume         0.47
+  set macro1 "Bigger"
+  mac1_d1  #4
+  mac1_a1  -0.2
+  mac1_d2  #14
+  mac1_a2  0.081
+  set macro2 "Horn"
+  mac2_d1  #5
+  mac2_a1  0.6
+  mac2_d2  #14
+  mac2_a2  -0.084
+  set macro3 "Darker"
+  mac3_d1  #6
+  mac3_a1  -0.25
+  mac3_d2  #14
+  mac3_a2  0.298
+  set macro4 "Resonant"
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac4_d2  #14
+  mac4_a2  -0.034
+  set macro5 "Grit"
+  mac5_d1  #13
+  mac5_a1  0.5
+  mac5_d2  #14
+  mac5_a2  -0.070
+  set macro6 "Longer"
+  mac6_d1  #11
+  mac6_a1  0.3
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.237
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
 
 patch Talkbox family=robot
   # A monotone through a resonant band, which is the cheap way to the sound a
@@ -148,6 +487,38 @@ patch Talkbox family=robot
   cutoff         1200 Hz
   resonance      0.62
   volume         1.5
+  set macro1 "Bigger"
+  mac1_d1  #4
+  mac1_a1  -0.08
+  set macro2 "Horn"
+  mac2_d1  #5
+  mac2_a1  0.6
+  mac2_d2  #14
+  mac2_a2  -0.516
+  set macro3 "Brighter"
+  mac3_d1  #6
+  mac3_a1  0.087
+  set macro4 "Smooth"
+  mac4_d1  #7
+  mac4_a1  -0.4
+  mac4_d2  #14
+  mac4_a2  -0.159
+  set macro5 "Grit"
+  mac5_d1  #13
+  mac5_a1  0.5
+  mac5_d2  #14
+  mac5_a2  -0.538
+  set macro6 "Longer"
+  mac6_d1  #11
+  mac6_a1  0.3
+  set macro7 "Slow In"
+  mac7_d1  #8
+  mac7_a1  0.35
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.178
 
 patch Monk family=robot
   # The written pitch an octave down, slow to leave. A monotone low enough
@@ -157,6 +528,122 @@ patch Monk family=robot
   formant        -3 st
   amprelease     0.9 s
   volume         0.9
+  set macro1 "Bigger"
+  mac1_d1  #4
+  mac1_a1  -0.2
+  mac1_d2  #14
+  mac1_a2  0.138
+  set macro2 "Horn"
+  mac2_d1  #5
+  mac2_a1  0.6
+  set macro3 "Darker"
+  mac3_d1  #6
+  mac3_a1  -0.25
+  set macro4 "Resonant"
+  mac4_d1  #7
+  mac4_a1  0.5
+  set macro5 "Grit"
+  mac5_d1  #13
+  mac5_a1  0.5
+  mac5_d2  #14
+  mac5_a2  -0.263
+  set macro6 "Longer"
+  mac6_d1  #11
+  mac6_a1  0.3
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.200
+  set macro8 "Octave Up"
+  mac8_d1  #16
+  mac8_a1  0.5
+  mac8_d2  #14
+  mac8_a2  0.182
+
+patch Mantra family=robot
+  # A monotone that runs round the take for as long as the note is held,
+  # coming in slowly and leaving slowly. Words as a drone.
+  robot          #1
+  loop           #1
+  formant        -2 st
+  cutoff         3000 Hz
+  filtertype     #1
+  ampattack      0.25 s
+  amprelease     1.8 s
+  volume         0.95
+  set macro1 "Bigger"
+  mac1_d1  #4
+  mac1_a1  -0.2
+  set macro2 "Horn"
+  mac2_d1  #5
+  mac2_a1  0.6
+  set macro3 "Darker"
+  mac3_d1  #6
+  mac3_a1  -0.25
+  mac3_d2  #14
+  mac3_a2  0.111
+  set macro4 "Resonant"
+  mac4_d1  #7
+  mac4_a1  0.5
+  set macro5 "Grit"
+  mac5_d1  #13
+  mac5_a1  0.5
+  mac5_d2  #14
+  mac5_a2  -0.305
+  set macro6 "Shorter"
+  mac6_d1  #11
+  mac6_a1  -0.3
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.251
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.094
+
+patch "Grown Up" family=size
+  # A throat a little larger than the singer's own. The plainest of the size
+  # patches: the same voice, older.
+  formant        -2 st
+  volume         0.89
+  set macro1 "Bigger"
+  mac1_d1  #4
+  mac1_a1  -0.2
+  mac1_d2  #14
+  mac1_a2  0.057
+  set macro2 "Darker"
+  mac2_d1  #6
+  mac2_a1  -0.25
+  set macro3 "Horn"
+  mac3_d1  #5
+  mac3_a1  0.6
+  mac3_d2  #14
+  mac3_a2  -0.088
+  set macro4 "Resonant"
+  mac4_d1  #7
+  mac4_a1  0.5
+  set macro5 "Grit"
+  mac5_d1  #13
+  mac5_a1  0.5
+  mac5_d2  #14
+  mac5_a2  -0.286
+  set macro6 "Looser"
+  mac6_d1  #2
+  mac6_a1  -0.5
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.189
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.094
 
 patch Giant family=size
   # The same note sung by somebody twice the size. Nothing here touches the
@@ -164,6 +651,42 @@ patch Giant family=size
   # which is the thing a sampler cannot do.
   formant        -8 st
   volume         1.22
+  set macro1 "Smaller"
+  mac1_d1  #4
+  mac1_a1  0.2
+  mac1_d2  #14
+  mac1_a2  -0.210
+  set macro2 "Darker"
+  mac2_d1  #6
+  mac2_a1  -0.25
+  set macro3 "Horn"
+  mac3_d1  #5
+  mac3_a1  0.6
+  mac3_d2  #14
+  mac3_a2  -0.167
+  set macro4 "Resonant"
+  mac4_d1  #7
+  mac4_a1  0.5
+  set macro5 "Grit"
+  mac5_d1  #13
+  mac5_a1  0.5
+  mac5_d2  #14
+  mac5_a2  -0.420
+  set macro6 "Looser"
+  mac6_d1  #2
+  mac6_a1  -0.5
+  mac6_d2  #14
+  mac6_a2  -0.217
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.18
+  mac7_d2  #14
+  mac7_a2  0.131
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.217
 
 patch Child family=size
   # And the other way. Not a chipmunk: the note is where it was written, only
@@ -171,6 +694,90 @@ patch Child family=size
   formant        +7 st
   cutoff         9000 Hz
   volume         0.67
+  set macro1 "Bigger"
+  mac1_d1  #4
+  mac1_a1  -0.2
+  mac1_d2  #14
+  mac1_a2  0.170
+  set macro2 "Darker"
+  mac2_d1  #6
+  mac2_a1  -0.25
+  mac2_d2  #14
+  mac2_a2  0.043
+  set macro3 "Horn"
+  mac3_d1  #5
+  mac3_a1  0.6
+  mac3_d2  #14
+  mac3_a2  -0.035
+  set macro4 "Resonant"
+  mac4_d1  #7
+  mac4_a1  0.5
+  set macro5 "Grit"
+  mac5_d1  #13
+  mac5_a1  0.5
+  mac5_d2  #14
+  mac5_a2  -0.190
+  set macro6 "Looser"
+  mac6_d1  #2
+  mac6_a1  -0.5
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.206
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  0.163
+
+patch "Small Voice" family=size
+  # The throat a whole octave smaller with the note left where it is: a
+  # singer the size of a toy.
+  formant        +12 st
+  cutoff         7000 Hz
+  filtertype     #1
+  volume         0.73
+  set macro1 "Bigger"
+  mac1_d1  #4
+  mac1_a1  -0.2
+  mac1_d2  #14
+  mac1_a2  -0.063
+  set macro2 "Darker"
+  mac2_d1  #6
+  mac2_a1  -0.25
+  mac2_d2  #14
+  mac2_a2  0.098
+  set macro3 "Horn"
+  mac3_d1  #5
+  mac3_a1  0.6
+  mac3_d2  #14
+  mac3_a2  -0.091
+  set macro4 "Resonant"
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac4_d2  #14
+  mac4_a2  -0.053
+  set macro5 "Grit"
+  mac5_d1  #13
+  mac5_a1  0.5
+  mac5_d2  #14
+  mac5_a2  -0.225
+  set macro6 "Looser"
+  mac6_d1  #2
+  mac6_a1  -0.5
+  mac6_d2  #14
+  mac6_a2  0.047
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.177
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  0.177
 
 patch Chest family=size
   # A little larger, and heard from inside the room rather than across it.
@@ -178,6 +785,44 @@ patch Chest family=size
   cutoff         2400 Hz
   filtertype     #1
   volume         0.89
+  set macro1 "Bigger"
+  mac1_d1  #4
+  mac1_a1  -0.2
+  mac1_d2  #14
+  mac1_a2  0.369
+  set macro2 "Darker"
+  mac2_d1  #6
+  mac2_a1  -0.25
+  mac2_d2  #14
+  mac2_a2  0.088
+  set macro3 "Horn"
+  mac3_d1  #5
+  mac3_a1  0.6
+  mac3_d2  #14
+  mac3_a2  0.120
+  set macro4 "Resonant"
+  mac4_d1  #7
+  mac4_a1  0.5
+  set macro5 "Grit"
+  mac5_d1  #13
+  mac5_a1  0.5
+  mac5_d2  #14
+  mac5_a2  -0.286
+  set macro6 "Looser"
+  mac6_d1  #2
+  mac6_a1  -0.5
+  mac6_d2  #14
+  mac6_a2  0.072
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.264
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.105
 
 patch Megaphone family=size
   # The horn, with the band it needs around it. Mega is doing the shape and
@@ -187,6 +832,90 @@ patch Megaphone family=size
   filtertype     #8
   resonance      0.3
   volume         0.91
+  set macro1 "Bigger"
+  mac1_d1  #4
+  mac1_a1  -0.2
+  mac1_d2  #14
+  mac1_a2  0.291
+  set macro2 "Brighter"
+  mac2_d1  #6
+  mac2_a1  0.125
+  mac2_d2  #14
+  mac2_a2  0.264
+  set macro3 "Less Horn"
+  mac3_d1  #5
+  mac3_a1  -0.6
+  mac3_d2  #14
+  mac3_a2  0.393
+  set macro4 "Resonant"
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac4_d2  #14
+  mac4_a2  0.098
+  set macro5 "Grit"
+  mac5_d1  #13
+  mac5_a1  0.5
+  mac5_d2  #14
+  mac5_a2  -0.299
+  set macro6 "Looser"
+  mac6_d1  #2
+  mac6_a1  -0.5
+  mac6_d2  #14
+  mac6_a2  -0.072
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.393
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+
+patch "Warm Voice" family=tone
+  # The top rounded off and a touch of drive, like a voice on an old
+  # microphone close up.
+  filtertype     #1
+  cutoff         2800 Hz
+  drive          0.08
+  volume         0.75
+  set macro1 "Darker"
+  mac1_d1  #6
+  mac1_a1  -0.25
+  mac1_d2  #14
+  mac1_a2  0.108
+  set macro2 "Resonant"
+  mac2_d1  #7
+  mac2_a1  0.5
+  set macro3 "Grit"
+  mac3_d1  #13
+  mac3_a1  0.5
+  mac3_d2  #14
+  mac3_a2  -0.181
+  set macro4 "Horn"
+  mac4_d1  #5
+  mac4_a1  0.6
+  mac4_d2  #14
+  mac4_a2  -0.070
+  set macro5 "Bigger"
+  mac5_d1  #4
+  mac5_a1  -0.2
+  mac5_d2  #14
+  mac5_a2  -0.059
+  set macro6 "Looser"
+  mac6_d1  #2
+  mac6_a1  -0.5
+  mac6_d2  #14
+  mac6_a2  -0.044
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.182
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.060
 
 patch Telephone family=tone
   # Three hundred to three thousand, near enough, and nothing outside it.
@@ -195,6 +924,90 @@ patch Telephone family=tone
   resonance      0.35
   drive          0.18
   volume         1.03
+  set macro1 "Brighter"
+  mac1_d1  #6
+  mac1_a1  0.125
+  mac1_d2  #14
+  mac1_a2  0.154
+  set macro2 "Resonant"
+  mac2_d1  #7
+  mac2_a1  0.5
+  mac2_d2  #14
+  mac2_a2  0.313
+  set macro3 "Grit"
+  mac3_d1  #13
+  mac3_a1  0.5
+  mac3_d2  #14
+  mac3_a2  -0.212
+  set macro4 "Horn"
+  mac4_d1  #5
+  mac4_a1  0.6
+  mac4_d2  #14
+  mac4_a2  -0.330
+  set macro5 "Bigger"
+  mac5_d1  #4
+  mac5_a1  -0.2
+  mac5_d2  #14
+  mac5_a2  0.240
+  set macro6 "Looser"
+  mac6_d1  #2
+  mac6_a1  -0.5
+  mac6_d2  #14
+  mac6_a2  -0.068
+  set macro7 "Slow In"
+  mac7_d1  #8
+  mac7_a1  0.35
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.129
+
+patch Honk family=tone
+  # One narrow peak in the middle of the voice, which is what a nose does to
+  # it.
+  filtertype     #11
+  cutoff         1000 Hz
+  resonance      0.7
+  volume         0.53
+  set macro1 "Brighter"
+  mac1_d1  #6
+  mac1_a1  0.25
+  mac1_d2  #14
+  mac1_a2  0.194
+  set macro2 "Smooth"
+  mac2_d1  #7
+  mac2_a1  -0.4
+  mac2_d2  #14
+  mac2_a2  0.175
+  set macro3 "Grit"
+  mac3_d1  #13
+  mac3_a1  0.5
+  mac3_d2  #14
+  mac3_a2  -0.145
+  set macro4 "Horn"
+  mac4_d1  #5
+  mac4_a1  0.6
+  mac4_d2  #14
+  mac4_a2  -0.150
+  set macro5 "Bigger"
+  mac5_d1  #4
+  mac5_a1  -0.2
+  mac5_d2  #14
+  mac5_a2  0.052
+  set macro6 "Looser"
+  mac6_d1  #2
+  mac6_a1  -0.5
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.207
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.059
 
 patch "Dark Room" family=tone
   # The words still there and the air gone. A voice heard through a wall.
@@ -202,6 +1015,46 @@ patch "Dark Room" family=tone
   cutoff         900 Hz
   resonance      0.12
   volume         1.19
+  set macro1 "Brighter"
+  mac1_d1  #6
+  mac1_a1  0.25
+  mac1_d2  #14
+  mac1_a2  -0.141
+  set macro2 "Resonant"
+  mac2_d1  #7
+  mac2_a1  0.5
+  mac2_d2  #14
+  mac2_a2  -0.094
+  set macro3 "Grit"
+  mac3_d1  #13
+  mac3_a1  0.5
+  mac3_d2  #14
+  mac3_a2  -0.414
+  set macro4 "Horn"
+  mac4_d1  #5
+  mac4_a1  0.24
+  mac4_d2  #14
+  mac4_a2  0.207
+  set macro5 "Bigger"
+  mac5_d1  #4
+  mac5_a1  -0.2
+  mac5_d2  #14
+  mac5_a2  -0.148
+  set macro6 "Looser"
+  mac6_d1  #2
+  mac6_a1  -0.5
+  mac6_d2  #14
+  mac6_a2  -0.070
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.207
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.133
 
 patch Air family=tone
   # The opposite: the body taken out and the breath left in, which is what a
@@ -210,6 +1063,44 @@ patch Air family=tone
   cutoff         380 Hz
   formant        +2 st
   volume         1.08
+  set macro1 "Brighter"
+  mac1_d1  #6
+  mac1_a1  0.175
+  mac1_d2  #14
+  mac1_a2  0.257
+  set macro2 "Resonant"
+  mac2_d1  #7
+  mac2_a1  0.5
+  set macro3 "Grit"
+  mac3_d1  #13
+  mac3_a1  0.5
+  mac3_d2  #14
+  mac3_a2  -0.375
+  set macro4 "Horn"
+  mac4_d1  #5
+  mac4_a1  0.6
+  mac4_d2  #14
+  mac4_a2  -0.315
+  set macro5 "Bigger"
+  mac5_d1  #4
+  mac5_a1  -0.2
+  mac5_d2  #14
+  mac5_a2  0.186
+  set macro6 "Looser"
+  mac6_d1  #2
+  mac6_a1  -0.5
+  mac6_d2  #14
+  mac6_a2  -0.100
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.280
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.063
 
 patch Driven family=tone
   # Pushed until the vowels bite. The drive is after the formants, so it
@@ -218,6 +1109,122 @@ patch Driven family=tone
   cutoff         5000 Hz
   filtertype     #1
   volume         0.54
+  set macro1 "Darker"
+  mac1_d1  #6
+  mac1_a1  -0.25
+  mac1_d2  #14
+  mac1_a2  0.035
+  set macro2 "Resonant"
+  mac2_d1  #7
+  mac2_a1  0.5
+  set macro3 "Clean"
+  mac3_d1  #13
+  mac3_a1  -0.5
+  mac3_d2  #14
+  mac3_a2  0.160
+  set macro4 "Horn"
+  mac4_d1  #5
+  mac4_a1  0.6
+  mac4_d2  #14
+  mac4_a2  -0.087
+  set macro5 "Bigger"
+  mac5_d1  #4
+  mac5_a1  -0.2
+  set macro6 "Looser"
+  mac6_d1  #2
+  mac6_a1  -0.5
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.093
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+
+patch Fried family=tone
+  # Drive all the way and a little of the horn, so the words break up. The
+  # filter keeps the fizz down.
+  drive          1.0
+  mega           0.25
+  cutoff         4000 Hz
+  filtertype     #1
+  volume         0.43
+  set macro1 "Darker"
+  mac1_d1  #6
+  mac1_a1  -0.25
+  mac1_d2  #14
+  mac1_a2  0.132
+  set macro2 "Resonant"
+  mac2_d1  #7
+  mac2_a1  0.5
+  mac2_d2  #14
+  mac2_a2  -0.025
+  set macro3 "Clean"
+  mac3_d1  #13
+  mac3_a1  -0.5
+  set macro4 "Horn"
+  mac4_d1  #5
+  mac4_a1  0.6
+  mac4_d2  #14
+  mac4_a2  -0.062
+  set macro5 "Bigger"
+  mac5_d1  #4
+  mac5_a1  -0.2
+  mac5_d2  #14
+  mac5_a2  0.054
+  set macro6 "Looser"
+  mac6_d1  #2
+  mac6_a1  -0.5
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.118
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+
+patch "Soft Start" family=shape
+  # A short fade in and a short fade out, so the first consonant is softened
+  # and the note doesn't stop dead.
+  ampattack      0.12 s
+  amprelease     0.3 s
+  volume         0.93
+  set macro1 "Slow In"
+  mac1_d1  #8
+  mac1_a1  0.35
+  set macro2 "Longer"
+  mac2_d1  #11
+  mac2_a1  0.3
+  set macro3 "Less Hold"
+  mac3_d1  #10
+  mac3_a1  -0.5
+  mac3_d2  #14
+  mac3_a2  0.380
+  set macro4 "Darker"
+  mac4_d1  #6
+  mac4_a1  -0.25
+  set macro5 "Bigger"
+  mac5_d1  #4
+  mac5_a1  -0.2
+  mac5_d2  #14
+  mac5_a2  -0.061
+  set macro6 "Grit"
+  mac6_d1  #13
+  mac6_a1  0.5
+  mac6_d2  #14
+  mac6_a2  -0.309
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.297
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.098
 
 patch Swell family=shape
   # Arrives rather than starts. A long attack on a voice is a held breath
@@ -227,6 +1234,40 @@ patch Swell family=shape
   ampsustain     0.9
   amprelease     0.7 s
   volume         1.04
+  set macro1 "Quick In"
+  mac1_d1  #8
+  mac1_a1  -0.35
+  set macro2 "Longer"
+  mac2_d1  #11
+  mac2_a1  0.3
+  set macro3 "Less Hold"
+  mac3_d1  #10
+  mac3_a1  -0.5
+  mac3_d2  #14
+  mac3_a2  0.307
+  set macro4 "Darker"
+  mac4_d1  #6
+  mac4_a1  -0.25
+  set macro5 "Bigger"
+  mac5_d1  #4
+  mac5_a1  -0.2
+  mac5_d2  #14
+  mac5_a2  0.067
+  set macro6 "Grit"
+  mac6_d1  #13
+  mac6_a1  0.5
+  mac6_d2  #14
+  mac6_a2  -0.354
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.18
+  mac7_d2  #14
+  mac7_a2  0.230
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.110
 
 patch Pluck family=shape
   # The words as a rhythm part: a syllable struck and mostly gone.
@@ -241,6 +1282,81 @@ patch Pluck family=shape
   ampsustain     0.34
   amprelease     0.12 s
   volume         1.5
+  set macro1 "Slow In"
+  mac1_d1  #8
+  mac1_a1  0.35
+  set macro2 "Longer"
+  mac2_d1  #11
+  mac2_a1  0.3
+  set macro3 "More Hold"
+  mac3_d1  #10
+  mac3_a1  0.5
+  mac3_d2  #14
+  mac3_a2  -0.527
+  set macro4 "Darker"
+  mac4_d1  #6
+  mac4_a1  -0.25
+  set macro5 "Bigger"
+  mac5_d1  #4
+  mac5_a1  -0.2
+  mac5_d2  #14
+  mac5_a2  -0.088
+  set macro6 "Grit"
+  mac6_d1  #13
+  mac6_a1  0.5
+  mac6_d2  #14
+  mac6_a2  -0.548
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.149
+
+patch "Fall Away" family=shape
+  # Struck, then a long fade to nothing while the note is still held, so a
+  # long note says one word and lets it go.
+  ampattack      0.003 s
+  ampdecay       2.5 s
+  ampsustain     0.0
+  amprelease     0.4 s
+  volume         1.23
+  set macro1 "Slow In"
+  mac1_d1  #8
+  mac1_a1  0.35
+  set macro2 "Longer"
+  mac2_d1  #11
+  mac2_a1  0.3
+  set macro3 "More Hold"
+  mac3_d1  #10
+  mac3_a1  0.5
+  mac3_d2  #14
+  mac3_a2  -0.106
+  set macro4 "Darker"
+  mac4_d1  #6
+  mac4_a1  -0.25
+  set macro5 "Bigger"
+  mac5_d1  #4
+  mac5_a1  -0.2
+  mac5_d2  #14
+  mac5_a2  -0.081
+  set macro6 "Grit"
+  mac6_d1  #13
+  mac6_a1  0.5
+  mac6_d2  #14
+  mac6_a2  -0.423
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.180
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.122
 
 patch Gated family=shape
   # On and off with nothing in between, which is what makes a voice a
@@ -250,6 +1366,40 @@ patch Gated family=shape
   ampsustain     0.75
   amprelease     0.02 s
   volume         1.24
+  set macro1 "Slow In"
+  mac1_d1  #8
+  mac1_a1  0.35
+  set macro2 "Longer"
+  mac2_d1  #11
+  mac2_a1  0.3
+  set macro3 "Less Hold"
+  mac3_d1  #10
+  mac3_a1  -0.2
+  mac3_d2  #14
+  mac3_a2  0.173
+  set macro4 "Darker"
+  mac4_d1  #6
+  mac4_a1  -0.25
+  set macro5 "Bigger"
+  mac5_d1  #4
+  mac5_a1  -0.2
+  mac5_d2  #14
+  mac5_a2  -0.081
+  set macro6 "Grit"
+  mac6_d1  #13
+  mac6_a1  0.5
+  mac6_d2  #14
+  mac6_a2  -0.431
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.173
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.131
 
 patch Held family=shape
   # Nothing in the envelope at all: it lasts as long as the note does and
@@ -259,6 +1409,40 @@ patch Held family=shape
   amprelease     1.6 s
   loop           #1
   volume         0.93
+  set macro1 "Slow In"
+  mac1_d1  #8
+  mac1_a1  0.35
+  set macro2 "Shorter"
+  mac2_d1  #11
+  mac2_a1  -0.3
+  set macro3 "Less Hold"
+  mac3_d1  #10
+  mac3_a1  -0.4
+  mac3_d2  #14
+  mac3_a2  0.380
+  set macro4 "Darker"
+  mac4_d1  #6
+  mac4_a1  -0.25
+  set macro5 "Bigger"
+  mac5_d1  #4
+  mac5_a1  -0.2
+  mac5_d2  #14
+  mac5_a2  -0.061
+  set macro6 "Grit"
+  mac6_d1  #13
+  mac6_a1  0.5
+  mac6_d2  #14
+  mac6_a2  -0.309
+  set macro7 "Later"
+  mac7_d1  #1
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.266
+  set macro8 "Octave Down"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #14
+  mac8_a2  -0.098
 
 patch Glide family=play
   # Between notes rather than at them, so a written melody is sung as one
@@ -267,6 +1451,38 @@ patch Glide family=play
   tune           0.9
   rate           30 ms
   volume         0.93
+  set macro1 "Octave Down"
+  mac1_d1  #16
+  mac1_a1  -0.5
+  mac1_d2  #14
+  mac1_a2  -0.104
+  set macro2 "Fifth Up"
+  mac2_d1  #16
+  mac2_a1  0.292
+  set macro3 "Later"
+  mac3_d1  #1
+  mac3_a1  0.3
+  mac3_d2  #14
+  mac3_a2  0.216
+  set macro4 "Looser"
+  mac4_d1  #2
+  mac4_a1  -0.5
+  mac4_d2  #14
+  mac4_a2  -0.080
+  set macro5 "Bigger"
+  mac5_d1  #4
+  mac5_a1  -0.2
+  set macro6 "Darker"
+  mac6_d1  #6
+  mac6_a1  -0.25
+  set macro7 "Grit"
+  mac7_d1  #13
+  mac7_a1  0.5
+  mac7_d2  #14
+  mac7_a2  -0.309
+  set macro8 "Longer"
+  mac8_d1  #11
+  mac8_a1  0.3
 
 patch "Octave Down" family=play
   # An octave below what is written, at the original size. Pitch and formant
@@ -274,6 +1490,79 @@ patch "Octave Down" family=play
   octave         #2
   formant        +4 st
   volume         0.79
+  set macro1 "Octave Up"
+  mac1_d1  #16
+  mac1_a1  0.5
+  set macro2 "Fifth Up"
+  mac2_d1  #16
+  mac2_a1  0.292
+  mac2_d2  #14
+  mac2_a2  -0.108
+  set macro3 "Later"
+  mac3_d1  #1
+  mac3_a1  0.3
+  mac3_d2  #14
+  mac3_a2  0.176
+  set macro4 "Looser"
+  mac4_d1  #2
+  mac4_a1  -0.5
+  mac4_d2  #14
+  mac4_a2  0.044
+  set macro5 "Bigger"
+  mac5_d1  #4
+  mac5_a1  -0.2
+  set macro6 "Darker"
+  mac6_d1  #6
+  mac6_a1  -0.25
+  set macro7 "Grit"
+  mac7_d1  #13
+  mac7_a1  0.5
+  mac7_d2  #14
+  mac7_a2  -0.241
+  set macro8 "Longer"
+  mac8_d1  #11
+  mac8_a1  0.3
+
+patch "Up High" family=play
+  # An octave above what is written, with the throat taken a little back
+  # down so it's the same singer up high rather than a chipmunk.
+  octave         #4
+  formant        -2 st
+  volume         1.44
+  set macro1 "Octave Down"
+  mac1_d1  #16
+  mac1_a1  -0.5
+  mac1_d2  #14
+  mac1_a2  -0.361
+  set macro2 "Fifth Up"
+  mac2_d1  #16
+  mac2_a1  0.292
+  mac2_d2  #14
+  mac2_a2  0.040
+  set macro3 "Later"
+  mac3_d1  #1
+  mac3_a1  0.15
+  mac3_d2  #14
+  mac3_a2  0.040
+  set macro4 "Looser"
+  mac4_d1  #2
+  mac4_a1  -0.5
+  set macro5 "Bigger"
+  mac5_d1  #4
+  mac5_a1  -0.11
+  mac5_d2  #14
+  mac5_a2  0.040
+  set macro6 "Darker"
+  mac6_d1  #6
+  mac6_a1  -0.25
+  set macro7 "Grit"
+  mac7_d1  #13
+  mac7_a1  0.5
+  mac7_d2  #14
+  mac7_a2  -0.495
+  set macro8 "Longer"
+  mac8_d1  #11
+  mac8_a1  0.3
 
 patch "Wide Bend" family=play
   # An octave of bend, for a line that is played rather than typed. The tune
@@ -282,6 +1571,38 @@ patch "Wide Bend" family=play
   tune           0.85
   rate           50 ms
   volume         0.9
+  set macro1 "Octave Down"
+  mac1_d1  #16
+  mac1_a1  -0.5
+  mac1_d2  #14
+  mac1_a2  -0.095
+  set macro2 "Fifth Up"
+  mac2_d1  #16
+  mac2_a1  0.292
+  set macro3 "Later"
+  mac3_d1  #1
+  mac3_a1  0.3
+  mac3_d2  #14
+  mac3_a2  0.248
+  set macro4 "Looser"
+  mac4_d1  #2
+  mac4_a1  -0.5
+  mac4_d2  #14
+  mac4_a2  -0.071
+  set macro5 "Bigger"
+  mac5_d1  #4
+  mac5_a1  -0.2
+  set macro6 "Darker"
+  mac6_d1  #6
+  mac6_a1  -0.25
+  set macro7 "Grit"
+  mac7_d1  #13
+  mac7_a1  0.5
+  mac7_d2  #14
+  mac7_a2  -0.292
+  set macro8 "Longer"
+  mac8_d1  #11
+  mac8_a1  0.3
 
 patch Whisper family=play
   # Velocity doing most of the work, and the take started past its first
@@ -293,3 +1614,76 @@ patch Whisper family=play
   filtertype     #1
   drive          0.1
   volume         1.05
+  set macro1 "Octave Down"
+  mac1_d1  #16
+  mac1_a1  -0.5
+  mac1_d2  #14
+  mac1_a2  -0.111
+  set macro2 "Fifth Up"
+  mac2_d1  #16
+  mac2_a1  0.292
+  mac2_d2  #14
+  mac2_a2  0.095
+  set macro3 "Later"
+  mac3_d1  #1
+  mac3_a1  0.3
+  mac3_d2  #14
+  mac3_a2  0.300
+  set macro4 "Looser"
+  mac4_d1  #2
+  mac4_a1  -0.5
+  set macro5 "Bigger"
+  mac5_d1  #4
+  mac5_a1  -0.2
+  set macro6 "Darker"
+  mac6_d1  #6
+  mac6_a1  -0.25
+  mac6_d2  #14
+  mac6_a2  0.085
+  set macro7 "Grit"
+  mac7_d1  #13
+  mac7_a1  0.5
+  mac7_d2  #14
+  mac7_a2  -0.263
+  set macro8 "Longer"
+  mac8_d1  #11
+  mac8_a1  0.3
+
+patch "Run Round" family=play
+  # The take from nearly a third of the way in, round and round for as long
+  # as the note is held, so a long note keeps talking.
+  loop           #1
+  start          0.3
+  tune           0.9
+  rate           30 ms
+  volume         1.27
+  set macro1 "Octave Down"
+  mac1_d1  #16
+  mac1_a1  -0.5
+  mac1_d2  #14
+  mac1_a2  -0.151
+  set macro2 "Fifth Up"
+  mac2_d1  #16
+  mac2_a1  0.292
+  set macro3 "Later"
+  mac3_d1  #1
+  mac3_a1  0.3
+  set macro4 "Looser"
+  mac4_d1  #2
+  mac4_a1  -0.5
+  mac4_d2  #14
+  mac4_a2  -0.083
+  set macro5 "Bigger"
+  mac5_d1  #4
+  mac5_a1  -0.2
+  set macro6 "Darker"
+  mac6_d1  #6
+  mac6_a1  -0.25
+  set macro7 "Grit"
+  mac7_d1  #13
+  mac7_a1  0.5
+  mac7_d2  #14
+  mac7_a2  -0.446
+  set macro8 "Longer"
+  mac8_d1  #11
+  mac8_a1  0.3

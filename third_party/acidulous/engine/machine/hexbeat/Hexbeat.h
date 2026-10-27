@@ -30,8 +30,30 @@ class Hexbeat final : public Machine {
         Volume,
         // How much velocity sets the level, using the shared velocity curve.
         Velocity,
-        Count
+        // How hard the voices drive the output clipper. The default is the
+        // level every kit had before this was a knob.
+        Drive,
+        // Eight macro knobs, each with four routes: a destination (a Dest)
+        // and a depth. A macro's knob times a route's depth is added to the
+        // destination, in its own 0..1 range. Block rate. Pitch is 24
+        // semitones per unit.
+        MacroBase,
+        MacroParams = 9, // knob, 4 destinations, 4 depths
+        Count = MacroBase + 8 * MacroParams
     };
+    enum Dest : int32_t {
+        DstOff, DstKickTune, DstKickDecay, DstKickPunch, DstKickLevel,
+        DstSnareTune, DstSnareDecay, DstSnareSnappy, DstSnareTone, DstSnareLevel,
+        DstTomTune, DstTomDecay, DstTomLevel,
+        DstHatTune, DstHatDecay, DstHatTone, DstHatLevel,
+        DstCymDecay, DstCymTone, DstCymLevel, DstRideDecay, DstRideLevel,
+        DstClapDecay, DstClapTone, DstClapLevel,
+        DstRimTune, DstRimLevel, DstBellTune, DstBellDecay, DstBellLevel,
+        DstClaveTune, DstClaveLevel,
+        DstAccent, DstDrive, DstVolume, DstPitch,
+        DestCount
+    };
+    static constexpr int kMacros = 8;
     enum Voice : int32_t { Kick, Rim, Snare, Clap, TomLo, TomMid, TomHi, HatClosed, HatOpen, Cymbal, Ride, Cowbell, Clave, VoiceCount };
     static constexpr uint8_t kBaseNote = 36;
 
@@ -71,6 +93,13 @@ class Hexbeat final : public Machine {
     float square(Osc &o, float hz) { return o.step(hz, sr) < 0.5f ? 1.0f : -1.0f; }
     float sine(Osc &o, float hz) { return std::sin(o.step(hz, sr) * 6.2831853f); }
 
+    /** Fills [mac_] from the macro knobs, smoothed or (when [goal]) their targets. */
+    void updateMacros(bool goal = false);
+    /** Param [p] with the macros' routes to it added in its own 0..1 range. */
+    float val(int32_t p, bool goal = false) const;
+    /** A param's smoothed value, or its target when [goal] (note-on seeds). */
+    float read(int32_t p, bool goal) const { return goal ? params_.target(p) : params_.get(p); }
+
     void trigger(int32_t voice, float accent, float level);
     void renderVoice(int32_t voice, float *out, int32_t frames);
 
@@ -90,7 +119,8 @@ class Hexbeat final : public Machine {
     dsp::Svf bp2[VoiceCount];
     int32_t clapPulse = 0;
     float clapTimer = 0.0f;
-    float mix[64];
+    float mac_[DestCount]{};
+    float pitchMul_ = 1.0f; // all the tunes, from the pitch destination
 };
 
 } // namespace acidulous::machine

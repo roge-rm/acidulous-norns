@@ -38,6 +38,19 @@
 # hit the kick and the snare buzzes, which every real kit does and no drum
 # machine bothers with. `Ringing` and `Cathedral` are built to show it.
 #
+# Families in tab order, plainest to strangest within each: drum 10 (Init
+# first), hand 8, wood 8, mallet 8, metal 8, bell 8, glass 7 and found 7.
+# Every kit but Init carries eight named macros. Big Room, Tam Tams, Temple
+# Bowls, Glass Bowls, Chandelier and Radiator send to the song's reverb and
+# Floorboards a little.
+#
+# The newer kits list their eight objects in their own comment, pad by pad,
+# and an object that turns up in two kits is the same recipe in both. Pad
+# drive is normalised on the level a pad reaches, so it adds grit and
+# sustain at about the same peak.
+#
+# Every kit but Init peaks at about -11 dB.
+#
 # Values are in each parameter's own units; `audition params Resonance` lists
 # them. A patch names only what it changes.
 
@@ -50,10 +63,1090 @@ machine Resonance
 role    mallets
 
 patch Init family=drum
+
+# A drum kit made of arithmetic: nothing here was recorded, and the
+# snare is a membrane struck near its rim with the noise well up.
+patch Kit family=drum role=beat
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Snare"
+  set macro5 "Kick"
+  set macro6 "Cymbals"
+  set macro7 "Crack"
+  set macro8 "Loose"
+  p00_kind       #0
+  p00_tune       55 Hz
+  p00_decay      0.45 s
+  p00_damp       0.6
+  p00_hit        0.15
+  p00_hard       0.35
+  p00_noise      0.3
+  p00_drive      0.15
+  p00_level      0.69
+  p01_kind       #0
+  p01_tune       210 Hz
+  p01_decay      0.25 s
+  p01_damp       0.6
+  p01_hit        0.45
+  p01_hard       0.7
+  p01_noise      0.85
+  p01_drive      0.1
+  p01_level      1.39
+  p02_kind       #2
+  p02_tune       1500 Hz
+  p02_decay      0.08 s
+  p02_damp       0.72
+  p02_hit        0.7
+  p02_hard       0.95
+  p02_noise      0.6
+  p02_level      0.36
+  p03_kind       #2
+  p03_tune       1500 Hz
+  p03_decay      0.85 s
+  p03_damp       0.38
+  p03_hit        0.7
+  p03_hard       0.95
+  p03_noise      0.6
+  p03_level      1.16
+  p04_kind       #0
+  p04_tune       152 Hz
+  p04_decay      0.7 s
+  p04_damp       0.35
+  p04_hit        0.3
+  p04_hard       0.45
+  p04_noise      0.2
+  p04_level      0.45
+  p05_kind       #0
+  p05_tune       92 Hz
+  p05_decay      0.9 s
+  p05_damp       0.35
+  p05_hit        0.3
+  p05_hard       0.45
+  p05_noise      0.2
+  p05_level      0.44
+  p06_kind       #2
+  p06_tune       620 Hz
+  p06_decay      4 s
+  p06_damp       0.12
+  p06_hit        0.35
+  p06_hard       0.85
+  p06_noise      0.35
+  p06_level      1.48
+  p07_kind       #2
+  p07_tune       480 Hz
+  p07_decay      3.5 s
+  p07_damp       0.15
+  p07_hit        0.6
+  p07_hard       0.7
+  p07_noise      0.5
+  p07_level      1.5
+  coupling       0.28
+  humanise       0.15
+  volume         1.26
+  mac1_d1  #8
+  mac1_a1  0.3
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.25
+  mac3_d1  #1
+  mac3_a1  -0.35
+  mac3_d2  #2
+  mac3_a2  0.4
+  mac3_d3  #6
+  mac3_a3  0.15
+  mac4_d1  #6
+  mac4_a1  0.3
+  mac4_d2  #22
+  mac4_a2  0.15
+  mac5_d1  #21
+  mac5_a1  0.25
+  mac5_d2  #13
+  mac5_a2  -0.08
+  mac6_d1  #23
+  mac6_a1  0.3
+  mac6_d2  #24
+  mac6_a2  0.3
+  mac6_d3  #27
+  mac6_a3  0.3
+  mac6_d4  #28
+  mac6_a4  0.3
+  mac7_d1  #5
+  mac7_a1  0.4
+  mac7_d2  #6
+  mac7_a2  0.3
+  mac7_d3  #4
+  mac7_a3  0.15
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+
+# The same idea an octave down and left to ring. Long decays on
+# a kit are what a room does rather than what a drum does.
+patch "Deep Kit" family=drum role=beat
+  set macro1 "Pitch"
+  set macro2 "Tighter"
+  set macro3 "Ring"
+  set macro4 "Snare"
+  set macro5 "Kick"
+  set macro6 "Gong"
+  set macro7 "Crack"
+  set macro8 "Loose"
+  p00_kind       #0
+  p00_tune       42 Hz
+  p00_decay      0.7 s
+  p00_damp       0.5
+  p00_hit        0.12
+  p00_hard       0.3
+  p00_noise      0.25
+  p00_drive      0.1
+  p00_level      0.7
+  p01_kind       #0
+  p01_tune       170 Hz
+  p01_decay      0.4 s
+  p01_damp       0.45
+  p01_hit        0.45
+  p01_hard       0.7
+  p01_noise      0.85
+  p01_drive      0.1
+  p01_level      1.5
+  p02_kind       #2
+  p02_tune       1200 Hz
+  p02_decay      0.08 s
+  p02_damp       0.72
+  p02_hit        0.7
+  p02_hard       0.95
+  p02_noise      0.6
+  p02_level      0.41
+  p03_kind       #2
+  p03_tune       1200 Hz
+  p03_decay      1.3 s
+  p03_damp       0.38
+  p03_hit        0.7
+  p03_hard       0.95
+  p03_noise      0.6
+  p03_level      1.5
+  p04_kind       #0
+  p04_tune       120 Hz
+  p04_decay      1.1 s
+  p04_damp       0.35
+  p04_hit        0.3
+  p04_hard       0.45
+  p04_noise      0.2
+  p04_level      0.57
+  p05_kind       #0
+  p05_tune       70 Hz
+  p05_decay      1.5 s
+  p05_damp       0.35
+  p05_hit        0.3
+  p05_hard       0.45
+  p05_noise      0.2
+  p05_level      0.57
+  p06_kind       #2
+  p06_tune       620 Hz
+  p06_decay      5.5 s
+  p06_damp       0.12
+  p06_hit        0.35
+  p06_hard       0.85
+  p06_noise      0.35
+  p06_level      1.5
+  p07_kind       #2
+  p07_tune       95 Hz
+  p07_decay      6 s
+  p07_damp       0.08
+  p07_hit        0.45
+  p07_hard       0.55
+  p07_noise      0.35
+  p07_drive      0.05
+  p07_level      1.17
+  coupling       0.4
+  humanise       0.18
+  volume         1.13
+  mac1_d1  #8
+  mac1_a1  0.3
+  mac2_d1  #1
+  mac2_a1  -0.3
+  mac2_d2  #2
+  mac2_a2  0.3
+  mac3_d1  #1
+  mac3_a1  0.3
+  mac3_d2  #2
+  mac3_a2  -0.3
+  mac3_d3  #9
+  mac3_a3  0.25
+  mac4_d1  #6
+  mac4_a1  0.3
+  mac4_d2  #22
+  mac4_a2  0.15
+  mac5_d1  #21
+  mac5_a1  0.25
+  mac5_d2  #13
+  mac5_a2  -0.08
+  mac6_d1  #28
+  mac6_a1  0.3
+  mac6_d2  #1
+  mac6_a2  0.1
+  mac7_d1  #5
+  mac7_a1  0.4
+  mac7_d2  #6
+  mac7_a2  0.3
+  mac7_d3  #4
+  mac7_a3  0.15
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+
+# Everything damped hard and gone inside a fifth of a second. A kit
+# with no tail is a different instrument, not a quieter one.
+patch Tight family=drum role=beat
+  set macro1 "Pitch"
+  set macro2 "Longer"
+  set macro3 "Snap"
+  set macro4 "Rim"
+  set macro5 "Kick"
+  set macro6 "Wood"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
+  p00_kind       #0
+  p00_tune       55 Hz
+  p00_decay      0.2 s
+  p00_damp       0.8
+  p00_hit        0.15
+  p00_hard       0.35
+  p00_noise      0.3
+  p00_drive      0.15
+  p00_level      0.94
+  p01_kind       #0
+  p01_tune       210 Hz
+  p01_decay      0.12 s
+  p01_damp       0.85
+  p01_hit        0.45
+  p01_hard       0.7
+  p01_noise      0.85
+  p01_drive      0.1
+  p01_level      1.5
+  p02_kind       #2
+  p02_tune       1500 Hz
+  p02_decay      0.05 s
+  p02_damp       0.72
+  p02_hit        0.7
+  p02_hard       0.95
+  p02_noise      0.6
+  p02_level      0.4
+  p03_kind       #0
+  p03_tune       420 Hz
+  p03_decay      0.12 s
+  p03_damp       0.75
+  p03_inharm     0.05
+  p03_hit        0.8
+  p03_hard       0.9
+  p03_noise      0.55
+  p03_drive      0.25
+  p03_level      0.83
+  p04_kind       #0
+  p04_tune       85 Hz
+  p04_decay      0.35 s
+  p04_damp       0.65
+  p04_hit        0.18
+  p04_hard       0.4
+  p04_noise      0.3
+  p04_level      0.53
+  p05_kind       #0
+  p05_tune       300 Hz
+  p05_decay      0.14 s
+  p05_damp       0.8
+  p05_hit        0.75
+  p05_hard       0.85
+  p05_noise      0.7
+  p05_drive      0.1
+  p05_level      0.94
+  p06_kind       #1
+  p06_tune       900 Hz
+  p06_decay      0.1 s
+  p06_damp       0.55
+  p06_hit        0.3
+  p06_hard       0.8
+  p06_noise      0.25
+  p06_level      0.47
+  p07_kind       #1
+  p07_tune       1250 Hz
+  p07_decay      0.08 s
+  p07_damp       0.45
+  p07_hit        0.4
+  p07_hard       0.9
+  p07_noise      0.2
+  p07_level      0.42
+  coupling       0.12
+  humanise       0.25
+  volume         0.89
+  mac1_d1  #8
+  mac1_a1  0.3
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac3_d1  #5
+  mac3_a1  0.3
+  mac3_d2  #6
+  mac3_a2  0.2
+  mac4_d1  #4
+  mac4_a1  0.4
+  mac5_d1  #21
+  mac5_a1  0.25
+  mac5_d2  #13
+  mac5_a2  -0.08
+  mac6_d1  #27
+  mac6_a1  0.3
+  mac6_d2  #28
+  mac6_a2  0.3
+  mac7_d1  #9
+  mac7_a1  0.6
+  mac7_d2  #1
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+
+patch Brushes family=drum role=beat
+  # A small kit played with brushes: soft strikes and a lot of noise, so
+  # the snare is a sweep as much as a hit.
+  # Pads: kick, tap, brushed snare, swish, tom, low tom, ride, foot hat.
+  set macro1 "Pitch"
+  set macro2 "Sweep"
+  set macro3 "Sticks"
+  set macro4 "Ring"
+  set macro5 "Dead"
+  set macro6 "Ride"
+  set macro7 "Kick"
+  set macro8 "Loose"
+  p00_kind       #0
+  p00_tune       62 Hz
+  p00_decay      0.4 s
+  p00_damp       0.62
+  p00_hit        0.2
+  p00_hard       0.2
+  p00_noise      0.35
+  p00_level      0.46
+  p01_kind       #0
+  p01_tune       235 Hz
+  p01_decay      0.15 s
+  p01_damp       0.65
+  p01_hit        0.6
+  p01_hard       0.35
+  p01_noise      0.8
+  p01_level      0.72
+  p02_kind       #0
+  p02_tune       235 Hz
+  p02_decay      0.35 s
+  p02_damp       0.5
+  p02_hit        0.45
+  p02_hard       0.15
+  p02_noise      0.95
+  p02_level      1.5
+  p03_kind       #2
+  p03_tune       620 Hz
+  p03_decay      2 s
+  p03_damp       0.25
+  p03_hit        0.35
+  p03_hard       0.3
+  p03_noise      0.6
+  p03_level      0.91
+  p04_kind       #0
+  p04_tune       165 Hz
+  p04_decay      0.45 s
+  p04_damp       0.45
+  p04_hit        0.3
+  p04_hard       0.25
+  p04_noise      0.35
+  p04_level      0.57
+  p05_kind       #0
+  p05_tune       118 Hz
+  p05_decay      0.55 s
+  p05_damp       0.45
+  p05_hit        0.3
+  p05_hard       0.25
+  p05_noise      0.35
+  p05_level      0.59
+  p06_kind       #2
+  p06_tune       480 Hz
+  p06_decay      3 s
+  p06_damp       0.18
+  p06_hit        0.6
+  p06_hard       0.45
+  p06_noise      0.4
+  p06_level      1.3
+  p07_kind       #2
+  p07_tune       1500 Hz
+  p07_decay      0.06 s
+  p07_damp       0.78
+  p07_hit        0.7
+  p07_hard       0.5
+  p07_noise      0.5
+  p07_level      0.36
+  coupling       0.25
+  humanise       0.3
+  volume         1.5
+  mac1_d1  #8
+  mac1_a1  0.25
+  mac2_d1  #6
+  mac2_a1  0.3
+  mac2_d2  #1
+  mac2_a2  0.2
+  mac2_d3  #23
+  mac2_a3  0.2
+  mac3_d1  #5
+  mac3_a1  0.6
+  mac3_d2  #6
+  mac3_a2  -0.3
+  mac4_d1  #1
+  mac4_a1  0.3
+  mac4_d2  #2
+  mac4_a2  -0.3
+  mac4_d3  #9
+  mac4_a3  0.25
+  mac5_d1  #1
+  mac5_a1  -0.35
+  mac5_d2  #2
+  mac5_a2  0.4
+  mac5_d3  #6
+  mac5_a3  0.15
+  mac6_d1  #27
+  mac6_a1  0.3
+  mac6_d2  #1
+  mac6_a2  0.1
+  mac7_d1  #21
+  mac7_a1  0.3
+  mac7_d2  #13
+  mac7_a2  -0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+
+patch "Big Room" family=drum role=beat
+  # Short, tight drums and a lot of the song's reverb, so the room is
+  # what you hear ring rather than the heads.
+  # Pads: kick, snare rim, snare, open hat, tom, low tom, crash, closed hat.
+  set macro1 "Pitch"
+  set macro2 "Tighter"
+  set macro3 "Snap"
+  set macro4 "Weight"
+  set macro5 "Ring"
+  set macro6 "Cymbals"
+  set macro7 "Dead"
+  set macro8 "Loose"
+  p00_kind       #0
+  p00_tune       50 Hz
+  p00_decay      0.35 s
+  p00_damp       0.65
+  p00_hit        0.15
+  p00_hard       0.45
+  p00_noise      0.3
+  p00_level      0.53
+  p01_kind       #0
+  p01_tune       185 Hz
+  p01_decay      0.08 s
+  p01_damp       0.8
+  p01_hit        0.9
+  p01_hard       1
+  p01_noise      0.6
+  p01_level      0.72
+  p02_kind       #0
+  p02_tune       185 Hz
+  p02_decay      0.2 s
+  p02_damp       0.65
+  p02_hit        0.45
+  p02_hard       0.8
+  p02_noise      0.8
+  p02_level      1.37
+  p03_kind       #2
+  p03_tune       1500 Hz
+  p03_decay      0.85 s
+  p03_damp       0.38
+  p03_hit        0.7
+  p03_hard       0.95
+  p03_noise      0.6
+  p03_level      1.19
+  p04_kind       #0
+  p04_tune       140 Hz
+  p04_decay      0.4 s
+  p04_damp       0.5
+  p04_hit        0.3
+  p04_hard       0.5
+  p04_noise      0.25
+  p04_level      0.51
+  p05_kind       #0
+  p05_tune       88 Hz
+  p05_decay      0.5 s
+  p05_damp       0.5
+  p05_hit        0.3
+  p05_hard       0.5
+  p05_noise      0.25
+  p05_level      0.51
+  p06_kind       #2
+  p06_tune       620 Hz
+  p06_decay      4 s
+  p06_damp       0.12
+  p06_hit        0.35
+  p06_hard       0.85
+  p06_noise      0.35
+  p06_level      1.5
+  p07_kind       #2
+  p07_tune       1500 Hz
+  p07_decay      0.08 s
+  p07_damp       0.72
+  p07_hit        0.7
+  p07_hard       0.95
+  p07_noise      0.6
+  p07_level      0.42
+  coupling       0.3
+  humanise       0.15
+  volume         0.88
+  mac1_d1  #8
+  mac1_a1  0.3
+  mac2_d1  #1
+  mac2_a1  -0.3
+  mac2_d2  #2
+  mac2_a2  0.3
+  mac3_d1  #5
+  mac3_a1  0.3
+  mac3_d2  #6
+  mac3_a2  0.3
+  mac3_d3  #23
+  mac3_a3  0.15
+  mac4_d1  #13
+  mac4_a1  -0.1
+  mac4_d2  #21
+  mac4_a2  0.25
+  mac5_d1  #1
+  mac5_a1  0.3
+  mac5_d2  #2
+  mac5_a2  -0.3
+  mac5_d3  #9
+  mac5_a3  0.25
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #27
+  mac6_a2  0.3
+  mac6_d3  #28
+  mac6_a3  0.3
+  mac7_d1  #1
+  mac7_a1  -0.35
+  mac7_d2  #2
+  mac7_a2  0.4
+  mac7_d3  #6
+  mac7_a3  0.15
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+  send reverb    0.35
+
+# Four kettles, tuned, with the modes pulled towards harmonic.
+# Struck a quarter of the way in, which is where a timpanist stands.
+patch Timpani family=drum
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Muted"
+  set macro4 "Hard"
+  set macro5 "Soft"
+  set macro6 "Edge"
+  set macro7 "Gong"
+  set macro8 "Loose"
+  p00_kind       #0
+  p00_tune       62 Hz
+  p00_decay      2.2 s
+  p00_damp       0.18
+  p00_inharm     -0.05
+  p00_hit        0.25
+  p00_hard       0.35
+  p00_noise      0.15
+  p00_level      0.73
+  p01_kind       #0
+  p01_tune       76 Hz
+  p01_decay      2.2 s
+  p01_damp       0.18
+  p01_inharm     -0.05
+  p01_hit        0.25
+  p01_hard       0.35
+  p01_noise      0.15
+  p01_level      0.75
+  p02_kind       #0
+  p02_tune       93 Hz
+  p02_decay      2.2 s
+  p02_damp       0.18
+  p02_inharm     -0.05
+  p02_hit        0.25
+  p02_hard       0.35
+  p02_noise      0.15
+  p02_level      0.77
+  p03_kind       #0
+  p03_tune       110 Hz
+  p03_decay      2.2 s
+  p03_damp       0.18
+  p03_inharm     -0.05
+  p03_hit        0.25
+  p03_hard       0.35
+  p03_noise      0.15
+  p03_level      0.81
+  p04_kind       #2
+  p04_tune       95 Hz
+  p04_decay      6 s
+  p04_damp       0.08
+  p04_hit        0.45
+  p04_hard       0.55
+  p04_noise      0.35
+  p04_drive      0.05
+  p04_level      1.28
+  p05_kind       #2
+  p05_tune       175 Hz
+  p05_decay      2.6 s
+  p05_damp       0.2
+  p05_hit        0.5
+  p05_hard       0.6
+  p05_noise      0.4
+  p05_drive      0.1
+  p05_level      0.95
+  p06_kind       #2
+  p06_tune       480 Hz
+  p06_decay      5 s
+  p06_damp       0.15
+  p06_hit        0.6
+  p06_hard       0.7
+  p06_noise      0.5
+  p06_level      1.5
+  p07_kind       #0
+  p07_tune       95 Hz
+  p07_decay      1.2 s
+  p07_damp       0.55
+  p07_hit        0.4
+  p07_hard       0.3
+  p07_noise      0.4
+  p07_level      0.82
+  coupling       0.45
+  humanise       0.12
+  volume         1.31
+  mac1_d1  #8
+  mac1_a1  0.25
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.25
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  0.4
+  mac5_d1  #5
+  mac5_a1  -0.3
+  mac6_d1  #4
+  mac6_a1  0.3
+  mac7_d1  #25
+  mac7_a1  0.3
+  mac7_d2  #27
+  mac7_a2  0.2
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+
+# Eight toms on a rack, built to show the macros: each one reaches the whole
+# rack or a single drum.
+patch "Tom Rack" family=drum role=beat
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Skin"
+  set macro5 "Rim"
+  set macro6 "Floor"
+  set macro7 "Room"
+  set macro8 "Drive"
+  p00_kind       #0
+  p00_tune       90 Hz
+  p00_decay      0.7 s
+  p00_damp       0.4
+  p00_hit        0.3
+  p00_hard       0.5
+  p00_noise      0.2
+  p00_level      0.8
+  p01_kind       #0
+  p01_tune       120 Hz
+  p01_decay      0.64 s
+  p01_damp       0.4
+  p01_hit        0.3
+  p01_hard       0.5
+  p01_noise      0.2
+  p01_level      0.8
+  p02_kind       #0
+  p02_tune       150 Hz
+  p02_decay      0.58 s
+  p02_damp       0.4
+  p02_hit        0.3
+  p02_hard       0.5
+  p02_noise      0.2
+  p02_level      0.8
+  p03_kind       #0
+  p03_tune       185 Hz
+  p03_decay      0.52 s
+  p03_damp       0.4
+  p03_hit        0.3
+  p03_hard       0.5
+  p03_noise      0.2
+  p03_level      0.8
+  p04_kind       #0
+  p04_tune       225 Hz
+  p04_decay      0.46 s
+  p04_damp       0.4
+  p04_hit        0.3
+  p04_hard       0.5
+  p04_noise      0.2
+  p04_level      0.8
+  p05_kind       #0
+  p05_tune       270 Hz
+  p05_decay      0.4 s
+  p05_damp       0.4
+  p05_hit        0.3
+  p05_hard       0.5
+  p05_noise      0.2
+  p05_level      0.8
+  p06_kind       #0
+  p06_tune       320 Hz
+  p06_decay      0.34 s
+  p06_damp       0.4
+  p06_hit        0.3
+  p06_hard       0.5
+  p06_noise      0.2
+  p06_level      0.8
+  p07_kind       #0
+  p07_tune       380 Hz
+  p07_decay      0.28 s
+  p07_damp       0.4
+  p07_hit        0.3
+  p07_hard       0.5
+  p07_noise      0.2
+  p07_level      0.8
+  coupling       0.3
+  humanise       0.15
+  volume         0.85
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac1_d2  #1
+  mac1_a2  -0.15
+  mac2_d1  #1
+  mac2_a1  0.35
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.3
+  mac3_d1  #1
+  mac3_a1  -0.4
+  mac3_d2  #2
+  mac3_a2  0.4
+  mac3_d3  #6
+  mac3_a3  0.2
+  mac4_d1  #5
+  mac4_a1  0.5
+  mac4_d2  #6
+  mac4_a2  0.3
+  mac4_d3  #7
+  mac4_a3  0.25
+  mac5_d1  #4
+  mac5_a1  0.5
+  mac5_d2  #5
+  mac5_a2  0.2
+  mac6_d1  #13
+  mac6_a1  -0.25
+  mac6_d2  #14
+  mac6_a2  -0.2
+  mac6_d3  #21
+  mac6_a3  0.25
+  mac6_d4  #27
+  mac6_a4  -0.3
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #10
+  mac7_a2  0.4
+  mac7_d3  #1
+  mac7_a3  0.1
+  mac8_d1  #7
+  mac8_a1  0.6
+  mac8_d2  #12
+  mac8_a2  -0.1
+  mac8_d3  #11
+  mac8_a3  -0.3
+
+patch Marching family=drum role=beat
+  # A drumline: three bass drums tuned apart, a field snare cranked high,
+  # tenors and a pair of clash cymbals. Spread left to right like a line.
+  # Pads: bass drums low, mid and high, snare, tenor, high tenor, cymbals,
+  # rim click.
+  set macro1 "Pitch"
+  set macro2 "Basses"
+  set macro3 "Crank"
+  set macro4 "Snares"
+  set macro5 "Ring"
+  set macro6 "Field"
+  set macro7 "Soft"
+  set macro8 "Loose"
+  p00_kind       #0
+  p00_tune       58 Hz
+  p00_decay      0.5 s
+  p00_damp       0.5
+  p00_hit        0.2
+  p00_hard       0.6
+  p00_noise      0.2
+  p00_level      0.34
+  p00_pan        -0.3
+  p01_kind       #0
+  p01_tune       74 Hz
+  p01_decay      0.45 s
+  p01_damp       0.5
+  p01_hit        0.2
+  p01_hard       0.6
+  p01_noise      0.2
+  p01_level      0.37
+  p01_pan        -0.1
+  p02_kind       #0
+  p02_tune       330 Hz
+  p02_decay      0.18 s
+  p02_damp       0.7
+  p02_hit        0.4
+  p02_hard       0.95
+  p02_noise      0.9
+  p02_level      1.5
+  p03_kind       #0
+  p03_tune       96 Hz
+  p03_decay      0.4 s
+  p03_damp       0.5
+  p03_hit        0.2
+  p03_hard       0.6
+  p03_noise      0.2
+  p03_level      0.35
+  p03_pan        0.1
+  p04_kind       #0
+  p04_tune       250 Hz
+  p04_decay      0.22 s
+  p04_damp       0.6
+  p04_hit        0.35
+  p04_hard       0.9
+  p04_noise      0.15
+  p04_level      0.29
+  p04_pan        0.3
+  p05_kind       #0
+  p05_tune       335 Hz
+  p05_decay      0.2 s
+  p05_damp       0.6
+  p05_hit        0.35
+  p05_hard       0.9
+  p05_noise      0.15
+  p05_level      0.28
+  p05_pan        0.4
+  p06_kind       #2
+  p06_tune       520 Hz
+  p06_decay      2.5 s
+  p06_damp       0.2
+  p06_hit        0.4
+  p06_hard       0.8
+  p06_noise      0.6
+  p06_level      1.5
+  p06_pan        -0.2
+  p07_kind       #0
+  p07_tune       330 Hz
+  p07_decay      0.08 s
+  p07_damp       0.8
+  p07_hit        0.9
+  p07_hard       1
+  p07_noise      0.6
+  p07_level      0.42
+  coupling       0.2
+  humanise       0.12
+  volume         1.5
+  mac1_d1  #8
+  mac1_a1  0.3
+  mac2_d1  #13
+  mac2_a1  -0.1
+  mac2_d2  #14
+  mac2_a2  -0.1
+  mac2_d3  #16
+  mac2_a3  -0.1
+  mac3_d1  #15
+  mac3_a1  0.1
+  mac3_d2  #2
+  mac3_a2  0.2
+  mac3_d3  #5
+  mac3_a3  0.1
+  mac4_d1  #6
+  mac4_a1  0.4
+  mac5_d1  #1
+  mac5_a1  0.3
+  mac5_d2  #2
+  mac5_a2  -0.3
+  mac5_d3  #9
+  mac5_a3  0.25
+  mac6_d1  #1
+  mac6_a1  0.2
+  mac6_d2  #9
+  mac6_a2  0.4
+  mac6_d3  #2
+  mac6_a3  -0.2
+  mac7_d1  #5
+  mac7_a1  -0.5
+  mac7_d2  #12
+  mac7_a2  -0.05
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+
+patch "Bent Toms" family=drum role=beat
+  # Every head drops in pitch as it is struck, by up to two octaves on the
+  # kick, which is the sound of a drum machine with knobs rather than of
+  # a drum. Pads: kick, swoop, snare, hat, tom, low tom, high tom, hat.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Noise"
+  set macro5 "Hard"
+  set macro6 "Weight"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
+  p00_kind       #0
+  p00_tune       45 Hz
+  p00_decay      0.6 s
+  p00_damp       0.45
+  p00_hit        0.15
+  p00_hard       0.5
+  p00_noise      0.15
+  p00_bend       24
+  p00_bendtime   0.05 s
+  p00_level      0.43
+  p01_kind       #0
+  p01_tune       120 Hz
+  p01_decay      0.9 s
+  p01_damp       0.35
+  p01_hit        0.3
+  p01_hard       0.5
+  p01_noise      0.1
+  p01_bend       24
+  p01_bendtime   0.3 s
+  p01_level      0.39
+  p02_kind       #0
+  p02_tune       190 Hz
+  p02_decay      0.22 s
+  p02_damp       0.6
+  p02_hit        0.4
+  p02_hard       0.8
+  p02_noise      0.9
+  p02_bend       5
+  p02_bendtime   0.04 s
+  p02_level      1.5
+  p03_kind       #2
+  p03_tune       1500 Hz
+  p03_decay      0.07 s
+  p03_damp       0.72
+  p03_hit        0.7
+  p03_hard       0.95
+  p03_noise      0.7
+  p03_bend       3
+  p03_bendtime   0.01 s
+  p03_level      0.29
+  p04_kind       #0
+  p04_tune       150 Hz
+  p04_decay      0.45 s
+  p04_damp       0.45
+  p04_hit        0.3
+  p04_hard       0.6
+  p04_noise      0.2
+  p04_bend       10
+  p04_bendtime   0.1 s
+  p04_level      0.42
+  p05_kind       #0
+  p05_tune       95 Hz
+  p05_decay      0.55 s
+  p05_damp       0.45
+  p05_hit        0.3
+  p05_hard       0.6
+  p05_noise      0.2
+  p05_bend       10
+  p05_bendtime   0.12 s
+  p05_level      0.43
+  p06_kind       #0
+  p06_tune       220 Hz
+  p06_decay      0.35 s
+  p06_damp       0.45
+  p06_hit        0.3
+  p06_hard       0.6
+  p06_noise      0.2
+  p06_bend       10
+  p06_bendtime   0.08 s
+  p06_level      0.41
+  p07_kind       #2
+  p07_tune       1500 Hz
+  p07_decay      0.04 s
+  p07_damp       0.72
+  p07_hit        0.7
+  p07_hard       0.95
+  p07_noise      0.7
+  p07_bend       3
+  p07_bendtime   0.01 s
+  p07_level      0.22
+  coupling       0.2
+  humanise       0.1
+  volume         1.5
+  mac1_d1  #8
+  mac1_a1  0.35
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.25
+  mac3_d1  #1
+  mac3_a1  -0.35
+  mac3_d2  #2
+  mac3_a2  0.4
+  mac3_d3  #6
+  mac3_a3  0.15
+  mac4_d1  #6
+  mac4_a1  0.5
+  mac5_d1  #5
+  mac5_a1  0.4
+  mac5_d2  #4
+  mac5_a2  0.2
+  mac6_d1  #21
+  mac6_a1  0.25
+  mac6_d2  #13
+  mac6_a2  -0.08
+  mac7_d1  #9
+  mac7_a1  0.6
+  mac7_d2  #1
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+
 # Hands, not sticks. A djembe's bass and slap are the same drum
 # struck in two places, which is what `hit` is for - one at a sixth of the
 # way in, one at the rim.
-patch Skins family=drum role=beat
+patch Skins family=hand role=beat
+  set macro1 "Pitch"
+  set macro2 "Open"
+  set macro3 "Muted"
+  set macro4 "Slap"
+  set macro5 "Palm"
+  set macro6 "Bass"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
   p00_kind       #0
   p00_tune       100 Hz
   p00_decay      0.55 s
@@ -121,237 +1214,293 @@ patch Skins family=drum role=beat
   p07_hard       0.85
   p07_noise      0.6
   p07_drive      0.1
-  p07_level      0.8
+  p07_level      0.85
   coupling       0.35
   humanise       0.22
-  volume         0.64
+  volume         0.9
+  mac1_d1  #8
+  mac1_a1  0.25
+  mac2_d1  #1
+  mac2_a1  0.25
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #4
+  mac4_a1  0.3
+  mac4_d2  #5
+  mac4_a2  0.3
+  mac4_d3  #6
+  mac4_a3  0.2
+  mac5_d1  #5
+  mac5_a1  -0.4
+  mac5_d2  #4
+  mac5_a2  -0.15
+  mac6_d1  #21
+  mac6_a1  0.25
+  mac6_d2  #25
+  mac6_a2  0.25
+  mac7_d1  #9
+  mac7_a1  0.6
+  mac7_d2  #1
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
 
-# A drum kit made of arithmetic: nothing here was recorded, and the
-# snare is a membrane struck near its rim with the noise well up.
-patch Kit family=drum role=beat
+patch Bongos family=hand role=beat
+  # Congas and bongos, open, slapped and muted, with the bongo player's
+  # bell. Pads: low conga, conga, slap, quinto, mute, bongo, high bongo,
+  # bell.
+  set macro1 "Pitch"
+  set macro2 "Open"
+  set macro3 "Muted"
+  set macro4 "Slap"
+  set macro5 "Palm"
+  set macro6 "Bell"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
   p00_kind       #0
-  p00_tune       55 Hz
-  p00_decay      0.45 s
-  p00_damp       0.6
-  p00_hit        0.15
-  p00_hard       0.35
-  p00_noise      0.3
-  p00_drive      0.15
-  p00_level      0.8
-  p01_kind       #0
-  p01_tune       210 Hz
-  p01_decay      0.25 s
-  p01_damp       0.6
-  p01_hit        0.45
-  p01_hard       0.7
-  p01_noise      0.85
-  p01_drive      0.1
-  p01_level      0.8
-  p02_kind       #2
-  p02_tune       1500 Hz
-  p02_decay      0.08 s
-  p02_damp       0.72
-  p02_hit        0.7
-  p02_hard       0.95
-  p02_noise      0.6
-  p02_level      0.8
-  p03_kind       #2
-  p03_tune       1500 Hz
-  p03_decay      0.85 s
-  p03_damp       0.38
-  p03_hit        0.7
-  p03_hard       0.95
-  p03_noise      0.6
-  p03_level      0.8
-  p04_kind       #0
-  p04_tune       152 Hz
-  p04_decay      0.7 s
-  p04_damp       0.35
-  p04_hit        0.3
-  p04_hard       0.45
-  p04_noise      0.2
-  p04_level      0.8
-  p05_kind       #0
-  p05_tune       92 Hz
-  p05_decay      0.9 s
-  p05_damp       0.35
-  p05_hit        0.3
-  p05_hard       0.45
-  p05_noise      0.2
-  p05_level      0.8
-  p06_kind       #2
-  p06_tune       620 Hz
-  p06_decay      4 s
-  p06_damp       0.12
-  p06_hit        0.35
-  p06_hard       0.85
-  p06_noise      0.35
-  p06_level      0.8
-  p07_kind       #2
-  p07_tune       480 Hz
-  p07_decay      3.5 s
-  p07_damp       0.15
-  p07_hit        0.6
-  p07_hard       0.7
-  p07_noise      0.5
-  p07_level      0.8
-  coupling       0.28
-  humanise       0.15
-  volume         0.75
-
-# The same idea an octave down and left to ring. Long decays on
-# a kit are what a room does rather than what a drum does.
-patch "Deep Kit" family=drum role=beat
-  p00_kind       #0
-  p00_tune       42 Hz
-  p00_decay      0.7 s
-  p00_damp       0.5
-  p00_hit        0.12
-  p00_hard       0.3
+  p00_tune       190 Hz
+  p00_decay      0.5 s
+  p00_damp       0.45
+  p00_hit        0.25
+  p00_hard       0.55
   p00_noise      0.25
-  p00_drive      0.1
-  p00_level      0.8
+  p00_level      0.72
+  p00_pan        -0.3
   p01_kind       #0
-  p01_tune       170 Hz
-  p01_decay      0.4 s
+  p01_tune       258 Hz
+  p01_decay      0.45 s
   p01_damp       0.45
-  p01_hit        0.45
-  p01_hard       0.7
-  p01_noise      0.85
-  p01_drive      0.1
-  p01_level      0.8
-  p02_kind       #2
-  p02_tune       1200 Hz
-  p02_decay      0.08 s
-  p02_damp       0.72
-  p02_hit        0.7
-  p02_hard       0.95
-  p02_noise      0.6
-  p02_level      0.8
-  p03_kind       #2
-  p03_tune       1200 Hz
-  p03_decay      1.3 s
-  p03_damp       0.38
-  p03_hit        0.7
-  p03_hard       0.95
-  p03_noise      0.6
-  p03_level      0.8
+  p01_hit        0.25
+  p01_hard       0.55
+  p01_noise      0.25
+  p01_level      0.84
+  p01_pan        -0.1
+  p02_kind       #0
+  p02_tune       258 Hz
+  p02_decay      0.15 s
+  p02_damp       0.62
+  p02_hit        0.8
+  p02_hard       0.85
+  p02_noise      0.5
+  p02_level      0.81
+  p02_pan        -0.1
+  p03_kind       #0
+  p03_tune       330 Hz
+  p03_decay      0.4 s
+  p03_damp       0.45
+  p03_hit        0.25
+  p03_hard       0.55
+  p03_noise      0.25
+  p03_level      0.88
+  p03_pan        0.1
   p04_kind       #0
-  p04_tune       120 Hz
-  p04_decay      1.1 s
-  p04_damp       0.35
+  p04_tune       258 Hz
+  p04_decay      0.12 s
+  p04_damp       0.82
   p04_hit        0.3
   p04_hard       0.45
-  p04_noise      0.2
-  p04_level      0.8
+  p04_noise      0.35
+  p04_level      0.62
+  p04_pan        -0.1
   p05_kind       #0
-  p05_tune       70 Hz
-  p05_decay      1.5 s
-  p05_damp       0.35
-  p05_hit        0.3
-  p05_hard       0.45
-  p05_noise      0.2
-  p05_level      0.8
-  p06_kind       #2
-  p06_tune       620 Hz
-  p06_decay      5.5 s
-  p06_damp       0.12
-  p06_hit        0.35
-  p06_hard       0.85
-  p06_noise      0.35
-  p06_level      0.8
-  p07_kind       #2
-  p07_tune       95 Hz
-  p07_decay      6 s
-  p07_damp       0.08
-  p07_hit        0.45
-  p07_hard       0.55
-  p07_noise      0.35
-  p07_drive      0.05
-  p07_level      0.8
-  coupling       0.4
-  humanise       0.18
-  volume         0.86
+  p05_tune       430 Hz
+  p05_decay      0.28 s
+  p05_damp       0.5
+  p05_hit        0.2
+  p05_hard       0.65
+  p05_noise      0.3
+  p05_level      0.81
+  p05_pan        0.3
+  p06_kind       #0
+  p06_tune       560 Hz
+  p06_decay      0.24 s
+  p06_damp       0.5
+  p06_hit        0.2
+  p06_hard       0.65
+  p06_noise      0.3
+  p06_level      0.79
+  p06_pan        0.4
+  p07_kind       #5
+  p07_tune       560 Hz
+  p07_decay      0.3 s
+  p07_damp       0.5
+  p07_hit        0.3
+  p07_hard       0.9
+  p07_noise      0.1
+  p07_level      0.58
+  p07_pan        0.2
+  coupling       0.3
+  humanise       0.25
+  volume         0.77
+  mac1_d1  #8
+  mac1_a1  0.25
+  mac2_d1  #1
+  mac2_a1  0.25
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #4
+  mac4_a1  0.4
+  mac4_d2  #5
+  mac4_a2  0.3
+  mac4_d3  #6
+  mac4_a3  0.2
+  mac5_d1  #5
+  mac5_a1  -0.4
+  mac5_d2  #4
+  mac5_a2  -0.15
+  mac6_d1  #28
+  mac6_a1  0.3
+  mac6_d2  #20
+  mac6_a2  0.05
+  mac7_d1  #9
+  mac7_a1  0.6
+  mac7_d2  #1
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
 
-# Everything damped hard and gone inside a fifth of a second. A kit
-# with no tail is a different instrument, not a quieter one.
-patch Tight family=drum role=beat
+patch Djembe family=hand role=beat
+  # A djembe over three dunun and the bell played with them, and a talking
+  # drum whose pitch drops as the cords are let go.
+  # Pads: djembe bass, tone, slap, dununba, sangban, kenkeni, bell,
+  # talking drum.
+  set macro1 "Pitch"
+  set macro2 "Open"
+  set macro3 "Muted"
+  set macro4 "Slap"
+  set macro5 "Dunun"
+  set macro6 "Bell"
+  set macro7 "Rattles"
+  set macro8 "Loose"
   p00_kind       #0
-  p00_tune       55 Hz
-  p00_decay      0.2 s
-  p00_damp       0.8
+  p00_tune       100 Hz
+  p00_decay      0.55 s
+  p00_damp       0.5
   p00_hit        0.15
-  p00_hard       0.35
-  p00_noise      0.3
-  p00_drive      0.15
-  p00_level      0.8
+  p00_hard       0.4
+  p00_noise      0.35
+  p00_level      1.1
   p01_kind       #0
-  p01_tune       210 Hz
-  p01_decay      0.12 s
-  p01_damp       0.85
-  p01_hit        0.45
-  p01_hard       0.7
-  p01_noise      0.85
-  p01_drive      0.1
-  p01_level      0.8
-  p02_kind       #2
-  p02_tune       1500 Hz
-  p02_decay      0.05 s
+  p01_tune       250 Hz
+  p01_decay      0.35 s
+  p01_damp       0.5
+  p01_hit        0.35
+  p01_hard       0.55
+  p01_noise      0.3
+  p01_level      0.9
+  p02_kind       #0
+  p02_tune       385 Hz
+  p02_decay      0.18 s
   p02_damp       0.72
   p02_hit        0.7
-  p02_hard       0.95
+  p02_hard       0.85
   p02_noise      0.6
-  p02_level      0.8
+  p02_level      1.4
   p03_kind       #0
-  p03_tune       420 Hz
-  p03_decay      0.12 s
-  p03_damp       0.75
-  p03_inharm     0.05
-  p03_hit        0.8
-  p03_hard       0.9
-  p03_noise      0.55
-  p03_drive      0.25
-  p03_level      0.8
+  p03_tune       70 Hz
+  p03_decay      0.7 s
+  p03_damp       0.45
+  p03_hit        0.2
+  p03_hard       0.6
+  p03_noise      0.2
+  p03_level      0.72
+  p03_pan        -0.3
   p04_kind       #0
-  p04_tune       85 Hz
-  p04_decay      0.35 s
-  p04_damp       0.65
-  p04_hit        0.18
-  p04_hard       0.4
-  p04_noise      0.3
-  p04_level      0.8
+  p04_tune       95 Hz
+  p04_decay      0.6 s
+  p04_damp       0.45
+  p04_hit        0.2
+  p04_hard       0.6
+  p04_noise      0.2
+  p04_level      0.77
+  p04_pan        -0.1
   p05_kind       #0
-  p05_tune       300 Hz
-  p05_decay      0.14 s
-  p05_damp       0.8
-  p05_hit        0.75
-  p05_hard       0.85
-  p05_noise      0.7
-  p05_drive      0.1
-  p05_level      0.8
-  p06_kind       #1
-  p06_tune       900 Hz
-  p06_decay      0.1 s
-  p06_damp       0.55
-  p06_hit        0.3
-  p06_hard       0.8
-  p06_noise      0.25
-  p06_level      0.8
-  p07_kind       #1
-  p07_tune       1250 Hz
-  p07_decay      0.08 s
-  p07_damp       0.45
-  p07_hit        0.4
-  p07_hard       0.9
+  p05_tune       125 Hz
+  p05_decay      0.5 s
+  p05_damp       0.45
+  p05_hit        0.2
+  p05_hard       0.65
+  p05_noise      0.2
+  p05_level      0.69
+  p05_pan        0.2
+  p06_kind       #5
+  p06_tune       700 Hz
+  p06_decay      0.25 s
+  p06_damp       0.5
+  p06_hit        0.25
+  p06_hard       0.95
+  p06_noise      0.15
+  p06_level      0.59
+  p06_pan        0.3
+  p07_kind       #0
+  p07_tune       200 Hz
+  p07_decay      0.5 s
+  p07_damp       0.4
+  p07_inharm     -0.03
+  p07_hit        0.3
+  p07_hard       0.5
   p07_noise      0.2
-  p07_level      0.8
-  coupling       0.12
+  p07_bend       7
+  p07_bendtime   0.12 s
+  p07_level      0.83
+  p07_pan        0.1
+  coupling       0.3
   humanise       0.25
-  volume         0.62
+  volume         0.75
+  mac1_d1  #8
+  mac1_a1  0.25
+  mac2_d1  #1
+  mac2_a1  0.25
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #4
+  mac4_a1  0.3
+  mac4_d2  #5
+  mac4_a2  0.3
+  mac4_d3  #6
+  mac4_a3  0.2
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #25
+  mac5_a2  0.3
+  mac5_d3  #26
+  mac5_a3  0.3
+  mac6_d1  #27
+  mac6_a1  0.3
+  mac7_d1  #6
+  mac7_a1  0.4
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
 
 # A box, struck in six places. The bass and the slap are one object
 # with the strike moved from the middle to the corner.
-patch Cajon family=drum role=beat
+patch Cajon family=hand role=beat
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Slap"
+  set macro5 "Snare"
+  set macro6 "Bass"
+  set macro7 "Blocks"
+  set macro8 "Loose"
   p00_kind       #0
   p00_tune       85 Hz
   p00_decay      0.35 s
@@ -359,7 +1508,7 @@ patch Cajon family=drum role=beat
   p00_hit        0.18
   p00_hard       0.4
   p00_noise      0.3
-  p00_level      0.8
+  p00_level      0.76
   p01_kind       #0
   p01_tune       300 Hz
   p01_decay      0.14 s
@@ -385,7 +1534,7 @@ patch Cajon family=drum role=beat
   p03_hard       0.85
   p03_noise      0.7
   p03_drive      0.1
-  p03_level      0.8
+  p03_level      0.81
   p04_kind       #0
   p04_tune       128 Hz
   p04_decay      0.6 s
@@ -420,12 +1569,289 @@ patch Cajon family=drum role=beat
   p07_level      0.8
   coupling       0.3
   humanise       0.28
-  volume         0.61
+  volume         0.87
+  mac1_d1  #8
+  mac1_a1  0.25
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.25
+  mac3_d1  #1
+  mac3_a1  -0.35
+  mac3_d2  #2
+  mac3_a2  0.4
+  mac3_d3  #6
+  mac3_a3  0.15
+  mac4_d1  #4
+  mac4_a1  0.3
+  mac4_d2  #5
+  mac4_a2  0.3
+  mac5_d1  #6
+  mac5_a1  0.4
+  mac6_d1  #21
+  mac6_a1  0.25
+  mac6_d2  #23
+  mac6_a2  0.25
+  mac6_d3  #13
+  mac6_a3  -0.05
+  mac7_d1  #26
+  mac7_a1  0.3
+  mac7_d2  #27
+  mac7_a2  0.3
+  mac7_d3  #28
+  mac7_a3  0.3
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+
+patch "Frame Drums" family=hand role=beat
+  # Big shallow drums held in the hand: a deep frame drum and its rim, a
+  # drum played with a stick, one with a snare across the back, and a
+  # small one with jingles. Pads: frame drum, rim, stick drum, snared
+  # drum, high stick drum, small drum, jingles, thump.
+  set macro1 "Pitch"
+  set macro2 "Open"
+  set macro3 "Muted"
+  set macro4 "Rim"
+  set macro5 "Stick"
+  set macro6 "Jingles"
+  set macro7 "Snare"
+  set macro8 "Loose"
+  p00_kind       #0
+  p00_tune       75 Hz
+  p00_decay      0.9 s
+  p00_damp       0.35
+  p00_hit        0.2
+  p00_hard       0.35
+  p00_noise      0.3
+  p00_level      0.53
+  p01_kind       #0
+  p01_tune       320 Hz
+  p01_decay      0.15 s
+  p01_damp       0.6
+  p01_hit        0.9
+  p01_hard       0.8
+  p01_noise      0.5
+  p01_level      0.42
+  p02_kind       #0
+  p02_tune       95 Hz
+  p02_decay      0.4 s
+  p02_damp       0.55
+  p02_hit        0.25
+  p02_hard       0.7
+  p02_noise      0.3
+  p02_level      0.39
+  p03_kind       #0
+  p03_tune       110 Hz
+  p03_decay      0.6 s
+  p03_damp       0.45
+  p03_hit        0.25
+  p03_hard       0.45
+  p03_noise      0.85
+  p03_level      1.5
+  p04_kind       #0
+  p04_tune       130 Hz
+  p04_decay      0.35 s
+  p04_damp       0.55
+  p04_hit        0.25
+  p04_hard       0.7
+  p04_noise      0.3
+  p04_level      0.37
+  p05_kind       #0
+  p05_tune       380 Hz
+  p05_decay      0.12 s
+  p05_damp       0.65
+  p05_hit        0.8
+  p05_hard       0.7
+  p05_noise      0.4
+  p05_level      0.31
+  p06_kind       #5
+  p06_tune       1900 Hz
+  p06_decay      0.3 s
+  p06_damp       0.5
+  p06_hit        0.3
+  p06_hard       0.9
+  p06_noise      0.7
+  p06_level      0.53
+  p06_pan        0.2
+  p07_kind       #0
+  p07_tune       128 Hz
+  p07_decay      0.6 s
+  p07_damp       0.55
+  p07_hit        0.4
+  p07_hard       0.3
+  p07_noise      0.4
+  p07_level      0.5
+  coupling       0.3
+  humanise       0.25
+  volume         1.49
+  mac1_d1  #8
+  mac1_a1  0.25
+  mac2_d1  #1
+  mac2_a1  0.25
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #4
+  mac4_a1  0.4
+  mac4_d2  #5
+  mac4_a2  0.2
+  mac5_d1  #5
+  mac5_a1  0.4
+  mac5_d2  #6
+  mac5_a2  0.1
+  mac6_d1  #27
+  mac6_a1  0.3
+  mac6_d2  #26
+  mac6_a2  0.15
+  mac7_d1  #6
+  mac7_a1  0.4
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+
+patch Darbuka family=hand role=beat
+  # A goblet drum with a tight head, which rings closer to a note than
+  # skin does, and its bigger brother, with finger cymbals and jingles.
+  # Pads: doum, ka, tek, pa, bass doum, bass tek, jingles, finger cymbal.
+  set macro1 "Pitch"
+  set macro2 "Open"
+  set macro3 "Muted"
+  set macro4 "Snap"
+  set macro5 "Doum"
+  set macro6 "Jingles"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
+  p00_kind       #0
+  p00_tune       140 Hz
+  p00_decay      0.45 s
+  p00_damp       0.45
+  p00_inharm     -0.03
+  p00_hit        0.1
+  p00_hard       0.5
+  p00_noise      0.2
+  p00_level      0.77
+  p01_kind       #0
+  p01_tune       480 Hz
+  p01_decay      0.1 s
+  p01_damp       0.72
+  p01_inharm     -0.03
+  p01_hit        0.8
+  p01_hard       0.85
+  p01_noise      0.45
+  p01_level      0.76
+  p02_kind       #0
+  p02_tune       520 Hz
+  p02_decay      0.12 s
+  p02_damp       0.7
+  p02_inharm     -0.03
+  p02_hit        0.85
+  p02_hard       0.95
+  p02_noise      0.45
+  p02_level      0.83
+  p03_kind       #0
+  p03_tune       260 Hz
+  p03_decay      0.1 s
+  p03_damp       0.75
+  p03_hit        0.6
+  p03_hard       0.8
+  p03_noise      0.65
+  p03_level      0.94
+  p04_kind       #0
+  p04_tune       95 Hz
+  p04_decay      0.55 s
+  p04_damp       0.45
+  p04_inharm     -0.03
+  p04_hit        0.1
+  p04_hard       0.45
+  p04_noise      0.2
+  p04_level      0.75
+  p04_pan        -0.2
+  p05_kind       #0
+  p05_tune       360 Hz
+  p05_decay      0.14 s
+  p05_damp       0.7
+  p05_inharm     -0.03
+  p05_hit        0.85
+  p05_hard       0.9
+  p05_noise      0.45
+  p05_level      0.76
+  p05_pan        -0.2
+  p06_kind       #5
+  p06_tune       1900 Hz
+  p06_decay      0.3 s
+  p06_damp       0.5
+  p06_hit        0.3
+  p06_hard       0.9
+  p06_noise      0.7
+  p06_level      1.17
+  p06_pan        0.2
+  p07_kind       #4
+  p07_tune       1800 Hz
+  p07_decay      1.2 s
+  p07_damp       0.15
+  p07_hit        0.4
+  p07_hard       0.95
+  p07_noise      0.1
+  p07_level      1.44
+  p07_pan        0.3
+  coupling       0.3
+  humanise       0.22
+  volume         0.72
+  mac1_d1  #8
+  mac1_a1  0.25
+  mac2_d1  #1
+  mac2_a1  0.25
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  0.3
+  mac4_d2  #6
+  mac4_a2  0.2
+  mac4_d3  #4
+  mac4_a3  0.15
+  mac5_d1  #21
+  mac5_a1  0.25
+  mac5_d2  #25
+  mac5_a2  0.25
+  mac5_d3  #13
+  mac5_a3  -0.05
+  mac6_d1  #27
+  mac6_a1  0.3
+  mac6_d2  #28
+  mac6_a2  0.2
+  mac7_d1  #9
+  mac7_a1  0.6
+  mac7_d2  #1
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
 
 # Two drums with the tuning paste on them: `inharm` slightly
 # negative pulls the modes *towards* harmonic, which is what the paste is
 # for and why a tabla has a pitch when a tom does not.
-patch Tabla family=drum role=beat
+patch Tabla family=hand role=beat
+  set macro1 "Pitch"
+  set macro2 "Open"
+  set macro3 "Muted"
+  set macro4 "Paste"
+  set macro5 "Edge"
+  set macro6 "Bass"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
   p00_kind       #0
   p00_tune       135 Hz
   p00_decay      0.65 s
@@ -498,89 +1924,170 @@ patch Tabla family=drum role=beat
   p07_level      0.8
   coupling       0.32
   humanise       0.2
-  volume         0.63
+  volume         0.89
+  mac1_d1  #8
+  mac1_a1  0.25
+  mac2_d1  #1
+  mac2_a1  0.25
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #3
+  mac4_a1  -0.15
+  mac5_d1  #4
+  mac5_a1  0.2
+  mac5_d2  #5
+  mac5_a2  0.2
+  mac6_d1  #21
+  mac6_a1  0.25
+  mac6_d2  #23
+  mac6_a2  0.25
+  mac6_d3  #13
+  mac6_a3  -0.05
+  mac7_d1  #9
+  mac7_a1  0.6
+  mac7_d2  #1
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
 
-# Four kettles, tuned, with the modes pulled towards harmonic.
-# Struck a quarter of the way in, which is where a timpanist stands.
-patch Timpani family=drum
-  p00_kind       #0
-  p00_tune       62 Hz
-  p00_decay      2.2 s
-  p00_damp       0.18
-  p00_inharm     -0.05
-  p00_hit        0.25
-  p00_hard       0.35
-  p00_noise      0.15
-  p00_level      0.8
-  p01_kind       #0
-  p01_tune       76 Hz
-  p01_decay      2.2 s
-  p01_damp       0.18
-  p01_inharm     -0.05
-  p01_hit        0.25
-  p01_hard       0.35
-  p01_noise      0.15
-  p01_level      0.8
-  p02_kind       #0
-  p02_tune       93 Hz
-  p02_decay      2.2 s
-  p02_damp       0.18
-  p02_inharm     -0.05
-  p02_hit        0.25
-  p02_hard       0.35
-  p02_noise      0.15
-  p02_level      0.8
-  p03_kind       #0
-  p03_tune       110 Hz
-  p03_decay      2.2 s
-  p03_damp       0.18
-  p03_inharm     -0.05
-  p03_hit        0.25
-  p03_hard       0.35
-  p03_noise      0.15
-  p03_level      0.8
-  p04_kind       #2
-  p04_tune       95 Hz
-  p04_decay      6 s
-  p04_damp       0.08
-  p04_hit        0.45
-  p04_hard       0.55
-  p04_noise      0.35
-  p04_drive      0.05
-  p04_level      0.8
-  p05_kind       #2
-  p05_tune       175 Hz
-  p05_decay      2.6 s
-  p05_damp       0.2
-  p05_hit        0.5
-  p05_hard       0.6
-  p05_noise      0.4
-  p05_drive      0.1
-  p05_level      0.8
-  p06_kind       #2
-  p06_tune       480 Hz
-  p06_decay      5 s
-  p06_damp       0.15
-  p06_hit        0.6
-  p06_hard       0.7
-  p06_noise      0.5
-  p06_level      0.8
-  p07_kind       #0
-  p07_tune       95 Hz
-  p07_decay      1.2 s
-  p07_damp       0.55
-  p07_hit        0.4
-  p07_hard       0.3
-  p07_noise      0.4
-  p07_level      0.8
-  coupling       0.45
-  humanise       0.12
-  volume         0.97
+patch "Clay Pots" family=hand role=beat
+  # Pots with a hole in the side. Slapping the hole gives a low note that
+  # swoops, the side rings like a bowl and the shoulder clicks.
+  # Pads: pot bass, small pot bass, side, pot, low pot, water pot, small
+  # pot, tap.
+  set macro1 "Pitch"
+  set macro2 "Open"
+  set macro3 "Muted"
+  set macro4 "Fingers"
+  set macro5 "Bloop"
+  set macro6 "Clay"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
+  p00_kind       #3
+  p00_tune       90 Hz
+  p00_decay      0.5 s
+  p00_damp       0.5
+  p00_hit        0.2
+  p00_hard       0.2
+  p00_noise      0.3
+  p00_bend       5
+  p00_bendtime   0.15 s
+  p00_level      0.91
+  p01_kind       #3
+  p01_tune       140 Hz
+  p01_decay      0.45 s
+  p01_damp       0.5
+  p01_hit        0.2
+  p01_hard       0.2
+  p01_noise      0.3
+  p01_bend       7
+  p01_bendtime   0.2 s
+  p01_level      1.04
+  p02_kind       #4
+  p02_tune       300 Hz
+  p02_decay      0.3 s
+  p02_damp       0.55
+  p02_hit        0.6
+  p02_hard       0.7
+  p02_noise      0.3
+  p02_level      0.81
+  p03_kind       #4
+  p03_tune       210 Hz
+  p03_decay      0.25 s
+  p03_damp       0.6
+  p03_hit        0.4
+  p03_hard       0.9
+  p03_noise      0.35
+  p03_level      0.79
+  p04_kind       #3
+  p04_tune       120 Hz
+  p04_decay      0.35 s
+  p04_damp       0.55
+  p04_hit        0.3
+  p04_hard       0.4
+  p04_noise      0.3
+  p04_level      0.77
+  p05_kind       #3
+  p05_tune       160 Hz
+  p05_decay      0.5 s
+  p05_damp       0.45
+  p05_inharm     0.05
+  p05_hit        0.3
+  p05_hard       0.5
+  p05_noise      0.2
+  p05_bend       3
+  p05_bendtime   0.1 s
+  p05_level      0.81
+  p06_kind       #4
+  p06_tune       520 Hz
+  p06_decay      0.35 s
+  p06_damp       0.4
+  p06_hit        0.4
+  p06_hard       0.85
+  p06_noise      0.2
+  p06_level      0.75
+  p07_kind       #1
+  p07_tune       1100 Hz
+  p07_decay      0.06 s
+  p07_damp       0.7
+  p07_hit        0.3
+  p07_hard       0.9
+  p07_noise      0.5
+  p07_level      0.53
+  coupling       0.35
+  humanise       0.25
+  volume         1.25
+  mac1_d1  #8
+  mac1_a1  0.25
+  mac2_d1  #1
+  mac2_a1  0.25
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  0.4
+  mac4_d2  #4
+  mac4_a2  0.2
+  mac5_d1  #21
+  mac5_a1  0.25
+  mac5_d2  #22
+  mac5_a2  0.25
+  mac5_d3  #13
+  mac5_a3  -0.05
+  mac6_d1  #3
+  mac6_a1  0.2
+  mac6_d2  #6
+  mac6_a2  0.2
+  mac7_d1  #9
+  mac7_a1  0.6
+  mac7_d2  #1
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
 
 # Bars, free at both ends, whose second mode sits at 2.76 times
 # the first - which is why wood does not sound like a pitch even when it
 # has one.
 patch Woodshop family=wood role=beat
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Muted"
+  set macro4 "Hard"
+  set macro5 "Edge"
+  set macro6 "Low"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
   p00_kind       #1
   p00_tune       900 Hz
   p00_decay      0.18 s
@@ -647,225 +2154,381 @@ patch Woodshop family=wood role=beat
   p07_level      0.8
   coupling       0.2
   humanise       0.22
-  volume         0.76
+  volume         1.11
+  mac1_d1  #8
+  mac1_a1  0.25
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.25
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  0.4
+  mac4_d2  #6
+  mac4_a2  0.1
+  mac5_d1  #4
+  mac5_a1  0.4
+  mac6_d1  #24
+  mac6_a1  0.25
+  mac6_d2  #27
+  mac6_a2  0.25
+  mac6_d3  #28
+  mac6_a3  0.25
+  mac7_d1  #9
+  mac7_a1  0.6
+  mac7_d2  #1
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
 
-# One bar up a major scale, struck softly in the middle where the
-# second mode is quietest.
-patch Marimba family=wood
+patch Woodblocks family=wood
+  # The same block cut to eight lengths up a pentatonic scale, so it plays
+  # tunes as well as time. Pads: eight blocks, low to high.
+  set macro1 "Octave"
+  set macro2 "Ring"
+  set macro3 "Muted"
+  set macro4 "Hard"
+  set macro5 "Soft"
+  set macro6 "Edge"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
   p00_kind       #1
-  p00_tune       175 Hz
-  p00_decay      0.9 s
-  p00_damp       0.25
-  p00_hit        0.28
-  p00_hard       0.45
-  p00_noise      0.1
-  p00_level      0.8
+  p00_tune       600 Hz
+  p00_decay      0.18 s
+  p00_damp       0.55
+  p00_hit        0.3
+  p00_hard       0.8
+  p00_noise      0.25
+  p00_level      0.65
   p01_kind       #1
-  p01_tune       196.9 Hz
-  p01_decay      0.9 s
-  p01_damp       0.25
-  p01_hit        0.28
-  p01_hard       0.45
-  p01_noise      0.1
-  p01_level      0.8
+  p01_tune       675 Hz
+  p01_decay      0.18 s
+  p01_damp       0.55
+  p01_hit        0.3
+  p01_hard       0.8
+  p01_noise      0.25
+  p01_level      0.74
   p02_kind       #1
-  p02_tune       218.8 Hz
-  p02_decay      0.9 s
-  p02_damp       0.25
-  p02_hit        0.28
-  p02_hard       0.45
-  p02_noise      0.1
-  p02_level      0.8
+  p02_tune       750 Hz
+  p02_decay      0.18 s
+  p02_damp       0.55
+  p02_hit        0.3
+  p02_hard       0.8
+  p02_noise      0.25
+  p02_level      0.77
   p03_kind       #1
-  p03_tune       233.3 Hz
-  p03_decay      0.9 s
-  p03_damp       0.25
-  p03_hit        0.28
-  p03_hard       0.45
-  p03_noise      0.1
-  p03_level      0.8
+  p03_tune       900 Hz
+  p03_decay      0.18 s
+  p03_damp       0.55
+  p03_hit        0.3
+  p03_hard       0.8
+  p03_noise      0.25
+  p03_level      0.81
   p04_kind       #1
-  p04_tune       262.5 Hz
-  p04_decay      0.9 s
-  p04_damp       0.25
-  p04_hit        0.28
-  p04_hard       0.45
-  p04_noise      0.1
+  p04_tune       1000 Hz
+  p04_decay      0.18 s
+  p04_damp       0.55
+  p04_hit        0.3
+  p04_hard       0.8
+  p04_noise      0.25
   p04_level      0.8
   p05_kind       #1
-  p05_tune       291.7 Hz
-  p05_decay      0.9 s
-  p05_damp       0.25
-  p05_hit        0.28
-  p05_hard       0.45
-  p05_noise      0.1
-  p05_level      0.8
+  p05_tune       1200 Hz
+  p05_decay      0.18 s
+  p05_damp       0.55
+  p05_hit        0.3
+  p05_hard       0.8
+  p05_noise      0.25
+  p05_level      0.91
   p06_kind       #1
-  p06_tune       328.1 Hz
-  p06_decay      0.9 s
-  p06_damp       0.25
-  p06_hit        0.28
-  p06_hard       0.45
-  p06_noise      0.1
-  p06_level      0.8
+  p06_tune       1350 Hz
+  p06_decay      0.18 s
+  p06_damp       0.55
+  p06_hit        0.3
+  p06_hard       0.8
+  p06_noise      0.25
+  p06_level      0.85
   p07_kind       #1
-  p07_tune       350 Hz
-  p07_decay      0.9 s
-  p07_damp       0.25
-  p07_hit        0.28
-  p07_hard       0.45
-  p07_noise      0.1
-  p07_level      0.8
-  coupling       0.25
-  humanise       0.1
-  volume         1.00
-
-# The same bars an octave and a half down, where the second
-# mode at 2.76 is still inside the ear's best range and the wood really
-# announces itself.
-patch "Marimba Low" family=wood
-  p00_kind       #1
-  p00_tune       82 Hz
-  p00_decay      1.3 s
-  p00_damp       0.25
-  p00_hit        0.28
-  p00_hard       0.35
-  p00_noise      0.1
-  p00_level      0.8
-  p01_kind       #1
-  p01_tune       92.2 Hz
-  p01_decay      1.3 s
-  p01_damp       0.25
-  p01_hit        0.28
-  p01_hard       0.35
-  p01_noise      0.1
-  p01_level      0.8
-  p02_kind       #1
-  p02_tune       102.5 Hz
-  p02_decay      1.3 s
-  p02_damp       0.25
-  p02_hit        0.28
-  p02_hard       0.35
-  p02_noise      0.1
-  p02_level      0.8
-  p03_kind       #1
-  p03_tune       109.3 Hz
-  p03_decay      1.3 s
-  p03_damp       0.25
-  p03_hit        0.28
-  p03_hard       0.35
-  p03_noise      0.1
-  p03_level      0.8
-  p04_kind       #1
-  p04_tune       123 Hz
-  p04_decay      1.3 s
-  p04_damp       0.25
-  p04_hit        0.28
-  p04_hard       0.35
-  p04_noise      0.1
-  p04_level      0.8
-  p05_kind       #1
-  p05_tune       136.7 Hz
-  p05_decay      1.3 s
-  p05_damp       0.25
-  p05_hit        0.28
-  p05_hard       0.35
-  p05_noise      0.1
-  p05_level      0.8
-  p06_kind       #1
-  p06_tune       153.8 Hz
-  p06_decay      1.3 s
-  p06_damp       0.25
-  p06_hit        0.28
-  p06_hard       0.35
-  p06_noise      0.1
-  p06_level      0.8
-  p07_kind       #1
-  p07_tune       164 Hz
-  p07_decay      1.3 s
-  p07_damp       0.25
-  p07_hit        0.28
-  p07_hard       0.35
-  p07_noise      0.1
-  p07_level      0.8
-  coupling       0.3
-  humanise       0.12
-  volume         1.16
-
-# Struck halfway along, which nulls the even modes and is why a
-# thumb piano is hollow.
-patch Kalimba family=wood
-  p00_kind       #1
-  p00_tune       262 Hz
-  p00_decay      0.7 s
-  p00_damp       0.35
-  p00_hit        0.5
-  p00_hard       0.6
-  p00_noise      0.15
-  p00_level      0.8
-  p01_kind       #1
-  p01_tune       294.8 Hz
-  p01_decay      0.7 s
-  p01_damp       0.35
-  p01_hit        0.5
-  p01_hard       0.6
-  p01_noise      0.15
-  p01_level      0.8
-  p02_kind       #1
-  p02_tune       349.3 Hz
-  p02_decay      0.7 s
-  p02_damp       0.35
-  p02_hit        0.5
-  p02_hard       0.6
-  p02_noise      0.15
-  p02_level      0.8
-  p03_kind       #1
-  p03_tune       393 Hz
-  p03_decay      0.7 s
-  p03_damp       0.35
-  p03_hit        0.5
-  p03_hard       0.6
-  p03_noise      0.15
-  p03_level      0.8
-  p04_kind       #1
-  p04_tune       436.7 Hz
-  p04_decay      0.7 s
-  p04_damp       0.35
-  p04_hit        0.5
-  p04_hard       0.6
-  p04_noise      0.15
-  p04_level      0.8
-  p05_kind       #1
-  p05_tune       524 Hz
-  p05_decay      0.7 s
-  p05_damp       0.35
-  p05_hit        0.5
-  p05_hard       0.6
-  p05_noise      0.15
-  p05_level      0.8
-  p06_kind       #1
-  p06_tune       589.5 Hz
-  p06_decay      0.7 s
-  p06_damp       0.35
-  p06_hit        0.5
-  p06_hard       0.6
-  p06_noise      0.15
-  p06_level      0.8
-  p07_kind       #1
-  p07_tune       698.7 Hz
-  p07_decay      0.7 s
-  p07_damp       0.35
-  p07_hit        0.5
-  p07_hard       0.6
-  p07_noise      0.15
-  p07_level      0.8
-  coupling       0.35
+  p07_tune       1500 Hz
+  p07_decay      0.18 s
+  p07_damp       0.55
+  p07_hit        0.3
+  p07_hard       0.8
+  p07_noise      0.25
+  p07_level      0.94
+  coupling       0.2
   humanise       0.15
-  volume         0.96
+  volume         1.07
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.25
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  0.4
+  mac4_d2  #6
+  mac4_a2  0.1
+  mac5_d1  #5
+  mac5_a1  -0.5
+  mac6_d1  #4
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.6
+  mac7_d2  #1
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+
+patch Claves family=wood role=beat
+  # Hard wood struck on hard wood: claves held halfway along so they ring,
+  # sticks, castanets and a slapstick. Pads: clave, low clave, stick, tip,
+  # castanet, low castanet, slapstick, snap.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Muted"
+  set macro4 "Grip"
+  set macro5 "Crack"
+  set macro6 "Claves"
+  set macro7 "Castanets"
+  set macro8 "Loose"
+  p00_kind       #1
+  p00_tune       1900 Hz
+  p00_decay      0.3 s
+  p00_damp       0.2
+  p00_hit        0.5
+  p00_hard       1
+  p00_noise      0.05
+  p00_level      1.38
+  p01_kind       #1
+  p01_tune       1500 Hz
+  p01_decay      0.3 s
+  p01_damp       0.2
+  p01_hit        0.5
+  p01_hard       1
+  p01_noise      0.05
+  p01_level      1.23
+  p02_kind       #1
+  p02_tune       1700 Hz
+  p02_decay      0.05 s
+  p02_damp       0.75
+  p02_hit        0.3
+  p02_hard       0.95
+  p02_noise      0.5
+  p02_level      0.76
+  p03_kind       #1
+  p03_tune       1400 Hz
+  p03_decay      0.06 s
+  p03_damp       0.7
+  p03_hit        0.9
+  p03_hard       0.95
+  p03_noise      0.5
+  p03_level      0.98
+  p04_kind       #2
+  p04_tune       1800 Hz
+  p04_decay      0.04 s
+  p04_damp       0.7
+  p04_hit        0.5
+  p04_hard       1
+  p04_noise      0.7
+  p04_level      0.58
+  p04_pan        0.2
+  p05_kind       #2
+  p05_tune       1400 Hz
+  p05_decay      0.05 s
+  p05_damp       0.7
+  p05_hit        0.5
+  p05_hard       1
+  p05_noise      0.7
+  p05_level      0.56
+  p05_pan        0.2
+  p06_kind       #2
+  p06_tune       900 Hz
+  p06_decay      0.05 s
+  p06_damp       0.8
+  p06_hit        0.5
+  p06_hard       1
+  p06_noise      0.9
+  p06_level      0.74
+  p07_kind       #1
+  p07_tune       1100 Hz
+  p07_decay      0.05 s
+  p07_damp       0.6
+  p07_hit        0.1
+  p07_hard       1
+  p07_noise      0.6
+  p07_level      0.84
+  p07_pan        -0.2
+  coupling       0.15
+  humanise       0.2
+  volume         0.84
+  mac1_d1  #8
+  mac1_a1  0.25
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.25
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #4
+  mac4_a1  -0.25
+  mac4_d2  #2
+  mac4_a2  0.15
+  mac5_d1  #6
+  mac5_a1  0.4
+  mac6_d1  #21
+  mac6_a1  0.25
+  mac6_d2  #22
+  mac6_a2  0.25
+  mac7_d1  #25
+  mac7_a1  0.25
+  mac7_d2  #26
+  mac7_a2  0.25
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+
+patch "Hollow Blocks" family=wood
+  # Carved blocks with a hollow inside, whose air gives them the harmonic
+  # series of a tube and so a clearer note than a solid block. A pentatonic
+  # set, low to high.
+  set macro1 "Octave"
+  set macro2 "Ring"
+  set macro3 "Muted"
+  set macro4 "Hard"
+  set macro5 "Soft"
+  set macro6 "Mouth"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
+  p00_kind       #3
+  p00_tune       220 Hz
+  p00_decay      0.25 s
+  p00_damp       0.6
+  p00_hit        0.2
+  p00_hard       0.7
+  p00_noise      0.3
+  p00_level      0.75
+  p01_kind       #3
+  p01_tune       247.5 Hz
+  p01_decay      0.25 s
+  p01_damp       0.6
+  p01_hit        0.2
+  p01_hard       0.7
+  p01_noise      0.3
+  p01_level      0.76
+  p02_kind       #3
+  p02_tune       275 Hz
+  p02_decay      0.25 s
+  p02_damp       0.6
+  p02_hit        0.2
+  p02_hard       0.7
+  p02_noise      0.3
+  p02_level      0.77
+  p03_kind       #3
+  p03_tune       330 Hz
+  p03_decay      0.25 s
+  p03_damp       0.6
+  p03_hit        0.2
+  p03_hard       0.7
+  p03_noise      0.3
+  p03_level      0.79
+  p04_kind       #3
+  p04_tune       366.7 Hz
+  p04_decay      0.25 s
+  p04_damp       0.6
+  p04_hit        0.2
+  p04_hard       0.7
+  p04_noise      0.3
+  p04_level      0.81
+  p05_kind       #3
+  p05_tune       440 Hz
+  p05_decay      0.25 s
+  p05_damp       0.6
+  p05_hit        0.2
+  p05_hard       0.7
+  p05_noise      0.3
+  p05_level      0.87
+  p06_kind       #3
+  p06_tune       495 Hz
+  p06_decay      0.25 s
+  p06_damp       0.6
+  p06_hit        0.2
+  p06_hard       0.7
+  p06_noise      0.3
+  p06_level      0.92
+  p07_kind       #3
+  p07_tune       550 Hz
+  p07_decay      0.25 s
+  p07_damp       0.6
+  p07_hit        0.2
+  p07_hard       0.7
+  p07_noise      0.3
+  p07_level      0.96
+  coupling       0.2
+  humanise       0.15
+  volume         1.33
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.25
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  0.4
+  mac4_d2  #6
+  mac4_a2  0.1
+  mac5_d1  #5
+  mac5_a1  -0.5
+  mac6_d1  #3
+  mac6_a1  0.15
+  mac6_d2  #6
+  mac6_a2  0.2
+  mac7_d1  #9
+  mac7_a1  0.6
+  mac7_d2  #1
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
 
 # Slit drums: a bar with the strike moved off centre so the
 # second mode comes back.
 patch "Log Drums" family=wood role=beat
+  set macro1 "Octave"
+  set macro2 "Ring"
+  set macro3 "Muted"
+  set macro4 "Hard"
+  set macro5 "Soft"
+  set macro6 "Centre"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
   p00_kind       #1
   p00_tune       110 Hz
   p00_decay      0.7 s
@@ -932,169 +2595,832 @@ patch "Log Drums" family=wood role=beat
   p07_level      0.8
   coupling       0.28
   humanise       0.2
-  volume         0.93
+  volume         1.33
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.25
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  0.4
+  mac4_d2  #6
+  mac4_a2  0.1
+  mac5_d1  #5
+  mac5_a1  -0.4
+  mac6_d1  #4
+  mac6_a1  0.08
+  mac7_d1  #9
+  mac7_a1  0.6
+  mac7_d2  #1
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
 
-# Metal, whose modes are the square roots - 1, 1.414, 1.732 -
-# and so never agree with each other or with anything else.
-patch Foundry family=metal role=beat
-  p00_kind       #5
-  p00_tune       420 Hz
-  p00_decay      1.1 s
-  p00_damp       0.3
-  p00_hit        0.28
-  p00_hard       0.9
-  p00_noise      0.25
-  p00_drive      0.15
-  p00_level      0.8
-  p01_kind       #5
-  p01_tune       260 Hz
-  p01_decay      0.8 s
-  p01_damp       0.4
-  p01_hit        0.3
+patch Crates family=wood role=beat
+  # Boxes: a crate kicked and slapped on the corner, a tea chest, a drawer,
+  # a lid, a cigar box and a box drum. Pads: box drum, crate corner, box
+  # drum slap, lid, crate, tea chest, cigar box, drawer.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Slap"
+  set macro5 "Rattle"
+  set macro6 "Thump"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
+  p00_kind       #0
+  p00_tune       85 Hz
+  p00_decay      0.35 s
+  p00_damp       0.65
+  p00_hit        0.18
+  p00_hard       0.4
+  p00_noise      0.3
+  p00_level      0.71
+  p01_kind       #2
+  p01_tune       450 Hz
+  p01_decay      0.1 s
+  p01_damp       0.7
+  p01_hit        0.85
   p01_hard       0.85
-  p01_noise      0.3
-  p01_drive      0.2
-  p01_level      0.8
-  p02_kind       #5
-  p02_tune       700 Hz
-  p02_decay      0.55 s
-  p02_damp       0.45
-  p02_hit        0.34
-  p02_hard       0.8
-  p02_noise      0.45
-  p02_drive      0.25
-  p02_level      0.8
+  p01_noise      0.6
+  p01_level      0.7
+  p02_kind       #0
+  p02_tune       300 Hz
+  p02_decay      0.14 s
+  p02_damp       0.8
+  p02_hit        0.75
+  p02_hard       0.85
+  p02_noise      0.7
+  p02_level      1.22
   p03_kind       #2
-  p03_tune       175 Hz
-  p03_decay      2.6 s
-  p03_damp       0.2
-  p03_hit        0.5
-  p03_hard       0.6
-  p03_noise      0.4
-  p03_drive      0.1
+  p03_tune       700 Hz
+  p03_decay      0.08 s
+  p03_damp       0.8
+  p03_hit        0.4
+  p03_hard       1
+  p03_noise      0.8
   p03_level      0.8
-  p04_kind       #5
-  p04_tune       620 Hz
-  p04_decay      1.1 s
-  p04_damp       0.3
-  p04_hit        0.28
-  p04_hard       0.9
-  p04_noise      0.25
-  p04_drive      0.15
-  p04_level      0.8
-  p05_kind       #5
-  p05_tune       180 Hz
-  p05_decay      0.8 s
-  p05_damp       0.4
-  p05_hit        0.3
-  p05_hard       0.85
+  p04_kind       #2
+  p04_tune       140 Hz
+  p04_decay      0.25 s
+  p04_damp       0.75
+  p04_hit        0.3
+  p04_hard       0.4
+  p04_noise      0.4
+  p04_level      1.04
+  p05_kind       #0
+  p05_tune       70 Hz
+  p05_decay      0.5 s
+  p05_damp       0.5
+  p05_hit        0.25
+  p05_hard       0.3
   p05_noise      0.3
-  p05_drive      0.2
-  p05_level      0.8
-  p06_kind       #5
-  p06_tune       1100 Hz
-  p06_decay      0.55 s
-  p06_damp       0.45
-  p06_hit        0.34
-  p06_hard       0.8
-  p06_noise      0.45
-  p06_drive      0.25
-  p06_level      0.8
-  p07_kind       #2
-  p07_tune       1500 Hz
-  p07_decay      0.08 s
-  p07_damp       0.72
-  p07_hit        0.7
-  p07_hard       0.95
-  p07_noise      0.6
-  p07_level      0.8
-  coupling       0.4
-  humanise       0.2
-  volume         0.75
+  p05_level      0.81
+  p06_kind       #2
+  p06_tune       900 Hz
+  p06_decay      0.15 s
+  p06_damp       0.55
+  p06_hit        0.35
+  p06_hard       0.7
+  p06_noise      0.3
+  p06_level      0.88
+  p07_kind       #1
+  p07_tune       300 Hz
+  p07_decay      0.2 s
+  p07_damp       0.6
+  p07_hit        0.3
+  p07_hard       0.6
+  p07_noise      0.3
+  p07_level      0.65
+  coupling       0.3
+  humanise       0.25
+  volume         1.01
+  mac1_d1  #8
+  mac1_a1  0.25
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.25
+  mac3_d1  #1
+  mac3_a1  -0.35
+  mac3_d2  #2
+  mac3_a2  0.4
+  mac3_d3  #6
+  mac3_a3  0.15
+  mac4_d1  #4
+  mac4_a1  0.3
+  mac4_d2  #5
+  mac4_a2  0.3
+  mac5_d1  #6
+  mac5_a1  0.4
+  mac6_d1  #21
+  mac6_a1  0.25
+  mac6_d2  #26
+  mac6_a2  0.25
+  mac6_d3  #13
+  mac6_a3  -0.05
+  mac7_d1  #9
+  mac7_a1  0.6
+  mac7_d2  #1
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
 
-# The same, driven. Everything in here is hit too hard on
-# purpose, and the coupling is high enough that the whole pile answers.
-patch Junkyard family=metal role=beat
-  p00_kind       #5
-  p00_tune       700 Hz
-  p00_decay      0.4 s
-  p00_damp       0.45
-  p00_hit        0.34
-  p00_hard       0.8
-  p00_noise      0.45
-  p00_drive      0.5
-  p00_level      1.5
-  p01_kind       #5
-  p01_tune       260 Hz
-  p01_decay      0.5 s
-  p01_damp       0.4
-  p01_hit        0.3
-  p01_hard       0.85
-  p01_noise      0.3
-  p01_drive      0.55
-  p01_level      1.5
-  p02_kind       #5
-  p02_tune       420 Hz
-  p02_decay      0.45 s
-  p02_damp       0.3
-  p02_hit        0.28
-  p02_hard       0.5
-  p02_noise      0.25
-  p02_drive      0.45
-  p02_level      1.5
+patch Bamboo family=wood role=beat
+  # Tubes of bamboo, open at one end: two stamped on the ground, four
+  # struck up a pentatonic scale, one slit along its length and a split
+  # clapper. Pads: low stamp, high stamp, clapper, four tubes, slit.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Muted"
+  set macro4 "Hard"
+  set macro5 "Split"
+  set macro6 "Stamps"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
+  p00_kind       #3
+  p00_tune       90 Hz
+  p00_decay      0.3 s
+  p00_damp       0.6
+  p00_hit        0.15
+  p00_hard       0.3
+  p00_noise      0.4
+  p00_level      0.78
+  p01_kind       #3
+  p01_tune       130 Hz
+  p01_decay      0.28 s
+  p01_damp       0.6
+  p01_hit        0.15
+  p01_hard       0.3
+  p01_noise      0.4
+  p01_level      0.85
+  p02_kind       #2
+  p02_tune       1100 Hz
+  p02_decay      0.05 s
+  p02_damp       0.8
+  p02_hit        0.5
+  p02_hard       1
+  p02_noise      0.8
+  p02_level      0.38
+  p03_kind       #3
+  p03_tune       262 Hz
+  p03_decay      0.4 s
+  p03_damp       0.5
+  p03_inharm     0.05
+  p03_hit        0.2
+  p03_hard       0.75
+  p03_noise      0.25
+  p03_level      0.77
+  p04_kind       #3
+  p04_tune       294.8 Hz
+  p04_decay      0.4 s
+  p04_damp       0.5
+  p04_inharm     0.05
+  p04_hit        0.2
+  p04_hard       0.75
+  p04_noise      0.25
+  p04_level      0.8
+  p05_kind       #3
+  p05_tune       327.5 Hz
+  p05_decay      0.4 s
+  p05_damp       0.5
+  p05_inharm     0.05
+  p05_hit        0.2
+  p05_hard       0.75
+  p05_noise      0.25
+  p05_level      0.81
+  p06_kind       #3
+  p06_tune       393 Hz
+  p06_decay      0.4 s
+  p06_damp       0.5
+  p06_inharm     0.05
+  p06_hit        0.2
+  p06_hard       0.75
+  p06_noise      0.25
+  p06_level      0.86
+  p07_kind       #1
+  p07_tune       380 Hz
+  p07_decay      0.5 s
+  p07_damp       0.45
+  p07_hit        0.42
+  p07_hard       0.5
+  p07_noise      0.2
+  p07_level      0.8
+  coupling       0.3
+  humanise       0.2
+  volume         1.34
+  mac1_d1  #8
+  mac1_a1  0.25
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.25
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  0.4
+  mac4_d2  #6
+  mac4_a2  0.1
+  mac5_d1  #3
+  mac5_a1  0.25
+  mac5_d2  #6
+  mac5_a2  0.3
+  mac6_d1  #21
+  mac6_a1  0.25
+  mac6_d2  #22
+  mac6_a2  0.25
+  mac7_d1  #9
+  mac7_a1  0.6
+  mac7_d2  #1
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+
+patch Floorboards family=wood role=beat
+  # A wooden room played as a kit: a stomp on the floor, heels, a creaking
+  # board, a door, a table, a stair and a chair leg, with the floor
+  # answering all of them. Pads: stomp, creak, heel, door, table, stair,
+  # floor, chair leg.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Hard"
+  set macro5 "Creak"
+  set macro6 "Stomp"
+  set macro7 "Room"
+  set macro8 "Loose"
+  p00_kind       #2
+  p00_tune       60 Hz
+  p00_decay      0.3 s
+  p00_damp       0.7
+  p00_hit        0.3
+  p00_hard       0.3
+  p00_noise      0.5
+  p00_level      1.17
+  p01_kind       #1
+  p01_tune       180 Hz
+  p01_decay      0.4 s
+  p01_damp       0.7
+  p01_hit        0.4
+  p01_hard       0.3
+  p01_noise      0.6
+  p01_bend       12
+  p01_bendtime   0.3 s
+  p01_level      1.18
+  p02_kind       #2
+  p02_tune       1600 Hz
+  p02_decay      0.04 s
+  p02_damp       0.8
+  p02_hit        0.6
+  p02_hard       1
+  p02_noise      0.6
+  p02_level      0.5
   p03_kind       #2
-  p03_tune       175 Hz
+  p03_tune       220 Hz
+  p03_decay      0.15 s
+  p03_damp       0.6
+  p03_hit        0.4
+  p03_hard       0.8
+  p03_noise      0.3
+  p03_level      0.63
+  p04_kind       #2
+  p04_tune       380 Hz
+  p04_decay      0.12 s
+  p04_damp       0.65
+  p04_hit        0.4
+  p04_hard       0.85
+  p04_noise      0.3
+  p04_level      0.61
+  p05_kind       #1
+  p05_tune       140 Hz
+  p05_decay      0.3 s
+  p05_damp       0.55
+  p05_hit        0.3
+  p05_hard       0.5
+  p05_noise      0.3
+  p05_level      0.84
+  p06_kind       #2
+  p06_tune       95 Hz
+  p06_decay      0.6 s
+  p06_damp       0.5
+  p06_hit        0.35
+  p06_hard       0.4
+  p06_noise      0.3
+  p06_level      0.76
+  p07_kind       #1
+  p07_tune       650 Hz
+  p07_decay      0.1 s
+  p07_damp       0.6
+  p07_hit        0.1
+  p07_hard       0.9
+  p07_noise      0.3
+  p07_level      0.86
+  coupling       0.45
+  humanise       0.3
+  volume         0.91
+  mac1_d1  #8
+  mac1_a1  0.25
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.25
+  mac3_d1  #1
+  mac3_a1  -0.35
+  mac3_d2  #2
+  mac3_a2  0.4
+  mac3_d3  #6
+  mac3_a3  0.15
+  mac4_d1  #5
+  mac4_a1  0.4
+  mac4_d2  #6
+  mac4_a2  0.2
+  mac5_d1  #22
+  mac5_a1  0.3
+  mac6_d1  #21
+  mac6_a1  0.3
+  mac6_d2  #13
+  mac6_a2  -0.05
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #1
+  mac7_a2  0.15
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+  send reverb    0.15
+
+# One bar up a major scale, struck softly in the middle where the
+# second mode is quietest.
+patch Marimba family=mallet
+  set macro1 "Octave"
+  set macro2 "Ring"
+  set macro3 "Muted"
+  set macro4 "Hard"
+  set macro5 "Soft"
+  set macro6 "Edge"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
+  p00_kind       #1
+  p00_tune       175 Hz
+  p00_decay      0.9 s
+  p00_damp       0.25
+  p00_hit        0.28
+  p00_hard       0.45
+  p00_noise      0.1
+  p00_level      0.8
+  p01_kind       #1
+  p01_tune       196.9 Hz
+  p01_decay      0.9 s
+  p01_damp       0.25
+  p01_hit        0.28
+  p01_hard       0.45
+  p01_noise      0.1
+  p01_level      0.8
+  p02_kind       #1
+  p02_tune       218.8 Hz
+  p02_decay      0.9 s
+  p02_damp       0.25
+  p02_hit        0.28
+  p02_hard       0.45
+  p02_noise      0.1
+  p02_level      0.8
+  p03_kind       #1
+  p03_tune       233.3 Hz
+  p03_decay      0.9 s
+  p03_damp       0.25
+  p03_hit        0.28
+  p03_hard       0.45
+  p03_noise      0.1
+  p03_level      0.8
+  p04_kind       #1
+  p04_tune       262.5 Hz
+  p04_decay      0.9 s
+  p04_damp       0.25
+  p04_hit        0.28
+  p04_hard       0.45
+  p04_noise      0.1
+  p04_level      0.8
+  p05_kind       #1
+  p05_tune       291.7 Hz
+  p05_decay      0.9 s
+  p05_damp       0.25
+  p05_hit        0.28
+  p05_hard       0.45
+  p05_noise      0.1
+  p05_level      0.8
+  p06_kind       #1
+  p06_tune       328.1 Hz
+  p06_decay      0.9 s
+  p06_damp       0.25
+  p06_hit        0.28
+  p06_hard       0.45
+  p06_noise      0.1
+  p06_level      0.8
+  p07_kind       #1
+  p07_tune       350 Hz
+  p07_decay      0.9 s
+  p07_damp       0.25
+  p07_hit        0.28
+  p07_hard       0.45
+  p07_noise      0.1
+  p07_level      0.8
+  coupling       0.25
+  humanise       0.1
+  volume         1.41
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.25
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  0.4
+  mac4_d2  #6
+  mac4_a2  0.05
+  mac5_d1  #5
+  mac5_a1  -0.4
+  mac6_d1  #4
+  mac6_a1  0.3
+  mac7_d1  #9
+  mac7_a1  0.6
+  mac7_d2  #1
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+
+# The same bars an octave and a half down, where the second
+# mode at 2.76 is still inside the ear's best range and the wood really
+# announces itself.
+patch "Marimba Low" family=mallet
+  set macro1 "Octave"
+  set macro2 "Ring"
+  set macro3 "Muted"
+  set macro4 "Hard"
+  set macro5 "Soft"
+  set macro6 "Edge"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
+  p00_kind       #1
+  p00_tune       82 Hz
+  p00_decay      1.3 s
+  p00_damp       0.25
+  p00_hit        0.28
+  p00_hard       0.35
+  p00_noise      0.1
+  p00_level      0.89
+  p01_kind       #1
+  p01_tune       92.2 Hz
+  p01_decay      1.3 s
+  p01_damp       0.25
+  p01_hit        0.28
+  p01_hard       0.35
+  p01_noise      0.1
+  p01_level      0.89
+  p02_kind       #1
+  p02_tune       102.5 Hz
+  p02_decay      1.3 s
+  p02_damp       0.25
+  p02_hit        0.28
+  p02_hard       0.35
+  p02_noise      0.1
+  p02_level      0.89
+  p03_kind       #1
+  p03_tune       109.3 Hz
+  p03_decay      1.3 s
+  p03_damp       0.25
+  p03_hit        0.28
+  p03_hard       0.35
+  p03_noise      0.1
+  p03_level      0.89
+  p04_kind       #1
+  p04_tune       123 Hz
+  p04_decay      1.3 s
+  p04_damp       0.25
+  p04_hit        0.28
+  p04_hard       0.35
+  p04_noise      0.1
+  p04_level      0.89
+  p05_kind       #1
+  p05_tune       136.7 Hz
+  p05_decay      1.3 s
+  p05_damp       0.25
+  p05_hit        0.28
+  p05_hard       0.35
+  p05_noise      0.1
+  p05_level      0.89
+  p06_kind       #1
+  p06_tune       153.8 Hz
+  p06_decay      1.3 s
+  p06_damp       0.25
+  p06_hit        0.28
+  p06_hard       0.35
+  p06_noise      0.1
+  p06_level      0.89
+  p07_kind       #1
+  p07_tune       164 Hz
+  p07_decay      1.3 s
+  p07_damp       0.25
+  p07_hit        0.28
+  p07_hard       0.35
+  p07_noise      0.1
+  p07_level      0.89
+  coupling       0.3
+  humanise       0.12
+  volume         1.49
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.25
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  0.4
+  mac4_d2  #6
+  mac4_a2  0.05
+  mac5_d1  #5
+  mac5_a1  -0.4
+  mac6_d1  #4
+  mac6_a1  0.3
+  mac7_d1  #9
+  mac7_a1  0.6
+  mac7_d2  #1
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+
+patch Xylo family=mallet
+  # Hard mallets on short bars up a major scale from C. The stiffness is
+  # raised a little so the second mode lands on the twelfth, which is how
+  # these bars are cut.
+  set macro1 "Octave"
+  set macro2 "Ring"
+  set macro3 "Muted"
+  set macro4 "Hard"
+  set macro5 "Soft"
+  set macro6 "Edge"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
+  p00_kind       #1
+  p00_tune       523.3 Hz
+  p00_decay      0.45 s
+  p00_damp       0.35
+  p00_inharm     0.084
+  p00_hit        0.25
+  p00_hard       0.9
+  p00_noise      0.12
+  p00_level      0.72
+  p01_kind       #1
+  p01_tune       588.7 Hz
+  p01_decay      0.45 s
+  p01_damp       0.35
+  p01_inharm     0.084
+  p01_hit        0.25
+  p01_hard       0.9
+  p01_noise      0.12
+  p01_level      0.71
+  p02_kind       #1
+  p02_tune       654.1 Hz
+  p02_decay      0.45 s
+  p02_damp       0.35
+  p02_inharm     0.084
+  p02_hit        0.25
+  p02_hard       0.9
+  p02_noise      0.12
+  p02_level      0.75
+  p03_kind       #1
+  p03_tune       697.7 Hz
+  p03_decay      0.45 s
+  p03_damp       0.35
+  p03_inharm     0.084
+  p03_hit        0.25
+  p03_hard       0.9
+  p03_noise      0.12
+  p03_level      0.8
+  p04_kind       #1
+  p04_tune       784.9 Hz
+  p04_decay      0.45 s
+  p04_damp       0.35
+  p04_inharm     0.084
+  p04_hit        0.25
+  p04_hard       0.9
+  p04_noise      0.12
+  p04_level      0.81
+  p05_kind       #1
+  p05_tune       872.2 Hz
+  p05_decay      0.45 s
+  p05_damp       0.35
+  p05_inharm     0.084
+  p05_hit        0.25
+  p05_hard       0.9
+  p05_noise      0.12
+  p05_level      0.89
+  p06_kind       #1
+  p06_tune       981.2 Hz
+  p06_decay      0.45 s
+  p06_damp       0.35
+  p06_inharm     0.084
+  p06_hit        0.25
+  p06_hard       0.9
+  p06_noise      0.12
+  p06_level      0.94
+  p07_kind       #1
+  p07_tune       1046.6 Hz
+  p07_decay      0.45 s
+  p07_damp       0.35
+  p07_inharm     0.084
+  p07_hit        0.25
+  p07_hard       0.9
+  p07_noise      0.12
+  p07_level      0.98
+  coupling       0.2
+  humanise       0.1
+  volume         1.49
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.25
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  0.4
+  mac4_d2  #6
+  mac4_a2  0.05
+  mac5_d1  #5
+  mac5_a1  -0.4
+  mac6_d1  #4
+  mac6_a1  0.3
+  mac7_d1  #9
+  mac7_a1  0.6
+  mac7_d2  #1
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+
+# Struck halfway along, which nulls the even modes and is why a
+# thumb piano is hollow.
+patch Kalimba family=mallet
+  set macro1 "Octave"
+  set macro2 "Ring"
+  set macro3 "Muted"
+  set macro4 "Hard"
+  set macro5 "Soft"
+  set macro6 "Edge"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
+  p00_kind       #1
+  p00_tune       262 Hz
+  p00_decay      0.7 s
+  p00_damp       0.35
+  p00_hit        0.5
+  p00_hard       0.6
+  p00_noise      0.15
+  p00_level      0.8
+  p01_kind       #1
+  p01_tune       294.8 Hz
+  p01_decay      0.7 s
+  p01_damp       0.35
+  p01_hit        0.5
+  p01_hard       0.6
+  p01_noise      0.15
+  p01_level      0.8
+  p02_kind       #1
+  p02_tune       349.3 Hz
+  p02_decay      0.7 s
+  p02_damp       0.35
+  p02_hit        0.5
+  p02_hard       0.6
+  p02_noise      0.15
+  p02_level      0.8
+  p03_kind       #1
+  p03_tune       393 Hz
   p03_decay      0.7 s
-  p03_damp       0.2
+  p03_damp       0.35
   p03_hit        0.5
   p03_hard       0.6
-  p03_noise      0.4
-  p03_drive      0.4
-  p03_level      1.5
-  p04_kind       #5
-  p04_tune       430 Hz
-  p04_decay      0.4 s
-  p04_damp       0.45
-  p04_hit        0.34
-  p04_hard       0.8
-  p04_noise      0.45
-  p04_drive      0.6
-  p04_level      1.5
-  p05_kind       #5
-  p05_tune       190 Hz
-  p05_decay      0.4 s
-  p05_damp       0.4
-  p05_hit        0.3
-  p05_hard       0.85
-  p05_noise      0.3
-  p05_drive      0.5
-  p05_level      1.5
-  p06_kind       #5
-  p06_tune       880 Hz
-  p06_decay      1.1 s
-  p06_damp       0.3
-  p06_hit        0.28
-  p06_hard       0.9
-  p06_noise      0.25
-  p06_drive      0.4
-  p06_level      1.5
-  p07_kind       #2
-  p07_tune       480 Hz
-  p07_decay      3.5 s
-  p07_damp       0.15
-  p07_hit        0.6
-  p07_hard       0.7
-  p07_noise      0.5
-  p07_drive      0.35
-  p07_level      1.5
-  coupling       0.65
-  humanise       0.3
-  volume         1.50
+  p03_noise      0.15
+  p03_level      0.8
+  p04_kind       #1
+  p04_tune       436.7 Hz
+  p04_decay      0.7 s
+  p04_damp       0.35
+  p04_hit        0.5
+  p04_hard       0.6
+  p04_noise      0.15
+  p04_level      0.8
+  p05_kind       #1
+  p05_tune       524 Hz
+  p05_decay      0.7 s
+  p05_damp       0.35
+  p05_hit        0.5
+  p05_hard       0.6
+  p05_noise      0.15
+  p05_level      0.8
+  p06_kind       #1
+  p06_tune       589.5 Hz
+  p06_decay      0.7 s
+  p06_damp       0.35
+  p06_hit        0.5
+  p06_hard       0.6
+  p06_noise      0.15
+  p06_level      0.8
+  p07_kind       #1
+  p07_tune       698.7 Hz
+  p07_decay      0.7 s
+  p07_damp       0.35
+  p07_hit        0.5
+  p07_hard       0.6
+  p07_noise      0.15
+  p07_level      0.8
+  coupling       0.35
+  humanise       0.15
+  volume         1.37
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.25
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  0.4
+  mac4_d2  #6
+  mac4_a2  0.05
+  mac5_d1  #5
+  mac5_a1  -0.4
+  mac6_d1  #4
+  mac6_a1  0.3
+  mac7_d1  #9
+  mac7_a1  0.6
+  mac7_d2  #1
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
 
 # The one tuned thing made of metal, and it is tuned by
 # *hammering* - so `inharm` goes slightly negative to pull the square roots
 # back towards a series.
-patch "Steel Pan" family=metal
+patch "Steel Pan" family=mallet
+  set macro1 "Octave"
+  set macro2 "Ring"
+  set macro3 "Muted"
+  set macro4 "Hard"
+  set macro5 "Soft"
+  set macro6 "Tuned"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
   p00_kind       #5
   p00_tune       196 Hz
   p00_decay      1.6 s
@@ -1169,11 +3495,490 @@ patch "Steel Pan" family=metal
   p07_level      0.8
   coupling       0.4
   humanise       0.14
-  volume         0.98
+  volume         1.4
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.25
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  0.4
+  mac5_d1  #5
+  mac5_a1  -0.4
+  mac6_d1  #3
+  mac6_a1  -0.1
+  mac7_d1  #9
+  mac7_a1  0.6
+  mac7_d2  #1
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+
+# Bars with the longest decay this machine has and almost no
+# damping, struck softly in the middle.
+patch Vibraphone family=mallet
+  set macro1 "Octave"
+  set macro2 "Ring"
+  set macro3 "Muted"
+  set macro4 "Hard"
+  set macro5 "Soft"
+  set macro6 "Edge"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
+  p00_kind       #1
+  p00_tune       175 Hz
+  p00_decay      3 s
+  p00_damp       0.1
+  p00_hit        0.28
+  p00_hard       0.4
+  p00_noise      0.05
+  p00_level      1.18
+  p01_kind       #1
+  p01_tune       196.9 Hz
+  p01_decay      3 s
+  p01_damp       0.1
+  p01_hit        0.28
+  p01_hard       0.4
+  p01_noise      0.05
+  p01_level      1.18
+  p02_kind       #1
+  p02_tune       218.8 Hz
+  p02_decay      3 s
+  p02_damp       0.1
+  p02_hit        0.28
+  p02_hard       0.4
+  p02_noise      0.05
+  p02_level      1.18
+  p03_kind       #1
+  p03_tune       233.3 Hz
+  p03_decay      3 s
+  p03_damp       0.1
+  p03_hit        0.28
+  p03_hard       0.4
+  p03_noise      0.05
+  p03_level      1.18
+  p04_kind       #1
+  p04_tune       262.5 Hz
+  p04_decay      3 s
+  p04_damp       0.1
+  p04_hit        0.28
+  p04_hard       0.4
+  p04_noise      0.05
+  p04_level      1.18
+  p05_kind       #1
+  p05_tune       291.7 Hz
+  p05_decay      3 s
+  p05_damp       0.1
+  p05_hit        0.28
+  p05_hard       0.4
+  p05_noise      0.05
+  p05_level      1.18
+  p06_kind       #1
+  p06_tune       328.1 Hz
+  p06_decay      3 s
+  p06_damp       0.1
+  p06_hit        0.28
+  p06_hard       0.4
+  p06_noise      0.05
+  p06_level      1.18
+  p07_kind       #1
+  p07_tune       350 Hz
+  p07_decay      3 s
+  p07_damp       0.1
+  p07_hit        0.28
+  p07_hard       0.4
+  p07_noise      0.05
+  p07_level      1.18
+  coupling       0.4
+  humanise       0.1
+  volume         1.5
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.25
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  0.4
+  mac4_d2  #6
+  mac4_a2  0.05
+  mac5_d1  #5
+  mac5_a1  -0.4
+  mac6_d1  #4
+  mac6_a1  0.3
+  mac7_d1  #9
+  mac7_a1  0.6
+  mac7_d2  #1
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+
+# The same bars three octaves up, where the second mode at
+# 2.76 is above most of what is listening.
+patch Glockenspiel family=mallet
+  set macro1 "Octave"
+  set macro2 "Ring"
+  set macro3 "Muted"
+  set macro4 "Hard"
+  set macro5 "Soft"
+  set macro6 "Edge"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
+  p00_kind       #1
+  p00_tune       784 Hz
+  p00_decay      1.2 s
+  p00_damp       0.12
+  p00_hit        0.25
+  p00_hard       0.85
+  p00_noise      0.08
+  p00_level      1.27
+  p01_kind       #1
+  p01_tune       882 Hz
+  p01_decay      1.2 s
+  p01_damp       0.12
+  p01_hit        0.25
+  p01_hard       0.85
+  p01_noise      0.08
+  p01_level      1.27
+  p02_kind       #1
+  p02_tune       980 Hz
+  p02_decay      1.2 s
+  p02_damp       0.12
+  p02_hit        0.25
+  p02_hard       0.85
+  p02_noise      0.08
+  p02_level      1.27
+  p03_kind       #1
+  p03_tune       1045.3 Hz
+  p03_decay      1.2 s
+  p03_damp       0.12
+  p03_hit        0.25
+  p03_hard       0.85
+  p03_noise      0.08
+  p03_level      1.27
+  p04_kind       #1
+  p04_tune       1176 Hz
+  p04_decay      1.2 s
+  p04_damp       0.12
+  p04_hit        0.25
+  p04_hard       0.85
+  p04_noise      0.08
+  p04_level      1.27
+  p05_kind       #1
+  p05_tune       1306.7 Hz
+  p05_decay      1.2 s
+  p05_damp       0.12
+  p05_hit        0.25
+  p05_hard       0.85
+  p05_noise      0.08
+  p05_level      1.27
+  p06_kind       #1
+  p06_tune       1470 Hz
+  p06_decay      1.2 s
+  p06_damp       0.12
+  p06_hit        0.25
+  p06_hard       0.85
+  p06_noise      0.08
+  p06_level      1.27
+  p07_kind       #1
+  p07_tune       1568 Hz
+  p07_decay      1.2 s
+  p07_damp       0.12
+  p07_hit        0.25
+  p07_hard       0.85
+  p07_noise      0.08
+  p07_level      1.27
+  coupling       0.3
+  humanise       0.1
+  volume         1.49
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.25
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  0.4
+  mac4_d2  #6
+  mac4_a2  0.05
+  mac5_d1  #5
+  mac5_a1  -0.4
+  mac6_d1  #4
+  mac6_a1  0.3
+  mac7_d1  #9
+  mac7_a1  0.6
+  mac7_d2  #1
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+
+patch Gourds family=mallet
+  # Wooden bars over gourds with a buzzing skin stretched across the hole:
+  # noise and drive on a pentatonic set. Pads: eight bars, low to high.
+  set macro1 "Octave"
+  set macro2 "Ring"
+  set macro3 "Muted"
+  set macro4 "Hard"
+  set macro5 "Soft"
+  set macro6 "Buzz"
+  set macro7 "Clean"
+  set macro8 "Loose"
+  p00_kind       #1
+  p00_tune       196 Hz
+  p00_decay      0.5 s
+  p00_damp       0.45
+  p00_inharm     0.03
+  p00_hit        0.3
+  p00_hard       0.7
+  p00_noise      0.5
+  p00_level      1.09
+  p01_kind       #1
+  p01_tune       220.5 Hz
+  p01_decay      0.5 s
+  p01_damp       0.45
+  p01_inharm     0.03
+  p01_hit        0.3
+  p01_hard       0.7
+  p01_noise      0.5
+  p01_level      1.04
+  p02_kind       #1
+  p02_tune       245 Hz
+  p02_decay      0.5 s
+  p02_damp       0.45
+  p02_inharm     0.03
+  p02_hit        0.3
+  p02_hard       0.7
+  p02_noise      0.5
+  p02_level      0.99
+  p03_kind       #1
+  p03_tune       294 Hz
+  p03_decay      0.5 s
+  p03_damp       0.45
+  p03_inharm     0.03
+  p03_hit        0.3
+  p03_hard       0.7
+  p03_noise      0.5
+  p03_level      1.03
+  p04_kind       #1
+  p04_tune       326.7 Hz
+  p04_decay      0.5 s
+  p04_damp       0.45
+  p04_inharm     0.03
+  p04_hit        0.3
+  p04_hard       0.7
+  p04_noise      0.5
+  p04_level      1.02
+  p05_kind       #1
+  p05_tune       392 Hz
+  p05_decay      0.5 s
+  p05_damp       0.45
+  p05_inharm     0.03
+  p05_hit        0.3
+  p05_hard       0.7
+  p05_noise      0.5
+  p05_level      1
+  p06_kind       #1
+  p06_tune       441 Hz
+  p06_decay      0.5 s
+  p06_damp       0.45
+  p06_inharm     0.03
+  p06_hit        0.3
+  p06_hard       0.7
+  p06_noise      0.5
+  p06_level      1.05
+  p07_kind       #1
+  p07_tune       490 Hz
+  p07_decay      0.5 s
+  p07_damp       0.45
+  p07_inharm     0.03
+  p07_hit        0.3
+  p07_hard       0.7
+  p07_noise      0.5
+  p07_level      1.15
+  coupling       0.3
+  humanise       0.15
+  volume         1.5
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac2_d3  #9
+  mac2_a3  0.25
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  0.4
+  mac5_d1  #5
+  mac5_a1  -0.4
+  mac6_d1  #6
+  mac6_a1  0.3
+  mac7_d1  #6
+  mac7_a1  -0.4
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
+
+patch "Cattle Bells" family=metal role=beat
+  # Hand-held metal: cowbells, agogo, a hand bell and a triangle.
+  # Pads: cowbell, low cowbell, muted cowbell, high agogo, low agogo, hand
+  # bell, triangle, closed triangle.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Soft"
+  set macro5 "Agogo"
+  set macro6 "Triangle"
+  set macro7 "Clank"
+  set macro8 "Loose"
+  p00_kind       #5
+  p00_tune       560 Hz
+  p00_decay      0.3 s
+  p00_damp       0.5
+  p00_hit        0.3
+  p00_hard       0.9
+  p00_noise      0.1
+  p00_level      0.79
+  p00_pan        -0.2
+  p01_kind       #5
+  p01_tune       415 Hz
+  p01_decay      0.35 s
+  p01_damp       0.5
+  p01_hit        0.3
+  p01_hard       0.9
+  p01_noise      0.1
+  p01_level      0.79
+  p01_pan        -0.35
+  p02_kind       #5
+  p02_tune       560 Hz
+  p02_decay      0.08 s
+  p02_damp       0.8
+  p02_hit        0.3
+  p02_hard       0.9
+  p02_noise      0.15
+  p02_level      0.53
+  p02_pan        -0.2
+  p03_kind       #5
+  p03_tune       820 Hz
+  p03_decay      0.45 s
+  p03_damp       0.35
+  p03_hit        0.3
+  p03_hard       0.95
+  p03_noise      0.08
+  p03_level      0.74
+  p03_pan        0.35
+  p04_kind       #5
+  p04_tune       610 Hz
+  p04_decay      0.5 s
+  p04_damp       0.35
+  p04_hit        0.3
+  p04_hard       0.95
+  p04_noise      0.08
+  p04_level      0.79
+  p04_pan        0.25
+  p05_kind       #5
+  p05_tune       700 Hz
+  p05_decay      0.25 s
+  p05_damp       0.5
+  p05_hit        0.25
+  p05_hard       0.95
+  p05_noise      0.15
+  p05_level      0.79
+  p05_pan        0.1
+  p06_kind       #5
+  p06_tune       1900 Hz
+  p06_decay      2 s
+  p06_damp       0.12
+  p06_hit        0.15
+  p06_hard       1
+  p06_noise      0.05
+  p06_level      1.5
+  p06_pan        0.5
+  p07_kind       #5
+  p07_tune       1900 Hz
+  p07_decay      0.15 s
+  p07_damp       0.7
+  p07_hit        0.15
+  p07_hard       1
+  p07_noise      0.05
+  p07_level      0.59
+  p07_pan        0.5
+  coupling       0.2
+  humanise       0.15
+  volume         0.75
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.35
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  -0.5
+  mac4_d2  #6
+  mac4_a2  -0.1
+  mac5_d1  #24
+  mac5_a1  0.4
+  mac5_d2  #25
+  mac5_a2  0.4
+  mac6_d1  #27
+  mac6_a1  0.4
+  mac6_d2  #28
+  mac6_a2  0.4
+  mac6_d3  #1
+  mac6_a3  0.1
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #7
+  mac7_a2  0.3
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #11
+  mac8_a2  -0.3
 
 # Struck iron up a scale it does not really have. The square-root
 # modes mean every note is a chord of its own.
 patch Anvils family=metal
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Hammer"
+  set macro5 "Strike"
+  set macro6 "Clang"
+  set macro7 "Grit"
+  set macro8 "Sympathy"
   p00_kind       #5
   p00_tune       232 Hz
   p00_decay      0.5 s
@@ -1248,11 +4053,39 @@ patch Anvils family=metal
   p07_level      1.5
   coupling       0.35
   humanise       0.16
-  volume         1.50
+  volume         0.67
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.35
+  mac2_d2  #2
+  mac2_a2  -0.25
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  0.45
+  mac5_d1  #4
+  mac5_a1  0.3
+  mac6_d1  #3
+  mac6_a1  0.25
+  mac7_d1  #7
+  mac7_a1  0.5
+  mac8_d1  #9
+  mac8_a1  0.5
 
 # Small metal, high and long: the modes are far enough apart up
 # here to be heard one at a time.
 patch Tines family=metal
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Soft"
+  set macro5 "Strike"
+  set macro6 "Bend"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
   p00_kind       #5
   p00_tune       440 Hz
   p00_decay      2.2 s
@@ -1260,7 +4093,7 @@ patch Tines family=metal
   p00_hit        0.3
   p00_hard       0.75
   p00_noise      0.1
-  p00_level      0.8
+  p00_level      1.05
   p01_kind       #5
   p01_tune       495 Hz
   p01_decay      2.2 s
@@ -1268,7 +4101,7 @@ patch Tines family=metal
   p01_hit        0.3
   p01_hard       0.75
   p01_noise      0.1
-  p01_level      0.8
+  p01_level      1.05
   p02_kind       #5
   p02_tune       586.7 Hz
   p02_decay      2.2 s
@@ -1276,7 +4109,7 @@ patch Tines family=metal
   p02_hit        0.3
   p02_hard       0.75
   p02_noise      0.1
-  p02_level      0.8
+  p02_level      1.05
   p03_kind       #5
   p03_tune       660 Hz
   p03_decay      2.2 s
@@ -1284,7 +4117,7 @@ patch Tines family=metal
   p03_hit        0.3
   p03_hard       0.75
   p03_noise      0.1
-  p03_level      0.8
+  p03_level      1.05
   p04_kind       #5
   p04_tune       733.3 Hz
   p04_decay      2.2 s
@@ -1292,7 +4125,7 @@ patch Tines family=metal
   p04_hit        0.3
   p04_hard       0.75
   p04_noise      0.1
-  p04_level      0.8
+  p04_level      1.05
   p05_kind       #5
   p05_tune       880 Hz
   p05_decay      2.2 s
@@ -1300,7 +4133,7 @@ patch Tines family=metal
   p05_hit        0.3
   p05_hard       0.75
   p05_noise      0.1
-  p05_level      0.8
+  p05_level      1.05
   p06_kind       #5
   p06_tune       990 Hz
   p06_decay      2.2 s
@@ -1308,7 +4141,7 @@ patch Tines family=metal
   p06_hit        0.3
   p06_hard       0.75
   p06_noise      0.1
-  p06_level      0.8
+  p06_level      1.05
   p07_kind       #5
   p07_tune       1173.3 Hz
   p07_decay      2.2 s
@@ -1316,22 +4149,50 @@ patch Tines family=metal
   p07_hit        0.3
   p07_hard       0.75
   p07_noise      0.1
-  p07_level      0.8
+  p07_level      1.05
   coupling       0.3
   humanise       0.12
-  volume         1.40
+  volume         1.5
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.1
+  mac3_d1  #2
+  mac3_a1  0.45
+  mac3_d2  #1
+  mac3_a2  -0.4
+  mac4_d1  #5
+  mac4_a1  -0.5
+  mac5_d1  #4
+  mac5_a1  0.3
+  mac6_d1  #3
+  mac6_a1  -0.15
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac8_d1  #10
+  mac8_a1  0.5
 
-# Plates and metal together with the drive up and the damping
-# down. Half of this is the strike noise rather than the resonators.
-patch Industrial family=metal role=beat
-  p00_kind       #2
-  p00_tune       175 Hz
-  p00_decay      2.6 s
-  p00_damp       0.2
-  p00_hit        0.5
-  p00_hard       0.6
-  p00_noise      0.6
-  p00_drive      0.45
+# Metal, whose modes are the square roots - 1, 1.414, 1.732 -
+# and so never agree with each other or with anything else.
+patch Foundry family=metal role=beat
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Soft"
+  set macro5 "Plate"
+  set macro6 "Hiss"
+  set macro7 "Grit"
+  set macro8 "Loose"
+  p00_kind       #5
+  p00_tune       420 Hz
+  p00_decay      1.1 s
+  p00_damp       0.3
+  p00_hit        0.28
+  p00_hard       0.9
+  p00_noise      0.25
+  p00_drive      0.15
   p00_level      0.8
   p01_kind       #5
   p01_tune       260 Hz
@@ -1340,8 +4201,498 @@ patch Industrial family=metal role=beat
   p01_hit        0.3
   p01_hard       0.85
   p01_noise      0.3
-  p01_drive      0.5
+  p01_drive      0.2
   p01_level      0.8
+  p02_kind       #5
+  p02_tune       700 Hz
+  p02_decay      0.55 s
+  p02_damp       0.45
+  p02_hit        0.34
+  p02_hard       0.8
+  p02_noise      0.45
+  p02_drive      0.25
+  p02_level      0.8
+  p03_kind       #2
+  p03_tune       175 Hz
+  p03_decay      2.6 s
+  p03_damp       0.2
+  p03_hit        0.5
+  p03_hard       0.6
+  p03_noise      0.4
+  p03_drive      0.1
+  p03_level      0.95
+  p04_kind       #5
+  p04_tune       620 Hz
+  p04_decay      1.1 s
+  p04_damp       0.3
+  p04_hit        0.28
+  p04_hard       0.9
+  p04_noise      0.25
+  p04_drive      0.15
+  p04_level      0.8
+  p05_kind       #5
+  p05_tune       180 Hz
+  p05_decay      0.8 s
+  p05_damp       0.4
+  p05_hit        0.3
+  p05_hard       0.85
+  p05_noise      0.3
+  p05_drive      0.2
+  p05_level      0.8
+  p06_kind       #5
+  p06_tune       1100 Hz
+  p06_decay      0.55 s
+  p06_damp       0.45
+  p06_hit        0.34
+  p06_hard       0.8
+  p06_noise      0.45
+  p06_drive      0.25
+  p06_level      0.8
+  p07_kind       #2
+  p07_tune       1500 Hz
+  p07_decay      0.08 s
+  p07_damp       0.72
+  p07_hit        0.7
+  p07_hard       0.95
+  p07_noise      0.6
+  p07_level      0.66
+  coupling       0.4
+  humanise       0.2
+  volume         1.3
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.35
+  mac2_d2  #2
+  mac2_a2  -0.25
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  -0.5
+  mac5_d1  #24
+  mac5_a1  0.4
+  mac6_d1  #6
+  mac6_a1  0.3
+  mac7_d1  #7
+  mac7_a1  0.5
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #9
+  mac8_a2  0.3
+
+patch "Tam Tams" family=metal
+  # Gongs: two flat tam tams that bloom after the hit, three bossed gongs
+  # with a pitch, a wind gong, a china and a splash.
+  # Pads: tam tam, small tam tam, low gong, gong, high gong, wind gong,
+  # china, splash.
+  set macro1 "Pitch"
+  set macro2 "Bloom"
+  set macro3 "Choke"
+  set macro4 "Mallet"
+  set macro5 "Edge"
+  set macro6 "Bossed"
+  set macro7 "Crash"
+  set macro8 "Grit"
+  p00_kind       #2
+  p00_tune       70 Hz
+  p00_decay      6 s
+  p00_damp       0.08
+  p00_inharm     0.2
+  p00_hit        0.5
+  p00_hard       0.3
+  p00_noise      0.5
+  p00_level      1.29
+  p00_pan        -0.3
+  p01_kind       #2
+  p01_tune       140 Hz
+  p01_decay      3.5 s
+  p01_damp       0.12
+  p01_inharm     0.2
+  p01_hit        0.5
+  p01_hard       0.4
+  p01_noise      0.45
+  p01_level      1.24
+  p01_pan        0.3
+  p02_kind       #4
+  p02_tune       98 Hz
+  p02_decay      4.5 s
+  p02_damp       0.15
+  p02_inharm     -0.1
+  p02_hit        0.1
+  p02_hard       0.4
+  p02_noise      0.15
+  p02_level      1.24
+  p02_pan        -0.15
+  p03_kind       #4
+  p03_tune       147 Hz
+  p03_decay      4 s
+  p03_damp       0.15
+  p03_inharm     -0.1
+  p03_hit        0.1
+  p03_hard       0.4
+  p03_noise      0.15
+  p03_level      1.24
+  p04_kind       #4
+  p04_tune       220 Hz
+  p04_decay      3.5 s
+  p04_damp       0.15
+  p04_inharm     -0.1
+  p04_hit        0.1
+  p04_hard       0.45
+  p04_noise      0.15
+  p04_level      1.24
+  p04_pan        0.15
+  p05_kind       #2
+  p05_tune       260 Hz
+  p05_decay      3 s
+  p05_damp       0.1
+  p05_inharm     0.3
+  p05_hit        0.65
+  p05_hard       0.8
+  p05_noise      0.4
+  p05_level      1.24
+  p05_pan        -0.4
+  p06_kind       #2
+  p06_tune       900 Hz
+  p06_decay      1.6 s
+  p06_damp       0.25
+  p06_inharm     0.3
+  p06_hit        0.75
+  p06_hard       0.9
+  p06_noise      0.6
+  p06_level      1.24
+  p06_pan        0.4
+  p07_kind       #2
+  p07_tune       1500 Hz
+  p07_decay      0.5 s
+  p07_damp       0.4
+  p07_hit        0.7
+  p07_hard       0.95
+  p07_noise      0.6
+  p07_level      0.99
+  p07_pan        0.5
+  coupling       0.45
+  humanise       0.1
+  volume         1.42
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #9
+  mac2_a2  0.4
+  mac3_d1  #2
+  mac3_a1  0.5
+  mac3_d2  #1
+  mac3_a2  -0.4
+  mac4_d1  #5
+  mac4_a1  -0.4
+  mac4_d2  #6
+  mac4_a2  -0.2
+  mac5_d1  #4
+  mac5_a1  0.35
+  mac5_d2  #6
+  mac5_a2  0.2
+  mac6_d1  #23
+  mac6_a1  0.4
+  mac6_d2  #24
+  mac6_a2  0.4
+  mac6_d3  #25
+  mac6_a3  0.4
+  mac7_d1  #27
+  mac7_a1  0.4
+  mac7_d2  #28
+  mac7_a2  0.4
+  mac8_d1  #7
+  mac8_a1  0.5
+  send reverb    0.2
+
+patch "Brake Drums" family=metal role=beat
+  # Car parts and a rail, played as a kit: the hard, short metal of a
+  # steel band's engine room.
+  # Pads: oil drum, brake drum, small brake drum, hubcap, oil drum lid,
+  # rail, cowbell, closed triangle.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Drum"
+  set macro5 "Brakes"
+  set macro6 "Clang"
+  set macro7 "Grit"
+  set macro8 "Loose"
+  p00_kind       #4
+  p00_tune       85 Hz
+  p00_decay      1.4 s
+  p00_damp       0.35
+  p00_inharm     0.25
+  p00_hit        0.2
+  p00_hard       0.7
+  p00_noise      0.3
+  p00_level      0.87
+  p00_pan        -0.1
+  p01_kind       #5
+  p01_tune       380 Hz
+  p01_decay      0.7 s
+  p01_damp       0.35
+  p01_inharm     0.1
+  p01_hit        0.2
+  p01_hard       1
+  p01_noise      0.3
+  p01_level      0.8
+  p01_pan        -0.3
+  p02_kind       #5
+  p02_tune       520 Hz
+  p02_decay      0.6 s
+  p02_damp       0.35
+  p02_inharm     0.1
+  p02_hit        0.2
+  p02_hard       1
+  p02_noise      0.3
+  p02_level      0.8
+  p02_pan        0.3
+  p03_kind       #2
+  p03_tune       640 Hz
+  p03_decay      0.5 s
+  p03_damp       0.4
+  p03_inharm     0.2
+  p03_hit        0.35
+  p03_hard       1
+  p03_noise      0.35
+  p03_level      0.88
+  p03_pan        0.15
+  p04_kind       #2
+  p04_tune       150 Hz
+  p04_decay      0.7 s
+  p04_damp       0.35
+  p04_inharm     0.2
+  p04_hit        0.5
+  p04_hard       0.9
+  p04_noise      0.45
+  p04_level      0.8
+  p04_pan        -0.2
+  p05_kind       #1
+  p05_tune       240 Hz
+  p05_decay      1.8 s
+  p05_damp       0.2
+  p05_inharm     0.1
+  p05_hit        0.22
+  p05_hard       1
+  p05_noise      0.2
+  p05_level      1.21
+  p05_pan        0.4
+  p06_kind       #5
+  p06_tune       560 Hz
+  p06_decay      0.3 s
+  p06_damp       0.5
+  p06_hit        0.3
+  p06_hard       0.9
+  p06_noise      0.1
+  p06_level      0.48
+  p06_pan        -0.4
+  p07_kind       #5
+  p07_tune       1900 Hz
+  p07_decay      0.15 s
+  p07_damp       0.7
+  p07_hit        0.15
+  p07_hard       1
+  p07_noise      0.05
+  p07_level      0.59
+  p07_pan        0.5
+  coupling       0.35
+  humanise       0.2
+  volume         1.3
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.35
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #21
+  mac4_a1  0.4
+  mac4_d2  #13
+  mac4_a2  -0.15
+  mac5_d1  #22
+  mac5_a1  0.3
+  mac5_d2  #23
+  mac5_a2  0.3
+  mac5_d3  #3
+  mac5_a3  0.2
+  mac6_d1  #3
+  mac6_a1  0.3
+  mac6_d2  #6
+  mac6_a2  0.2
+  mac7_d1  #7
+  mac7_a1  0.5
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #9
+  mac8_a2  0.3
+
+patch Girders family=metal role=beat
+  # A building site in steel: beams, a sheet that wobbles, a silo, chains
+  # and a rivet gun, all with some drive.
+  # Pads: silo, girder, beam, sheet, steel plate, anvil, chain, rivet gun.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Grit"
+  set macro5 "Wobble"
+  set macro6 "Weight"
+  set macro7 "Clatter"
+  set macro8 "Shake"
+  p00_kind       #3
+  p00_tune       55 Hz
+  p00_decay      3 s
+  p00_damp       0.2
+  p00_inharm     0.2
+  p00_hit        0.15
+  p00_hard       0.9
+  p00_noise      0.4
+  p00_drive      0.35
+  p00_level      0.75
+  p01_kind       #1
+  p01_tune       95 Hz
+  p01_decay      2.5 s
+  p01_damp       0.2
+  p01_inharm     0.15
+  p01_hit        0.22
+  p01_hard       1
+  p01_noise      0.35
+  p01_drive      0.3
+  p01_level      0.87
+  p01_pan        -0.3
+  p02_kind       #1
+  p02_tune       140 Hz
+  p02_decay      2 s
+  p02_damp       0.22
+  p02_inharm     0.15
+  p02_hit        0.22
+  p02_hard       1
+  p02_noise      0.35
+  p02_drive      0.3
+  p02_level      0.84
+  p02_pan        0.3
+  p03_kind       #2
+  p03_tune       60 Hz
+  p03_decay      3 s
+  p03_damp       0.25
+  p03_inharm     0.3
+  p03_hit        0.6
+  p03_hard       0.5
+  p03_noise      0.7
+  p03_bend       2
+  p03_bendtime   0.2 s
+  p03_level      1.5
+  p03_pan        -0.2
+  p04_kind       #2
+  p04_tune       330 Hz
+  p04_decay      1.4 s
+  p04_damp       0.25
+  p04_inharm     0.25
+  p04_hit        0.4
+  p04_hard       1
+  p04_noise      0.4
+  p04_drive      0.4
+  p04_level      0.75
+  p04_pan        0.2
+  p05_kind       #5
+  p05_tune       232 Hz
+  p05_decay      0.5 s
+  p05_damp       0.3
+  p05_hit        0.28
+  p05_hard       0.45
+  p05_noise      0.25
+  p05_drive      0.15
+  p05_level      0.58
+  p05_pan        -0.4
+  p06_kind       #5
+  p06_tune       1200 Hz
+  p06_decay      0.18 s
+  p06_damp       0.6
+  p06_hit        0.4
+  p06_hard       1
+  p06_noise      0.8
+  p06_drive      0.3
+  p06_level      0.72
+  p06_pan        0.45
+  p07_kind       #5
+  p07_tune       1700 Hz
+  p07_decay      0.06 s
+  p07_damp       0.7
+  p07_hit        0.3
+  p07_hard       1
+  p07_noise      0.9
+  p07_drive      0.5
+  p07_level      0.66
+  p07_pan        0.1
+  coupling       0.5
+  humanise       0.2
+  volume         1.42
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.35
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #16
+  mac5_a1  0.2
+  mac5_d2  #3
+  mac5_a2  0.2
+  mac6_d1  #21
+  mac6_a1  0.4
+  mac6_d2  #22
+  mac6_a2  0.3
+  mac6_d3  #13
+  mac6_a3  -0.15
+  mac7_d1  #6
+  mac7_a1  0.4
+  mac7_d2  #4
+  mac7_a2  0.2
+  mac8_d1  #9
+  mac8_a1  0.5
+  mac8_d2  #10
+  mac8_a2  0.4
+
+# Plates and metal together with the drive up and the damping
+# down. Half of this is the strike noise rather than the resonators.
+patch Industrial family=metal role=beat
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Grit"
+  set macro5 "Hiss"
+  set macro6 "Clang"
+  set macro7 "Shake"
+  set macro8 "Loose"
+  p00_kind       #2
+  p00_tune       175 Hz
+  p00_decay      2.6 s
+  p00_damp       0.2
+  p00_hit        0.5
+  p00_hard       0.6
+  p00_noise      0.6
+  p00_drive      0.45
+  p00_level      0.76
+  p01_kind       #5
+  p01_tune       260 Hz
+  p01_decay      0.8 s
+  p01_damp       0.4
+  p01_hit        0.3
+  p01_hard       0.85
+  p01_noise      0.3
+  p01_drive      0.5
+  p01_level      0.64
   p02_kind       #2
   p02_tune       1500 Hz
   p02_decay      0.08 s
@@ -1349,7 +4700,7 @@ patch Industrial family=metal role=beat
   p02_hit        0.7
   p02_hard       0.95
   p02_noise      0.8
-  p02_level      0.8
+  p02_level      0.64
   p03_kind       #5
   p03_tune       700 Hz
   p03_decay      0.55 s
@@ -1358,7 +4709,7 @@ patch Industrial family=metal role=beat
   p03_hard       0.8
   p03_noise      0.6
   p03_drive      0.55
-  p03_level      0.8
+  p03_level      0.64
   p04_kind       #2
   p04_tune       95 Hz
   p04_decay      6 s
@@ -1367,7 +4718,7 @@ patch Industrial family=metal role=beat
   p04_hard       0.55
   p04_noise      0.35
   p04_drive      0.3
-  p04_level      0.8
+  p04_level      0.64
   p05_kind       #5
   p05_tune       420 Hz
   p05_decay      1.1 s
@@ -1376,7 +4727,7 @@ patch Industrial family=metal role=beat
   p05_hard       0.9
   p05_noise      0.25
   p05_drive      0.5
-  p05_level      0.8
+  p05_level      0.64
   p06_kind       #0
   p06_tune       48 Hz
   p06_decay      0.45 s
@@ -1385,7 +4736,7 @@ patch Industrial family=metal role=beat
   p06_hard       0.35
   p06_noise      0.3
   p06_drive      0.4
-  p06_level      0.8
+  p06_level      0.64
   p07_kind       #2
   p07_tune       480 Hz
   p07_decay      3.5 s
@@ -1393,14 +4744,44 @@ patch Industrial family=metal role=beat
   p07_hit        0.6
   p07_hard       0.7
   p07_noise      0.7
-  p07_level      0.8
+  p07_level      1.5
   coupling       0.55
   humanise       0.24
-  volume         0.94
+  volume         1.5
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.35
+  mac2_d2  #2
+  mac2_a2  -0.2
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #6
+  mac5_a1  0.3
+  mac6_d1  #3
+  mac6_a1  0.2
+  mac6_d2  #4
+  mac6_a2  0.2
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #10
+  mac8_a1  0.6
 
 # Bowls, whose third mode at 3.01 is the minor third that bell
 # founders spent four centuries learning to tune out.
 patch Bells family=bell
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Damped"
+  set macro4 "Soft"
+  set macro5 "Strike"
+  set macro6 "Tuned"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
   p00_kind       #4
   p00_tune       660 Hz
   p00_decay      2.5 s
@@ -1408,7 +4789,7 @@ patch Bells family=bell
   p00_hit        0.3
   p00_hard       0.8
   p00_noise      0.15
-  p00_level      0.8
+  p00_level      1.04
   p01_kind       #4
   p01_tune       175 Hz
   p01_decay      5 s
@@ -1416,7 +4797,7 @@ patch Bells family=bell
   p01_hit        0.25
   p01_hard       0.6
   p01_noise      0.12
-  p01_level      0.8
+  p01_level      1.04
   p02_kind       #4
   p02_tune       280 Hz
   p02_decay      6 s
@@ -1424,7 +4805,7 @@ patch Bells family=bell
   p02_hit        0.4
   p02_hard       0.35
   p02_noise      0.1
-  p02_level      0.8
+  p02_level      1.26
   p03_kind       #3
   p03_tune       520 Hz
   p03_decay      4 s
@@ -1432,7 +4813,7 @@ patch Bells family=bell
   p03_hit        0.25
   p03_hard       0.7
   p03_noise      0.1
-  p03_level      0.8
+  p03_level      1.08
   p04_kind       #4
   p04_tune       540 Hz
   p04_decay      0.35 s
@@ -1442,7 +4823,7 @@ patch Bells family=bell
   p04_hard       0.85
   p04_noise      0.2
   p04_drive      0.1
-  p04_level      0.8
+  p04_level      0.73
   p05_kind       #4
   p05_tune       210 Hz
   p05_decay      2 s
@@ -1450,7 +4831,7 @@ patch Bells family=bell
   p05_hit        0.3
   p05_hard       0.45
   p05_noise      0.15
-  p05_level      0.8
+  p05_level      1.04
   p06_kind       #1
   p06_tune       1050 Hz
   p06_decay      1.6 s
@@ -1458,7 +4839,7 @@ patch Bells family=bell
   p06_hit        0.25
   p06_hard       0.85
   p06_noise      0.08
-  p06_level      0.8
+  p06_level      1.04
   p07_kind       #5
   p07_tune       880 Hz
   p07_decay      2.2 s
@@ -1466,159 +4847,160 @@ patch Bells family=bell
   p07_hit        0.3
   p07_hard       0.75
   p07_noise      0.1
-  p07_level      0.8
+  p07_level      1.04
   coupling       0.45
   humanise       0.1
-  volume         1.50
+  volume         1.44
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.1
+  mac3_d1  #2
+  mac3_a1  0.45
+  mac3_d2  #1
+  mac3_a2  -0.4
+  mac4_d1  #5
+  mac4_a1  -0.5
+  mac5_d1  #4
+  mac5_a1  0.3
+  mac6_d1  #3
+  mac6_a1  -0.1
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #10
+  mac8_a1  0.5
 
-# Four large bowls and two bowls of water, all left to ring for
-# as long as they like, with the pads hearing each other strongly. One
-# strike sets the whole thing going.
-patch Cathedral family=bell
-  p00_kind       #4
-  p00_tune       98 Hz
-  p00_decay      5 s
-  p00_damp       0.08
-  p00_hit        0.25
-  p00_hard       0.6
-  p00_noise      0.12
-  p00_level      0.8
-  p01_kind       #4
-  p01_tune       131 Hz
-  p01_decay      5 s
-  p01_damp       0.08
-  p01_hit        0.25
-  p01_hard       0.6
-  p01_noise      0.12
-  p01_level      0.8
-  p02_kind       #4
-  p02_tune       175 Hz
-  p02_decay      5 s
-  p02_damp       0.08
-  p02_hit        0.25
-  p02_hard       0.6
-  p02_noise      0.12
-  p02_level      0.8
-  p03_kind       #4
-  p03_tune       233 Hz
-  p03_decay      5 s
-  p03_damp       0.08
-  p03_hit        0.25
-  p03_hard       0.6
-  p03_noise      0.12
-  p03_level      0.8
-  p04_kind       #4
-  p04_tune       196 Hz
-  p04_decay      6 s
-  p04_damp       0.05
-  p04_hit        0.4
-  p04_hard       0.35
-  p04_noise      0.1
-  p04_level      0.8
-  p05_kind       #4
-  p05_tune       294 Hz
-  p05_decay      6 s
-  p05_damp       0.05
-  p05_hit        0.4
-  p05_hard       0.35
-  p05_noise      0.1
-  p05_level      0.8
-  p06_kind       #2
-  p06_tune       95 Hz
-  p06_decay      8 s
-  p06_damp       0.08
-  p06_hit        0.45
-  p06_hard       0.55
-  p06_noise      0.35
-  p06_drive      0.05
-  p06_level      0.8
-  p07_kind       #3
-  p07_tune       520 Hz
-  p07_decay      6 s
-  p07_damp       0.1
-  p07_hit        0.25
-  p07_hard       0.7
-  p07_noise      0.1
-  p07_level      0.8
-  coupling       0.8
-  humanise       0.08
-  volume         1.38
-
-# Tubes, which are the only shape here with a true harmonic
-# series - so glass is the one struck thing that has a pitch rather than a
-# note.
-patch Glassware family=bell
+patch "Tubular Bells" family=bell
+  # Eight orchestral chimes up a C major scale, struck at the cap. The
+  # tube is the one shape with a true pitch, so these play a tune.
+  # Pads: tubular bells, C4 to C5.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Damped"
+  set macro4 "Soft"
+  set macro5 "Strike"
+  set macro6 "Clang"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
   p00_kind       #3
-  p00_tune       196 Hz
-  p00_decay      0.7 s
-  p00_damp       0.4
-  p00_hit        0.5
-  p00_hard       0.5
-  p00_noise      0.35
-  p00_level      0.8
+  p00_tune       262 Hz
+  p00_decay      4 s
+  p00_damp       0.12
+  p00_inharm     0.05
+  p00_hit        0.08
+  p00_hard       0.8
+  p00_noise      0.05
+  p00_level      1.44
+  p00_pan        -0.35
   p01_kind       #3
-  p01_tune       262 Hz
-  p01_decay      0.7 s
-  p01_damp       0.4
-  p01_hit        0.5
-  p01_hard       0.5
-  p01_noise      0.35
-  p01_level      0.8
+  p01_tune       294 Hz
+  p01_decay      4 s
+  p01_damp       0.12
+  p01_inharm     0.05
+  p01_hit        0.08
+  p01_hard       0.8
+  p01_noise      0.05
+  p01_level      1.44
+  p01_pan        -0.25
   p02_kind       #3
   p02_tune       330 Hz
-  p02_decay      0.7 s
-  p02_damp       0.4
-  p02_hit        0.5
-  p02_hard       0.5
-  p02_noise      0.35
-  p02_level      0.8
+  p02_decay      4 s
+  p02_damp       0.12
+  p02_inharm     0.05
+  p02_hit        0.08
+  p02_hard       0.8
+  p02_noise      0.05
+  p02_level      1.44
+  p02_pan        -0.15
   p03_kind       #3
-  p03_tune       392 Hz
-  p03_decay      0.7 s
-  p03_damp       0.4
-  p03_hit        0.5
-  p03_hard       0.5
-  p03_noise      0.35
-  p03_level      0.8
+  p03_tune       349 Hz
+  p03_decay      4 s
+  p03_damp       0.12
+  p03_inharm     0.05
+  p03_hit        0.08
+  p03_hard       0.8
+  p03_noise      0.05
+  p03_level      1.44
+  p03_pan        -0.05
   p04_kind       #3
-  p04_tune       520 Hz
+  p04_tune       392 Hz
   p04_decay      4 s
-  p04_damp       0.1
-  p04_hit        0.25
-  p04_hard       0.7
-  p04_noise      0.1
-  p04_level      0.8
-  p05_kind       #4
-  p05_tune       520 Hz
-  p05_decay      6 s
-  p05_damp       0.05
-  p05_hit        0.4
-  p05_hard       0.35
-  p05_noise      0.1
-  p05_level      0.8
-  p06_kind       #1
-  p06_tune       1050 Hz
-  p06_decay      1.6 s
+  p04_damp       0.12
+  p04_inharm     0.05
+  p04_hit        0.08
+  p04_hard       0.8
+  p04_noise      0.05
+  p04_level      1.44
+  p04_pan        0.05
+  p05_kind       #3
+  p05_tune       440 Hz
+  p05_decay      4 s
+  p05_damp       0.12
+  p05_inharm     0.05
+  p05_hit        0.08
+  p05_hard       0.8
+  p05_noise      0.05
+  p05_level      1.44
+  p05_pan        0.15
+  p06_kind       #3
+  p06_tune       494 Hz
+  p06_decay      4 s
   p06_damp       0.12
-  p06_hit        0.25
-  p06_hard       0.85
-  p06_noise      0.08
-  p06_level      0.8
-  p07_kind       #2
-  p07_tune       900 Hz
-  p07_decay      0.6 s
-  p07_damp       0.25
-  p07_hit        0.6
-  p07_hard       0.75
-  p07_noise      0.5
-  p07_level      0.8
-  coupling       0.35
-  humanise       0.14
-  volume         1.25
+  p06_inharm     0.05
+  p06_hit        0.08
+  p06_hard       0.8
+  p06_noise      0.05
+  p06_level      1.44
+  p06_pan        0.25
+  p07_kind       #3
+  p07_tune       523 Hz
+  p07_decay      4 s
+  p07_damp       0.12
+  p07_inharm     0.05
+  p07_hit        0.08
+  p07_hard       0.8
+  p07_noise      0.05
+  p07_level      1.44
+  p07_pan        0.35
+  coupling       0.3
+  humanise       0.08
+  volume         1.5
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.1
+  mac3_d1  #2
+  mac3_a1  0.45
+  mac3_d2  #1
+  mac3_a2  -0.4
+  mac4_d1  #5
+  mac4_a1  -0.5
+  mac5_d1  #4
+  mac5_a1  0.3
+  mac6_d1  #3
+  mac6_a1  0.2
+  mac6_d2  #6
+  mac6_a2  0.15
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac8_d1  #10
+  mac8_a1  0.5
 
 # A steel bowl played with the hands: short, soft, and tuned, which
 # on this machine is a bowl with the mallet made gentle.
 patch Hang family=bell
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Muted"
+  set macro4 "Slap"
+  set macro5 "Edge"
+  set macro6 "Tuned"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
   p00_kind       #4
   p00_tune       147 Hz
   p00_decay      2 s
@@ -1626,7 +5008,7 @@ patch Hang family=bell
   p00_hit        0.3
   p00_hard       0.38
   p00_noise      0.15
-  p00_level      0.8
+  p00_level      1.12
   p01_kind       #4
   p01_tune       165.4 Hz
   p01_decay      2 s
@@ -1634,7 +5016,7 @@ patch Hang family=bell
   p01_hit        0.3
   p01_hard       0.38
   p01_noise      0.15
-  p01_level      0.8
+  p01_level      1.12
   p02_kind       #4
   p02_tune       196 Hz
   p02_decay      2 s
@@ -1642,7 +5024,7 @@ patch Hang family=bell
   p02_hit        0.3
   p02_hard       0.38
   p02_noise      0.15
-  p02_level      0.8
+  p02_level      1.12
   p03_kind       #4
   p03_tune       220.5 Hz
   p03_decay      2 s
@@ -1650,7 +5032,7 @@ patch Hang family=bell
   p03_hit        0.3
   p03_hard       0.38
   p03_noise      0.15
-  p03_level      0.8
+  p03_level      1.12
   p04_kind       #4
   p04_tune       245 Hz
   p04_decay      2 s
@@ -1658,7 +5040,7 @@ patch Hang family=bell
   p04_hit        0.3
   p04_hard       0.38
   p04_noise      0.15
-  p04_level      0.8
+  p04_level      1.12
   p05_kind       #4
   p05_tune       294 Hz
   p05_decay      2 s
@@ -1666,7 +5048,7 @@ patch Hang family=bell
   p05_hit        0.3
   p05_hard       0.38
   p05_noise      0.15
-  p05_level      0.8
+  p05_level      1.12
   p06_kind       #4
   p06_tune       330.8 Hz
   p06_decay      2 s
@@ -1674,7 +5056,7 @@ patch Hang family=bell
   p06_hit        0.3
   p06_hard       0.38
   p06_noise      0.15
-  p06_level      0.8
+  p06_level      1.12
   p07_kind       #4
   p07_tune       392 Hz
   p07_decay      2 s
@@ -1682,15 +5064,155 @@ patch Hang family=bell
   p07_hit        0.3
   p07_hard       0.38
   p07_noise      0.15
-  p07_level      0.8
+  p07_level      1.12
   coupling       0.5
   humanise       0.15
-  volume         1.48
+  volume         1.5
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.1
+  mac3_d1  #2
+  mac3_a1  0.45
+  mac3_d2  #1
+  mac3_a2  -0.4
+  mac4_d1  #5
+  mac4_a1  0.4
+  mac4_d2  #6
+  mac4_a2  0.15
+  mac5_d1  #4
+  mac5_a1  0.3
+  mac6_d1  #3
+  mac6_a1  -0.1
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #10
+  mac8_a1  0.5
+
+patch "Temple Bowls" family=bell
+  # Singing bowls of eight sizes struck with a padded beater, and a rin
+  # at the top. Left to ring.
+  # Pads: singing bowls large to small, struck bowl, rin.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Short"
+  set macro4 "Mallet"
+  set macro5 "Rim"
+  set macro6 "Rin"
+  set macro7 "Sympathy"
+  set macro8 "Beat"
+  p00_kind       #4
+  p00_tune       140 Hz
+  p00_decay      8 s
+  p00_damp       0.04
+  p00_hit        0.5
+  p00_hard       0.2
+  p00_noise      0.02
+  p00_level      1.32
+  p00_pan        -0.3
+  p01_kind       #4
+  p01_tune       185 Hz
+  p01_decay      8 s
+  p01_damp       0.04
+  p01_hit        0.5
+  p01_hard       0.2
+  p01_noise      0.02
+  p01_level      1.43
+  p01_pan        0.3
+  p02_kind       #4
+  p02_tune       236 Hz
+  p02_decay      8 s
+  p02_damp       0.04
+  p02_hit        0.5
+  p02_hard       0.2
+  p02_noise      0.02
+  p02_level      1.43
+  p02_pan        -0.15
+  p03_kind       #4
+  p03_tune       300 Hz
+  p03_decay      8 s
+  p03_damp       0.04
+  p03_hit        0.5
+  p03_hard       0.2
+  p03_noise      0.02
+  p03_level      1.43
+  p03_pan        0.15
+  p04_kind       #4
+  p04_tune       392 Hz
+  p04_decay      8 s
+  p04_damp       0.04
+  p04_hit        0.5
+  p04_hard       0.2
+  p04_noise      0.02
+  p04_level      1.43
+  p04_pan        -0.4
+  p05_kind       #4
+  p05_tune       520 Hz
+  p05_decay      8 s
+  p05_damp       0.04
+  p05_hit        0.5
+  p05_hard       0.2
+  p05_noise      0.02
+  p05_level      1.43
+  p05_pan        0.4
+  p06_kind       #4
+  p06_tune       690 Hz
+  p06_decay      4 s
+  p06_damp       0.08
+  p06_hit        0.35
+  p06_hard       0.7
+  p06_noise      0.05
+  p06_level      1.43
+  p07_kind       #4
+  p07_tune       1100 Hz
+  p07_decay      5 s
+  p07_damp       0.06
+  p07_hit        0.3
+  p07_hard       0.6
+  p07_noise      0.02
+  p07_level      1.25
+  p07_pan        0.2
+  coupling       0.45
+  humanise       0.08
+  volume         1.39
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.2
+  mac2_d2  #2
+  mac2_a2  -0.03
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.4
+  mac4_d1  #5
+  mac4_a1  0.45
+  mac5_d1  #4
+  mac5_a1  0.35
+  mac6_d1  #28
+  mac6_a1  0.4
+  mac6_d2  #20
+  mac6_a2  0.1
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac8_d1  #3
+  mac8_a1  0.15
+  send reverb    0.2
 
 # A tuning with no semitones in it, on bowls and bars together.
 # The steps are even rather than just, which is the whole argument of the
 # instrument.
 patch Gamelan family=bell
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Damped"
+  set macro4 "Soft"
+  set macro5 "Strike"
+  set macro6 "Bronze"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
   p00_kind       #4
   p00_tune       147 Hz
   p00_decay      2 s
@@ -1732,7 +5254,7 @@ patch Gamelan family=bell
   p04_hit        0.3
   p04_hard       0.45
   p04_noise      0.15
-  p04_level      0.8
+  p04_level      0.88
   p05_kind       #5
   p05_tune       294 Hz
   p05_decay      1.6 s
@@ -1749,7 +5271,7 @@ patch Gamelan family=bell
   p06_hit        0.3
   p06_hard       0.45
   p06_noise      0.15
-  p06_level      0.8
+  p06_level      0.93
   p07_kind       #5
   p07_tune       388.1 Hz
   p07_decay      1.6 s
@@ -1761,154 +5283,257 @@ patch Gamelan family=bell
   p07_level      0.8
   coupling       0.55
   humanise       0.12
-  volume         0.95
+  volume         1.35
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.1
+  mac3_d1  #2
+  mac3_a1  0.45
+  mac3_d2  #1
+  mac3_a2  -0.4
+  mac4_d1  #5
+  mac4_a1  -0.5
+  mac5_d1  #4
+  mac5_a1  0.3
+  mac6_d1  #3
+  mac6_a1  0.15
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #10
+  mac8_a1  0.5
 
-# Bars with the longest decay this machine has and almost no
-# damping, struck softly in the middle.
-patch Vibraphone family=wood
-  p00_kind       #1
-  p00_tune       175 Hz
+patch "Door Bells" family=bell
+  # Bells that ask for attention: a bike bell, a desk bell, a door chime,
+  # a shop bell, a tram, a school bell and a ship's bell.
+  # Pads: ship's bell, tram bell, door chime ding, door chime dong, school
+  # bell, shop bell, desk bell, bike bell.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Hand"
+  set macro4 "Soft"
+  set macro5 "Chime"
+  set macro6 "Rattle"
+  set macro7 "Tinny"
+  set macro8 "Loose"
+  p00_kind       #4
+  p00_tune       420 Hz
   p00_decay      3 s
   p00_damp       0.1
-  p00_hit        0.28
-  p00_hard       0.4
-  p00_noise      0.05
-  p00_level      0.8
-  p01_kind       #1
-  p01_tune       196.9 Hz
-  p01_decay      3 s
-  p01_damp       0.1
-  p01_hit        0.28
-  p01_hard       0.4
-  p01_noise      0.05
-  p01_level      0.8
-  p02_kind       #1
-  p02_tune       218.8 Hz
-  p02_decay      3 s
-  p02_damp       0.1
-  p02_hit        0.28
-  p02_hard       0.4
-  p02_noise      0.05
-  p02_level      0.8
-  p03_kind       #1
-  p03_tune       233.3 Hz
-  p03_decay      3 s
-  p03_damp       0.1
-  p03_hit        0.28
-  p03_hard       0.4
-  p03_noise      0.05
-  p03_level      0.8
-  p04_kind       #1
-  p04_tune       262.5 Hz
-  p04_decay      3 s
-  p04_damp       0.1
-  p04_hit        0.28
-  p04_hard       0.4
-  p04_noise      0.05
-  p04_level      0.8
-  p05_kind       #1
-  p05_tune       291.7 Hz
-  p05_decay      3 s
-  p05_damp       0.1
-  p05_hit        0.28
-  p05_hard       0.4
-  p05_noise      0.05
-  p05_level      0.8
-  p06_kind       #1
-  p06_tune       328.1 Hz
-  p06_decay      3 s
-  p06_damp       0.1
-  p06_hit        0.28
-  p06_hard       0.4
-  p06_noise      0.05
-  p06_level      0.8
-  p07_kind       #1
-  p07_tune       350 Hz
-  p07_decay      3 s
-  p07_damp       0.1
-  p07_hit        0.28
-  p07_hard       0.4
-  p07_noise      0.05
-  p07_level      0.8
-  coupling       0.4
-  humanise       0.1
-  volume         1.50
-
-# The same bars three octaves up, where the second mode at
-# 2.76 is above most of what is listening.
-patch Glockenspiel family=wood
-  p00_kind       #1
-  p00_tune       784 Hz
-  p00_decay      1.2 s
-  p00_damp       0.12
   p00_hit        0.25
-  p00_hard       0.85
-  p00_noise      0.08
-  p00_level      0.8
-  p01_kind       #1
-  p01_tune       882 Hz
-  p01_decay      1.2 s
+  p00_hard       0.9
+  p00_noise      0.1
+  p00_level      0.93
+  p00_pan        -0.3
+  p01_kind       #4
+  p01_tune       650 Hz
+  p01_decay      2 s
   p01_damp       0.12
-  p01_hit        0.25
-  p01_hard       0.85
-  p01_noise      0.08
-  p01_level      0.8
-  p02_kind       #1
-  p02_tune       980 Hz
-  p02_decay      1.2 s
-  p02_damp       0.12
-  p02_hit        0.25
-  p02_hard       0.85
-  p02_noise      0.08
-  p02_level      0.8
-  p03_kind       #1
-  p03_tune       1045.3 Hz
-  p03_decay      1.2 s
-  p03_damp       0.12
-  p03_hit        0.25
-  p03_hard       0.85
-  p03_noise      0.08
-  p03_level      0.8
-  p04_kind       #1
-  p04_tune       1176 Hz
-  p04_decay      1.2 s
+  p01_hit        0.3
+  p01_hard       1
+  p01_noise      0.1
+  p01_level      0.93
+  p01_pan        0.3
+  p02_kind       #3
+  p02_tune       659 Hz
+  p02_decay      2 s
+  p02_damp       0.15
+  p02_hit        0.1
+  p02_hard       0.7
+  p02_noise      0.03
+  p02_level      1.06
+  p02_pan        -0.15
+  p03_kind       #3
+  p03_tune       523 Hz
+  p03_decay      2 s
+  p03_damp       0.15
+  p03_hit        0.1
+  p03_hard       0.7
+  p03_noise      0.03
+  p03_level      0.93
+  p03_pan        0.15
+  p04_kind       #4
+  p04_tune       900 Hz
+  p04_decay      1.5 s
   p04_damp       0.12
-  p04_hit        0.25
-  p04_hard       0.85
-  p04_noise      0.08
-  p04_level      0.8
-  p05_kind       #1
-  p05_tune       1306.7 Hz
-  p05_decay      1.2 s
-  p05_damp       0.12
-  p05_hit        0.25
-  p05_hard       0.85
-  p05_noise      0.08
-  p05_level      0.8
-  p06_kind       #1
-  p06_tune       1470 Hz
-  p06_decay      1.2 s
-  p06_damp       0.12
-  p06_hit        0.25
-  p06_hard       0.85
-  p06_noise      0.08
-  p06_level      0.8
-  p07_kind       #1
-  p07_tune       1568 Hz
-  p07_decay      1.2 s
-  p07_damp       0.12
-  p07_hit        0.25
-  p07_hard       0.85
-  p07_noise      0.08
-  p07_level      0.8
+  p04_hit        0.3
+  p04_hard       1
+  p04_noise      0.1
+  p04_drive      0.4
+  p04_level      0.79
+  p04_pan        -0.4
+  p05_kind       #4
+  p05_tune       1300 Hz
+  p05_decay      0.9 s
+  p05_damp       0.25
+  p05_hit        0.35
+  p05_hard       0.95
+  p05_noise      0.05
+  p05_level      0.87
+  p05_pan        0.4
+  p06_kind       #4
+  p06_tune       1500 Hz
+  p06_decay      1.5 s
+  p06_damp       0.1
+  p06_hit        0.3
+  p06_hard       1
+  p06_noise      0.02
+  p06_level      0.82
+  p07_kind       #4
+  p07_tune       1950 Hz
+  p07_decay      0.8 s
+  p07_damp       0.2
+  p07_inharm     0.05
+  p07_hit        0.4
+  p07_hard       1
+  p07_noise      0.05
+  p07_level      0.76
+  p07_pan        0.2
   coupling       0.3
-  humanise       0.1
-  volume         1.50
+  humanise       0.15
+  volume         1.5
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.1
+  mac3_d1  #2
+  mac3_a1  0.45
+  mac3_d2  #1
+  mac3_a2  -0.4
+  mac4_d1  #5
+  mac4_a1  -0.5
+  mac5_d1  #23
+  mac5_a1  0.4
+  mac5_d2  #24
+  mac5_a2  0.4
+  mac6_d1  #7
+  mac6_a1  0.5
+  mac6_d2  #6
+  mac6_a2  0.2
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #4
+  mac7_a2  0.2
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #9
+  mac8_a2  0.3
+
+# Four large bowls and two bowls of water, all left to ring for
+# as long as they like, with the pads hearing each other strongly. One
+# strike sets the whole thing going.
+patch Cathedral family=bell
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Damped"
+  set macro4 "Soft"
+  set macro5 "Strike"
+  set macro6 "Tuned"
+  set macro7 "Apart"
+  set macro8 "Loose"
+  p00_kind       #4
+  p00_tune       98 Hz
+  p00_decay      5 s
+  p00_damp       0.08
+  p00_hit        0.25
+  p00_hard       0.6
+  p00_noise      0.12
+  p00_level      1.13
+  p01_kind       #4
+  p01_tune       131 Hz
+  p01_decay      5 s
+  p01_damp       0.08
+  p01_hit        0.25
+  p01_hard       0.6
+  p01_noise      0.12
+  p01_level      1.13
+  p02_kind       #4
+  p02_tune       175 Hz
+  p02_decay      5 s
+  p02_damp       0.08
+  p02_hit        0.25
+  p02_hard       0.6
+  p02_noise      0.12
+  p02_level      1.13
+  p03_kind       #4
+  p03_tune       233 Hz
+  p03_decay      5 s
+  p03_damp       0.08
+  p03_hit        0.25
+  p03_hard       0.6
+  p03_noise      0.12
+  p03_level      1.13
+  p04_kind       #4
+  p04_tune       196 Hz
+  p04_decay      6 s
+  p04_damp       0.05
+  p04_hit        0.4
+  p04_hard       0.35
+  p04_noise      0.1
+  p04_level      1.13
+  p05_kind       #4
+  p05_tune       294 Hz
+  p05_decay      6 s
+  p05_damp       0.05
+  p05_hit        0.4
+  p05_hard       0.35
+  p05_noise      0.1
+  p05_level      1.13
+  p06_kind       #2
+  p06_tune       95 Hz
+  p06_decay      8 s
+  p06_damp       0.08
+  p06_hit        0.45
+  p06_hard       0.55
+  p06_noise      0.35
+  p06_drive      0.05
+  p06_level      1.13
+  p07_kind       #3
+  p07_tune       520 Hz
+  p07_decay      6 s
+  p07_damp       0.1
+  p07_hit        0.25
+  p07_hard       0.7
+  p07_noise      0.1
+  p07_level      1.16
+  coupling       0.8
+  humanise       0.08
+  volume         1.46
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.2
+  mac3_d1  #2
+  mac3_a1  0.45
+  mac3_d2  #1
+  mac3_a2  -0.4
+  mac4_d1  #5
+  mac4_a1  -0.5
+  mac5_d1  #4
+  mac5_a1  0.3
+  mac6_d1  #3
+  mac6_a1  -0.1
+  mac7_d1  #9
+  mac7_a1  -0.5
+  mac8_d1  #10
+  mac8_a1  0.5
 
 # Built to show the one thing no drum machine does: the coupling
 # is nearly all the way up, so striking any pad rings all eight. It is a
 # kit that behaves like one object.
 patch Ringing family=bell
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Damped"
+  set macro4 "Soft"
+  set macro5 "Strike"
+  set macro6 "Clang"
+  set macro7 "Apart"
+  set macro8 "Loose"
   p00_kind       #4
   p00_tune       210 Hz
   p00_decay      2 s
@@ -1916,7 +5541,7 @@ patch Ringing family=bell
   p00_hit        0.3
   p00_hard       0.45
   p00_noise      0.15
-  p00_level      0.8
+  p00_level      1.02
   p01_kind       #4
   p01_tune       660 Hz
   p01_decay      2.5 s
@@ -1924,7 +5549,7 @@ patch Ringing family=bell
   p01_hit        0.3
   p01_hard       0.8
   p01_noise      0.15
-  p01_level      0.8
+  p01_level      1.02
   p02_kind       #4
   p02_tune       280 Hz
   p02_decay      6 s
@@ -1932,7 +5557,7 @@ patch Ringing family=bell
   p02_hit        0.4
   p02_hard       0.35
   p02_noise      0.1
-  p02_level      0.8
+  p02_level      1.14
   p03_kind       #5
   p03_tune       320 Hz
   p03_decay      1.6 s
@@ -1941,7 +5566,7 @@ patch Ringing family=bell
   p03_hit        0.3
   p03_hard       0.6
   p03_noise      0.15
-  p03_level      0.8
+  p03_level      0.79
   p04_kind       #3
   p04_tune       520 Hz
   p04_decay      4 s
@@ -1949,7 +5574,7 @@ patch Ringing family=bell
   p04_hit        0.25
   p04_hard       0.7
   p04_noise      0.1
-  p04_level      0.8
+  p04_level      1.02
   p05_kind       #1
   p05_tune       220 Hz
   p05_decay      1.6 s
@@ -1957,7 +5582,7 @@ patch Ringing family=bell
   p05_hit        0.28
   p05_hard       0.45
   p05_noise      0.1
-  p05_level      0.8
+  p05_level      0.99
   p06_kind       #5
   p06_tune       880 Hz
   p06_decay      2.2 s
@@ -1965,7 +5590,7 @@ patch Ringing family=bell
   p06_hit        0.3
   p06_hard       0.75
   p06_noise      0.1
-  p06_level      0.8
+  p06_level      1.02
   p07_kind       #4
   p07_tune       175 Hz
   p07_decay      5 s
@@ -1973,8 +5598,1662 @@ patch Ringing family=bell
   p07_hit        0.25
   p07_hard       0.6
   p07_noise      0.12
-  p07_level      0.8
+  p07_level      1.02
   coupling       0.95
   humanise       0.1
-  volume         1.05
+  volume         1.42
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac3_d1  #2
+  mac3_a1  0.45
+  mac3_d2  #1
+  mac3_a2  -0.4
+  mac4_d1  #5
+  mac4_a1  -0.5
+  mac5_d1  #4
+  mac5_a1  0.3
+  mac6_d1  #3
+  mac6_a1  0.2
+  mac7_d1  #9
+  mac7_a1  -0.6
+  mac8_d1  #10
+  mac8_a1  0.5
 
+patch "Wine Glasses" family=glass
+  # Eight wine glasses up a pentatonic scale, tapped with a spoon. The
+  # plainest glass: a bowl with a long, clean ring.
+  # Pads: wine glasses, low to high.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Finger"
+  set macro4 "Soft"
+  set macro5 "Rim"
+  set macro6 "Crystal"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
+  p00_kind       #4
+  p00_tune       660 Hz
+  p00_decay      2.5 s
+  p00_damp       0.06
+  p00_inharm     -0.03
+  p00_hit        0.3
+  p00_hard       0.85
+  p00_noise      0.02
+  p00_level      1.11
+  p00_pan        -0.35
+  p01_kind       #4
+  p01_tune       740 Hz
+  p01_decay      2.5 s
+  p01_damp       0.06
+  p01_inharm     -0.03
+  p01_hit        0.3
+  p01_hard       0.85
+  p01_noise      0.02
+  p01_level      1.19
+  p01_pan        -0.25
+  p02_kind       #4
+  p02_tune       830 Hz
+  p02_decay      2.5 s
+  p02_damp       0.06
+  p02_inharm     -0.03
+  p02_hit        0.3
+  p02_hard       0.85
+  p02_noise      0.02
+  p02_level      1.19
+  p02_pan        -0.15
+  p03_kind       #4
+  p03_tune       990 Hz
+  p03_decay      2.5 s
+  p03_damp       0.06
+  p03_inharm     -0.03
+  p03_hit        0.3
+  p03_hard       0.85
+  p03_noise      0.02
+  p03_level      1.19
+  p03_pan        -0.05
+  p04_kind       #4
+  p04_tune       1110 Hz
+  p04_decay      2.5 s
+  p04_damp       0.06
+  p04_inharm     -0.03
+  p04_hit        0.3
+  p04_hard       0.85
+  p04_noise      0.02
+  p04_level      1.19
+  p04_pan        0.05
+  p05_kind       #4
+  p05_tune       1320 Hz
+  p05_decay      2.5 s
+  p05_damp       0.06
+  p05_inharm     -0.03
+  p05_hit        0.3
+  p05_hard       0.85
+  p05_noise      0.02
+  p05_level      1.19
+  p05_pan        0.15
+  p06_kind       #4
+  p06_tune       1480 Hz
+  p06_decay      2.5 s
+  p06_damp       0.06
+  p06_inharm     -0.03
+  p06_hit        0.3
+  p06_hard       0.85
+  p06_noise      0.02
+  p06_level      1.19
+  p06_pan        0.25
+  p07_kind       #4
+  p07_tune       1660 Hz
+  p07_decay      2.5 s
+  p07_damp       0.06
+  p07_inharm     -0.03
+  p07_hit        0.3
+  p07_hard       0.85
+  p07_noise      0.02
+  p07_level      1.19
+  p07_pan        0.35
+  coupling       0.3
+  humanise       0.1
+  volume         1.46
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.04
+  mac3_d1  #2
+  mac3_a1  0.45
+  mac3_d2  #1
+  mac3_a2  -0.4
+  mac4_d1  #5
+  mac4_a1  -0.5
+  mac5_d1  #4
+  mac5_a1  0.4
+  mac6_d1  #3
+  mac6_a1  -0.1
+  mac6_d2  #6
+  mac6_a2  -0.02
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac8_d1  #10
+  mac8_a1  0.5
+
+# Tubes, which are the only shape here with a true harmonic
+# series - so glass is the one struck thing that has a pitch rather than a
+# note.
+patch Glassware family=glass
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Soft"
+  set macro5 "Strike"
+  set macro6 "Clink"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
+  p00_kind       #3
+  p00_tune       196 Hz
+  p00_decay      0.7 s
+  p00_damp       0.4
+  p00_hit        0.5
+  p00_hard       0.5
+  p00_noise      0.35
+  p00_level      0.95
+  p01_kind       #3
+  p01_tune       262 Hz
+  p01_decay      0.7 s
+  p01_damp       0.4
+  p01_hit        0.5
+  p01_hard       0.5
+  p01_noise      0.35
+  p01_level      1.1
+  p02_kind       #3
+  p02_tune       330 Hz
+  p02_decay      0.7 s
+  p02_damp       0.4
+  p02_hit        0.5
+  p02_hard       0.5
+  p02_noise      0.35
+  p02_level      1.1
+  p03_kind       #3
+  p03_tune       392 Hz
+  p03_decay      0.7 s
+  p03_damp       0.4
+  p03_hit        0.5
+  p03_hard       0.5
+  p03_noise      0.35
+  p03_level      1.1
+  p04_kind       #3
+  p04_tune       520 Hz
+  p04_decay      4 s
+  p04_damp       0.1
+  p04_hit        0.25
+  p04_hard       0.7
+  p04_noise      0.1
+  p04_level      1.1
+  p05_kind       #4
+  p05_tune       520 Hz
+  p05_decay      6 s
+  p05_damp       0.05
+  p05_hit        0.4
+  p05_hard       0.35
+  p05_noise      0.1
+  p05_level      1.5
+  p06_kind       #1
+  p06_tune       1050 Hz
+  p06_decay      1.6 s
+  p06_damp       0.12
+  p06_hit        0.25
+  p06_hard       0.85
+  p06_noise      0.08
+  p06_level      1.1
+  p07_kind       #2
+  p07_tune       900 Hz
+  p07_decay      0.6 s
+  p07_damp       0.25
+  p07_hit        0.6
+  p07_hard       0.75
+  p07_noise      0.5
+  p07_level      1.1
+  coupling       0.35
+  humanise       0.14
+  volume         1.28
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.15
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  -0.5
+  mac5_d1  #4
+  mac5_a1  0.3
+  mac6_d1  #6
+  mac6_a1  0.3
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #10
+  mac8_a1  0.5
+
+patch Bottles family=glass role=beat
+  # Bottles of four sizes, two with water in, a jug and the clink of
+  # two necks.
+  # Pads: jug, big bottle, bottle, small bottle, little bottle, water
+  # bottle low, water bottle high, bottle neck.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Tap"
+  set macro5 "Water"
+  set macro6 "Neck"
+  set macro7 "Clink"
+  set macro8 "Loose"
+  p00_kind       #3
+  p00_tune       140 Hz
+  p00_decay      0.4 s
+  p00_damp       0.5
+  p00_hit        0.3
+  p00_hard       0.7
+  p00_noise      0.2
+  p00_level      0.8
+  p01_kind       #3
+  p01_tune       196 Hz
+  p01_decay      0.7 s
+  p01_damp       0.4
+  p01_hit        0.5
+  p01_hard       0.5
+  p01_noise      0.35
+  p01_level      0.8
+  p01_pan        -0.3
+  p02_kind       #3
+  p02_tune       262 Hz
+  p02_decay      0.7 s
+  p02_damp       0.4
+  p02_hit        0.5
+  p02_hard       0.5
+  p02_noise      0.35
+  p02_level      0.8
+  p02_pan        0.3
+  p03_kind       #3
+  p03_tune       330 Hz
+  p03_decay      0.7 s
+  p03_damp       0.4
+  p03_hit        0.5
+  p03_hard       0.5
+  p03_noise      0.35
+  p03_level      0.86
+  p03_pan        -0.15
+  p04_kind       #3
+  p04_tune       392 Hz
+  p04_decay      0.7 s
+  p04_damp       0.4
+  p04_hit        0.5
+  p04_hard       0.5
+  p04_noise      0.35
+  p04_level      1.01
+  p04_pan        0.15
+  p05_kind       #3
+  p05_tune       440 Hz
+  p05_decay      0.9 s
+  p05_damp       0.3
+  p05_hit        0.2
+  p05_hard       0.9
+  p05_noise      0.1
+  p05_level      0.8
+  p05_pan        -0.4
+  p06_kind       #3
+  p06_tune       587 Hz
+  p06_decay      0.9 s
+  p06_damp       0.3
+  p06_hit        0.2
+  p06_hard       0.9
+  p06_noise      0.1
+  p06_level      0.8
+  p06_pan        0.4
+  p07_kind       #3
+  p07_tune       1700 Hz
+  p07_decay      0.3 s
+  p07_damp       0.3
+  p07_hit        0.2
+  p07_hard       1
+  p07_noise      0.1
+  p07_level      0.7
+  p07_pan        0.2
+  coupling       0.3
+  humanise       0.15
+  volume         1.22
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.35
+  mac2_d2  #2
+  mac2_a2  -0.2
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  0.4
+  mac4_d2  #6
+  mac4_a2  -0.2
+  mac5_d1  #18
+  mac5_a1  0.2
+  mac5_d2  #19
+  mac5_a2  0.2
+  mac6_d1  #4
+  mac6_a1  0.3
+  mac7_d1  #28
+  mac7_a1  0.4
+  mac7_d2  #6
+  mac7_a2  0.2
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #9
+  mac8_a2  0.3
+
+patch Jars family=glass role=beat
+  # A pantry shelf: jars and their lids, a carafe and a wine glass.
+  # Pads: big jar, jar, small jar, spice jar, carafe, jar lid, loose lid,
+  # wine glass.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Full"
+  set macro4 "Soft"
+  set macro5 "Lids"
+  set macro6 "Glass"
+  set macro7 "Rattle"
+  set macro8 "Loose"
+  p00_kind       #4
+  p00_tune       420 Hz
+  p00_decay      0.7 s
+  p00_damp       0.35
+  p00_hit        0.3
+  p00_hard       0.95
+  p00_noise      0.15
+  p00_level      0.8
+  p00_pan        -0.3
+  p01_kind       #4
+  p01_tune       620 Hz
+  p01_decay      0.7 s
+  p01_damp       0.35
+  p01_hit        0.3
+  p01_hard       0.95
+  p01_noise      0.15
+  p01_level      0.8
+  p01_pan        0.3
+  p02_kind       #4
+  p02_tune       820 Hz
+  p02_decay      0.7 s
+  p02_damp       0.35
+  p02_hit        0.3
+  p02_hard       0.95
+  p02_noise      0.15
+  p02_level      0.8
+  p02_pan        -0.15
+  p03_kind       #4
+  p03_tune       1100 Hz
+  p03_decay      0.7 s
+  p03_damp       0.35
+  p03_hit        0.3
+  p03_hard       0.95
+  p03_noise      0.15
+  p03_level      0.8
+  p03_pan        0.15
+  p04_kind       #4
+  p04_tune       520 Hz
+  p04_decay      1.2 s
+  p04_damp       0.25
+  p04_hit        0.3
+  p04_hard       0.85
+  p04_noise      0.08
+  p04_level      0.8
+  p05_kind       #2
+  p05_tune       1200 Hz
+  p05_decay      0.15 s
+  p05_damp       0.6
+  p05_hit        0.5
+  p05_hard       1
+  p05_noise      0.5
+  p05_level      0.7
+  p05_pan        -0.4
+  p06_kind       #2
+  p06_tune       1500 Hz
+  p06_decay      0.15 s
+  p06_damp       0.6
+  p06_hit        0.5
+  p06_hard       1
+  p06_noise      0.5
+  p06_level      0.7
+  p06_pan        0.4
+  p07_kind       #4
+  p07_tune       1320 Hz
+  p07_decay      2.5 s
+  p07_damp       0.06
+  p07_inharm     -0.03
+  p07_hit        0.3
+  p07_hard       0.85
+  p07_noise      0.02
+  p07_level      1.1
+  p07_pan        0.2
+  coupling       0.3
+  humanise       0.15
+  volume         1.2
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.35
+  mac2_d2  #2
+  mac2_a2  -0.2
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.35
+  mac4_d1  #5
+  mac4_a1  -0.5
+  mac5_d1  #26
+  mac5_a1  0.4
+  mac5_d2  #27
+  mac5_a2  0.4
+  mac6_d1  #28
+  mac6_a1  0.4
+  mac7_d1  #6
+  mac7_a1  0.4
+  mac7_d2  #9
+  mac7_a2  0.3
+  mac8_d1  #10
+  mac8_a1  0.6
+
+patch "Glass Bowls" family=glass
+  # Crystal singing bowls, struck soft and left to ring for a long time.
+  # Purer than metal bowls, so the partials sit nearer the harmonics.
+  # Pads: glass bowls on C, D, E, G, A, C, D, E.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Short"
+  set macro4 "Mallet"
+  set macro5 "Rim"
+  set macro6 "Pure"
+  set macro7 "Sympathy"
+  set macro8 "Loose"
+  p00_kind       #4
+  p00_tune       131 Hz
+  p00_decay      8 s
+  p00_damp       0.03
+  p00_inharm     -0.1
+  p00_hit        0.45
+  p00_hard       0.25
+  p00_noise      0
+  p00_level      0.99
+  p00_pan        -0.35
+  p01_kind       #4
+  p01_tune       147 Hz
+  p01_decay      8 s
+  p01_damp       0.03
+  p01_inharm     -0.1
+  p01_hit        0.45
+  p01_hard       0.25
+  p01_noise      0
+  p01_level      0.99
+  p01_pan        -0.25
+  p02_kind       #4
+  p02_tune       165 Hz
+  p02_decay      8 s
+  p02_damp       0.03
+  p02_inharm     -0.1
+  p02_hit        0.45
+  p02_hard       0.25
+  p02_noise      0
+  p02_level      0.99
+  p02_pan        -0.15
+  p03_kind       #4
+  p03_tune       196 Hz
+  p03_decay      8 s
+  p03_damp       0.03
+  p03_inharm     -0.1
+  p03_hit        0.45
+  p03_hard       0.25
+  p03_noise      0
+  p03_level      0.99
+  p03_pan        -0.05
+  p04_kind       #4
+  p04_tune       220 Hz
+  p04_decay      8 s
+  p04_damp       0.03
+  p04_inharm     -0.1
+  p04_hit        0.45
+  p04_hard       0.25
+  p04_noise      0
+  p04_level      0.99
+  p04_pan        0.05
+  p05_kind       #4
+  p05_tune       262 Hz
+  p05_decay      8 s
+  p05_damp       0.03
+  p05_inharm     -0.1
+  p05_hit        0.45
+  p05_hard       0.25
+  p05_noise      0
+  p05_level      0.99
+  p05_pan        0.15
+  p06_kind       #4
+  p06_tune       294 Hz
+  p06_decay      8 s
+  p06_damp       0.03
+  p06_inharm     -0.1
+  p06_hit        0.45
+  p06_hard       0.25
+  p06_noise      0
+  p06_level      0.99
+  p06_pan        0.25
+  p07_kind       #4
+  p07_tune       330 Hz
+  p07_decay      8 s
+  p07_damp       0.03
+  p07_inharm     -0.1
+  p07_hit        0.45
+  p07_hard       0.25
+  p07_noise      0
+  p07_level      0.99
+  p07_pan        0.35
+  coupling       0.4
+  humanise       0.08
+  volume         1.5
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.2
+  mac2_d2  #2
+  mac2_a2  -0.02
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.4
+  mac4_d1  #5
+  mac4_a1  0.45
+  mac5_d1  #4
+  mac5_a1  0.35
+  mac6_d1  #3
+  mac6_a1  -0.1
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac8_d1  #10
+  mac8_a1  0.5
+  send reverb    0.15
+
+patch "Wind Chimes" family=glass
+  # Glass chimes on strings, tuned to nothing in particular and coupled so
+  # that one knock sets the rest off.
+  # Pads: eight glass chimes.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Still"
+  set macro4 "Soft"
+  set macro5 "Wind"
+  set macro6 "Strike"
+  set macro7 "Bend"
+  set macro8 "Tinkle"
+  p00_kind       #3
+  p00_tune       1100 Hz
+  p00_decay      1.2 s
+  p00_damp       0.15
+  p00_hit        0.2
+  p00_hard       0.95
+  p00_noise      0.04
+  p00_level      1.06
+  p00_pan        -0.4
+  p01_kind       #3
+  p01_tune       1230 Hz
+  p01_decay      1.2 s
+  p01_damp       0.15
+  p01_hit        0.2
+  p01_hard       0.95
+  p01_noise      0.04
+  p01_level      1.15
+  p01_pan        0.3
+  p02_kind       #3
+  p02_tune       1370 Hz
+  p02_decay      1.2 s
+  p02_damp       0.15
+  p02_hit        0.2
+  p02_hard       0.95
+  p02_noise      0.04
+  p02_level      1.15
+  p02_pan        -0.1
+  p03_kind       #3
+  p03_tune       1460 Hz
+  p03_decay      1.2 s
+  p03_damp       0.15
+  p03_hit        0.2
+  p03_hard       0.95
+  p03_noise      0.04
+  p03_level      1.15
+  p03_pan        0.45
+  p04_kind       #3
+  p04_tune       1640 Hz
+  p04_decay      1.2 s
+  p04_damp       0.15
+  p04_hit        0.2
+  p04_hard       0.95
+  p04_noise      0.04
+  p04_level      1.15
+  p04_pan        -0.3
+  p05_kind       #3
+  p05_tune       1730 Hz
+  p05_decay      1.2 s
+  p05_damp       0.15
+  p05_hit        0.2
+  p05_hard       0.95
+  p05_noise      0.04
+  p05_level      1.15
+  p05_pan        0.1
+  p06_kind       #3
+  p06_tune       1850 Hz
+  p06_decay      1.2 s
+  p06_damp       0.15
+  p06_hit        0.2
+  p06_hard       0.95
+  p06_noise      0.04
+  p06_level      1.15
+  p06_pan        0.35
+  p07_kind       #3
+  p07_tune       1990 Hz
+  p07_decay      1.2 s
+  p07_damp       0.15
+  p07_hit        0.2
+  p07_hard       0.95
+  p07_noise      0.04
+  p07_level      1.15
+  p07_pan        -0.2
+  coupling       0.65
+  humanise       0.4
+  volume         1.5
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.1
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.35
+  mac4_d1  #5
+  mac4_a1  -0.5
+  mac5_d1  #9
+  mac5_a1  0.4
+  mac5_d2  #10
+  mac5_a2  0.4
+  mac6_d1  #4
+  mac6_a1  0.3
+  mac7_d1  #3
+  mac7_a1  0.25
+  mac8_d1  #6
+  mac8_a1  0.3
+
+patch Chandelier family=glass
+  # Crystal drops hanging from one frame: the coupling is nearly all the
+  # way up, so any one rings the lot, into the song's reverb.
+  # Pads: eight crystal drops.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Still"
+  set macro4 "Soft"
+  set macro5 "Shimmer"
+  set macro6 "Strike"
+  set macro7 "Sway"
+  set macro8 "Grit"
+  p00_kind       #4
+  p00_tune       1050 Hz
+  p00_decay      2.5 s
+  p00_damp       0.08
+  p00_inharm     0.05
+  p00_hit        0.35
+  p00_hard       1
+  p00_noise      0.03
+  p00_level      1.15
+  p00_pan        -0.4
+  p01_kind       #4
+  p01_tune       1180 Hz
+  p01_decay      2.5 s
+  p01_damp       0.08
+  p01_inharm     0.05
+  p01_hit        0.35
+  p01_hard       1
+  p01_noise      0.03
+  p01_level      1.15
+  p01_pan        0.3
+  p02_kind       #4
+  p02_tune       1320 Hz
+  p02_decay      2.5 s
+  p02_damp       0.08
+  p02_inharm     0.05
+  p02_hit        0.35
+  p02_hard       1
+  p02_noise      0.03
+  p02_level      1.15
+  p02_pan        -0.1
+  p03_kind       #4
+  p03_tune       1400 Hz
+  p03_decay      2.5 s
+  p03_damp       0.08
+  p03_inharm     0.05
+  p03_hit        0.35
+  p03_hard       1
+  p03_noise      0.03
+  p03_level      1.15
+  p03_pan        0.45
+  p04_kind       #4
+  p04_tune       1570 Hz
+  p04_decay      2.5 s
+  p04_damp       0.08
+  p04_inharm     0.05
+  p04_hit        0.35
+  p04_hard       1
+  p04_noise      0.03
+  p04_level      1.15
+  p04_pan        -0.3
+  p05_kind       #4
+  p05_tune       1760 Hz
+  p05_decay      2.5 s
+  p05_damp       0.08
+  p05_inharm     0.05
+  p05_hit        0.35
+  p05_hard       1
+  p05_noise      0.03
+  p05_level      1.15
+  p05_pan        0.1
+  p06_kind       #4
+  p06_tune       1870 Hz
+  p06_decay      2.5 s
+  p06_damp       0.08
+  p06_inharm     0.05
+  p06_hit        0.35
+  p06_hard       1
+  p06_noise      0.03
+  p06_level      1.15
+  p06_pan        0.35
+  p07_kind       #4
+  p07_tune       1980 Hz
+  p07_decay      2.5 s
+  p07_damp       0.08
+  p07_inharm     0.05
+  p07_hit        0.35
+  p07_hard       1
+  p07_noise      0.03
+  p07_level      1.15
+  p07_pan        -0.2
+  coupling       0.9
+  humanise       0.1
+  volume         1.5
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.3
+  mac2_d2  #2
+  mac2_a2  -0.05
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #9
+  mac3_a2  -0.5
+  mac4_d1  #5
+  mac4_a1  -0.5
+  mac5_d1  #3
+  mac5_a1  0.2
+  mac6_d1  #4
+  mac6_a1  0.3
+  mac7_d1  #10
+  mac7_a1  0.6
+  mac8_d1  #7
+  mac8_a1  0.5
+  send reverb    0.3
+
+patch "Bin Lids" family=found role=beat
+  # Street percussion: bins, lids, buckets and a paint tin.
+  # Pads: bin, bin lid, bucket, upturned bucket, paint tin, oil drum, oil
+  # drum lid, broom on the lid.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Stomp"
+  set macro5 "Lids"
+  set macro6 "Clang"
+  set macro7 "Grit"
+  set macro8 "Loose"
+  p00_kind       #4
+  p00_tune       120 Hz
+  p00_decay      0.6 s
+  p00_damp       0.4
+  p00_inharm     0.25
+  p00_hit        0.2
+  p00_hard       0.7
+  p00_noise      0.3
+  p00_level      0.8
+  p01_kind       #2
+  p01_tune       210 Hz
+  p01_decay      0.8 s
+  p01_damp       0.3
+  p01_inharm     0.2
+  p01_hit        0.45
+  p01_hard       0.9
+  p01_noise      0.45
+  p01_level      0.8
+  p01_pan        -0.3
+  p02_kind       #4
+  p02_tune       340 Hz
+  p02_decay      0.5 s
+  p02_damp       0.4
+  p02_inharm     0.2
+  p02_hit        0.25
+  p02_hard       0.8
+  p02_noise      0.25
+  p02_level      0.74
+  p02_pan        0.3
+  p03_kind       #4
+  p03_tune       220 Hz
+  p03_decay      0.5 s
+  p03_damp       0.4
+  p03_inharm     0.2
+  p03_hit        0.25
+  p03_hard       0.8
+  p03_noise      0.25
+  p03_level      0.8
+  p03_pan        -0.15
+  p04_kind       #4
+  p04_tune       600 Hz
+  p04_decay      0.35 s
+  p04_damp       0.45
+  p04_inharm     0.2
+  p04_hit        0.3
+  p04_hard       0.95
+  p04_noise      0.3
+  p04_level      0.8
+  p04_pan        0.15
+  p05_kind       #4
+  p05_tune       85 Hz
+  p05_decay      1.4 s
+  p05_damp       0.35
+  p05_inharm     0.25
+  p05_hit        0.2
+  p05_hard       0.7
+  p05_noise      0.3
+  p05_level      0.8
+  p05_pan        -0.4
+  p06_kind       #2
+  p06_tune       150 Hz
+  p06_decay      0.7 s
+  p06_damp       0.35
+  p06_inharm     0.2
+  p06_hit        0.5
+  p06_hard       0.9
+  p06_noise      0.45
+  p06_level      0.8
+  p06_pan        0.4
+  p07_kind       #2
+  p07_tune       300 Hz
+  p07_decay      0.8 s
+  p07_damp       0.3
+  p07_inharm     0.2
+  p07_hit        0.45
+  p07_hard       0.9
+  p07_noise      0.45
+  p07_level      0.75
+  p07_pan        0.2
+  coupling       0.35
+  humanise       0.25
+  volume         1.31
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.35
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #21
+  mac4_a1  0.4
+  mac4_d2  #13
+  mac4_a2  -0.15
+  mac5_d1  #22
+  mac5_a1  0.3
+  mac5_d2  #28
+  mac5_a2  0.3
+  mac6_d1  #3
+  mac6_a1  0.3
+  mac6_d2  #6
+  mac6_a2  0.2
+  mac7_d1  #7
+  mac7_a1  0.5
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #9
+  mac8_a2  0.3
+
+patch Kitchen family=found role=beat
+  # Pots, pans and the cutlery drawer, with a mug and a kettle.
+  # Pads: saucepan, frying pan, chopping board, pot lid, kettle, mug,
+  # wine glass, cutlery.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Spoon"
+  set macro5 "Pans"
+  set macro6 "Drawer"
+  set macro7 "Clatter"
+  set macro8 "Tinny"
+  p00_kind       #4
+  p00_tune       300 Hz
+  p00_decay      0.9 s
+  p00_damp       0.3
+  p00_inharm     0.15
+  p00_hit        0.3
+  p00_hard       0.8
+  p00_noise      0.2
+  p00_level      0.8
+  p00_pan        -0.1
+  p01_kind       #2
+  p01_tune       180 Hz
+  p01_decay      0.7 s
+  p01_damp       0.35
+  p01_inharm     0.15
+  p01_hit        0.4
+  p01_hard       0.9
+  p01_noise      0.3
+  p01_level      0.8
+  p01_pan        -0.3
+  p02_kind       #1
+  p02_tune       320 Hz
+  p02_decay      0.12 s
+  p02_damp       0.7
+  p02_hit        0.3
+  p02_hard       0.8
+  p02_noise      0.3
+  p02_level      0.53
+  p02_pan        0.3
+  p03_kind       #2
+  p03_tune       420 Hz
+  p03_decay      1.1 s
+  p03_damp       0.2
+  p03_inharm     0.2
+  p03_hit        0.5
+  p03_hard       0.95
+  p03_noise      0.4
+  p03_level      1.1
+  p03_pan        0.2
+  p04_kind       #4
+  p04_tune       260 Hz
+  p04_decay      1.4 s
+  p04_damp       0.25
+  p04_inharm     0.1
+  p04_hit        0.25
+  p04_hard       0.7
+  p04_noise      0.2
+  p04_level      0.8
+  p04_pan        -0.2
+  p05_kind       #4
+  p05_tune       900 Hz
+  p05_decay      0.25 s
+  p05_damp       0.5
+  p05_hit        0.3
+  p05_hard       1
+  p05_noise      0.15
+  p05_level      0.8
+  p05_pan        0.4
+  p06_kind       #4
+  p06_tune       1110 Hz
+  p06_decay      2.5 s
+  p06_damp       0.06
+  p06_inharm     -0.03
+  p06_hit        0.3
+  p06_hard       0.85
+  p06_noise      0.02
+  p06_level      1.01
+  p06_pan        -0.4
+  p07_kind       #5
+  p07_tune       1600 Hz
+  p07_decay      0.12 s
+  p07_damp       0.6
+  p07_hit        0.3
+  p07_hard       1
+  p07_noise      0.5
+  p07_level      0.7
+  p07_pan        0.1
+  coupling       0.3
+  humanise       0.2
+  volume         1.17
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.35
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  0.4
+  mac4_d2  #4
+  mac4_a2  0.2
+  mac5_d1  #21
+  mac5_a1  0.3
+  mac5_d2  #22
+  mac5_a2  0.3
+  mac6_d1  #28
+  mac6_a1  0.4
+  mac6_d2  #6
+  mac6_a2  0.2
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac7_d2  #10
+  mac7_a2  0.4
+  mac8_d1  #3
+  mac8_a1  0.3
+
+patch Toolbox family=found role=beat
+  # A workbench: hammer on the anvil, spanners, a vice, a file and a saw
+  # that wobbles.
+  # Pads: toolbox, anvil, big spanner, spanner, vice, saw, file, toolbox
+  # lid tap.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Hammer"
+  set macro5 "Spanners"
+  set macro6 "Wobble"
+  set macro7 "Grit"
+  set macro8 "Loose"
+  p00_kind       #2
+  p00_tune       150 Hz
+  p00_decay      0.5 s
+  p00_damp       0.4
+  p00_inharm     0.2
+  p00_hit        0.5
+  p00_hard       0.9
+  p00_noise      0.6
+  p00_level      1.23
+  p01_kind       #5
+  p01_tune       232 Hz
+  p01_decay      0.5 s
+  p01_damp       0.3
+  p01_hit        0.28
+  p01_hard       0.45
+  p01_noise      0.25
+  p01_drive      0.15
+  p01_level      0.94
+  p01_pan        -0.3
+  p02_kind       #1
+  p02_tune       610 Hz
+  p02_decay      1 s
+  p02_damp       0.2
+  p02_inharm     0.05
+  p02_hit        0.22
+  p02_hard       1
+  p02_noise      0.1
+  p02_level      1.12
+  p02_pan        0.3
+  p03_kind       #1
+  p03_tune       880 Hz
+  p03_decay      0.9 s
+  p03_damp       0.2
+  p03_inharm     0.05
+  p03_hit        0.22
+  p03_hard       1
+  p03_noise      0.1
+  p03_level      1.12
+  p03_pan        -0.15
+  p04_kind       #5
+  p04_tune       300 Hz
+  p04_decay      0.2 s
+  p04_damp       0.5
+  p04_hit        0.3
+  p04_hard       1
+  p04_noise      0.3
+  p04_drive      0.2
+  p04_level      1.06
+  p04_pan        0.15
+  p05_kind       #2
+  p05_tune       520 Hz
+  p05_decay      1.5 s
+  p05_damp       0.15
+  p05_hit        0.7
+  p05_hard       0.9
+  p05_noise      0.3
+  p05_bend       3
+  p05_bendtime   0.3 s
+  p05_level      1.12
+  p05_pan        -0.4
+  p06_kind       #5
+  p06_tune       1800 Hz
+  p06_decay      0.05 s
+  p06_damp       0.8
+  p06_hit        0.3
+  p06_hard       1
+  p06_noise      0.95
+  p06_level      0.57
+  p06_pan        0.4
+  p07_kind       #2
+  p07_tune       260 Hz
+  p07_decay      0.5 s
+  p07_damp       0.4
+  p07_inharm     0.2
+  p07_hit        0.5
+  p07_hard       0.9
+  p07_noise      0.6
+  p07_level      1.01
+  p07_pan        0.2
+  coupling       0.3
+  humanise       0.2
+  volume         1.05
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.35
+  mac2_d2  #2
+  mac2_a2  -0.3
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  0.4
+  mac4_d2  #22
+  mac4_a2  0.3
+  mac5_d1  #23
+  mac5_a1  0.3
+  mac5_d2  #24
+  mac5_a2  0.3
+  mac6_d1  #18
+  mac6_a1  0.15
+  mac6_d2  #3
+  mac6_a2  0.2
+  mac7_d1  #7
+  mac7_a1  0.5
+  mac8_d1  #10
+  mac8_a1  0.6
+  mac8_d2  #9
+  mac8_a2  0.3
+
+patch Scaffold family=found role=beat
+  # Scaffold poles of different lengths, a long pole, a clamp and a
+  # plank, hit with a spanner.
+  # Pads: pole, plank, scaffold pipes long to short, clamp.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Soft"
+  set macro5 "End"
+  set macro6 "Bent"
+  set macro7 "Rattle"
+  set macro8 "Loose"
+  p00_kind       #3
+  p00_tune       95 Hz
+  p00_decay      2.5 s
+  p00_damp       0.15
+  p00_inharm     0.05
+  p00_hit        0.15
+  p00_hard       1
+  p00_noise      0.25
+  p00_level      1.05
+  p01_kind       #1
+  p01_tune       140 Hz
+  p01_decay      0.2 s
+  p01_damp       0.6
+  p01_hit        0.3
+  p01_hard       0.8
+  p01_noise      0.3
+  p01_level      0.63
+  p01_pan        -0.3
+  p02_kind       #3
+  p02_tune       196 Hz
+  p02_decay      1.5 s
+  p02_damp       0.2
+  p02_inharm     0.05
+  p02_hit        0.15
+  p02_hard       1
+  p02_noise      0.2
+  p02_level      0.86
+  p02_pan        0.3
+  p03_kind       #3
+  p03_tune       247 Hz
+  p03_decay      1.5 s
+  p03_damp       0.2
+  p03_inharm     0.05
+  p03_hit        0.15
+  p03_hard       1
+  p03_noise      0.2
+  p03_level      0.86
+  p03_pan        -0.15
+  p04_kind       #3
+  p04_tune       330 Hz
+  p04_decay      1.5 s
+  p04_damp       0.2
+  p04_inharm     0.05
+  p04_hit        0.15
+  p04_hard       1
+  p04_noise      0.2
+  p04_level      0.86
+  p04_pan        0.15
+  p05_kind       #3
+  p05_tune       415 Hz
+  p05_decay      1.5 s
+  p05_damp       0.2
+  p05_inharm     0.05
+  p05_hit        0.15
+  p05_hard       1
+  p05_noise      0.2
+  p05_level      0.86
+  p05_pan        -0.4
+  p06_kind       #3
+  p06_tune       523 Hz
+  p06_decay      1.5 s
+  p06_damp       0.2
+  p06_inharm     0.05
+  p06_hit        0.15
+  p06_hard       1
+  p06_noise      0.2
+  p06_level      0.86
+  p06_pan        0.4
+  p07_kind       #5
+  p07_tune       900 Hz
+  p07_decay      0.2 s
+  p07_damp       0.5
+  p07_hit        0.3
+  p07_hard       1
+  p07_noise      0.3
+  p07_level      0.55
+  p07_pan        0.2
+  coupling       0.4
+  humanise       0.15
+  volume         1.5
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.35
+  mac2_d2  #2
+  mac2_a2  -0.15
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  -0.5
+  mac5_d1  #4
+  mac5_a1  -0.1
+  mac5_d2  #6
+  mac5_a2  0.15
+  mac6_d1  #3
+  mac6_a1  0.25
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac7_d2  #7
+  mac7_a2  0.3
+  mac8_d1  #10
+  mac8_a1  0.6
+
+# The same, driven. Everything in here is hit too hard on
+# purpose, and the coupling is high enough that the whole pile answers.
+patch Junkyard family=found role=beat
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Soft"
+  set macro5 "Clang"
+  set macro6 "Hiss"
+  set macro7 "Clean"
+  set macro8 "Pile"
+  p00_kind       #5
+  p00_tune       700 Hz
+  p00_decay      0.4 s
+  p00_damp       0.45
+  p00_hit        0.34
+  p00_hard       0.8
+  p00_noise      0.45
+  p00_drive      0.5
+  p00_level      1.22
+  p01_kind       #5
+  p01_tune       260 Hz
+  p01_decay      0.5 s
+  p01_damp       0.4
+  p01_hit        0.3
+  p01_hard       0.85
+  p01_noise      0.3
+  p01_drive      0.55
+  p01_level      1.22
+  p02_kind       #5
+  p02_tune       420 Hz
+  p02_decay      0.45 s
+  p02_damp       0.3
+  p02_hit        0.28
+  p02_hard       0.5
+  p02_noise      0.25
+  p02_drive      0.45
+  p02_level      1.22
+  p03_kind       #2
+  p03_tune       175 Hz
+  p03_decay      0.7 s
+  p03_damp       0.2
+  p03_hit        0.5
+  p03_hard       0.6
+  p03_noise      0.4
+  p03_drive      0.4
+  p03_level      1.22
+  p04_kind       #5
+  p04_tune       430 Hz
+  p04_decay      0.4 s
+  p04_damp       0.45
+  p04_hit        0.34
+  p04_hard       0.8
+  p04_noise      0.45
+  p04_drive      0.6
+  p04_level      1.22
+  p05_kind       #5
+  p05_tune       190 Hz
+  p05_decay      0.4 s
+  p05_damp       0.4
+  p05_hit        0.3
+  p05_hard       0.85
+  p05_noise      0.3
+  p05_drive      0.5
+  p05_level      1.22
+  p06_kind       #5
+  p06_tune       880 Hz
+  p06_decay      1.1 s
+  p06_damp       0.3
+  p06_hit        0.28
+  p06_hard       0.9
+  p06_noise      0.25
+  p06_drive      0.4
+  p06_level      1.22
+  p07_kind       #2
+  p07_tune       480 Hz
+  p07_decay      3.5 s
+  p07_damp       0.15
+  p07_hit        0.6
+  p07_hard       0.7
+  p07_noise      0.5
+  p07_drive      0.35
+  p07_level      1.5
+  coupling       0.65
+  humanise       0.3
+  volume         0.57
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.35
+  mac2_d2  #2
+  mac2_a2  -0.25
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  -0.5
+  mac5_d1  #3
+  mac5_a1  0.25
+  mac6_d1  #6
+  mac6_a1  0.3
+  mac7_d1  #7
+  mac7_a1  -0.4
+  mac8_d1  #9
+  mac8_a1  0.3
+  mac8_d2  #10
+  mac8_a2  0.4
+
+patch Bedsprings family=found role=beat
+  # Things that go boing: every pad bends as it is struck, from a slinky
+  # to a spring reverb tank kicked by accident.
+  # Pads: spring tank, slinky, mattress, spring, low spring, doorstop,
+  # high doorstop, spring tap.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Soft"
+  set macro5 "Tank"
+  set macro6 "Twang"
+  set macro7 "Grit"
+  set macro8 "Loose"
+  p00_kind       #2
+  p00_tune       70 Hz
+  p00_decay      3 s
+  p00_damp       0.1
+  p00_inharm     0.3
+  p00_hit        0.5
+  p00_hard       0.9
+  p00_noise      0.5
+  p00_bend       3
+  p00_bendtime   0.4 s
+  p00_level      1.5
+  p01_kind       #3
+  p01_tune       90 Hz
+  p01_decay      2 s
+  p01_damp       0.15
+  p01_hit        0.2
+  p01_hard       0.8
+  p01_noise      0.2
+  p01_bend       12
+  p01_bendtime   0.35 s
+  p01_level      0.69
+  p01_pan        -0.3
+  p02_kind       #5
+  p02_tune       110 Hz
+  p02_decay      0.8 s
+  p02_damp       0.3
+  p02_hit        0.3
+  p02_hard       0.6
+  p02_noise      0.3
+  p02_bend       4
+  p02_bendtime   0.1 s
+  p02_level      0.58
+  p02_pan        0.3
+  p03_kind       #5
+  p03_tune       180 Hz
+  p03_decay      1.2 s
+  p03_damp       0.2
+  p03_inharm     0.3
+  p03_hit        0.2
+  p03_hard       0.9
+  p03_noise      0.2
+  p03_bend       7
+  p03_bendtime   0.25 s
+  p03_level      0.74
+  p03_pan        -0.15
+  p04_kind       #5
+  p04_tune       120 Hz
+  p04_decay      1.2 s
+  p04_damp       0.2
+  p04_inharm     0.3
+  p04_hit        0.2
+  p04_hard       0.9
+  p04_noise      0.2
+  p04_bend       7
+  p04_bendtime   0.25 s
+  p04_level      0.74
+  p04_pan        0.15
+  p05_kind       #1
+  p05_tune       300 Hz
+  p05_decay      1.2 s
+  p05_damp       0.15
+  p05_hit        0.1
+  p05_hard       1
+  p05_noise      0.1
+  p05_bend       5
+  p05_bendtime   0.15 s
+  p05_level      0.74
+  p05_pan        -0.4
+  p06_kind       #1
+  p06_tune       450 Hz
+  p06_decay      1.2 s
+  p06_damp       0.15
+  p06_hit        0.1
+  p06_hard       1
+  p06_noise      0.1
+  p06_bend       5
+  p06_bendtime   0.15 s
+  p06_level      0.74
+  p06_pan        0.4
+  p07_kind       #5
+  p07_tune       360 Hz
+  p07_decay      1.2 s
+  p07_damp       0.2
+  p07_inharm     0.3
+  p07_hit        0.2
+  p07_hard       0.9
+  p07_noise      0.2
+  p07_bend       7
+  p07_bendtime   0.25 s
+  p07_level      0.65
+  p07_pan        0.2
+  coupling       0.4
+  humanise       0.2
+  volume         1.39
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.35
+  mac2_d2  #2
+  mac2_a2  -0.15
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #1
+  mac3_a2  -0.3
+  mac4_d1  #5
+  mac4_a1  -0.5
+  mac5_d1  #21
+  mac5_a1  0.4
+  mac5_d2  #9
+  mac5_a2  0.3
+  mac6_d1  #3
+  mac6_a1  0.25
+  mac6_d2  #4
+  mac6_a2  0.2
+  mac7_d1  #7
+  mac7_a1  0.5
+  mac8_d1  #10
+  mac8_a1  0.6
+
+patch Radiator family=found role=beat
+  # An old heating system knocked with a spanner: the fins, the pipes and
+  # the boiler are all one piece of iron, so everything rings everything.
+  # Pads: boiler, heating pipe, low pipe, radiator, radiator end, high
+  # radiator, valve, pipe tap.
+  set macro1 "Pitch"
+  set macro2 "Ring"
+  set macro3 "Dead"
+  set macro4 "Soft"
+  set macro5 "Boiler"
+  set macro6 "Knock"
+  set macro7 "Grit"
+  set macro8 "Loose"
+  p00_kind       #4
+  p00_tune       60 Hz
+  p00_decay      2 s
+  p00_damp       0.2
+  p00_inharm     0.25
+  p00_hit        0.2
+  p00_hard       0.6
+  p00_noise      0.35
+  p00_drive      0.25
+  p00_level      0.8
+  p01_kind       #3
+  p01_tune       110 Hz
+  p01_decay      2.2 s
+  p01_damp       0.18
+  p01_inharm     0.1
+  p01_hit        0.15
+  p01_hard       1
+  p01_noise      0.3
+  p01_level      0.85
+  p01_pan        -0.3
+  p02_kind       #3
+  p02_tune       82 Hz
+  p02_decay      2.2 s
+  p02_damp       0.18
+  p02_inharm     0.1
+  p02_hit        0.15
+  p02_hard       1
+  p02_noise      0.3
+  p02_level      0.87
+  p02_pan        0.3
+  p03_kind       #5
+  p03_tune       330 Hz
+  p03_decay      1.6 s
+  p03_damp       0.2
+  p03_inharm     0.15
+  p03_hit        0.3
+  p03_hard       0.8
+  p03_noise      0.25
+  p03_level      0.8
+  p03_pan        -0.15
+  p04_kind       #5
+  p04_tune       440 Hz
+  p04_decay      1.6 s
+  p04_damp       0.2
+  p04_inharm     0.15
+  p04_hit        0.3
+  p04_hard       0.8
+  p04_noise      0.25
+  p04_level      0.8
+  p04_pan        0.15
+  p05_kind       #5
+  p05_tune       587 Hz
+  p05_decay      1.6 s
+  p05_damp       0.2
+  p05_inharm     0.15
+  p05_hit        0.3
+  p05_hard       0.8
+  p05_noise      0.25
+  p05_level      0.8
+  p05_pan        -0.4
+  p06_kind       #5
+  p06_tune       1250 Hz
+  p06_decay      0.3 s
+  p06_damp       0.4
+  p06_hit        0.3
+  p06_hard       1
+  p06_noise      0.4
+  p06_level      0.7
+  p06_pan        0.4
+  p07_kind       #3
+  p07_tune       165 Hz
+  p07_decay      2.2 s
+  p07_damp       0.18
+  p07_inharm     0.1
+  p07_hit        0.15
+  p07_hard       1
+  p07_noise      0.3
+  p07_level      0.85
+  p07_pan        0.2
+  coupling       0.85
+  humanise       0.2
+  volume         1.36
+  mac1_d1  #8
+  mac1_a1  0.5
+  mac2_d1  #1
+  mac2_a1  0.35
+  mac2_d2  #2
+  mac2_a2  -0.15
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac3_d2  #9
+  mac3_a2  -0.4
+  mac4_d1  #5
+  mac4_a1  -0.5
+  mac5_d1  #21
+  mac5_a1  0.4
+  mac5_d2  #13
+  mac5_a2  -0.15
+  mac6_d1  #6
+  mac6_a1  0.3
+  mac6_d2  #4
+  mac6_a2  0.2
+  mac7_d1  #7
+  mac7_a1  0.5
+  mac8_d1  #10
+  mac8_a1  0.6
+  send reverb    0.2

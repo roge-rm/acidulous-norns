@@ -39,6 +39,13 @@ using dsp::clampf;
  * loop. Changing one without the other detunes the instrument.
  */
 constexpr float kDcPole = 0.997f;
+/**
+ * Under 45 Hz (note 29.6) the corner moves down to half the note. Close to
+ * the note the blocker's phase lead is large, so the line that tunes the
+ * fundamental leaves the bore's next mode flat, near 1.85x, and on the
+ * lowest notes that mode took over.
+ */
+constexpr float kDcLowHz = 45.0f, kDcNoteRatio = 0.5f;
 
 /** How far over the steady ceiling a tongue may lean. See tune(). */
 constexpr float kLiftCeiling = 3.0f;
@@ -93,6 +100,9 @@ class Bore {
         // an old pressure could stick and the tuning would depend on what
         // the voice played before.
         pressure = 0.5f;
+        held = -1.0f;
+        smooth = false;
+        b0Left = brassLeft = 0;
         dirty = true;
     }
 
@@ -124,12 +134,41 @@ class Bore {
         if (std::fabs(v - pressure) > 0.02f) { pressure = v; dirty = true; }
     }
 
+    /**
+     * The pressure the loop gain is chosen for, when it isn't the one being
+     * blown: a swell holds the loop at the set pressure's gain while the
+     * breath rises to it, so the note speaks and grows with the breath
+     * instead of waiting under the threshold. Negative goes back to
+     * [pressure].
+     */
+    void setHeldPressure(float p) {
+        const float v = p < 0.0f ? -1.0f : clampf(p, 0.0f, 2.0f);
+        if ((v < 0.0f) != (held < 0.0f) || std::fabs(v - held) > 0.02f) { held = v; dirty = true; }
+    }
+
     /** Bell: how much is reflected and how dull the reflection is. */
     void setBell(float reflection, float cutoff01) {
         const float rf = clampf(reflection, 0.5f, 0.995f), c = clampf(cutoff01, 0.02f, 0.98f);
         if (rf != reflect || c != bellCoeff) { reflect = rf; bellCoeff = c; dirty = true; }
     }
-    void setBrass(float amount) { brass = clampf(amount, 0.0f, 1.0f); }
+    void setBrass(float amount) {
+        const float v = clampf(amount, 0.0f, 1.0f);
+        if (smooth && delay >= 4.0f) {
+            brassTo = v;
+            brassStep = (v - brass) / static_cast<float>(kRamp);
+            brassLeft = kRamp;
+        } else {
+            brass = v;
+            brassLeft = 0;
+        }
+    }
+
+    /**
+     * While on, a new brassiness and lip drive are ramped in over kRamp
+     * samples instead of stepping once a block. A swell moves both every
+     * block and would put a corner at each one.
+     */
+    void setSmooth(bool on) { smooth = on; }
     /** How far the lips close as the note builds. */
     void setBite(float amount) { bite = clampf(amount, 0.0f, 1.6f); }
     /** How far open the lips are at rest. */
@@ -189,6 +228,9 @@ class Bore {
         }
         if (!dirty) return;
         dirty = false;
+        // Where the lip drive is now, for a ramp to the new one.
+        const bool ramp = smooth && delay >= 4.0f;
+        const float b0Was = b0Left > 0 ? b0Now : lipB0;
 
         lipHz = clampf(freq * lipTension, 20.0f, sr * 0.45f);
         // The lip resonance is set by Q, not pole radius. A fixed radius makes
@@ -230,9 +272,10 @@ class Bore {
         float den = dr * dr + di * di + 1e-20f;
         const float hr = (nr * dr + ni * di) / den, hi = (ni * dr - nr * di) / den;
 
-        // The DC blocker: (1 - z^-1) / (1 - 0.997 z^-1).
+        // The DC blocker: (1 - z^-1) / (1 - p z^-1).
+        dcPole = freq < kDcLowHz ? std::max(kDcPole, std::exp(-6.28318530718f * kDcNoteRatio * freq / sr)) : kDcPole;
         nr = 1.0f - c1; ni = s1;
-        dr = 1.0f - kDcPole * c1; di = kDcPole * s1;
+        dr = 1.0f - dcPole * c1; di = dcPole * s1;
         den = dr * dr + di * di + 1e-20f;
         const float br = (nr * dr + ni * di) / den, bi = (ni * dr - nr * di) / den;
 
@@ -255,7 +298,7 @@ class Bore {
         // since G = a0 - k u H isn't linear in u.
         // During the lift the ceiling is kLiftCeiling instead of 1.9, or low
         // notes wouldn't get the boost they need.
-        const float steady = 0.86f + 0.62f * pressure * lipGain;
+        const float steady = 0.86f + 0.62f * (held >= 0.0f ? held : pressure) * lipGain;
         const float ceiling = onsetBoost > 1.001f ? kLiftCeiling : 1.9f;
         const float want = clampf(steady * onsetBoost, 0.0f, ceiling);
         const float t = want / (outside > 1e-6f ? outside : 1e-6f);
@@ -270,6 +313,13 @@ class Bore {
         }
         if (u > 40.0f) u = 40.0f;
         lipB0 *= u;
+        if (ramp) {
+            b0Now = b0Was;
+            b0Step = (lipB0 - b0Was) / static_cast<float>(kRamp);
+            b0Left = kRamp;
+        } else {
+            b0Left = 0;
+        }
         const float gr = a0 - k * u * hr, gi = -k * u * hi;
 
         float phase = std::atan2(gi, gr) + std::atan2(bi, br) + std::atan2(li, lr);
@@ -294,9 +344,11 @@ class Bore {
 
     /**
      * One sample. [mouth] is the pressure behind the lips (0 is silence) and
-     * [noise] the breath noise. Returns what comes out of the bell.
+     * [noise] the breath noise. [lips] scales how far the lips' own motion
+     * moves the valve, 1 normally and less while a flutter tongue gets in
+     * the way. Returns what comes out of the bell.
      */
-    float step(float mouth, float noise) {
+    float step(float mouth, float noise, float lips = 1.0f) {
         const int32_t size = static_cast<int32_t>(line.size());
         // Steepening. In a loud wave the crest travels faster than the
         // trough, so the delay depends on the wave: shorter where it's loud.
@@ -307,6 +359,10 @@ class Bore {
         // The line length is solved once a block and moves during the attack.
         // It's glided here so it doesn't jump each block, which would buzz.
         delay += (delayTarget - delay) * delayGlide;
+        if (brassLeft > 0) {
+            brass += brassStep;
+            if (--brassLeft == 0) brass = brassTo;
+        }
         float read = delay - brass * delay * 0.06f * lastArrive;
         if (read < 4.0f) read = 4.0f;
         else if (read > static_cast<float>(size - 3)) read = static_cast<float>(size - 3);
@@ -333,7 +389,12 @@ class Bore {
         const float breath = mouth + noiseLp;
         const float delta = breath - bore;
 
-        const float lip = lipB0 * (delta - lipX2) + lipA1 * lipY1 + lipA2 * lipY2;
+        float b0 = lipB0;
+        if (b0Left > 0) {
+            b0Now += b0Step;
+            if (--b0Left > 0) b0 = b0Now;
+        }
+        const float lip = b0 * (delta - lipX2) + lipA1 * lipY1 + lipA2 * lipY2;
         lipX2 = lipX1;
         lipX1 = delta;
         lipY2 = lipY1;
@@ -349,7 +410,9 @@ class Bore {
         // fast-rise follower settles at the peak.
         const float working = std::fabs(lip) * 0.63661977f;
         lipEnv += (working - lipEnv) * (working > lipEnv ? lipRise : lipFall);
-        float open = rest - bite * lipEnv + lip;
+        float lipNow = lip;
+        if (lips != 1.0f) lipNow *= lips;
+        float open = rest - bite * lipEnv + lipNow;
         if (open < 0.0f) open = 0.0f;
         else if (open > 1.0f) open = 1.0f;
         const float opening = open * open;
@@ -358,7 +421,7 @@ class Bore {
         in = dsp::fastTanh(in);
 
         // A DC blocker, or the loop fills up with the steady breath pressure.
-        const float hp = in - dcIn + kDcPole * dcOut;
+        const float hp = in - dcIn + dcPole * dcOut;
         dcIn = in;
         dcOut = hp;
 
@@ -380,6 +443,12 @@ class Bore {
     /** How fast the read follows the solved length. See step(). */
     float delayGlide = 1.0f;
     float lipHz = 220.0f, lipGain = 1.0f, lipTension = 1.0f, lipDamp = 0.4f, pressure = 0.5f;
+    float held = -1.0f; // see setHeldPressure
+    // The ramps setSmooth turns on: a block's worth of samples.
+    static constexpr int32_t kRamp = 64;
+    bool smooth = false;
+    float b0Now = 0.0f, b0Step = 0.0f, brassTo = 0.0f, brassStep = 0.0f;
+    int32_t b0Left = 0, brassLeft = 0;
     bool dirty = true;
     float lipA1 = 0.0f, lipA2 = 0.0f, lipB0 = 0.0f;
     float onsetBoost = 1.0f, onsetFall = 0.0f;
@@ -388,6 +457,7 @@ class Bore {
     float brass = 0.3f, loss = 0.995f, rest = 0.35f, bite = 0.0f, lipEnv = 0.0f;
     /** Rise and fall rates of the lip follower. See tune(). */
     float lipRise = 0.0006f, lipFall = 0.0006f;
+    float dcPole = kDcPole;
     float dcIn = 0.0f, dcOut = 0.0f, radiated = 0.0f, loopMag = 0.0f, lastArrive = 0.0f;
     /** The lowpassed breath noise. See kAirPole. */
     float noiseLp = 0.0f;

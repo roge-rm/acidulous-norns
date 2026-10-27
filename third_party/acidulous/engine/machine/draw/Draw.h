@@ -32,8 +32,29 @@ class Draw final : public Machine {
         HarpKey, Playing, Cup, Vibrato, VibratoRate,
         Cassotto, Shake,
         Sync, Sidechain, Words, HighRank, LowRank,
-        Count
+        // The accordion's left hand: keys below [Bass] (a note, 0 off) play
+        // a bass note and its chord (BassChord) on reeds of their own, at
+        // [BassLevel] against the right hand.
+        Bass, BassChord, BassLevel,
+        // Eight macro knobs, each with four routes: a destination (a
+        // MacroDest) and a depth. A macro's knob times a route's depth is
+        // added to the destination, in its own 0..1 range. Block rate. Pitch
+        // is 24 semitones per unit.
+        MacroBase,
+        MacroParams = 9, // knob, 4 destinations, 4 depths
+        Count = MacroBase + 8 * MacroParams
     };
+    // Where a macro route goes. Continuous params only: the model, the
+    // register, the ranks, the switches, the steps and the tuning are left out.
+    enum MacroDest : int32_t {
+        McOff, McPressure, McAttack, McRelease, McSet, McChamber, McAir, McVelocity, McVolume,
+        McDetune, McCup, McVibrato, McVibratoRate, McShake, McWords, McBassLevel,
+        McPitch,
+        MacroDestCount
+    };
+    static constexpr int kMacros = 8;
+    /** The left hand's chords, in BassChord's order. */
+    enum BassChord_ : int32_t { ChordMajor = 0, ChordMinor, ChordSeventh, ChordDim, ChordNone, BassChordCount };
     static_assert(Count <= kMaxParams, "too many parameters");
 
     Draw();
@@ -121,9 +142,25 @@ class Draw final : public Machine {
         float breath = 1.0f, breathAim = 1.0f;
         int quietBlocks = 0;
         uint32_t age = 0;
+        /** A left-hand note: its reeds sound [leftNote] (MIDI notes, tune in) instead of the register. */
+        bool left = false;
+        float leftNote[kReeds] = {};
+        /** The pitch macro the reeds are tuned for, in its 0..1 units. */
+        float macPitch = 0.0f;
     };
 
-    float paramOf(int32_t i) const { return params_.get(i); }
+    /** Param [p], smoothed, with the macros' routes to it added. */
+    float paramOf(int32_t p) const { return val(p, false); }
+    /** Param [p]'s target with the macros' targets added, for note-on seeds. */
+    float goalOf(int32_t p) const { return val(p, true); }
+    float val(int32_t p, bool goal) const;
+    /** Fills [mac_] from the smoothed macro knobs and [macGoal_] from their targets. */
+    void updateMacros();
+    /** Fills [macGoal_] alone, for a note-on between blocks. */
+    void updateMacroGoals();
+    float read(int32_t p, bool goal) const { return goal ? params_.target(p) : params_.get(p); }
+    /** Plans a left-hand note: its bass and chord reeds. */
+    void planLeft(Voice &v, int chord);
     Voice *voiceFor(uint8_t note);
     /** Makes the voice's reeds for its note, each tuned to sound it and then apart. */
     void retune(Voice &v);
@@ -184,6 +221,9 @@ class Draw final : public Machine {
     uint32_t noise = 0x2545f491u, clock = 0;
     int quietSamples = 0;
     bool asleep = true;
+    float mac_[MacroDestCount]{}, macGoal_[MacroDestCount]{};
+    /** The macro offsets the voices were last blown with, to blow them again when one moves. */
+    float blownWith[2] = {};
 };
 
 } // namespace acidulous::machine

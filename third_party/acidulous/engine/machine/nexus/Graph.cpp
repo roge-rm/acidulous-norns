@@ -33,6 +33,31 @@ bool parseJack(const std::string &s, int32_t &slot, int32_t &port) {
     port = toInt(s.substr(dot + 1));
     return slot >= 0 && port >= 0 && port < kPorts;
 }
+/** A whole number with an optional sign and nothing else, as the editor reads one. */
+bool wholeInt(const std::string &s, int32_t &out) {
+    size_t i = 0;
+    if (!s.empty() && (s[0] == '+' || s[0] == '-')) i = 1;
+    if (i >= s.size()) return false;
+    for (size_t k = i; k < s.size(); ++k) if (s[k] < '0' || s[k] > '9') return false;
+    try { out = static_cast<int32_t>(std::stol(s)); } catch (...) { return false; }
+    return true;
+}
+/** A number that is the whole field, else [fallback], as the editor reads a depth. */
+float wholeFloat(const std::string &s, float fallback) {
+    try {
+        size_t used = 0;
+        const float v = std::stof(s, &used);
+        return used == s.size() ? v : fallback;
+    } catch (...) { return fallback; }
+}
+/** A jack as the editor keeps it: "slot.port", both whole numbers; anything after a second point is ignored. */
+bool jackShape(const std::string &s, int32_t &slot, int32_t &port) {
+    const size_t dot = s.find('.');
+    if (dot == std::string::npos) return false;
+    const size_t end = s.find('.', dot + 1);
+    return wholeInt(s.substr(0, dot), slot) &&
+           wholeInt(s.substr(dot + 1, end == std::string::npos ? std::string::npos : end - dot - 1), port);
+}
 } // namespace
 
 Graph *Graph::parse(const std::string &text, float sampleRate, std::string &error) {
@@ -85,6 +110,7 @@ Graph *Graph::parse(const std::string &text, float sampleRate, std::string &erro
             }
             const ModuleInfo &info = infoFor(n.type);
             n.text = textOf[static_cast<size_t>(slot)];
+            n.perNote = n.type == TVoice || n.type == TTouch;
             n.poly = f.size() >= 4 ? (f[3] == "poly") : true;
             if (!n.poly && (info.cap & CapMono) == 0) n.poly = true;
             if (n.poly && (info.cap & CapPoly) == 0) n.poly = false;
@@ -123,19 +149,27 @@ Graph *Graph::parse(const std::string &text, float sampleRate, std::string &erro
     // Pass two: cables.
     int32_t cableIndex = 0;
     for (const auto &line : lines) {
-        if (line.empty() || line[0] != 'c') continue;
         const auto f = split(line, '|');
-        if (f.size() < 4) continue;
+        // A cable line is one the editor keeps: `c`, then two jacks that read
+        // as slot.port. Those are numbered by their place, the ones wired to
+        // nothing too, so the editor's cable list and the cNN parameters agree.
+        if (f.size() < 3 || f[0] != "c") continue;
+        int32_t fromSlot = 0, fromPort = 0, toSlot = 0, toPort = 0;
+        if (!jackShape(f[1], fromSlot, fromPort) || !jackShape(f[2], toSlot, toPort)) continue;
+        const int32_t index = cableIndex++;
+        auto wired = [&](int32_t slot, int32_t port) {
+            return slot >= 0 && slot < kSlots && port >= 0 && port < kPorts && slotToNode[static_cast<size_t>(slot)] >= 0;
+        };
+        if (!wired(fromSlot, fromPort) || !wired(toSlot, toPort)) continue;
         Cable c;
+        c.srcNode = slotToNode[static_cast<size_t>(fromSlot)];
+        c.srcPort = fromPort;
+        c.dstNode = slotToNode[static_cast<size_t>(toSlot)];
+        c.dstPort = toPort;
+        // A missing depth is 1 and a missing B is the A, as the editor reads them.
+        c.depthA = f.size() >= 4 ? wholeFloat(f[3], 1.0f) : 1.0f;
+        c.depthB = f.size() >= 5 ? wholeFloat(f[4], c.depthA) : c.depthA;
         int32_t slot = 0, p = 0;
-        if (!parseJack(f[1], slot, p) || slot >= kSlots || slotToNode[static_cast<size_t>(slot)] < 0) continue;
-        c.srcNode = slotToNode[static_cast<size_t>(slot)];
-        c.srcPort = p;
-        if (!parseJack(f[2], slot, p) || slot >= kSlots || slotToNode[static_cast<size_t>(slot)] < 0) continue;
-        c.dstNode = slotToNode[static_cast<size_t>(slot)];
-        c.dstPort = p;
-        c.depthA = c.depthB = toFloat(f[3], 1.0f);
-        if (f.size() >= 5) c.depthB = toFloat(f[4], c.depthA);
         if (f.size() >= 6 && parseJack(f[5], slot, p) && slot < kSlots && slotToNode[static_cast<size_t>(slot)] >= 0) {
             c.modNode = slotToNode[static_cast<size_t>(slot)];
             c.modPort = p;
@@ -143,8 +177,7 @@ Graph *Graph::parse(const std::string &text, float sampleRate, std::string &erro
         if (f.size() >= 7) c.modAmount = toFloat(f[6], 0.0f);
         // The first kCables cables get a pair of depth parameters, so they
         // can be changed and automated without rebuilding the graph.
-        c.paramIndex = cableIndex < kCables ? cableIndex : -1;
-        ++cableIndex;
+        c.paramIndex = index < kCables ? index : -1;
         g->cables.push_back(c);
     }
 
@@ -203,6 +236,33 @@ Graph *Graph::parse(const std::string &text, float sampleRate, std::string &erro
     }
     g->prev.assign(static_cast<size_t>(kVoices + 1) * (g->delayedPorts.size() + 1), 0.0f);
 
+    // A poly control block (math, quant, env and the like) fed only by one
+    // note's controls and by mono sources puts out one note's control too,
+    // like a quantised pitch or an envelope on the note's gate, so a mono
+    // module follows its lead voice as well. Anything with a poly source
+    // that isn't per note, like an oscillator, is still summed. Walked in
+    // order so a chain of such blocks carries it through.
+    for (const int32_t ni : g->order) {
+        Node &n = g->nodes[static_cast<size_t>(ni)];
+        if (!n.poly || n.perNote) continue;
+        switch (n.type) {
+            case TMath: case TQuant: case TEnv: case TSlew: case TSnh:
+            case TLogic: case TProb: case TRand: break;
+            default: continue;
+        }
+        bool fromNote = false, mixed = false;
+        for (const auto &c : g->cables) {
+            if (c.dstNode != ni) continue;
+            for (const int32_t s : {c.srcNode, c.modNode}) {
+                if (s < 0) continue;
+                const Node &src = g->nodes[static_cast<size_t>(s)];
+                if (src.perNote) fromNote = true;
+                else if (src.poly) mixed = true;
+            }
+        }
+        n.perNote = fromNote && !mixed;
+    }
+
     // Group cables by destination so the inner loop walks a contiguous span.
     std::sort(g->cables.begin(), g->cables.end(),
               [](const Cable &a, const Cable &b) { return a.dstNode < b.dstNode; });
@@ -244,6 +304,10 @@ void Graph::adoptFrom(Graph &old) {
             i->prepare(sampleRate, kVoices);
         }
     }
+}
+
+void Graph::restartClocks() {
+    for (auto &n : nodes) for (auto &i : n.inst) if (i) i->restart();
 }
 
 void Graph::reset() {
@@ -346,7 +410,15 @@ void Graph::gather(const Node &n, int32_t nodeIndex, int32_t voice, const int32_
         const Node &src = nodes[static_cast<size_t>(k.srcNode)];
 
         float x = 0.0f;
-        if (k.delayed) {
+        if (src.poly && monoDest && src.perNote) {
+            // One note's controls aren't summed: a pitch or gate summed over
+            // voices is no note at all. The mono module follows the lead voice.
+            if (leadVoice >= 0) {
+                x = k.delayed ? prev[static_cast<size_t>(leadVoice) * (delayedPorts.size() + 1) +
+                                     static_cast<size_t>(k.prevSlot)]
+                              : readPort(k.srcNode, k.srcPort, leadVoice);
+            }
+        } else if (k.delayed) {
             const int32_t row = src.poly ? (monoDest ? -1 : voice) : kVoices;
             if (row < 0) {
                 for (int32_t a = 0; a < activeCount; ++a) {
@@ -367,8 +439,10 @@ void Graph::gather(const Node &n, int32_t nodeIndex, int32_t voice, const int32_
         float depth = k.base;
         if (k.modNode >= 0) {
             const Node &m = nodes[static_cast<size_t>(k.modNode)];
-            const float mv = m.poly && monoDest ? readPort(k.modNode, k.modPort, active[0])
-                                                : readPort(k.modNode, k.modPort, voice);
+            float mv = 0.0f;
+            if (!m.poly || !monoDest) mv = readPort(k.modNode, k.modPort, voice);
+            else if (m.perNote) mv = leadVoice >= 0 ? readPort(k.modNode, k.modPort, leadVoice) : 0.0f;
+            else mv = readPort(k.modNode, k.modPort, active[0]);
             depth += mv * k.modAmount;
         }
         in[k.dstPort] += x * depth;

@@ -79,6 +79,8 @@ void Nexus::reset() {
         gateOf[i] = 0.0f; triggerOf[i] = 0.0f;
         pressureOf[i] = timbreOf[i] = -1.0f;
     }
+    heldTick = 0.0;
+    clockWasRunning = false;
     if (graph != nullptr) graph->reset();
 }
 
@@ -126,10 +128,20 @@ void Nexus::controlChange(uint8_t cc, uint8_t value) {
 void Nexus::channelPressure(uint8_t value) { ctx.pressure = static_cast<float>(value) / 127.0f; }
 void Nexus::pitchBend(int16_t value14) { bendSemis = static_cast<float>(value14) / 8192.0f; }
 
+void Nexus::onTransport(bool rolling, int64_t tickStart) {
+    // Here rather than in onBlock(), which a frozen track doesn't get. The
+    // clock counts from where play started, so it's in time with the song.
+    transportMoved = rolling != songRolling;
+    if (rolling && !songRolling) rollOrigin = tickStart;
+    if (!rolling && songRolling) heldTick = 0.0;
+    songRolling = rolling;
+}
+
 void Nexus::onBlock(int64_t tickStart, int64_t tickEnd, float bpm) {
     ctx.bpm = bpm > 1.0f ? bpm : 120.0f;
     tickCursor = static_cast<double>(tickStart);
     tickStep = static_cast<double>(tickEnd - tickStart);
+    if (songRolling) clockCursor = static_cast<double>(tickStart - rollOrigin);
 }
 
 void Nexus::noteBend(uint8_t note, float semitones) {
@@ -193,8 +205,35 @@ bool Nexus::render(float *L, float *R, int32_t frames) {
         pitchOf[i] = tuned + voices[i].bend;
         active[activeCount++] = i;
     }
+    // The lead voice for mono modules: the newest held note, else the newest note.
+    int32_t lead = -1;
+    bool leadHeld = false;
+    for (int32_t a = 0; a < activeCount; ++a) {
+        const Voice &v = voices[active[a]];
+        const bool better = lead < 0 || (v.gate && !leadHeld) ||
+                            (v.gate == leadHeld && v.age > voices[lead].age);
+        if (better) { lead = active[a]; leadHeld = v.gate; }
+    }
+    g->leadVoice = lead;
     ctx.tickInc = frames > 0 ? tickStep / static_cast<double>(frames) : 0.0;
     ctx.tick = tickCursor;
+    // The clock runs while the song plays. Stopped, it runs only while a key
+    // is held, from the first key down, so a patch whose key gates its clock
+    // still plays.
+    bool anyHeld = false;
+    for (const auto &v : voices) anyHeld = anyHeld || (v.used && v.gate);
+    const bool clockRunning = songRolling || anyHeld;
+    if (!songRolling) {
+        if (!anyHeld) heldTick = 0.0;
+        clockCursor = heldTick;
+    }
+    // Play and stop restart the clocks even with a key holding them running,
+    // so a pattern starts from its first step in time with the song.
+    if ((clockRunning && !clockWasRunning) || transportMoved) g->restartClocks();
+    transportMoved = false;
+    clockWasRunning = clockRunning;
+    ctx.clockRunning = clockRunning;
+    ctx.clockTick = clockCursor;
 
     const float volume = paramOf(Volume) * kHouse;
     const float pan = paramOf(Pan);
@@ -210,6 +249,7 @@ bool Nexus::render(float *L, float *R, int32_t frames) {
         g->step(ctx, active, activeCount, outL, outR);
         g->advanceCables();
         ctx.tick += ctx.tickInc;
+        ctx.clockTick += ctx.tickInc;
 
         if (drive > 0.0f) {
             outL = std::tanh(outL * (1.0f + drive * 8.0f));
@@ -237,6 +277,7 @@ bool Nexus::render(float *L, float *R, int32_t frames) {
         if (v.used && !v.gate && v.quiet > 0.032f) { v.used = false; v.quiet = 0.0f; }
     }
     tickCursor += tickStep;
+    if (!songRolling && anyHeld) heldTick += tickStep;
     return true;
 }
 

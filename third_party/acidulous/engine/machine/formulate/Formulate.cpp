@@ -2,6 +2,7 @@
 #include <engine/machine/Voices.h>
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <engine/dsp/Math.h>
 
 namespace acidulous::machine {
@@ -20,8 +21,8 @@ constexpr uint32_t kFull = 0xffffffffu;
 
 Formulate::Formulate() { initParams(); }
 
-const ParamDef *Formulate::paramDefs(int32_t &count) const {
-    static const ParamDef defs[Count] = {
+namespace {
+const ParamDef kBase[Formulate::MacroBase] = {
         {"wave", 0.0f, 4.0f, 0.0f, Curve::Stepped, 5, ""}, // pulse tri saw noise silence
         {"duty", 0.0f, 1.0f, 0.5f, Curve::Linear, 0, ""},
         {"bits", 1.0f, 8.0f, 8.0f, Curve::Stepped, 8, ""},
@@ -58,15 +59,82 @@ const ParamDef *Formulate::paramDefs(int32_t &count) const {
         {"drive", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
         {"volume", 0.0f, 1.5f, 0.8f, Curve::Linear, 0, ""},
         {"pan", -1.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
-    };
+        {"fenv", -6.0f, 6.0f, 0.0f, Curve::Linear, 0, "oct"},
+        {"fattack", 0.0005f, 4.0f, 0.002f, Curve::Exponential, 0, "s"},
+        {"fdecay", 0.005f, 8.0f, 0.3f, Curve::Exponential, 0, "s"},
+        {"fsustain", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
+        {"frelease", 0.005f, 8.0f, 0.2f, Curve::Exponential, 0, "s"},
+};
+
+// The base table plus the macros' knobs and routes.
+struct Table {
+    ParamDef defs[Formulate::Count];
+    char names[Formulate::kMacros * Formulate::MacroParams][12];
+    Table() {
+        for (int32_t i = 0; i < Formulate::MacroBase; ++i) defs[i] = kBase[i];
+        for (int k = 0; k < Formulate::kMacros; ++k) {
+            const int32_t b = Formulate::MacroBase + k * Formulate::MacroParams;
+            char *n = names[k * Formulate::MacroParams];
+            std::snprintf(n, 12, "mac%d", k + 1);
+            defs[b] = {n, 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""};
+            for (int r = 0; r < 4; ++r) {
+                char *d = names[k * Formulate::MacroParams + 1 + r];
+                std::snprintf(d, 12, "mac%d_d%d", k + 1, r + 1);
+                defs[b + 1 + r] = {d, 0.0f, Formulate::DestCount - 1.0f, 0.0f, Curve::Stepped, Formulate::DestCount, ""};
+                char *a = names[k * Formulate::MacroParams + 5 + r];
+                std::snprintf(a, 12, "mac%d_a%d", k + 1, r + 1);
+                defs[b + 5 + r] = {a, -1.0f, 1.0f, 0.0f, Curve::Linear, 0, ""};
+            }
+        }
+    }
+};
+const Table &table() {
+    static const Table t;
+    return t;
+}
+
+// Which param each macro destination moves in its own range; -1 for off and pitch.
+constexpr int32_t kDestParam[Formulate::DestCount] = {
+    -1, Formulate::Duty, Formulate::PwmDepth, Formulate::PwmRate, Formulate::SubLevel, Formulate::Bits,
+    Formulate::Crush, Formulate::Smooth, Formulate::FormulaMix, Formulate::TimeScale, Formulate::MacroA,
+    Formulate::MacroB, Formulate::MacroC, Formulate::FrameRate, Formulate::Cutoff, Formulate::Resonance,
+    Formulate::FiltEnv, Formulate::FiltAttack, Formulate::FiltDecay, Formulate::AmpAttack, Formulate::AmpDecay,
+    Formulate::AmpRelease, Formulate::Glide, Formulate::Drive, Formulate::Volume, Formulate::Pan, -1,
+};
+} // namespace
+
+const ParamDef *Formulate::paramDefs(int32_t &count) const {
     count = Count;
-    return defs;
+    return table().defs;
+}
+
+float Formulate::macroSum(int dest, bool target) const {
+    float sum = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = target ? params_.target(b) : params_.get(b);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            const float d = target ? params_.target(b + 1 + r) : params_.get(b + 1 + r);
+            if (static_cast<int>(d + 0.5f) == dest)
+                sum += knob * (target ? params_.target(b + 5 + r) : params_.get(b + 5 + r));
+        }
+    }
+    return sum;
+}
+
+float Formulate::moved(int32_t p, float off, bool target) const {
+    const float v = target ? params_.target(p) : params_.get(p);
+    if (off == 0.0f) return v;
+    const ParamDef &d = params_.def(p);
+    return d.map(d.unmap(v) + off);
 }
 
 void Formulate::prepare(int32_t sr) {
     sampleRate = static_cast<float>(sr);
     for (auto &v : voices) {
         v.amp.setSampleRate(sampleRate);
+        v.fenv.setSampleRate(sampleRate);
         v.filter.setSampleRate(sampleRate);
     }
     reset();
@@ -79,6 +147,7 @@ void Formulate::reset() {
     for (auto &v : voices) {
         v.used = v.gate = false;
         v.amp.kill();
+        v.fenv.kill();
         v.filter.reset();
         v.phase = v.subPhase = 0;
         v.lfsr = 0x7fffu;
@@ -128,7 +197,7 @@ void Formulate::noteOn(uint8_t note, uint8_t velocity) {
     const bool mono = steppedTargetOf(Mono) != 0;
     Voice *v = mono ? &voices[0] : allocate();
     if (v == nullptr) return;
-    const float glide = targetOf(Glide);
+    const float glide = moved(Glide, macroSum(DstGlide, true), true);
     const bool gliding = glide > 0.001f && v->used;
     v->glideFrom = gliding ? v->freq : noteHz(static_cast<float>(note));
     v->glidePos = gliding ? 0.0f : 1.0f;
@@ -148,6 +217,7 @@ void Formulate::noteOn(uint8_t note, uint8_t velocity) {
         v->t = 0;
     }
     v->amp.retrigger();
+    v->fenv.retrigger();
 }
 
 void Formulate::noteOff(uint8_t note) {
@@ -155,6 +225,7 @@ void Formulate::noteOff(uint8_t note) {
         if (v.used && v.gate && v.note == note) {
             v.gate = false;
             v.amp.release();
+            v.fenv.release();
         }
     }
 }
@@ -164,6 +235,7 @@ void Formulate::allNotesOff() {
         if (!v.used) continue;
         v.gate = false;
         v.amp.release();
+        v.fenv.release();
     }
 }
 
@@ -232,28 +304,44 @@ bool Formulate::render(float *L, float *R, int32_t frames) {
     for (int32_t i = 0; i < frames; ++i) L[i] = R[i] = 0.0f;
 
     const float dt = 1.0f / sampleRate;
+    // The macros' sums for this block, one per destination.
+    float mac[DestCount]{};
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t base = MacroBase + k * MacroParams;
+        const float knob = params_.get(base);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            const int dest = static_cast<int>(params_.get(base + 1 + r) + 0.5f);
+            if (dest > DstOff && dest < DestCount) mac[dest] += knob * params_.get(base + 5 + r);
+        }
+    }
+    auto value = [&](int dest) { return moved(kDestParam[dest], mac[dest], false); };
+
     const int32_t wave = steppedOf(WaveForm);
     const int32_t combine = steppedOf(FormulaMode);
-    const float mix = paramOf(FormulaMix);
+    const float mix = value(DstFormula);
     const bool keyed = steppedOf(TimeKeyed) != 0;
-    const float timeScale = paramOf(TimeScale);
-    const int32_t macroA = static_cast<int32_t>(paramOf(MacroA));
-    const int32_t macroB = static_cast<int32_t>(paramOf(MacroB));
-    const int32_t macroC = static_cast<int32_t>(paramOf(MacroC));
-    const float smooth = paramOf(Smooth);
-    const int32_t bits = steppedOf(Bits);
-    const float crush = paramOf(Crush);
-    const int32_t subLevel = static_cast<int32_t>(paramOf(SubLevel) * 255.0f);
-    const float frameHz = steppedOf(FrameSync) != 0 ? bpm / 60.0f * 4.0f : paramOf(FrameRate);
-    const float cutoff = paramOf(Cutoff), reso = paramOf(Resonance);
+    const float timeScale = value(DstTimeScale);
+    const int32_t macroA = static_cast<int32_t>(value(DstA));
+    const int32_t macroB = static_cast<int32_t>(value(DstB));
+    const int32_t macroC = static_cast<int32_t>(value(DstC));
+    const float smooth = value(DstSmooth);
+    const int32_t bits = static_cast<int32_t>(value(DstBits) + 0.5f);
+    const float crush = value(DstCrush);
+    const int32_t subLevel = static_cast<int32_t>(value(DstSub) * 255.0f);
+    const float frameHz = steppedOf(FrameSync) != 0 ? bpm / 60.0f * 4.0f : value(DstFrameRate);
+    const float cutoff = value(DstCutoff), reso = value(DstResonance);
     const int32_t ftype = steppedOf(FilterType);
-    const float ampA = paramOf(AmpAttack), ampD = paramOf(AmpDecay), ampS = paramOf(AmpSustain), ampR = paramOf(AmpRelease);
-    const float tune = std::pow(2.0f, (paramOf(Octave) * 12.0f + paramOf(Transpose) + paramOf(Fine) * 0.01f) / 12.0f);
+    const float ampA = value(DstAmpAttack), ampD = value(DstAmpDecay), ampS = paramOf(AmpSustain), ampR = value(DstAmpRelease);
+    const float fenvAmt = value(DstFiltEnv);
+    const float fA = value(DstFiltAttack), fD = value(DstFiltDecay), fS = paramOf(FiltSustain), fR = paramOf(FiltRelease);
+    const float tune = std::pow(2.0f, (paramOf(Octave) * 12.0f + paramOf(Transpose) + paramOf(Fine) * 0.01f + mac[DstPitch] * 24.0f) / 12.0f);
     const float bendMul = std::pow(2.0f, bend * paramOf(BendRange) / 12.0f);
-    const float glide = paramOf(Glide);
+    const float glide = value(DstGlide);
     const float velAmount = paramOf(VelocityAmount);
-    const float drive = paramOf(Drive), volume = paramOf(Volume), pan = paramOf(Pan);
-    const float pwmDepth = paramOf(PwmDepth), pwmRate = paramOf(PwmRate);
+    const float drive = value(DstDrive), volume = value(DstAmp), pan = value(DstPan);
+    const float pwmDepth = value(DstPwmDepth), pwmRate = value(DstPwmRate);
+    const float duty01 = value(DstDuty);
     const float panL = std::cos((pan + 1.0f) * 0.25f * 3.14159265f);
     const float panR = std::sin((pan + 1.0f) * 0.25f * 3.14159265f);
     const float smoothCoeff = smooth <= 0.0001f ? 1.0f : std::exp(-1.0f / (smooth * smooth * 60.0f + 1.0f));
@@ -268,12 +356,19 @@ bool Formulate::render(float *L, float *R, int32_t frames) {
     for (auto &v : voices) {
         if (!v.used) continue;
         v.amp.set(0.0f, ampA, ampD, ampS, ampR, false);
-        v.filter.set(cutoff, reso, ftype, dsp::MultiFilter::Clean, 0.0f);
+        v.fenv.set(0.0f, fA, fD, fS, fR, false);
+        // The envelope moves the cutoff every 16 samples, and only when it
+        // has an amount, so a patch without one keeps the block's filter.
+        const bool fenvOn = fenvAmt != 0.0f;
+        if (!fenvOn) v.filter.set(cutoff, reso, ftype, dsp::MultiFilter::Clean, 0.0f);
         const float vel = velocityGain(v.velocity, velAmount);
 
         for (int32_t i = 0; i < frames; ++i) {
             const float env = v.amp.next();
             if (env <= 0.0000005f && !v.gate) { v.used = false; break; }
+            const float fenv = v.fenv.next();
+            if (fenvOn && (i & 15) == 0)
+                v.filter.set(cutoff * std::exp2(fenvAmt * fenv), reso, ftype, dsp::MultiFilter::Clean, 0.0f);
 
             // The table clock steps arp, duty and volume together, once
             // every 1/frameHz.
@@ -295,7 +390,7 @@ bool Formulate::render(float *L, float *R, int32_t frames) {
             const float freq = v.freq * tune * bendMul * noteBendMul(v) *
                                std::pow(2.0f, static_cast<float>(arpSemis) / 12.0f);
 
-            int32_t duty = dutyTable >= 0 ? dutyTable : static_cast<int32_t>((paramOf(Duty) + pwmDepth * pwmValue) * 255.0f);
+            int32_t duty = dutyTable >= 0 ? dutyTable : static_cast<int32_t>((duty01 + pwmDepth * pwmValue) * 255.0f);
             const int32_t oscValue = oscSample(v, wave, duty, dt, freq, subLevel);
 
             // The formula's clock. When keyed, it runs at a rate set by the

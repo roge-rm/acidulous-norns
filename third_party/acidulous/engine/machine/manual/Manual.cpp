@@ -1,5 +1,7 @@
 #include "Manual.h"
 #include <engine/machine/Voices.h>
+#include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 
@@ -184,8 +186,9 @@ const ParamDef *Manual::paramDefs(int32_t &count) const {
         lin(Mid, "mid", -12.0f, 12.0f, 0.0f, "dB");
         lin(Treble, "treble", -12.0f, 12.0f, 0.0f, "dB");
         // Goes up to 2.0 because a single soft stop is much quieter than full
-        // organ and needs the extra range to reach the bank's level.
-        lin(Volume, "volume", 0.0f, 2.0f, 0.75f);
+        // organ and needs the extra range to reach the bank's level. Init is
+        // on the mod wheel and plays open, so its default sits low.
+        lin(Volume, "volume", 0.0f, 2.0f, 0.1875f);
         lin(Pan, "pan", -1.0f, 1.0f, 0.0f);
 
         exp_(AmpAttack, "attack", 0.0005f, 0.5f, 0.004f, "s");
@@ -226,11 +229,133 @@ const ParamDef *Manual::paramDefs(int32_t &count) const {
         lin(Transpose, "transpose", -12.0f, 12.0f, 0.0f);
         lin(Fine, "fine", -50.0f, 50.0f, 0.0f, "c");
         lin(VelocityAmount, "vel", 0.0f, 1.0f, 1.0f);
-        step(Expression, "express", 3, 1.0f); // off, mod wheel, pressure
+        step(Expression, "express", 4, 1.0f); // off, mod wheel, pressure, pedal (CC11)
+        lin(SwellBox, "swellbox", 0.0f, 1.0f, 0.0f);
+        lin(BarGlide, "barglide", 0.0f, 4.0f, 0.0f, "s");
+        for (int k = 0; k < kMacros; ++k) {
+            char n[12];
+            const int32_t b = MacroBase + k * MacroParams;
+            std::snprintf(n, sizeof(n), "mac%d", k + 1);
+            lin(b, n, 0.0f, 1.0f, 0.0f);
+            for (int r = 0; r < 4; ++r) {
+                std::snprintf(n, sizeof(n), "mac%d_d%d", k + 1, r + 1);
+                put(b + 1 + r, n, 0.0f, static_cast<float>(MacroDestCount - 1), 0.0f, Curve::Stepped,
+                    MacroDestCount, "");
+                std::snprintf(n, sizeof(n), "mac%d_a%d", k + 1, r + 1);
+                lin(b + 5 + r, n, -1.0f, 1.0f, 0.0f);
+            }
+        }
         built = true;
     }
     count = Count;
     return defs;
+}
+
+namespace {
+// The macro destination each param answers to, or -1 for none.
+struct DestMap {
+    int16_t of[Manual::Count];
+    DestMap() {
+        using M = Manual;
+        for (auto &d : of) d = -1;
+        const int32_t pairs[][2] = {
+            {M::Age, M::McAge}, {M::Leakage, M::McLeakage}, {M::Hum, M::McHum}, {M::Click, M::McClick},
+            {M::ClickRelease, M::McClickOff}, {M::ContactSpread, M::McContacts},
+            {M::UpperLevel, M::McUpperLevel}, {M::LowerLevel, M::McLowerLevel}, {M::PedalLevel, M::McPedalLevel},
+            {M::PedalSustain, M::McPedalSustain},
+            {M::Morph, M::McMorph}, {M::MorphAmount, M::McMorphAmount},
+            {M::Spray, M::McSpray}, {M::SprayRate, M::McSprayRate}, {M::SprayWidth, M::McSprayWidth},
+            {M::PercLevel, M::McPercLevel}, {M::PercDecay, M::McPercDecay}, {M::PercKey, M::McPercKey},
+            {M::VibRate, M::McVibRate}, {M::VibDepth, M::McVibDepth}, {M::VibStereo, M::McVibStereo},
+            {M::WindSag, M::McWindSag}, {M::WindResponse, M::McWindResponse}, {M::WindNoise, M::McWindNoise},
+            {M::TremRate, M::McTremRate}, {M::TremDepth, M::McTremDepth},
+            {M::RankPrincipal, M::McPrincipal}, {M::RankFlute, M::McFlute}, {M::RankString, M::McString},
+            {M::RankReed, M::McReed}, {M::RankMixture, M::McMixture}, {M::Chiff, M::McChiff},
+            {M::Tracker, M::McTracker},
+            {M::Tab16, M::McTab16}, {M::Tab8, M::McTab8}, {M::Tab4, M::McTab4}, {M::Tab2, M::McTab2},
+            {M::TabII, M::McTabII}, {M::TabIV, M::McTabIV}, {M::ComboReedy, M::McComboReedy},
+            {M::ComboAttack, M::McComboAttack},
+            {M::ReedPressure, M::McReedPressure}, {M::ReedBuzz, M::McReedBuzz}, {M::ReedTremolo, M::McReedTremolo},
+            {M::RotHornSlow, M::McHornSlow}, {M::RotHornFast, M::McHornFast}, {M::RotDrumSlow, M::McDrumSlow},
+            {M::RotDrumFast, M::McDrumFast}, {M::RotRampUp, M::McRampUp}, {M::RotRampDown, M::McRampDown},
+            {M::RotMicDistance, M::McMicDistance}, {M::RotMicAngle, M::McMicAngle}, {M::RotSpread, M::McRotSpread},
+            {M::Drive, M::McDrive}, {M::Bias, M::McBias}, {M::Bass, M::McBass}, {M::Mid, M::McMid},
+            {M::Treble, M::McTreble}, {M::Volume, M::McVolume}, {M::Pan, M::McPan},
+            {M::AmpAttack, M::McAttack}, {M::AmpRelease, M::McRelease},
+            {M::Eg1A, M::McEg1A}, {M::Eg1D, M::McEg1D}, {M::Eg1S, M::McEg1S}, {M::Eg1R, M::McEg1R},
+            {M::Eg2A, M::McEg2A}, {M::Eg2D, M::McEg2D}, {M::Eg2S, M::McEg2S}, {M::Eg2R, M::McEg2R},
+            {M::Lfo1Rate, M::McLfo1Rate}, {M::Lfo1Depth, M::McLfo1Depth},
+            {M::Lfo2Rate, M::McLfo2Rate}, {M::Lfo2Depth, M::McLfo2Depth},
+            {M::VelocityAmount, M::McVelocity}, {M::SwellBox, M::McSwellBox}, {M::BarGlide, M::McBarGlide},
+        };
+        for (const auto &pr : pairs) of[pr[0]] = static_cast<int16_t>(pr[1]);
+        for (int b = 0; b < M::kBars; ++b) {
+            of[M::UpperA + b] = static_cast<int16_t>(M::McUpperA + b);
+            of[M::UpperB + b] = static_cast<int16_t>(M::McUpperB + b);
+            of[M::LowerA + b] = static_cast<int16_t>(M::McLowerA + b);
+            of[M::LowerB + b] = static_cast<int16_t>(M::McLowerB + b);
+        }
+        for (int b = 0; b < M::kPedalBars; ++b) {
+            of[M::PedalA + b] = static_cast<int16_t>(M::McPedalA + b);
+            of[M::PedalB + b] = static_cast<int16_t>(M::McPedalB + b);
+        }
+    }
+};
+const DestMap &destMap() {
+    static const DestMap m;
+    return m;
+}
+
+// The params the bar glide moves: every drawbar, the combo tabs, the pipe
+// ranks and the morph between registrations.
+template <typename F> void forGlided(F &&f) {
+    for (int32_t p = Manual::UpperA; p < Manual::PedalB + Manual::kPedalBars; ++p) f(p);
+    f(Manual::Morph);
+    for (int32_t p = Manual::RankPrincipal; p <= Manual::RankMixture; ++p) f(p);
+    for (int32_t p = Manual::Tab16; p <= Manual::TabIV; ++p) f(p);
+}
+
+// The matrix destinations that move the bars, glided per voice.
+constexpr int32_t kBarDests[] = {
+    Manual::DstMorph, Manual::DstUpperAll, Manual::DstLowerAll, Manual::DstBar1, Manual::DstBar2, Manual::DstBar3,
+    Manual::DstBar4, Manual::DstBar5, Manual::DstBar6, Manual::DstBar7, Manual::DstBar8, Manual::DstBar9,
+};
+
+// The swell box's lowpass gain for a depth [d], 0 open to 1 closed at full.
+// Up to six octaves down from the top, and exactly 1 (no filter) at 0, so
+// the box opens onto the dry sound.
+float swellGain(float d, float sr) {
+    if (d <= 0.0f) return 1.0f;
+    const float top = std::fmin(18000.0f, 0.45f * sr);
+    const float fc = top * std::exp2(-6.0f * d);
+    const float g = std::tan(kPi * fc / sr);
+    const float lp = g / (1.0f + g);
+    return lp + (1.0f - lp) * std::fmax(0.0f, 1.0f - d * 20.0f);
+}
+} // namespace
+
+float Manual::val(int32_t p, bool goal) const {
+    const float v = read(p, goal);
+    const int d = destMap().of[p];
+    const float off = d < 0 ? 0.0f : mac_[d];
+    if (off == 0.0f) return v;
+    const ParamDef &def = params_.def(p);
+    return def.map(def.unmap(v) + off);
+}
+
+void Manual::updateMacros(bool goal) {
+    for (float &m : mac_) m = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = read(b, goal);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            const int dest = static_cast<int>(read(b + 1 + r, goal) + 0.5f);
+            if (dest > McOff && dest < MacroDestCount) mac_[dest] += knob * read(b + 5 + r, goal);
+        }
+    }
+    // Two octaves either way.
+    mac_[McPitch] = std::clamp(mac_[McPitch], -1.0f, 1.0f);
 }
 
 int32_t Manual::steppedOf(int32_t p) const { return static_cast<int32_t>(paramOf(p) + 0.5f); }
@@ -356,18 +481,28 @@ void Manual::reset() {
     leakSum = 0.0f;
     rngState = kRngSeed;
     clickRng = kClickSeed;
+    for (auto &m : mac_) m = 0.0f;
+    glideFresh = true;
+    stopValid = false;
+    for (auto &row : stopFrom) for (auto &g : row) g = 0.0f;
+    swellDepth = 0.0f;
+    for (auto &st : swellS) st = 0.0f;
+    swellRunning = false;
 }
 
-int32_t Manual::wheelFor(int32_t note, int32_t bar) const {
-    const int32_t foot = kFootage[bar];
-    int32_t w = note + foot - WheelBank::kLowestNote;
-    // Fold back an octave when running out of wheels at either end.
+// Folds back an octave when running out of wheels at either end.
+static int32_t foldWheel(int32_t w) {
     while (w >= WheelBank::kWheels) w -= 12;
     while (w < 0) w += 12;
     return w;
 }
 
+int32_t Manual::wheelFor(int32_t note, int32_t bar) const {
+    return foldWheel(note + kFootage[bar] - WheelBank::kLowestNote);
+}
+
 void Manual::noteOn(uint8_t note, uint8_t velocity) {
+    updateMacros(true); // a note reads where the knobs are going, so renders repeat
     const int32_t split = static_cast<int32_t>(targetOf(Split) + 0.5f);
     const int32_t pedSplit = static_cast<int32_t>(targetOf(PedalSplit) + 0.5f);
     const bool lowerOn = steppedTargetOf(LowerOn) != 0;
@@ -388,40 +523,41 @@ void Manual::noteOn(uint8_t note, uint8_t velocity) {
     v->note = note;
     v->manual = static_cast<uint8_t>(manual);
     v->velocity = static_cast<float>(velocity) / 127.0f;
-    v->velGain = velocityGain(v->velocity, targetOf(VelocityAmount));
+    v->velGain = velocityGain(v->velocity, goalOf(VelocityAmount));
+    v->fresh = true;
     v->key01 = clampf((static_cast<float>(note) - 24.0f) / 72.0f, 0.0f, 1.0f);
     rngState = rngState * 1664525u + 1013904223u;
     v->rnd = static_cast<float>((rngState >> 9) & 0xffff) / 65536.0f;
     // The combo organ's attack knob adds up to a quarter of a second, like
     // the slow attack tab on those organs.
-    float attackSec = targetOf(AmpAttack);
-    if (steppedTargetOf(Model) == Transistor) attackSec += targetOf(ComboAttack) * 0.25f;
-    v->amp.set(0.0f, attackSec, 0.0f, 1.0f, targetOf(AmpRelease), false);
+    float attackSec = goalOf(AmpAttack);
+    if (steppedTargetOf(Model) == Transistor) attackSec += goalOf(ComboAttack) * 0.25f;
+    v->amp.set(0.0f, attackSec, 0.0f, 1.0f, goalOf(AmpRelease), false);
     v->amp.retrigger();
 
     const int bars = manual == MPedal ? kPedalBars : kBars;
     for (int b = 0; b < kBars; ++b) {
         v->wheel[b] = manual == MPedal && b < kPedalBars
-                          ? (note + kPedalFootage[b] - WheelBank::kLowestNote + 120) % WheelBank::kWheels
+                          ? foldWheel(note + kPedalFootage[b] - WheelBank::kLowestNote)
                           : wheelFor(note, b);
         // The nine contacts under a key close a couple of milliseconds
         // apart, which is what makes the key click.
-        v->contactPhase[b] = b < bars ? (0.2f + 2.4f * targetOf(ContactSpread)) * 0.001f * sampleRate *
+        v->contactPhase[b] = b < bars ? (0.2f + 2.4f * goalOf(ContactSpread)) * 0.001f * sampleRate *
                                             (0.15f + 0.85f * std::fmod(v->rnd * (b + 3) * 7.13f, 1.0f))
                                       : 0.0f;
     }
     // Click and chiff are fixed at note-on, so they use the matrix's block
     // value since the voice has no per-voice modulation yet.
-    v->click = clampf(targetOf(Click) + blockMod[DstClick], 0.0f, 1.5f);
+    v->click = clampf(goalOf(Click) + blockMod[DstClick], 0.0f, 1.5f);
     v->clickCoeff = std::exp(-1.0f / (0.0018f * sampleRate));
-    v->chiff = steppedTargetOf(Model) == Pipe ? clampf(targetOf(Chiff) + blockMod[DstChiff], 0.0f, 1.5f) : 0.0f;
+    v->chiff = steppedTargetOf(Model) == Pipe ? clampf(goalOf(Chiff) + blockMod[DstChiff], 0.0f, 1.5f) : 0.0f;
     v->chiffCoeff = std::exp(-1.0f / (0.035f * sampleRate));
 
     // Harmonic percussion only fires on the first key of a phrase, unless
     // it's set to polyphonic.
     if (steppedTargetOf(PercOn) != 0 && manual == MUpper && (steppedTargetOf(PercPoly) != 0 || wasSilent)) {
-        const float keyScale = 1.0f - targetOf(PercKey) * v->key01;
-        const float decay = targetOf(PercDecay) * (steppedTargetOf(PercFast) != 0 ? 0.35f : 1.0f) * keyScale;
+        const float keyScale = 1.0f - goalOf(PercKey) * v->key01;
+        const float decay = goalOf(PercDecay) * (steppedTargetOf(PercFast) != 0 ? 0.35f : 1.0f) * keyScale;
         v->perc = 1.0f;
         v->percCoeff = std::exp(-1.0f / (std::fmax(0.01f, decay) * sampleRate));
     } else {
@@ -530,14 +666,14 @@ float Manual::drawbarLevel(int32_t manual, int32_t bar, const float *mod) const 
     float a = 0.0f, b = 0.0f;
     if (manual == MPedal) {
         if (bar >= kPedalBars) return 0.0f;
-        a = paramOf(PedalA + bar);
-        b = paramOf(PedalB + bar);
+        a = reg(PedalA + bar);
+        b = reg(PedalB + bar);
     } else if (manual == MLower) {
-        a = paramOf(LowerA + bar);
-        b = paramOf(LowerB + bar);
+        a = reg(LowerA + bar);
+        b = reg(LowerB + bar);
     } else {
-        a = paramOf(UpperA + bar);
-        b = paramOf(UpperB + bar);
+        a = reg(UpperA + bar);
+        b = reg(UpperB + bar);
     }
     if (model == Transistor && manual != MPedal) {
         // A combo organ has footage tabs and two mixture tabs instead of
@@ -546,14 +682,14 @@ float Manual::drawbarLevel(int32_t manual, int32_t bar, const float *mod) const 
         // The tierce (1 3/5') is left out.
         static const int tabFor[kBars] = {Tab16, -1, Tab8, Tab4, TabII, Tab2, -1, TabII, -1};
         const int p = tabFor[bar];
-        a = p < 0 ? 0.0f : paramOf(p) * (bar == 7 ? 0.6f : 1.0f);
-        if (bar == 5) a += paramOf(TabIV) * 0.45f;
-        else if (bar == 7) a += paramOf(TabIV) * 0.55f;
-        else if (bar == 8) a += paramOf(TabIV);
+        a = p < 0 ? 0.0f : reg(p) * (bar == 7 ? 0.6f : 1.0f);
+        if (bar == 5) a += reg(TabIV) * 0.45f;
+        else if (bar == 7) a += reg(TabIV) * 0.55f;
+        else if (bar == 8) a += reg(TabIV);
         b = a;
     }
     // Pipe ranks aren't applied here. render() handles them one slot each.
-    float morph = clampf(paramOf(Morph) + mod[DstMorph] * paramOf(MorphAmount), 0.0f, 1.0f);
+    float morph = clampf(reg(Morph) + mod[DstMorph] * paramOf(MorphAmount), 0.0f, 1.0f);
     const int32_t msrc = static_cast<int32_t>(paramOf(MorphSource) + 0.5f);
     if (msrc != SrcOff) morph = clampf(morph, 0.0f, 1.0f);
     float level = a + (b - a) * morph;
@@ -564,6 +700,7 @@ float Manual::drawbarLevel(int32_t manual, int32_t bar, const float *mod) const 
 
 bool Manual::render(float *L, float *R, int32_t frames) {
     params_.tick();
+    updateMacros();
     rebuildTuning();
     const float blockSeconds = static_cast<float>(frames) / sampleRate;
     const int32_t model = steppedOf(Model);
@@ -591,13 +728,39 @@ bool Manual::render(float *L, float *R, int32_t frames) {
     Voice global;
     global.velocity = 1.0f;
     applyMatrix(global, blockMod);
+
+    // The bar glide. With it at 0 the registration is read straight from the
+    // knobs and the bars hold a block at a time, as they always have. Above
+    // 0 the knobs and the matrix's moves on the bars follow a one-pole that
+    // gets 95% of the way in the glide time, and every sample ramps from
+    // the last block's levels to these.
+    const float barGlide = paramOf(BarGlide);
+    const bool ramping = barGlide > 1e-4f;
+    const float glideCoeff =
+        ramping ? 1.0f - std::exp(-static_cast<float>(frames) / (barGlide * (1.0f / 3.0f) * sampleRate)) : 1.0f;
+    forGlided([&](int32_t p) {
+        const float t = paramOf(p);
+        glided[p] = ramping && !glideFresh ? glided[p] + (t - glided[p]) * glideCoeff : t;
+    });
+    glideFresh = false;
+
     // Matrix and drawbar levels are worked out once a block, since their
     // sources are block-rate anyway.
     for (auto &v : voices) {
         if (!v.used) continue;
         applyMatrix(v, v.mod);
+        for (int32_t d : kBarDests) {
+            if (ramping && !v.fresh) v.mod[d] = v.barMod[d] += (v.mod[d] - v.barMod[d]) * glideCoeff;
+            else v.barMod[d] = v.mod[d];
+        }
         const int bars = v.manual == MPedal ? kPedalBars : kBars;
-        for (int b = 0; b < kBars; ++b) v.barLevel[b] = b < bars ? drawbarLevel(v.manual, b, v.mod) : 0.0f;
+        for (int b = 0; b < kBars; ++b) {
+            const float level = b < bars ? drawbarLevel(v.manual, b, v.mod) : 0.0f;
+            // A new note starts where its bars are.
+            v.barFrom[b] = v.fresh ? level : v.barLevel[b];
+            v.barLevel[b] = level;
+        }
+        v.fresh = false;
     }
 
     const int32_t rotSync = steppedOf(RotSync);
@@ -653,11 +816,18 @@ bool Manual::render(float *L, float *R, int32_t frames) {
     const float volume = clampf(paramOf(Volume) + blockMod[DstVolume], 0.0f, 2.5f);
     const float pan = clampf(paramOf(Pan) + blockMod[DstPan], -1.0f, 1.0f);
     const int32_t expr = steppedOf(Expression);
-    const float exprGain = expr == 0 ? 1.0f : (expr == 1 ? 0.25f + 0.75f * modWheel : 0.25f + 0.75f * pressure);
+    // The pedal reads CC11, open until one arrives. The mod wheel is the
+    // other way round: down is open and raising it closes the box.
+    const float exprGain = expr == 0   ? 1.0f
+                           : expr == 1 ? 1.0f - 0.75f * modWheel
+                           : expr == 2 ? 0.25f + 0.75f * pressure
+                                       : 0.25f + 0.75f * expression;
     const float upperGain = paramOf(UpperLevel), lowerGain = paramOf(LowerLevel), pedalGain = paramOf(PedalLevel);
-    const float pitchScale = std::pow(2.0f, (bendSemis + paramOf(Octave) * 12.0f + paramOf(Transpose) +
-                                             paramOf(Fine) * 0.01f + blockMod[DstPitch] * 12.0f) /
-                                                12.0f);
+    float pitchScale = std::pow(2.0f, (bendSemis + paramOf(Octave) * 12.0f + paramOf(Transpose) +
+                                       paramOf(Fine) * 0.01f + blockMod[DstPitch] * 12.0f) /
+                                          12.0f);
+    // A macro's pitch, 24 semitones a unit. Apart so the sum above stays as it was.
+    if (mac_[McPitch] != 0.0f) pitchScale *= std::exp2(mac_[McPitch] * 2.0f);
     const float reedPress = model == ReedOrgan ? 0.35f + 0.65f * paramOf(ReedPressure) : 1.0f;
     const float buzz = model == ReedOrgan ? paramOf(ReedBuzz) : 0.0f;
     // The two saturations and the pan only depend on knobs, so they're
@@ -692,10 +862,32 @@ bool Manual::render(float *L, float *R, int32_t frames) {
     if (model == Pipe) {
         static const int rankParam[kSlots] = {RankPrincipal, RankFlute, RankString, RankReed, RankMixture};
         for (int r = 0; r < kSlots; ++r) {
-            const float knob = paramOf(rankParam[r]);
+            const float knob = reg(rankParam[r]);
             for (int b = 0; b < kBars; ++b) stopGain[b][r] = kPipeStops[b][r] * knob;
         }
+        if (!stopValid) std::memcpy(stopFrom, stopGain, sizeof(stopFrom));
     }
+
+    // The swell box. Its depth follows how far the expression is closed,
+    // times the knob, over 30 ms a block at a time, and the filter's gain
+    // ramps across the block from where it was.
+    const float swellAmt = clampf(paramOf(SwellBox), 0.0f, 1.0f);
+    const bool swellOn = expr != 0 && (swellAmt > 0.0f || swellDepth > 1e-5f);
+    float swellG0 = 1.0f, swellGStep = 0.0f;
+    if (swellOn) {
+        const float target = swellAmt * clampf((1.0f - exprGain) / 0.75f, 0.0f, 1.0f);
+        const float from = swellDepth;
+        swellDepth += (target - swellDepth) * (1.0f - std::exp(-static_cast<float>(frames) / (0.03f * sampleRate)));
+        if (std::fabs(target - swellDepth) < 1e-6f) swellDepth = target;
+        swellG0 = swellGain(from, sampleRate);
+        swellGStep = (swellGain(swellDepth, sampleRate) - swellG0) / static_cast<float>(frames);
+    } else {
+        swellDepth = 0.0f;
+    }
+    // Wide open is no filter at all, so the box open sounds as it does with
+    // the knob at 0.
+    const bool swellFilter = swellOn && !(swellG0 == 1.0f && swellGStep == 0.0f);
+    if (!swellFilter) swellRunning = false;
 
     // The scanner: a delay swept by a triangle. The chorus positions mix in
     // the dry signal, the vibrato positions don't.
@@ -745,11 +937,16 @@ bool Manual::render(float *L, float *R, int32_t frames) {
         scanPhase -= std::floor(scanPhase);
         if (egWanted) for (int32_t i = 0; i < frames; ++i) { eg[0].next(); eg[1].next(); }
         if (rotOn) rotary.spin(frames);
+        swellRunning = false;
+        stopValid = false;
         for (int32_t i = 0; i < frames; ++i) L[i] = R[i] = 0.0f;
         return true;
     }
 
+    const float rampStep = 1.0f / static_cast<float>(frames);
     for (int32_t i = 0; i < frames; ++i) {
+        // How far through the block, for the bar glide's ramps.
+        const float ramp = static_cast<float>(i + 1) * rampStep;
         if (egWanted) { eg[0].next(); eg[1].next(); }
         for (int w = 0; w < WheelBank::kWheels; ++w) {
             wheelPhase[w] += wheelStep[w] * pitchScale * (0.997f + 0.003f * windPressure);
@@ -794,7 +991,7 @@ bool Manual::render(float *L, float *R, int32_t frames) {
             const float velGain = v.velGain;
             const float voiceGain = env * manualGain * velGain * (1.0f + v.mod[DstVolume] * 0.5f);
             for (int b = 0; b < bars; ++b) {
-                float level = v.barLevel[b];
+                float level = ramping ? v.barFrom[b] + (v.barLevel[b] - v.barFrom[b]) * ramp : v.barLevel[b];
                 if (percSteal && v.manual == MUpper && b == kBars - 1 && v.perc > 0.0f) level = 0.0f;
                 if (level <= 0.0005f) continue;
                 if (v.contactPhase[b] > 0.0f) {
@@ -821,7 +1018,12 @@ bool Manual::render(float *L, float *R, int32_t frames) {
                     if (gain > wheelPeak[sl][w]) wheelPeak[sl][w] = gain;
                 };
                 if (model == Pipe) {
-                    for (int r = 0; r < kSlots; ++r) draw(r, g * stopGain[b][r]);
+                    if (ramping) {
+                        for (int r = 0; r < kSlots; ++r)
+                            draw(r, g * (stopFrom[b][r] + (stopGain[b][r] - stopFrom[b][r]) * ramp));
+                    } else {
+                        for (int r = 0; r < kSlots; ++r) draw(r, g * stopGain[b][r]);
+                    }
                 } else {
                     draw(0, g);
                 }
@@ -947,6 +1149,26 @@ bool Manual::render(float *L, float *R, int32_t frames) {
         }
         if (eqActive) x = trebleEq.process(midEq.process(bassEq.process(x)));
         if (model == Transistor) x += reedyFilter.process(x) * paramOf(ComboReedy) * 0.5f;
+        if (swellFilter) {
+            // A one-pole lowpass (trapezoidal) on the organ and both spray
+            // sides, seeded with the signal so it starts without a jump.
+            const float G = swellG0 + swellGStep * static_cast<float>(i + 1);
+            if (!swellRunning) {
+                swellS[0] = x;
+                swellS[1] = wideL;
+                swellS[2] = wideR;
+                swellRunning = true;
+            }
+            auto lp = [G](float in, float &st) {
+                const float d = (in - st) * G;
+                const float y = d + st;
+                st = y + d;
+                return y;
+            };
+            x = lp(x, swellS[0]);
+            wideL = lp(wideL, swellS[1]);
+            wideR = lp(wideR, swellS[2]);
+        }
         // The house level (see Reflux's kHouse). It sets where the bank sits on
         // the volume knob, so both the thinnest stops and full organ fit
         // within its travel.
@@ -960,6 +1182,12 @@ bool Manual::render(float *L, float *R, int32_t frames) {
         outR += wideR * wide * volume * exprGain * kHouse;
         L[i] = outL * panL;
         R[i] = outR * panR;
+    }
+    if (model == Pipe) {
+        std::memcpy(stopFrom, stopGain, sizeof(stopFrom));
+        stopValid = true;
+    } else {
+        stopValid = false;
     }
     if (anyVoice) {
         quietBlocks = 0;

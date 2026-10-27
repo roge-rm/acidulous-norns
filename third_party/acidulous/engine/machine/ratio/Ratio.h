@@ -25,6 +25,7 @@ class Ratio final : public Machine {
     static constexpr int kModEgs = 3;
     static constexpr int kLfos = 3;
     static constexpr int kMatrixSlots = 10;
+    static constexpr int kMacros = 8;
     static constexpr int kVoices = 12;
     static constexpr int kWaveCount = 16;
 
@@ -62,7 +63,12 @@ class Ratio final : public Machine {
         // What per-note pressure does outside the matrix: opens the filter
         // and raises the level.
         MpePressure,
-        Count
+        // Eight macro knobs, each with four routes: a destination (a ModDest)
+        // and a depth. Block rate like the matrix; a macro's knob value times
+        // a route's depth is added to the destination.
+        MacroBase,
+        MacroParams = 9,                               // knob, 4 destinations, 4 depths
+        Count = MacroBase + kMacros * MacroParams
     };
     enum OpP { OWave = 0, OMode, ORatio, OFine, OFixed, OLevel, OFeedback, OAttack, ODecay, OSustain, ORelease, OVel, OKey, OPan };
     enum EgP { EAttack = 0, EDecay, ESustain, ERelease };

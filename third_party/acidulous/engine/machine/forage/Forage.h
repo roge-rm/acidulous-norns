@@ -31,6 +31,25 @@ class Forage final : public Machine {
     enum Global : int32_t { Accent, Volume, Velocity, GlobalCount };
     static int32_t index(int32_t pad, PadParam p) { return pad * PadParamCount + p; }
     static int32_t globalIndex(Global g) { return kPads * PadParamCount + g; }
+    // Eight macro knobs after the globals, each with four routes: a
+    // destination (a MacroDest) and a depth. A macro's knob times a route's
+    // depth is added to the destination, in its own 0..1 range. An all-pads
+    // destination adds to each pad's own value, and a pad's own destination
+    // adds on top. Block rate. Pitch is 24 semitones per unit on every pad.
+    static constexpr int32_t MacroBase = kPads * PadParamCount + GlobalCount;
+    static constexpr int32_t MacroParams = 9; // knob, 4 destinations, 4 depths
+    static constexpr int kMacros = 8;
+    static constexpr int32_t Count = MacroBase + kMacros * MacroParams;
+    enum MacroDest : int32_t {
+        McOff, McStart, McEnd, McDecay, McLevel, McCutoff, McReso, McCrush, McPitchEnv, McPitchDecay,
+        McPitch, McAccent, McVolume, McVelocity,
+        McTune,                       // McTune + pad
+        McPadLevel = McTune + kPads,  // McPadLevel + pad
+        McPadDecay = McPadLevel + kPads,
+        McPadCutoff = McPadDecay + kPads,
+        MacroDestCount = McPadCutoff + kPads
+    };
+    static_assert(Count <= kMaxParams, "Forage declares more parameters than a unit can hold");
 
     Forage();
     const char *typeName() const override { return "Forage"; }
@@ -68,6 +87,13 @@ class Forage final : public Machine {
     };
 
     void trigger(int32_t pad, float velocity01, bool accent);
+    /** Param [p], smoothed or its target if [goal], with the macros' routes to it added. */
+    float val(int32_t p, bool goal = false) const;
+    float padVal(int32_t pad, PadParam p, bool goal = false) const { return val(index(pad, p), goal); }
+    float read(int32_t p, bool goal) const { return goal ? params_.target(p) : params_.get(p); }
+    /** Fills [mac_] from the macro knobs and their routes, smoothed or their targets if [goal]. */
+    void updateMacros(bool goal = false);
+    float mac_[MacroDestCount]{};
 
     float sr = 48000.0f;
     Pad pads[kPads];

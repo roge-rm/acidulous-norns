@@ -1,57 +1,28 @@
-# Reflux - thirty patches: the classics first, and then what this machine
-# has that they did not.
+# Reflux - the acid bass machine. 96 patches in eight families, each from
+# plainest to strangest.
 #
-# Thirteen parameters, and eight of them are one idea: a resonant filter with
-# an envelope thrown at it. So the first half of this bank is a tour of that
-# one idea - how far open, how much envelope, how fast it shuts, how far a
-# note slides into the next - because that is what a bank of this kind is
-# judged on, and anyone reaching for this machine is reaching for it first.
+# classic is the filter and its envelope on their own, short is plucks and
+# stabs, sub puts the octave below under the line, dirty adds drive and
+# inserts, motion is long slides and slow sweeps, wobble is the LFO, band is
+# the band-pass mode and filter is the 12 dB lowpass, the highpass and the
+# notch.
 #
-# The second half is the four controls that are not part of that idea: the
-# sub oscillator, the pulse width, the band-pass mode and the drive. None of
-# them existed on the instrument this descends from, and they are why the
-# machine has its own name rather than being a tribute act.
+# Every patch but Init has eight named macros. Each one adds its depth to up
+# to four destinations, so with the macros at zero a patch plays as written.
 #
-# **Levelled to -21 dB on the harness's loudness column**, which is the house
-# figure across every machine in the app rather than a number chosen for this
-# bank alone. Getting there took fourteen decibels out of the machine's
-# output rather than out of each patch's volume knob (`kHouse` in
-# Reflux.cpp): every machine here had been levelled against its own bank and
-# none against the others, and the factory had come to span twenty-five
-# decibels, so changing machine changed the volume of the song. Done in the
-# machine, the knob still means the same thing wherever you are and Init
-# lands with the rest of the bank instead of fourteen decibels above it.
+# Levelled to about -27.7 dB on the harness's loudness column. Band Squelch
+# and Ghost sit two decibels under with their volume at the top: the band
+# takes both ends off the spectrum, and drive doesn't buy it back.
 #
-# Five patches sit below the house figure and all five are the band-passed
-# ones, which take both ends off a spectrum and most of its energy with them:
-# two to six decibels down, all of them already at the top of their volume.
-# That is what the mode costs and not something to pretend away. Drive does
-# not buy it back - its own compensation is slightly over-generous, so
-# leaning on it measures quieter.
+# The band in band mode doesn't follow the keyboard, so below some note it
+# sits many harmonics above the fundamental and there is no note left in it.
+# Reed, Glass and the newer band patches start their range where the band
+# still reaches the note. Sub Drop stops at note 45, where the sub has
+# nothing left to be an octave below.
 #
-# **A fixed band on a moving note runs out.** Reed and Glass are band-passed
-# and their bands do not follow the keyboard, so below a certain note the
-# band sits twenty-five or thirty-five harmonics above the fundamental and
-# there is no note left in it. Their ranges start where the band can still
-# reach, which is a real property of the mode rather than a fault.
-#
-# **The demo is sixteenths with rests, slides and accents** (`role acid`),
-# because what this machine does happens between the notes rather than on
-# them. The two bars of eighths it used to be showed that a bass machine
-# worked and showed nothing about this one.
-#
-# **The sub oscillator can take the note off you.** Grind was written at 0.8
-# and the octave below sat eighteen decibels ahead of the played note, so you
-# pressed one key and heard another; it is at 0.4. Sub Drop is the patch
-# where that is the point, and it stops at note 45 because above there the
-# sub has nothing left to be an octave below.
-#
-# Every patch says the notes it is played in, so the app puts the keyboard
-# there when it is loaded. Every note of every range now reads within twenty
-# cents and none is on the wrong partial.
-#
-# Values are in each parameter's own units; `audition params Reflux` lists
-# them. A patch names only what it changes.
+# Every patch says the notes it is played in, and the app puts the keyboard
+# there when it is loaded. Values are in each parameter's own units;
+# `audition params Reflux` lists them. A patch names only what it changes.
 
 machine Reflux
 # Sixteenths with rests, slides and accents, because what this machine is
@@ -59,14 +30,163 @@ machine Reflux
 # bass machine worked and showed nothing about this one.
 role    acid
 
+# --- classic -----------------------------------------------------------
+
 patch Init family=classic
 
-# --- The classics ----------------------------------------------------
-#
-# What the machine everybody means does, and what a bank of this kind is
-# judged on first.
+patch Round family=classic  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.5
+  mac2_d2  #3
+  mac2_a2  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # No resonance at all and no envelope: the note, warm, with the filter just
+  # taking the top off. Every bank needs the one that is simply a bass, and
+  # a bank of nothing but acid does not have it.
+  cutoff         520 Hz
+  resonance      0.0
+  envmod         0.0
+  decay          300 ms
+  accent         0.35
+  slide          45 ms
+  drive          0.05
+  volume         0.99
+
+patch "Open Saw" family=classic  note=36 range=24..55
+  set macro1 "Close"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac2_d1  #2
+  mac2_a1  0.5
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # The filter out of the way, so you can hear what it is doing to
+  # everything else in the bank. Raw oscillator, drive off, and the only
+  # thing shaping the note is its own decay.
+  cutoff         9000 Hz
+  resonance      0.05
+  envmod         0.0
+  decay          500 ms
+  accent         0.3
+  drive          0.0
+  volume         0.87
+
+patch "Warm Acid" family=classic  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A gentle acid line: some resonance, half the envelope, nothing sharp.
+  cutoff         450 Hz
+  resonance      0.5
+  envmod         0.5
+  decay          320 ms
+  accent         0.6
+  slide          60 ms
+  drive          0.1
+  volume         0.89
 
 patch Classic family=classic  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.6
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
   # The one everybody means. Open enough to hear the note, resonant enough to
   # hear the filter, and a decay that shuts before the next eighth.
   #
@@ -82,7 +202,282 @@ patch Classic family=classic  note=36 range=24..55
   drive          0.16
   volume         0.88
 
+patch "Square Acid" family=classic  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # The classic line on the square wave: hollower, with the same squelch.
+  wave           #1
+  pw             0.5
+  cutoff         380 Hz
+  resonance      0.75
+  envmod         0.65
+  decay          240 ms
+  accent         0.75
+  slide          55 ms
+  drive          0.15
+  volume         0.67
+
+patch "Deep Acid" family=classic  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Lower and longer, with a little sub under it, for the bottom of a track.
+  cutoff         220 Hz
+  resonance      0.78
+  envmod         0.75
+  decay          420 ms
+  accent         0.7
+  slide          70 ms
+  sub            0.15
+  drive          0.15
+  volume         0.9
+
+patch Rolling family=classic  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A shorter decay and a hard accent, so a line of sixteenths rolls.
+  cutoff         350 Hz
+  resonance      0.7
+  envmod         0.7
+  decay          200 ms
+  accent         0.85
+  slide          80 ms
+  drive          0.2
+  volume         0.89
+
+patch "Half Square" family=classic  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Saw and square half and half, a thicker note under the same filter.
+  mix            0.5
+  cutoff         400 Hz
+  resonance      0.72
+  envmod         0.65
+  decay          260 ms
+  accent         0.75
+  slide          55 ms
+  drive          0.15
+  volume         1.23
+
+patch "Soft Slope" family=classic  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # The 12 dB lowpass: more of the saw comes through, so it's brighter and
+  # buzzier under the resonance.
+  filter         #1
+  cutoff         300 Hz
+  resonance      0.8
+  envmod         0.7
+  decay          260 ms
+  accent         0.75
+  slide          50 ms
+  drive          0.15
+  volume         0.88
+
+patch "Bright Acid" family=classic  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Opened up and screaming on the accents, for a line on top of the mix.
+  cutoff         750 Hz
+  resonance      0.82
+  envmod         0.5
+  decay          220 ms
+  accent         0.8
+  slide          45 ms
+  drive          0.2
+  volume         0.89
+
 patch Squelch family=classic  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.1
+  mac2_d2  #3
+  mac2_a2  0.15
+  mac3_d1  #4
+  mac3_a1  -0.25
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.6
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
   # Further into the resonance and a much faster decay: the blip rather than
   # the sweep. Accent nearly all the way up, because on a line like this the
   # accented steps are the line.
@@ -95,7 +490,127 @@ patch Squelch family=classic  note=36 range=24..55
   drive          0.22
   volume         0.90
 
+patch "Hard Acid" family=classic  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Full accent and a distortion after it, the line pushed hard.
+  cutoff         360 Hz
+  resonance      0.85
+  envmod         0.8
+  decay          180 ms
+  accent         1
+  slide          50 ms
+  drive          0.45
+  volume         0.75
+  insert Distortion
+    drive        3
+    tone         5000 Hz
+    mix          0.5
+
+patch "Acid Echo" family=classic  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # The classic line into a dotted eighth delay and a little room.
+  cutoff         400 Hz
+  resonance      0.75
+  envmod         0.65
+  decay          250 ms
+  accent         0.75
+  slide          50 ms
+  drive          0.18
+  volume         0.82
+  insert Delay
+    time         #3
+    feedback     0.35
+    tone         3500 Hz
+    pingpong     #1
+    mix          0.25
+  send reverb    0.1
+
 patch Rubber family=classic  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
   # A pulse instead of a saw, wide slide, and enough drive to round the peak
   # off. The one that bends between notes rather than stepping.
   wave           #1
@@ -109,288 +624,39 @@ patch Rubber family=classic  note=36 range=24..55
   drive          0.25
   volume         0.74
 
-patch "Long Sweep" family=motion  note=36 range=24..55
-  # A decay far longer than a step, so the filter never closes and the line
-  # rises across the bar instead of inside each note.
-  cutoff         180 Hz
-  resonance      0.72
-  envmod         0.95
-  decay          1600 ms
-  accent         0.45
-  slide          60 ms
-  drive          0.15
-  volume         0.91
-
-patch "Slide Line" family=motion  note=36 range=24..55
-  # Every note glides into the next. The slide is the other half of what
-  # this machine is for and nothing else here is built around it: at half a
-  # second the line stops being notes and becomes one moving pitch.
-  cutoff         380 Hz
-  resonance      0.68
-  envmod         0.6
-  decay          260 ms
-  accent         0.7
-  slide          420 ms
-  drive          0.14
-  volume         0.89
-
-patch Doorstop family=short  note=36 range=24..55
-  # Shut. Almost no cutoff, almost all envelope, and a decay short enough
-  # that each note is a thud with a pitch somewhere inside it.
-  cutoff         90 Hz
-  resonance      0.55
-  envmod         1
-  decay          90 ms
-  accent         0.85
-  slide          25 ms
-  drive          0.3
-  volume         0.98
-
-patch Round family=classic  note=36 range=24..55
-  # No resonance at all and no envelope: the note, warm, with the filter just
-  # taking the top off. Every bank needs the one that is simply a bass, and
-  # a bank of nothing but acid does not have it.
-  cutoff         520 Hz
-  resonance      0.0
-  envmod         0.0
-  decay          300 ms
-  accent         0.35
-  slide          45 ms
-  drive          0.05
-  volume         0.99
-
-patch "Open Saw" family=classic  note=36 range=24..55
-  # The filter out of the way, so you can hear what it is doing to
-  # everything else in the bank. Raw oscillator, drive off, and the only
-  # thing shaping the note is its own decay.
-  cutoff         9000 Hz
-  resonance      0.05
-  envmod         0.0
-  decay          500 ms
-  accent         0.3
-  drive          0.0
-  volume         0.87
-
-patch Tick family=short  note=36 range=24..55
-  # The shortest thing the envelope can do: forty milliseconds, all of it
-  # thrown at the filter. Each step is a click with a pitch rather than a
-  # note with a filter on it, and a line of them is closer to a hi-hat
-  # pattern than to a bass part.
-  cutoff         250 Hz
-  resonance      0.8
-  envmod         1
-  decay          45 ms
-  accent         0.85
-  slide          20 ms
-  drive          0.18
-  volume         0.92
-
-patch Wasp family=dirty  note=48 range=36..67
-  # The same idea carried up into the treble, where the resonance stops
-  # sounding like a filter and starts sounding like a second oscillator
-  # buzzing above the note.
-  cutoff         1800 Hz
-  resonance      0.88
-  envmod         0.4
-  decay          180 ms
-  accent         0.55
-  slide          40 ms
-  drive          0.1
-  volume         0.75
-
-patch Crawl family=motion  note=24 range=24..48
-  # Low, slow, and sliding most of the way: the line that moves underneath
-  # everything else rather than driving it. A long decay on a low cutoff
-  # means the filter is still opening when the bar ends.
-  cutoff         120 Hz
-  resonance      0.7
-  envmod         0.85
-  decay          1100 ms
-  accent         0.4
-  slide          300 ms
-  drive          0.12
-  volume         1.32
-
-patch Talk family=motion  note=36 range=24..55
-  # Envelope all the way up on a middling cutoff, so each note starts bright
-  # and closes to a vowel. The most speech-like thing a one-pole-per-stage
-  # ladder can do, and the reason people say these lines sing.
-  cutoff         620 Hz
-  resonance      0.6
-  envmod         1
-  decay          340 ms
-  accent         0.7
-  slide          70 ms
-  drive          0.1
-  volume         0.85
-
-patch Siren family=motion  note=36 range=24..55
-  # Longer than Long Sweep by half again, with the resonance up: the filter
-  # takes nearly three seconds to travel and the line underneath it is
-  # almost beside the point. Hold the pattern and listen to the sweep.
-  cutoff         85 Hz
-  resonance      0.9
-  envmod         1
-  decay          2600 ms
-  accent         0.35
-  slide          80 ms
-  drive          0.14
-  volume         0.93
-
-# --- Beyond ----------------------------------------------------------
-#
-# The sub oscillator, the band-pass, the pulse width and the drive are
-# four things the machine this descends from never had. This half is
-# what they are for, and it is the half the machine is named after.
-
-patch "Sub Hollow" family=sub  note=36 range=24..55
-  # The sub is the note and the pulse is the edge on it. Narrow width, filter
-  # low, very little envelope: a bass that stays where it is put.
-  wave           #1
-  pw             0.24
-  sub            0.65
-  cutoff         220 Hz
-  resonance      0.38
-  envmod         0.3
-  decay          480 ms
-  accent         0.5
-  drive          0.08
-  volume         0.91
-
-# Stops at 45: above that the cutoff at the floor leaves the sub with the
-# note only thirteen decibels behind it, and it is a sub no longer.
-patch "Sub Drop" family=sub  note=36 range=24..45
-  # All sub and no edge: the cutoff is at the floor, so what is left is the
-  # octave below the note and almost nothing else. For the bottom of a mix
-  # rather than the front of one.
-  wave           #1
-  pw             0.5
-  sub            1
-  cutoff         70 Hz
-  resonance      0.2
-  envmod         0.1
-  decay          900 ms
-  accent         0.3
-  drive          0.0
-  volume         1.46
-
-patch "Band Squelch" family=band  note=36 range=24..55
-  # Band-pass: no bottom and no top, so what is left is the resonance itself.
-  # Volume at the top and drive doing the rest, and it is still the quietest
-  # thing here by two decibels - which is what taking the ends off a spectrum
-  # costs, not something to pretend away.
-  mode           #1
-  cutoff         690 Hz
-  resonance      0.85
-  envmod         0.8
-  decay          120 ms
-  accent         0.9
-  drive          0.55
-  volume         1.50
-
-patch "Band Lead" family=band  note=48 range=36..67
-  # Band-pass with the resonance near the top, played an octave up. The
-  # machine does leave the bass register, and this is what it sounds like
-  # when it does: a thin reedy lead with the filter as its tone.
-  mode           #1
-  cutoff         1150 Hz
-  resonance      0.93
-  envmod         0.45
-  decay          200 ms
-  accent         0.6
-  slide          90 ms
-  drive          0.35
-  volume         1.26
-
-patch "Thin Ice" family=sub  note=48 range=36..67
-  # Right at the top of the resonance with almost no envelope: it whistles on
-  # the note rather than under it. The one that shows resonance is a tone.
-  cutoff         1400 Hz
-  resonance      0.97
-  envmod         0.15
-  decay          220 ms
-  accent         0.4
-  drive          0.05
-  volume         0.76
-
-patch Buzzsaw family=dirty  note=36 range=24..55
-  # Filter nearly out of the way and the drive doing the work. Not acid at
-  # all - the machine's other end, and the reason drive is in the voice
-  # rather than in an insert.
-  cutoff         3200 Hz
-  resonance      0.25
-  envmod         0.25
-  decay          400 ms
-  accent         0.55
-  drive          0.85
-  volume         0.91
-
-patch "Hollow Pulse" family=sub  note=36 range=24..55
-  # The pulse squeezed almost shut. A narrow pulse is all odd harmonics and
-  # no body, which the filter then has almost nothing to take away from: it
-  # is nasal where everything above it is round, and it is a width the
-  # machine this descends from could not set.
-  wave           #1
-  pw             0.08
-  cutoff         700 Hz
-  resonance      0.55
-  envmod         0.5
-  decay          220 ms
-  accent         0.6
-  slide          55 ms
-  drive          0.12
-  volume         1.06
-
-patch Screamer family=dirty  note=36 range=24..55
-  # Drive at the top with the resonance still up, which the original could
-  # only do by putting a pedal after it. The filter is still doing its job
-  # underneath; what comes out the other side is not clean and is not meant
-  # to be.
-  cutoff         620 Hz
-  resonance      0.8
-  envmod         0.75
-  decay          240 ms
-  accent         0.8
-  slide          45 ms
-  drive          1
-  volume         0.87
-
-patch Ghost family=band  note=48 range=36..67
-  # Band-pass with the resonance low and the decay long: no bottom, no top
-  # and no bite, so what is left is a breathy middle that sits under a track
-  # rather than on it. The machine as a texture rather than a line.
-  mode           #1
-  # The band sits on the note rather than three octaves above it: at 900 Hz
-  # a bass note's fundamental is nowhere near the pass band and the patch was
-  # ten decibels under the bank instead of five.
-  cutoff         380 Hz
-  resonance      0.5
-  envmod         0.25
-  decay          1400 ms
-  accent         0.3
-  slide          180 ms
-  drive          0.1
-  volume         1.50
-
-patch "Octave Down" family=motion  note=48 range=36..60
-  # The tuning control put a whole octave down with the sub underneath it.
-  # Play it where a lead would sit and it answers an octave and a half below
-  # your hand, which is a thing a bass with one oscillator cannot do.
-  tune           -12 st
-  sub            0.55
-  cutoff         300 Hz
-  resonance      0.5
-  envmod         0.45
-  decay          420 ms
-  accent         0.5
-  slide          60 ms
-  drive          0.1
-  volume         1.06
-
 # A fixed band on a moving note: below the tenor register the band sits
 # thirty-five harmonics above the fundamental and there is no note left in
 # it, so the range starts where the band can still reach.
 patch Reed family=classic  note=48 range=36..67
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
   # The pulse at the far end from Hollow Pulse - nearly all the way open,
   # which is the same waveform inverted and sounds nothing like it once the
   # band-pass has taken the ends off. Thin, reedy, and the closest this
@@ -407,7 +673,1311 @@ patch Reed family=classic  note=48 range=36..67
   drive          0.25
   volume         1.41
 
+# --- short -------------------------------------------------------------
+
+patch Pluck family=short  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Length"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  0.3
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # No resonance, a very short decay and a little drive: the filter closes
+  # before it can ring, so what is left is the attack and a short woody body.
+  # Round's opposite, and the only thing here that does not sound like a
+  # filter at all.
+  cutoff         1500 Hz
+  resonance      0.05
+  envmod         0.55
+  decay          110 ms
+  accent         0.5
+  slide          30 ms
+  drive          0.3
+  volume         0.95
+
+patch Thump family=short  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Length"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  0.3
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A low thud with a little sub, no resonance to speak of.
+  cutoff         160 Hz
+  resonance      0.2
+  envmod         0.6
+  decay          70 ms
+  accent         0.7
+  slide          20 ms
+  sub            0.3
+  drive          0.2
+  volume         1.12
+
+patch Damped family=short  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Length"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  0.3
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # The 12 dB lowpass and a very short decay, like a muted string.
+  filter         #1
+  cutoff         260 Hz
+  resonance      0.3
+  envmod         0.5
+  decay          60 ms
+  accent         0.6
+  slide          20 ms
+  drive          0.1
+  volume         0.92
+
+patch Doorstop family=short  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Length"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  0.3
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Shut. Almost no cutoff, almost all envelope, and a decay short enough
+  # that each note is a thud with a pitch somewhere inside it.
+  cutoff         90 Hz
+  resonance      0.55
+  envmod         1
+  decay          90 ms
+  accent         0.85
+  slide          25 ms
+  drive          0.3
+  volume         0.98
+
+patch Stab family=short  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Length"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  0.3
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A short square with some resonance, for off-beat stabs.
+  wave           #1
+  pw             0.5
+  cutoff         500 Hz
+  resonance      0.6
+  envmod         0.7
+  decay          110 ms
+  accent         0.8
+  slide          25 ms
+  drive          0.25
+  volume         0.73
+
+patch "Snap Pulse" family=short  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Length"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  0.3
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A narrow pulse with all of the envelope, so each note snaps open.
+  wave           #1
+  pw             0.25
+  cutoff         600 Hz
+  resonance      0.5
+  envmod         0.8
+  decay          80 ms
+  accent         0.8
+  slide          30 ms
+  drive          0.15
+  volume         0.74
+
+patch Pip family=short  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Length"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  0.3
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Fifty milliseconds with the filter well open: a bright blip on each step.
+  wave           #1
+  pw             0.35
+  cutoff         900 Hz
+  resonance      0.75
+  envmod         0.6
+  decay          50 ms
+  accent         0.7
+  slide          20 ms
+  drive          0.1
+  volume         0.67
+
+patch Tick family=short  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Length"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  0.3
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # The shortest thing the envelope can do: forty milliseconds, all of it
+  # thrown at the filter. Each step is a click with a pitch rather than a
+  # note with a filter on it, and a line of them is closer to a hi-hat
+  # pattern than to a bass part.
+  cutoff         250 Hz
+  resonance      0.8
+  envmod         1
+  decay          45 ms
+  accent         0.85
+  slide          20 ms
+  drive          0.18
+  volume         0.92
+
+patch "Dotted Pluck" family=short  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Length"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  0.3
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A short pluck into a dotted eighth ping-pong, so the echoes fill the gaps.
+  cutoff         1200 Hz
+  resonance      0.3
+  envmod         0.6
+  decay          100 ms
+  accent         0.6
+  slide          25 ms
+  drive          0.2
+  volume         0.83
+  insert Delay
+    time         #3
+    feedback     0.4
+    tone         4000 Hz
+    pingpong     #1
+    mix          0.3
+  send reverb    0.12
+
+patch Knock family=short  note=36 range=30..55
+  set macro1 "Thin"
+  set macro2 "Squelch"
+  set macro3 "Length"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  0.3
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # The highpass, resonant just above the note: a hollow knock with no
+  # bottom. Below 30 the fundamental is under the cutoff.
+  filter         #2
+  cutoff         120 Hz
+  resonance      0.6
+  envmod         0.6
+  decay          70 ms
+  accent         0.7
+  slide          20 ms
+  drive          0.15
+  volume         1.5
+
+# Same again, higher: a band at 2600 Hz has nothing to say about a note at
+# 100.
+patch Glass family=short  note=60 range=49..79
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Length"
+  set macro4 "Bite"
+  set macro5 "Ring"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  0.3
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #4
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Band-pass with the resonance at the very top and almost no envelope:
+  # the filter rings on its own and the oscillator is only there to start it.
+  # Played high it is a ping rather than a bass at all.
+  mode           #1
+  cutoff         2600 Hz
+  resonance      0.99
+  envmod         0.08
+  decay          260 ms
+  accent         0.3
+  slide          35 ms
+  drive          0.05
+  volume         0.62
+
+patch Rattle family=short  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Length"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Rate"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  0.3
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #13
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A square LFO at thirty-seconds on the cutoff, restarting on each note,
+  # so every step stutters.
+  cutoff         450 Hz
+  resonance      0.65
+  envmod         0.6
+  decay          160 ms
+  accent         0.7
+  slide          20 ms
+  drive          0.2
+  lfo_sync       #1
+  lfo_shape      #2
+  lfo_retrig     #1
+  lfo_cut        0.4
+  volume         0.93
+
+# --- sub ---------------------------------------------------------------
+
+patch "Sub Saw" family=sub  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Width"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.2
+  mac1_d2  #3
+  mac1_a2  0.1
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #9
+  mac5_a1  -0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A saw with the sub well up and the filter low: a plain, big bass.
+  sub            0.6
+  cutoff         260 Hz
+  resonance      0.2
+  envmod         0.25
+  decay          500 ms
+  accent         0.4
+  slide          50 ms
+  drive          0.05
+  volume         1.12
+
+patch "Sub Square" family=sub  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Width"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.2
+  mac1_d2  #3
+  mac1_a2  0.1
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #9
+  mac5_a1  -0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A square over its sub, round and steady.
+  wave           #1
+  pw             0.5
+  sub            0.7
+  cutoff         300 Hz
+  resonance      0.15
+  envmod         0.2
+  decay          600 ms
+  accent         0.4
+  slide          50 ms
+  drive          0.05
+  volume         0.87
+
+patch "Sub Hollow" family=sub  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Width"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.2
+  mac1_d2  #3
+  mac1_a2  0.1
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #9
+  mac5_a1  -0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # The sub is the note and the pulse is the edge on it. Narrow width, filter
+  # low, very little envelope: a bass that stays where it is put.
+  wave           #1
+  pw             0.24
+  sub            0.65
+  cutoff         220 Hz
+  resonance      0.38
+  envmod         0.3
+  decay          480 ms
+  accent         0.5
+  drive          0.08
+  volume         0.91
+
+patch "Sub Blend" family=sub  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Width"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.2
+  mac1_d2  #3
+  mac1_a2  0.1
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #9
+  mac5_a1  -0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Saw and square half and half through the 12 dB lowpass, with the sub.
+  mix            0.5
+  filter         #1
+  sub            0.45
+  cutoff         280 Hz
+  resonance      0.3
+  envmod         0.35
+  decay          450 ms
+  accent         0.5
+  slide          50 ms
+  drive          0.08
+  volume         1.17
+
+patch "Sub Pluck" family=sub  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Width"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.2
+  mac1_d2  #3
+  mac1_a2  0.1
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #9
+  mac5_a1  -0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A short pluck on top and the sub underneath.
+  sub            0.6
+  cutoff         400 Hz
+  resonance      0.3
+  envmod         0.6
+  decay          120 ms
+  accent         0.6
+  slide          30 ms
+  drive          0.1
+  volume         1.09
+
+patch "Sub Acid" family=sub  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Width"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.2
+  mac1_d2  #3
+  mac1_a2  0.1
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #9
+  mac5_a1  -0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # An acid line with the sub holding the bottom while the filter squelches.
+  sub            0.4
+  cutoff         300 Hz
+  resonance      0.75
+  envmod         0.7
+  decay          250 ms
+  accent         0.75
+  slide          60 ms
+  drive          0.15
+  volume         0.96
+
+patch "Sub PWM" family=sub  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Width"
+  set macro6 "Blend"
+  set macro7 "Throb"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.2
+  mac1_d2  #3
+  mac1_a2  0.1
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #9
+  mac5_a1  -0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #16
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A slow triangle LFO on the pulse width, over the sub.
+  wave           #1
+  pw             0.5
+  sub            0.6
+  cutoff         500 Hz
+  resonance      0.25
+  envmod         0.3
+  decay          700 ms
+  accent         0.4
+  slide          50 ms
+  drive          0.05
+  lfo_rate       0.4 Hz
+  lfo_shape      #1
+  lfo_pw         0.7
+  volume         0.82
+
+patch "Hollow Pulse" family=sub  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Width"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.2
+  mac1_d2  #3
+  mac1_a2  0.1
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #9
+  mac5_a1  -0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # The pulse squeezed almost shut. A narrow pulse is all odd harmonics and
+  # no body, which the filter then has almost nothing to take away from: it
+  # is nasal where everything above it is round, and it is a width the
+  # machine this descends from could not set.
+  wave           #1
+  pw             0.08
+  cutoff         700 Hz
+  resonance      0.55
+  envmod         0.5
+  decay          220 ms
+  accent         0.6
+  slide          55 ms
+  drive          0.12
+  volume         1.06
+
+# Stops at 45: above that the cutoff at the floor leaves the sub with the
+# note only thirteen decibels behind it, and it is a sub no longer.
+patch "Sub Drop" family=sub  note=36 range=24..45
+  set macro1 "Edge"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Width"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.3
+  mac1_d2  #2
+  mac1_a2  0.2
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #9
+  mac5_a1  -0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # All sub and no edge: the cutoff is at the floor, so what is left is the
+  # octave below the note and almost nothing else. For the bottom of a mix
+  # rather than the front of one.
+  wave           #1
+  pw             0.5
+  sub            1
+  cutoff         70 Hz
+  resonance      0.2
+  envmod         0.1
+  decay          900 ms
+  accent         0.3
+  drive          0.0
+  volume         1.46
+
+patch "Thin Ice" family=sub  note=48 range=36..67
+  set macro1 "Open"
+  set macro2 "Body"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Width"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.2
+  mac1_d2  #3
+  mac1_a2  0.1
+  mac2_d1  #10
+  mac2_a1  0.4
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #9
+  mac5_a1  -0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Right at the top of the resonance with almost no envelope: it whistles on
+  # the note rather than under it. The one that shows resonance is a tone.
+  cutoff         1400 Hz
+  resonance      0.97
+  envmod         0.15
+  decay          220 ms
+  accent         0.4
+  drive          0.05
+  volume         0.76
+
+# --- dirty -------------------------------------------------------------
+
+patch "Warm Drive" family=dirty  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Drive"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # The classic line with the drive halfway up: rounder and thicker, not
+  # yet broken.
+  cutoff         420 Hz
+  resonance      0.65
+  envmod         0.6
+  decay          260 ms
+  accent         0.7
+  slide          55 ms
+  drive          0.5
+  volume         0.93
+
+patch Gritty family=dirty  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Drive"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Some drive in the voice and a tube stage after it, so the accents sag
+  # and growl.
+  cutoff         380 Hz
+  resonance      0.7
+  envmod         0.65
+  decay          230 ms
+  accent         0.8
+  slide          50 ms
+  drive          0.4
+  volume         0.98
+  insert Distortion
+    drive        4
+    tone         4500 Hz
+    mix          0.5
+    mode         #3
+    gain         -3 dB
+
+patch Rasp family=dirty  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Clean"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  -0.5
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Mid-range, half driven, resonance only half up: the filter is shaping
+  # distortion rather than the other way round. Sits where a guitar would.
+  cutoff         1100 Hz
+  resonance      0.5
+  envmod         0.3
+  decay          200 ms
+  accent         0.6
+  slide          45 ms
+  drive          0.7
+  volume         0.92
+
+patch Wasp family=dirty  note=48 range=36..67
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Drive"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # The same idea carried up into the treble, where the resonance stops
+  # sounding like a filter and starts sounding like a second oscillator
+  # buzzing above the note.
+  cutoff         1800 Hz
+  resonance      0.88
+  envmod         0.4
+  decay          180 ms
+  accent         0.55
+  slide          40 ms
+  drive          0.1
+  volume         0.75
+
+patch "Hard Clip" family=dirty  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Drive"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A square acid line into a hard clipper: flat tops and a buzz on every
+  # accent.
+  wave           #1
+  pw             0.5
+  cutoff         450 Hz
+  resonance      0.75
+  envmod         0.7
+  decay          200 ms
+  accent         0.85
+  slide          45 ms
+  drive          0.3
+  volume         0.89
+  insert Distortion
+    drive        5
+    tone         5000 Hz
+    mix          0.6
+    mode         #1
+    gain         -5 dB
+
+patch "Tube Acid" family=dirty  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Drive"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Saw and square half and half, with the resonance high into a hot tube
+  # stage.
+  mix            0.5
+  cutoff         330 Hz
+  resonance      0.82
+  envmod         0.75
+  decay          250 ms
+  accent         0.85
+  slide          60 ms
+  drive          0.6
+  volume         0.94
+  insert Distortion
+    drive        8
+    tone         4000 Hz
+    mix          0.7
+    mode         #3
+    gain         -4 dB
+
+patch Screamer family=dirty  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Clean"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  -0.5
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Drive at the top with the resonance still up, which the original could
+  # only do by putting a pedal after it. The filter is still doing its job
+  # underneath; what comes out the other side is not clean and is not meant
+  # to be.
+  cutoff         620 Hz
+  resonance      0.8
+  envmod         0.75
+  decay          240 ms
+  accent         0.8
+  slide          45 ms
+  drive          1
+  volume         0.87
+
+patch Buzzsaw family=dirty  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Grit"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.2
+  mac2_d1  #2
+  mac2_a1  0.5
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.15
+  mac4_d2  #1
+  mac4_a2  -0.1
+  mac5_d1  #10
+  mac5_a1  0.6
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Filter nearly out of the way and the drive doing the work. Not acid at
+  # all - the machine's other end, and the reason drive is in the voice
+  # rather than in an insert.
+  cutoff         3200 Hz
+  resonance      0.25
+  envmod         0.25
+  decay          400 ms
+  accent         0.55
+  drive          0.85
+  volume         0.91
+
 patch Grind family=dirty  note=36 range=24..48
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Clean"
+  set macro5 "Body"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  -0.5
+  mac5_d1  #10
+  mac5_a1  -0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
   # Sub most of the way up, cutoff low, drive high. The distortion is working
   # on the octave below the note rather than on the note, which is what makes
   # it a texture instead of a fuzz pedal.
@@ -422,23 +1992,1645 @@ patch Grind family=dirty  note=36 range=24..48
   drive          0.9
   volume         0.98
 
-# Same again, higher: a band at 2600 Hz has nothing to say about a note at
-# 100.
-patch Glass family=short  note=60 range=49..79
-  # Band-pass with the resonance at the very top and almost no envelope:
-  # the filter rings on its own and the oscillator is only there to start it.
-  # Played high it is a ping rather than a bass at all.
-  mode           #1
-  cutoff         2600 Hz
-  resonance      0.99
-  envmod         0.08
+patch Foldback family=dirty  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Drive"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A wavefolder after the filter: as the envelope opens, the wave folds
+  # back on itself and new harmonics come in from the top.
+  cutoff         300 Hz
+  resonance      0.6
+  envmod         0.8
+  decay          280 ms
+  accent         0.8
+  slide          50 ms
+  drive          0.3
+  volume         0.79
+  insert Distortion
+    drive        3
+    tone         6000 Hz
+    mix          0.7
+    mode         #2
+
+patch "Low Bits" family=dirty  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Drive"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Six bits at a low sample rate: the line turns grainy and metallic.
+  cutoff         500 Hz
+  resonance      0.72
+  envmod         0.65
+  decay          240 ms
+  accent         0.8
+  slide          50 ms
+  drive          0.35
+  volume         0.89
+  insert Bitcrusher
+    bits         6
+    rate         9000 Hz
+    tone         7000 Hz
+    mix          0.7
+
+patch Shredder family=dirty  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Clean"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  -0.5
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Full drive, then a wavefolder, then a bit crusher. Barely a filter left
+  # in it.
+  cutoff         600 Hz
+  resonance      0.8
+  envmod         0.7
+  decay          220 ms
+  accent         0.9
+  slide          45 ms
+  drive          0.9
+  volume         0.84
+  insert Distortion
+    drive        4
+    tone         7000 Hz
+    mix          0.8
+    mode         #2
+    gain         -3 dB
+  insert Bitcrusher
+    bits         5
+    rate         7000 Hz
+    jitter       0.3
+    tone         6000 Hz
+    mix          0.5
+
+# --- motion ------------------------------------------------------------
+
+patch Talk family=motion  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Envelope all the way up on a middling cutoff, so each note starts bright
+  # and closes to a vowel. The most speech-like thing a one-pole-per-stage
+  # ladder can do, and the reason people say these lines sing.
+  cutoff         620 Hz
+  resonance      0.6
+  envmod         1
+  decay          340 ms
+  accent         0.7
+  slide          70 ms
+  drive          0.1
+  volume         0.85
+
+patch "Snap Back" family=motion  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # All of the envelope and a very short decay, with long slides: each note
+  # flicks open and the pitch drags into the next.
+  cutoff         200 Hz
+  resonance      0.75
+  envmod         1
+  decay          110 ms
+  accent         0.8
+  slide          180 ms
+  drive          0.15
+  volume         0.92
+
+patch "Wah Line" family=motion  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A slow decay on a high resonance, with the accent doing most of the
+  # work: the accented notes say wah.
+  cutoff         260 Hz
+  resonance      0.85
+  envmod         0.8
+  decay          520 ms
+  accent         1
+  slide          60 ms
+  drive          0.15
+  volume         0.84
+
+patch "Slide Line" family=motion  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Snap"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Tight"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac1_d2  #3
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #4
+  mac3_a1  -0.3
+  mac3_d2  #5
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac5_d1  #10
+  mac5_a1  0.6
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  -0.4
+  # Every note glides into the next. The slide is the other half of what
+  # this machine is for and nothing else here is built around it: at half a
+  # second the line stops being notes and becomes one moving pitch.
+  cutoff         380 Hz
+  resonance      0.68
+  envmod         0.6
   decay          260 ms
+  accent         0.7
+  slide          420 ms
+  drive          0.14
+  volume         0.89
+
+patch "Long Glide" family=motion  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A square through the 12 dB lowpass with a quarter second of slide on
+  # every legato note.
+  wave           #1
+  pw             0.45
+  filter         #1
+  cutoff         350 Hz
+  resonance      0.6
+  envmod         0.55
+  decay          350 ms
+  accent         0.6
+  slide          250 ms
+  drive          0.1
+  volume         0.65
+
+patch "Glide Echo" family=motion  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A sliding line into a quarter note delay, so the slides echo across the
+  # beat.
+  cutoff         420 Hz
+  resonance      0.7
+  envmod         0.6
+  decay          300 ms
+  accent         0.7
+  slide          200 ms
+  drive          0.15
+  volume         0.81
+  insert Delay
+    time         #4
+    feedback     0.35
+    tone         3000 Hz
+    pingpong     #1
+    mix          0.25
+  send reverb    0.1
+
+patch "Long Sweep" family=motion  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A decay far longer than a step, so the filter never closes and the line
+  # rises across the bar instead of inside each note.
+  cutoff         180 Hz
+  resonance      0.72
+  envmod         0.95
+  decay          1600 ms
+  accent         0.45
+  slide          60 ms
+  drive          0.15
+  volume         0.91
+
+patch Crawl family=motion  note=24 range=24..48
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Low, slow, and sliding most of the way: the line that moves underneath
+  # everything else rather than driving it. A long decay on a low cutoff
+  # means the filter is still opening when the bar ends.
+  cutoff         120 Hz
+  resonance      0.7
+  envmod         0.85
+  decay          1100 ms
+  accent         0.4
+  slide          300 ms
+  drive          0.12
+  volume         1.32
+
+patch Breather family=motion  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Depth"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A sine on the cutoff over one bar, running free, with a little sub: the
+  # line breathes in and out across the bar.
+  sub            0.2
+  cutoff         300 Hz
+  resonance      0.65
+  envmod         0.35
+  decay          400 ms
+  accent         0.6
+  slide          60 ms
+  drive          0.12
+  lfo_sync       #14
+  lfo_cut        0.35
+  volume         0.92
+
+patch "Pulse Sweep" family=motion  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Depth"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #16
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A triangle on the pulse width over two bars: the square narrows and
+  # widens slowly under the filter.
+  wave           #1
+  pw             0.5
+  cutoff         500 Hz
+  resonance      0.55
+  envmod         0.5
+  decay          350 ms
+  accent         0.6
+  slide          60 ms
+  drive          0.1
+  lfo_sync       #15
+  lfo_shape      #1
+  lfo_pw         0.9
+  volume         0.76
+
+patch Ebb family=motion  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Depth"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A triangle on the cutoff over four bars, with the resonance high: the
+  # filter rolls in and out like a tide.
+  cutoff         220 Hz
+  resonance      0.82
+  envmod         0.45
+  decay          300 ms
+  accent         0.7
+  slide          60 ms
+  drive          0.15
+  lfo_sync       #16
+  lfo_shape      #1
+  lfo_cut        0.5
+  volume         0.85
+  send reverb    0.12
+
+patch Siren family=motion  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Longer than Long Sweep by half again, with the resonance up: the filter
+  # takes nearly three seconds to travel and the line underneath it is
+  # almost beside the point. Hold the pattern and listen to the sweep.
+  cutoff         85 Hz
+  resonance      0.9
+  envmod         1
+  decay          2600 ms
+  accent         0.35
+  slide          80 ms
+  drive          0.14
+  volume         0.93
+
+patch Wander family=motion  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Depth"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A slow random LFO on the cutoff, and a little on the pitch: the line
+  # wanders and never plays a bar the same way twice.
+  cutoff         380 Hz
+  resonance      0.7
+  envmod         0.55
+  decay          300 ms
+  accent         0.65
+  slide          90 ms
+  drive          0.12
+  lfo_rate       0.7 Hz
+  lfo_shape      #4
+  lfo_cut        0.35
+  lfo_pitch      0.008
+  volume         0.89
+
+patch "Octave Down" family=motion  note=48 range=36..60
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Body"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  -0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # The tuning control put a whole octave down with the sub underneath it.
+  # Play it where a lead would sit and it answers an octave and a half below
+  # your hand, which is a thing a bass with one oscillator cannot do.
+  tune           -12 st
+  sub            0.55
+  cutoff         300 Hz
+  resonance      0.5
+  envmod         0.45
+  decay          420 ms
+  accent         0.5
+  slide          60 ms
+  drive          0.1
+  volume         1.06
+
+# --- wobble ------------------------------------------------------------
+
+patch "Slow Wob" family=wobble  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Rate"
+  set macro4 "Depth"
+  set macro5 "Bite"
+  set macro6 "Sub"
+  set macro7 "Blend"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #13
+  mac3_a1  0.25
+  mac4_d1  #14
+  mac4_a1  0.3
+  mac5_d1  #7
+  mac5_a1  0.4
+  mac6_d1  #10
+  mac6_a1  0.3
+  mac7_d1  #11
+  mac7_a1  1
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A sine on the cutoff over half a bar, running free, so the wobble rolls
+  # across the line rather than with each note.
+  cutoff         240 Hz
+  resonance      0.6
+  envmod         0.2
+  decay          900 ms
+  accent         0.5
+  sub            0.3
+  drive          0.3
+  lfo_sync       #12
+  lfo_cut        0.6
+  volume         1.01
+
+patch Womp family=wobble  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Rate"
+  set macro4 "Depth"
+  set macro5 "Bite"
+  set macro6 "Sub"
+  set macro7 "Blend"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #13
+  mac3_a1  0.25
+  mac4_d1  #14
+  mac4_a1  0.3
+  mac5_d1  #7
+  mac5_a1  0.4
+  mac6_d1  #10
+  mac6_a1  0.3
+  mac7_d1  #11
+  mac7_a1  1
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A sine on the cutoff at eighths, restarting with each note so the line
+  # wobbles on the beat.
+  cutoff         260 Hz
+  resonance      0.6
+  envmod         0.2
+  decay          900 ms
+  accent         0.5
+  sub            0.3
+  drive          0.3
+  lfo_sync       #6
+  lfo_retrig     #1
+  lfo_cut        0.6
+  volume         1.05
+
+patch "Quarter Wob" family=wobble  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Rate"
+  set macro4 "Depth"
+  set macro5 "Bite"
+  set macro6 "Sub"
+  set macro7 "Blend"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #13
+  mac3_a1  0.25
+  mac4_d1  #14
+  mac4_a1  0.3
+  mac5_d1  #7
+  mac5_a1  0.4
+  mac6_d1  #10
+  mac6_a1  0.3
+  mac7_d1  #11
+  mac7_a1  1
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A triangle on the cutoff at quarter notes, restarting on each note.
+  cutoff         250 Hz
+  resonance      0.65
+  envmod         0.2
+  decay          900 ms
+  accent         0.5
+  sub            0.3
+  drive          0.3
+  lfo_sync       #9
+  lfo_shape      #1
+  lfo_retrig     #1
+  lfo_cut        0.6
+  volume         1.04
+
+patch "Triplet Wob" family=wobble  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Rate"
+  set macro4 "Depth"
+  set macro5 "Bite"
+  set macro6 "Sub"
+  set macro7 "Blend"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #13
+  mac3_a1  0.25
+  mac4_d1  #14
+  mac4_a1  0.3
+  mac5_d1  #7
+  mac5_a1  0.4
+  mac6_d1  #10
+  mac6_a1  0.3
+  mac7_d1  #11
+  mac7_a1  1
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A sine at eighth note triplets, restarting on each note, so the wobble
+  # pulls against a straight beat.
+  cutoff         260 Hz
+  resonance      0.6
+  envmod         0.2
+  decay          900 ms
+  accent         0.5
+  sub            0.3
+  drive          0.3
+  lfo_sync       #4
+  lfo_retrig     #1
+  lfo_cut        0.55
+  volume         1.04
+
+patch "Saw Wob" family=wobble  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Rate"
+  set macro4 "Depth"
+  set macro5 "Bite"
+  set macro6 "Sub"
+  set macro7 "Blend"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #13
+  mac3_a1  0.25
+  mac4_d1  #14
+  mac4_a1  0.3
+  mac5_d1  #7
+  mac5_a1  0.4
+  mac6_d1  #10
+  mac6_a1  0.3
+  mac7_d1  #11
+  mac7_a1  1
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A falling saw at quarter notes, restarting on each note: the filter
+  # opens at once and closes over the beat.
+  cutoff         260 Hz
+  resonance      0.65
+  envmod         0.15
+  decay          900 ms
+  accent         0.5
+  sub            0.25
+  drive          0.3
+  lfo_sync       #9
+  lfo_shape      #3
+  lfo_retrig     #1
+  lfo_cut        0.6
+  volume         1.03
+
+patch Chop family=wobble  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Rate"
+  set macro4 "Depth"
+  set macro5 "Bite"
+  set macro6 "Sub"
+  set macro7 "Blend"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #13
+  mac3_a1  0.25
+  mac4_d1  #14
+  mac4_a1  0.3
+  mac5_d1  #7
+  mac5_a1  0.4
+  mac6_d1  #10
+  mac6_a1  0.3
+  mac7_d1  #11
+  mac7_a1  1
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A square at sixteenths on the cutoff, running free: the filter chops
+  # the held note into steps.
+  cutoff         300 Hz
+  resonance      0.55
+  envmod         0.15
+  decay          900 ms
+  accent         0.5
+  sub            0.2
+  drive          0.25
+  lfo_sync       #3
+  lfo_shape      #2
+  lfo_cut        0.5
+  volume         1.03
+
+patch "Triplet Chop" family=wobble  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Rate"
+  set macro4 "Depth"
+  set macro5 "Bite"
+  set macro6 "Sub"
+  set macro7 "Blend"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #13
+  mac3_a1  0.25
+  mac4_d1  #14
+  mac4_a1  0.3
+  mac5_d1  #7
+  mac5_a1  0.4
+  mac6_d1  #10
+  mac6_a1  0.3
+  mac7_d1  #11
+  mac7_a1  1
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A square at sixteenth triplets, restarting on each note.
+  cutoff         320 Hz
+  resonance      0.6
+  envmod         0.15
+  decay          900 ms
+  accent         0.5
+  sub            0.2
+  drive          0.25
+  lfo_sync       #2
+  lfo_shape      #2
+  lfo_retrig     #1
+  lfo_cut        0.5
+  volume         1.03
+
+patch "PWM Wob" family=wobble  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Rate"
+  set macro4 "Depth"
+  set macro5 "Bite"
+  set macro6 "Sub"
+  set macro7 "Blend"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #13
+  mac3_a1  0.25
+  mac4_d1  #16
+  mac4_a1  0.2
+  mac5_d1  #7
+  mac5_a1  0.4
+  mac6_d1  #10
+  mac6_a1  0.3
+  mac7_d1  #11
+  mac7_a1  1
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A square wave with a triangle on its pulse width at quarter note
+  # triplets, and a little on the cutoff.
+  wave           #1
+  pw             0.5
+  cutoff         600 Hz
+  resonance      0.45
+  envmod         0.25
+  decay          900 ms
+  accent         0.5
+  sub            0.25
+  drive          0.2
+  lfo_sync       #7
+  lfo_shape      #1
+  lfo_pw         0.9
+  lfo_cut        0.2
+  volume         0.82
+
+patch "Random Steps" family=wobble  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Rate"
+  set macro4 "Depth"
+  set macro5 "Bite"
+  set macro6 "Sub"
+  set macro7 "Blend"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #13
+  mac3_a1  0.25
+  mac4_d1  #14
+  mac4_a1  0.3
+  mac5_d1  #7
+  mac5_a1  0.4
+  mac6_d1  #10
+  mac6_a1  0.3
+  mac7_d1  #11
+  mac7_a1  1
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A random step on the cutoff every sixteenth, running free.
+  cutoff         350 Hz
+  resonance      0.7
+  envmod         0.2
+  decay          900 ms
+  accent         0.5
+  sub            0.2
+  drive          0.25
+  lfo_sync       #3
+  lfo_shape      #4
+  lfo_cut        0.6
+  volume         1.0
+
+patch Warble family=wobble  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Rate"
+  set macro4 "Depth"
+  set macro5 "Bite"
+  set macro6 "Sub"
+  set macro7 "Blend"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #13
+  mac3_a1  0.25
+  mac4_d1  #15
+  mac4_a1  0.02
+  mac5_d1  #7
+  mac5_a1  0.4
+  mac6_d1  #10
+  mac6_a1  0.3
+  mac7_d1  #11
+  mac7_a1  1
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A sine on the pitch at eighth notes, restarting on each note, and a
+  # little on the cutoff: the note wavers like a worn tape.
+  cutoff         420 Hz
+  resonance      0.5
+  envmod         0.3
+  decay          800 ms
+  accent         0.5
+  sub            0.2
+  drive          0.2
+  lfo_sync       #6
+  lfo_retrig     #1
+  lfo_pitch      0.02
+  lfo_cut        0.15
+  volume         1.16
+  insert Chorus
+    depth        0.4
+    mix          0.3
+
+patch Trill family=wobble  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Rate"
+  set macro4 "Depth"
+  set macro5 "Bite"
+  set macro6 "Sub"
+  set macro7 "Blend"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #13
+  mac3_a1  0.25
+  mac4_d1  #14
+  mac4_a1  0.3
+  mac5_d1  #7
+  mac5_a1  0.4
+  mac6_d1  #10
+  mac6_a1  0.3
+  mac7_d1  #11
+  mac7_a1  1
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A square on the pitch at sixteenths, a semitone each way of the note,
+  # running free.
+  cutoff         500 Hz
+  resonance      0.55
+  envmod         0.3
+  decay          800 ms
+  accent         0.5
+  drive          0.2
+  lfo_sync       #3
+  lfo_shape      #2
+  lfo_pitch      0.0833
+  volume         0.94
+
+patch Snarl family=wobble  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Rate"
+  set macro4 "Depth"
+  set macro5 "Bite"
+  set macro6 "Sub"
+  set macro7 "Blend"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #13
+  mac3_a1  0.25
+  mac4_d1  #14
+  mac4_a1  0.3
+  mac4_d2  #16
+  mac4_a2  0.2
+  mac5_d1  #7
+  mac5_a1  0.4
+  mac6_d1  #10
+  mac6_a1  0.3
+  mac7_d1  #11
+  mac7_a1  1
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A saw at eighth note triplets on the cutoff and the pulse width, with
+  # both waves and the drive up. The wobble talks.
+  mix            0.5
+  pw             0.4
+  cutoff         280 Hz
+  resonance      0.75
+  envmod         0.2
+  decay          900 ms
+  accent         0.6
+  sub            0.25
+  drive          0.6
+  lfo_sync       #4
+  lfo_shape      #3
+  lfo_retrig     #1
+  lfo_cut        0.6
+  lfo_pw         0.5
+  volume         0.89
+  insert Distortion
+    drive        3
+    tone         5000 Hz
+    mix          0.4
+    mode         #3
+
+# --- band --------------------------------------------------------------
+
+patch "Band Squelch" family=band  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Band-pass: no bottom and no top, so what is left is the resonance itself.
+  # Volume at the top and drive doing the rest, and it is still the quietest
+  # thing here by two decibels - which is what taking the ends off a spectrum
+  # costs, not something to pretend away.
+  mode           #1
+  cutoff         690 Hz
+  resonance      0.85
+  envmod         0.8
+  decay          120 ms
+  accent         0.9
+  drive          0.55
+  volume         1.50
+
+patch "Band Pluck" family=band  note=48 range=43..67
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Band-pass with a short decay: a hollow click of a note with the band
+  # sitting a few harmonics up.
+  mode           #1
+  cutoff         420 Hz
+  resonance      0.7
+  envmod         0.5
+  decay          140 ms
+  accent         0.8
+  slide          40 ms
+  drive          0.3
+  volume         1.46
+
+patch Nasal family=band  note=48 range=43..67
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A narrow square through the band: thin and reedy, like playing through
+  # your nose.
+  mode           #1
+  wave           #1
+  pw             0.3
+  cutoff         560 Hz
+  resonance      0.6
+  envmod         0.3
+  decay          400 ms
+  accent         0.6
+  slide          60 ms
+  drive          0.25
+  volume         1.44
+
+patch "Band Glide" family=band  note=48 range=43..67
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # The band with long slides and the resonance high: each note drags into
+  # the next through the band.
+  mode           #1
+  cutoff         480 Hz
+  resonance      0.8
+  envmod         0.55
+  decay          300 ms
+  accent         0.7
+  slide          220 ms
+  drive          0.3
+  volume         1.39
+
+patch "Band Lead" family=band  note=48 range=36..67
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Band-pass with the resonance near the top, played an octave up. The
+  # machine does leave the bass register, and this is what it sounds like
+  # when it does: a thin reedy lead with the filter as its tone.
+  mode           #1
+  cutoff         1150 Hz
+  resonance      0.93
+  envmod         0.45
+  decay          200 ms
+  accent         0.6
+  slide          90 ms
+  drive          0.35
+  volume         1.26
+
+patch "Phone Line" family=band  note=60 range=55..79
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A wide band around a kilohertz with both waves and some grit, as if it
+  # came down a phone line.
+  mode           #1
+  mix            0.5
+  cutoff         1000 Hz
+  resonance      0.4
+  envmod         0.15
+  decay          600 ms
+  accent         0.5
+  slide          50 ms
+  drive          0.45
+  volume         1.35
+  insert Distortion
+    drive        3
+    tone         3500 Hz
+    mix          0.4
+    mode         #3
+    gain         3 dB
+
+patch Ghost family=band  note=48 range=36..67
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Air"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac4_d2  #2
+  mac4_a2  0.2
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # Band-pass with the resonance low and the decay long: no bottom, no top
+  # and no bite, so what is left is a breathy middle that sits under a track
+  # rather than on it. The machine as a texture rather than a line.
+  mode           #1
+  # The band sits on the note rather than three octaves above it: at 900 Hz
+  # a bass note's fundamental is nowhere near the pass band and the patch was
+  # ten decibels under the bank instead of five.
+  cutoff         380 Hz
+  resonance      0.5
+  envmod         0.25
+  decay          1400 ms
   accent         0.3
-  slide          35 ms
-  drive          0.05
-  volume         0.62
+  slide          180 ms
+  drive          0.1
+  volume         1.50
+
+patch Vowel family=band  note=48 range=43..67
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Rate"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Depth"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #13
+  mac3_a1  0.25
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A slow sine moves the band, running free, so the line drifts between
+  # vowels. A little chorus after it.
+  mode           #1
+  cutoff         500 Hz
+  resonance      0.85
+  envmod         0.2
+  decay          800 ms
+  accent         0.5
+  slide          80 ms
+  drive          0.2
+  lfo_rate       0.7 Hz
+  lfo_cut        0.35
+  volume         0.92
+  insert Chorus
+    depth        0.4
+    mix          0.3
+  send reverb    0.12
+
+patch "Band Wob" family=band  note=48 range=43..67
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Rate"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Depth"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #13
+  mac3_a1  0.25
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A triangle on the band at quarter notes, restarting on each note.
+  mode           #1
+  cutoff         450 Hz
+  resonance      0.8
+  envmod         0.15
+  decay          900 ms
+  accent         0.6
+  slide          60 ms
+  drive          0.35
+  lfo_sync       #9
+  lfo_shape      #1
+  lfo_retrig     #1
+  lfo_cut        0.4
+  volume         1.23
 
 patch Wide family=band  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Acid"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Body"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.5
+  mac2_d2  #3
+  mac2_a2  0.4
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  -0.4
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
   # A square and the sub together with the filter well out of the way: no
   # acid in it at all, just a large simple bass with two octaves in it. The
   # one to reach for when the line is not the point.
@@ -454,28 +3646,416 @@ patch Wide family=band  note=36 range=24..55
   drive          0.06
   volume         1.02
 
-patch Rasp family=dirty  note=36 range=24..55
-  # Mid-range, half driven, resonance only half up: the filter is shaping
-  # distortion rather than the other way round. Sits where a guitar would.
-  cutoff         1100 Hz
-  resonance      0.5
-  envmod         0.3
-  decay          200 ms
+# --- filter ------------------------------------------------------------
+
+patch Mellow family=filter  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # The 12 dB lowpass with little resonance: rounder and more open than the
+  # 24 dB one, with more of the saw left in it.
+  filter         #1
+  cutoff         300 Hz
+  resonance      0.35
+  envmod         0.45
+  decay          400 ms
   accent         0.6
-  slide          45 ms
-  drive          0.7
+  slide          60 ms
+  drive          0.1
+  volume         0.89
+
+patch Twelve family=filter  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # The classic line through the 12 dB lowpass: the same squelch with a
+  # brighter, thinner edge.
+  filter         #1
+  cutoff         380 Hz
+  resonance      0.65
+  envmod         0.6
+  decay          280 ms
+  accent         0.7
+  slide          60 ms
+  drive          0.15
+  volume         0.88
+
+patch Shrill family=filter  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # The 12 dB lowpass with the resonance and accents high: the peak screams
+  # over the top of the saw.
+  filter         #1
+  cutoff         450 Hz
+  resonance      0.88
+  envmod         0.8
+  decay          200 ms
+  accent         0.9
+  slide          50 ms
+  drive          0.2
+  volume         0.87
+
+patch "Thin Line" family=filter  note=36 range=29..58
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # The highpass just above the bottom: the line loses its weight and keeps
+  # its buzz, for when a kick has the low end.
+  filter         #2
+  cutoff         75 Hz
+  resonance      0.4
+  envmod         0.25
+  decay          300 ms
+  accent         0.7
+  slide          60 ms
+  drive          0.15
+  volume         1.5
+
+patch "Bare Square" family=filter  note=36 range=31..58
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A square through the highpass with some resonance: hollow and boxy, with
+  # a bump where the filter sits.
+  filter         #2
+  wave           #1
+  pw             0.5
+  cutoff         100 Hz
+  resonance      0.6
+  envmod         0.2
+  decay          400 ms
+  accent         0.6
+  slide          60 ms
+  drive          0.2
+  volume         1.1
+
+patch Pinch family=filter  note=36 range=31..58
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Pinch"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  -0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # The envelope throws the highpass up, so each note starts thin and fills
+  # in as it falls back.
+  filter         #2
+  cutoff         60 Hz
+  resonance      0.3
+  envmod         0.3
+  decay          220 ms
+  accent         0.7
+  slide          50 ms
+  drive          0.2
+  volume         1.5
+
+patch "Notch Fall" family=filter  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # The notch: the envelope drags a hole down through the saw.
+  filter         #3
+  cutoff         180 Hz
+  resonance      0.35
+  envmod         0.8
+  decay          600 ms
+  accent         0.6
+  drive          0.2
   volume         0.92
 
-patch Pluck family=short  note=36 range=24..55
-  # No resonance, a very short decay and a little drive: the filter closes
-  # before it can ring, so what is left is the attack and a short woody body.
-  # Round's opposite, and the only thing here that does not sound like a
-  # filter at all.
-  cutoff         1500 Hz
-  resonance      0.05
-  envmod         0.55
-  decay          110 ms
+patch "Notch Drift" family=filter  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Rate"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Depth"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #13
+  mac3_a1  0.25
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A slow sine moves the notch, running free, so a hole drifts up and down
+  # through the saw like a phaser.
+  filter         #3
+  cutoff         400 Hz
+  resonance      0.3
+  envmod         0.2
+  decay          800 ms
   accent         0.5
-  slide          30 ms
-  drive          0.3
-  volume         0.95
+  slide          60 ms
+  drive          0.15
+  lfo_rate       0.3 Hz
+  lfo_cut        0.5
+  volume         1.08
+  insert Chorus
+    depth        0.3
+    mix          0.25
+
+patch "Notch Wob" family=filter  note=36 range=24..55
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Rate"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Depth"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #13
+  mac3_a1  0.25
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # A triangle on the notch at eighths, running free, on a saw and square
+  # mix.
+  filter         #3
+  mix            0.4
+  cutoff         350 Hz
+  resonance      0.6
+  envmod         0.1
+  decay          900 ms
+  accent         0.6
+  slide          60 ms
+  drive          0.25
+  lfo_sync       #6
+  lfo_shape      #1
+  lfo_cut        0.45
+  volume         1.5
+
+patch Whistler family=filter  note=60 range=52..76
+  set macro1 "Open"
+  set macro2 "Squelch"
+  set macro3 "Sweep"
+  set macro4 "Bite"
+  set macro5 "Sub"
+  set macro6 "Blend"
+  set macro7 "Wobble"
+  set macro8 "Glide"
+  # Macros: each knob adds its depth to the destinations below.
+  mac1_d1  #1
+  mac1_a1  0.25
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #11
+  mac6_a1  1
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  # The highpass with the resonance near the top: the peak whistles over a
+  # thin line, into a dotted echo.
+  filter         #2
+  cutoff         300 Hz
+  resonance      0.9
+  envmod         0.3
+  decay          250 ms
+  accent         0.7
+  slide          70 ms
+  drive          0.2
+  volume         0.77
+  insert Delay
+    time         #4
+    feedback     0.35
+    tone         3000 Hz
+    pingpong     #1
+    mix          0.25
+  send reverb    0.1

@@ -1,4 +1,5 @@
 #include "Tongue.h"
+#include <cstdio>
 #include <engine/core/Constants.h>
 #include <engine/machine/Voices.h>
 #include <algorithm>
@@ -104,7 +105,7 @@ const Tongue::KindVoice Tongue::kKindVoices[kKinds] = {
 Tongue::Tongue() { initParams(); }
 
 const ParamDef *Tongue::paramDefs(int32_t &count) const {
-    static const ParamDef defs[Count] = {
+    static const ParamDef first[MacroBase] = {
         {"model", 0.0f, static_cast<float>(kKinds - 1), 0.0f, Curve::Stepped, kKinds, ""},
         {"tune", -100.0f, 100.0f, 0.0f, Curve::Linear, 0, "cents"},
         // Where the reed rests in its slot: off the middle, the two pulses a
@@ -146,9 +147,123 @@ const ParamDef *Tongue::paramDefs(int32_t &count) const {
         {"sidechain", 0.0f, 16.0f, 0.0f, Curve::Stepped, 17, ""},
         // How far a clip's words move the mouth, against the vowel knob.
         {"words", 0.0f, 1.0f, 1.0f, Curve::Linear, 0, ""},
+        // How far the wah opens the mouth along the vowel control; 0 is off.
+        {"wah", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
+        // The wah's step on the song's grid: 1/4, 1/8., 1/4T, 1/8, 1/8T, 1/16.
+        {"wahrate", 0.0f, static_cast<float>(kWahRates - 1), 3.0f, Curve::Stepped, kWahRates, ""},
+        // Step jumps to each step's vowel; smooth opens and shuts along a raised cosine.
+        {"wahshape", 0.0f, static_cast<float>(kWahShapes - 1), 0.0f, Curve::Stepped, kWahShapes, ""},
     };
+    static ParamDef defs[Count];
+    static char names[kMacros * MacroParams][12];
+    static bool built = false;
+    if (!built) {
+        for (int32_t i = 0; i < MacroBase; ++i) defs[i] = first[i];
+        auto put = [&](int32_t i, const char *n, float mn, float mx, float df, Curve c, int32_t steps) {
+            char *name = names[i - MacroBase];
+            std::snprintf(name, 12, "%s", n);
+            defs[i] = ParamDef{name, mn, mx, df, c, steps, ""};
+        };
+        for (int k = 0; k < kMacros; ++k) {
+            char n[12];
+            const int32_t b = MacroBase + k * MacroParams;
+            std::snprintf(n, sizeof(n), "mac%d", k + 1);
+            put(b, n, 0.0f, 1.0f, 0.0f, Curve::Linear, 0);
+            for (int r = 0; r < 4; ++r) {
+                std::snprintf(n, sizeof(n), "mac%d_d%d", k + 1, r + 1);
+                put(b + 1 + r, n, 0.0f, static_cast<float>(MacroDestCount - 1), 0.0f, Curve::Stepped, MacroDestCount);
+                std::snprintf(n, sizeof(n), "mac%d_a%d", k + 1, r + 1);
+                put(b + 5 + r, n, -1.0f, 1.0f, 0.0f, Curve::Linear, 0);
+            }
+        }
+        built = true;
+    }
     count = Count;
     return defs;
+}
+
+namespace {
+// The macro destination each param answers to, or -1 for none.
+struct DestMap {
+    int8_t of[Tongue::Count];
+    DestMap() {
+        using P = Tongue;
+        for (auto &d : of) d = -1;
+        const int32_t pairs[][2] = {
+            {P::Set, P::McSet}, {P::Edge, P::McEdge}, {P::Ring, P::McRing}, {P::Pluck, P::McPluck},
+            {P::Overtones, P::McOvertones}, {P::Mouth, P::McMouth}, {P::Focus, P::McFocus}, {P::Depth, P::McDepth},
+            {P::Glide, P::McGlide}, {P::Breath, P::McBreath}, {P::Air, P::McAir}, {P::Sustain, P::McSustain},
+            {P::Stop, P::McStop}, {P::Strum, P::McStrum}, {P::Accent, P::McAccent}, {P::Ratchet, P::McRatchet},
+            {P::Words, P::McWords}, {P::Wah, P::McWah}, {P::WahRate, P::McWahRate},
+            {P::VelocityAmount, P::McVelocity}, {P::Volume, P::McVolume},
+        };
+        for (const auto &pr : pairs) of[pr[0]] = static_cast<int8_t>(pr[1]);
+    }
+};
+const DestMap &destMap() {
+    static const DestMap m;
+    return m;
+}
+} // namespace
+
+float Tongue::val(int32_t p, bool goal) const {
+    const float v = read(p, goal);
+    const int d = destMap().of[p];
+    const float off = d < 0 ? 0.0f : (goal ? macGoal_ : mac_)[d];
+    if (off == 0.0f) return v;
+    const ParamDef &def = params_.def(p);
+    return def.map(def.unmap(v) + off);
+}
+
+void Tongue::updateMacroGoals() {
+    for (float &m : macGoal_) m = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = read(b, true);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            const int dest = static_cast<int>(read(b + 1 + r, true) + 0.5f);
+            if (dest > McOff && dest < MacroDestCount) macGoal_[dest] += knob * read(b + 5 + r, true);
+        }
+    }
+    // Two octaves either way.
+    macGoal_[McPitch] = std::clamp(macGoal_[McPitch], -1.0f, 1.0f);
+}
+
+void Tongue::updateMacros() {
+    updateMacroGoals();
+    for (float &m : mac_) m = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = read(b, false);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            // The routes' destinations are steps, so their targets.
+            const int dest = static_cast<int>(read(b + 1 + r, true) + 0.5f);
+            if (dest > McOff && dest < MacroDestCount) mac_[dest] += knob * read(b + 5 + r, false);
+        }
+    }
+    mac_[McPitch] = std::clamp(mac_[McPitch], -1.0f, 1.0f);
+}
+
+float Tongue::wahAt(double tick, bool goal, float &stepSeconds, bool &smooth) const {
+    stepSeconds = 0.0f;
+    smooth = false;
+    const float wah = clampf(val(Wah, goal), 0.0f, 1.0f);
+    if (wah <= 0.0f) return 0.0f;
+    const int rate = std::clamp(static_cast<int>(val(WahRate, true) + 0.5f), 0, kWahRates - 1);
+    const double step = static_cast<double>(kWahBeats[rate]) * kPPQN;
+    stepSeconds = static_cast<float>(step * samplesPerTick / static_cast<double>(sampleRate));
+    const double at = std::fmax(tick, 0.0) / step;
+    if (steppedTargetOf(WahShape) == WahSmooth) {
+        // One open and shut every two steps, shut on the beat: a raised cosine.
+        smooth = true;
+        const double cycle = at * 0.5 - std::floor(at * 0.5);
+        return wah * static_cast<float>(0.5 - 0.5 * std::cos(6.283185307179586 * cycle));
+    }
+    // Shut on the beat, open on the step after.
+    const auto n = static_cast<int64_t>(std::floor(at + 1e-9));
+    return (n & 1) != 0 ? wah : 0.0f;
 }
 
 void Tongue::prepare(int32_t rate) {
@@ -177,6 +292,10 @@ void Tongue::reset() {
         mouthAir[k].clear();
     }
     bend = wheel = pressure = blown = 0.0f;
+    // The mouth jumps to where the knobs and macros put it.
+    updateMacros();
+    // The wah starts again from its shut step.
+    ticks = mouthTick = 0.0;
     dcIn = dcOut = cutIn = cutOut = 0.0f;
     noise = 0x9e3779b9u;
     clock = 0;
@@ -235,13 +354,13 @@ Tongue::Voice *Tongue::voiceFor(uint8_t note) {
 void Tongue::retune(Voice &v) {
     const KindVoice &k = kKindVoices[v.kind];
     // Let go with stop up, a finger on the reed shortens its ring.
-    const float ring = targetOf(Ring) * k.ring;
-    const float stopped = v.held ? ring : ring + (0.04f - ring) * std::sqrt(clampf(targetOf(Stop), 0.0f, 1.0f));
+    const float ring = goalOf(Ring) * k.ring;
+    const float stopped = v.held ? ring : ring + (0.04f - ring) * std::sqrt(clampf(goalOf(Stop), 0.0f, 1.0f));
     for (int i = 0; i < v.count; ++i) {
         Tine &t = v.tines[i];
         const float hz = noteHz(v.baseNote + t.offset + bend * paramOf(BendRange) + v.noteBend);
         t.reed.setRatios(k.ratio2, k.ratio3);
-        t.reed.tune(hz, stopped, targetOf(Overtones), k.overRing);
+        t.reed.tune(hz, stopped, goalOf(Overtones), k.overRing);
         t.perRadian = sampleRate / (6.28318530718f * hz);
         t.retuned = true;
     }
@@ -262,6 +381,7 @@ void Tongue::pluckTine(const Voice &v, Tine &t, float swing, float contact, floa
 }
 
 void Tongue::noteOn(uint8_t note, uint8_t velocity) {
+    updateMacroGoals(); // a pluck reads where the knobs are going, so renders repeat
     const float vel = static_cast<float>(velocity) / 127.0f;
     lastVelocity = vel;
     // A note with words says them; one without goes back to the vowel knob.
@@ -324,7 +444,8 @@ void Tongue::startHarp(Voice &v, uint8_t note, float noteNumber, float vel) {
     v.count = count;
     for (int i = 0; i < count; ++i) v.tines[i].offset = kChordSteps[chord][i];
     v.note = note;
-    v.baseNote = noteNumber + 12.0f * static_cast<float>(steppedTargetOf(Octave)) + targetOf(Tune) / 100.0f;
+    // The pitch macro counts in octaves here, so a route of half matches the octave knob at +1.
+    v.baseNote = noteNumber + 12.0f * (static_cast<float>(steppedTargetOf(Octave)) + 2.0f * macGoal_[McPitch]) + targetOf(Tune) / 100.0f;
     v.held = true;
     if (!ringing) {
         v.noteBend = v.slide = 0.0f;
@@ -348,12 +469,12 @@ void Tongue::strike(Voice &v, float vel) {
     // and a shorter flick of the finger (more of the overtones). The flick
     // is timed for a G3 reed and scales with the reed, so every note has
     // the same colour.
-    const float pluck = clampf(k.pluck + targetOf(Pluck) - kPluckHome, 0.0f, 1.0f);
+    const float pluck = clampf(k.pluck + goalOf(Pluck) - kPluckHome, 0.0f, 1.0f);
     const float swing = 0.45f + 0.55f * vel;
     // Reeds plucked together share the level; one at a time, each has it all.
     const int order = steppedTargetOf(Order);
     const float share = order == InTurn ? 1.0f : 1.0f / std::sqrt(static_cast<float>(count));
-    const float gain = kHouse * k.level * velocityGain(vel, targetOf(VelocityAmount)) * share;
+    const float gain = kHouse * k.level * velocityGain(vel, goalOf(VelocityAmount)) * share;
     // A sharp flick snaps off the reed: the ping of its overtones.
     const float snap = (0.25f + 0.75f * pluck) * (0.6f + 0.4f * vel);
     const auto contactFor = [&](const Tine &t) {
@@ -361,7 +482,7 @@ void Tongue::strike(Voice &v, float vel) {
     };
     // A strum: each reed a step later, in the order asked for. In turn plucks
     // one reed a note, the next each time.
-    const int step = static_cast<int>(targetOf(Strum) * 0.001f * sampleRate);
+    const int step = static_cast<int>(goalOf(Strum) * 0.001f * sampleRate);
     int scatter[kReeds] = {0, 1, 2, 3, 4};
     if (order == Scatter) {
         for (int i = count - 1; i > 0; --i) std::swap(scatter[i], scatter[nextRandom(noise) % static_cast<uint32_t>(i + 1)]);
@@ -388,7 +509,7 @@ void Tongue::strike(Voice &v, float vel) {
     if (order == InTurn) v.next = (v.next + 1) % count;
     // The frame rings too, once a pluck.
     v.knock.set(k.frameHz, k.frameRing, sampleRate);
-    v.knock.strike(k.frameLevel * kHouse * k.level * velocityGain(vel, targetOf(VelocityAmount)) * swing);
+    v.knock.strike(k.frameLevel * kHouse * k.level * velocityGain(vel, goalOf(VelocityAmount)) * swing);
 }
 
 void Tongue::noteOff(uint8_t note) {
@@ -445,7 +566,8 @@ float Tongue::droneHz() const {
         }
     }
     if (hz > 0.0f) return hz;
-    return noteHz(static_cast<float>(steppedTargetOf(Drone)) + 12.0f * static_cast<float>(steppedTargetOf(Octave)) + targetOf(Tune) / 100.0f);
+    return noteHz(static_cast<float>(steppedTargetOf(Drone)) + 12.0f * (static_cast<float>(steppedTargetOf(Octave)) + 2.0f * macGoal_[McPitch]) +
+                  targetOf(Tune) / 100.0f);
 }
 
 float Tongue::harmonicNear(float hz, bool fold) const {
@@ -636,9 +758,14 @@ void Tongue::noteTimbre(uint8_t note, uint8_t value) {
 
 void Tongue::moveMouth(bool jump) {
     // A jump (a reset) takes where the knobs are going, not where they are.
-    const auto knob = [&](int32_t p) { return jump ? targetOf(p) : paramOf(p); };
-    // The vowel: oo oh ah eh ee along the control, the mod wheel on top.
-    const float m = clampf(knob(Mouth) + wheel, 0.0f, 1.0f) * 4.0f;
+    const auto knob = [&](int32_t p) { return jump ? goalOf(p) : paramOf(p); };
+    // The vowel: oo oh ah eh ee along the control, the mod wheel and the wah on top.
+    float wahStep = 0.0f;
+    bool wahSmooth = false;
+    const float wah = wahAt(mouthTick, jump, wahStep, wahSmooth);
+    float vowel = knob(Mouth) + wheel;
+    if (wah > 0.0f) vowel += wah;
+    const float m = clampf(vowel, 0.0f, 1.0f) * 4.0f;
     const int lo = std::min(3, static_cast<int>(m));
     const float t = m - static_cast<float>(lo);
     float target[3];
@@ -649,7 +776,10 @@ void Tongue::moveMouth(bool jump) {
         for (int k = 0; k < 3; ++k) target[k] += (said[saidAt].f[k] - target[k]) * words;
     }
     for (int k = 0; k < 3; ++k) mouthGoal[k] = target[k];
-    const float seconds = saying && words > 0.0f ? kSayGlide : knob(Glide) * 0.001f;
+    float seconds = saying && words > 0.0f ? kSayGlide : knob(Glide) * 0.001f;
+    // The wah's glide is at most half its step, so a long glide sweeps rather than stopping it.
+    // Smooth, the curve does the moving and the glide only takes off the corners.
+    if (wahStep > 0.0f) seconds = std::fmin(seconds, (wahSmooth ? 0.125f : 0.5f) * wahStep);
     const float follow = jump ? 1.0f : 1.0f - std::exp(-static_cast<float>(kControl) / (seconds * sampleRate));
     for (int k = 0; k < 3; ++k) formants[k] += (target[k] - formants[k]) * follow;
     if (pickOn) pickAt += (pickHz - pickAt) * follow;
@@ -710,6 +840,7 @@ void Tongue::moveMouth(bool jump) {
 
 bool Tongue::render(float *L, float *R, int32_t frames) {
     params_.tick();
+    updateMacros();
     for (int32_t i = 0; i < frames; ++i) L[i] = R[i] = 0.0f;
     const double blockTicks = static_cast<double>(frames) / samplesPerTick;
     if (asleep) {
@@ -812,6 +943,7 @@ bool Tongue::render(float *L, float *R, int32_t frames) {
     for (int32_t i = 0; i < frames; ++i) {
         if (--controlLeft <= 0) {
             controlLeft = kControl;
+            mouthTick = ticks + static_cast<double>(i) / samplesPerTick;
             moveMouth(false);
         }
         mouthGain += (mouthGainTarget - mouthGain) * gainFollow;

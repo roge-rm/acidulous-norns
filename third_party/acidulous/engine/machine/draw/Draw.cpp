@@ -7,6 +7,7 @@
 #include <engine/machine/draw/DrawTuning.h>
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 
 namespace acidulous::machine {
 
@@ -98,6 +99,15 @@ constexpr float kHandHz = 4.0f, kHandDamping = 0.7f, kHandTremor = 0.05f, kHandT
 constexpr float kCupOpen = 7000.0f, kCupClosed = 900.0f, kCupLeak = 0.25f;
 /** Below this a voice is silent. */
 constexpr float kSilent = 2e-5f;
+/**
+ * The left hand: the bass button's note sits from C2 up and its octave
+ * below; the chord's reeds within an octave from F#3, each this much against
+ * the bass, and the bass reed this much darker.
+ */
+constexpr int kLeftBass = 36, kLeftChordFrom = 54;
+constexpr float kLeftChord = 0.55f, kLeftBassDark = 0.3f;
+/** The chords' notes over their root, in BassChord's order: a button's three reeds. */
+constexpr int kLeftChords[4][3] = {{0, 4, 7}, {0, 3, 7}, {0, 4, 10}, {0, 3, 9}};
 
 bool isHarp(int32_t kind) { return kind <= OctaveHarp; }
 /** Kinds whose reeds sound into pipes. */
@@ -149,7 +159,7 @@ float white(uint32_t &s) { return static_cast<float>(nextRandom(s) >> 8) * (2.0f
 Draw::Draw() { initParams(); }
 
 const ParamDef *Draw::paramDefs(int32_t &count) const {
-    static const ParamDef defs[Count] = {
+    static const ParamDef first[MacroBase] = {
         {"model", 0.0f, static_cast<float>(kKinds - 1), static_cast<float>(Accordion), Curve::Stepped, kKinds, ""},
         {"tune", -100.0f, 100.0f, 0.0f, Curve::Linear, 0, "cents"},
         // How hard the reeds are blown: half to twice the kind's own pressure.
@@ -192,9 +202,100 @@ const ParamDef *Draw::paramDefs(int32_t &count) const {
         // Where the register's 4' and 16' ranks sound, semitones: an octave either way, or any interval.
         {"high rank", 1.0f, 24.0f, 12.0f, Curve::Stepped, 24, "st"},
         {"low rank", -24.0f, -1.0f, -12.0f, Curve::Stepped, 24, "st"},
+        // The left hand: off, or the note its keys start below.
+        {"bass", 0.0f, 127.0f, 0.0f, Curve::Stepped, 128, ""},
+        {"bass chord", 0.0f, static_cast<float>(BassChordCount - 1), 0.0f, Curve::Stepped, BassChordCount, ""}, // major, minor, 7th, dim, none
+        {"bass level", 0.0f, 1.5f, 1.0f, Curve::Linear, 0, ""},
     };
+    static ParamDef defs[Count];
+    static char names[kMacros * MacroParams][12];
+    static bool built = false;
+    if (!built) {
+        for (int32_t i = 0; i < MacroBase; ++i) defs[i] = first[i];
+        auto put = [&](int32_t i, const char *n, float mn, float mx, float df, Curve c, int32_t steps) {
+            char *name = names[i - MacroBase];
+            std::snprintf(name, 12, "%s", n);
+            defs[i] = ParamDef{name, mn, mx, df, c, steps, ""};
+        };
+        for (int k = 0; k < kMacros; ++k) {
+            char n[12];
+            const int32_t b = MacroBase + k * MacroParams;
+            std::snprintf(n, sizeof(n), "mac%d", k + 1);
+            put(b, n, 0.0f, 1.0f, 0.0f, Curve::Linear, 0);
+            for (int r = 0; r < 4; ++r) {
+                std::snprintf(n, sizeof(n), "mac%d_d%d", k + 1, r + 1);
+                put(b + 1 + r, n, 0.0f, static_cast<float>(MacroDestCount - 1), 0.0f, Curve::Stepped, MacroDestCount);
+                std::snprintf(n, sizeof(n), "mac%d_a%d", k + 1, r + 1);
+                put(b + 5 + r, n, -1.0f, 1.0f, 0.0f, Curve::Linear, 0);
+            }
+        }
+        built = true;
+    }
     count = Count;
     return defs;
+}
+
+namespace {
+// The macro destination each param answers to, or -1 for none.
+struct DestMap {
+    int8_t of[Draw::Count];
+    DestMap() {
+        using D = Draw;
+        for (auto &d : of) d = -1;
+        const int32_t pairs[][2] = {
+            {D::Pressure, D::McPressure}, {D::Attack, D::McAttack}, {D::Release, D::McRelease},
+            {D::Set, D::McSet}, {D::Chamber, D::McChamber}, {D::Air, D::McAir},
+            {D::VelocityAmount, D::McVelocity}, {D::Volume, D::McVolume}, {D::Detune, D::McDetune},
+            {D::Cup, D::McCup}, {D::Vibrato, D::McVibrato}, {D::VibratoRate, D::McVibratoRate},
+            {D::Shake, D::McShake}, {D::Words, D::McWords}, {D::BassLevel, D::McBassLevel},
+        };
+        for (const auto &pr : pairs) of[pr[0]] = static_cast<int8_t>(pr[1]);
+    }
+};
+const DestMap &destMap() {
+    static const DestMap m;
+    return m;
+}
+} // namespace
+
+float Draw::val(int32_t p, bool goal) const {
+    const float v = read(p, goal);
+    const int d = destMap().of[p];
+    const float off = d < 0 ? 0.0f : (goal ? macGoal_ : mac_)[d];
+    if (off == 0.0f) return v;
+    const ParamDef &def = params_.def(p);
+    return def.map(def.unmap(v) + off);
+}
+
+void Draw::updateMacroGoals() {
+    for (float &m : macGoal_) m = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = read(b, true);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            const int dest = static_cast<int>(read(b + 1 + r, true) + 0.5f);
+            if (dest > McOff && dest < MacroDestCount) macGoal_[dest] += knob * read(b + 5 + r, true);
+        }
+    }
+    // Two octaves either way.
+    macGoal_[McPitch] = std::clamp(macGoal_[McPitch], -1.0f, 1.0f);
+}
+
+void Draw::updateMacros() {
+    updateMacroGoals();
+    for (float &m : mac_) m = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = read(b, false);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            // The routes' destinations are steps, so their targets.
+            const int dest = static_cast<int>(read(b + 1 + r, true) + 0.5f);
+            if (dest > McOff && dest < MacroDestCount) mac_[dest] += knob * read(b + 5 + r, false);
+        }
+    }
+    mac_[McPitch] = std::clamp(mac_[McPitch], -1.0f, 1.0f);
 }
 
 void Draw::prepare(int32_t rate) {
@@ -231,7 +332,12 @@ void Draw::reset() {
         v.pressure = -1.0f;
         v.gain = v.level = 0.0f;
         v.quietBlocks = 0;
+        v.left = false;
+        v.macPitch = 0.0f;
     }
+    for (float &m : mac_) m = 0.0f;
+    for (float &m : macGoal_) m = 0.0f;
+    for (float &m : blownWith) m = 0.0f;
     bend = channelPressure_ = 0.0f;
     lowState = 0.0f;
     bodyX1 = bodyX2 = bodyY1 = bodyY2 = 0.0f;
@@ -295,14 +401,18 @@ Draw::Voice *Draw::voiceFor(uint8_t note) {
     return pick;
 }
 
-float Draw::bendOf(const Voice &v) const { return bend * paramOf(BendRange) + v.noteBend; }
+float Draw::bendOf(const Voice &v) const {
+    const float b = bend * paramOf(BendRange) + v.noteBend;
+    // Apart so a note with no pitch macro is worked out as before.
+    return v.macPitch != 0.0f ? b + v.macPitch * 24.0f : b;
+}
 
 ReedMake Draw::makeFor(const Voice &v) const {
     ReedMake k = kMakes_[kKindVoices[v.kind].make];
     // The knobs move each kind's make from where it sits: twice or half either way.
-    k.set *= std::pow(2.0f, (clampf(targetOf(Set), 0.0f, 1.0f) - 0.5f) * 1.0f);
-    k.cell *= std::pow(2.0f, (clampf(targetOf(Chamber), 0.0f, 1.0f) - 0.5f) * 1.5f);
-    k.turbulence *= 2.0f * clampf(targetOf(Air), 0.0f, 1.0f);
+    k.set *= std::pow(2.0f, (clampf(goalOf(Set), 0.0f, 1.0f) - 0.5f) * 1.0f);
+    k.cell *= std::pow(2.0f, (clampf(goalOf(Chamber), 0.0f, 1.0f) - 0.5f) * 1.5f);
+    k.turbulence *= 2.0f * clampf(goalOf(Air), 0.0f, 1.0f);
     // A finger's slide brings that note's reeds closer to their slots, which brightens them.
     k.set *= std::pow(2.0f, -0.8f * v.slide);
     return k;
@@ -332,6 +442,24 @@ void Draw::retune(Voice &v) {
         }
         return;
     }
+    if (v.left) {
+        // The left hand: each reed its own note, the bass and its octave
+        // below darker, the chord's reeds quieter, so the bass leads.
+        const float *table = kReedTuning[kKindVoices[v.kind].make];
+        const ReedMake make = makeFor(v);
+        const float shift = bendOf(v);
+        for (int i = 0; i < v.count; ++i) {
+            const float sounds = v.leftNote[i] + shift;
+            const float at = clampf(sounds, 0.0f, 127.0f);
+            const int lo = std::min(126, static_cast<int>(at));
+            float cents = table[lo] + (table[lo + 1] - table[lo]) * (at - static_cast<float>(lo));
+            if (pulling && isBellows(v.kind)) cents += pullCents(v.note, i);
+            v.reeds[i].make(clampf(noteHz(sounds) * std::pow(2.0f, cents / 1200.0f), 27.5f, 4500.0f), make);
+            v.rankLevel[i] = i == 0 ? 1.0f : i == 1 ? kLowRank : kLeftChord;
+            v.chamber[i] = i == 0 ? kLeftBassDark : i == 1 ? kLowDark : 0.0f;
+        }
+        return;
+    }
     const float note = v.baseNote + bendOf(v);
     // Each reed is filed to sound its note: the table says how far its own
     // frequency sits from what it plays, between notes in a straight line.
@@ -339,7 +467,7 @@ void Draw::retune(Voice &v) {
     const ReedMake make = makeFor(v);
     // The register's ranks: 16' an octave down, 4' an octave up, the 8's
     // tuned apart by the detune knob for musette.
-    const float apart = clampf(targetOf(Detune), 0.0f, 40.0f);
+    const float apart = clampf(goalOf(Detune), 0.0f, 40.0f);
     const bool cassotto = steppedTargetOf(Cassotto) != 0;
     const draw::Register &reg = kRegisters[v.stops];
     const float high = static_cast<float>(steppedTargetOf(HighRank)), low = static_cast<float>(steppedTargetOf(LowRank));
@@ -430,7 +558,7 @@ void Draw::retuneHarp(Voice &v) {
     if (v.way == Single) {
         // A reed of its own behind a valve; the wheel moves the note.
         const float note = v.baseNote + wheelBend;
-        const float apart = clampf(targetOf(Detune), 0.0f, 40.0f);
+        const float apart = clampf(goalOf(Detune), 0.0f, 40.0f);
         for (int h = 0; h < v.holeCount; ++h) {
             // A tremolo harp's second reed is tuned apart; an octave harp's an octave up.
             const float at = v.kind == OctaveHarp && h == 1 ? note + 12.0f : note;
@@ -475,26 +603,51 @@ float Draw::aimFor(const Voice &v) const {
     // The knob sets half to twice the kind's pressure; velocity blows harder
     // as far as the velocity knob lets it; pressure (the note's own, or the
     // channel's) adds up to half again.
-    const float knob = std::pow(2.0f, (clampf(targetOf(Pressure), 0.0f, 1.0f) - 0.5f) * 2.0f);
-    const float amount = clampf(targetOf(VelocityAmount), 0.0f, 1.0f);
+    const float knob = std::pow(2.0f, (clampf(goalOf(Pressure), 0.0f, 1.0f) - 0.5f) * 2.0f);
+    const float amount = clampf(goalOf(VelocityAmount), 0.0f, 1.0f);
     const float byVelocity = 1.0f - amount * 0.6f * (1.0f - v.velocity);
     const float squeeze = v.pressure >= 0.0f ? v.pressure : channelPressure_;
     return std::fmin(k.most, k.pressure * knob * byVelocity * (1.0f + 0.5f * squeeze));
 }
 
+void Draw::planLeft(Voice &v, int chord) {
+    // Every key of a name plays the same button: its bass and the chord on it.
+    const int pc = static_cast<int>(v.note) % 12;
+    const float tune = goalOf(Tune) / 100.0f;
+    v.leftNote[0] = static_cast<float>(kLeftBass + pc) + tune;
+    v.leftNote[1] = v.leftNote[0] - 12.0f;
+    if (chord == ChordNone) return;
+    for (int i = 0; i < 3; ++i) {
+        const int n = (pc + kLeftChords[chord][i]) % 12;
+        v.leftNote[2 + i] = static_cast<float>(kLeftChordFrom + (n - kLeftChordFrom % 12 + 12) % 12) + tune;
+    }
+}
+
 void Draw::noteOn(uint8_t note, uint8_t velocity) {
+    updateMacroGoals(); // a note reads where the knobs are going, so renders repeat
     Voice *v = voiceFor(note);
     const bool sounding = v->used && v->note == note;
     v->kind = std::clamp(steppedTargetOf(Model), 0, kKinds - 1);
     v->note = note;
-    v->baseNote = static_cast<float>(note) + 12.0f * static_cast<float>(steppedTargetOf(Octave)) + targetOf(Tune) / 100.0f;
+    v->baseNote = static_cast<float>(note) + 12.0f * static_cast<float>(steppedTargetOf(Octave)) + goalOf(Tune) / 100.0f;
     v->velocity = static_cast<float>(velocity) / 127.0f;
     v->held = true;
     v->pressure = -1.0f;
     v->noteBend = v->slide = 0.0f;
     const int knob = std::clamp(steppedTargetOf(Register), 0, kRegisterCount - 1);
-    const int32_t stops = isHarp(v->kind) ? 1 : (knob > 0 ? knob : kKindVoices[v->kind].stops);
-    const int count = kRegisters[stops].count;
+    int32_t stops = isHarp(v->kind) ? 1 : (knob > 0 ? knob : kKindVoices[v->kind].stops);
+    int count = kRegisters[stops].count;
+    // Below the split, the left hand: a stops of its own (-1 - the chord),
+    // so a key played again the other way starts its reeds from rest.
+    const int split = steppedTargetOf(Bass);
+    v->left = split > 0 && static_cast<int>(note) < split && !isHarp(v->kind) && !isPipe(v->kind);
+    v->macPitch = macGoal_[McPitch];
+    if (v->left) {
+        const int chord = std::clamp(steppedTargetOf(BassChord), 0, BassChordCount - 1);
+        stops = -1 - chord;
+        count = chord == ChordNone ? 2 : kReeds;
+        planLeft(*v, chord);
+    }
     const int wasHoles = v->holeCount, wasHole = v->hole, wasWay = v->way;
     const float wasSign = v->sign;
     const int wasPipes = v->pipeCount;
@@ -530,9 +683,10 @@ void Draw::noteOn(uint8_t note, uint8_t velocity) {
     // The level follows the house law; how much louder a harder-blown reed
     // is, is taken out.
     const KindVoice &k = kKindVoices[v->kind];
-    v->gain = kHouse * k.level * velocityGain(v->velocity, targetOf(VelocityAmount)) /
+    v->gain = kHouse * k.level * velocityGain(v->velocity, goalOf(VelocityAmount)) /
               std::pow(std::fmax(v->aim, 1.0f) / k.pressure, kLoudPower);
     if (v->holeCount > 0 && v->way == Single) v->gain *= kValvedReed;
+    if (v->left) v->gain *= goalOf(BassLevel);
     v->used = true;
     v->quietBlocks = 0;
     v->age = ++clock;
@@ -655,8 +809,24 @@ void Draw::notePressure(uint8_t note, uint8_t value) {
 
 bool Draw::render(float *L, float *R, int32_t frames) {
     params_.tick();
+    updateMacros();
     for (int32_t i = 0; i < frames; ++i) L[i] = R[i] = 0.0f;
     if (asleep) return true;
+    // A macro moving how hard the reeds are blown blows them again, and the
+    // pitch macro bends what's sounding. What reeds are made from (set,
+    // chamber, air, detune) is read at a note, as their knobs are.
+    {
+        const float blown[2] = {macGoal_[McPressure], macGoal_[McVelocity]};
+        const bool reblow = !std::equal(blown, blown + 2, blownWith);
+        std::copy(blown, blown + 2, blownWith);
+        for (Voice &v : voices) {
+            if (!v.used) continue;
+            const bool moved = v.macPitch != mac_[McPitch];
+            v.macPitch = mac_[McPitch];
+            if (moved) retune(v);
+            if (reblow && v.held) v.aim = aimFor(v);
+        }
+    }
 
     const KindVoice &body = kKindVoices[std::clamp(steppedTargetOf(Model), 0, kKinds - 1)];
     // The body: a one-pole low-pass, and a resonance added on top (a band-pass, peak gain 1).
@@ -668,8 +838,8 @@ bool Draw::render(float *L, float *R, int32_t frames) {
     const float dcPole = 1.0f - 6.2831853f * 20.0f / sampleRate;
     const float airAmount = clampf(paramOf(Air), 0.0f, 1.0f);
     const float volume = paramOf(Volume);
-    const float attack = std::fmax(0.005f, targetOf(Attack) * 0.001f) * sampleRate;
-    const float release = std::fmax(0.005f, targetOf(Release) * 0.001f) * sampleRate;
+    const float attack = std::fmax(0.005f, goalOf(Attack) * 0.001f) * sampleRate;
+    const float release = std::fmax(0.005f, goalOf(Release) * 0.001f) * sampleRate;
     const float squeezeFollow = 1.0f - std::exp(-1.0f / (0.02f * sampleRate));
     const float wanderFollow = 1.0f - std::exp(-6.2831853f * 4.0f / sampleRate);
     // The tongue and hands move every kMouthEvery samples, as a muscle does:

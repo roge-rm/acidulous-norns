@@ -30,8 +30,27 @@ class Palm final : public Machine {
         // Kit mode: each key from kBaseNote is a pad with its own drum, stroke,
         // pitch (a MIDI note) and level, kPadParams values each from PadFirst.
         Kit, PadFirst,
-        Count = PadFirst + 16 * 4
+        // Each hit is two: a softer grace stroke, then the stroke this many
+        // ms after it. 0 is off.
+        Flam = PadFirst + 16 * 4,
+        // Eight macro knobs, each with four routes: a destination (a
+        // MacroDest) and a depth. A macro's knob times a route's depth is
+        // added to the destination, in its own 0..1 range. Block rate. Pitch
+        // is 24 semitones per unit. The routes reach the drum params every
+        // pad of a kit shares, not a pad's own.
+        MacroBase,
+        MacroParams = 9, // knob, 4 destinations, 4 depths
+        Count = MacroBase + 8 * MacroParams
     };
+    // Where a macro route goes. Continuous params only: the model, tune,
+    // stroke, voices, bend range, octave and the pads are left out.
+    enum MacroDest : int32_t {
+        McOff, McPosition, McHand, McDecay, McDamp, McDrop, McSqueeze, McRattle, McBody,
+        McRoll, McSpread, McVelocity, McVolume, McFlam,
+        McPitch,
+        MacroDestCount
+    };
+    static constexpr int kMacros = 8;
     static constexpr int kPads = 16, kPadParams = 4;
     enum PadParam : int32_t { PadModel = 0, PadStroke, PadNote, PadLevel };
     static constexpr int32_t padParam(int pad, int which) { return PadFirst + pad * kPadParams + which; }
@@ -99,12 +118,32 @@ class Palm final : public Machine {
         float noteBend = 0.0f, pressure = -1.0f, squeezed = 0.0f;
         float press = 0.0f, builtPress = -1.0f;
         int32_t rollLeft = 0;
+        /** Samples until a flam's second stroke, 0 for none, and its velocity. */
+        int32_t flamLeft = 0;
+        float flamVelocity = 0.0f;
+        /** The pitch macro at the note-on (in [pitch]) and now, in its 0..1 units. */
+        float macAt = 0.0f, macNow = 0.0f;
         float level = 0.0f;
         int quietBlocks = 0;
         uint32_t age = 0;
     };
 
-    float paramOf(int32_t i) const { return params_.get(i); }
+    /** Param [p], smoothed, with the macros' routes to it added. */
+    float paramOf(int32_t p) const { return val(p, false); }
+    /** Param [p]'s target with the macros' targets added, for note-on seeds. */
+    float goalOf(int32_t p) const { return val(p, true); }
+    float val(int32_t p, bool goal) const;
+    /** Fills [mac_] from the smoothed macro knobs and [macGoal_] from their targets. */
+    void updateMacros();
+    /** Fills [macGoal_] alone, for a note-on between blocks. */
+    void updateMacroGoals();
+    float read(int32_t p, bool goal) const { return goal ? params_.target(p) : params_.get(p); }
+    /** The voice's pitch now, with bend and the pitch macro's move since the note-on. */
+    float pitchNow(const Voice &v) const {
+        const float p = v.pitch + bend * paramOf(BendRange) + v.noteBend;
+        // Apart so a note with no pitch macro moving is worked out as before.
+        return v.macNow != v.macAt ? p + (v.macNow - v.macAt) * 24.0f : p;
+    }
     Voice *voiceFor(uint8_t note);
     int strokeFor(const Voice &v, float velocity) const;
     /** Sets up the modes for the voice's drum and stroke. */
@@ -125,6 +164,7 @@ class Palm final : public Machine {
     uint32_t clock = 0;
     int32_t quietSamples = 0;
     bool asleep = true;
+    float mac_[MacroDestCount]{}, macGoal_[MacroDestCount]{};
 };
 
 } // namespace acidulous::machine

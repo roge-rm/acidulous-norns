@@ -32,8 +32,24 @@ class Formulate final : public Machine {
         AmpAttack, AmpDecay, AmpSustain, AmpRelease,
         Mono, Glide, BendRange, Octave, Transpose, Fine, VelocityAmount,
         Drive, Volume, Pan,
-        Count
+        // A filter envelope: an amount in octaves of cutoff, either way, and
+        // its ADSR. Added after Pan so older patches get the defaults, and
+        // an amount of 0 is the filter as it was.
+        FiltEnv, FiltAttack, FiltDecay, FiltSustain, FiltRelease,
+        // Eight macro knobs, each with four routes: a destination (a Dest)
+        // and a depth. A macro's knob times a route's depth is added to the
+        // destination, in its own 0..1 range. Block rate. Pitch is 24
+        // semitones per unit. Not the formula's a, b and c, which come first.
+        MacroBase,
+        MacroParams = 9, // knob, 4 destinations, 4 depths
+        Count = MacroBase + 8 * MacroParams
     };
+    enum Dest : int32_t { DstOff, DstDuty, DstPwmDepth, DstPwmRate, DstSub, DstBits, DstCrush, DstSmooth,
+                          DstFormula, DstTimeScale, DstA, DstB, DstC, DstFrameRate,
+                          DstCutoff, DstResonance, DstFiltEnv, DstFiltAttack, DstFiltDecay,
+                          DstAmpAttack, DstAmpDecay, DstAmpRelease, DstGlide, DstDrive, DstAmp, DstPan,
+                          DstPitch, DestCount };
+    static constexpr int kMacros = 8;
 
     Formulate();
 
@@ -69,7 +85,7 @@ class Formulate final : public Machine {
         float held = 0.0f;      // the crusher's held sample
         float crushAcc = 0.0f;
         float smoothed = 0.0f;
-        dsp::Adsr amp;
+        dsp::Adsr amp, fenv;
         dsp::MultiFilter filter;
         int64_t age = 0;
         // Per-note bend (MPE) in semitones, added to the channel bend.
@@ -78,6 +94,10 @@ class Formulate final : public Machine {
 
     float paramOf(int32_t p) const { return params_.get(p); }
     int32_t steppedOf(int32_t p) const { return static_cast<int32_t>(paramOf(p) + 0.5f); }
+    /** The macros' sum onto [dest], from the knobs' smoothed values or, at note-on, their targets. */
+    float macroSum(int dest, bool target) const;
+    /** Param [p] moved by [off] in its own 0..1 range, from its smoothed value or its target. */
+    float moved(int32_t p, float off, bool target) const;
     Voice *allocate();
     int32_t oscSample(Voice &v, int32_t wave, int32_t duty, float dt, float freq, int32_t subLevel);
 

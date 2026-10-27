@@ -225,16 +225,37 @@ void Utterance::analyse(float sampleRate) {
     // Finds the first 10 ms window within 20 dB of the take's level and backs
     // off two windows so the first consonant keeps its start. Only the front
     // is trimmed, since `loop` needs the tail.
+    //
+    // Hum and rumble under a take aren't all gone after the filter above:
+    // clipped hum leaves harmonics right through the voice's range, and the
+    // room can sit closer than 20 dB to the voice. So the room's own level
+    // counts too. The quietest tenth of the windows is the room, and when it
+    // sits 12 to 33 dB under the take the voice has to rise 13 dB over it, up
+    // to 5 dB under the take. Takes with a quieter room trim as before.
     {
-        double sum = 0.0;
-        for (float v : mono) sum += static_cast<double>(v) * v;
-        const auto rms = static_cast<float>(std::sqrt(sum / static_cast<double>(frames)));
         const int32_t win = std::max(1, static_cast<int32_t>(sampleRate * 0.01f));
-        const float floorRms = rms * 0.1f;
-        int32_t at = 0;
-        while (at + win <= frames) {
+        std::vector<double> power;
+        power.reserve(static_cast<size_t>(frames / win));
+        double sum = 0.0;
+        for (int32_t at = 0; at + win <= frames; at += win) {
             double w = 0.0;
             for (int32_t i = at; i < at + win; ++i) w += static_cast<double>(mono[static_cast<size_t>(i)]) * mono[static_cast<size_t>(i)];
+            power.push_back(w);
+        }
+        for (float v : mono) sum += static_cast<double>(v) * v;
+        const auto rms = static_cast<float>(std::sqrt(sum / static_cast<double>(frames)));
+        float floorRms = rms * 0.1f;
+        if (power.size() >= 10) {
+            std::vector<double> sorted = power;
+            const size_t tenth = sorted.size() / 10;
+            std::nth_element(sorted.begin(), sorted.begin() + static_cast<long>(tenth), sorted.end());
+            const auto roomRms = static_cast<float>(std::sqrt(sorted[tenth] / win));
+            // A quietest tenth within 12 dB of the take is quiet singing, not
+            // a room, as in a held vowel.
+            if (roomRms * 4.5f > floorRms && roomRms < rms * 0.25f) floorRms = std::min(roomRms * 4.5f, rms * 0.56f);
+        }
+        int32_t at = 0;
+        for (double w : power) {
             if (std::sqrt(w / win) >= floorRms) break;
             at += win;
         }

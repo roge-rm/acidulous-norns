@@ -38,6 +38,7 @@ class Nexus final : public Machine {
     const ParamDef *paramDefs(int32_t &count) const override;
     void prepare(int32_t sampleRate) override;
     void onBlock(int64_t tickStart, int64_t tickEnd, float bpm) override;
+    void onTransport(bool rolling, int64_t tickStart) override;
     void reset() override;
     void noteOn(uint8_t note, uint8_t velocity) override;
     void noteOff(uint8_t note) override;
@@ -90,6 +91,13 @@ class Nexus final : public Machine {
     static constexpr uint32_t kRngSeed = 0x13579bdfu;
     uint32_t rng = kRngSeed;
     double tickCursor = 0.0, tickStep = 0.0;
+    // The clock module follows the transport. Rolling until told otherwise,
+    // so a host that never calls onTransport hears the clock as before.
+    bool songRolling = true, clockWasRunning = false;
+    bool transportMoved = false; // play or stop in this block
+    int64_t rollOrigin = 0;   // the tick play started on
+    double clockCursor = 0.0; // the clock's tick at the start of this block
+    double heldTick = 0.0;    // the clock's place while stopped with a key held
 };
 
 } // namespace acidulous::machine

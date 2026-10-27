@@ -2,6 +2,7 @@
 #include <engine/machine/Voices.h>
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <engine/dsp/Math.h>
 
 namespace acidulous::machine {
@@ -20,8 +21,8 @@ constexpr float kSemitone = 1.0594630943592953f;
 
 Cumulus::Cumulus() { initParams(); }
 
-const ParamDef *Cumulus::paramDefs(int32_t &count) const {
-    static const ParamDef defs[Count] = {
+namespace {
+const ParamDef kBase[Cumulus::MacroBase] = {
         // --- the spectrum: these rebuild the tables ---------------------
         {"partials", 1.0f, 128.0f, 48.0f, Curve::Linear, 0, ""},
         {"tilt", -24.0f, 6.0f, -9.0f, Curve::Linear, 0, "dB/oct"},
@@ -87,9 +88,70 @@ const ParamDef *Cumulus::paramDefs(int32_t &count) const {
         {"velocity", 0.0f, 1.0f, 1.0f, Curve::Linear, 0, ""},
         {"mpetimbre", 0.0f, 1.0f, 0.5f, Curve::Linear, 0, ""},
         {"mpepressure", 0.0f, 1.0f, 0.5f, Curve::Linear, 0, ""},
-    };
+};
+
+// The base table plus the macros' knobs and routes.
+struct Table {
+    ParamDef defs[Cumulus::Count];
+    char names[Cumulus::kMacros * Cumulus::MacroParams][12];
+    Table() {
+        for (int32_t i = 0; i < Cumulus::MacroBase; ++i) defs[i] = kBase[i];
+        for (int k = 0; k < Cumulus::kMacros; ++k) {
+            const int32_t b = Cumulus::MacroBase + k * Cumulus::MacroParams;
+            char *n = names[k * Cumulus::MacroParams];
+            std::snprintf(n, 12, "mac%d", k + 1);
+            defs[b] = {n, 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""};
+            for (int r = 0; r < 4; ++r) {
+                char *d = names[k * Cumulus::MacroParams + 1 + r];
+                std::snprintf(d, 12, "mac%d_d%d", k + 1, r + 1);
+                defs[b + 1 + r] = {d, 0.0f, Cumulus::DestCount - 1.0f, 0.0f, Curve::Stepped, Cumulus::DestCount, ""};
+                char *a = names[k * Cumulus::MacroParams + 5 + r];
+                std::snprintf(a, 12, "mac%d_a%d", k + 1, r + 1);
+                defs[b + 5 + r] = {a, -1.0f, 1.0f, 0.0f, Curve::Linear, 0, ""};
+            }
+        }
+    }
+};
+const Table &table() {
+    static const Table t;
+    return t;
+}
+
+// Which param each macro destination moves in its own range; -1 for pitch.
+constexpr int32_t kDestParam[Cumulus::DestCount] = {
+    -1, Cumulus::Morph, Cumulus::Shimmer, Cumulus::Width, Cumulus::Scatter, Cumulus::Drift, Cumulus::Detune,
+    Cumulus::SpreadWidth, Cumulus::Cutoff, Cumulus::Resonance, Cumulus::FilterEnv, Cumulus::FilterDrive,
+    Cumulus::Drive, Cumulus::Volume, Cumulus::Pan, Cumulus::AmpAttack, Cumulus::AmpDecay, Cumulus::AmpRelease,
+    Cumulus::FiltDecay, Cumulus::Lfo1Rate, Cumulus::Lfo1Morph, Cumulus::Lfo2Rate, Cumulus::Lfo2Cutoff,
+    Cumulus::Lfo2Pan, -1,
+};
+} // namespace
+
+const ParamDef *Cumulus::paramDefs(int32_t &count) const {
     count = Count;
-    return defs;
+    return table().defs;
+}
+
+float Cumulus::macroSum(int dest, bool target) const {
+    float sum = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = target ? params_.target(b) : params_.get(b);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            const float d = target ? params_.target(b + 1 + r) : params_.get(b + 1 + r);
+            if (static_cast<int>(d + 0.5f) == dest)
+                sum += knob * (target ? params_.target(b + 5 + r) : params_.get(b + 5 + r));
+        }
+    }
+    return sum;
+}
+
+float Cumulus::moved(int32_t p, float off, bool target) const {
+    const float v = target ? params_.target(p) : params_.get(p);
+    if (off == 0.0f) return v;
+    const ParamDef &d = params_.def(p);
+    return d.map(d.unmap(v) + off);
 }
 
 int32_t Cumulus::steppedOf(int32_t p) const { return static_cast<int32_t>(paramOf(p) + 0.5f); }
@@ -143,6 +205,9 @@ void Cumulus::reset() {
         v.filterL.reset();
         v.filterR.reset();
     }
+    // A fresh LFO, since reset() keeps the random waves' seed.
+    lfo[0] = dsp::LfoGen();
+    lfo[1] = dsp::LfoGen();
     lfo[0].reset(0.0f);
     lfo[1].reset(0.25f);
     // Reset the rng, since it sets where each reader starts and how it
@@ -200,9 +265,9 @@ void Cumulus::startVoice(Voice &v, uint8_t note, uint8_t velocity) {
     v.age = ++ageCounter;
 
     const int32_t unison = std::clamp(steppedTargetOf(Spread), 1, kUnison);
-    const float detune = targetOf(Detune);
-    const float spreadWidth = targetOf(SpreadWidth);
-    const float scatter = targetOf(Scatter);
+    const float detune = moved(Detune, macroSum(DstDetune, true), true);
+    const float spreadWidth = moved(SpreadWidth, macroSum(DstSpreadWidth, true), true);
+    const float scatter = moved(Scatter, macroSum(DstScatter, true), true);
     const int32_t size = cloud != nullptr ? cloud->tables[v.zone][0].size : 1;
     for (int i = 0; i < kUnison; ++i) {
         Reader &r = v.readers[i];
@@ -282,17 +347,30 @@ bool Cumulus::render(float *L, float *R, int32_t frames) {
     if (cloud == nullptr) return true;
 
     const float dt = 1.0f / sampleRate;
-    const float ampA = paramOf(AmpAttack), ampD = paramOf(AmpDecay), ampS = paramOf(AmpSustain), ampR = paramOf(AmpRelease);
-    const float fA = paramOf(FiltAttack), fD = paramOf(FiltDecay), fS = paramOf(FiltSustain), fR = paramOf(FiltRelease);
-    const float cutoff = paramOf(Cutoff), reso = paramOf(Resonance);
+    // The macros' sums for this block, one per destination.
+    float mac[DestCount]{};
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t base = MacroBase + k * MacroParams;
+        const float knob = params_.get(base);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            const int dest = static_cast<int>(params_.get(base + 1 + r) + 0.5f);
+            if (dest > DstOff && dest < DestCount) mac[dest] += knob * params_.get(base + 5 + r);
+        }
+    }
+    auto value = [&](int dest) { return moved(kDestParam[dest], mac[dest], false); };
+
+    const float ampA = value(DstAmpAttack), ampD = value(DstAmpDecay), ampS = paramOf(AmpSustain), ampR = value(DstAmpRelease);
+    const float fA = paramOf(FiltAttack), fD = value(DstFiltDecay), fS = paramOf(FiltSustain), fR = paramOf(FiltRelease);
+    const float cutoff = value(DstCutoff), reso = value(DstResonance);
     const int32_t ftype = steppedOf(FilterType);
-    const float fenvAmt = paramOf(FilterEnv), fkey = paramOf(FilterKey), fdrive = paramOf(FilterDrive);
+    const float fenvAmt = value(DstFilterEnv), fkey = paramOf(FilterKey), fdrive = value(DstFilterDrive);
     const float glide = paramOf(Glide);
     const float bendRange = paramOf(BendRange);
-    const float tune = std::pow(2.0f, (paramOf(Octave) * 12.0f + paramOf(Transpose) + paramOf(Fine) * 0.01f) / 12.0f);
+    const float tune = std::pow(2.0f, (paramOf(Octave) * 12.0f + paramOf(Transpose) + paramOf(Fine) * 0.01f + mac[DstPitch] * 24.0f) / 12.0f);
     const float velAmount = paramOf(VelocityAmount);
-    const float width = paramOf(Width);
-    const float shimmer = paramOf(Shimmer);
+    const float width = value(DstWidth);
+    const float shimmer = value(DstShimmer);
     const float shimmerRatio = [&] {
         switch (steppedOf(ShimmerInterval)) {
         case 0: return 1.5f;   // a fifth
@@ -301,18 +379,18 @@ bool Cumulus::render(float *L, float *R, int32_t frames) {
         default: return 2.0f;  // an octave
         }
     }();
-    const float driftCents = paramOf(Drift), driftRate = paramOf(DriftRate);
-    const float drive = paramOf(Drive), volume = paramOf(Volume), pan = paramOf(Pan);
+    const float driftCents = value(DstDrift), driftRate = paramOf(DriftRate);
+    const float drive = value(DstDrive), volume = value(DstAmp), pan = value(DstPan);
     const int32_t unison = std::clamp(steppedOf(Spread), 1, kUnison);
     const float unisonNorm = 1.0f / std::sqrt(static_cast<float>(unison));
 
     // LFOs, once a block. One for the morph, one for the filter and pan.
     const float sync1 = steppedOf(Lfo1Sync) != 0 ? bpm / 60.0f : 1.0f;
-    lfoValue[0] = lfo[0].advance(steppedOf(Lfo1Wave), paramOf(Lfo1Rate) * sync1, dt * frames, 0.0f, false);
+    lfoValue[0] = lfo[0].advance(steppedOf(Lfo1Wave), value(DstLfo1Rate) * sync1, dt * frames, 0.0f, false);
     const float sync2 = steppedOf(Lfo2Sync) != 0 ? bpm / 60.0f : 1.0f;
-    lfoValue[1] = lfo[1].advance(steppedOf(Lfo2Wave), paramOf(Lfo2Rate) * sync2, dt * frames, 0.0f, false);
+    lfoValue[1] = lfo[1].advance(steppedOf(Lfo2Wave), value(DstLfo2Rate) * sync2, dt * frames, 0.0f, false);
 
-    const float morphBase = paramOf(Morph) + lfoValue[0] * paramOf(Lfo1Morph) + modWheel * 0.0f;
+    const float morphBase = value(DstMorph) + lfoValue[0] * value(DstLfo1Morph) + modWheel * 0.0f;
     const float lfoPitch = std::pow(2.0f, lfoValue[0] * paramOf(Lfo1Pitch) / 1200.0f);
     const float morphKey = paramOf(MorphKey);
     const float panL = std::cos((pan + 1.0f) * 0.25f * 3.14159265f);
@@ -354,13 +432,13 @@ bool Cumulus::render(float *L, float *R, int32_t frames) {
         const float widthOffset = width * static_cast<float>(size) * 0.25f;
         const float cutoffHz = std::clamp(
             cutoff * std::pow(2.0f, fenvAmt * 6.0f * v.fenv.value() + fkey * (v.key01 - 0.5f) * 6.0f +
-                                        lfoValue[1] * paramOf(Lfo2Cutoff) * 4.0f + prs * 2.4f),
+                                        lfoValue[1] * value(DstLfo2Cutoff) * 4.0f + prs * 2.4f),
             30.0f, sampleRate * 0.45f);
         v.filterL.set(cutoffHz, reso, ftype, dsp::MultiFilter::Valve, fdrive);
         v.filterR.set(cutoffHz, reso, ftype, dsp::MultiFilter::Valve, fdrive);
 
         const float vel = velocityGain(v.velocity, velAmount) * (1.0f + prs * 0.5f);
-        const float voicePan = lfoValue[1] * paramOf(Lfo2Pan);
+        const float voicePan = lfoValue[1] * value(DstLfo2Pan);
 
         for (int32_t i = 0; i < frames; ++i) {
             const float env = v.amp.next();

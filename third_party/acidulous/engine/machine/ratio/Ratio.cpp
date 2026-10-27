@@ -153,6 +153,18 @@ const ParamDef *Ratio::paramDefs(int32_t &count) const {
         putN(Volume, "volume", 0.0f, 1.0f, 0.7f, Curve::Linear, 0, "");
         putN(Pan, "pan", -1.0f, 1.0f, 0.0f, Curve::Linear, 0, "");
         putN(VelocityAmount, "velamt", 0.0f, 1.0f, 1.0f, Curve::Linear, 0, "");
+        for (int k = 0; k < kMacros; ++k) {
+            const int32_t b = MacroBase + k * MacroParams;
+            const int n = k + 1;
+            put(b, "mac%d", n, 0.0f, 1.0f, 0.0f, Curve::Linear, 0, "");
+            for (int r = 0; r < 4; ++r) {
+                char fmt[16];
+                std::snprintf(fmt, sizeof(fmt), "mac%%d_d%d", r + 1);
+                put(b + 1 + r, fmt, n, 0.0f, DestCount - 1.0f, 0.0f, Curve::Stepped, DestCount, "");
+                std::snprintf(fmt, sizeof(fmt), "mac%%d_a%d", r + 1);
+                put(b + 5 + r, fmt, n, -1.0f, 1.0f, 0.0f, Curve::Linear, 0, "");
+            }
+        }
         built = true;
     }
     count = Count;
@@ -397,6 +409,16 @@ void Ratio::updateVoiceMod(Voice &v, float blockSeconds) {
         const float a = sourceValue(v, src);
         const float bm = src2 == SrcOff ? 1.0f : sourceValue(v, src2);
         v.mod[dest] += a * bm * paramOf(b + XDepth);
+    }
+    // Macros: each knob times a route's depth, added to the route's destination.
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = paramOf(b);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            const int dest = stepOf(b + 1 + r);
+            if (dest != DstOff) v.mod[dest] += knob * paramOf(b + 5 + r);
+        }
     }
     // Pressure makes the note brighter and louder, on top of the matrix.
     const float prs = glidePressure(v.prsGlide, v.pressure, pressure) * paramOf(MpePressure);

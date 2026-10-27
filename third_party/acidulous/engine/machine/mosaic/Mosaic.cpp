@@ -118,10 +118,78 @@ const ParamDef *Mosaic::paramDefs(int32_t &count) const {
         }
         putN(MpeTimbre, "mpetimbre", 0.0f, 1.0f, 0.5f, Curve::Linear, 0, "");
         putN(MpePressure, "mpepressure", 0.0f, 1.0f, 0.5f, Curve::Linear, 0, "");
+        for (int k = 0; k < kMacros; ++k) {
+            const int32_t b = MacroBase + k * MacroParams;
+            const int n = k + 1;
+            put(b, "mac%d", n, 0.0f, 1.0f, 0.0f, Curve::Linear, 0, "");
+            for (int r = 0; r < 4; ++r) {
+                char fmt[16];
+                std::snprintf(fmt, sizeof(fmt), "mac%%d_d%d", r + 1);
+                put(b + 1 + r, fmt, n, 0.0f, static_cast<float>(MacroDestCount - 1), 0.0f, Curve::Stepped,
+                    MacroDestCount, "");
+                std::snprintf(fmt, sizeof(fmt), "mac%%d_a%d", r + 1);
+                put(b + 5 + r, fmt, n, -1.0f, 1.0f, 0.0f, Curve::Linear, 0, "");
+            }
+        }
         built = true;
     }
     count = Count;
     return defs;
+}
+
+namespace {
+// The macro destination each param answers to, or -1 for none.
+struct DestMap {
+    int8_t of[Mosaic::Count];
+    DestMap() {
+        using P = Mosaic;
+        for (auto &d : of) d = -1;
+        const int32_t pairs[][2] = {
+            {P::LayerScan, P::McScan}, {P::ScanAmount, P::McScanAmount}, {P::Start, P::McStart},
+            {P::GrainPos, P::McGrainPos}, {P::GrainRate, P::McGrainRate}, {P::GrainSize, P::McGrainSize},
+            {P::GrainDensity, P::McGrainDensity}, {P::GrainSpray, P::McGrainSpray}, {P::GrainPitch, P::McGrainPitch},
+            {P::AmpAttack, P::McAttack}, {P::AmpDecay, P::McDecay}, {P::AmpSustain, P::McSustain},
+            {P::AmpRelease, P::McRelease}, {P::FilterFreq, P::McCutoff}, {P::FilterRes, P::McResonance},
+            {P::FilterEnv, P::McFilterEnv}, {P::FilterDecay, P::McFilterDecay}, {P::Glide, P::McGlide},
+            {P::LfoBase + P::LRate, P::McLfo1Rate}, {P::LfoBase + P::LfoParams + P::LRate, P::McLfo2Rate},
+            {P::VelocityAmount, P::McVelocity}, {P::VelToFilter, P::McVelToFilter}, {P::Volume, P::McVolume},
+        };
+        for (const auto &pr : pairs) of[pr[0]] = static_cast<int8_t>(pr[1]);
+        for (int m = 0; m < P::kMatrixSlots; ++m)
+            of[P::MatrixBase + m * P::MatrixParams + P::XDepth] = static_cast<int8_t>(P::McMod1 + m);
+    }
+};
+const DestMap &destMap() {
+    static const DestMap m;
+    return m;
+}
+} // namespace
+
+float Mosaic::withMacros(int32_t p, float v, const float *mac) const {
+    const int d = destMap().of[p];
+    if (d < 0 || mac[d] == 0.0f) return v;
+    const ParamDef &def = params_.def(p);
+    return def.map(def.unmap(v) + mac[d]);
+}
+
+void Mosaic::updateMacros() {
+    for (float &m : mac_) m = 0.0f;
+    for (float &m : macGoal_) m = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = params_.get(b), goal = params_.target(b);
+        if (knob == 0.0f && goal == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            // The routes' destinations are steps, so their targets.
+            const int dest = static_cast<int>(params_.target(b + 1 + r) + 0.5f);
+            if (dest <= McOff || dest >= MacroDestCount) continue;
+            mac_[dest] += knob * params_.get(b + 5 + r);
+            macGoal_[dest] += goal * params_.target(b + 5 + r);
+        }
+    }
+    // Two octaves either way.
+    mac_[McPitch] = std::clamp(mac_[McPitch], -1.0f, 1.0f);
+    macGoal_[McPitch] = std::clamp(macGoal_[McPitch], -1.0f, 1.0f);
 }
 
 void Mosaic::prepare(int32_t rate) {
@@ -158,6 +226,7 @@ void Mosaic::reset() {
     cc[7] = 1.0f;
     cc[11] = 1.0f;
     cc[10] = 64.0f / 127.0f;
+    updateMacros();
 }
 
 void *Mosaic::swapObject(int32_t slot, void *object) {
@@ -192,6 +261,8 @@ Mosaic::Voice *Mosaic::allocate() {
 
 void Mosaic::noteOn(uint8_t note, uint8_t velocity) {
     if (map == nullptr || map->zones.empty()) return;
+    // A knob set in this block, before render, still counts.
+    updateMacros();
     const int mode = stepOf(VoiceMode);
     Voice *vp = (mode == 1 || mode == 2) ? &voices[0] : allocate();
     if (vp == nullptr) return;
@@ -200,7 +271,7 @@ void Mosaic::noteOn(uint8_t note, uint8_t velocity) {
     const bool wasHeld = v.used && v.gate;
     const bool retrigger = !(mode == 2 && wasHeld);
 
-    const float glideSeconds = targetOf(Glide);
+    const float glideSeconds = goalOf(Glide);
     const bool gliding = glideSeconds > 0.001f && v.used && (stepOf(GlideMode) == 0 || v.gate);
     v.glideFrom = gliding ? v.freq : noteHz(static_cast<float>(note));
     v.glidePos = gliding ? 0.0f : 1.0f;
@@ -222,8 +293,8 @@ void Mosaic::noteOn(uint8_t note, uint8_t velocity) {
 
     // Which layers sound. Scan moves the velocity axis away from the played
     // velocity, so a knob can walk through the zones.
-    const float scanAmount = clampf(targetOf(ScanAmount), 0.0f, 1.0f);
-    const float scanValue = clampf(targetOf(LayerScan) + v.mod[DstScan], 0.0f, 1.0f) * 127.0f;
+    const float scanAmount = clampf(goalOf(ScanAmount), 0.0f, 1.0f);
+    const float scanValue = clampf(goalOf(LayerScan) + v.mod[DstScan], 0.0f, 1.0f) * 127.0f;
 
     // Scan spans velocities 1 to 127. At 0 it would miss every zone and the
     // note wouldn't sound.
@@ -232,11 +303,12 @@ void Mosaic::noteOn(uint8_t note, uint8_t velocity) {
 
     int32_t zones[kZonesPerVoice];
     float gains[kZonesPerVoice];
-    const int32_t n = map->select(note, static_cast<int>(effectiveVel + 0.5f), targetOf(KeyFade), targetOf(VelFade),
+    const int32_t n = map->select(note, static_cast<int>(effectiveVel + 0.5f), goalOf(KeyFade), goalOf(VelFade),
                                   zones, gains, kZonesPerVoice);
     v.layerCount = n;
-    const float startAt = clampf(targetOf(Start) + v.mod[DstStart], 0.0f, 0.999f);
-    const bool reversed = targetOf(Reverse) >= 0.5f;
+    v.tailEnv = retrigger && wasSounding ? v.amp.value() : -1.0f;
+    const float startAt = clampf(goalOf(Start) + v.mod[DstStart], 0.0f, 0.999f);
+    const bool reversed = goalOf(Reverse) >= 0.5f;
     for (int32_t i = 0; i < n; ++i) {
         const MapZone &z = map->zones[static_cast<size_t>(zones[i])];
         Layer &L = v.layer[i];
@@ -296,19 +368,19 @@ void Mosaic::noteOn(uint8_t note, uint8_t velocity) {
         const MapZone &z = *v.layer[0].zone;
         v.amp.set(0.0f, z.attack, z.decay, z.sustain, z.release, false);
     } else {
-        v.amp.set(0.0f, targetOf(AmpAttack), targetOf(AmpDecay), targetOf(AmpSustain), targetOf(AmpRelease), false);
+        v.amp.set(0.0f, goalOf(AmpAttack), goalOf(AmpDecay), goalOf(AmpSustain), goalOf(AmpRelease), false);
     }
     v.amp.trigger();
-    v.filterEg.set(0.0f, targetOf(FilterAttack), targetOf(FilterDecay), targetOf(FilterSustain), targetOf(FilterRelease), false);
+    v.filterEg.set(0.0f, goalOf(FilterAttack), goalOf(FilterDecay), goalOf(FilterSustain), goalOf(FilterRelease), false);
     v.filterEg.trigger();
     for (int e = 0; e < kModEgs; ++e) {
         const int32_t b = EgBase + e * EgParams;
-        v.modEg[e].set(0.0f, targetOf(b + EAttack), targetOf(b + EDecay), targetOf(b + ESustain), targetOf(b + ERelease), false);
+        v.modEg[e].set(0.0f, goalOf(b + EAttack), goalOf(b + EDecay), goalOf(b + ESustain), goalOf(b + ERelease), false);
         v.modEg[e].trigger();
     }
     for (int l = 0; l < kLfos; ++l) {
         const int32_t b = LfoBase + l * LfoParams;
-        if (targetOf(b + LKeySync) >= 0.5f) v.lfo[l].trigger(targetOf(b + LPhase), targetOf(b + LDelay));
+        if (goalOf(b + LKeySync) >= 0.5f) v.lfo[l].trigger(goalOf(b + LPhase), goalOf(b + LDelay));
     }
     v.grainOffset = 0.0;
     v.grainTimer = 0.0f;
@@ -488,9 +560,11 @@ void Mosaic::cacheLayer(Layer &L, float panBase) {
 void Mosaic::renderVoice(Voice &v, int32_t frames, float *outL, float *outR) {
     // A 2 ms fade, as a step per frame.
     const float endFadeStep = 1.0f / (0.002f * sampleRate);
+    // A retaken layer's old content fades over 3 ms.
+    const float retakeStep = 1.0f / (0.003f * sampleRate);
     const float bendSemis = bend * paramOf(BendRange) + v.bend;
     const float semis = paramOf(Coarse) + paramOf(Fine) * 0.01f + paramOf(Transpose) + 12.0f * paramOf(Octave) +
-                        bendSemis + v.mod[DstPitch] * 24.0f;
+                        bendSemis + v.mod[DstPitch] * 24.0f + 24.0f * mac_[McPitch];
     const float pitchMul = std::exp2(semis / 12.0f);
     const float vel = static_cast<float>(v.velocity) / 127.0f;
     // A power curve, since some SoundFont dynamics come from modulators this
@@ -615,11 +689,15 @@ void Mosaic::renderVoice(Voice &v, int32_t frames, float *outL, float *outR) {
                 Layer &L = v.layer[z];
                 if (L.sample == nullptr || L.finished || L.sample->frames < 2) continue;
                 const double inc = rateOf(L);
-                const float s = readSample(*L.sample, L.pos) * L.gain * L.modGain * L.fade * L.fadeIn;
+                float s = readSample(*L.sample, L.pos) * L.gain * L.modGain * L.fadeIn;
                 if (L.pendingPos >= 0.0) {
-                    // Waiting to move: fade out here, then jump and fade back
-                    // in. About 4 ms in total.
-                    L.fade -= endFadeStep;
+                    // Waiting to move: fade out here on an S curve, then jump
+                    // and fade back in. About 5 ms in total. After a retake
+                    // the old content stays at the level it had, rather than
+                    // following the new attack.
+                    s *= L.fade * L.fade * (3.0f - 2.0f * L.fade);
+                    if (v.tailEnv >= 0.0f) s *= std::min(1.0f, v.tailEnv / std::max(env, 1e-6f));
+                    L.fade -= retakeStep;
                     if (L.fade <= 0.0f) {
                         L.pos = L.pendingPos;
                         if (L.pendingSample != nullptr) {
@@ -635,8 +713,9 @@ void Mosaic::renderVoice(Voice &v, int32_t frames, float *outL, float *outR) {
                         L.fade = 1.0f;
                         L.fadeIn = 0.0f;
                     }
-                } else if (L.fadeIn < 1.0f) {
-                    L.fadeIn = std::min(1.0f, L.fadeIn + endFadeStep);
+                } else {
+                    s *= L.fade;
+                    if (L.fadeIn < 1.0f) L.fadeIn = std::min(1.0f, L.fadeIn + endFadeStep);
                 }
                 l += s * L.panC * 1.4142f;
                 r += s * L.panS * 1.4142f;
@@ -680,6 +759,7 @@ void Mosaic::renderVoice(Voice &v, int32_t frames, float *outL, float *outR) {
 
 bool Mosaic::render(float *L, float *R, int32_t frames) {
     params_.tick();
+    updateMacros();
     egUsed = 0;
     for (int s = 0; s < kMatrixSlots; ++s) {
         const int32_t b = MatrixBase + s * MatrixParams;

@@ -53,8 +53,20 @@ class Cumulus final : public Machine {
         // MPE: slide moves the morph, pressure opens the filter and raises
         // the level. Added last so older patches get the defaults.
         MpeTimbre, MpePressure,
-        Count
+        // Eight macro knobs, each with four routes: a destination (a Dest)
+        // and a depth. A macro's knob times a route's depth is added to the
+        // destination, in its own 0..1 range. Block rate. Pitch is 24
+        // semitones per unit.
+        MacroBase,
+        MacroParams = 9, // knob, 4 destinations, 4 depths
+        Count = MacroBase + 8 * MacroParams
     };
+    enum Dest : int32_t { DstOff, DstMorph, DstShimmer, DstWidth, DstScatter, DstDrift, DstDetune, DstSpreadWidth,
+                          DstCutoff, DstResonance, DstFilterEnv, DstFilterDrive, DstDrive, DstAmp, DstPan,
+                          DstAmpAttack, DstAmpDecay, DstAmpRelease, DstFiltDecay,
+                          DstLfo1Rate, DstLfo1Morph, DstLfo2Rate, DstLfo2Cutoff, DstLfo2Pan, DstPitch,
+                          DestCount };
+    static constexpr int kMacros = 8;
 
     /** Where the spectrum parameters stop and the live ones start. */
     static constexpr int32_t kFirstLiveParam = Morph;
@@ -121,6 +133,10 @@ class Cumulus final : public Machine {
 
     float paramOf(int32_t p) const { return params_.get(p); }
     int32_t steppedOf(int32_t p) const;
+    /** The macros' sum onto [dest], from the knobs' smoothed values or, at note-on, their targets. */
+    float macroSum(int dest, bool target) const;
+    /** Param [p] moved by [off] in its own 0..1 range, from its smoothed value or its target. */
+    float moved(int32_t p, float off, bool target) const;
     Voice *allocate();
     void startVoice(Voice &v, uint8_t note, uint8_t velocity);
     float readTable(const cumulus::CloudTable &t, float pos) const;

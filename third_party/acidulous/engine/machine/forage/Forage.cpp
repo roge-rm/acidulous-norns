@@ -45,7 +45,7 @@ struct Table {
         };
         // All names are added before any def points at one. A ParamDef holds a
         // bare char*, so the vector must not reallocate afterwards.
-        names.reserve(Forage::kPads * Forage::PadParamCount + Forage::GlobalCount);
+        names.reserve(Forage::Count);
         for (int32_t p = 0; p < Forage::kPads; ++p) {
             for (int32_t i = 0; i < Forage::PadParamCount; ++i) {
                 char buf[32];
@@ -54,6 +54,11 @@ struct Table {
             }
         }
         for (const ParamDef &g : globals) names.emplace_back(g.name);
+        for (int k = 1; k <= Forage::kMacros; ++k) {
+            names.emplace_back("mac" + std::to_string(k));
+            for (int r = 1; r <= 4; ++r) names.emplace_back("mac" + std::to_string(k) + "_d" + std::to_string(r));
+            for (int r = 1; r <= 4; ++r) names.emplace_back("mac" + std::to_string(k) + "_a" + std::to_string(r));
+        }
         for (int32_t p = 0; p < Forage::kPads; ++p) {
             for (int32_t i = 0; i < Forage::PadParamCount; ++i) {
                 ParamDef d = per[i];
@@ -66,9 +71,47 @@ struct Table {
             d.name = names[static_cast<size_t>(Forage::kPads * Forage::PadParamCount + g)].c_str();
             defs.push_back(d);
         }
+        for (int k = 0; k < Forage::kMacros; ++k) {
+            const auto at = [&](int i) { return names[static_cast<size_t>(Forage::MacroBase + k * Forage::MacroParams + i)].c_str(); };
+            defs.push_back({at(0), 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""});
+            for (int r = 0; r < 4; ++r) {
+                defs.push_back({at(1 + r), 0.0f, Forage::MacroDestCount - 1.0f, 0.0f, Curve::Stepped, Forage::MacroDestCount, ""});
+            }
+            for (int r = 0; r < 4; ++r) defs.push_back({at(5 + r), -1.0f, 1.0f, 0.0f, Curve::Linear, 0, ""});
+        }
     }
 };
 const Table &table() { static const Table t; return t; }
+
+// The macro destinations each param answers to: one for all the pads and one
+// for its own pad, or -1 for none.
+struct DestMap {
+    int8_t all[Forage::Count], own[Forage::Count];
+    DestMap() {
+        using F = Forage;
+        for (auto &d : all) d = -1;
+        for (auto &d : own) d = -1;
+        for (int32_t pad = 0; pad < F::kPads; ++pad) {
+            all[F::index(pad, F::Start)] = F::McStart;
+            all[F::index(pad, F::End)] = F::McEnd;
+            all[F::index(pad, F::Decay)] = F::McDecay;
+            all[F::index(pad, F::Level)] = F::McLevel;
+            all[F::index(pad, F::Cutoff)] = F::McCutoff;
+            all[F::index(pad, F::Reso)] = F::McReso;
+            all[F::index(pad, F::Crush)] = F::McCrush;
+            all[F::index(pad, F::PitchEnv)] = F::McPitchEnv;
+            all[F::index(pad, F::PitchDecay)] = F::McPitchDecay;
+            own[F::index(pad, F::Pitch)] = static_cast<int8_t>(F::McTune + pad);
+            own[F::index(pad, F::Level)] = static_cast<int8_t>(F::McPadLevel + pad);
+            own[F::index(pad, F::Decay)] = static_cast<int8_t>(F::McPadDecay + pad);
+            own[F::index(pad, F::Cutoff)] = static_cast<int8_t>(F::McPadCutoff + pad);
+        }
+        all[F::globalIndex(F::Accent)] = F::McAccent;
+        all[F::globalIndex(F::Volume)] = F::McVolume;
+        all[F::globalIndex(F::Velocity)] = F::McVelocity;
+    }
+};
+const DestMap &destMap() { static const DestMap m; return m; }
 
 // kDrive sets how hard the pads hit the clipper, kHouse sets where a
 // levelled bank sits on the volume knob.
@@ -84,10 +127,41 @@ constexpr int32_t kLoopFade = 32;
 
 /** 0 one shot, 1 loop, 2 while held. */
 enum PlayMode : int32_t { OneShot = 0, Looping = 1, WhileHeld = 2 };
-constexpr float kHouse = 0.83f;
+// The bank's median peak on the audition kit sits at -11.2 dBFS, with
+// Hexbeat and Genesis.
+constexpr float kHouse = 1.12f;
 } // namespace
 
-Forage::Forage() { initParams(); }
+// Both tables are built here so the audio thread never builds them.
+Forage::Forage() {
+    destMap();
+    initParams();
+}
+
+float Forage::val(int32_t p, bool goal) const {
+    const float v = read(p, goal);
+    const int a = destMap().all[p], o = destMap().own[p];
+    const float off = (a < 0 ? 0.0f : mac_[a]) + (o < 0 ? 0.0f : mac_[o]);
+    if (off == 0.0f) return v;
+    const ParamDef &def = params_.def(p);
+    return def.map(def.unmap(v) + off);
+}
+
+void Forage::updateMacros(bool goal) {
+    for (float &m : mac_) m = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = read(b, goal);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            // The routes' destinations are steps, so their targets.
+            const int dest = static_cast<int>(params_.target(b + 1 + r) + 0.5f);
+            if (dest > McOff && dest < MacroDestCount) mac_[dest] += knob * read(b + 5 + r, goal);
+        }
+    }
+    // Two octaves either way.
+    mac_[McPitch] = std::clamp(mac_[McPitch], -1.0f, 1.0f);
+}
 
 const ParamDef *Forage::paramDefs(int32_t &count) const {
     count = static_cast<int32_t>(table().defs.size());
@@ -102,7 +176,14 @@ void Forage::prepare(int32_t sampleRate) {
 }
 
 void Forage::reset() {
-    for (auto &p : pads) { p.playing = false; p.amp = 0.0f; p.filter.reset(); }
+    for (auto &p : pads) {
+        p.playing = false;
+        p.amp = 0.0f;
+        p.filter.reset();
+        // The crusher's held sample, which the next hit starts from.
+        p.holdL = p.holdR = p.holdPhase = 0.0f;
+    }
+    updateMacros();
 }
 
 void Forage::allNotesOff() {}
@@ -137,34 +218,35 @@ void Forage::trigger(int32_t i, float vel, bool accent) {
     Pad &p = pads[i];
     const SampleData *src = p.sample != nullptr ? p.sample : shared;
     if (src == nullptr || src->frames == 0) return;
-    const float accentAmt = params_.get(globalIndex(Accent));
+    updateMacros(true); // a hit reads where the knobs are going, so renders repeat
+    const float accentAmt = val(globalIndex(Accent), true);
     // Choke: pads in the same non-zero group cut each other.
-    const float group = params_.get(index(i, Choke));
+    const float group = params_.target(index(i, Choke));
     if (group >= 0.5f) {
         for (int32_t j = 0; j < kPads; ++j) {
-            if (j != i && pads[j].playing && std::fabs(params_.get(index(j, Choke)) - group) < 0.5f) {
+            if (j != i && pads[j].playing && std::fabs(params_.target(index(j, Choke)) - group) < 0.5f) {
                 pads[j].ampCoeff = dsp::onePoleCoeff(0.006f, sr); // fast release, avoids a click
                 pads[j].penv = 0.0f;
             }
         }
     }
-    const bool reverse = params_.get(index(i, Reverse)) >= 0.5f;
+    const bool reverse = params_.target(index(i, Reverse)) >= 0.5f;
     const double frames = src->frames;
-    const double start = params_.get(index(i, Start)) * frames;
-    const double end = params_.get(index(i, End)) * frames;
+    const double start = padVal(i, Start, true) * frames;
+    const double end = padVal(i, End, true) * frames;
     p.pos = reverse ? std::max(start, end) - 1.0 : std::min(start, end);
     p.playing = true;
-    p.gain = velocityGain(vel, params_.get(globalIndex(Velocity))) * (1.0f + (accent ? accentAmt * 0.8f : 0.0f));
-    const float decay = params_.get(index(i, Decay));
+    p.gain = velocityGain(vel, val(globalIndex(Velocity), true)) * (1.0f + (accent ? accentAmt * 0.8f : 0.0f));
+    const float decay = padVal(i, Decay, true);
     // decay 1.0 plays through; below it an exponential release, 20 ms .. 4 s
     p.amp = 1.0f;
     p.ampCoeff = decay >= 0.999f ? 0.0f : dsp::onePoleCoeff(0.02f * std::pow(200.0f, decay), sr);
     p.penv = 1.0f;
-    p.penvCoeff = dsp::onePoleCoeff(params_.get(index(i, PitchDecay)) * 0.001f, sr);
+    p.penvCoeff = dsp::onePoleCoeff(padVal(i, PitchDecay, true) * 0.001f, sr);
     p.filter.reset();
     p.holdPhase = 0.0f;
     p.age = 0;
-    const auto mode = static_cast<int32_t>(params_.get(index(i, Play)) + 0.5f);
+    const auto mode = static_cast<int32_t>(params_.target(index(i, Play)) + 0.5f);
     p.held = mode == WhileHeld || mode == Looping;
 }
 
@@ -182,6 +264,7 @@ void Forage::noteOff(uint8_t note) {
 
 bool Forage::render(float *L, float *R, int32_t frames) {
     params_.tick();
+    updateMacros();
     for (int32_t n = 0; n < frames; ++n) { L[n] = 0.0f; R[n] = 0.0f; }
     for (int32_t i = 0; i < kPads; ++i) {
         Pad &p = pads[i];
@@ -189,20 +272,21 @@ bool Forage::render(float *L, float *R, int32_t frames) {
         if (!p.playing || src == nullptr) continue;
         const SampleData &s = *src;
         const bool reverse = params_.get(index(i, Reverse)) >= 0.5f;
-        const double lo = std::min(params_.get(index(i, Start)), params_.get(index(i, End))) * s.frames;
-        const double hi = std::max(params_.get(index(i, Start)), params_.get(index(i, End))) * s.frames;
-        const float pitch = params_.get(index(i, Pitch));
-        const float penvAmt = params_.get(index(i, PitchEnv));
-        const float level = params_.get(index(i, Level)) * p.gain;
+        const float start = padVal(i, Start), end = padVal(i, End);
+        const double lo = std::min(start, end) * s.frames;
+        const double hi = std::max(start, end) * s.frames;
+        const float pitch = padVal(i, Pitch) + 24.0f * mac_[McPitch];
+        const float penvAmt = padVal(i, PitchEnv);
+        const float level = padVal(i, Level) * p.gain;
         const float pan = params_.get(index(i, Pan));
         const float gl = std::cos((pan + 1.0f) * 0.25f * dsp::kPi) * 1.4142f;
         const float gr = std::sin((pan + 1.0f) * 0.25f * dsp::kPi) * 1.4142f;
-        const float crush = params_.get(index(i, Crush));
+        const float crush = padVal(i, Crush);
         const auto play = static_cast<int32_t>(params_.get(index(i, Play)) + 0.5f);
         // A slice too short to loop plays once instead.
         const bool looping = play == Looping && (hi - lo) > 4.0;
         const bool bandpass = params_.get(index(i, Mode)) >= 0.5f;
-        p.filter.set(params_.get(index(i, Cutoff)), params_.get(index(i, Reso)));
+        p.filter.set(padVal(i, Cutoff), padVal(i, Reso));
         const float levels = crush > 0.0f ? std::exp2(16.0f - crush * 13.0f) : 0.0f; // 16 -> 3 bits
         const float holdStep = 1.0f / (1.0f + crush * 11.0f);                          // 48 kHz -> 4 kHz
 
@@ -265,7 +349,7 @@ bool Forage::render(float *L, float *R, int32_t frames) {
     // The pads are turned down by kDrive before the tanh so a single accented
     // pad stays clean (about a third of full scale) and only several at once
     // start to saturate. Hexbeat does the same.
-    const float out = params_.get(globalIndex(Volume)) * kHouse;
+    const float out = val(globalIndex(Volume)) * kHouse;
     for (int32_t n = 0; n < frames; ++n) {
         L[n] = dsp::fastTanh(L[n] * kDrive) * out;
         R[n] = dsp::fastTanh(R[n] * kDrive) * out;

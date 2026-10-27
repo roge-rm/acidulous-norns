@@ -27,8 +27,26 @@ class Tine final : public Machine {
         Model = 0, Tune, Mallet, Position, Decay, Bright, Damp,
         Tube, Motor, Depth, Bloom, Buzz, Roll, Spread,
         Voices, VelocityAmount, BendRange, Octave, Volume,
-        Count
+        // A second copy of each note this many cents sharp, struck with it,
+        // so the two beat as a gamelan's pairs do. 0 is off.
+        Pair,
+        // Eight macro knobs, each with four routes: a destination (a
+        // MacroDest) and a depth. A macro's knob times a route's depth is
+        // added to the destination, in its own 0..1 range. Block rate. Pitch
+        // is 24 semitones per unit.
+        MacroBase,
+        MacroParams = 9, // knob, 4 destinations, 4 depths
+        Count = MacroBase + 8 * MacroParams
     };
+    // Where a macro route goes. Continuous params only: the model, tune,
+    // voices, bend range and octave are left out.
+    enum MacroDest : int32_t {
+        McOff, McMallet, McPosition, McDecay, McBright, McDamp, McTube, McMotor, McDepth,
+        McBloom, McBuzz, McRoll, McSpread, McVelocity, McVolume, McPair,
+        McPitch,
+        MacroDestCount
+    };
+    static constexpr int kMacros = 8;
     static_assert(Count <= kMaxParams, "too many parameters");
 
     enum Kind : int32_t {
@@ -99,9 +117,25 @@ class Tine final : public Machine {
         float level = 0.0f;
         int quietBlocks = 0;
         uint32_t age = 0;
+        /** The pair's modes, rung beside [modes] when the note was struck with pair on. */
+        Mode pairModes[kModes];
+        bool paired = false;
+        /** The pair's offset the modes are tuned to now, cents. */
+        float builtPair = -1.0f;
+        /** The pitch macro at the note-on (in [pitch]) and now, in its 0..1 units. */
+        float macAt = 0.0f, macNow = 0.0f;
     };
 
-    float paramOf(int32_t i) const { return params_.get(i); }
+    /** Param [p], smoothed, with the macros' routes to it added. */
+    float paramOf(int32_t p) const { return val(p, false); }
+    /** Param [p]'s target with the macros' targets added, for note-on seeds. */
+    float goalOf(int32_t p) const { return val(p, true); }
+    float val(int32_t p, bool goal) const;
+    /** Fills [mac_] from the smoothed macro knobs and [macGoal_] from their targets. */
+    void updateMacros();
+    /** Fills [macGoal_] alone, for a note-on between blocks. */
+    void updateMacroGoals();
+    float read(int32_t p, bool goal) const { return goal ? params_.target(p) : params_.get(p); }
     Voice *voiceFor(uint8_t note);
     /** Builds the modes for a voice's note and kind, and its strike. */
     void build(Voice &v);
@@ -109,7 +143,13 @@ class Tine final : public Machine {
     void retune(Voice &v);
     void strike(Voice &v, float velocity);
     void damp(Voice &v);
-    float pitchOf(const Voice &v) const { return v.pitch + bend * paramOf(BendRange) + v.noteBend; }
+    /** Rings [modes] (the voice's or its pair's) one sample on, struck by [x] and bowed by [bow]. */
+    float ring(Mode *modes, const Voice &v, float x, float bow, float bloom);
+    float pitchOf(const Voice &v) const {
+        const float p = v.pitch + bend * paramOf(BendRange) + v.noteBend;
+        // Apart so a note with no pitch macro moving is worked out as before.
+        return v.macNow != v.macAt ? p + (v.macNow - v.macAt) * 24.0f : p;
+    }
     float white() {
         noise = noise * 1664525u + 1013904223u;
         return static_cast<float>(noise >> 8) * (2.0f / 16777216.0f) - 1.0f;
@@ -125,6 +165,7 @@ class Tine final : public Machine {
     uint32_t clock = 0;
     int32_t quietSamples = 0;
     bool asleep = true;
+    float mac_[MacroDestCount]{}, macGoal_[MacroDestCount]{};
 };
 
 } // namespace acidulous::machine

@@ -2,6 +2,7 @@
 #include <engine/machine/Voices.h>
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <cstring>
 #include <engine/dsp/Math.h>
 
@@ -41,7 +42,7 @@ const char *const Diction::kFromOrder[24] = {
 Diction::Diction() { initParams(); }
 
 const ParamDef *Diction::paramDefs(int32_t &count) const {
-    static const ParamDef defs[Count] = {
+    static const ParamDef first[MacroBase] = {
         // oo, oh, ah, eh, ee, from the back of the mouth to the front, so
         // sweeping it moves through the vowels in between. What a note with
         // no words sings.
@@ -118,8 +119,85 @@ const ParamDef *Diction::paramDefs(int32_t &count) const {
         // effect's, so the engine and the app treat it the same.
         {"sidechain", 0.0f, 16.0f, 0.0f, Curve::Stepped, 17, ""},
     };
+    static ParamDef defs[Count];
+    static char names[kMacros * MacroParams][12];
+    static bool built = false;
+    if (!built) {
+        for (int32_t i = 0; i < MacroBase; ++i) defs[i] = first[i];
+        auto put = [&](int32_t i, const char *n, float mn, float mx, float df, Curve c, int32_t steps) {
+            char *name = names[i - MacroBase];
+            std::snprintf(name, 12, "%s", n);
+            defs[i] = ParamDef{name, mn, mx, df, c, steps, ""};
+        };
+        for (int k = 0; k < kMacros; ++k) {
+            char n[12];
+            const int32_t b = MacroBase + k * MacroParams;
+            std::snprintf(n, sizeof(n), "mac%d", k + 1);
+            put(b, n, 0.0f, 1.0f, 0.0f, Curve::Linear, 0);
+            for (int r = 0; r < 4; ++r) {
+                std::snprintf(n, sizeof(n), "mac%d_d%d", k + 1, r + 1);
+                put(b + 1 + r, n, 0.0f, static_cast<float>(MacroDestCount - 1), 0.0f, Curve::Stepped, MacroDestCount);
+                std::snprintf(n, sizeof(n), "mac%d_a%d", k + 1, r + 1);
+                put(b + 5 + r, n, -1.0f, 1.0f, 0.0f, Curve::Linear, 0);
+            }
+        }
+        built = true;
+    }
     count = Count;
     return defs;
+}
+
+namespace {
+// The macro destination each param answers to, or -1 for none.
+struct DestMap {
+    int8_t of[Diction::Count];
+    DestMap() {
+        using P = Diction;
+        for (auto &d : of) d = -1;
+        const int32_t pairs[][2] = {
+            {P::Vowel, P::McVowel}, {P::Formant, P::McFormant}, {P::Breath, P::McBreath},
+            {P::Consonants, P::McConsonants}, {P::Vibrato, P::McVibrato}, {P::VibratoRate, P::McVibratoRate},
+            {P::VibratoDelay, P::McVibratoDelay}, {P::Drift, P::McDrift}, {P::Glide, P::McGlide},
+            {P::Attack, P::McAttack}, {P::Release, P::McRelease}, {P::VelocityAmount, P::McVelocity},
+            {P::Volume, P::McVolume}, {P::ConsonantLevel, P::McConsonantLevel}, {P::Clean, P::McClean},
+            {P::Effort, P::McEffort}, {P::Rasp, P::McRasp}, {P::Growl, P::McGrowl}, {P::Whisper, P::McWhisper},
+            {P::Scoop, P::McScoop}, {P::Track, P::McTrack}, {P::Spread, P::McSpread},
+            {P::CrossSource, P::McSource}, {P::CrossThroat, P::McThroat}, {P::Morph, P::McMorph},
+        };
+        for (const auto &pr : pairs) of[pr[0]] = static_cast<int8_t>(pr[1]);
+    }
+};
+const DestMap &destMap() {
+    static const DestMap m;
+    return m;
+}
+} // namespace
+
+float Diction::withMacros(int32_t p, float v, const float *mac) const {
+    const int d = destMap().of[p];
+    if (d < 0 || mac[d] == 0.0f) return v;
+    const ParamDef &def = params_.def(p);
+    return def.map(def.unmap(v) + mac[d]);
+}
+
+void Diction::updateMacros() {
+    for (float &m : mac_) m = 0.0f;
+    for (float &m : macGoal_) m = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = params_.get(b), goal = params_.target(b);
+        if (knob == 0.0f && goal == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            // The routes' destinations are steps, so their targets.
+            const int dest = static_cast<int>(params_.target(b + 1 + r) + 0.5f);
+            if (dest <= McOff || dest >= MacroDestCount) continue;
+            mac_[dest] += knob * params_.get(b + 5 + r);
+            macGoal_[dest] += goal * params_.target(b + 5 + r);
+        }
+    }
+    // Two octaves either way.
+    mac_[McPitch] = std::clamp(mac_[McPitch], -1.0f, 1.0f);
+    macGoal_[McPitch] = std::clamp(macGoal_[McPitch], -1.0f, 1.0f);
 }
 
 void Diction::prepare(int32_t sr) {
@@ -248,7 +326,8 @@ void Diction::assignClocks() {
 
 float Diction::clockPitch(const Clock &c) const {
     if (c.note == 0) return pitch;
-    return static_cast<float>(c.note) + static_cast<float>(steppedOf(Transpose)) + 12.0f * static_cast<float>(steppedOf(Octave)) + bend;
+    return static_cast<float>(c.note) + static_cast<float>(steppedOf(Transpose)) + 12.0f * static_cast<float>(steppedOf(Octave)) + bend +
+           24.0f * mac_[McPitch];
 }
 
 float Diction::clockPeriod(Clock &c) {
@@ -352,6 +431,7 @@ void Diction::reset() {
     earlyCount = 0;
     pitchIn = 0;
     nextNote = 0;
+    updateMacros();
 }
 
 void *Diction::swapObject(int32_t slot, void *object) {
@@ -679,7 +759,7 @@ float Diction::nextOf(Clock &c) {
 // --- words into steps ---------------------------------------------------------
 
 int32_t Diction::planSyllable(const uint8_t *p, int32_t count, Step *out, int32_t capacity) const {
-    const float stretch = 0.5f + clampf(targetOf(Consonants), 0.0f, 1.0f);
+    const float stretch = 0.5f + clampf(goalOf(Consonants), 0.0f, 1.0f);
     auto phoneAt = [&](int32_t i) -> const Phone & {
         const int32_t c = i >= 0 && i < count ? p[i] : 0;
         return phones[c < phoneCount ? c : 0];
@@ -845,7 +925,7 @@ int32_t Diction::planSyllable(const uint8_t *p, int32_t count, Step *out, int32_
 }
 
 int32_t Diction::planRecorded(const uint8_t *p, int32_t count, Step *out, int32_t capacity) const {
-    const float stretch = 0.5f + clampf(targetOf(Consonants), 0.0f, 1.0f);
+    const float stretch = 0.5f + clampf(goalOf(Consonants), 0.0f, 1.0f);
     auto phoneAt = [&](int32_t i) -> const Phone & {
         const int32_t c = i >= 0 && i < count ? p[i] : 0;
         return phones[c < phoneCount ? c : 0];
@@ -1224,6 +1304,7 @@ float Diction::stillToSay() const {
 }
 
 void Diction::wordsAhead(const uint8_t *p, int32_t count, uint8_t n, uint8_t vel, int32_t inFrames) {
+    updateMacros();
     if (aheadCount == kAhead) return; // the oldest are the ones due first; this one comes on time
     Ahead &a = ahead[aheadCount++];
     a.count = std::clamp(count, 0, static_cast<int32_t>(kMaxPhones));
@@ -1259,7 +1340,7 @@ void Diction::wordsDue(int32_t frames) {
         // The last word's said: over to the new note's pitch.
         note = nextNote;
         glideFrom = pitch;
-        glideDone = targetOf(Glide) > 0.0005f ? 0.0f : 1.0f;
+        glideDone = goalOf(Glide) > 0.0005f ? 0.0f : 1.0f;
     }
     // The next word waits for this one to sing a little of its vowel, so a
     // quick note's word is heard at all; after that it has the time it needs,
@@ -1340,7 +1421,7 @@ void Diction::startPlanned(uint8_t n, uint8_t vel, bool legato, const Step *plan
     // From a note still sounding, the pitch glides over from where it is.
     // From silence there's nothing to glide from.
     glideFrom = pitch;
-    glideDone = sounding && !chord && targetOf(Glide) > 0.0005f ? 0.0f : 1.0f;
+    glideDone = sounding && !chord && goalOf(Glide) > 0.0005f ? 0.0f : 1.0f;
 
     if (legato) {
         // Joined to the note before: the glide carries the pitch across and
@@ -1349,9 +1430,9 @@ void Diction::startPlanned(uint8_t n, uint8_t vel, bool legato, const Step *plan
         beginSteps(planned, count, false);
         return;
     }
-    velocity = velocityGain(static_cast<float>(vel) / 127.0f, targetOf(VelocityAmount));
+    velocity = velocityGain(static_cast<float>(vel) / 127.0f, goalOf(VelocityAmount));
     // Arriving from a little below, more for a less steady voice.
-    scoop = -0.5f * targetOf(Drift) - targetOf(Scoop);
+    scoop = -0.5f * goalOf(Drift) - goalOf(Scoop);
     if (sounding) {
         amp.trigger(); // from where the release had got to, so no click
         beginSteps(planned, count, false);
@@ -1371,6 +1452,8 @@ void Diction::startPlanned(uint8_t n, uint8_t vel, bool legato, const Step *plan
 }
 
 void Diction::noteOn(uint8_t n, uint8_t vel) {
+    // A knob set in this block, before render, still counts.
+    updateMacros();
     int32_t begun = -1;
     for (int32_t i = 0; i < earlyCount && begun < 0; ++i) if (earlies[i].note == n) begun = i;
     if (begun >= 0) {
@@ -1425,7 +1508,7 @@ void Diction::noteOff(uint8_t n) {
         note = held[heldCount - 1];
         dropHarmony(note);
         glideFrom = pitch;
-        glideDone = targetOf(Glide) > 0.0005f ? 0.0f : 1.0f;
+        glideDone = goalOf(Glide) > 0.0005f ? 0.0f : 1.0f;
     } else {
         // The word finishes: the end of a diphthong and the consonants after
         // the vowel, then the release.
@@ -1459,7 +1542,7 @@ void Diction::channelPressure(uint8_t value) { pressure = static_cast<float>(val
 
 float Diction::targetNote() const {
     return static_cast<float>(note) + static_cast<float>(steppedOf(Transpose)) +
-           12.0f * static_cast<float>(steppedOf(Octave)) + bend;
+           12.0f * static_cast<float>(steppedOf(Octave)) + bend + 24.0f * mac_[McPitch];
 }
 
 float Diction::nextPeriod() {
@@ -1504,6 +1587,7 @@ float Diction::nextPeriod() {
 
 bool Diction::render(float *L, float *R, int32_t frames) {
     params_.tick();
+    updateMacros();
     // The rack's buffer still holds its last block: written through, even
     // asleep. Left, it came round every block as a 750 Hz tone.
     for (int32_t i = 0; i < frames; ++i) L[i] = R[i] = 0.0f;

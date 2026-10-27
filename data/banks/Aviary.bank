@@ -5,16 +5,39 @@
 # Above them the trachea, a throat tuned to the note, and the beak. A held
 # note sets a bird singing two octaves up, in time with the tempo.
 #
-# `pattern` is the song: a plain whistle, chirps, trills, a wandering
-# warble, a call answered in the gaps, or a chorus of birds each singing
-# its own. `rate` is syllables a beat, `length` how much of each it sings,
+# `pattern` is the song: a plain whistle (#0), chirps (#1), trills (#2), a
+# warbled song in phrases (#3), a call answered in the gaps (#4), a chorus of birds
+# taking turns, each its own song, pitch and distance (#5), slow falling coos with the last held (#6), or
+# harsh caws in twos and threes (#7). `rate` is syllables a beat, `length` how much of each it sings,
 # `sweep` how far each one slides (falling from above, or rising from below
 # when negative). `two` lets the syrinx's other side sing at `interval`,
 # `rasp` makes the folds slap, `breath` adds air, `throat` and `beak` shape
 # it, `flock` adds birds and `space` puts them further off. Pressure blows
 # harder; the mod wheel widens the sweeps.
 #
-# Families: whistle, chirp, trill, warble, call, chorus.
+# Forty-nine patches in seven families of seven, plainest first. Init is a
+# chirp and comes first, so the chirps' tab comes before the whistles'.
+#
+#   whistle  held whistles, and coos: doves, a wood pigeon, owls
+#   chirp    Init, chirps and peeps
+#   trill    trills, a nightjar's churr, a wren
+#   warble   songs in phrases: a skylark, lorikeets, a robin at dusk
+#   call     two-note calls, hoots, and caws: crows, gulls, a jay
+#   chorus   flocks: a dawn chorus, a rookery, a seabird cliff, a rainforest
+#   kit      sixteen pads each: a scene on one track (the bird kit, a hedgerow,
+#            a wood at dawn, a marsh, a night, a seashore, a rainforest)
+#
+# Every patch but Init carries eight named macros. Destinations are
+# numbered as in Aviary.h's MacroDest: #1 length, #2 sweep, #3 rasp, #4 two,
+# #5 interval, #6 breath, #7 throat, #8 beak, #9 spread, #10 space, #12
+# volume, #13 pitch (24 semitones a unit). Each sound gets the eight that
+# move it, e.g. a whistle Slide, Air, Hollow, Open, Rasp, Duet, Far and Low;
+# a caw Longer, Harsh, Arch, Air, Hollow, Open, Far and Low. A macro whose
+# knob has no room left goes the other way under the opposite name (Solo,
+# Shorter, Near, ...). A kit's macros reach the knobs every pad shares.
+# Where a macro at full moves the level by more than 1.5 dB, a volume route
+# takes it back out. Levels are read off an 8 s held note, on its loudest
+# tenth, since a coo or a caw is mostly rests between calls.
 
 machine Aviary
 role lead
@@ -23,11 +46,71 @@ patch Init family=chirp note=60 range=48..72
 
 patch "Pure Whistle" family=whistle note=60 range=48..72
   # A clear held note, sliding into it.
+  set macro1 "Slide"
+  set macro2 "Air"
+  set macro3 "Hollow"
+  set macro4 "Open"
+  set macro5 "Rasp"
+  set macro6 "Duet"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.15
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #7
+  mac3_a1  0.35
+  mac4_d1  #8
+  mac4_a1  0.35
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac6_d1  #4
+  mac6_a1  0.6
+  mac6_d2  #12
+  mac6_a2  -0.189
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.26
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.278
   pattern        #0
   sweep          4 st
 
 patch "Two-Voiced Whistle" family=whistle note=60 range=48..72
   # Both sides of the syrinx at once, a fifth apart.
+  set macro1 "Slide"
+  set macro2 "Air"
+  set macro3 "Hollow"
+  set macro4 "Open"
+  set macro5 "Rasp"
+  set macro6 "Solo"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.15
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #7
+  mac3_a1  0.35
+  mac4_d1  #8
+  mac4_a1  0.35
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac6_d1  #4
+  mac6_a1  -0.6
+  mac6_d2  #12
+  mac6_a2  0.206
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.276
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.3
   pattern        #0
   sweep          3 st
   two            0.8
@@ -35,31 +118,300 @@ patch "Two-Voiced Whistle" family=whistle note=60 range=48..72
 
 patch "Slow Whistle" family=whistle note=55 range=43..67
   # A long, low slide into the note, breathy.
+  set macro1 "Slide"
+  set macro2 "Air"
+  set macro3 "Hollow"
+  set macro4 "Open"
+  set macro5 "Rasp"
+  set macro6 "Duet"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.15
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #7
+  mac3_a1  0.35
+  mac4_d1  #8
+  mac4_a1  0.35
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac6_d1  #4
+  mac6_a1  0.6
+  mac6_d2  #12
+  mac6_a2  -0.153
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.248
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.162
   pattern        #0
   sweep          12 st
   breath         0.3
 
 patch "Ringing Whistle" family=whistle note=62 range=48..74
   # The throat tuned close: hollow and pure.
+  set macro1 "Slide"
+  set macro2 "Air"
+  set macro3 "Thin"
+  set macro4 "Open"
+  set macro5 "Rasp"
+  set macro6 "Duet"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.15
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #7
+  mac3_a1  -0.35
+  mac4_d1  #8
+  mac4_a1  0.35
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac6_d1  #4
+  mac6_a1  0.6
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.266
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.3
   pattern        #0
   throat         0.9
   beak           0.3
   sweep          2 st
 
+patch "Dove Coo" family=whistle note=50 range=43..62
+  # Soft coos, each a step lower, the last one held.
+  set macro1 "Longer"
+  set macro2 "Fall"
+  set macro3 "Hollow"
+  set macro4 "Air"
+  set macro5 "Rasp"
+  set macro6 "Duet"
+  set macro7 "Far"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.316
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #7
+  mac3_a1  0.3
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac6_d1  #4
+  mac6_a1  0.6
+  mac7_d1  #10
+  mac7_a1  0.221
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  -0.253
+  pattern        #6
+  rate           #1
+  length         0.7
+  sweep          5 st
+  breath         0.15
+  throat         0.7
+  beak           0.35
+  space          0.25
+  volume         1
+
+patch "Wood Pigeon" family=whistle note=52 range=45..62
+  # A deep, breathy coo, an octave down.
+  set macro1 "Shorter"
+  set macro2 "Fall"
+  set macro3 "Thin"
+  set macro4 "Air"
+  set macro5 "Rasp"
+  set macro6 "Duet"
+  set macro7 "Far"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #7
+  mac3_a1  -0.35
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac6_d1  #4
+  mac6_a1  0.6
+  mac7_d1  #10
+  mac7_a1  0.233
+  mac8_d1  #13
+  mac8_a1  0.5
+  pattern        #6
+  rate           #1
+  length         0.85
+  sweep          4 st
+  rasp           0.2
+  breath         0.25
+  throat         0.8
+  beak           0.25
+  octave         -1
+  volume         1
+
+patch "Owl Hoots" family=whistle note=50 range=43..60
+  # Slow hollow hoots at night, far off.
+  set macro1 "Shorter"
+  set macro2 "Fall"
+  set macro3 "Thin"
+  set macro4 "Air"
+  set macro5 "Rasp"
+  set macro6 "Duet"
+  set macro7 "Far"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #7
+  mac3_a1  -0.35
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac6_d1  #4
+  mac6_a1  0.6
+  mac7_d1  #10
+  mac7_a1  0.209
+  mac8_d1  #13
+  mac8_a1  0.5
+  pattern        #6
+  rate           #0
+  length         0.9
+  sweep          3 st
+  rasp           0
+  breath         0.35
+  throat         0.85
+  beak           0.2
+  space          0.35
+  octave         -1
+  volume         1
+
 patch "Down Chirps" family=chirp note=60 range=48..72
   # Quick falling chirps, four a beat.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Duet"
+  set macro5 "Air"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.21
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac2_d2  #12
+  mac2_a2  -0.115
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  -0.171
+  mac5_d1  #6
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.272
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.3
   pattern        #1
   sweep          9 st
   length         0.4
 
 patch "Up Chirps" family=chirp note=60 range=48..72
   # Rising chirps, like a question.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Duet"
+  set macro5 "Air"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.185
+  mac2_d1  #2
+  mac2_a1  -0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  -0.172
+  mac5_d1  #6
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.255
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.232
   pattern        #1
   sweep          -9 st
   length         0.4
 
 patch "Sparrow Chips" family=chirp note=64 range=52..76
   # Short, harsh chips, eight a beat.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Duet"
+  set macro5 "Air"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.282
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  -0.145
+  mac5_d1  #6
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.281
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.3
   pattern        #1
   rate           #3
   length         0.3
@@ -68,13 +420,164 @@ patch "Sparrow Chips" family=chirp note=64 range=52..76
 
 patch "Swooping Chirps" family=chirp note=57 range=45..69
   # Long sweeps over an octave, two a beat.
+  set macro1 "Shorter"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Duet"
+  set macro5 "Air"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac1_d2  #12
+  mac1_a2  0.262
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  -0.152
+  mac5_d1  #6
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.278
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.3
   pattern        #1
   rate           #1
   length         0.8
   sweep          14 st
 
+patch "Parakeet Chatter" family=chirp note=62 range=50..74
+  # Fast scratchy chirps from both sides at once.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Duet"
+  set macro5 "Air"
+  set macro6 "Closed"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.198
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #4
+  mac4_a1  0.5
+  mac4_d2  #12
+  mac4_a2  -0.127
+  mac5_d1  #6
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  -0.35
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.257
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.355
+  pattern        #1
+  rate           #3
+  length         0.5
+  sweep          6 st
+  rasp           0.45
+  two            0.5
+  interval       3 st
+  breath         0.15
+  beak           0.8
+  volume         0.645
+
+patch "Plover Peeps" family=chirp note=60 range=48..72
+  # Short rising peeps across a beach.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Duet"
+  set macro5 "Air"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.278
+  mac2_d1  #2
+  mac2_a1  -0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  -0.177
+  mac5_d1  #6
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #10
+  mac7_a1  0.196
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  -0.508
+  pattern        #1
+  rate           #1
+  length         0.35
+  sweep          -5 st
+  breath         0.15
+  throat         0.75
+  beak           0.55
+  space          0.3
+  volume         1
+
 patch "Fast Trill" family=trill note=64 range=52..76
   # A fast, tight trill.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Duet"
+  set macro5 "Air"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.233
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  -0.159
+  mac5_d1  #6
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.275
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.3
   pattern        #2
   rate           #2
   length         0.6
@@ -82,6 +585,36 @@ patch "Fast Trill" family=trill note=64 range=52..76
 
 patch "Rattling Trill" family=trill note=60 range=48..72
   # A dry, buzzing trill.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Duet"
+  set macro5 "Air"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.347
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac5_d1  #6
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.269
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.3
   pattern        #2
   rate           #3
   rasp           0.6
@@ -89,6 +622,38 @@ patch "Rattling Trill" family=trill note=60 range=48..72
 
 patch "Slow Trill" family=trill note=60 range=48..72
   # A slower, wider trill.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Duet"
+  set macro5 "Air"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.316
+  mac1_d2  #12
+  mac1_a2  -0.145
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  -0.181
+  mac5_d1  #6
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.261
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.291
   pattern        #2
   rate           #1
   length         0.7
@@ -96,48 +661,519 @@ patch "Slow Trill" family=trill note=60 range=48..72
 
 patch "Two-Note Trill" family=trill note=62 range=48..74
   # Both sides trilling together.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Solo"
+  set macro5 "Air"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.279
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #4
+  mac4_a1  -0.6
+  mac4_d2  #12
+  mac4_a2  0.239
+  mac5_d1  #6
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.278
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.3
   pattern        #2
   rate           #2
   two            0.7
   interval       5 st
 
+patch "Nightjar Churr" family=trill note=50 range=43..62
+  # A low, dry churr that goes on and on.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Duet"
+  set macro5 "Air"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.263
+  mac1_d2  #12
+  mac1_a2  -0.231
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac5_d1  #6
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #10
+  mac7_a1  0.217
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  -0.337
+  pattern        #2
+  rate           #4
+  length         0.75
+  sweep          1 st
+  rasp           0.45
+  breath         0.25
+  throat         0.6
+  beak           0.45
+  space          0.25
+  volume         1
+
+patch "Wren Trill" family=trill note=68 range=60..76
+  # High, fast and loud for its size.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Duet"
+  set macro5 "Air"
+  set macro6 "Closed"
+  set macro7 "Far"
+  set macro8 "Hollow"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.316
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac5_d1  #6
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  -0.35
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.28
+  mac8_d1  #7
+  mac8_a1  0.35
+  pattern        #2
+  rate           #3
+  length         0.55
+  sweep          4 st
+  throat         0.4
+  beak           0.85
+  volume         0.72
+
+patch "Reed Bed Trill" family=trill note=57 range=48..69
+  # A scratchy trill from the reeds, two notes at once.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Duet"
+  set macro5 "Air"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.361
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac5_d1  #6
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #10
+  mac7_a1  0.208
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  -0.488
+  pattern        #2
+  rate           #2
+  length         0.6
+  sweep          3 st
+  rasp           0.35
+  two            0.4
+  interval       -5 st
+  breath         0.2
+  space          0.25
+  volume         1
+
 patch Warbler family=warble note=60 range=48..72
-  # Wandering about the note, never stopping.
+  # Phrases of falls, rises, slurs and short trills, with pauses between.
+  set macro1 "Shorter"
+  set macro2 "Wander"
+  set macro3 "Rasp"
+  set macro4 "Duet"
+  set macro5 "Air"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac1_d2  #12
+  mac1_a2  0.221
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  -0.198
+  mac5_d1  #6
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.267
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.3
   pattern        #3
   length         1
   sweep          9 st
+  volume         0.733
 
 patch "Quick Warbler" family=warble note=64 range=52..76
   # Fast and bright, eight steps a beat.
+  set macro1 "Shorter"
+  set macro2 "Wander"
+  set macro3 "Rasp"
+  set macro4 "Duet"
+  set macro5 "Air"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac1_d2  #12
+  mac1_a2  0.252
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  -0.166
+  mac5_d1  #6
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.3
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.281
+  mac8_d1  #13
+  mac8_a1  -0.464
+  mac8_d2  #12
+  mac8_a2  0.3
   pattern        #3
   rate           #3
   length         1
   sweep          7 st
   beak           0.7
+  volume         0.891
 
 patch "Raspy Warbler" family=warble note=57 range=45..69
   # Scratchy and wide.
+  set macro1 "Shorter"
+  set macro2 "Wander"
+  set macro3 "Rasp"
+  set macro4 "Duet"
+  set macro5 "Air"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac1_d2  #12
+  mac1_a2  0.24
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  -0.175
+  mac5_d1  #6
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.266
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.291
   pattern        #3
   length         0.9
   sweep          12 st
   rasp           0.5
+  volume         0.669
 
 patch "Twin Warblers" family=warble note=60 range=48..72
   # Two birds wandering apart.
+  set macro1 "Shorter"
+  set macro2 "Wander"
+  set macro3 "Rasp"
+  set macro4 "Duet"
+  set macro5 "Air"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac1_d2  #12
+  mac1_a2  0.216
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  -0.191
+  mac5_d1  #6
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.264
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.3
   pattern        #3
   length         1
   sweep          9 st
   flock          #1
   spread         0.8
+  volume         1.0
+
+patch Skylark family=warble note=69 range=60..76
+  # A high song that hardly stops, from up in the air.
+  set macro1 "Shorter"
+  set macro2 "Wander"
+  set macro3 "Rasp"
+  set macro4 "Duet"
+  set macro5 "Air"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac1_d2  #12
+  mac1_a2  0.144
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac5_d1  #6
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.25
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.301
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.368
+  pattern        #3
+  rate           #3
+  length         1
+  sweep          10 st
+  beak           0.75
+  space          0.45
+  volume         0.512
+
+patch "Lorikeet Warble" family=warble note=64 range=52..76
+  # Two bright, scratchy birds, each side an octave apart.
+  set macro1 "Shorter"
+  set macro2 "Wander"
+  set macro3 "Rasp"
+  set macro4 "Duet"
+  set macro5 "Air"
+  set macro6 "Closed"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac1_d2  #12
+  mac1_a2  0.132
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #4
+  mac4_a1  0.4
+  mac5_d1  #6
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  -0.35
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.138
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.122
+  pattern        #3
+  rate           #3
+  length         0.85
+  sweep          8 st
+  rasp           0.4
+  two            0.6
+  interval       12 st
+  beak           0.8
+  flock          #1
+  spread         0.7
+  volume         0.486
+
+patch "Robin at Dusk" family=warble note=62 range=50..74
+  # A slow, thoughtful song in the evening.
+  set macro1 "Shorter"
+  set macro2 "Wander"
+  set macro3 "Rasp"
+  set macro4 "Duet"
+  set macro5 "Air"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac1_d2  #12
+  mac1_a2  0.177
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  -0.14
+  mac5_d1  #6
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.354
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.354
+  pattern        #3
+  rate           #1
+  length         0.9
+  sweep          7 st
+  breath         0.12
+  throat         0.65
+  space          0.5
+  volume         0.676
 
 patch "Two-Note Call" family=call note=60 range=48..72
   # A call a third apart, two notes a beat.
+  set macro1 "Longer"
+  set macro2 "Rasp"
+  set macro3 "Duet"
+  set macro4 "Air"
+  set macro5 "Hollow"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac2_d1  #3
+  mac2_a1  0.4
+  mac3_d1  #4
+  mac3_a1  0.6
+  mac3_d2  #12
+  mac3_a2  -0.175
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #7
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.256
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.235
   pattern        #4
   rate           #1
   length         0.6
 
 patch "Call and Answer" family=call note=60 range=48..72
   # One bird calls, another answers in the gap.
+  set macro1 "Longer"
+  set macro2 "Rasp"
+  set macro3 "Duet"
+  set macro4 "Air"
+  set macro5 "Hollow"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac2_d1  #3
+  mac2_a1  0.4
+  mac3_d1  #4
+  mac3_a1  0.6
+  mac3_d2  #12
+  mac3_a2  -0.175
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #7
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.256
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.235
   pattern        #4
   rate           #1
   length         0.6
@@ -146,6 +1182,38 @@ patch "Call and Answer" family=call note=60 range=48..72
 
 patch "Distant Call" family=call note=55 range=43..67
   # A slow call across the valley.
+  set macro1 "Longer"
+  set macro2 "Rasp"
+  set macro3 "Duet"
+  set macro4 "Air"
+  set macro5 "Hollow"
+  set macro6 "Open"
+  set macro7 "Near"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.177
+  mac2_d1  #3
+  mac2_a1  0.4
+  mac3_d1  #4
+  mac3_a1  0.6
+  mac3_d2  #12
+  mac3_a2  -0.186
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #7
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #10
+  mac7_a1  -0.45
+  mac7_d2  #12
+  mac7_a2  -0.265
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.1
   pattern        #4
   rate           #0
   length         0.5
@@ -154,6 +1222,34 @@ patch "Distant Call" family=call note=55 range=43..67
 
 patch "Hooting Call" family=call note=48 range=40..62
   # Low and hollow, the beak almost closed.
+  set macro1 "Longer"
+  set macro2 "Rasp"
+  set macro3 "Duet"
+  set macro4 "Air"
+  set macro5 "Thin"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.316
+  mac2_d1  #3
+  mac2_a1  0.4
+  mac3_d1  #4
+  mac3_a1  0.6
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #7
+  mac5_a1  -0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.239
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  -0.197
   pattern        #4
   rate           #0
   length         0.7
@@ -161,34 +1257,1029 @@ patch "Hooting Call" family=call note=48 range=40..62
   beak           0.1
   breath         0.25
 
-patch "Dawn Chorus" family=chorus note=60 range=48..72 role=pad
+patch "Crow Caws" family=call note=48 range=40..60
+  # Harsh caws in twos and threes.
+  set macro1 "Longer"
+  set macro2 "Harsh"
+  set macro3 "Arch"
+  set macro4 "Air"
+  set macro5 "Hollow"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac2_d1  #3
+  mac2_a1  0.4
+  mac3_d1  #2
+  mac3_a1  0.15
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #7
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #10
+  mac7_a1  0.39
+  mac7_d2  #12
+  mac7_a2  0.117
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  -0.229
+  pattern        #7
+  rate           #1
+  length         0.5
+  sweep          3 st
+  rasp           0.6
+  breath         0.2
+  throat         0.4
+  beak           0.6
+  volume         0.883
+
+patch "Gull Cries" family=call note=60 range=50..70
+  # Rising, then falling away, over the water.
+  set macro1 "Longer"
+  set macro2 "Harsh"
+  set macro3 "Arch"
+  set macro4 "Air"
+  set macro5 "Hollow"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.316
+  mac2_d1  #3
+  mac2_a1  0.4
+  mac3_d1  #2
+  mac3_a1  0.15
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #7
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.3
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.276
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.271
+  pattern        #7
+  rate           #1
+  length         0.7
+  sweep          10 st
+  rasp           0.25
+  two            0.25
+  breath         0.15
+  beak           0.7
+  space          0.3
+  volume         0.59
+
+patch "Jay Scold" family=call note=58 range=48..68
+  # Quick, rough scolding.
+  set macro1 "Longer"
+  set macro2 "Soft"
+  set macro3 "Arch"
+  set macro4 "Air"
+  set macro5 "Hollow"
+  set macro6 "Open"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac2_d1  #3
+  mac2_a1  -0.4
+  mac3_d1  #2
+  mac3_a1  0.15
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #7
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.25
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.296
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.207
+  pattern        #7
+  rate           #2
+  length         0.4
+  sweep          2 st
+  rasp           1
+  breath         0.4
+  throat         0.3
+  beak           0.75
+  volume         0.7
+
+patch "Dawn Chorus" family=chorus note=60 range=48..72 role=scene
   # Four birds, each singing its own song.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Air"
+  set macro5 "Open"
+  set macro6 "Close"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.248
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #8
+  mac5_a1  0.35
+  mac6_d1  #9
+  mac6_a1  -0.4
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.3
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.3
   pattern        #5
   flock          #3
   spread         1
   space          0.4
+  volume         0.699
 
-patch "Garden Birds" family=chorus note=64 range=52..76 role=pad
+patch "Garden Birds" family=chorus note=64 range=52..76 role=scene
   # Two birds nearby.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Air"
+  set macro5 "Open"
+  set macro6 "Wide"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.182
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #8
+  mac5_a1  0.35
+  mac6_d1  #9
+  mac6_a1  0.3
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.288
+  mac8_d1  #13
+  mac8_a1  -0.429
+  mac8_d2  #12
+  mac8_a2  0.3
   pattern        #5
   flock          #1
   spread         0.7
+  volume         0.569
 
-patch "Far Off Flock" family=chorus note=60 range=48..72 role=pad
+patch "Far Off Flock" family=chorus note=60 range=48..72 role=scene
   # A flock across the field.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Air"
+  set macro5 "Open"
+  set macro6 "Close"
+  set macro7 "Near"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.3
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #8
+  mac5_a1  0.35
+  mac6_d1  #9
+  mac6_a1  -0.4
+  mac7_d1  #10
+  mac7_a1  -0.45
+  mac7_d2  #12
+  mac7_a2  -0.285
+  mac8_d1  #13
+  mac8_a1  -0.464
+  mac8_d2  #12
+  mac8_a2  0.15
   pattern        #5
   flock          #3
   spread         1
   space          0.85
-  volume         0.85
+  volume         0.881
 
-patch "Busy Hedge" family=chorus note=62 range=48..74 role=pad
+patch "Busy Hedge" family=chorus note=62 range=48..74 role=scene
   # Fast and close.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Air"
+  set macro5 "Open"
+  set macro6 "Close"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.35
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #8
+  mac5_a1  0.35
+  mac6_d1  #9
+  mac6_a1  -0.4
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.267
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.3
   pattern        #5
   flock          #3
   rate           #3
   spread         0.8
+  volume         0.447
+
+patch Rookery family=chorus note=50 range=43..62 role=scene
+  # A tree full of rooks, cawing over each other.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Air"
+  set macro5 "Open"
+  set macro6 "Wide"
+  set macro7 "Far"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #8
+  mac5_a1  0.35
+  mac6_d1  #9
+  mac6_a1  0.4
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.32
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  -0.181
+  pattern        #7
+  flock          #3
+  rate           #1
+  length         0.5
+  sweep          3 st
+  rasp           0.6
+  breath         0.2
+  spread         0.6
+  space          0.45
+  volume         0.898
+
+patch "Seabird Cliff" family=chorus note=62 range=52..72 role=scene
+  # Gulls and terns crying along a cliff.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Air"
+  set macro5 "Open"
+  set macro6 "Close"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.368
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #8
+  mac5_a1  0.3
+  mac6_d1  #9
+  mac6_a1  -0.4
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.362
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.206
+  pattern        #7
+  flock          #3
+  rate           #1
+  length         0.65
+  sweep          9 st
+  rasp           0.3
+  beak           0.7
+  spread         1
+  space          0.55
+  volume         0.67
+
+patch "Rainforest Canopy" family=chorus note=64 range=52..76 role=scene
+  # Bright birds high up, each side an octave apart.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Air"
+  set macro5 "Closed"
+  set macro6 "Wide"
+  set macro7 "Far"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.111
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #8
+  mac5_a1  -0.35
+  mac6_d1  #9
+  mac6_a1  0.25
+  mac7_d1  #10
+  mac7_a1  0.45
+  mac7_d2  #12
+  mac7_a2  0.288
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.187
+  pattern        #5
+  flock          #3
+  rate           #3
+  sweep          10 st
+  rasp           0.2
+  two            0.5
+  interval       12 st
+  beak           0.8
+  spread         0.75
+  space          0.5
+  volume         0.58
 
 patch "Bird Kit" family=kit note=36 range=36..51
   # Sixteen pads: whistles, chirps, trills, warbles, calls and choruses, a hedge on one track.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Air"
+  set macro5 "Hollow"
+  set macro6 "Open"
+  set macro7 "Wide"
+  set macro8 "Far"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.184
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #7
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #10
+  mac8_a1  0.45
+  mac8_d2  #12
+  mac8_a2  0.3
   kit            1
+
+patch "Hedgerow Kit" family=kit note=36 range=36..51
+  # A garden hedge: sparrows, a wren, a robin, tits, doves, a magpie.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Air"
+  set macro5 "Hollow"
+  set macro6 "Open"
+  set macro7 "Wide"
+  set macro8 "Near"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.216
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #7
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #9
+  mac7_a1  0.3
+  mac8_d1  #10
+  mac8_a1  -0.25
+  kit            1
+  spread         0.7
+  space          0.25
+  p01_song       #1
+  p01_note       76
+  p01_flock      #0
+  p01_level      0.582
+  p02_song       #1
+  p02_note       72
+  p02_flock      #1
+  p02_level      0.312
+  p03_song       #2
+  p03_note       74
+  p03_flock      #0
+  p03_level      0.509
+  p04_song       #2
+  p04_note       67
+  p04_flock      #0
+  p04_level      0.551
+  p05_song       #3
+  p05_note       64
+  p05_flock      #0
+  p05_level      0.528
+  p06_song       #3
+  p06_note       57
+  p06_flock      #0
+  p06_level      0.783
+  p07_song       #0
+  p07_note       69
+  p07_flock      #0
+  p07_level      0.281
+  p08_song       #4
+  p08_note       67
+  p08_flock      #0
+  p08_level      0.519
+  p09_song       #4
+  p09_note       62
+  p09_flock      #1
+  p09_level      0.515
+  p10_song       #6
+  p10_note       50
+  p10_flock      #0
+  p10_level      0.951
+  p11_song       #6
+  p11_note       45
+  p11_flock      #0
+  p11_level      1
+  p12_song       #7
+  p12_note       60
+  p12_flock      #0
+  p12_level      0.584
+  p13_song       #7
+  p13_note       55
+  p13_flock      #1
+  p13_level      0.625
+  p14_song       #5
+  p14_note       64
+  p14_flock      #2
+  p14_level      0.35
+  p15_song       #5
+  p15_note       69
+  p15_flock      #3
+  p15_level      0.211
+  p16_song       #0
+  p16_note       60
+  p16_flock      #0
+  p16_level      0.509
+  volume         0.993
+
+patch "Dawn Wood Kit" family=kit note=36 range=36..51
+  # A wood at first light, the owl going off as the rest start up.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Air"
+  set macro5 "Hollow"
+  set macro6 "Open"
+  set macro7 "Wide"
+  set macro8 "Near"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.229
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #7
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #10
+  mac8_a1  -0.45
+  mac8_d2  #12
+  mac8_a2  -0.248
+  kit            1
+  breath         0.15
+  space          0.45
+  p01_song       #0
+  p01_note       64
+  p01_flock      #0
+  p01_level      0.463
+  p02_song       #0
+  p02_note       71
+  p02_flock      #0
+  p02_level      0.296
+  p03_song       #1
+  p03_note       69
+  p03_flock      #0
+  p03_level      0.442
+  p04_song       #1
+  p04_note       74
+  p04_flock      #2
+  p04_level      0.322
+  p05_song       #2
+  p05_note       72
+  p05_flock      #0
+  p05_level      0.518
+  p06_song       #2
+  p06_note       65
+  p06_flock      #0
+  p06_level      0.73
+  p07_song       #3
+  p07_note       62
+  p07_flock      #0
+  p07_level      0.676
+  p08_song       #3
+  p08_note       67
+  p08_flock      #1
+  p08_level      0.367
+  p09_song       #4
+  p09_note       55
+  p09_flock      #0
+  p09_level      1
+  p10_song       #4
+  p10_note       60
+  p10_flock      #1
+  p10_level      0.634
+  p11_song       #6
+  p11_note       47
+  p11_flock      #0
+  p11_level      1
+  p12_song       #6
+  p12_note       40
+  p12_flock      #0
+  p12_level      1
+  p13_song       #7
+  p13_note       50
+  p13_flock      #0
+  p13_level      0.886
+  p14_song       #5
+  p14_note       60
+  p14_flock      #3
+  p14_level      0.413
+  p15_song       #5
+  p15_note       67
+  p15_flock      #3
+  p15_level      0.256
+  p16_song       #5
+  p16_note       72
+  p16_flock      #2
+  p16_level      0.284
+  volume         1
+
+patch "Marsh Kit" family=kit note=36 range=36..51
+  # Reeds and open water: warblers, peeps, a heron, a far boom.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Air"
+  set macro5 "Hollow"
+  set macro6 "Open"
+  set macro7 "Wide"
+  set macro8 "Near"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.219
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #7
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #10
+  mac8_a1  -0.45
+  mac8_d2  #12
+  mac8_a2  -0.247
+  kit            1
+  rasp           0.3
+  breath         0.2
+  space          0.5
+  p01_song       #2
+  p01_note       57
+  p01_flock      #0
+  p01_level      1
+  p02_song       #2
+  p02_note       64
+  p02_flock      #1
+  p02_level      0.529
+  p03_song       #3
+  p03_note       60
+  p03_flock      #0
+  p03_level      0.795
+  p04_song       #3
+  p04_note       67
+  p04_flock      #0
+  p04_level      0.499
+  p05_song       #0
+  p05_note       62
+  p05_flock      #0
+  p05_level      0.536
+  p06_song       #0
+  p06_note       55
+  p06_flock      #0
+  p06_level      0.704
+  p07_song       #1
+  p07_note       72
+  p07_flock      #0
+  p07_level      0.496
+  p08_song       #1
+  p08_note       66
+  p08_flock      #2
+  p08_level      0.304
+  p09_song       #4
+  p09_note       52
+  p09_flock      #0
+  p09_level      1
+  p10_song       #4
+  p10_note       59
+  p10_flock      #1
+  p10_level      0.668
+  p11_song       #6
+  p11_note       31
+  p11_flock      #0
+  p11_level      1
+  p12_song       #6
+  p12_note       43
+  p12_flock      #0
+  p12_level      1
+  p13_song       #7
+  p13_note       40
+  p13_flock      #0
+  p13_level      1
+  p14_song       #7
+  p14_note       52
+  p14_flock      #0
+  p14_level      0.84
+  p15_song       #5
+  p15_note       62
+  p15_flock      #3
+  p15_level      0.33
+  p16_song       #5
+  p16_note       57
+  p16_flock      #2
+  p16_level      0.494
+  volume         1
+
+patch "Night Kit" family=kit note=36 range=36..51
+  # Owls, a nightjar and a nightingale, all a long way off.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Air"
+  set macro5 "Hollow"
+  set macro6 "Open"
+  set macro7 "Wide"
+  set macro8 "Near"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.195
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #7
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #10
+  mac8_a1  -0.45
+  mac8_d2  #12
+  mac8_a2  -0.263
+  kit            1
+  breath         0.25
+  throat         0.65
+  space          0.55
+  p01_song       #6
+  p01_note       38
+  p01_flock      #0
+  p01_level      1
+  p02_song       #6
+  p02_note       42
+  p02_flock      #0
+  p02_level      1
+  p03_song       #6
+  p03_note       46
+  p03_flock      #1
+  p03_level      0.836
+  p04_song       #7
+  p04_note       70
+  p04_flock      #0
+  p04_level      0.406
+  p05_song       #7
+  p05_note       64
+  p05_flock      #0
+  p05_level      0.595
+  p06_song       #2
+  p06_note       50
+  p06_flock      #0
+  p06_level      1
+  p07_song       #2
+  p07_note       55
+  p07_flock      #0
+  p07_level      1
+  p08_song       #3
+  p08_note       67
+  p08_flock      #0
+  p08_level      0.508
+  p09_song       #3
+  p09_note       72
+  p09_flock      #0
+  p09_level      0.453
+  p10_song       #0
+  p10_note       69
+  p10_flock      #0
+  p10_level      0.338
+  p11_song       #0
+  p11_note       60
+  p11_flock      #0
+  p11_level      0.597
+  p12_song       #4
+  p12_note       57
+  p12_flock      #0
+  p12_level      1
+  p13_song       #4
+  p13_note       52
+  p13_flock      #1
+  p13_level      0.792
+  p14_song       #1
+  p14_note       74
+  p14_flock      #0
+  p14_level      0.6
+  p15_song       #5
+  p15_note       62
+  p15_flock      #1
+  p15_level      0.506
+  p16_song       #5
+  p16_note       67
+  p16_flock      #2
+  p16_level      0.301
+  volume         1
+
+patch "Seashore Kit" family=kit note=36 range=36..51
+  # Gulls, terns, waders and a cormorant along the shore.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Air"
+  set macro5 "Hollow"
+  set macro6 "Open"
+  set macro7 "Close"
+  set macro8 "Near"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.208
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #7
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.35
+  mac7_d1  #9
+  mac7_a1  -0.4
+  mac8_d1  #10
+  mac8_a1  -0.4
+  mac8_d2  #12
+  mac8_a2  -0.218
+  kit            1
+  beak           0.6
+  spread         0.9
+  space          0.4
+  p01_song       #7
+  p01_note       60
+  p01_flock      #0
+  p01_level      0.64
+  p02_song       #7
+  p02_note       64
+  p02_flock      #1
+  p02_level      0.392
+  p03_song       #7
+  p03_note       67
+  p03_flock      #2
+  p03_level      0.272
+  p04_song       #7
+  p04_note       45
+  p04_flock      #0
+  p04_level      0.908
+  p05_song       #1
+  p05_note       72
+  p05_flock      #0
+  p05_level      0.451
+  p06_song       #1
+  p06_note       76
+  p06_flock      #1
+  p06_level      0.414
+  p07_song       #2
+  p07_note       70
+  p07_flock      #0
+  p07_level      0.497
+  p08_song       #2
+  p08_note       64
+  p08_flock      #1
+  p08_level      0.541
+  p09_song       #0
+  p09_note       62
+  p09_flock      #0
+  p09_level      0.5
+  p10_song       #0
+  p10_note       67
+  p10_flock      #0
+  p10_level      0.357
+  p11_song       #4
+  p11_note       64
+  p11_flock      #0
+  p11_level      0.691
+  p12_song       #4
+  p12_note       57
+  p12_flock      #1
+  p12_level      0.662
+  p13_song       #6
+  p13_note       48
+  p13_flock      #0
+  p13_level      1
+  p14_song       #3
+  p14_note       69
+  p14_flock      #0
+  p14_level      0.422
+  p15_song       #5
+  p15_note       62
+  p15_flock      #3
+  p15_level      0.305
+  p16_song       #5
+  p16_note       66
+  p16_flock      #3
+  p16_level      0.26
+  volume         1
+
+patch "Rainforest Kit" family=kit note=36 range=36..51
+  # Parrots, toucans and bellbirds, each side an octave apart.
+  set macro1 "Longer"
+  set macro2 "Sweep"
+  set macro3 "Rasp"
+  set macro4 "Air"
+  set macro5 "Hollow"
+  set macro6 "Open"
+  set macro7 "Wide"
+  set macro8 "Near"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.189
+  mac2_d1  #2
+  mac2_a1  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac4_d1  #6
+  mac4_a1  0.35
+  mac5_d1  #7
+  mac5_a1  0.35
+  mac6_d1  #8
+  mac6_a1  0.25
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #10
+  mac8_a1  -0.35
+  mac8_d2  #12
+  mac8_a2  -0.171
+  kit            1
+  two            0.35
+  interval       12 st
+  beak           0.75
+  space          0.35
+  p01_song       #7
+  p01_note       62
+  p01_flock      #0
+  p01_level      0.529
+  p02_song       #7
+  p02_note       55
+  p02_flock      #0
+  p02_level      0.621
+  p03_song       #7
+  p03_note       66
+  p03_flock      #2
+  p03_level      0.303
+  p04_song       #3
+  p04_note       74
+  p04_flock      #2
+  p04_level      0.292
+  p05_song       #3
+  p05_note       67
+  p05_flock      #0
+  p05_level      0.508
+  p06_song       #0
+  p06_note       72
+  p06_flock      #0
+  p06_level      0.31
+  p07_song       #0
+  p07_note       64
+  p07_flock      #0
+  p07_level      0.449
+  p08_song       #2
+  p08_note       74
+  p08_flock      #0
+  p08_level      0.624
+  p09_song       #2
+  p09_note       67
+  p09_flock      #0
+  p09_level      0.668
+  p10_song       #1
+  p10_note       76
+  p10_flock      #1
+  p10_level      0.448
+  p11_song       #1
+  p11_note       69
+  p11_flock      #0
+  p11_level      0.463
+  p12_song       #4
+  p12_note       64
+  p12_flock      #0
+  p12_level      0.672
+  p13_song       #4
+  p13_note       57
+  p13_flock      #1
+  p13_level      0.589
+  p14_song       #6
+  p14_note       52
+  p14_flock      #0
+  p14_level      1
+  p15_song       #5
+  p15_note       67
+  p15_flock      #3
+  p15_level      0.264
+  p16_song       #5
+  p16_note       72
+  p16_flock      #3
+  p16_level      0.25
+  volume         0.856

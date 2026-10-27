@@ -37,6 +37,21 @@ class Machine {
     virtual void onScene(int64_t /*sceneId*/, int64_t /*cycleTick*/, bool /*playing*/,
                          bool /*clipMuted*/) {}
     /**
+     * Once per block before onBlock(), frozen or not: whether the song is
+     * moving, which is playing and past any count-in or wait for a Link
+     * downbeat, and the block's first tick. For a machine that makes its own
+     * notes in time with the song (Nexus's clock).
+     */
+    virtual void onTransport(bool /*rolling*/, int64_t /*tickStart*/) {}
+    /**
+     * Once per block with onTransport(): where the block starts in the bar,
+     * in ticks, the bar's length, and the track's swing (percent and pair, see
+     * seq::Swing). Counted the way the metronome counts the bar. Only means
+     * anything while the song is rolling. For a machine that plays on the
+     * beats of the bar (Chanter's coups).
+     */
+    virtual void onBar(int64_t /*tickInBar*/, int32_t /*ticksPerBar*/, float /*swing*/, int64_t /*swingPair*/) {}
+    /**
      * The track's tuning: each MIDI note's ratio to equal temperament, or
      * null for equal temperament. The rack sets it before every block, and
      * machines read it through [noteHz].

@@ -40,8 +40,30 @@ class Tongue final : public Machine {
         Reeds, Chord, Strum, Order,
         Play, Drone, Repluck, Pattern, Accent, Ratchet,
         Sidechain, Words,
-        Count
+        // The wah: the mouth opens by [Wah] on every other step of the song's
+        // grid and shuts on the rest, [WahRate] a step; [WahShape] steps
+        // there or moves along a smooth curve.
+        Wah, WahRate, WahShape,
+        // Eight macro knobs, each with four routes: a destination (a
+        // MacroDest) and a depth. A macro's knob times a route's depth is
+        // added to the destination, in its own 0..1 range. Block rate, but
+        // what a pluck reads is taken at the pluck. Pitch is 24 semitones per
+        // unit and moves the notes plucked after it.
+        MacroBase,
+        MacroParams = 9, // knob, 4 destinations, 4 depths
+        Count = MacroBase + 8 * MacroParams
     };
+    // Where a macro route goes. The kind, tune, voices, bend range, octave,
+    // reeds, chord, order, play, drone, repluck, pattern, follow and wah shape
+    // are left out.
+    enum MacroDest : int32_t {
+        McOff, McSet, McEdge, McRing, McPluck, McOvertones, McMouth, McFocus, McDepth, McGlide,
+        McBreath, McAir, McSustain, McStop, McStrum, McAccent, McRatchet, McWords,
+        McWah, McWahRate, McVelocity, McVolume,
+        McPitch,
+        MacroDestCount
+    };
+    static constexpr int kMacros = 8;
     static_assert(Count <= kMaxParams, "too many parameters");
 
     /** The kinds of jaw harp, for `model`. */
@@ -58,6 +80,11 @@ class Tongue final : public Machine {
     enum RepluckKind : int32_t { EveryNote = 0, FirstNote, LoudNotes, kReplucks };
     /** The plucking rhythms, for `pattern`. */
     enum PatternKind : int32_t { NoPattern = 0, Eighths, Sixteenths, Gallop, Triplets, Runs, Groupings, kPatterns };
+    /** The wah's steps, in quarter notes, for `wahrate`: 1/4, dotted 1/8, 1/4 triplet, 1/8, 1/8 triplet, 1/16. */
+    static constexpr int kWahRates = 6;
+    /** How the wah moves, for `wahshape`. */
+    enum WahShapeKind : int32_t { WahStep = 0, WahSmooth, kWahShapes };
+    static constexpr float kWahBeats[kWahRates] = {1.0f, 0.75f, 2.0f / 3.0f, 0.5f, 1.0f / 3.0f, 0.25f};
 
     Tongue();
 
@@ -192,7 +219,18 @@ class Tongue final : public Machine {
     /** A key down in mouth mode. */
     static constexpr int kKeys = 16;
 
-    float paramOf(int32_t i) const { return params_.get(i); }
+    float read(int32_t p, bool goal) const { return goal ? params_.target(p) : params_.get(p); }
+    /** Param [p], smoothed, with the macros' routes to it added. */
+    float paramOf(int32_t p) const { return val(p, false); }
+    /** Param [p]'s target with the macros' targets added, for plucks and jumps. */
+    float goalOf(int32_t p) const { return val(p, true); }
+    float val(int32_t p, bool goal) const;
+    /** Fills [macGoal_] from the macro knobs' targets and their routes. */
+    void updateMacroGoals();
+    /** Fills [mac_] from the smoothed macro knobs, and the goals too. */
+    void updateMacros();
+    /** The wah's move along the vowel control at the song's tick [tick], its step in seconds, and whether it's smooth. */
+    float wahAt(double tick, bool goal, float &stepSeconds, bool &smooth) const;
     Voice *voiceFor(uint8_t note);
     void retune(Voice &v);
     /** Plucks a sounding harp again, all its reeds as the order says. */
@@ -268,6 +306,9 @@ class Tongue final : public Machine {
     Due due[kDue];
     int dueCount = 0;
     float bend = 0.0f, wheel = 0.0f, pressure = 0.0f;
+    /** The song's tick at the sample the mouth moves on, for the wah. */
+    double mouthTick = 0.0;
+    float mac_[MacroDestCount]{}, macGoal_[MacroDestCount]{};
     /** The breath this sample, on its way to the block's. */
     float blown = 0.0f;
     float dcIn = 0.0f, dcOut = 0.0f;

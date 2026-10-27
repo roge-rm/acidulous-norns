@@ -36,8 +36,28 @@ class Genesis final : public Machine {
         Drift, Accent,
         CompAmount, CompAttack, CompRelease, Duck,
         Drive, Volume, Pan,
-        Count
+        // Eight macro knobs, each with four routes: a destination (a Dest)
+        // and a depth. A macro's knob times a route's depth is added to the
+        // destination, in its own 0..1 range. Block rate. Pitch is 24
+        // semitones per unit.
+        MacroBase,
+        MacroParams = 9, // knob, 4 destinations, 4 depths
+        Count = MacroBase + 8 * MacroParams
     };
+    enum Dest : int32_t {
+        DstOff, DstKickTune, DstKickDecay, DstKickPunch, DstKickSweep, DstKickClick, DstKickDrive, DstKickLevel,
+        DstSnareTune, DstSnareDecay, DstSnareSnap, DstSnareTone, DstSnareLevel,
+        DstClapSpread, DstClapDecay, DstClapTone, DstClapLevel,
+        DstRimTune, DstRimDecay, DstRimLevel,
+        DstTomTune, DstTomDecay, DstTomBend, DstTomLevel,
+        DstHatTune, DstHatDecay, DstHatTone, DstHatLevel,
+        DstCrashDecay, DstCrashTone, DstCrashLevel,
+        DstRideDecay, DstRideTone, DstRideBell, DstRideLevel,
+        DstBellTune, DstBellDecay, DstBellLevel,
+        DstDrift, DstAccent, DstComp, DstDuck, DstDrive, DstVolume, DstPitch,
+        DestCount
+    };
+    static constexpr int kMacros = 8;
     static_assert(Count <= kMaxParams, "Genesis declares more parameters than a unit can hold");
 
     Genesis();
@@ -102,6 +122,13 @@ class Genesis final : public Machine {
     float metallic(float tune);
     void trigger(int32_t voice, float velocity);
 
+    /** Fills [mac_] from the macro knobs, smoothed or (when [goal]) their targets. */
+    void updateMacros(bool goal = false);
+    /** Param [p] with the macros' routes to it added in its own 0..1 range. */
+    float val(int32_t p, bool goal = false) const;
+    /** A param's smoothed value, or its target when [goal] (note-on seeds). */
+    float read(int32_t p, bool goal) const { return goal ? params_.target(p) : params_.get(p); }
+
     float sr = 48000.0f;
     static constexpr uint32_t kRngSeed = 0x1f123bb5u;
     uint32_t rng = kRngSeed;
@@ -118,6 +145,9 @@ class Genesis final : public Machine {
 
     // Bus compressor and kick ducking envelopes.
     float compEnv = 0.0f, duckEnv = 0.0f;
+
+    float mac_[DestCount]{};
+    float pitchMul_ = 1.0f; // all the tunes, from the pitch destination
 };
 
 } // namespace acidulous::machine

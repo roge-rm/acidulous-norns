@@ -38,8 +38,25 @@ class Molt final : public Machine {
         AmpAttack, AmpDecay, AmpSustain, AmpRelease,
         Glide, BendRange, Octave, Transpose, VelocityAmount,
         Drive, Volume, Pan,
-        Count
+        // Eight macro knobs, each with four routes: a destination (a
+        // MacroDest) and a depth. A macro's knob times a route's depth is
+        // added to the destination, in its own 0..1 range. Block rate; what
+        // a note reads when it starts takes the knobs' targets. Pitch is 24
+        // semitones per unit.
+        MacroBase,
+        MacroParams = 9, // knob, 4 destinations, 4 depths
+        Count = MacroBase + 8 * MacroParams
     };
+    // Where a macro route goes. The switches, the stepped choices and glide
+    // are left out.
+    enum MacroDest : int32_t {
+        McOff, McStart, McTune, McRate, McFormant, McMega,
+        McCutoff, McResonance, McAttack, McDecay, McSustain, McRelease,
+        McVelocity, McDrive, McVolume, McPan, McPitch,
+        MacroDestCount
+    };
+    static constexpr int kMacros = 8;
+    static_assert(Count <= kMaxParams, "too many parameters");
 
     Molt();
 
@@ -76,6 +93,12 @@ class Molt final : public Machine {
         /** The pitch it is being pulled to, in log2 Hz, glided by `rate`. */
         float logPitch = 0.0f;
         bool primed = false;
+        /** The written note as it's glided, in log2 Hz, from the last pitched grain. */
+        float notePitch = 0.0f;
+        /** A glide goes from here (log2 Hz) to the note; [glideDone] runs 0 to 1. */
+        float glideFrom = 0.0f, glideDone = 1.0f;
+        /** Frames since the note started, up to a second. */
+        int32_t sinceOn = 0;
         /** Frames until the next grain is laid down. */
         float untilGrain = 0.0f;
         dsp::Adsr amp;
@@ -90,7 +113,14 @@ class Molt final : public Machine {
      */
     float layGrain(Voice &v, float formantRatio, float tune, float rateSec, bool robot);
 
-    float paramOf(int32_t i) const { return params_.get(i); }
+    /** Param [p], smoothed, with the macros' routes to it added. */
+    float paramOf(int32_t p) const { return withMacros(p, params_.get(p), mac_); }
+    /** Param [p]'s target, with the macro knobs' targets added: for what a note reads when it starts. */
+    float goalOf(int32_t p) const { return withMacros(p, params_.target(p), macGoal_); }
+    float withMacros(int32_t p, float v, const float *mac) const;
+    /** Fills [mac_] from the smoothed macro knobs and [macGoal_] from their targets. */
+    void updateMacros();
+    float mac_[MacroDestCount]{}, macGoal_[MacroDestCount]{};
     /**
      * The target rather than the smoothed value, for switches, since
      * smoothing would turn an edge into a ramp.

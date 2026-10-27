@@ -14,51 +14,363 @@
 # semitones. Slide (with MPE) lays a finger on the head. `roll` strikes held
 # notes again and again.
 #
-# Families: africa, latin, arabic, india, kit.
+# `flam` makes each hit two strokes, a softer grace stroke and then the
+# stroke this many milliseconds later.
+#
+# Kit mode makes the sixteen keys from note 36 up into pads, each with its
+# own drum, stroke, note and level.
+#
+# A hundred and twelve patches in six families, plainest first:
+#
+#   africa   Init, djembes, talking drums, ashiko and udu (22)
+#   latin    cajón, congas, bongos, batá and cuíca (24)
+#   arabic   frame drums, darbuka, riq, tar and bendir (23)
+#   india    tabla, bayan, kanjira, mridangam and dholak (23)
+#   kit      sixteen pads: world, cajón, frame, congas, tabla, talking, udu
+#            (12)
+#   odd      heads far out of range, talking drum and udu basses, a squeeze
+#            an octave wide (8)
+#
+# Each family ends with its flams, the patches played by touch, and rolls.
+# A "By Touch" patch lets the velocity pick the stroke. Talking By Touch,
+# Bayan Press and Squeeze Sweep are played with pressure or the mod wheel,
+# and the harness plays them in a gallop with the wheel moving.
+#
+# Values are in each parameter's own units; `audition params Palm` lists
+# them. A patch names only what it changes. Every patch sits near -30 on
+# `loud` at its own note, from -34.5 (Conga Muted) to -25.8 (Frame Roll):
+# muted and edge strokes are the quiet end, rolls the loud. Every kit peaks
+# at about -5 dB on its loudest pad.
+#
+# Every patch but Init carries eight named macros. Destinations are
+# numbered as in Palm.h's MacroDest: #1 position, #2 hand, #3 decay, #4 damp,
+# #5 drop, #7 rattle, #8 body, #9 roll, #10 spread, #12 volume, #13 flam,
+# #14 pitch (24 semitones a unit). Most patches have Middle (Edge on a bass
+# stroke), Quick, Ring, Damp, one that fits the drum (Body or Dry on a bass
+# stroke; Rattles, Snares or Jingles, or Bare where they are already on;
+# Drop otherwise), Flam, Roll and Tight. The cuíca has Low, Wide and High in
+# place of what does nothing on it, the udu Drop and Low. Kits have Edge,
+# Quick, Ring, Damp, Body or Tight, Jingles, Bare or Drop, Flam, and Wide or
+# Roll. A kit's macros reach the drum params every pad shares, never a pad's
+# own drum, stroke, note or level. Where a macro at full moves the level by
+# more than 1.5 dB, a volume route takes it back out, as far as the volume
+# knob goes; Damp is gentler where the volume is near the top. Position,
+# hand, decay, damp, drop, body and flam are read when a drum is struck, so
+# those macros change the next hit.
 
 machine Palm
 role tune
+
+# --- africa ------------------------------------------------------------------
 
 patch Init family=africa note=55 range=45..67
 
 patch "Djembe Bass" family=africa note=55 range=45..67 role=bass
   # The palm in the middle: the goblet's air booms under it.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Dry"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.3
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.157
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #8
+  mac5_a1  -0.6
+  mac5_d2  #12
+  mac5_a2  0.212
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.401
+  mac8_d1  #14
+  mac8_a1  0.1
   stroke         #3
   body           0.8
 
 patch "Djembe Tone" family=africa note=55 range=45..67
   # The fingers flat near the edge: round and singing.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Rattles"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.277
+  mac5_d1  #7
+  mac5_a1  0.9
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.062
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.38
+  mac8_d1  #14
+  mac8_a1  0.1
   stroke         #0
   position       0.55
   decay          0.6
 
 patch "Djembe Slap" family=africa note=55 range=45..67
   # The fingertips cracking at the edge.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Rattles"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  0.3
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.131
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.212
+  mac5_d1  #7
+  mac5_a1  0.9
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.083
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.384
+  mac8_d1  #14
+  mac8_a1  0.1
   stroke         #1
 
 patch "Djembe By Touch" family=africa note=55 range=45..67
   # Soft notes muted, the middle tone, hard notes slapped.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Rattles"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.138
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.266
+  mac5_d1  #7
+  mac5_a1  0.9
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.062
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.38
+  mac8_d1  #14
+  mac8_a1  0.1
   stroke         #5
   hand           0.65
 
 patch "Djembe Rattles" family=africa note=55 range=45..67
   # Metal rattles on the rim, buzzing with every stroke.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Bare"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.266
+  mac5_d1  #7
+  mac5_a1  -1
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.069
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.349
+  mac8_d1  #14
+  mac8_a1  0.1
   stroke         #5
   rattle         0.6
 
 patch "Djembe Muted" family=africa note=55 range=45..67
   # The other hand on the head.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Rattles"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  0.094
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #4
+  mac3_a2  -0.6
+  mac3_d3  #12
+  mac3_a3  -0.311
+  mac4_d1  #4
+  mac4_a1  0.3
+  mac4_d2  #12
+  mac4_a2  0.255
+  mac5_d1  #7
+  mac5_a1  0.9
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.097
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.38
+  mac8_d1  #14
+  mac8_a1  0.1
   stroke         #0
   damp           0.7
 
 patch "Talking Drum" family=africa note=55 range=45..67
   # Struck with the hooked stick, in the middle.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.151
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.15
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.415
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #5
   stroke         #3
   squeeze        5
 
 patch "Talking Squeeze" family=africa note=52 range=45..67 role=lead
   # The cords squeezed for a fifth: press, or use the mod wheel.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.151
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac2_d2  #12
+  mac2_a2  -0.09
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.131
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  0.191
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.401
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #5
   stroke         #3
   squeeze        7
@@ -66,12 +378,76 @@ patch "Talking Squeeze" family=africa note=52 range=45..67 role=lead
 
 patch "Talking Open" family=africa note=55 range=45..67
   # Struck nearer the edge.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.118
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.15
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.384
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #5
   stroke         #0
   squeeze        5
 
 patch "Talking Roll" family=africa note=55 range=45..67 role=pad
   # Held notes rolled, the drum squeezed.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Faster"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.088
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.097
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.193
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.3
+  mac7_d2  #12
+  mac7_a2  -0.075
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #5
   stroke         #0
   squeeze        5
@@ -80,28 +456,194 @@ patch "Talking Roll" family=africa note=55 range=45..67 role=pad
 
 patch "Ashiko" family=africa note=50 range=43..57
   # The cone drum's open tone.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.255
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.104
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.387
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #16
   stroke         #0
 
 patch "Ashiko Bass" family=africa note=43 range=36..50
   # Its air ringing low under the palm.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Dry"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.113
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.157
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #8
+  mac5_a1  -0.6
+  mac5_d2  #12
+  mac5_a2  0.068
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.373
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #16
   stroke         #3
   body           0.7
 
 patch "Ashiko Slap" family=africa note=55 range=48..62
   # The cone drum's slap.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  0.255
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.131
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.212
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.09
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.387
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #16
   stroke         #1
 
 patch "Udu" family=africa note=48 range=41..55
   # The hole slapped with the palm: the pot's air, a deep bloop.
+  set macro1 "Drop"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Low"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #5
+  mac1_a1  0.7
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac2_d2  #12
+  mac2_a2  -0.069
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.15
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #14
+  mac5_a1  -0.1
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  0.132
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.391
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #17
   stroke         #3
   body           0.8
 
 patch "Udu Bloop" family=africa note=45 range=38..52
   # Slapped hard, so the bloop drops a long way.
+  set macro1 "Low"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Wide"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #14
+  mac1_a1  -0.1
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.15
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #10
+  mac5_a1  0.8
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.169
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.384
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #17
   stroke         #3
   body           1
@@ -109,18 +651,315 @@ patch "Udu Bloop" family=africa note=45 range=38..52
 
 patch "Udu Tap" family=africa note=55 range=48..62
   # The fingers on the clay, the air answering softly.
+  set macro1 "Drop"
+  set macro2 "Soft"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Low"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #5
+  mac1_a1  0.7
+  mac2_d1  #2
+  mac2_a1  -0.5
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.151
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #14
+  mac5_a1  -0.1
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.404
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #17
   stroke         #4
   body           0.5
 
+patch "Djembe Flam" family=africa note=55 range=45..67
+  # The slap with both hands, one a hair behind the other.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Rattles"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  0.3
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.118
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.191
+  mac5_d1  #7
+  mac5_a1  0.9
+  mac6_d1  #13
+  mac6_a1  0.25
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.353
+  mac8_d1  #14
+  mac8_a1  0.1
+  stroke         #1
+  flam           22
+
+patch "Ashiko By Touch" family=africa note=50 range=43..57
+  # The cone drum by the velocity: soft notes muted, hard ones slapped.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.138
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.255
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.097
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.373
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #16
+  stroke         #5
+  hand           0.6
+
+patch "Talking By Touch" family=africa note=55 range=45..67 role=jaw
+  # Played by the fingers nearer the middle, short, going sharp when struck
+  # hard. Soft notes muted, hard ones slapped, the cords squeezed between
+  # strokes: press, or use the mod wheel.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.05
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.15
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.381
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #5
+  stroke         #5
+  squeeze        7
+  hand           0.65
+  position       0.25
+  drop           0.7
+  decay          0.35
+
+patch "Djembe Roll" family=africa note=55 range=45..67 role=pad
+  # Held notes rolled on the tone, quick fingers.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Rattles"
+  set macro6 "Flam"
+  set macro7 "Faster"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.065
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.126
+  mac5_d1  #7
+  mac5_a1  0.9
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.3
+  mac7_d2  #12
+  mac7_a2  -0.056
+  mac8_d1  #14
+  mac8_a1  0.1
+  stroke         #0
+  roll           12
+  hand           0.6
+  volume         0.33
+
+patch "Udu Flutter" family=africa note=48 range=41..55 role=pad
+  # The palm fluttering over the hole while the note is held.
+  set macro1 "Drop"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Low"
+  set macro6 "Flam"
+  set macro7 "Faster"
+  set macro8 "Tight"
+  mac1_d1  #5
+  mac1_a1  0.7
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac2_d2  #12
+  mac2_a2  -0.031
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.059
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.15
+  mac5_d1  #14
+  mac5_a1  -0.1
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.3
+  mac7_d2  #12
+  mac7_a2  -0.108
+  mac8_d1  #14
+  mac8_a1  0.1
+  mac8_d2  #12
+  mac8_a2  -0.038
+  model          #17
+  stroke         #3
+  body           0.9
+  roll           9
+  hand           0.3
+  volume         0.35
+
+# --- latin -------------------------------------------------------------------
+
 patch "Cajon Bass" family=latin note=47 range=40..60 role=bass
   # The palm in the middle of the plate; the box booms.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Body"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.212
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac2_d2  #12
+  mac2_a2  -0.062
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.157
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #8
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  -0.157
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.376
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #3
   stroke         #3
   rattle         0.2
 
 patch "Cajon Slap" family=latin note=47 range=40..60
   # The fingers at the top corner: the snares crack.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Bare"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.168
+  mac4_d1  #4
+  mac4_a1  0.35
+  mac5_d1  #7
+  mac5_a1  -1
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.139
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.553
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #3
   stroke         #1
   rattle         0.8
@@ -128,29 +967,199 @@ patch "Cajon Slap" family=latin note=47 range=40..60
 
 patch "Cajon Snares" family=latin note=47 range=40..60
   # The snares tight against the plate.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Bare"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.111
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.138
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.255
+  mac5_d1  #7
+  mac5_a1  -1
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.083
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.357
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #3
   stroke         #5
   rattle         1
 
 patch "Cajon Dry" family=latin note=47 range=40..60
   # No snares: just the box.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Snares"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.111
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.255
+  mac5_d1  #7
+  mac5_a1  0.9
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.083
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.38
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #3
   stroke         #5
   rattle         0
 
 patch "Cajon By Touch" family=latin note=47 range=40..60
   # Soft notes muted, hard ones slapped, some snare.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Snares"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.111
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.255
+  mac5_d1  #7
+  mac5_a1  0.9
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.083
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.361
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #3
   stroke         #5
   rattle         0.5
 
 patch "Conga Open" family=latin note=57 range=50..64
   # The conga's open tone: the fingers flat near the edge, lifted at once.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.111
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.15
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.09
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.398
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #6
   stroke         #0
 
 patch "Quinto Slap" family=latin note=62 range=55..69
   # The small, high conga, slapped.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  0.05
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.195
+  mac4_d1  #4
+  mac4_a1  0.35
+  mac4_d2  #12
+  mac4_a2  0.05
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.169
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.521
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #6
   stroke         #1
   decay          0.4
@@ -158,57 +1167,381 @@ patch "Quinto Slap" family=latin note=62 range=55..69
 
 patch "Tumba" family=latin note=52 range=45..59
   # The big, low conga, played open with the palm for the bass.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.104
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.15
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.384
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #6
   stroke         #5
   body           0.7
 
 patch "Conga Muted" family=latin note=57 range=50..64
   # The hand left on the head for the closed tone.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.168
+  mac4_d1  #4
+  mac4_a1  0.35
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.139
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.538
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #6
   stroke         #2
   volume         1
 
 patch "Bongo Macho" family=latin note=69 range=62..76
   # The small bongo: high, dry and quick.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.15
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.15
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.118
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.373
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #7
   stroke         #5
 
 patch "Bongo Hembra" family=latin note=64 range=57..71
   # The larger bongo of the pair.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.144
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.15
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.289
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.124
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.376
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #7
   stroke         #0
 
 patch "Bongo Martillo" family=latin note=67 range=60..74 role=beat
   # The steady bongo pattern: rolled notes, played by the velocity.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Faster"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.15
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.3
+  mac7_d2  #12
+  mac7_a2  -0.157
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #7
   stroke         #5
   roll           6
 
 patch "Bata Iya" family=latin note=50 range=43..57
   # The biggest batá, open.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.111
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.289
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.124
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.384
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #13
   stroke         #0
   body           0.6
 
 patch "Bata Okonkolo" family=latin note=62 range=55..69
   # The smallest batá, slapped.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  0.05
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.195
+  mac4_d1  #4
+  mac4_a1  0.35
+  mac4_d2  #12
+  mac4_a2  0.05
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.169
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.521
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #13
   stroke         #1
   volume         0.95
 
 patch "Bata Itotele" family=latin note=55 range=48..62
   # The middle batá, open.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.118
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.062
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.387
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #13
   stroke         #0
 
 patch "Cuica" family=latin note=64 range=57..71 role=lead
   # Hold a note and the stick squeaks the head; press, or the mod wheel, to slide it up.
+  set macro1 "Low"
+  set macro2 "Wide"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "High"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #14
+  mac1_a1  -0.15
+  mac2_d1  #10
+  mac2_a1  0.8
+  mac3_d1  #3
+  mac3_a1  0.5
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.285
+  mac5_d1  #14
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.048
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #18
   stroke         #0
   volume         0.3
 
 patch "Cuica Laugh" family=latin note=60 range=53..67 role=lead
   # Pressed up and let go, the cuíca's laugh.
+  set macro1 "Low"
+  set macro2 "Wide"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "High"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #14
+  mac1_a1  -0.15
+  mac2_d1  #10
+  mac2_a1  0.8
+  mac3_d1  #3
+  mac3_a1  0.5
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.265
+  mac5_d1  #14
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.048
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #18
   stroke         #0
   squeeze        9
@@ -216,28 +1549,430 @@ patch "Cuica Laugh" family=latin note=60 range=53..67 role=lead
 
 patch "Cuica Low" family=latin note=52 range=45..59 role=lead
   # Lower and closed, the thumb on the head.
+  set macro1 "Low"
+  set macro2 "Wide"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "High"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #14
+  mac1_a1  -0.15
+  mac2_d1  #10
+  mac2_a1  0.8
+  mac3_d1  #3
+  mac3_a1  0.5
+  mac3_d2  #12
+  mac3_a2  -0.21
+  mac4_d1  #4
+  mac4_a1  0.35
+  mac4_d2  #12
+  mac4_a2  0.181
+  mac5_d1  #14
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.3
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #18
   stroke         #2
   squeeze        5
 
+patch "Conga Flam" family=latin note=57 range=50..64
+  # The open tone flammed, the way a conga player leads into a phrase.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.09
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.124
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.223
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.25
+  mac6_d2  #12
+  mac6_a2  -0.157
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.401
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #6
+  stroke         #0
+  flam           18
+
+patch "Bongo Flam" family=latin note=64 range=57..71
+  # The bongo's open tone with a quick grace stroke.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.181
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.15
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.25
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.324
+  mac8_d1  #14
+  mac8_a1  0.1
+  mac8_d2  #12
+  mac8_a2  0.076
+  model          #7
+  stroke         #0
+  flam           12
+
+patch "Quinto By Touch" family=latin note=62 range=55..69
+  # The small conga by the velocity: soft notes muted, hard ones slapped.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.124
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.15
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.131
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.38
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #6
+  stroke         #5
+  hand           0.6
+
+patch "Bata By Touch" family=latin note=55 range=48..62
+  # The middle batá by the velocity, its body ringing under the open notes.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.124
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.062
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.38
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #13
+  stroke         #5
+  body           0.6
+
+patch "Conga Roll" family=latin note=57 range=50..64 role=pad
+  # Held notes rolled on the open tone.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Faster"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.067
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.071
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.143
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.3
+  mac7_d2  #12
+  mac7_a2  -0.057
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #6
+  stroke         #0
+  roll           14
+  hand           0.6
+  volume         0.36
+
+patch "Cajon Roll" family=latin note=47 range=40..60 role=pad
+  # The fingertips rolled on the top corner, the snares hissing: a fill.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Bare"
+  set macro6 "Flam"
+  set macro7 "Faster"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.196
+  mac2_d1  #2
+  mac2_a1  0.6
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.116
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.189
+  mac5_d1  #7
+  mac5_a1  -1
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.3
+  mac7_d2  #12
+  mac7_a2  -0.116
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #3
+  stroke         #4
+  rattle         0.7
+  roll           16
+  volume         0.69
+
+# --- arabic ------------------------------------------------------------------
+
 patch "Frame Doum" family=arabic note=43 range=33..57 role=bass
   # The deep stroke in the middle of a wide head.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Jingles"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac2_d2  #12
+  mac2_a2  -0.062
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.15
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #7
+  mac5_a1  0.9
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  0.085
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.384
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #4
   stroke         #3
 
 patch "Frame Tek" family=arabic note=43 range=33..57
   # A finger at the rim: high and short.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Jingles"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.118
+  mac2_d1  #2
+  mac2_a1  0.6
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.131
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.233
+  mac5_d1  #7
+  mac5_a1  0.9
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.09
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.387
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #4
   stroke         #4
 
 patch "Frame Jingles" family=arabic note=45 range=33..57
   # A frame drum with jingles in the rim.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Bare"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.138
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.266
+  mac5_d1  #7
+  mac5_a1  -1
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.118
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.369
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #4
   stroke         #0
   rattle         1
 
 patch "Frame Roll" family=arabic note=43 range=33..57 role=pad
   # Held notes rolled with the fingers.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Jingles"
+  set macro6 "Flam"
+  set macro7 "Faster"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.067
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.146
+  mac5_d1  #7
+  mac5_a1  0.9
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.3
+  mac7_d2  #12
+  mac7_a2  -0.043
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #4
   stroke         #0
   roll           14
@@ -246,41 +1981,277 @@ patch "Frame Roll" family=arabic note=43 range=33..57 role=pad
 
 patch "Big Frame" family=arabic note=38 range=28..52 role=bass
   # A wider head, lower and longer.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Jingles"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.104
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #7
+  mac5_a1  0.9
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.163
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.402
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #4
   stroke         #3
   decay          0.75
 
 patch "Frame By Touch" family=arabic note=43 range=33..57
   # Soft notes muted, the middle open, hard notes at the rim.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Jingles"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.277
+  mac5_d1  #7
+  mac5_a1  0.9
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.062
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.337
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #4
   stroke         #5
   rattle         0.3
 
 patch "Darbuka Doum" family=arabic note=50 range=43..57
   # The deep stroke in the middle, the goblet's air ringing under it.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Dry"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.171
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac2_d2  #12
+  mac2_a2  -0.09
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.157
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #8
+  mac5_a1  -0.6
+  mac5_d2  #12
+  mac5_a2  0.068
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.169
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.401
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #8
   stroke         #3
   body           0.7
 
 patch "Darbuka Tek" family=arabic note=59 range=52..66
   # The bright, ringing stroke at the edge.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.118
+  mac2_d1  #2
+  mac2_a1  0.6
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.15
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.277
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.384
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #8
   stroke         #4
 
 patch "Darbuka Ka" family=arabic note=59 range=52..66
   # The other hand's tek, softer and closer in.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.248
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.369
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #8
   stroke         #0
   position       0.7
 
 patch "Riq" family=arabic note=64 range=57..71
   # The riq's open stroke, its jingles ringing on.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Bare"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.131
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.233
+  mac5_d1  #7
+  mac5_a1  -1
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.104
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.369
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #9
   stroke         #0
   rattle         0.8
 
 patch "Riq Shake" family=arabic note=64 range=57..71
   # Held notes shake the jingles.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Bare"
+  set macro6 "Flam"
+  set macro7 "Faster"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  0.076
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac2_d2  #12
+  mac2_a2  -0.131
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.083
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.113
+  mac5_d1  #7
+  mac5_a1  -1
+  mac5_d2  #12
+  mac5_a2  0.123
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.3
+  mac7_d2  #12
+  mac7_a2  -0.111
+  mac8_d1  #14
+  mac8_a1  0.1
+  mac8_d2  #12
+  mac8_a2  0.076
   model          #9
   stroke         #2
   rattle         1
@@ -288,28 +2259,198 @@ patch "Riq Shake" family=arabic note=64 range=57..71
 
 patch "Tar" family=arabic note=45 range=38..52
   # The wide frame drum's deep stroke in the middle.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.085
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac2_d2  #12
+  mac2_a2  -0.069
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.175
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.395
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #10
   stroke         #3
 
 patch "Tar Edge" family=arabic note=52 range=45..59
   # The tar's bright edge stroke.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.15
+  mac2_d1  #2
+  mac2_a1  0.6
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.277
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.083
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.384
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #10
   stroke         #4
 
 patch "Bendir" family=arabic note=47 range=40..54
   # The snares buzzing under the deep stroke.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Bare"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.095
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac2_d2  #12
+  mac2_a2  -0.083
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.15
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #7
+  mac5_a1  -1
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.38
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #11
   stroke         #3
   rattle         0.7
 
 patch "Riq Slap" family=arabic note=66 range=59..73
   # The sharp slap at the rim, jingles answering.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Bare"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  0.3
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.118
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.181
+  mac5_d1  #7
+  mac5_a1  -1
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.104
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.376
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #9
   stroke         #1
   rattle         0.6
 
 patch "Tar Roll" family=arabic note=45 range=38..52
   # Fingers rolling on the wide head.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Faster"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.022
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.035
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.095
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.3
+  mac7_d2  #12
+  mac7_a2  -0.042
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #10
   stroke         #0
   roll           10
@@ -318,47 +2459,516 @@ patch "Tar Roll" family=arabic note=45 range=38..52
 
 patch "Bendir Edge" family=arabic note=52 range=45..59
   # The edge stroke with the snares buzzing.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Bare"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.144
+  mac2_d1  #2
+  mac2_a1  0.6
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.138
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.255
+  mac5_d1  #7
+  mac5_a1  -1
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.083
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.394
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #11
   stroke         #4
   rattle         0.6
 
 patch "Bendir Roll" family=arabic note=47 range=40..54
   # A roll that keeps the snares going.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Bare"
+  set macro6 "Flam"
+  set macro7 "Faster"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.066
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.112
+  mac5_d1  #7
+  mac5_a1  -1
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.3
+  mac7_d2  #12
+  mac7_a2  -0.063
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #11
   stroke         #0
   rattle         0.8
   roll           8
   volume         0.32
 
+patch "Frame Flam" family=arabic note=43 range=33..57 role=bass
+  # The deep stroke flammed, the two hands falling one after the other.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Jingles"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.076
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac2_d2  #12
+  mac2_a2  -0.076
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #7
+  mac5_a1  0.9
+  mac6_d1  #13
+  mac6_a1  0.25
+  mac6_d2  #12
+  mac6_a2  -0.097
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.369
+  mac8_d1  #14
+  mac8_a1  0.1
+  mac8_d2  #12
+  mac8_a2  -0.118
+  model          #4
+  stroke         #3
+  flam           25
+
+patch "Darbuka Flam" family=arabic note=59 range=52..66
+  # The tek with a grace stroke from the other hand.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.083
+  mac2_d1  #2
+  mac2_a1  0.6
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.138
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.277
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.25
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.345
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #8
+  stroke         #4
+  flam           15
+
+patch "Darbuka By Touch" family=arabic note=55 range=48..62
+  # Soft notes muted, the middle open, hard notes slapped; the goblet under the low ones.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.107
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.206
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.049
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.274
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #8
+  stroke         #5
+  body           0.6
+  volume         0.5
+
+patch "Bendir By Touch" family=arabic note=47 range=40..54
+  # The snared frame drum by the velocity.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Bare"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.277
+  mac5_d1  #7
+  mac5_a1  -1
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.328
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #11
+  stroke         #5
+  rattle         0.7
+
+patch "Darbuka Roll" family=arabic note=59 range=52..66 role=pad
+  # Held notes rolled at the edge with the fingers of both hands.
+  set macro1 "Middle"
+  set macro2 "Soft"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Faster"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.056
+  mac2_d1  #2
+  mac2_a1  -0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.066
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.144
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.3
+  mac7_d2  #12
+  mac7_a2  -0.038
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #8
+  stroke         #4
+  roll           16
+  hand           0.7
+  volume         0.35
+
+# --- india -------------------------------------------------------------------
+
 patch "Tabla Na" family=india note=62 range=55..74
   # The finger on the edge, against the paste: ringing and bright.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac2_d1  #2
+  mac2_a1  0.6
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.138
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.384
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #0
   stroke         #4
 
 patch "Tabla Tin" family=india note=62 range=55..74
   # The open stroke, between the edge and the paste.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  0.356
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.097
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.217
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.088
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.234
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #0
   stroke         #0
+  volume         0.47
 
 patch "Tabla Tun" family=india note=62 range=55..74
   # The finger in the middle: the round, low mode.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  -0.521
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.215
+  mac4_d1  #4
+  mac4_a1  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.178
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.538
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #0
   stroke         #3
   volume         1
 
 patch "Tabla Te" family=india note=62 range=55..74
   # Struck and held on the paste: short and dry.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.3
+  mac1_d2  #12
+  mac1_a2  0.3
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac2_d2  #12
+  mac2_a2  -0.104
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.15
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.111
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.357
+  mac8_d1  #14
+  mac8_a1  0.1
+  mac8_d2  #12
+  mac8_a2  0.059
   model          #0
   stroke         #2
 
 patch "Tabla By Touch" family=india note=62 range=55..74
   # Soft notes muted, the middle open, hard notes cracked; quicker fingers.
+  set macro1 "Middle"
+  set macro2 "Soft"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  0.375
+  mac2_d1  #2
+  mac2_a1  -0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.092
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.225
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.092
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.237
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #0
   stroke         #5
   hand           0.7
+  volume         0.47
 
 patch "Bayan Ghe" family=india note=43 range=36..55 role=bass
   # The bass drum struck open, the wrist ready to press it up.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.161
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  0.113
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.387
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #1
   stroke         #3
   squeeze        4
@@ -366,12 +2976,78 @@ patch "Bayan Ghe" family=india note=43 range=36..55 role=bass
 
 patch "Bayan Ke" family=india note=43 range=36..55 role=bass
   # The flat hand slapped down and left: a dull knock.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.139
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.206
+  mac4_d1  #4
+  mac4_a1  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.088
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.543
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #1
   stroke         #2
   volume         1
 
 patch "Bayan Swoop" family=india note=41 range=36..55 role=bass
   # Long notes the wrist bends up: press, or use the mod wheel.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.151
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.111
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  0.068
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.341
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #1
   stroke         #3
   squeeze        7
@@ -379,11 +3055,79 @@ patch "Bayan Swoop" family=india note=41 range=36..55 role=bass
 
 patch "Bayan Open" family=india note=45 range=36..55 role=bass
   # Struck nearer the edge: more ring, less boom.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.187
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.151
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.376
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #1
   stroke         #0
 
 patch "Kanjira" family=india note=62 range=55..69
   # Its one pair of jingles; press, or the mod wheel, to bend it up.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Jingles"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.069
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #7
+  mac5_a1  0.9
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.118
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.361
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #12
   stroke         #0
   rattle         0.5
@@ -391,35 +3135,239 @@ patch "Kanjira" family=india note=62 range=55..69
 
 patch "Mridangam" family=india note=60 range=53..67
   # The tuned head's long, clear ring.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  0.3
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.097
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.163
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.293
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #14
   stroke         #0
   decay          0.7
 
 patch "Mridangam Thom" family=india note=48 range=41..55
   # The bass side's deep stroke.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Body"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  -0.332
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac2_d2  #12
+  mac2_a2  -0.159
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.159
+  mac4_d1  #4
+  mac4_a1  0.35
+  mac5_d1  #8
+  mac5_a1  0.5
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.241
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.481
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #14
   stroke         #3
   volume         1
 
 patch "Dholak" family=india note=55 range=48..62
   # The treble side, open.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.21
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.156
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.076
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.384
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #15
   stroke         #0
 
 patch "Dholak Bass" family=india note=43 range=36..50
   # The pasted bass side; press to bend it.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Body"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.181
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.15
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #8
+  mac5_a1  0.5
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  0.085
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.391
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #15
   stroke         #3
   squeeze        4
 
 patch "Kanjira Slap" family=india note=64 range=57..71
   # The kanjira slapped, the jingles quick.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Jingles"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  0.289
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.266
+  mac5_d1  #7
+  mac5_a1  0.9
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.076
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.384
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #12
   stroke         #1
   rattle         0.4
 
 patch "Kanjira Glide" family=india note=60 range=53..67
   # Pressed up after the stroke, as players bend it.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Jingles"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.062
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.131
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #7
+  mac5_a1  0.9
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.111
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.369
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #12
   stroke         #0
   squeeze        5
@@ -427,21 +3375,353 @@ patch "Kanjira Glide" family=india note=60 range=53..67
 
 patch "Mridangam Chapu" family=india note=64 range=57..71
   # The ringing stroke at the edge of the tuned head.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.069
+  mac2_d1  #2
+  mac2_a1  0.6
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.138
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.076
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.361
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #14
   stroke         #4
 
 patch "Dholak Slap" family=india note=57 range=50..64
   # The treble side slapped.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.168
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.215
+  mac4_d1  #4
+  mac4_a1  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.168
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.558
+  mac8_d1  #14
+  mac8_a1  0.1
   model          #15
   stroke         #1
   volume         1
 
+patch "Mridangam By Touch" family=india note=60 range=53..67
+  # The tuned head by the velocity.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  0.3
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.124
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.169
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.253
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #14
+  stroke         #5
+  decay          0.6
+
+patch "Bayan Press" family=india note=43 range=36..55 role=jaw
+  # A gallop on the bass drum, the wrist pressing it up between strokes: press, or the mod wheel.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.161
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.144
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  0.132
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.387
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #1
+  stroke         #3
+  squeeze        7
+
+patch "Tabla Roll" family=india note=62 range=55..74 role=pad
+  # Held notes rolled at the edge, quick and bright.
+  set macro1 "Middle"
+  set macro2 "Soft"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Faster"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac2_d1  #2
+  mac2_a1  -0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.039
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.107
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.3
+  mac8_d1  #14
+  mac8_a1  0.1
+  mac8_d2  #12
+  mac8_a2  0.024
+  model          #0
+  stroke         #4
+  roll           14
+  hand           0.7
+  volume         0.25
+
+patch "Dholak Roll" family=india note=55 range=48..62 role=pad
+  # Held notes rolled on the treble side.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Faster"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.13
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.079
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.192
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.3
+  mac7_d2  #12
+  mac7_a2  -0.06
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #15
+  stroke         #0
+  roll           10
+  volume         0.4
+
+patch "Kanjira Roll" family=india note=62 range=55..69 role=pad
+  # The jingles shaken in a fast roll; press, or the mod wheel, to bend it.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Bare"
+  set macro6 "Flam"
+  set macro7 "Faster"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.039
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac2_d2  #12
+  mac2_a2  -0.028
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.052
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.102
+  mac5_d1  #7
+  mac5_a1  -1
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.3
+  mac7_d2  #12
+  mac7_a2  -0.044
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #12
+  stroke         #0
+  rattle         0.6
+  roll           18
+  squeeze        3
+  volume         0.28
+
+# --- kit ---------------------------------------------------------------------
+
 patch "Hand Drum Kit" family=kit note=36 range=36..51
   # Sixteen pads: djembe, cajon, tabla, bayan, frame and talking drum, each with its own stroke.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Tight"
+  set macro6 "Drop"
+  set macro7 "Flam"
+  set macro8 "Wide"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.3
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.146
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #14
+  mac5_a1  0.1
+  mac6_d1  #5
+  mac6_a1  0.7
+  mac7_d1  #13
+  mac7_a1  0.35
+  mac7_d2  #12
+  mac7_a2  -0.115
+  mac8_d1  #10
+  mac8_a1  0.6
   kit            1
 
 patch "Latin Kit" family=kit note=36 range=36..51
   # Congas, bongos, cajón and batá on sixteen pads.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Tight"
+  set macro6 "Drop"
+  set macro7 "Flam"
+  set macro8 "Wide"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.268
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.14
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.263
+  mac5_d1  #14
+  mac5_a1  0.1
+  mac6_d1  #5
+  mac6_a1  0.7
+  mac7_d1  #13
+  mac7_a1  0.35
+  mac7_d2  #12
+  mac7_a2  -0.111
+  mac8_d1  #10
+  mac8_a1  0.6
   kit            1
   p01_model      #6
   p01_stroke     #3
@@ -494,6 +3774,38 @@ patch "Latin Kit" family=kit note=36 range=36..51
 
 patch "Tabla Kit" family=kit note=36 range=36..51
   # Tabla, bayan, mridangam, dholak and kanjira on sixteen pads.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Tight"
+  set macro6 "Drop"
+  set macro7 "Flam"
+  set macro8 "Wide"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.3
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.142
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #14
+  mac5_a1  0.1
+  mac6_d1  #5
+  mac6_a1  0.7
+  mac7_d1  #13
+  mac7_a1  0.35
+  mac7_d2  #12
+  mac7_a2  -0.105
+  mac8_d1  #10
+  mac8_a1  0.6
   kit            1
   p01_model      #1
   p01_stroke     #3
@@ -546,6 +3858,36 @@ patch "Tabla Kit" family=kit note=36 range=36..51
 
 patch "African Kit" family=kit note=36 range=36..51
   # Djembes, ashiko, talking drum and batá on sixteen pads.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Tight"
+  set macro6 "Drop"
+  set macro7 "Flam"
+  set macro8 "Wide"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.256
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.142
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.267
+  mac5_d1  #14
+  mac5_a1  0.1
+  mac6_d1  #5
+  mac6_a1  0.7
+  mac7_d1  #13
+  mac7_a1  0.35
+  mac8_d1  #10
+  mac8_a1  0.6
   kit            1
   p01_model      #16
   p01_stroke     #3
@@ -598,6 +3940,36 @@ patch "African Kit" family=kit note=36 range=36..51
 
 patch "Arabic Kit" family=kit note=36 range=36..51
   # Darbuka, riq, tar, bendir and frame drum on sixteen pads.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Tight"
+  set macro6 "Jingles"
+  set macro7 "Flam"
+  set macro8 "Wide"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.194
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.147
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.292
+  mac5_d1  #14
+  mac5_a1  0.1
+  mac6_d1  #7
+  mac6_a1  1
+  mac7_d1  #13
+  mac7_a1  0.35
+  mac8_d1  #10
+  mac8_a1  0.6
   kit            1
   p01_model      #8
   p01_stroke     #3
@@ -647,3 +4019,962 @@ patch "Arabic Kit" family=kit note=36 range=36..51
   p16_model      #9
   p16_stroke     #5
   p16_note       64
+
+patch "World Kit" family=kit note=36 range=36..51
+  # Djembe, cajón, congas, bongo, darbuka, riq, tabla, bayan, udu and talking drum on sixteen pads.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Body"
+  set macro6 "Drop"
+  set macro7 "Flam"
+  set macro8 "Wide"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.092
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.148
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #8
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  -0.055
+  mac6_d1  #5
+  mac6_a1  0.7
+  mac7_d1  #13
+  mac7_a1  0.35
+  mac8_d1  #10
+  mac8_a1  0.6
+  kit            1
+  p01_model      #2
+  p01_stroke     #3
+  p01_note       43
+  p02_model      #2
+  p02_stroke     #0
+  p02_note       55
+  p03_model      #2
+  p03_stroke     #1
+  p03_note       60
+  p04_model      #3
+  p04_stroke     #3
+  p04_note       40
+  p05_model      #3
+  p05_stroke     #1
+  p05_note       52
+  p05_level      1
+  p06_model      #6
+  p06_stroke     #0
+  p06_note       57
+  p07_model      #6
+  p07_stroke     #1
+  p07_note       57
+  p08_model      #6
+  p08_stroke     #0
+  p08_note       52
+  p09_model      #7
+  p09_stroke     #5
+  p09_note       69
+  p10_model      #8
+  p10_stroke     #3
+  p10_note       50
+  p11_model      #8
+  p11_stroke     #4
+  p11_note       59
+  p12_model      #9
+  p12_stroke     #0
+  p12_note       64
+  p13_model      #0
+  p13_stroke     #4
+  p13_note       62
+  p14_model      #1
+  p14_stroke     #3
+  p14_note       43
+  p15_model      #17
+  p15_stroke     #3
+  p15_note       48
+  p15_level      1
+  p16_model      #5
+  p16_stroke     #3
+  p16_note       55
+  rattle         0.4
+  send reverb    0.12
+
+patch "Cajon Kit" family=kit note=36 range=36..51
+  # A cajón laid out as a drum kit: bass, slaps and taps, a riq for the hats, bongos and an udu for toms.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Body"
+  set macro6 "Bare"
+  set macro7 "Flam"
+  set macro8 "Wide"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.3
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.141
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.276
+  mac5_d1  #8
+  mac5_a1  0.5
+  mac6_d1  #7
+  mac6_a1  -1
+  mac7_d1  #13
+  mac7_a1  0.35
+  mac7_d2  #12
+  mac7_a2  -0.109
+  mac8_d1  #10
+  mac8_a1  0.6
+  kit            1
+  p01_model      #3
+  p01_stroke     #3
+  p01_note       40
+  p02_model      #3
+  p02_stroke     #4
+  p02_note       52
+  p02_level      1
+  p03_model      #3
+  p03_stroke     #1
+  p03_note       52
+  p03_level      1
+  p04_model      #3
+  p04_stroke     #2
+  p04_note       47
+  p04_level      1
+  p05_model      #3
+  p05_stroke     #3
+  p05_note       43
+  p06_model      #3
+  p06_stroke     #1
+  p06_note       55
+  p06_level      1
+  p07_model      #3
+  p07_stroke     #0
+  p07_note       47
+  p08_model      #3
+  p08_stroke     #5
+  p08_note       47
+  p09_model      #9
+  p09_stroke     #2
+  p09_note       64
+  p09_level      1
+  p10_model      #9
+  p10_stroke     #0
+  p10_note       64
+  p11_model      #12
+  p11_stroke     #0
+  p11_note       62
+  p12_model      #4
+  p12_stroke     #4
+  p12_note       45
+  p13_model      #7
+  p13_stroke     #0
+  p13_note       69
+  p14_model      #7
+  p14_stroke     #0
+  p14_note       64
+  p15_model      #17
+  p15_stroke     #3
+  p15_note       48
+  p16_model      #3
+  p16_stroke     #1
+  p16_note       59
+  p16_level      1
+  rattle         0.6
+  send reverb    0.1
+
+patch "Frame Kit" family=kit note=36 range=36..51
+  # Frame drums, tar, bendir, riq, kanjira and darbuka: the deep strokes low, the edges and jingles above.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Tight"
+  set macro6 "Bare"
+  set macro7 "Flam"
+  set macro8 "Wide"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.101
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.114
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.226
+  mac5_d1  #14
+  mac5_a1  0.1
+  mac6_d1  #7
+  mac6_a1  -1
+  mac7_d1  #13
+  mac7_a1  0.35
+  mac7_d2  #12
+  mac7_a2  -0.049
+  mac8_d1  #10
+  mac8_a1  0.6
+  kit            1
+  p01_model      #4
+  p01_stroke     #3
+  p01_note       43
+  p02_model      #4
+  p02_stroke     #4
+  p02_note       43
+  p03_model      #4
+  p03_stroke     #0
+  p03_note       45
+  p04_model      #4
+  p04_stroke     #3
+  p04_note       38
+  p05_model      #10
+  p05_stroke     #3
+  p05_note       45
+  p06_model      #10
+  p06_stroke     #4
+  p06_note       52
+  p07_model      #11
+  p07_stroke     #3
+  p07_note       47
+  p08_model      #11
+  p08_stroke     #4
+  p08_note       52
+  p09_model      #9
+  p09_stroke     #0
+  p09_note       64
+  p10_model      #9
+  p10_stroke     #1
+  p10_note       66
+  p11_model      #9
+  p11_stroke     #2
+  p11_note       64
+  p12_model      #12
+  p12_stroke     #0
+  p12_note       62
+  p13_model      #12
+  p13_stroke     #1
+  p13_note       64
+  p14_model      #8
+  p14_stroke     #3
+  p14_note       50
+  p15_model      #8
+  p15_stroke     #4
+  p15_note       59
+  p16_model      #8
+  p16_stroke     #0
+  p16_note       59
+  volume         0.55
+  rattle         0.6
+  send reverb    0.15
+
+patch "Conga Set" family=kit note=36 range=36..51
+  # Tumba, conga and quinto across the pads, each with its bass, open, slap, muted and tip strokes.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Body"
+  set macro6 "Drop"
+  set macro7 "Flam"
+  set macro8 "Roll"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.15
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.17
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.15
+  mac5_d1  #8
+  mac5_a1  0.5
+  mac6_d1  #5
+  mac6_a1  0.7
+  mac7_d1  #13
+  mac7_a1  0.35
+  mac7_d2  #12
+  mac7_a2  -0.142
+  mac8_d1  #9
+  mac8_a1  0.4
+  mac8_d2  #12
+  mac8_a2  -0.481
+  kit            1
+  p01_model      #6
+  p01_stroke     #3
+  p01_note       52
+  p02_model      #6
+  p02_stroke     #0
+  p02_note       52
+  p03_model      #6
+  p03_stroke     #1
+  p03_note       52
+  p04_model      #6
+  p04_stroke     #2
+  p04_note       52
+  p05_model      #6
+  p05_stroke     #3
+  p05_note       57
+  p06_model      #6
+  p06_stroke     #0
+  p06_note       57
+  p07_model      #6
+  p07_stroke     #1
+  p07_note       57
+  p08_model      #6
+  p08_stroke     #2
+  p08_note       57
+  p09_model      #6
+  p09_stroke     #3
+  p09_note       62
+  p10_model      #6
+  p10_stroke     #0
+  p10_note       62
+  p11_model      #6
+  p11_stroke     #1
+  p11_note       62
+  p12_model      #6
+  p12_stroke     #2
+  p12_note       62
+  p13_model      #6
+  p13_stroke     #4
+  p13_note       52
+  p13_level      1
+  p14_model      #6
+  p14_stroke     #4
+  p14_note       57
+  p14_level      1
+  p15_model      #6
+  p15_stroke     #4
+  p15_note       62
+  p15_level      1
+  p16_model      #6
+  p16_stroke     #5
+  p16_note       52
+  volume         0.85
+  send reverb    0.1
+
+patch "Tabla Pair" family=kit note=36 range=36..51
+  # The tabla's strokes on the first pads, the bayan's below them; press, or the mod wheel, to bend the bayan.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Tight"
+  set macro6 "Drop"
+  set macro7 "Flam"
+  set macro8 "Wide"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.221
+  mac4_d1  #4
+  mac4_a1  0.3
+  mac5_d1  #14
+  mac5_a1  0.1
+  mac6_d1  #5
+  mac6_a1  0.7
+  mac7_d1  #13
+  mac7_a1  0.35
+  mac7_d2  #12
+  mac7_a2  -0.125
+  mac8_d1  #10
+  mac8_a1  0.6
+  kit            1
+  p01_model      #1
+  p01_stroke     #3
+  p01_note       43
+  p02_model      #1
+  p02_stroke     #2
+  p02_note       43
+  p02_level      1
+  p03_model      #1
+  p03_stroke     #0
+  p03_note       45
+  p04_model      #1
+  p04_stroke     #3
+  p04_note       41
+  p05_model      #1
+  p05_stroke     #3
+  p05_note       48
+  p06_model      #1
+  p06_stroke     #1
+  p06_note       43
+  p06_level      1
+  p07_model      #1
+  p07_stroke     #4
+  p07_note       45
+  p07_level      1
+  p08_model      #0
+  p08_stroke     #5
+  p08_note       62
+  p09_model      #0
+  p09_stroke     #4
+  p09_note       62
+  p10_model      #0
+  p10_stroke     #0
+  p10_note       62
+  p11_model      #0
+  p11_stroke     #3
+  p11_note       62
+  p11_level      1
+  p12_model      #0
+  p12_stroke     #2
+  p12_note       62
+  p13_model      #0
+  p13_stroke     #1
+  p13_note       62
+  p14_model      #0
+  p14_stroke     #4
+  p14_note       64
+  p15_model      #0
+  p15_stroke     #0
+  p15_note       60
+  p16_model      #0
+  p16_stroke     #2
+  p16_note       64
+  p16_level      1
+  volume         1
+  squeeze        4
+
+patch "Talking Kit" family=kit note=36 range=36..51
+  # A talking drum tuned to eight notes, its open and edge strokes, then djembe, kanjira and udu.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Tight"
+  set macro6 "Drop"
+  set macro7 "Flam"
+  set macro8 "Wide"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac1_d2  #12
+  mac1_a2  0.114
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.148
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #14
+  mac5_a1  0.1
+  mac6_d1  #5
+  mac6_a1  0.7
+  mac7_d1  #13
+  mac7_a1  0.35
+  mac8_d1  #10
+  mac8_a1  0.6
+  kit            1
+  p01_model      #5
+  p01_stroke     #3
+  p01_note       43
+  p02_model      #5
+  p02_stroke     #3
+  p02_note       45
+  p03_model      #5
+  p03_stroke     #3
+  p03_note       48
+  p04_model      #5
+  p04_stroke     #3
+  p04_note       50
+  p05_model      #5
+  p05_stroke     #3
+  p05_note       52
+  p06_model      #5
+  p06_stroke     #3
+  p06_note       55
+  p07_model      #5
+  p07_stroke     #3
+  p07_note       57
+  p08_model      #5
+  p08_stroke     #3
+  p08_note       60
+  p09_model      #5
+  p09_stroke     #0
+  p09_note       55
+  p10_model      #5
+  p10_stroke     #0
+  p10_note       60
+  p11_model      #5
+  p11_stroke     #4
+  p11_note       62
+  p11_level      1
+  p12_model      #5
+  p12_stroke     #2
+  p12_note       55
+  p12_level      1
+  p13_model      #2
+  p13_stroke     #3
+  p13_note       43
+  p14_model      #2
+  p14_stroke     #1
+  p14_note       60
+  p15_model      #12
+  p15_stroke     #0
+  p15_note       62
+  p16_model      #17
+  p16_stroke     #3
+  p16_note       48
+  squeeze        5
+
+patch "Udu Kit" family=kit note=36 range=36..51
+  # Udus only: the deep bloops low, then open, slapped and tapped clay going up.
+  set macro1 "Drop"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Tight"
+  set macro6 "Low"
+  set macro7 "Flam"
+  set macro8 "Wide"
+  mac1_d1  #5
+  mac1_a1  0.7
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.215
+  mac4_d1  #4
+  mac4_a1  0.3
+  mac5_d1  #14
+  mac5_a1  0.1
+  mac6_d1  #14
+  mac6_a1  -0.1
+  mac7_d1  #13
+  mac7_a1  0.35
+  mac8_d1  #10
+  mac8_a1  0.6
+  kit            1
+  p01_model      #17
+  p01_stroke     #3
+  p01_note       36
+  p01_level      1
+  p02_model      #17
+  p02_stroke     #3
+  p02_note       41
+  p02_level      1
+  p03_model      #17
+  p03_stroke     #3
+  p03_note       45
+  p03_level      1
+  p04_model      #17
+  p04_stroke     #3
+  p04_note       48
+  p04_level      1
+  p05_model      #17
+  p05_stroke     #3
+  p05_note       52
+  p05_level      1
+  p06_model      #17
+  p06_stroke     #0
+  p06_note       48
+  p06_level      1
+  p07_model      #17
+  p07_stroke     #0
+  p07_note       52
+  p07_level      1
+  p08_model      #17
+  p08_stroke     #0
+  p08_note       55
+  p08_level      1
+  p09_model      #17
+  p09_stroke     #0
+  p09_note       60
+  p09_level      1
+  p10_model      #17
+  p10_stroke     #1
+  p10_note       52
+  p10_level      1
+  p11_model      #17
+  p11_stroke     #1
+  p11_note       57
+  p11_level      1
+  p12_model      #17
+  p12_stroke     #2
+  p12_note       48
+  p12_level      1
+  p13_model      #17
+  p13_stroke     #4
+  p13_note       55
+  p13_level      1
+  p14_model      #17
+  p14_stroke     #4
+  p14_note       60
+  p14_level      1
+  p15_model      #17
+  p15_stroke     #4
+  p15_note       64
+  p15_level      1
+  p16_model      #17
+  p16_stroke     #4
+  p16_note       67
+  p16_level      1
+  volume         1
+  body           0.8
+
+# --- odd ---------------------------------------------------------------------
+
+patch "Talking Bass" family=odd note=36 range=28..48 role=bass
+  # A talking drum far below its range, played as a bass line.
+  set macro1 "Edge"
+  set macro2 "Quick"
+  set macro3 "Short"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  0.5
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  -0.4
+  mac3_d2  #12
+  mac3_a2  0.233
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.076
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.349
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #5
+  stroke         #3
+  decay          0.8
+  squeeze        3
+
+patch "Udu Bass" family=odd note=31 range=26..43 role=bass
+  # A pot the size of a barrel: the air is a sub bass.
+  set macro1 "Drop"
+  set macro2 "Quick"
+  set macro3 "Short"
+  set macro4 "Damp"
+  set macro5 "Low"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #5
+  mac1_a1  0.7
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  -0.4
+  mac3_d2  #12
+  mac3_a2  0.244
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.3
+  mac5_d1  #14
+  mac5_a1  -0.1
+  mac5_d2  #12
+  mac5_a2  0.076
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.434
+  mac8_d1  #14
+  mac8_a1  0.1
+  mac8_d2  #12
+  mac8_a2  -0.055
+  model          #17
+  stroke         #3
+  body           1
+  decay          0.8
+
+patch "Giant Tabla" family=odd note=38 range=30..50 role=bass
+  # A tabla two octaves down, its harmonic head now a tuned boom.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  0.318
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.044
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.137
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.088
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.144
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #0
+  stroke         #0
+  decay          0.7
+  volume         0.32
+
+patch "Giant Bongo" family=odd note=43 range=36..55
+  # Bongos tuned down into conga country, and further.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.083
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.138
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.244
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.069
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.373
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #7
+  stroke         #5
+
+patch "Tiny Djembe" family=odd note=84 range=76..96
+  # A djembe the size of a cup.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Rattles"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.354
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac2_d2  #12
+  mac2_a2  -0.3
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.178
+  mac4_d1  #4
+  mac4_a1  0.3
+  mac5_d1  #7
+  mac5_a1  0.9
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.109
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.543
+  mac8_d1  #14
+  mac8_a1  0.1
+  stroke         #5
+  decay          0.7
+  volume         1
+
+patch "Bell Tabla" family=odd note=84 range=72..96
+  # A tabla tuned up into bell range, left to ring.
+  set macro1 "Middle"
+  set macro2 "Soft"
+  set macro3 "Short"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac2_d1  #2
+  mac2_a1  -0.4
+  mac2_d2  #12
+  mac2_a2  0.076
+  mac3_d1  #3
+  mac3_a1  -0.4
+  mac3_d2  #12
+  mac3_a2  0.106
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.162
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  0.047
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.158
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #0
+  stroke         #4
+  decay          1
+  hand           0.9
+  volume         0.35
+  send reverb    0.2
+
+patch "Whirring Riq" family=odd note=64 range=57..71 role=pad
+  # The jingles shaken as fast as they go: a held note is a whirr.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Bare"
+  set macro6 "Flam"
+  set macro7 "Slower"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  0.052
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac2_d2  #12
+  mac2_a2  -0.106
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.059
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.094
+  mac5_d1  #7
+  mac5_a1  -1
+  mac5_d2  #12
+  mac5_a2  0.087
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  -0.4
+  mac7_d2  #12
+  mac7_a2  0.148
+  mac8_d1  #14
+  mac8_a1  0.1
+  mac8_d2  #12
+  mac8_a2  0.052
+  model          #9
+  stroke         #2
+  rattle         1
+  roll           24
+  volume         0.54
+
+patch "Squeeze Sweep" family=odd note=48 range=40..60 role=jaw
+  # The talking drum squeezed a whole octave by pressure or the mod wheel.
+  set macro1 "Middle"
+  set macro2 "Quick"
+  set macro3 "Short"
+  set macro4 "Damp"
+  set macro5 "Drop"
+  set macro6 "Flam"
+  set macro7 "Roll"
+  set macro8 "Tight"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #12
+  mac1_a2  -0.088
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  -0.4
+  mac3_d2  #12
+  mac3_a2  0.188
+  mac4_d1  #4
+  mac4_a1  0.6
+  mac4_d2  #12
+  mac4_a2  0.273
+  mac5_d1  #5
+  mac5_a1  0.7
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  0.072
+  mac7_d1  #9
+  mac7_a1  0.5
+  mac7_d2  #12
+  mac7_a2  -0.311
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #5
+  stroke         #0
+  squeeze        12
+  decay          0.9
+  volume         0.59

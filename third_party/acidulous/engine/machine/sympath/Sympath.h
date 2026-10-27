@@ -31,8 +31,24 @@ class Sympath final : public Machine {
         Tarbs, Chikari, First, Cycle,
         Meend, Gamak,
         Voices, VelocityAmount, BendRange, Octave, Volume,
-        Count
+        // Eight macro knobs, each with four routes: a destination (a
+        // MacroDest) and a depth. A macro's knob times a route's depth is
+        // added to the destination, in its own 0..1 range. Block rate, but
+        // what a pluck reads is taken at the pluck. Pitch is 24 semitones per
+        // unit and moves the notes played after it.
+        MacroBase,
+        MacroParams = 9, // knob, 4 destinations, 4 depths
+        Count = MacroBase + 8 * MacroParams
     };
+    // Where a macro route goes. The model, tune, sa, scale, first, cycle,
+    // voices, bend range and octave are left out.
+    enum MacroDest : int32_t {
+        McOff, McBridge, McCurve, McPluck, McPosition, McSustain, McBright,
+        McTarbs, McChikari, McMeend, McGamak, McVelocity, McVolume,
+        McPitch,
+        MacroDestCount
+    };
+    static constexpr int kMacros = 8;
     static_assert(Count <= kMaxParams, "too many parameters");
 
     enum Kind : int32_t { Sitar = 0, Tanpura, Veena, Shamisen,
@@ -76,8 +92,12 @@ class Sympath final : public Machine {
         bool sounding = false;
         /** The bow's steady push, taken out so only its waves reach the string. */
         float bowDc = 0.0f;
+        /** The bow's last push, averaged with the next so nothing goes in at the top of the band. */
+        float bowLast = 0.0f;
         /** Samples since the bow touched the string, for its gentle start. */
         int32_t bowAt = 0;
+        /** Half the note's period, samples: how long the bow's first push lasts. */
+        int32_t kickLength = 2;
     };
     struct Voice {
         String strings[kStrings];
@@ -94,6 +114,8 @@ class Sympath final : public Machine {
         /** The bridge ringing where the strings strike it, and how hard they struck it last. */
         dsp::Svf zing;
         float contactLast = 0.0f;
+        /** Under a bowed note: the slow wander a bow leaves, taken out an octave below the note. */
+        dsp::Svf bowCut;
         /** Samples since a string was last plucked. */
         int32_t sincePluck = 0;
         float level = 0.0f;
@@ -107,7 +129,16 @@ class Sympath final : public Machine {
         float hz = 0.0f, pan = 0.0f;
     };
 
-    float paramOf(int32_t i) const { return params_.get(i); }
+    float read(int32_t p, bool goal) const { return goal ? params_.target(p) : params_.get(p); }
+    /** Param [p], smoothed, with the macros' routes to it added. */
+    float paramOf(int32_t p) const { return val(p, false); }
+    /** Param [p]'s target with the macros' targets added, for plucks. */
+    float goalOf(int32_t p) const { return val(p, true); }
+    float val(int32_t p, bool goal) const;
+    /** Fills [macGoal_] from the macro knobs' targets and their routes. */
+    void updateMacroGoals();
+    /** Fills [mac_] from the smoothed macro knobs, and the goals too. */
+    void updateMacros();
     Voice *voiceFor(uint8_t note);
     void start(uint8_t note, uint8_t velocity);
     /** Shapes a pluck for a string at [hz] into [stroke]. */
@@ -132,6 +163,7 @@ class Sympath final : public Machine {
     float bpm = 120.0f;
     float bend = 0.0f, wheel = 0.0f, channelPressure_ = 0.0f;
     float gamakPhase = 0.0f;
+    float mac_[MacroDestCount]{}, macGoal_[MacroDestCount]{};
     int retuneCountdown = 0;
     /** The gourd. */
     dsp::Svf body;

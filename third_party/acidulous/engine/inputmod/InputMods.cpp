@@ -678,7 +678,12 @@ void Arp::onBlock(int64_t tickStart, int64_t tickEnd, float, MidiSink &out) {
         nextStep = ((tickStart + rate - 1) / rate) * rate;
         anchor = 0;
     }
-    if (stepOf(p, Sync) == 1 && playing) anchor = 0;
+    // Free: steps sit on the grid, so a switch from restart or a rate change
+    // while a key is held moves the next step onto it.
+    if (stepOf(p, Sync) == 1 && playing) {
+        anchor = 0;
+        if (nextStep >= 0 && nextStep % rate != 0) nextStep = ((nextStep + rate - 1) / rate) * rate;
+    }
     // The clock jumped forward (onto a host's beat): the skipped steps are
     // dropped rather than played at once, and the grid and step count kept.
     if (nextStep >= 0 && tickStart - nextStep >= rate) {

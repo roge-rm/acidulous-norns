@@ -27,6 +27,18 @@ class Osc {
         return v;
     }
 
+    // Saw and pulse at the same phase, for a fade between them. Advances once.
+    void both(float width, float &sawOut, float &pulseOut) {
+        float v = 2.0f * phase - 1.0f;
+        sawOut = v - polyBlep(phase, inc);
+        float p = phase < width ? 1.0f : -1.0f;
+        p += polyBlep(phase, inc);
+        float t = phase + 1.0f - width;
+        if (t >= 1.0f) t -= 1.0f;
+        pulseOut = p - polyBlep(t, inc);
+        advance();
+    }
+
   private:
     void advance() {
         phase += inc;

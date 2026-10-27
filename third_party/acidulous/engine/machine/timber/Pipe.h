@@ -47,6 +47,12 @@ constexpr float kWallDepth = 0.35f;
  * reaches exactly one at the closing pressure, so it ends smoothly.
  */
 constexpr float kReedCurve = 3.0f;
+/**
+ * The DC blocker's pole, a corner at 22.9 Hz. Under 45 Hz (note 29.6) the
+ * corner moves down to half the note: close to the note its phase lead
+ * leaves the tube's next mode flat, near 1.87x, and helps it take the note.
+ */
+constexpr float kDcPole = 0.997f, kDcLowHz = 45.0f, kDcNoteRatio = 0.5f;
 
 using dsp::clampf;
 
@@ -113,7 +119,8 @@ class Pipe {
         // Reset the tube length too. tune() rewrites it before step() reads
         // it, but a cleared pipe shouldn't hold the last note's length. It
         // isn't glided like the brass, since that detunes the jet line.
-        upperDelay = 0.0f;
+        upperDelay = upperNow = 0.0f;
+        tongueNow = tongue;
         onsetBoost = 1.0f;
         onsetFall = 0.0f;
         // Reset the pressure (setPressure ignores tiny changes, so an old
@@ -204,7 +211,7 @@ class Pipe {
     }
 
     void setBell(float reflection, float cutoff01) {
-        const float r = clampf(reflection, 0.3f, 0.995f), c = clampf(cutoff01, 0.02f, 0.95f);
+        const float r = clampf(reflection, 0.0f, 0.995f), c = clampf(cutoff01, 0.02f, 0.95f);
         if (r != bellGain || c != bellCoeff) { bellGain = r; bellCoeff = c; dirty = true; }
     }
 
@@ -222,7 +229,24 @@ class Pipe {
     void setLoss(float amount) { loss = clampf(amount, 0.8f, 1.0f); }
 
     /** The tongue on the reed. 1 holds it shut. */
+    /**
+     * Lets the tube's length follow a new note over about [seconds] rather
+     * than jump, which clicks when a sounding pipe changes note. 0 jumps. A
+     * cleared or lifted pipe starts at its note's length.
+     */
+    void setLengthGlide(float seconds) {
+        lengthGlide = seconds > 0.0f ? 1.0f - std::exp(-1.0f / (seconds * sr)) : 0.0f;
+    }
+
     void setTongue(float amount) { tongue = clampf(amount, 0.0f, 1.0f); }
+
+    /** Lets the tongue land and lift over about [seconds] rather than at once, which clicks. 0 is at once. */
+    void setTongueGlide(float seconds) {
+        tongueGlide = seconds > 0.0f ? 1.0f - std::exp(-1.0f / (seconds * sr)) : 0.0f;
+    }
+
+    /** The tongue across the air jet, for flutter. 1 stops the jet. */
+    void setJetCut(float amount) { jetCut = clampf(amount, 0.0f, 1.0f); }
 
     // --- tuning --------------------------------------------------------------
 
@@ -240,6 +264,7 @@ class Pipe {
         constexpr float kGrowth = 6.9f; // ln(1000): silence to a sounding note
         onsetBoost = clampf(std::exp(kGrowth / (freq * seconds)) / kSettled, 1.0f, 4.0f);
         onsetFall = std::exp(-64.0f / (seconds * sr));
+        upperNow = 0.0f; // a new note starts at its own length
         dirty = true;
     }
 
@@ -262,6 +287,7 @@ class Pipe {
 
         const float period = sr / freq;
         const float w = 6.28318530718f * freq / sr;
+        dcPole = freq < kDcLowHz ? std::max(kDcPole, std::exp(-6.28318530718f * kDcNoteRatio * freq / sr)) : kDcPole;
 
         // The lattice. A forked fingering pulls the cutoff down, but never
         // below the note it has to reflect or the note wouldn't speak.
@@ -352,7 +378,11 @@ class Pipe {
             // the peak of the comb and the octave in a trough. Blowing
             // harder shortens the crossing and brings the octave up, which
             // is how a flute overblows. Solve for g.
-            jetDelay = clampf(jetRatio * period / (0.75f + pressure * 0.35f),
+            // On a cone's twelfth the jet crosses in three of the note's
+            // periods, so the tube's thirds either side of the note fall in
+            // troughs.
+            const float cross = !cylinder && useMode == 3 ? 3.0f : 1.0f;
+            jetDelay = clampf(jetRatio * period * cross / (0.75f + pressure * 0.35f),
                               1.0f, static_cast<float>(jetLine.size() - 3));
             const float ph = -w * jetDelay;
             const float cp = std::cos(ph), sp = std::sin(ph);
@@ -448,7 +478,9 @@ class Pipe {
      * most of a woodwind's sound leaves through the holes.
      */
     float step(float mouth, float noise) {
-        const float arrive = read(upper, wUpper, upperDelay);
+        if (lengthGlide > 0.0f && upperNow > 0.0f) upperNow += (upperDelay - upperNow) * lengthGlide;
+        else upperNow = upperDelay;
+        const float arrive = read(upper, wUpper, upperNow);
 
         // The lattice splits the wave: the low end reflects, the high end
         // carries on down the rest of the instrument.
@@ -479,7 +511,11 @@ class Pipe {
             breathLp += (breath - breathLp) * 0.002f;
             write(jetLine, wJet, bore + noise + (breath - breathLp) * 0.5f);
             const float late = read(jetLine, wJet, jetDelay);
-            in = bore - (dsp::fastTanh(jetGain * late + jetAim) - jetRest);
+            float edge = dsp::fastTanh(jetGain * late + jetAim) - jetRest;
+            // A rolled tongue breaking the jet up (flutter): less of it
+            // reaches the edge, so the loop loses gain while it's cut.
+            if (jetCut > 0.0f) edge *= 1.0f - jetCut;
+            in = bore - edge;
         } else {
             // mouth + difference x reflection, where the reflection is the
             // reed table read at the (lagged, for the reed's inertia)
@@ -498,12 +534,14 @@ class Pipe {
             const float a = clampf(inertia * reedScale, -1.0f, 1.0f);
             const float cube = a * a * a;
             const float rFree = offset + (cube >= 0.0f ? 1.0f - offset : 1.0f + offset) * cube;
-            const float r = rFree + (1.0f - rFree) * tongue;
+            if (tongueGlide > 0.0f) tongueNow += (tongue - tongueNow) * tongueGlide;
+            else tongueNow = tongue;
+            const float r = rFree + (1.0f - rFree) * tongueNow;
             in = breath + pd * r;
         }
 
         in = dsp::fastTanh(in);
-        float hp = in - dcIn + 0.997f * dcOut;
+        float hp = in - dcIn + dcPole * dcOut;
         dcIn = in;
         dcOut = hp;
         if (ventCoeff > 0.0f) {
@@ -587,7 +625,7 @@ class Pipe {
     void dcBlock(float w, float &re, float &im) const {
         const float c1 = std::cos(w), s1 = std::sin(w);
         const float nr = 1.0f - c1, ni = s1;
-        const float dr = 1.0f - 0.997f * c1, di = 0.997f * s1;
+        const float dr = 1.0f - dcPole * c1, di = dcPole * s1;
         const float den = dr * dr + di * di + 1e-20f;
         re = (nr * dr + ni * di) / den;
         im = (ni * dr - nr * di) / den;
@@ -629,6 +667,10 @@ class Pipe {
     int32_t regMode = 1, excite = Single;
 
     float upperDelay = 100.0f, lowerDelay = 1.0f;
+    /** The length the tube is read at now, gliding to upperDelay; see setLengthGlide(). */
+    float upperNow = 0.0f;
+    float tongueGlide = 0.0f, tongueNow = 0.0f;
+    float lengthGlide = 0.0f;
     int32_t sounding = 1;
     float latticeHz = 1500.0f, finger = 0.0f, holeDepth = 0.4f, latticeCut = 1500.0f;
     Section hole1, hole2;
@@ -641,10 +683,11 @@ class Pipe {
     float reedShut = 0.1f, reedScale = 1.0f, rRest = 0.7f;
     float jetRatio = 0.5f, jetAim = 0.0f, jetDelay = 48.0f, jetGain = 1.0f, jetSlope = 1.0f, jetRest = 0.0f;
 
-    float pressure = 0.5f, drive = 1.0f, loss = 0.999f, tongue = 0.0f;
+    float pressure = 0.5f, drive = 1.0f, loss = 0.999f, tongue = 0.0f, jetCut = 0.0f;
     float bellLp = 0.0f, breathLp = 0.0f;
     float ventCoeff = 0.0f, ventLp = 0.0f;
     float wallCoeff = 1.0f, wallLp = 0.0f, wallDepth = kWallDepth;
+    float dcPole = kDcPole;
     float dcIn = 0.0f, dcOut = 0.0f;
     float radiated = 0.0f, loopMag = 0.0f;
     /** The attack's lift and how fast it lets go. See lift(). */

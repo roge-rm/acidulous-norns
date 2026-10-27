@@ -1,6 +1,7 @@
 #include "Tine.h"
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <engine/dsp/Math.h>
 #include <engine/machine/Voices.h>
 
@@ -95,7 +96,7 @@ float poleFor(float t60, float sampleRate) { return std::pow(10.0f, -3.0f / (std
 Tine::Tine() { initParams(); }
 
 const ParamDef *Tine::paramDefs(int32_t &count) const {
-    static const ParamDef defs[Count] = {
+    static const ParamDef first[MacroBase] = {
         // marimba, vibraphone, xylophone, glockenspiel, thumb piano, music box, steel pan, handpan, tongue drum
         {"model", 0.0f, static_cast<float>(KindCount - 1), 0.0f, Curve::Stepped, KindCount, ""},
         {"tune", -100.0f, 100.0f, 0.0f, Curve::Linear, 0, "cents"},
@@ -121,9 +122,96 @@ const ParamDef *Tine::paramDefs(int32_t &count) const {
         {"bend", 0.0f, 12.0f, 2.0f, Curve::Linear, 0, "st"},
         {"octave", -2.0f, 2.0f, 0.0f, Curve::Stepped, 5, ""},
         {"volume", 0.0f, 1.0f, 0.7f, Curve::Linear, 0, ""},
+        {"pair", 0.0f, 50.0f, 0.0f, Curve::Linear, 0, "cents"},
     };
+    static ParamDef defs[Count];
+    static char names[kMacros * MacroParams][12];
+    static bool built = false;
+    if (!built) {
+        for (int32_t i = 0; i < MacroBase; ++i) defs[i] = first[i];
+        auto put = [&](int32_t i, const char *n, float mn, float mx, float df, Curve c, int32_t steps) {
+            char *name = names[i - MacroBase];
+            std::snprintf(name, 12, "%s", n);
+            defs[i] = ParamDef{name, mn, mx, df, c, steps, ""};
+        };
+        for (int k = 0; k < kMacros; ++k) {
+            char n[12];
+            const int32_t b = MacroBase + k * MacroParams;
+            std::snprintf(n, sizeof(n), "mac%d", k + 1);
+            put(b, n, 0.0f, 1.0f, 0.0f, Curve::Linear, 0);
+            for (int r = 0; r < 4; ++r) {
+                std::snprintf(n, sizeof(n), "mac%d_d%d", k + 1, r + 1);
+                put(b + 1 + r, n, 0.0f, static_cast<float>(MacroDestCount - 1), 0.0f, Curve::Stepped, MacroDestCount);
+                std::snprintf(n, sizeof(n), "mac%d_a%d", k + 1, r + 1);
+                put(b + 5 + r, n, -1.0f, 1.0f, 0.0f, Curve::Linear, 0);
+            }
+        }
+        built = true;
+    }
     count = Count;
     return defs;
+}
+
+namespace {
+// The macro destination each param answers to, or -1 for none.
+struct DestMap {
+    int8_t of[Tine::Count];
+    DestMap() {
+        using T = Tine;
+        for (auto &d : of) d = -1;
+        const int32_t pairs[][2] = {
+            {T::Mallet, T::McMallet}, {T::Position, T::McPosition}, {T::Decay, T::McDecay}, {T::Bright, T::McBright},
+            {T::Damp, T::McDamp}, {T::Tube, T::McTube}, {T::Motor, T::McMotor}, {T::Depth, T::McDepth},
+            {T::Bloom, T::McBloom}, {T::Buzz, T::McBuzz}, {T::Roll, T::McRoll}, {T::Spread, T::McSpread},
+            {T::VelocityAmount, T::McVelocity}, {T::Volume, T::McVolume}, {T::Pair, T::McPair},
+        };
+        for (const auto &pr : pairs) of[pr[0]] = static_cast<int8_t>(pr[1]);
+    }
+};
+const DestMap &destMap() {
+    static const DestMap m;
+    return m;
+}
+} // namespace
+
+float Tine::val(int32_t p, bool goal) const {
+    const float v = read(p, goal);
+    const int d = destMap().of[p];
+    const float off = d < 0 ? 0.0f : (goal ? macGoal_ : mac_)[d];
+    if (off == 0.0f) return v;
+    const ParamDef &def = params_.def(p);
+    return def.map(def.unmap(v) + off);
+}
+
+void Tine::updateMacroGoals() {
+    for (float &m : macGoal_) m = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = read(b, true);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            const int dest = static_cast<int>(read(b + 1 + r, true) + 0.5f);
+            if (dest > McOff && dest < MacroDestCount) macGoal_[dest] += knob * read(b + 5 + r, true);
+        }
+    }
+    // Two octaves either way.
+    macGoal_[McPitch] = std::clamp(macGoal_[McPitch], -1.0f, 1.0f);
+}
+
+void Tine::updateMacros() {
+    updateMacroGoals();
+    for (float &m : mac_) m = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = read(b, false);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            // The routes' destinations are steps, so their targets.
+            const int dest = static_cast<int>(read(b + 1 + r, true) + 0.5f);
+            if (dest > McOff && dest < MacroDestCount) mac_[dest] += knob * read(b + 5 + r, false);
+        }
+    }
+    mac_[McPitch] = std::clamp(mac_[McPitch], -1.0f, 1.0f);
 }
 
 void Tine::prepare(int32_t rate) {
@@ -140,6 +228,10 @@ void Tine::reset() {
     for (Voice &v : voices) {
         v.settleLeft = 0;
         for (Mode &m : v.modes) m.y1 = m.y2 = 0.0f;
+        for (Mode &m : v.pairModes) m.y1 = m.y2 = 0.0f;
+        v.paired = false;
+        v.builtPair = -1.0f;
+        v.macAt = v.macNow = 0.0f;
         std::fill(v.tube.begin(), v.tube.end(), 0.0f);
         v.tubeAt = 0;
         v.used = v.held = v.damped = false;
@@ -152,6 +244,8 @@ void Tine::reset() {
         v.level = 0.0f;
         v.quietBlocks = 0;
     }
+    for (float &m : mac_) m = 0.0f;
+    for (float &m : macGoal_) m = 0.0f;
     bend = wheel = channelPressure_ = 0.0f;
     dampersUp = false;
     motorPhase = 0.0f;
@@ -191,10 +285,10 @@ Tine::Voice *Tine::voiceFor(uint8_t note) {
 void Tine::build(Voice &v) {
     const Make &k = kMakes[std::clamp(steppedTargetOf(Model), 0, KindCount - 1)];
     const float f = noteHz(pitchOf(v));
-    const float bright = clampf(targetOf(Bright), 0.0f, 1.0f);
-    const float position = clampf(targetOf(Position), 0.0f, 1.0f);
+    const float bright = clampf(goalOf(Bright), 0.0f, 1.0f);
+    const float position = clampf(goalOf(Position), 0.0f, 1.0f);
     // Lower notes ring longer: a longer, heavier bar.
-    const float t60 = clampf(k.t60 * std::pow(4.0f, targetOf(Decay) - 0.5f) * std::pow(kRefHz / f, k.pitchFall), 0.05f, 40.0f);
+    const float t60 = clampf(k.t60 * std::pow(4.0f, goalOf(Decay) - 0.5f) * std::pow(kRefHz / f, k.pitchFall), 0.05f, 40.0f);
     // A bright bar keeps its overtones longer; a dull one loses them first.
     const float modeFall = k.modeFall * (1.5f - bright);
     v.modeCount = 0;
@@ -223,8 +317,10 @@ void Tine::build(Voice &v) {
 
 void Tine::retune(Voice &v) {
     const float pitch = pitchOf(v);
-    if (std::fabs(pitch - v.builtPitch) < 0.002f) return;
+    const float pair = v.paired ? clampf(paramOf(Pair), 0.0f, 50.0f) : 0.0f;
+    if (std::fabs(pitch - v.builtPitch) < 0.002f && (!v.paired || std::fabs(pair - v.builtPair) < 0.01f)) return;
     v.builtPitch = pitch;
+    v.builtPair = pair;
     const float f = noteHz(pitch);
     for (int i = 0; i < v.modeCount; ++i) {
         Mode &m = v.modes[i];
@@ -237,6 +333,25 @@ void Tine::retune(Voice &v) {
         // White noise at a third of a unit of power rings a mode at this
         // level, whatever its decay: the bow's level is the note's.
         m.bow = m.bowShare * s * std::sqrt(6.0f * (1.0f - m.r * m.r));
+    }
+    // The pair: the same modes, ringing as long, a few cents sharp.
+    if (v.paired) {
+        const float fp = f * std::exp2(pair / 1200.0f);
+        for (int i = 0; i < v.modeCount; ++i) {
+            const Mode &m = v.modes[i];
+            Mode &c = v.pairModes[i];
+            c.ratio = m.ratio;
+            c.t60 = m.t60;
+            c.r = m.r;
+            c.amp = m.amp;
+            c.bowShare = m.bowShare;
+            const float w = kTwoPi * std::fmin(fp * c.ratio, sampleRate * 0.49f) / sampleRate;
+            const float s = std::sin(w);
+            c.a1 = 2.0f * c.r * std::cos(w);
+            c.a2 = -c.r * c.r;
+            c.b0 = c.amp * s;
+            c.bow = c.bowShare * s * std::sqrt(6.0f * (1.0f - c.r * c.r));
+        }
     }
     // The pan's octave grows from the note: the note squared has an octave in
     // it, which the octave mode picks out. Sized so at full it can grow as
@@ -266,7 +381,7 @@ void Tine::strike(Voice &v, float velocity) {
     // can't set the overtones going; a hard one is gone before they start.
     // Struck harder, a mallet flattens less and leaves sooner. Never longer
     // than half the note's period, or it would choke the note itself.
-    const float hard = clampf(targetOf(Mallet) + 0.4f * (velocity - 0.6f), 0.0f, 1.0f);
+    const float hard = clampf(goalOf(Mallet) + 0.4f * (velocity - 0.6f), 0.0f, 1.0f);
     float seconds = k.contact * (0.0045f - 0.0041f * hard);
     seconds = std::fmin(seconds, 0.5f / f);
     const int len = std::clamp(static_cast<int>(seconds * sampleRate), 2, static_cast<int>(v.strike.size()));
@@ -280,6 +395,25 @@ void Tine::strike(Voice &v, float velocity) {
     v.velocity = velocity;
     // The knock of the mallet, the thumb or the pin.
     v.click = k.click * velocity * (0.3f + hard);
+}
+
+float Tine::ring(Mode *modes, const Voice &v, float x, float bow, float bloom) {
+    float y = 0.0f, first = 0.0f;
+    for (int m = 0; m < v.modeCount; ++m) {
+        Mode &md = modes[m];
+        float in = md.b0 * x + md.bow * bow;
+        if (m == v.bloomMode && bloom > 0.0f) {
+            // Limited to the note's struck level, so a bowed or rolled note can't run away with it.
+            const float n = clampf(first, -v.gain, v.gain);
+            in += bloom * v.bloomCoef * n * n;
+        }
+        const float out = in + md.a1 * md.y1 + md.a2 * md.y2;
+        md.y2 = md.y1;
+        md.y1 = out;
+        if (m == 0) first = out;
+        y += out;
+    }
+    return y;
 }
 
 void Tine::damp(Voice &v) {
@@ -296,27 +430,41 @@ void Tine::damp(Voice &v) {
 }
 
 void Tine::noteOn(uint8_t note, uint8_t velocity) {
+    updateMacroGoals(); // a note reads where the knobs are going, so renders repeat
     const Make &k = kMakes[std::clamp(steppedTargetOf(Model), 0, KindCount - 1)];
     Voice *v = voiceFor(note);
     const bool fresh = !v->used || v->note != note;
     v->note = note;
     v->pitch = static_cast<float>(note) + 12.0f * static_cast<float>(steppedTargetOf(Octave)) + targetOf(Tune) / 100.0f;
+    // The pitch macro where it's going is in the note; a move after it bends it.
+    v->macAt = v->macNow = macGoal_[McPitch];
+    if (v->macAt != 0.0f) v->pitch += v->macAt * 24.0f;
     v->held = true;
     v->noteBend = 0.0f;
     v->pressure = -1.0f;
     const float vel = static_cast<float>(velocity) / 127.0f;
-    v->gain = kHouse * k.level * velocityGain(vel, targetOf(VelocityAmount));
+    v->gain = kHouse * k.level * velocityGain(vel, goalOf(VelocityAmount));
     if (fresh) {
         for (Mode &m : v->modes) m.y1 = m.y2 = 0.0f;
         std::fill(v->tube.begin(), v->tube.end(), 0.0f);
         v->bowing = 0.0f;
+        v->paired = false;
+    }
+    // A pair starts where the note is, so a ringing note struck again with
+    // pair on goes on without a step. Once paired a note stays so.
+    if (!v->paired && goalOf(Pair) > 0.0f) {
+        v->paired = true;
+        for (int i = 0; i < kModes; ++i) {
+            v->pairModes[i].y1 = v->modes[i].y1;
+            v->pairModes[i].y2 = v->modes[i].y2;
+        }
     }
     // A note struck again rings on from where it was, as a bar does.
     build(*v);
     strike(*v, vel);
-    const float spread = clampf(targetOf(Spread), 0.0f, 1.0f);
+    const float spread = clampf(goalOf(Spread), 0.0f, 1.0f);
     v->pan = spread * clampf((v->pitch - 66.0f) / 30.0f, -1.0f, 1.0f);
-    const float roll = targetOf(Roll);
+    const float roll = goalOf(Roll);
     v->rollLeft = roll > 0.0f ? static_cast<int32_t>(sampleRate / roll) : 0;
     v->used = true;
     v->quietBlocks = 0;
@@ -373,6 +521,7 @@ void Tine::notePressure(uint8_t note, uint8_t value) {
 
 bool Tine::render(float *L, float *R, int32_t frames) {
     params_.tick();
+    updateMacros();
     for (int32_t i = 0; i < frames; ++i) L[i] = R[i] = 0.0f;
     if (asleep) return true;
 
@@ -389,6 +538,7 @@ bool Tine::render(float *L, float *R, int32_t frames) {
 
     for (Voice &v : voices) {
         if (!v.used) continue;
+        v.macNow = mac_[McPitch];
         float peak = 0.0f;
         const float pl = std::sqrt(0.5f * (1.0f - v.pan)), pr = std::sqrt(0.5f * (1.0f + v.pan));
         float phase = motorPhase;
@@ -412,28 +562,22 @@ bool Tine::render(float *L, float *R, int32_t frames) {
             // A re-struck note waits for what was ringing to be damped, then lands whole.
             if (v.settleLeft == 0 && v.strikeAt < v.strikeLength) x = v.strike[static_cast<size_t>(v.strikeAt++)] * v.gain;
             const float bow = v.bowing > 0.0f ? v.bowing * v.gain * white() : 0.0f;
-            float y = 0.0f, first = 0.0f;
             if (v.settleLeft > 0) {
                 --v.settleLeft;
                 for (int m = 0; m < v.modeCount; ++m) {
                     v.modes[m].y1 *= v.settle;
                     v.modes[m].y2 *= v.settle;
                 }
-            }
-            for (int m = 0; m < v.modeCount; ++m) {
-                Mode &md = v.modes[m];
-                float in = md.b0 * x + md.bow * bow;
-                if (m == v.bloomMode && bloom > 0.0f) {
-                    // Limited to the note's struck level, so a bowed or rolled note can't run away with it.
-                    const float n = clampf(first, -v.gain, v.gain);
-                    in += bloom * v.bloomCoef * n * n;
+                if (v.paired) {
+                    for (int m = 0; m < v.modeCount; ++m) {
+                        v.pairModes[m].y1 *= v.settle;
+                        v.pairModes[m].y2 *= v.settle;
+                    }
                 }
-                const float out = in + md.a1 * md.y1 + md.a2 * md.y2;
-                md.y2 = md.y1;
-                md.y1 = out;
-                if (m == 0) first = out;
-                y += out;
             }
+            float y = ring(v.modes, v, x, bow, bloom);
+            // Half each, so a pair at no offset is the note alone.
+            if (v.paired) y = 0.5f * (y + ring(v.pairModes, v, x, bow, bloom));
             // The tube under the bar, and the discs turning in it.
             if (tube > 0.0f) {
                 float read = static_cast<float>(v.tubeAt) - v.tubeDelay;

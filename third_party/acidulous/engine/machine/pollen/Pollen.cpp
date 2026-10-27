@@ -3,6 +3,7 @@
 #include <engine/machine/Voices.h>
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <engine/core/InputBus.h>
 #include <engine/dsp/Math.h>
 #include <engine/inputmod/Scales.h>
@@ -28,7 +29,7 @@ constexpr float kTwoPi = 6.28318530718f;
 Pollen::Pollen() { initParams(); }
 
 const ParamDef *Pollen::paramDefs(int32_t &count) const {
-    static const ParamDef defs[Count] = {
+    static const ParamDef first[MacroBase] = {
         {"source", 0.0f, 1.0f, 0.0f, Curve::Stepped, 2, ""}, // sample, live
         {"ingain", 0.0f, 4.0f, 1.0f, Curve::Linear, 0, ""},
         {"buffer", 0.25f, 8.0f, 4.0f, Curve::Exponential, 0, "s"},
@@ -87,8 +88,82 @@ const ParamDef *Pollen::paramDefs(int32_t &count) const {
         {"volume", 0.0f, 1.5f, 0.8f, Curve::Linear, 0, ""},
         {"pan", -1.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
     };
+    static ParamDef defs[Count];
+    static char names[kMacros * MacroParams][12];
+    static bool built = false;
+    if (!built) {
+        for (int32_t i = 0; i < MacroBase; ++i) defs[i] = first[i];
+        auto put = [&](int32_t i, const char *n, float mn, float mx, float df, Curve c, int32_t steps) {
+            char *name = names[i - MacroBase];
+            std::snprintf(name, 12, "%s", n);
+            defs[i] = ParamDef{name, mn, mx, df, c, steps, ""};
+        };
+        for (int k = 0; k < kMacros; ++k) {
+            char n[12];
+            const int32_t b = MacroBase + k * MacroParams;
+            std::snprintf(n, sizeof(n), "mac%d", k + 1);
+            put(b, n, 0.0f, 1.0f, 0.0f, Curve::Linear, 0);
+            for (int r = 0; r < 4; ++r) {
+                std::snprintf(n, sizeof(n), "mac%d_d%d", k + 1, r + 1);
+                put(b + 1 + r, n, 0.0f, static_cast<float>(MacroDestCount - 1), 0.0f, Curve::Stepped, MacroDestCount);
+                std::snprintf(n, sizeof(n), "mac%d_a%d", k + 1, r + 1);
+                put(b + 5 + r, n, -1.0f, 1.0f, 0.0f, Curve::Linear, 0);
+            }
+        }
+        built = true;
+    }
     count = Count;
     return defs;
+}
+
+namespace {
+// The macro destination each param answers to, or -1 for none.
+struct DestMap {
+    int8_t of[Pollen::Count];
+    DestMap() {
+        using P = Pollen;
+        for (auto &d : of) d = -1;
+        const int32_t pairs[][2] = {
+            {P::Position, P::McPosition}, {P::Scan, P::McScan}, {P::Spray, P::McSpray}, {P::Snap, P::McSnap},
+            {P::ReverseProb, P::McReverse}, {P::Size, P::McSize}, {P::SizeSpread, P::McSizeSpread},
+            {P::Density, P::McDensity}, {P::Jitter, P::McJitter}, {P::Skew, P::McSkew}, {P::Spread, P::McSpread},
+            {P::Bloom, P::McBloom}, {P::Drift, P::McDrift}, {P::Mutate, P::McMutate}, {P::PanSpread, P::McPanSpread},
+            {P::Width, P::McWidth}, {P::Bits, P::McBits}, {P::Crush, P::McCrush}, {P::Wobble, P::McWobble},
+            {P::Cutoff, P::McCutoff}, {P::Resonance, P::McResonance}, {P::AmpAttack, P::McAttack},
+            {P::AmpRelease, P::McRelease}, {P::Drive, P::McDrive}, {P::Feedback, P::McFeedback}, {P::Dry, P::McDry},
+            {P::VelocityAmount, P::McVelocity}, {P::Volume, P::McVolume},
+        };
+        for (const auto &pr : pairs) of[pr[0]] = static_cast<int8_t>(pr[1]);
+    }
+};
+const DestMap &destMap() {
+    static const DestMap m;
+    return m;
+}
+} // namespace
+
+float Pollen::paramOf(int32_t p) const {
+    const float v = params_.get(p);
+    const int d = destMap().of[p];
+    if (d < 0 || mac_[d] == 0.0f) return v;
+    const ParamDef &def = params_.def(p);
+    return def.map(def.unmap(v) + mac_[d]);
+}
+
+void Pollen::updateMacros() {
+    for (float &m : mac_) m = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = params_.get(b);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            // The routes' destinations are steps, so their targets.
+            const int dest = static_cast<int>(params_.target(b + 1 + r) + 0.5f);
+            if (dest > McOff && dest < MacroDestCount) mac_[dest] += knob * params_.get(b + 5 + r);
+        }
+    }
+    // Two octaves either way.
+    mac_[McPitch] = std::clamp(mac_[McPitch], -1.0f, 1.0f);
 }
 
 float Pollen::rawOf(int32_t p) const {
@@ -125,6 +200,7 @@ void Pollen::prepare(int32_t sr) {
             window[shape][static_cast<size_t>(i)] = w;
         }
     }
+    stealFrames = std::max(1, static_cast<int32_t>(0.0025f * sampleRate));
     filterL.setSampleRate(sampleRate);
     filterR.setSampleRate(sampleRate);
     finder.reset(sampleRate);
@@ -148,6 +224,7 @@ void Pollen::reset() {
     liveOnsetCount = liveOnsetNext = 0;
     captureLeft = 0;
     finder.reset(sampleRate);
+    updateMacros();
 }
 
 void *Pollen::swapObject(int32_t slot, void *object) {
@@ -232,12 +309,11 @@ void Pollen::controlChange(uint8_t cc, uint8_t value) {
 void Pollen::pitchBend(int16_t value14) { bend = static_cast<float>(value14) / 8192.0f; }
 void Pollen::onBlock(int64_t, int64_t, float) {}
 
-float Pollen::windowAt(int32_t shape, float phase, float skew, float skewK) const {
-    // Skew bends time inside the window: negative puts the peak early,
-    // positive late. The power (skewK) is worked out once when the grain is
-    // born.
+float Pollen::windowAt(int32_t shape, float phase, float middle) const {
+    // Skew moves the window's middle to [middle] with two straight-line
+    // warps of time, one either side, so both edges keep a finite slope.
     float t = std::clamp(phase, 0.0f, 1.0f);
-    if (skew > 0.001f || skew < -0.001f) t = std::pow(t, skewK);
+    if (middle != 0.5f) t = t < middle ? 0.5f * t / middle : 0.5f + 0.5f * (t - middle) / (1.0f - middle);
     const float x = t * kWindowSize;
     const int32_t i = std::min(static_cast<int32_t>(x), kWindowSize - 1);
     const float f = x - static_cast<float>(i);
@@ -302,29 +378,56 @@ View Pollen::resolveView(int32_t mode, int32_t liveLen) const {
     return v;
 }
 
-int32_t Pollen::takeGrain() {
+int32_t Pollen::takeGrain(bool force) {
+    int32_t alive = 0, free = -1;
     for (int32_t i = 0; i < kGrains; ++i) {
         const int32_t at = (grainCursor + i) % kGrains;
-        if (!grains[at].active) {
-            grainCursor = (at + 1) % kGrains;
-            return at;
-        }
+        if (grains[at].active) ++alive;
+        else if (free < 0) free = at;
     }
-    // Nothing free: take the grain furthest through its window, which is the
-    // least audible to cut.
+    // Lean mode only lets the cloud use part of the pool. A forced grain may
+    // still use a free slot past it.
+    if (free >= 0 && (alive < grainPool || force)) {
+        grainCursor = (free + 1) % kGrains;
+        return free;
+    }
+    if (!force) return -1;
+    // Full, and a voice needs its first grain: steal the grain furthest
+    // through its window. It moves to a spare slot and fades out over
+    // stealFrames there, since cutting it mid-window pops.
     int32_t oldest = 0;
     float most = -1.0f;
     for (int32_t i = 0; i < kGrains; ++i) {
         const float t = static_cast<float>(grains[i].age) / static_cast<float>(std::max(1, grains[i].length));
         if (t > most) { most = t; oldest = i; }
     }
-    if (grains[oldest].voice >= 0 && voices[grains[oldest].voice].living > 0) --voices[grains[oldest].voice].living;
+    Grain &old = grains[oldest];
+    int32_t spare = kGrains;
+    for (int32_t i = kGrains; i < kGrains + kSpare; ++i) {
+        if (!grains[i].active) { spare = i; break; }
+        // All spares busy: reuse the one nearest the end of its fade.
+        if (grains[i].fade < grains[spare].fade) spare = i;
+    }
+    Grain &f = grains[spare];
+    f = old;
+    if (old.voice >= 0) {
+        // Detached, so the voice's count and a new note on it don't touch it.
+        Voice &v = voices[old.voice];
+        if (v.living > 0) --v.living;
+        f.gainL *= v.envNow;
+        f.gainR *= v.envNow;
+        f.voice = -1;
+    }
+    f.fade = stealFrames;
+    old.active = false;
     return oldest;
 }
 
 void Pollen::spawn(Voice &v, int32_t voiceIndex, const View &view, float env) {
     if (!view.usable()) return;
-    const int32_t slot = takeGrain();
+    // When the pool is full, only a voice's first grain gets a slot.
+    const int32_t slot = takeGrain(v.living == 0);
+    if (slot < 0) return;
     Grain &g = grains[slot];
     const bool live = steppedOf(SourceMode) == FromLive;
 
@@ -343,7 +446,7 @@ void Pollen::spawn(Voice &v, int32_t voiceIndex, const View &view, float env) {
     }
 
     const float semis = paramOf(Pitch) + paramOf(Fine) * 0.01f + paramOf(Transpose) + 12.0f * paramOf(Octave) +
-                        bend * paramOf(BendRange) + v.bend;
+                        bend * paramOf(BendRange) + v.bend + 24.0f * mac_[McPitch];
     uint32_t state = rng;
     const float scatter = scatterSemis(paramOf(Spread), state);
     rng = state;
@@ -369,9 +472,11 @@ void Pollen::spawn(Voice &v, int32_t voiceIndex, const View &view, float env) {
     g.inc = nextRandom() < paramOf(ReverseProb) ? -inc : inc;
     g.age = 0;
     g.length = length;
-    g.skew = paramOf(Skew);
-    g.skewK = std::pow(2.0f, -g.skew * 2.0f);
+    // Skew 1 puts the window's middle 90% of the way through the grain, -1
+    // 10%.
+    g.middle = 0.5f + 0.4f * std::clamp(paramOf(Skew), -1.0f, 1.0f);
     g.generation = 0;
+    g.fade = 0;
     const float pan = (nextRandom() * 2.0f - 1.0f) * paramOf(PanSpread);
     const float angle = (std::clamp(pan, -1.0f, 1.0f) + 1.0f) * 0.25f * 3.14159265f;
     // Velocity only. The envelope isn't baked in here, since grains read it
@@ -391,10 +496,11 @@ void Pollen::pollinate(const Grain &parent, const View &view) {
     // Children only take a slot when there's room to spare, so a bloom never
     // starves a new note.
     int32_t free = 0;
-    for (const auto &g : grains) if (!g.active) ++free;
+    for (int32_t i = 0; i < kGrains; ++i) if (!grains[i].active) ++free;
     if (free - (kGrains - grainPool) <= 8) return;
 
-    const int32_t slot = takeGrain();
+    const int32_t slot = takeGrain(false);
+    if (slot < 0) return;
     Grain &g = grains[slot];
     const float span = static_cast<float>(view.frames);
     const float drift = paramOf(Drift), mutate = paramOf(Mutate);
@@ -420,6 +526,7 @@ void Pollen::pollinate(const Grain &parent, const View &view) {
 
 bool Pollen::render(float *L, float *R, int32_t frames) {
     params_.tick();
+    updateMacros();
     for (int32_t i = 0; i < frames; ++i) L[i] = R[i] = 0.0f;
 
     const int32_t mode = steppedOf(SourceMode);
@@ -564,7 +671,12 @@ bool Pollen::render(float *L, float *R, int32_t frames) {
             for (auto &g : grains) {
                 if (!g.active) continue;
                 const float phase = static_cast<float>(g.age) / static_cast<float>(g.length);
-                const float w = windowAt(shape, phase, g.skew, g.skewK);
+                float w = windowAt(shape, phase, g.middle);
+                if (g.fade > 0) {
+                    // A stolen grain on its way out.
+                    w *= static_cast<float>(g.fade) / static_cast<float>(stealFrames);
+                    if (--g.fade <= 0) g.active = false;
+                }
                 double p = g.pos;
                 if (p < 0.0) p += span;
                 if (p >= span) p -= span;
@@ -577,10 +689,11 @@ bool Pollen::render(float *L, float *R, int32_t frames) {
                 l += sl * w * g.gainL * ge;
                 r += sr * w * g.gainR * ge;
                 g.pos = p + g.inc * wobble;
+                if (!g.active) continue; // a stolen grain's fade just ended
                 if (++g.age >= g.length) {
                     g.active = false;
                     if (g.voice >= 0 && voices[g.voice].living > 0) --voices[g.voice].living;
-                    if (bloom > 0.0001f) pollinate(g, view);
+                    if (bloom > 0.0001f && &g < grains + kGrains) pollinate(g, view);
                 }
             }
         }

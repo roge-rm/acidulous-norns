@@ -17,8 +17,9 @@ namespace acidulous::machine {
  *
  * A held note sets a bird singing a song pattern around that pitch, two
  * octaves up, in time with the tempo: a plain whistle, chirps sweeping down
- * or up, fast trills, a wandering warble, a two-note call answered by
- * another bird, or a dawn chorus of several birds each doing its own thing.
+ * or up, fast trills, a warbled song in phrases, a two-note call answered by
+ * another bird, a dawn chorus of different birds mostly taking turns,
+ * slow falling coos, or harsh caws in twos and threes.
  */
 class Aviary final : public Machine {
   public:
@@ -29,15 +30,32 @@ class Aviary final : public Machine {
         // Kit mode: each key from kBaseNote is a pad with its own song, pitch
         // (a MIDI note), number of birds and level, kPadParams values each from PadFirst.
         Kit, PadFirst,
-        Count = PadFirst + 16 * 4
+        // Eight macro knobs, each with four routes: a destination (a
+        // MacroDest) and a depth. A macro's knob times a route's depth is
+        // added to the destination, in its own 0..1 range. Block rate. Pitch
+        // is 24 semitones per unit. In a kit the routes move the knobs every
+        // pad shares.
+        MacroBase = PadFirst + 16 * 4,
+        MacroParams = 9, // knob, 4 destinations, 4 depths
+        Count = MacroBase + 8 * MacroParams
     };
+    // Where a macro route goes. Continuous params only: the pattern, tune,
+    // rate, flock, bend range, octave and the pads are left out.
+    enum MacroDest : int32_t {
+        McOff, McLength, McSweep, McRasp, McTwo, McInterval, McBreath, McThroat,
+        McBeak, McSpread, McSpace, McVelocity, McVolume,
+        McPitch,
+        MacroDestCount
+    };
+    static constexpr int kMacros = 8;
     static constexpr int kPads = 16, kPadParams = 4;
     enum PadParam : int32_t { PadSong = 0, PadNote, PadFlock, PadLevel };
     static constexpr int32_t padParam(int pad, int which) { return PadFirst + pad * kPadParams + which; }
     static constexpr uint8_t kBaseNote = 36;
     static_assert(Count <= kMaxParams, "too many parameters");
 
-    enum Song : int32_t { Whistle = 0, Chirp, Trill, Warble, Call, Chorus, SongCount };
+    // Coo and Caw come after the first six so saved patterns keep their place.
+    enum Song : int32_t { Whistle = 0, Chirp, Trill, Warble, Call, Chorus, Coo, Caw, SongCount };
     static constexpr int kVoices = 4;
     static constexpr int kBirds = 4;
 
@@ -79,19 +97,46 @@ class Aviary final : public Machine {
         /** The syllable's pitch now and where it's going, semitones from the voice's note. */
         float from = 0.0f, to = 0.0f, pitch = 0.0f;
         bool singing = false;
+        /** Coo and caw: samples of the slot sung, the rise in the middle of a
+         *  caw (semitones), whether the pitch eases out (a coo's scoop up), and
+         *  the place in the phrase and its number of notes. */
+        float sung = 1.0f, arch = 0.0f;
+        bool easeOut = false;
+        int phraseAt = 0, phraseLen = 0;
+        /** A caw's half-speed phase, for the croak on every other cycle. */
+        float sub = 0.0f;
         /** A rate a little off the others', for a chorus. */
         float drift = 1.0f;
+        /** How far off it sits, 0 near to 1 far: quieter and duller. Flock birds only. */
+        float far = 0.0f;
+        /** A warble: the motif's shape (a WarbleShape), its centre and depth
+         *  (semitones), its length in syllable units, how many more times it's
+         *  sung, the pitch curve (0 linear, 1 easing out, 2 easing in, 3 both),
+         *  a buzz's rate (Hz, 0 for none) and the syllable's loudness. */
+        int shape = 0, motifLeft = 0, curve = 0;
+        float centre = 0.0f, depth = 0.0f, motifLen = 1.0f, buzz = 0.0f, loud = 1.0f;
+        /** Singing a phrase (rather than resting between them), and singing
+         *  them in a flock, so it waits for the others' phrases to end. */
+        bool inPhrase = false, shy = false;
         /** The throat and beak, and the trachea's echo. */
         dsp::Svf throat;
         float beak = 0.0f;
         float trachea[32] = {};
         int tracheaAt = 0;
         float builtHz = -1.0f;
+        /** The folds' steps a sample and the beak's coefficient, set every
+         *  kRetuneEvery samples, or on the next sample once [retune] is set. */
+        float step0 = 0.0f, step1 = 0.0f, beakCoef = 0.5f;
+        bool retune = true;
+        /** The bird's own breath noise. */
+        uint32_t noise = 0x1f123bb5u;
     };
     struct Voice {
         Bird birds[kBirds];
         int birdCount = 1;
         bool used = false, held = false;
+        /** Singing the chorus pattern. */
+        bool chorus = false;
         uint8_t note = 0;
         /** The pitch it sings around (the note, or its pad's), and its pad's level. */
         float played = 60.0f, padLevel = 1.0f;
@@ -102,10 +147,24 @@ class Aviary final : public Machine {
         uint32_t age = 0;
     };
 
-    float paramOf(int32_t i) const { return params_.get(i); }
+    float read(int32_t p, bool goal) const { return goal ? params_.target(p) : params_.get(p); }
+    /** Param [p], smoothed, with the macros' routes to it added. */
+    float paramOf(int32_t p) const { return val(p, false); }
+    /** Param [p]'s target with the macros' targets added, for note-on and syllable seeds. */
+    float goalOf(int32_t p) const { return val(p, true); }
+    float val(int32_t p, bool goal) const;
+    /** Fills [macGoal_] from the macro knobs' targets and their routes. */
+    void updateMacroGoals();
+    /** Fills [mac_] from the smoothed macro knobs, and the goals too. */
+    void updateMacros();
     Voice *voiceFor(uint8_t note);
     /** Starts a bird's next syllable. */
     void nextSyllable(Voice &v, Bird &b, int index);
+    /** A warble's next syllable: bird-shaped motifs, each sung a few times, in phrases with pauses. */
+    void nextWarble(Voice &v, Bird &b, int index, float unit, float sweep, bool first);
+    /** The pause after a flock bird's phrase, samples; longer if another is still singing. */
+    int32_t flockPause(const Voice &v, Bird &b, int index, float beat, float least, float most);
+    static float rand01(uint32_t &s) { return 0.5f * (rand(s) + 1.0f); }
     static float rand(uint32_t &s) {
         s = s * 1664525u + 1013904223u;
         return static_cast<float>(s >> 8) * (2.0f / 16777216.0f) - 1.0f;
@@ -116,10 +175,12 @@ class Aviary final : public Machine {
     float bpm = 120.0f;
     float bend = 0.0f, wheel = 0.0f, channelPressure_ = 0.0f;
     float spaceLp[2] = {0.0f, 0.0f};
-    uint32_t noise = 0x1f123bb5u;
     uint32_t clock = 0;
+    /** Samples rendered, for retuning on the same samples at any block size. */
+    uint32_t retuneClock = 0;
     int32_t quietSamples = 0;
     bool asleep = true;
+    float mac_[MacroDestCount]{}, macGoal_[MacroDestCount]{};
 };
 
 } // namespace acidulous::machine

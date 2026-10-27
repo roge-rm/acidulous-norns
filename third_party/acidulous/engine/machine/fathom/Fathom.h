@@ -28,8 +28,24 @@ class Fathom final : public Machine {
         // Kit mode: each key from kBaseNote is a pad with its own sound, pitch
         // (a MIDI note), density and level, kPadParams values each from PadFirst.
         Kit, PadFirst,
-        Count = PadFirst + 16 * 4
+        // Eight macro knobs, each with four routes: a destination (a
+        // MacroDest) and a depth. A macro's knob times a route's depth is
+        // added to the destination, in its own 0..1 range. Block rate. Pitch
+        // is 24 semitones per unit. The routes reach the params every pad of
+        // a kit shares, and density reaches each pad's own density too.
+        MacroBase = PadFirst + 16 * 4,
+        MacroParams = 9, // knob, 4 destinations, 4 depths
+        Count = MacroBase + 8 * MacroParams
     };
+    // Where a macro route goes. Continuous params only: the model, tune,
+    // surface, bend range, octave and the pads are left out.
+    enum MacroDest : int32_t {
+        McOff, McDensity, McSize, McRise, McDecay, McGust, McWhistle, McTone,
+        McSwell, McSpread, McFade, McVelocity, McVolume,
+        McPitch,
+        MacroDestCount
+    };
+    static constexpr int kMacros = 8;
     static constexpr int kPads = 16, kPadParams = 4;
     enum PadParam : int32_t { PadModel = 0, PadNote, PadDensity, PadLevel };
     static constexpr int32_t padParam(int pad, int which) { return PadFirst + pad * kPadParams + which; }
@@ -73,10 +89,12 @@ class Fathom final : public Machine {
         float amp = 0.0f, fall = 0.0f;
         /** A noisy grain: its tone. */
         float lp = 0.0f, lpCoef = 0.5f, hpLast = 0.0f;
+        /** Samples before it sounds, for a hailstone's bounce. */
+        int32_t wait = 0;
         float pan = 0.0f;
         int32_t age = 0;
     };
-    enum GrainKind : int32_t { Ring = 0, Tap, Crackle };
+    enum GrainKind : int32_t { Ring = 0, Tap, Crackle, Tick };
     struct Voice {
         bool used = false, held = false;
         uint8_t note = 0;
@@ -93,15 +111,21 @@ class Fathom final : public Machine {
         float bedLp = 0.0f, roarLp = 0.0f, roarLp2 = 0.0f;
         float gustNow = 0.0f, gustAim = 0.0f;
         int32_t gustLeft = 0;
+        /** Thunder: the swells the rumble rolls in, and the burst of the rip now sounding. */
+        float rollNow = 0.0f, rollAim = 0.0f, burst = 0.0f;
+        int32_t rollLeft = 0;
         double waveAt = 0.0;
         float peak = 0.0f;
         int quietBlocks = 0;
         uint32_t age = 0;
     };
 
-    float paramOf(int32_t i) const { return params_.get(i); }
+    /** Param [p], smoothed, with the macros' routes to it added. */
+    float paramOf(int32_t p) const;
+    /** Fills [mac_] from the smoothed macro knobs and their routes. */
+    void updateMacros();
     Voice *voiceFor(uint8_t note);
-    void spawn(Voice &v, int kind, float hz, float amp, float decaySeconds, float rise);
+    Grain *spawn(Voice &v, int kind, float hz, float amp, float decaySeconds, float rise);
     /** The voice's events: what kind, and the next one's grains. */
     void event(Voice &v, float hz);
     float white() {
@@ -114,11 +138,12 @@ class Fathom final : public Machine {
     Grain grains[kGrains];
     /** A struck tin roof or window: a few modes shared by every drop. */
     struct SurfaceMode {
-        float a1 = 0.0f, a2 = 0.0f, y1 = 0.0f, y2 = 0.0f;
+        float a1 = 0.0f, a2 = 0.0f, in = 1.0f, y1 = 0.0f, y2 = 0.0f;
     };
-    SurfaceMode surface[4];
+    static constexpr int kSurfaceModes = 8;
+    SurfaceMode surface[kSurfaceModes];
     int builtSurface = -1;
-    float surfaceIn = 0.0f;
+    float surfaceIn = 0.0f, surfaceBurst = 0.0f;
     float sampleRate = 48000.0f;
     float bpm = 120.0f;
     float bend = 0.0f, wheel = 0.0f, channelPressure_ = 0.0f;
@@ -126,6 +151,7 @@ class Fathom final : public Machine {
     uint32_t clock = 0, started = 0;
     int32_t quietSamples = 0;
     bool asleep = true;
+    float mac_[MacroDestCount]{};
 };
 
 } // namespace acidulous::machine

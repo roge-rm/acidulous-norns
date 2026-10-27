@@ -29,8 +29,27 @@ class Resonance final : public Machine {
         PadBase = 0,
         Modes = PadBase + kPads * PadParamCount,
         Coupling, Humanise, Accent, Volume, MasterPan,
+        // Eight macro knobs, each with four routes: a destination (a Dest)
+        // and a depth. A macro's knob times a route's depth is added to the
+        // destination, in its own 0..1 range. An all-pads destination adds
+        // to each pad's own value. Pitch is 24 semitones per unit and
+        // multiplies every pad's tune.
+        MacroBase,
+        MacroParams = 9, // knob, 4 destinations, 4 depths
+        // Added after the macros. How much of a driven pad's bend reaches the
+        // coupling bus, 0 the clean pad.
+        DriveCouple = MacroBase + 8 * MacroParams,
         Count
     };
+    enum Dest : int32_t {
+        DstOff, DstDecay, DstDamp, DstInharm, DstHit, DstHard, DstNoise, DstDrive, DstPitch,
+        DstCoupling, DstHumanise, DstAccent, DstVolume,
+        DstTune, // DstTune + pad
+        DstLevel = DstTune + kPads, // DstLevel + pad
+        DstDriveCouple = DstLevel + kPads, // after the levels, so they keep their numbers
+        DestCount
+    };
+    static constexpr int kMacros = 8;
     static_assert(Count <= kMaxParams, "Resonance declares more parameters than a unit can hold");
 
     Resonance();
@@ -91,6 +110,17 @@ class Resonance final : public Machine {
 
     float padParam(int32_t pad, int32_t which) const { return params_.get(PadBase + pad * PadParamCount + which); }
     int32_t padStep(int32_t pad, int32_t which) const { return static_cast<int32_t>(padParam(pad, which) + 0.5f); }
+    /** Fills [mac_] from the macro knobs, smoothed or (when [goal]) their targets. */
+    void updateMacros(bool goal = false);
+    /** Param [p] with the macros' routes to it added in its own 0..1 range. */
+    float val(int32_t p, bool goal = false) const;
+    /** A param's smoothed value, or its target when [goal] (note-on seeds). */
+    float read(int32_t p, bool goal) const { return goal ? params_.target(p) : params_.get(p); }
+    /** A pad's param with the macros added. Tune includes the pitch macro. */
+    float padVal(int32_t pad, int32_t which, bool goal = false) const {
+        const float v = val(PadBase + pad * PadParamCount + which, goal);
+        return which == Tune ? v * pitchMul_ : v;
+    }
     void buildPad(int32_t pad);
     /** Update only the node gains, for when only the strike has moved. */
     void restrike(int32_t pad);
@@ -100,7 +130,7 @@ class Resonance final : public Machine {
      * clears it.
      */
     float hitOf(int32_t pad) const {
-        return pads[pad].hit >= 0.0f ? pads[pad].hit : padParam(pad, Hit);
+        return pads[pad].hit >= 0.0f ? pads[pad].hit : padVal(pad, Hit);
     }
     float noise() {
         rng ^= rng << 13;
@@ -116,6 +146,8 @@ class Resonance final : public Machine {
     // ring comes from the resonators and is a loop, so it's sent at a
     // fraction and trimmed by how resonant the receiving pad is.
     float knockBus = 0.0f, ringBus = 0.0f;
+    float mac_[DestCount]{};
+    float pitchMul_ = 1.0f; // every pad's tune, from the pitch destination
     static constexpr uint32_t kRngSeed = 0x2545f491u;
     uint32_t rng = kRngSeed;
 };

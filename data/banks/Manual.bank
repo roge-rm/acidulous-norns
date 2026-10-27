@@ -13,9 +13,10 @@
 #
 # **Three things about this bank that are not obvious from the values:**
 #
-# 1. **A patch decides which manuals exist.** `loweron` and `pedalon` default
-#    to off, so a patch that does not set them puts every key on the upper
-#    manual. The ones that do set them place `split` and `pedsplit`, and the
+# 1. **A patch decides which manuals exist.** `loweron` defaults to off and
+#    `pedalon` to on, so a patch that sets neither plays the feet below 48 and
+#    every other key on the upper manual. The ones that set them place `split`
+#    and `pedsplit`, and the
 #    audition phrases are written in absolute notes for those boundaries -
 #    feet below 48, lower manual below 60 - rather than as steps above a
 #    moving centre, which would drag a bass line onto the wrong keyboard.
@@ -33,6 +34,43 @@
 #    going round. Each of those behaves differently under a held chord than
 #    the pedal that imitates it, which is the reason for building them.
 #
+# Families in tab order, 64 patches:
+#
+#   tonewheel  10  Init, jazz and ballad registrations
+#   cabinet     9  gospel, rock and driven, where the rotary and the amp are the sound
+#   combo       8  the transistor organ
+#   church      9  the pipe organ: choruses, flutes, celestes, reeds
+#   theatre     7  tibias, kinura, vox humana and a heavy tremulant, on the swell pedal
+#   reed        7  harmonium, pump organ, musette
+#   split       7  bass and comping over the lower manual and the pedals
+#   odd         7  what only this machine does
+#
+# Every patch but Init carries eight named macros, one to three routes
+# each, and a macro at 0 leaves the patch as it was. Destinations are
+# numbered as in Manual.h's MacroDest: #1-#3 age, leakage and hum, #4 key
+# click, #7-#10 the manual and pedal levels and pedal sustain, #11-#19 the
+# upper A drawbars 16' to 1', #29-#37 the lower A drawbars, #47-#48 the
+# pedal bars, #51 morph, #52 morph amount, #53-#55 spray, #56-#57 perc
+# level and decay, #59-#61 vibrato, #62-#64 wind, #65-#66 tremulant,
+# #67-#73 the ranks, chiff and tracker, #74-#81 the combo tabs, reedy and
+# attack, #82-#84 reed pressure, buzz and tremolo, #85-#93 the cabinet,
+# #94-#99 drive, bias, tone and volume, #101-#102 attack and release,
+# #103-#110 the envelopes, #111-#114 the LFOs, #116 the swell box, #117 the
+# bar glide, #118 pitch.
+#
+# A macro on the percussion is heard on a note from silence; the gospel
+# demo is played legato, so it never fires the tap there. Shutters only
+# move a patch when the swell pedal is part closed, and Glide only when a
+# bar is moving.
+#
+# `swellbox` darkens a closed expression as well as quietening it. On
+# `express` #1 the mod wheel down is open and raising it closes the box, so
+# the harness, which plays with the wheel down, levels those patches open.
+# The swell demos are on #3, the pedal (CC 11), which starts open, so
+# they're levelled open too. `barglide` is
+# how long drawbar, tab, rank and morph moves take, from a knob, a lane, a
+# macro or the matrix.
+#
 # Values are in each parameter's own units; `audition params Manual` lists
 # them. A patch names only what it changes.
 
@@ -45,9 +83,598 @@ machine Manual
 role    gospel
 
 patch Init family=tonewheel
+
+# Three flutes and the scanner in chorus, no percussion and no drive.
+# All of the sound is the vibrato and the cabinet.
+patch "Jazz Flutes" family=tonewheel note=60 range=48..84 role=gospel
+  set macro1 "Fill"
+  set macro2 "Top"
+  set macro3 "Click"
+  set macro4 "Vibrato"
+  set macro5 "Drive"
+  set macro6 "Rotor"
+  set macro7 "Close Mic"
+  set macro8 "Worn"
+  mac1_d1  #14
+  mac1_a1  0.75
+  mac2_d1  #16
+  mac2_a1  0.6
+  mac2_d2  #19
+  mac2_a2  0.5
+  mac3_d1  #4
+  mac3_a1  0.3
+  mac4_d1  #60
+  mac4_a1  0.25
+  mac4_d2  #59
+  mac4_a2  0.1
+  mac5_d1  #94
+  mac5_a1  0.25
+  mac6_d1  #85
+  mac6_a1  0.3
+  mac6_d2  #87
+  mac6_a2  0.3
+  mac7_d1  #91
+  mac7_a1  -0.3
+  mac7_d2  #93
+  mac7_a2  0.15
+  mac8_d1  #1
+  mac8_a1  0.4
+  mac8_d2  #2
+  mac8_a2  0.25
+  ua_16          1
+  ua_513         1
+  ua_8           1
+  ua_4           0
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  la_16          1
+  la_513         1
+  la_8           1
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  perc           #0
+  vibtype        #5
+  vibdepth       0.75
+  vibup          #1
+  rotspeed       #1
+  drive          0.08
+  click          0.2
+  volume         0.25
+  pedalon        #1
+  pedsplit       48
+  pedal          0.9
+  pa_1           1
+  pa_2           0.5
+
+# Two bars and the third-harmonic tap, fast and loud, stealing the 1'.
+# It only fires when every key is up, which is what makes it playable.
+patch "Third Perc" family=tonewheel note=60 range=48..84 role=gospel
+  set macro1 "Fill"
+  set macro2 "Body"
+  set macro3 "Long Perc"
+  set macro4 "Click"
+  set macro5 "Drive"
+  set macro6 "Wind Down"
+  set macro7 "Bright"
+  set macro8 "Worn"
+  mac1_d1  #14
+  mac1_a1  0.75
+  mac2_d1  #12
+  mac2_a1  0.5
+  mac3_d1  #57
+  mac3_a1  0.3
+  mac4_d1  #4
+  mac4_a1  0.3
+  mac5_d1  #94
+  mac5_a1  0.25
+  mac6_d1  #86
+  mac6_a1  -0.3
+  mac6_d2  #88
+  mac6_a2  -0.3
+  mac7_d1  #98
+  mac7_a1  0.12
+  mac8_d1  #1
+  mac8_a1  0.4
+  mac8_d2  #2
+  mac8_a2  0.25
+  ua_16          1
+  ua_513         0
+  ua_8           1
+  ua_4           0
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           1
+  la_16          1
+  la_513         0.375
+  la_8           1
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  loweron        #1
+  perc           #1
+  percharm       #0
+  perclvl        1
+  percfast       #1
+  percdec        0.22
+  percsteal      #1
+  perckey        0.45
+  rotspeed       #2
+  drive          0.3
+  click          0.5
+  volume         0.2675
+  pedalon        #1
+  pedsplit       48
+  pedal          0.9
+  pa_1           1
+  pa_2           0.5
+
+# The same tap taken slowly and quietly, on the second harmonic, so it
+# reads as an attack rather than as a note of its own.
+patch "Slow Tap" family=tonewheel note=60 range=48..84 role=gospel
+  set macro1 "Fill"
+  set macro2 "Top"
+  set macro3 "Perc"
+  set macro4 "Short Perc"
+  set macro5 "Drive"
+  set macro6 "Rotor"
+  set macro7 "Vibrato"
+  set macro8 "Worn"
+  mac1_d1  #14
+  mac1_a1  0.75
+  mac2_d1  #16
+  mac2_a1  0.5
+  mac2_d2  #19
+  mac2_a2  0.4
+  mac3_d1  #56
+  mac3_a1  0.3
+  mac4_d1  #57
+  mac4_a1  -0.25
+  mac5_d1  #94
+  mac5_a1  0.2
+  mac6_d1  #85
+  mac6_a1  0.3
+  mac6_d2  #87
+  mac6_a2  0.3
+  mac7_d1  #60
+  mac7_a1  0.3
+  mac8_d1  #1
+  mac8_a1  0.4
+  mac8_d2  #2
+  mac8_a2  0.25
+  ua_16          1
+  ua_513         0.75
+  ua_8           1
+  ua_4           0
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  perc           #1
+  percharm       #1
+  perclvl        0.45
+  percfast       #0
+  percdec        0.9
+  perckey        0.2
+  rotspeed       #1
+  drive          0.2
+  volume         0.25
+  pedalon        #1
+  pedsplit       48
+  pedal          0.9
+  pa_1           1
+  pa_2           0.5
+
+# A left-hand registration: flat, no percussion, nothing to cut through
+# with. What you play under somebody else.
+patch Comping family=tonewheel note=60 range=41..79 role=gospel
+  set macro1 "Fill"
+  set macro2 "Top"
+  set macro3 "Lift"
+  set macro4 "Click"
+  set macro5 "Drive"
+  set macro6 "Rotor"
+  set macro7 "Vibrato"
+  set macro8 "Dark"
+  mac1_d1  #14
+  mac1_a1  0.6
+  mac1_d2  #32
+  mac1_a2  0.5
+  mac2_d1  #16
+  mac2_a1  0.5
+  mac3_d1  #7
+  mac3_a1  0.2
+  mac4_d1  #4
+  mac4_a1  0.3
+  mac5_d1  #94
+  mac5_a1  0.2
+  mac6_d1  #85
+  mac6_a1  0.3
+  mac6_d2  #87
+  mac6_a2  0.3
+  mac7_d1  #60
+  mac7_a1  0.3
+  mac8_d1  #98
+  mac8_a1  -0.15
+  ua_16          1
+  ua_513         0.375
+  ua_8           1
+  ua_4           0
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  la_16          1
+  la_513         0
+  la_8           1
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  pa_1           0.75
+  pa_2           0.375
+  loweron        #1
+  pedalon        #1
+  split          64
+  perc           #0
+  rotspeed       #1
+  drive          0.15
+  upper          0.8
+  volume         0.26
+
+# The dark half-drawn one. Mid bars in, top bars back, leakage up:
+# the sound of an instrument that has been in the room a long time.
+patch Smoke family=tonewheel note=60 range=36..84 role=gospel
+  set macro1 "Clear"
+  set macro2 "Thin Top"
+  set macro3 "Drive"
+  set macro4 "Hum"
+  set macro5 "Rotor"
+  set macro6 "Dark"
+  set macro7 "Click"
+  set macro8 "Vibrato"
+  mac1_d1  #1
+  mac1_a1  -0.3
+  mac1_d2  #2
+  mac1_a2  -0.25
+  mac2_d1  #17
+  mac2_a1  -0.5
+  mac2_d2  #18
+  mac2_a2  -0.5
+  mac3_d1  #94
+  mac3_a1  0.2
+  mac4_d1  #3
+  mac4_a1  0.25
+  mac5_d1  #85
+  mac5_a1  0.3
+  mac5_d2  #87
+  mac5_a2  0.3
+  mac6_d1  #98
+  mac6_a1  -0.12
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #60
+  mac8_a1  0.3
+  ua_16          1
+  ua_513         1
+  ua_8           1
+  ua_4           1
+  ua_223         0.875
+  ua_2           0.75
+  ua_135         0.625
+  ua_113         0.5
+  ua_1           1
+  la_16          1
+  la_513         0.5
+  la_8           1
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  pa_1           1
+  pa_2           0.5
+  loweron        #1
+  pedalon        #1
+  perc           #0
+  age            0.45
+  leakage        0.32
+  click          0.45
+  rotspeed       #1
+  drive          0.42
+  treble         -2
+  volume         0.2575
+
+# Nothing at the bottom and a gap in the middle. A thin registration is
+# a real one - it is what you use when a horn section has the tune.
+patch "Whistle Bars" family=tonewheel note=67 range=48..88 role=gospel
+  set macro1 "Sub"
+  set macro2 "Fill"
+  set macro3 "Gap"
+  set macro4 "Drive"
+  set macro5 "Wind Down"
+  set macro6 "Vibrato"
+  set macro7 "Click"
+  set macro8 "Dark"
+  mac1_d1  #11
+  mac1_a1  0.5
+  mac2_d1  #14
+  mac2_a1  0.6
+  mac3_d1  #16
+  mac3_a1  0.5
+  mac4_d1  #94
+  mac4_a1  0.2
+  mac5_d1  #86
+  mac5_a1  -0.3
+  mac5_d2  #88
+  mac5_a2  -0.3
+  mac6_d1  #60
+  mac6_a1  0.3
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #98
+  mac8_a1  -0.15
+  ua_16          0
+  ua_513         0
+  ua_8           0.875
+  ua_4           0
+  ua_223         0.75
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0.625
+  perc           #0
+  rotspeed       #2
+  drive          0.28
+  vibtype        #2
+  vibdepth       0.5
+  click          0.45
+  volume         0.3625
+  pedalon        #1
+  pedsplit       48
+  pedal          0.9
+  pa_1           1
+  pa_2           0.5
+
+# No 16', so the left hand does not muddy, and the upper bars tapered
+# rather than out - a taper is what a drawbar set is for.
+patch "Bright Ballad" family=tonewheel note=60 range=48..84 role=gospel
+  set macro1 "Sub"
+  set macro2 "Top"
+  set macro3 "Thin"
+  set macro4 "Drive"
+  set macro5 "Rotor"
+  set macro6 "Vibrato"
+  set macro7 "Click"
+  set macro8 "Worn"
+  mac1_d1  #11
+  mac1_a1  0.5
+  mac2_d1  #19
+  mac2_a1  0.5
+  mac3_d1  #15
+  mac3_a1  -0.5
+  mac3_d2  #17
+  mac3_a2  -0.5
+  mac4_d1  #94
+  mac4_a1  0.2
+  mac5_d1  #85
+  mac5_a1  0.3
+  mac5_d2  #87
+  mac5_a2  0.3
+  mac6_d1  #60
+  mac6_a1  0.3
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #1
+  mac8_a1  0.4
+  mac8_d2  #2
+  mac8_a2  0.25
+  ua_16          0
+  ua_513         0
+  ua_8           0.75
+  ua_4           1
+  ua_223         0.875
+  ua_2           0.75
+  ua_135         0.625
+  ua_113         0.5
+  ua_1           0
+  la_16          0
+  la_513         0
+  la_8           0.5
+  la_4           0.625
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  loweron        #1
+  perc           #0
+  rotspeed       #1
+  drive          0.2
+  vibtype        #4
+  vibdepth       0.5
+  volume         0.315
+  pedalon        #1
+  pedsplit       48
+  pedal          0.9
+  pa_1           1
+  pa_2           0.5
+
+# A late ballad: a little 16', the 8' and half a 4', no percussion,
+# the treble rolled off and the rotor slow. On the swell pedal, so
+# closing it takes the top away before the level.
+patch "Low Light" family=tonewheel note=60 range=41..84 role=gospel
+  set macro1 "Fill"
+  set macro2 "Top"
+  set macro3 "Shutters"
+  set macro4 "Vibrato"
+  set macro5 "Rotor"
+  set macro6 "Drive"
+  set macro7 "Worn"
+  set macro8 "Click"
+  mac1_d1  #14
+  mac1_a1  0.5
+  mac2_d1  #16
+  mac2_a1  0.5
+  mac2_d2  #19
+  mac2_a2  0.3
+  mac3_d1  #116
+  mac3_a1  0.4
+  mac4_d1  #60
+  mac4_a1  0.3
+  mac5_d1  #85
+  mac5_a1  0.3
+  mac5_d2  #87
+  mac5_a2  0.3
+  mac6_d1  #94
+  mac6_a1  0.2
+  mac7_d1  #1
+  mac7_a1  0.4
+  mac7_d2  #2
+  mac7_a2  0.25
+  mac8_d1  #4
+  mac8_a1  0.3
+  ua_16          0.375
+  ua_513         0
+  ua_8           1
+  ua_4           0.5
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  la_16          0
+  la_513         0
+  la_8           1
+  la_4           0.375
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  loweron        #1
+  perc           #0
+  vibtype        #4
+  vibdepth       0.4
+  rotspeed       #1
+  micdist        0.45
+  drive          0.05
+  click          0.2
+  treble         -3
+  bass           1
+  pedalon        #1
+  pedsplit       48
+  pedal          0.85
+  pa_1           1
+  pa_2           0.375
+  barglide       0.8
+  express        #3
+  swellbox       0.5
+  volume         0.263
+  send reverb    0.12
+
+# The scanner alone, at its widest, with the cabinet braked so there is
+# nothing else moving. This is the line delay, not a chorus pedal.
+patch "Chorus Vib" family=tonewheel note=60 range=48..84 role=gospel
+  set macro1 "Shallow"
+  set macro2 "Faster"
+  set macro3 "Worn"
+  set macro4 "Sub"
+  set macro5 "Top"
+  set macro6 "Drive"
+  set macro7 "Click"
+  set macro8 "Dark"
+  mac1_d1  #60
+  mac1_a1  -0.5
+  mac2_d1  #59
+  mac2_a1  0.2
+  mac3_d1  #1
+  mac3_a1  0.4
+  mac3_d2  #2
+  mac3_a2  0.25
+  mac4_d1  #11
+  mac4_a1  0.5
+  mac5_d1  #19
+  mac5_a1  0.5
+  mac6_d1  #94
+  mac6_a1  0.2
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #98
+  mac8_a1  -0.15
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         1
+  ua_2           1
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  perc           #0
+  vibtype        #5
+  vibdepth       1
+  vibrate        6.4
+  vibwide        0.7
+  rotspeed       #0
+  rotary         #1
+  drive          0.12
+  volume         0.2375
+  pedalon        #1
+  pedsplit       48
+  pedal          0.9
+  pa_1           1
+  pa_2           0.5
+
 # The one everybody knows: the top three bars out, the second-harmonic
 # percussion on, and the cabinet turning slowly until it does not.
-patch Gospel family=tonewheel note=60 range=29..84 role=gospel
+patch Gospel family=cabinet note=60 range=29..84 role=gospel
+  set macro1 "Fill"
+  set macro2 "Top"
+  set macro3 "Perc"
+  set macro4 "Long Perc"
+  set macro5 "Drive"
+  set macro6 "Rotor"
+  set macro7 "Close Mic"
+  set macro8 "Click"
+  mac1_d1  #14
+  mac1_a1  0.75
+  mac2_d1  #16
+  mac2_a1  0.6
+  mac2_d2  #19
+  mac2_a2  0.5
+  mac3_d1  #56
+  mac3_a1  0.3
+  mac4_d1  #57
+  mac4_a1  0.3
+  mac5_d1  #94
+  mac5_a1  0.25
+  mac6_d1  #85
+  mac6_a1  0.3
+  mac6_d2  #87
+  mac6_a2  0.3
+  mac7_d1  #91
+  mac7_a1  -0.3
+  mac7_d2  #93
+  mac7_a2  0.15
+  mac8_d1  #4
+  mac8_a1  0.3
   ua_16          1
   ua_513         1
   ua_8           1
@@ -82,11 +709,41 @@ patch Gospel family=tonewheel note=60 range=29..84 role=gospel
   vibtype        #3
   vibdepth       0.45
   click          0.4
-  volume         1.01
+  volume         0.2525
 
 # Every bar out, which is not a registration so much as a decision.
 # It is meant to be too much, and the cabinet on fast is the point.
-patch "Full Draw" family=tonewheel note=60 range=36..84 role=gospel
+patch "Full Draw" family=cabinet note=60 range=36..84 role=gospel
+  set macro1 "Thin Top"
+  set macro2 "No Sub"
+  set macro3 "Drive"
+  set macro4 "Wind Down"
+  set macro5 "Click"
+  set macro6 "Bright"
+  set macro7 "Vibrato"
+  set macro8 "Worn"
+  mac1_d1  #17
+  mac1_a1  -0.6
+  mac1_d2  #18
+  mac1_a2  -0.6
+  mac2_d1  #11
+  mac2_a1  -1
+  mac3_d1  #94
+  mac3_a1  0.2
+  mac4_d1  #86
+  mac4_a1  -0.3
+  mac4_d2  #88
+  mac4_a2  -0.3
+  mac5_d1  #4
+  mac5_a1  0.25
+  mac6_d1  #98
+  mac6_a1  0.12
+  mac7_d1  #60
+  mac7_a1  0.25
+  mac8_d1  #1
+  mac8_a1  0.4
+  mac8_d2  #2
+  mac8_a2  0.25
   ua_16          1
   ua_513         1
   ua_8           1
@@ -115,178 +772,39 @@ patch "Full Draw" family=tonewheel note=60 range=36..84 role=gospel
   click          0.55
   vibtype        #5
   vibdepth       0.7
-  volume         1.03
-
-# The dark half-drawn one. Mid bars in, top bars back, leakage up:
-# the sound of an instrument that has been in the room a long time.
-patch Smoke family=tonewheel note=60 range=36..84 role=gospel
-  ua_16          1
-  ua_513         1
-  ua_8           1
-  ua_4           1
-  ua_223         0.875
-  ua_2           0.75
-  ua_135         0.625
-  ua_113         0.5
-  ua_1           1
-  la_16          1
-  la_513         0.5
-  la_8           1
-  la_4           0
-  la_223         0
-  la_2           0
-  la_135         0
-  la_113         0
-  la_1           0
-  pa_1           1
-  pa_2           0.5
-  loweron        #1
-  pedalon        #1
-  perc           #0
-  age            0.45
-  leakage        0.32
-  click          0.45
-  rotspeed       #1
-  drive          0.42
-  treble         -2
-  volume         1.03
-
-# A left-hand registration: flat, no percussion, nothing to cut through
-# with. What you play under somebody else.
-patch Comping family=tonewheel note=60 range=41..79 role=gospel
-  ua_16          1
-  ua_513         0.375
-  ua_8           1
-  ua_4           0
-  ua_223         0
-  ua_2           0
-  ua_135         0
-  ua_113         0
-  ua_1           0
-  la_16          1
-  la_513         0
-  la_8           1
-  la_4           0
-  la_223         0
-  la_2           0
-  la_135         0
-  la_113         0
-  la_1           0
-  pa_1           0.75
-  pa_2           0.375
-  loweron        #1
-  pedalon        #1
-  split          64
-  perc           #0
-  rotspeed       #1
-  drive          0.15
-  upper          0.8
-  volume         1.04
-
-# Three flutes and the scanner in chorus, no percussion and no drive.
-# All of the sound is the vibrato and the cabinet.
-patch "Jazz Flutes" family=tonewheel note=60 range=48..84 role=gospel
-  ua_16          1
-  ua_513         1
-  ua_8           1
-  ua_4           0
-  ua_223         0
-  ua_2           0
-  ua_135         0
-  ua_113         0
-  ua_1           0
-  la_16          1
-  la_513         1
-  la_8           1
-  la_4           0
-  la_223         0
-  la_2           0
-  la_135         0
-  la_113         0
-  la_1           0
-  perc           #0
-  vibtype        #5
-  vibdepth       0.75
-  vibup          #1
-  rotspeed       #1
-  drive          0.08
-  click          0.2
-  volume         1.00
-  pedalon        #1
-  pedsplit       48
-  pedal          0.9
-  pa_1           1
-  pa_2           0.5
-
-# Two bars and the third-harmonic tap, fast and loud, stealing the 1'.
-# It only fires when every key is up, which is what makes it playable.
-patch "Third Perc" family=tonewheel note=60 range=48..84 role=gospel
-  ua_16          1
-  ua_513         0
-  ua_8           1
-  ua_4           0
-  ua_223         0
-  ua_2           0
-  ua_135         0
-  ua_113         0
-  ua_1           1
-  la_16          1
-  la_513         0.375
-  la_8           1
-  la_4           0
-  la_223         0
-  la_2           0
-  la_135         0
-  la_113         0
-  la_1           0
-  loweron        #1
-  perc           #1
-  percharm       #0
-  perclvl        1
-  percfast       #1
-  percdec        0.22
-  percsteal      #1
-  perckey        0.45
-  rotspeed       #2
-  drive          0.3
-  click          0.5
-  volume         1.07
-  pedalon        #1
-  pedsplit       48
-  pedal          0.9
-  pa_1           1
-  pa_2           0.5
-
-# The same tap taken slowly and quietly, on the second harmonic, so it
-# reads as an attack rather than as a note of its own.
-patch "Slow Tap" family=tonewheel note=60 range=48..84 role=gospel
-  ua_16          1
-  ua_513         0.75
-  ua_8           1
-  ua_4           0
-  ua_223         0
-  ua_2           0
-  ua_135         0
-  ua_113         0
-  ua_1           0
-  perc           #1
-  percharm       #1
-  perclvl        0.45
-  percfast       #0
-  percdec        0.9
-  perckey        0.2
-  rotspeed       #1
-  drive          0.2
-  volume         1.00
-  pedalon        #1
-  pedsplit       48
-  pedal          0.9
-  pa_1           1
-  pa_2           0.5
+  volume         0.2575
 
 # Four bars and the amplifier worked hard. The 8' sitting under it is
 # what stops the drive turning the whole thing into fuzz.
-patch "Blues Wail" family=tonewheel note=60 range=48..84 role=gospel
+patch "Blues Wail" family=cabinet note=60 range=48..84 role=gospel
+  set macro1 "Top"
+  set macro2 "Drive"
+  set macro3 "Grit"
+  set macro4 "Wind Down"
+  set macro5 "Mid"
+  set macro6 "Click"
+  set macro7 "Dark"
+  set macro8 "Vibrato"
+  mac1_d1  #16
+  mac1_a1  0.6
+  mac1_d2  #19
+  mac1_a2  0.5
+  mac2_d1  #94
+  mac2_a1  0.2
+  mac3_d1  #95
+  mac3_a1  0.15
+  mac4_d1  #86
+  mac4_a1  -0.3
+  mac4_d2  #88
+  mac4_a2  -0.3
+  mac5_d1  #97
+  mac5_a1  0.12
+  mac6_d1  #4
+  mac6_a1  0.3
+  mac7_d1  #98
+  mac7_a1  -0.15
+  mac8_d1  #60
+  mac8_a1  0.3
   ua_16          1
   ua_513         1
   ua_8           1
@@ -315,12 +833,40 @@ patch "Blues Wail" family=tonewheel note=60 range=48..84 role=gospel
   rotspeed       #2
   click          0.5
   mid            2
-  volume         1.11
+  volume         0.2775
 
 # Past where the amplifier is polite. The bias is off centre so the
 # clipping is not symmetrical, which is where the even harmonics come
 # from and why this is a different sound and not just a louder one.
-patch Overdrive family=tonewheel note=64 range=41..84 role=gospel
+patch "Driven Wheels" family=cabinet note=64 range=41..84 role=gospel
+  set macro1 "Clean Up"
+  set macro2 "Grit"
+  set macro3 "Wind Down"
+  set macro4 "Bass"
+  set macro5 "Dark"
+  set macro6 "Thin Top"
+  set macro7 "Click"
+  set macro8 "Mid"
+  mac1_d1  #94
+  mac1_a1  -0.4
+  mac2_d1  #95
+  mac2_a1  0.15
+  mac3_d1  #86
+  mac3_a1  -0.3
+  mac3_d2  #88
+  mac3_a2  -0.3
+  mac4_d1  #96
+  mac4_a1  0.1
+  mac5_d1  #98
+  mac5_a1  -0.12
+  mac6_d1  #17
+  mac6_a1  -0.6
+  mac6_d2  #18
+  mac6_a2  -0.6
+  mac7_d1  #4
+  mac7_a1  0.25
+  mac8_d1  #97
+  mac8_a1  0.12
   ua_16          1
   ua_513         1
   ua_8           1
@@ -351,179 +897,44 @@ patch Overdrive family=tonewheel note=64 range=41..84 role=gospel
   click          0.6
   bass           2
   treble         -3
-  volume         1.06
+  volume         0.265
 
-# Nothing at the bottom and a gap in the middle. A thin registration is
-# a real one - it is what you use when a horn section has the tune.
-patch Whistle family=tonewheel note=67 range=48..88 role=gospel
-  ua_16          0
-  ua_513         0
-  ua_8           0.875
-  ua_4           0
-  ua_223         0.75
-  ua_2           0
-  ua_135         0
-  ua_113         0
-  ua_1           0.625
-  perc           #0
-  rotspeed       #2
-  drive          0.28
-  vibtype        #2
-  vibdepth       0.5
-  click          0.45
-  volume         1.45
-  pedalon        #1
-  pedsplit       48
-  pedal          0.9
-  pa_1           1
-  pa_2           0.5
-
-# No 16', so the left hand does not muddy, and the upper bars tapered
-# rather than out - a taper is what a drawbar set is for.
-patch "Bright Ballad" family=tonewheel note=60 range=48..84 role=gospel
-  ua_16          0
-  ua_513         0
-  ua_8           0.75
-  ua_4           1
-  ua_223         0.875
-  ua_2           0.75
-  ua_135         0.625
-  ua_113         0.5
-  ua_1           0
-  la_16          0
-  la_513         0
-  la_8           0.5
-  la_4           0.625
-  la_223         0
-  la_2           0
-  la_135         0
-  la_113         0
-  la_1           0
-  loweron        #1
-  perc           #0
-  rotspeed       #1
-  drive          0.2
-  vibtype        #4
-  vibdepth       0.5
-  volume         1.26
-  pedalon        #1
-  pedsplit       48
-  pedal          0.9
-  pa_1           1
-  pa_2           0.5
-
-# The whole instrument at once, which is the thing this machine is for:
-# a bright upper with the tap, a soft lower to comp on, and the feet
-# on 16' and 8'. One rack, three registrations.
-patch "Two Manuals" family=tonewheel note=60 range=29..84 role=gospel
+# The rotor braked, so the horn points one way and stays there. What is
+# left is the cabinet as a fixed colour, honky and boxed in, with the
+# third-harmonic tap and the amplifier pushed.
+patch "Parked Horn" family=cabinet note=60 range=41..84 role=gospel
+  set macro1 "Fill"
+  set macro2 "Top"
+  set macro3 "Perc"
+  set macro4 "Drive"
+  set macro5 "Grit"
+  set macro6 "Far Mic"
+  set macro7 "Bright"
+  set macro8 "Click"
+  mac1_d1  #15
+  mac1_a1  0.6
+  mac2_d1  #16
+  mac2_a1  0.6
+  mac2_d2  #19
+  mac2_a2  0.5
+  mac3_d1  #56
+  mac3_a1  0.3
+  mac4_d1  #94
+  mac4_a1  0.25
+  mac5_d1  #95
+  mac5_a1  0.15
+  mac6_d1  #91
+  mac6_a1  0.3
+  mac7_d1  #97
+  mac7_a1  0.1
+  mac7_d2  #98
+  mac7_a2  0.1
+  mac8_d1  #4
+  mac8_a1  0.3
   ua_16          1
-  ua_513         1
+  ua_513         0.75
   ua_8           1
-  ua_4           1
-  ua_223         0
-  ua_2           0
-  ua_135         0
-  ua_113         0
-  ua_1           0
-  la_16          0
-  la_513         0
-  la_8           0.5
-  la_4           0.625
-  la_223         0.5
-  la_2           0.5
-  la_135         0.25
-  la_113         0.25
-  la_1           0.25
-  pa_1           1
-  pa_2           0.75
-  loweron        #1
-  pedalon        #1
-  split          60
-  pedsplit       48
-  perc           #1
-  percharm       #1
-  perclvl        0.65
-  percfast       #1
-  lower          0.75
-  pedal          0.95
-  pedsus         0.25
-  rotspeed       #1
-  drive          0.3
-  volume         1.01
-
-# Written from the feet up. The pedal split is high enough that the left
-# hand walks on it, the sustain is long enough to join the notes, and
-# the manuals are left thin so the bass is the loudest thing.
-patch "Pedal Bass" family=tonewheel note=60 range=29..79 role=gospel
-  ua_16          0
-  ua_513         0
-  ua_8           0.5
   ua_4           0.75
-  ua_223         0
-  ua_2           0
-  ua_135         0
-  ua_113         0
-  ua_1           0
-  la_16          1
-  la_513         0
-  la_8           0.75
-  la_4           0
-  la_223         0
-  la_2           0
-  la_135         0
-  la_113         0
-  la_1           0
-  pa_1           1
-  pa_2           1
-  loweron        #1
-  pedalon        #1
-  split          64
-  pedsplit       53
-  pedal          1
-  pedsus         0.45
-  upper          0.7
-  lower          0.7
-  perc           #0
-  rotspeed       #1
-  drive          0.35
-  bass           3
-  volume         1.08
-
-# The scanner alone, at its widest, with the cabinet braked so there is
-# nothing else moving. This is the line delay, not a chorus pedal.
-patch "Chorus Vib" family=tonewheel note=60 range=48..84 role=gospel
-  ua_16          0
-  ua_513         0
-  ua_8           1
-  ua_4           1
-  ua_223         1
-  ua_2           1
-  ua_135         0
-  ua_113         0
-  ua_1           0
-  perc           #0
-  vibtype        #5
-  vibdepth       1
-  vibrate        6.4
-  vibwide        0.7
-  rotspeed       #0
-  rotary         #1
-  drive          0.12
-  volume         0.95
-  pedalon        #1
-  pedsplit       48
-  pedal          0.9
-  pa_1           1
-  pa_2           0.5
-
-# An old one. The wheels are worn so the tuning wanders, the shielding
-# has given up so the generator is audible on its own, and the motor
-# is off so all you get is the cabinet standing still.
-patch "Tired Machine" family=tonewheel note=60 range=41..79 role=gospel
-  ua_16          1
-  ua_513         1
-  ua_8           0.75
-  ua_4           0.5
   ua_223         0
   ua_2           0
   ua_135         0
@@ -538,758 +949,200 @@ patch "Tired Machine" family=tonewheel note=60 range=41..79 role=gospel
   la_135         0
   la_113         0
   la_1           0
+  pa_1           1
+  pa_2           0.5
   loweron        #1
-  age            0.9
-  leakage        0.62
-  hum            0.35
-  spray          0.3
-  sprayrate      0.35
-  spraywide      0.6
-  click          0.7
-  clickoff       0.5
-  contacts       0.8
-  perc           #0
+  pedalon        #1
+  perc           #1
+  percharm       #0
+  perclvl        0.55
+  percfast       #1
+  percdec        0.3
   rotspeed       #0
-  drive          0.3
-  volume         1.20
+  micdist        0.6
+  micangle       0.6
+  drive          0.45
+  bias           0.1
+  mid            2.5
+  click          0.45
+  volume         0.2025
+
+# The cabinet driving the instrument instead of only carrying it. The
+# horn's phase is a modulation source here, so the upper bars and the
+# treble move with the rotor - the level swing you hear is partly the
+# organ itself changing, which no microphone in a room can do.
+patch "Cabinet Mod" family=cabinet note=60 range=48..84 role=gospel
+  set macro1 "Fill"
+  set macro2 "Top"
+  set macro3 "Rotor"
+  set macro4 "Close Mic"
+  set macro5 "Drive"
+  set macro6 "Wide"
+  set macro7 "Click"
+  set macro8 "Vibrato"
+  mac1_d1  #14
+  mac1_a1  0.5
+  mac2_d1  #16
+  mac2_a1  0.6
+  mac3_d1  #85
+  mac3_a1  0.3
+  mac3_d2  #87
+  mac3_a2  0.3
+  mac4_d1  #91
+  mac4_a1  -0.3
+  mac4_d2  #93
+  mac4_a2  0.15
+  mac5_d1  #94
+  mac5_a1  0.2
+  mac6_d1  #93
+  mac6_a1  0.2
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #60
+  mac8_a1  0.3
+  ua_16          1
+  ua_513         1
+  ua_8           1
+  ua_4           0.5
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  rotspeed       #1
+  rotwide        0.8
+  micdist        0.55
+  micangle       0.85
+  m1_src         #11
+  m1_dst         #14
+  m1_amt         0.16
+  m2_src         #12
+  m2_dst         #10
+  m2_amt         0.3
+  m3_src         #11
+  m3_dst         #3
+  m3_amt         0.1
+  perc           #0
+  drive          0.22
+  volume         0.2225
   pedalon        #1
   pedsplit       48
   pedal          0.9
   pa_1           1
   pa_2           0.5
 
-# Two whole registrations and a slow LFO between them: the bars move
-# under a chord you are still holding, which no organ with real
-# drawbars can do without a second player.
-patch "Drawbar Morph" family=tonewheel note=60 range=41..84 role=gospel
+# The rotor locked to the song: the horn goes round once a beat and the
+# drum a little slower, so the swing lands in time. Pull walks the
+# gospel registration over to a bright one.
+patch "Tempo Rotor" family=cabinet note=60 range=29..84 role=gospel
+  set macro1 "Pull"
+  set macro2 "Fill"
+  set macro3 "Perc"
+  set macro4 "Drive"
+  set macro5 "Close Mic"
+  set macro6 "Wide"
+  set macro7 "Click"
+  set macro8 "Glide"
+  mac1_d1  #51
+  mac1_a1  1
+  mac2_d1  #14
+  mac2_a1  0.75
+  mac3_d1  #56
+  mac3_a1  0.3
+  mac4_d1  #94
+  mac4_a1  0.25
+  mac5_d1  #91
+  mac5_a1  -0.3
+  mac5_d2  #93
+  mac5_a2  0.15
+  mac6_d1  #93
+  mac6_a1  0.2
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #117
+  mac8_a1  0.25
   ua_16          1
   ua_513         1
-  ua_8           0.75
+  ua_8           1
   ua_4           0
   ua_223         0
   ua_2           0
   ua_135         0
   ua_113         0
   ua_1           0
-  ub_16          0
-  ub_513         0
+  ub_16          0.75
+  ub_513         0.5
   ub_8           1
   ub_4           1
-  ub_223         1
+  ub_223         0
   ub_2           1
-  ub_135         1
-  ub_113         1
+  ub_135         0
+  ub_113         0
   ub_1           1
-  la_16          1
+  la_16          0
   la_513         0
   la_8           1
-  la_4           0
+  la_4           0.625
   la_223         0
   la_2           0
   la_135         0
   la_113         0
   la_1           0
-  lb_16          0
-  lb_513         0
-  lb_8           0.5
-  lb_4           0.75
-  lb_223         0.75
-  lb_2           0.75
-  lb_135         0.5
-  lb_113         0
-  lb_1           0
-  loweron        #1
-  morph          0.4
-  morphsrc       #9
-  morphamt       1
-  lfo1wave       #1
-  lfo1rate       0.09
-  lfo1depth      1
-  m1_src         #9
-  m1_dst         #1
-  m1_amt         1
-  perc           #0
-  rotspeed       #1
-  drive          0.25
-  volume         1.07
-  pedalon        #1
-  pedsplit       48
-  pedal          0.9
   pa_1           1
   pa_2           0.5
-
-# Squares divided down from one master oscillator and switched in by
-# footage, which is the whole of a combo organ. No drawbars: a tab is
-# in or it is out.
-patch "Combo Bright" family=combo note=60 range=48..84 role=combo
-  model          #1
-  combowave      #0
-  tab16          0.9
-  tab8           1
-  tab4           0.75
-  tab2           0.15
-  tab2r          0
-  tab4r          0
-  reedy          0.55
-  comboatk       0.22
-  rotary         #0
-  perc           #0
-  vibtype        #1
-  vibrate        7.2
-  vibdepth       0.55
-  drive          0.25
-  volume         0.93
-
-# The pulse wave through the reedy filter well up, which is the buzz
-# that made these things sound like a harmonica with a mains lead.
-patch "Combo Reed" family=combo note=60 range=48..84 role=combo
-  model          #1
-  combowave      #1
-  tab16          0.4
-  tab8           1
-  tab4           0.6
-  tab2           0.25
-  reedy          0.95
-  comboatk       0.05
-  rotary         #0
-  perc           #0
-  vibtype        #0
-  vibrate        8.4
-  vibdepth       0.4
-  drive          0.35
-  mid            2.5
-  volume         0.82
-
-# Saws rather than squares, 8' and 4' and the first mixture tab, with
-# the vibrato fast and shallow. The riff sound.
-patch "Combo Sixties" family=combo note=60 range=48..84 role=combo
-  model          #1
-  combowave      #2
-  tab16          0.35
-  tab8           1
-  tab4           0.8
-  tab2           0.4
-  tab2r          0.35
-  tab4r          0
-  reedy          0.5
-  comboatk       0.06
-  rotary         #0
-  perc           #0
-  vibtype        #2
-  vibrate        8.8
-  vibdepth       0.45
-  drive          0.4
-  volume         1.11
-
-# Both mixture tabs out, which on a small transistor organ was always
-# sold as a church sound and is nothing of the kind. That is exactly
-# why it is here: it is its own thing and a good one.
-patch "Combo Mixture" family=combo note=60 range=48..84 role=combo
-  model          #1
-  combowave      #0
-  tab16          0.7
-  tab8           1
-  tab4           0.7
-  tab2           0.45
-  tab2r          0.6
-  tab4r          0.45
-  reedy          0.35
-  comboatk       0.1
-  rotary         #0
-  perc           #0
-  vibtype        #4
-  vibdepth       0.4
-  drive          0.22
-  treble         -1.5
-  volume         0.91
-
-# The attack shortened until the key click is most of the note. Played
-# short this is a percussion instrument.
-patch "Combo Stab" family=combo note=60 range=48..84 role=combo
-  model          #1
-  combowave      #0
-  tab16          0.3
-  tab8           1
-  tab4           0.85
-  tab2           0.6
-  tab2r          0
-  reedy          0.88
-  comboatk       0
-  click          0.8
-  clickoff       0.45
-  contacts       0.15
-  rotary         #0
-  perc           #0
-  vibdepth       0
-  attack         0.0008
-  release        0.012
-  drive          0.45
-  volume         0.79
-
-# A combo organ with the bottom two octaves switched to a bass
-# registration, which is how these were played when there was no bass
-# player in the band.
-patch "Combo Split" family=combo note=60 range=41..84 role=combo
-  la_16          1
-  la_513         1
-  la_8           0
-  la_4           0
-  la_223         0
-  la_2           0
-  la_135         0
-  la_113         0
-  la_1           0
-  model          #1
-  combowave      #1
   loweron        #1
+  pedalon        #1
   split          60
-  tab16          0.5
-  tab8           1
-  tab4           0.7
-  tab2           0.35
-  tab2r          0.3
-  reedy          0.7
-  comboatk       0.07
-  lower          1
-  rotary         #0
-  perc           #0
-  vibtype        #1
-  vibdepth       0.5
-  drive          0.45
-  bass           2.5
-  volume         0.90
-
-# 2' and the mixtures with nothing underneath. It has no bottom at all,
-# and against a bass line that is the point.
-patch "Combo Thin" family=combo note=67 range=55..88 role=combo
-  model          #1
-  combowave      #2
-  tab16          0
-  tab8           1
-  tab4           0.9
-  tab2           0.6
-  tab2r          0.35
-  tab4r          0.15
-  reedy          0.3
-  comboatk       0.05
-  rotary         #0
-  perc           #0
-  vibtype        #0
-  vibdepth       0.5
-  drive          0.18
-  bass           -4
-  volume         1.26
-
-# The principal chorus at 16', 8' and 4' - one rank at three pitches,
-# which is what an organ means by a chorus and has nothing to do with
-# detuning anything.
-patch Diapason family=pipe note=60 range=36..84 role=chorale
-  ua_16          1
-  ua_513         0
-  ua_8           1
-  ua_4           1
-  ua_223         0
-  ua_2           0
-  ua_135         0
-  ua_113         0
-  ua_1           0
-  model          #2
-  rotary         #0
-  perc           #0
-  vibdepth       0
-  attack         0.02
-  release        0.09
-  drive          0
-  principal      1
-  flute          0.35
-  string         0
-  reed           0
-  mixture        0
-  chiff          0.22
-  tracker        0.25
-  windsag        0.3
-  windresp       0.35
-  windnoise      0.1
-  pedalon        #1
-  pedsplit       44
-  volume         0.76
-  pa_1           1
-  pa_2           0.75
-
-# Two stopped flutes, quiet, with the chiff well up. The wind noise on
-# the attack is most of what tells you this is a pipe and not a sine.
-patch "Flutes 8 and 4" family=pipe note=60 range=41..88 role=chorale
-  ua_16          0
-  ua_513         0
-  ua_8           1
-  ua_4           1
-  ua_223         0
-  ua_2           0
-  ua_135         0
-  ua_113         0
-  ua_1           0
-  model          #2
-  rotary         #0
-  perc           #0
-  vibdepth       0
-  attack         0.03
-  release        0.09
-  drive          0
-  principal      0
-  flute          1
-  string         0
-  reed           0
-  mixture        0
-  chiff          0.5
-  tracker        0.55
-  windsag        0.22
-  windresp       0.28
-  windnoise      0.2
-  volume         1.25
-  pedalon        #1
-  pedsplit       44
-  pedal          0.95
-  pa_1           1
-  pa_2           0.75
-
-# Two string ranks a hair apart. The beat is the spray across the
-# generator rather than a chorus over the top, so notes that share a
-# wheel beat together the way two ranks of pipes do.
-patch "Strings Celeste" family=pipe note=60 range=41..84 role=chorale
-  ua_16          1
-  ua_513         0
-  ua_8           1
-  ua_4           1
-  ua_223         0
-  ua_2           0
-  ua_135         0
-  ua_113         0
-  ua_1           0
-  model          #2
-  rotary         #0
-  perc           #0
-  vibdepth       0
-  attack         0.075
-  release        0.14
-  drive          0
-  principal      0.3
-  flute          0.15
-  string         1
-  reed           0
-  mixture        0
-  chiff          0.08
-  tracker        0.15
-  spray          0.3
-  sprayrate      0.55
-  spraywide      0.8
-  spraypat       #1
-  windsag        0.18
-  volume         1.30
-  pedalon        #1
-  pedsplit       44
-  pedal          0.95
-  pa_1           1
-  pa_2           0.75
-
-# A flute chorus with the quint and the tierce drawn - the mutations
-# that sum into a reedy formant without a reed being involved.
-patch Cornet family=pipe note=60 range=48..84 role=chorale
-  ua_16          0
-  ua_513         0
-  ua_8           1
-  ua_4           1
-  ua_223         0.625
-  ua_2           1
-  ua_135         1
-  ua_113         0
-  ua_1           0
-  model          #2
-  rotary         #0
-  perc           #0
-  vibdepth       0
-  attack         0.02
-  release        0.09
-  drive          0
-  principal      0.2
-  flute          1
-  string         0.55
-  reed           0
-  mixture        0
-  chiff          0.3
-  tracker        0.2
-  windsag        0.25
-  volume         0.67
-  pedalon        #1
-  pedsplit       44
-  pedal          0.95
-  pa_1           1
-  pa_2           0.75
-
-# The reed rank, which on this rig sits at the top of the stop list and
-# so wants a principal under it to be a trumpet rather than a whistle.
-patch "Reed Stop" family=pipe note=60 range=41..84 role=chorale
-  ua_16          1
-  ua_513         0
-  ua_8           1
-  ua_4           0.5
-  ua_223         0
-  ua_2           0
-  ua_135         0
-  ua_113         1
-  ua_1           1
-  model          #2
-  rotary         #0
-  perc           #0
-  vibdepth       0
-  attack         0.02
-  release        0.09
-  drive          0
-  principal      0.4
-  flute          0.08
-  string         0
-  reed           1
-  mixture        0.55
-  chiff          0.35
-  tracker        0.3
-  windsag        0.32
-  windresp       0.3
-  volume         1.01
-  pedalon        #1
-  pedsplit       44
-  pedal          0.95
-  pa_1           1
-  pa_2           0.75
-
-# Principals from 8' up with the mixture on top and no flutes at all.
-# The bright, cold sound a chorus is built to make.
-patch Plenum family=pipe note=60 range=36..84 role=chorale
-  ua_16          0.5
-  ua_513         0
-  ua_8           1
-  ua_4           1
-  ua_223         0
-  ua_2           1
-  ua_135         0
-  ua_113         0
-  ua_1           1
-  model          #2
-  rotary         #0
-  perc           #0
-  vibdepth       0
-  attack         0.02
-  release        0.09
-  drive          0
-  principal      1
-  flute          0
-  string         0.2
-  reed           0
-  mixture        0.6
-  chiff          0.25
-  tracker        0.3
-  windsag        0.38
-  windresp       0.3
-  windnoise      0.12
-  pedalon        #1
-  pedsplit       44
-  volume         0.78
-  pa_1           1
-  pa_2           1
-
-# Everything drawn and the feet on reeds. The wind sag is set high, so
-# a big chord pulls the pitch and the level down and letting go of it
-# lets them back - which is the part of a large organ you feel.
-patch "Full Organ" family=pipe note=60 range=33..88 role=chorale
-  ua_16          1
-  ua_513         1
-  ua_8           1
-  ua_4           1
-  ua_223         1
-  ua_2           1
-  ua_135         1
-  ua_113         1
-  ua_1           1
-  model          #2
-  rotary         #0
-  perc           #0
-  vibdepth       0
-  attack         0.02
-  release        0.09
-  drive          0
-  principal      1
-  flute          0.8
-  string         0.6
-  reed           0.9
-  mixture        0.9
-  chiff          0.3
-  tracker        0.4
-  windsag        0.72
-  windresp       0.5
-  windnoise      0.22
-  pedalon        #1
-  pedsplit       44
-  pedal          1
-  volume         0.33
-  pa_1           1
-  pa_2           1
-
-# One 8' flute played quietly. Everything in it is the attack and the
-# release: the chiff arriving, the tracker under the key, and a long
-# wind response so the supply is still catching up.
-patch "Soft Flute" family=pipe note=60 range=48..88 role=chorale
-  ua_16          0.5
-  ua_513         0
-  ua_8           1
-  ua_4           0.625
-  ua_223         0
-  ua_2           0
-  ua_135         0
-  ua_113         0
-  ua_1           0
-  model          #2
-  rotary         #0
-  perc           #0
-  vibdepth       0
-  attack         0.045
-  release        0.16
-  drive          0
-  principal      0
-  flute          1
-  string         0
-  reed           0
-  mixture        0
-  chiff          0.45
-  tracker        0.7
-  windsag        0.3
-  windresp       0.9
-  windnoise      0.3
-  volume         1.33
-  pedalon        #1
-  pedsplit       44
-  pedal          0.95
-  pa_1           1
-  pa_2           0.75
-
-# Written for the feet: 16' and 8' in the pedals with the reeds up, the
-# pedal split raised so the left hand can play them, and the manual
-# left at a flute so it does not compete.
-patch "Pedal Reeds" family=pipe note=60 range=29..79 role=chorale
-  ua_16          0
-  ua_513         0
-  ua_8           1
-  ua_4           0.5
-  ua_223         0
-  ua_2           0
-  ua_135         0
-  ua_113         0
-  ua_1           0
-  model          #2
-  rotary         #0
-  perc           #0
-  vibdepth       0
-  attack         0.02
-  release        0.09
-  drive          0
-  principal      0.4
-  flute          0.7
-  string         0
-  reed           0.85
-  mixture        0.2
-  chiff          0.2
-  tracker        0.3
-  pedalon        #1
-  pedsplit       55
-  pedal          1
-  pedsus         0.3
-  windsag        0.45
-  windresp       0.4
-  bass           2.5
-  volume         0.92
-  pa_1           1
-  pa_2           1
-
-# Free reeds under bellows pressure. The buzz is the reed beating
-# against its frame and it grows with how hard the thing is pushed,
-# which is why this gets louder and dirtier at the same time.
-patch Harmonium family=reed note=60 range=41..81 role=swell
-  ua_16          0
-  ua_513         0
-  ua_8           1
-  ua_4           1
-  ua_223         0
-  ua_2           0
-  ua_135         0
-  ua_113         0
-  ua_1           0
-  model          #3
-  rotary         #0
-  perc           #0
-  vibdepth       0
-  attack         0.012
-  release        0.05
-  drive          0
-  pressure       0.78
-  buzz           0.45
-  reedtrem       0.25
-  tremrate       1.7
-  tremdepth      0.18
-  windsag        0.42
-  windresp       0.3
-  windnoise      0.12
-  volume         1.75
-  pedalon        #1
-  pedsplit       44
-  pedal          0.85
-  pa_1           0.875
-  pa_2           0.5
-
-# Three reeds to a key, a few cents apart. They are all at the same
-# pitch - that is what makes it a musette rather than a registration -
-# so the brightness has to come from the reed itself and not from
-# stacking footages on top of it. The beat is the spray across the
-# generator, and it is the same wheels for every key, so a chord
-# shimmers as one thing instead of drifting apart.
-patch Musette family=reed note=60 range=45..84 role=swell
-  ua_16          0
-  ua_513         0
-  ua_8           1
-  ua_4           0.625
-  ua_223         0
-  ua_2           0
-  ua_135         0
-  ua_113         0
-  ua_1           0
-  model          #3
-  rotary         #0
-  perc           #0
-  vibdepth       0
-  attack         0.012
-  release        0.05
-  drive          0
-  pressure       0.8
-  buzz           0.18
-  reedtrem       0
-  spray          0.55
-  sprayrate      0.9
-  spraywide      0.75
-  spraypat       #0
-  tremdepth      0
-  tremrate       5.4
-  windsag        0.28
-  volume         2.00
-  pedalon        #1
-  pedsplit       44
-  pedal          0.85
-  pa_1           0.875
-  pa_2           0.5
-
-# One 8' rank and a tremolo, which is a small reed organ's whole
-# vocabulary. Quiet, and it wheezes.
-patch Melodeon family=reed note=60 range=45..81 role=swell
-  ua_16          0
-  ua_513         0
-  ua_8           1
-  ua_4           0.5
-  ua_223         0
-  ua_2           0
-  ua_135         0
-  ua_113         0
-  ua_1           0
-  model          #3
-  rotary         #0
-  perc           #0
-  vibdepth       0
-  attack         0.012
-  release        0.05
-  drive          0
-  pressure       0.92
-  buzz           0.3
-  reedtrem       0.45
-  tremrate       4.6
-  tremdepth      0.35
-  windsag        0.35
-  windresp       0.22
-  windnoise      0.28
-  volume         2.00
-  pedalon        #1
-  pedsplit       44
-  pedal          0.85
-  pa_1           0.875
-  pa_2           0.5
-
-# The supply deliberately too small for the instrument. Hold a big chord
-# and it sinks; let one note go and the rest come back up. That is a
-# foot pump, and it is a shared wind supply doing it, not an envelope.
-patch "Pump Organ" family=reed note=60 range=38..79 role=swell
-  ua_16          1
-  ua_513         0
-  ua_8           1
-  ua_4           0
-  ua_223         0
-  ua_2           0
-  ua_135         0
-  ua_113         0
-  ua_1           0
-  model          #3
-  rotary         #0
-  perc           #0
-  vibdepth       0
-  attack         0.012
-  release        0.05
-  drive          0
-  pressure       0.9
-  buzz           0.5
-  reedtrem       0.2
-  windsag        0.95
-  windresp       0.85
-  windnoise      0.4
-  tremrate       3.2
-  tremdepth      0.12
-  bass           2
-  volume         1.36
-  pedalon        #1
-  pedsplit       44
-  pedal          0.85
-  pa_1           0.875
-  pa_2           0.5
-
-# 16', 8' and 4' with the buzz wound past polite. The tremolo is slow
-# and deep enough to be a voice rather than a shimmer.
-patch "Big Reed" family=reed note=60 range=36..81 role=swell
-  ua_16          1
-  ua_513         0
-  ua_8           1
-  ua_4           1
-  ua_223         0.25
-  ua_2           0
-  ua_135         0
-  ua_113         0
-  ua_1           0
-  model          #3
-  rotary         #0
-  perc           #0
-  vibdepth       0
-  attack         0.012
-  release        0.05
-  drive          0
-  pressure       0.95
-  buzz           0.82
-  reedtrem       0.55
-  tremrate       2.4
-  tremdepth      0.4
-  windsag        0.5
-  windresp       0.35
-  windnoise      0.15
-  volume         1.50
-  pedalon        #1
-  pedsplit       44
-  pedal          0.85
-  pa_1           0.875
-  pa_2           0.5
+  pedsplit       48
+  perc           #1
+  percharm       #1
+  perclvl        0.55
+  percfast       #1
+  percdec        0.3
+  rotspeed       #1
+  rotsync        #3
+  micdist        0.5
+  drive          0.3
+  vibtype        #3
+  vibdepth       0.4
+  click          0.35
+  barglide       0.6
+  volume         0.23
 
 # The registration never settles. One LFO walks the morph, another
 # opens the spray, and the two are at rates that do not divide into
 # each other, so it does not repeat inside a piece.
-patch Drift family=cabinet note=60 range=41..84 role=gospel
+patch "Slow Wander" family=cabinet note=60 range=41..84 role=gospel
+  set macro1 "Settle"
+  set macro2 "Spray"
+  set macro3 "Faster"
+  set macro4 "Top"
+  set macro5 "Drive"
+  set macro6 "Rotor"
+  set macro7 "Dark"
+  set macro8 "Click"
+  mac1_d1  #52
+  mac1_a1  -0.6
+  mac1_d2  #112
+  mac1_a2  -0.6
+  mac2_d1  #53
+  mac2_a1  0.12
+  mac3_d1  #111
+  mac3_a1  0.2
+  mac3_d2  #113
+  mac3_a2  0.2
+  mac4_d1  #16
+  mac4_a1  0.5
+  mac5_d1  #94
+  mac5_a1  0.2
+  mac6_d1  #85
+  mac6_a1  0.3
+  mac6_d2  #87
+  mac6_a2  0.3
+  mac7_d1  #98
+  mac7_a1  -0.15
+  mac8_d1  #4
+  mac8_a1  0.3
   ua_16          1
   ua_513         0
   ua_8           0.75
@@ -1345,18 +1198,2206 @@ patch Drift family=cabinet note=60 range=41..84 role=gospel
   perc           #0
   rotspeed       #1
   drive          0.25
-  volume         1.03
+  volume         0.2575
   pedalon        #1
   pedsplit       48
   pedal          0.9
   pa_1           1
   pa_2           0.5
 
-# The cabinet driving the instrument instead of only carrying it. The
-# horn's phase is a modulation source here, so the upper bars and the
-# treble move with the rotor - the level swing you hear is partly the
-# organ itself changing, which no microphone in a room can do.
-patch "Cabinet Mod" family=cabinet note=60 range=48..84 role=gospel
+# A gospel registration that you pull out while you play. Every drawbar,
+# tab, rank and the morph take a second and a half to get where they are
+# sent, so Pull walks A into B under a held chord, and the swell pedal
+# darkens as it closes.
+patch "Slow Pull" family=cabinet note=60 range=29..84 role=gospel
+  set macro1 "Pull"
+  set macro2 "Fill"
+  set macro3 "Top"
+  set macro4 "Perc"
+  set macro5 "Drive"
+  set macro6 "Close Mic"
+  set macro7 "Shutters"
+  set macro8 "Glide"
+  mac1_d1  #51
+  mac1_a1  1
+  mac2_d1  #14
+  mac2_a1  0.75
+  mac2_d2  #16
+  mac2_a2  0.6
+  mac3_d1  #19
+  mac3_a1  0.8
+  mac3_d2  #18
+  mac3_a2  0.5
+  mac4_d1  #56
+  mac4_a1  0.35
+  mac4_d2  #57
+  mac4_a2  -0.15
+  mac5_d1  #94
+  mac5_a1  0.25
+  mac6_d1  #91
+  mac6_a1  -0.3
+  mac6_d2  #93
+  mac6_a2  0.15
+  mac7_d1  #116
+  mac7_a1  0.5
+  mac8_d1  #117
+  mac8_a1  0.25
+  ua_16          1
+  ua_513         1
+  ua_8           1
+  ua_4           0
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  ub_16          1
+  ub_513         1
+  ub_8           1
+  ub_4           1
+  ub_223         0.75
+  ub_2           1
+  ub_135         0
+  ub_113         0.5
+  ub_1           1
+  la_16          0
+  la_513         0
+  la_8           1
+  la_4           0.75
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  pa_1           1
+  pa_2           0.625
+  loweron        #1
+  pedalon        #1
+  split          60
+  pedsplit       48
+  perc           #1
+  percharm       #1
+  perclvl        0.6
+  percfast       #1
+  percdec        0.32
+  rotspeed       #1
+  drive          0.22
+  vibtype        #3
+  vibdepth       0.45
+  click          0.35
+  barglide       1.5
+  express        #3
+  swellbox       0.35
+  volume         0.25
+
+# Squares divided down from one master oscillator and switched in by
+# footage, which is the whole of a combo organ. No drawbars: a tab is
+# in or it is out.
+patch "Combo Bright" family=combo note=60 range=48..84 role=combo
+  set macro1 "2'"
+  set macro2 "Mixture"
+  set macro3 "Reedy"
+  set macro4 "Vibrato"
+  set macro5 "Drive"
+  set macro6 "Soft Attack"
+  set macro7 "Dark"
+  set macro8 "No 16'"
+  mac1_d1  #77
+  mac1_a1  0.6
+  mac2_d1  #78
+  mac2_a1  0.5
+  mac2_d2  #79
+  mac2_a2  0.3
+  mac3_d1  #80
+  mac3_a1  0.35
+  mac4_d1  #60
+  mac4_a1  0.3
+  mac5_d1  #94
+  mac5_a1  0.2
+  mac6_d1  #81
+  mac6_a1  0.3
+  mac7_d1  #98
+  mac7_a1  -0.15
+  mac8_d1  #74
+  mac8_a1  -0.9
+  model          #1
+  combowave      #0
+  tab16          0.9
+  tab8           1
+  tab4           0.75
+  tab2           0.15
+  tab2r          0
+  tab4r          0
+  reedy          0.55
+  comboatk       0.22
+  rotary         #0
+  perc           #0
+  vibtype        #1
+  vibrate        7.2
+  vibdepth       0.55
+  drive          0.25
+  volume         0.2325
+
+# Squares at 16' and 8' with only a breath of 4', the reedy filter
+# nearly shut and the attack softened. On the swell pedal, with a slow
+# wide vibrato and a little room.
+patch "Combo Mellow" family=combo note=60 range=41..84 role=combo
+  set macro1 "4'"
+  set macro2 "2'"
+  set macro3 "Mixture"
+  set macro4 "Reedy"
+  set macro5 "Vibrato"
+  set macro6 "Shutters"
+  set macro7 "Drive"
+  set macro8 "Soft Attack"
+  mac1_d1  #76
+  mac1_a1  0.5
+  mac2_d1  #77
+  mac2_a1  0.5
+  mac3_d1  #78
+  mac3_a1  0.4
+  mac3_d2  #79
+  mac3_a2  0.4
+  mac4_d1  #80
+  mac4_a1  0.4
+  mac5_d1  #60
+  mac5_a1  0.3
+  mac6_d1  #116
+  mac6_a1  0.4
+  mac7_d1  #94
+  mac7_a1  0.2
+  mac8_d1  #81
+  mac8_a1  0.3
+  model          #1
+  combowave      #0
+  tab16          0.8
+  tab8           1
+  tab4           0.3
+  tab2           0
+  tab2r          0
+  tab4r          0
+  reedy          0.15
+  comboatk       0.4
+  rotary         #0
+  perc           #0
+  vibtype        #4
+  vibrate        5.6
+  vibdepth       0.45
+  drive          0.1
+  treble         -8
+  express        #3
+  swellbox       0.5
+  volume         0.265
+  send reverb    0.12
+
+# The pulse wave through the reedy filter well up, which is the buzz
+# that made these things sound like a harmonica with a mains lead.
+patch "Combo Reed" family=combo note=60 range=48..84 role=combo
+  set macro1 "2'"
+  set macro2 "Mixture"
+  set macro3 "Clean"
+  set macro4 "Vibrato"
+  set macro5 "Drive"
+  set macro6 "Soft Attack"
+  set macro7 "Bright"
+  set macro8 "16'"
+  mac1_d1  #77
+  mac1_a1  0.5
+  mac2_d1  #78
+  mac2_a1  0.4
+  mac3_d1  #80
+  mac3_a1  -0.5
+  mac4_d1  #60
+  mac4_a1  0.3
+  mac5_d1  #94
+  mac5_a1  0.2
+  mac6_d1  #81
+  mac6_a1  0.4
+  mac7_d1  #98
+  mac7_a1  0.12
+  mac8_d1  #74
+  mac8_a1  0.5
+  model          #1
+  combowave      #1
+  tab16          0.4
+  tab8           1
+  tab4           0.6
+  tab2           0.25
+  reedy          0.95
+  comboatk       0.05
+  rotary         #0
+  perc           #0
+  vibtype        #0
+  vibrate        8.4
+  vibdepth       0.4
+  drive          0.35
+  mid            2.5
+  volume         0.205
+
+# Saws rather than squares, 8' and 4' and the first mixture tab, with
+# the vibrato fast and shallow. The riff sound.
+patch "Combo Sixties" family=combo note=60 range=48..84 role=combo
+  set macro1 "Mixture"
+  set macro2 "Reedy"
+  set macro3 "Vibrato"
+  set macro4 "Fast Vib"
+  set macro5 "Drive"
+  set macro6 "Click"
+  set macro7 "Dark"
+  set macro8 "16'"
+  mac1_d1  #78
+  mac1_a1  0.4
+  mac1_d2  #79
+  mac1_a2  0.4
+  mac2_d1  #80
+  mac2_a1  0.4
+  mac3_d1  #60
+  mac3_a1  0.3
+  mac4_d1  #59
+  mac4_a1  0.15
+  mac5_d1  #94
+  mac5_a1  0.2
+  mac6_d1  #4
+  mac6_a1  0.3
+  mac7_d1  #98
+  mac7_a1  -0.15
+  mac8_d1  #74
+  mac8_a1  0.5
+  model          #1
+  combowave      #2
+  tab16          0.35
+  tab8           1
+  tab4           0.8
+  tab2           0.4
+  tab2r          0.35
+  tab4r          0
+  reedy          0.5
+  comboatk       0.06
+  rotary         #0
+  perc           #0
+  vibtype        #2
+  vibrate        8.8
+  vibdepth       0.45
+  drive          0.4
+  volume         0.2775
+
+# Both mixture tabs out, which on a small transistor organ was always
+# sold as a church sound and is nothing of the kind. That is exactly
+# why it is here: it is its own thing and a good one.
+patch "Combo Mixture" family=combo note=60 range=48..84 role=combo
+  set macro1 "No Mix"
+  set macro2 "Reedy"
+  set macro3 "Vibrato"
+  set macro4 "Bright"
+  set macro5 "Drive"
+  set macro6 "Soft Attack"
+  set macro7 "Celeste"
+  set macro8 "No 16'"
+  mac1_d1  #78
+  mac1_a1  -0.6
+  mac1_d2  #79
+  mac1_a2  -0.45
+  mac2_d1  #80
+  mac2_a1  0.4
+  mac3_d1  #60
+  mac3_a1  0.3
+  mac4_d1  #98
+  mac4_a1  0.12
+  mac5_d1  #94
+  mac5_a1  0.2
+  mac6_d1  #81
+  mac6_a1  0.4
+  mac7_d1  #53
+  mac7_a1  0.1
+  mac8_d1  #74
+  mac8_a1  -0.7
+  model          #1
+  combowave      #0
+  tab16          0.7
+  tab8           1
+  tab4           0.7
+  tab2           0.45
+  tab2r          0.6
+  tab4r          0.45
+  reedy          0.35
+  comboatk       0.1
+  rotary         #0
+  perc           #0
+  vibtype        #4
+  vibdepth       0.4
+  drive          0.22
+  treble         -1.5
+  volume         0.2275
+
+# The attack shortened until the key click is most of the note. Played
+# short this is a percussion instrument.
+patch "Combo Stab" family=combo note=60 range=48..84 role=combo
+  set macro1 "Length"
+  set macro2 "Mixture"
+  set macro3 "Clean"
+  set macro4 "No Click"
+  set macro5 "Drive"
+  set macro6 "Vibrato"
+  set macro7 "Dark"
+  set macro8 "16'"
+  mac1_d1  #102
+  mac1_a1  0.3
+  mac2_d1  #78
+  mac2_a1  0.4
+  mac3_d1  #80
+  mac3_a1  -0.5
+  mac4_d1  #4
+  mac4_a1  -0.5
+  mac5_d1  #94
+  mac5_a1  0.2
+  mac6_d1  #60
+  mac6_a1  0.4
+  mac7_d1  #98
+  mac7_a1  -0.15
+  mac8_d1  #74
+  mac8_a1  0.5
+  model          #1
+  combowave      #0
+  tab16          0.3
+  tab8           1
+  tab4           0.85
+  tab2           0.6
+  tab2r          0
+  reedy          0.88
+  comboatk       0
+  click          0.8
+  clickoff       0.45
+  contacts       0.15
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.0008
+  release        0.012
+  drive          0.45
+  volume         0.1975
+
+# 2' and the mixtures with nothing underneath. It has no bottom at all,
+# and against a bass line that is the point.
+patch "Combo Thin" family=combo note=67 range=55..88 role=combo
+  set macro1 "Body"
+  set macro2 "Mixture"
+  set macro3 "Reedy"
+  set macro4 "Vibrato"
+  set macro5 "Drive"
+  set macro6 "Soft Attack"
+  set macro7 "Dark"
+  set macro8 "Celeste"
+  mac1_d1  #74
+  mac1_a1  0.4
+  mac2_d1  #78
+  mac2_a1  0.4
+  mac2_d2  #79
+  mac2_a2  0.4
+  mac3_d1  #80
+  mac3_a1  0.4
+  mac4_d1  #60
+  mac4_a1  0.3
+  mac5_d1  #94
+  mac5_a1  0.2
+  mac6_d1  #81
+  mac6_a1  0.4
+  mac7_d1  #98
+  mac7_a1  -0.15
+  mac8_d1  #53
+  mac8_a1  0.12
+  model          #1
+  combowave      #2
+  tab16          0
+  tab8           1
+  tab4           0.9
+  tab2           0.6
+  tab2r          0.35
+  tab4r          0.15
+  reedy          0.3
+  comboatk       0.05
+  rotary         #0
+  perc           #0
+  vibtype        #0
+  vibdepth       0.5
+  drive          0.18
+  bass           -4
+  volume         0.315
+
+# The transistor organ played through the rotary cabinet: saws and the
+# mixture tab with no vibrato of its own, so all the movement is the
+# horn going round.
+patch "Combo Spin" family=combo note=60 range=48..84 role=combo
+  set macro1 "Rotor"
+  set macro2 "Close Mic"
+  set macro3 "Mixture"
+  set macro4 "16'"
+  set macro5 "Reedy"
+  set macro6 "Drive"
+  set macro7 "Dark"
+  set macro8 "Vibrato"
+  mac1_d1  #85
+  mac1_a1  0.3
+  mac1_d2  #87
+  mac1_a2  0.3
+  mac2_d1  #91
+  mac2_a1  -0.3
+  mac2_d2  #93
+  mac2_a2  0.15
+  mac3_d1  #78
+  mac3_a1  0.3
+  mac3_d2  #79
+  mac3_a2  0.4
+  mac4_d1  #74
+  mac4_a1  0.5
+  mac5_d1  #80
+  mac5_a1  0.4
+  mac6_d1  #94
+  mac6_a1  0.2
+  mac7_d1  #98
+  mac7_a1  -0.15
+  mac8_d1  #60
+  mac8_a1  0.4
+  model          #1
+  combowave      #2
+  tab16          0.3
+  tab8           1
+  tab4           0.7
+  tab2           0.5
+  tab2r          0.4
+  tab4r          0
+  reedy          0.4
+  comboatk       0.08
+  perc           #0
+  vibdepth       0
+  rotary         #1
+  rotspeed       #1
+  drive          0.3
+  volume         0.29
+
+# The principal chorus at 16', 8' and 4' - one rank at three pitches,
+# which is what an organ means by a chorus and has nothing to do with
+# detuning anything.
+patch Diapason family=church note=60 range=36..84 role=chorale
+  set macro1 "Octave"
+  set macro2 "Mixture"
+  set macro3 "Flutes"
+  set macro4 "Strings"
+  set macro5 "Reeds"
+  set macro6 "Chiff"
+  set macro7 "Wind"
+  set macro8 "Trem"
+  mac1_d1  #16
+  mac1_a1  0.75
+  mac2_d1  #71
+  mac2_a1  0.45
+  mac2_d2  #19
+  mac2_a2  0.5
+  mac3_d1  #68
+  mac3_a1  0.4
+  mac4_d1  #69
+  mac4_a1  0.4
+  mac5_d1  #70
+  mac5_a1  0.45
+  mac6_d1  #72
+  mac6_a1  0.3
+  mac6_d2  #73
+  mac6_a2  0.25
+  mac7_d1  #62
+  mac7_a1  0.25
+  mac7_d2  #64
+  mac7_a2  0.15
+  mac8_d1  #66
+  mac8_a1  0.3
+  ua_16          1
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.02
+  release        0.09
+  drive          0
+  principal      1
+  flute          0.35
+  string         0
+  reed           0
+  mixture        0
+  chiff          0.22
+  tracker        0.25
+  windsag        0.3
+  windresp       0.35
+  windnoise      0.1
+  pedalon        #1
+  pedsplit       44
+  volume         0.19
+  pa_1           1
+  pa_2           0.75
+
+# Two stopped flutes, quiet, with the chiff well up. The wind noise on
+# the attack is most of what tells you this is a pipe and not a sine.
+patch "Flutes 8 and 4" family=church note=60 range=41..88 role=chorale
+  set macro1 "Piccolo"
+  set macro2 "Nazard"
+  set macro3 "Principal"
+  set macro4 "Strings"
+  set macro5 "Chiff"
+  set macro6 "Wind"
+  set macro7 "Trem"
+  set macro8 "Bourdon"
+  mac1_d1  #16
+  mac1_a1  0.6
+  mac2_d1  #15
+  mac2_a1  0.5
+  mac3_d1  #67
+  mac3_a1  0.3
+  mac4_d1  #69
+  mac4_a1  0.4
+  mac5_d1  #72
+  mac5_a1  0.3
+  mac5_d2  #73
+  mac5_a2  0.25
+  mac6_d1  #62
+  mac6_a1  0.2
+  mac6_d2  #64
+  mac6_a2  0.2
+  mac7_d1  #66
+  mac7_a1  0.35
+  mac8_d1  #11
+  mac8_a1  0.6
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.03
+  release        0.09
+  drive          0
+  principal      0
+  flute          1
+  string         0
+  reed           0
+  mixture        0
+  chiff          0.5
+  tracker        0.55
+  windsag        0.22
+  windresp       0.28
+  windnoise      0.2
+  volume         0.3125
+  pedalon        #1
+  pedsplit       44
+  pedal          0.95
+  pa_1           1
+  pa_2           0.75
+
+# Two string ranks a hair apart. The beat is the spray across the
+# generator rather than a chorus over the top, so notes that share a
+# wheel beat together the way two ranks of pipes do.
+patch "Strings Celeste" family=church note=60 range=41..84 role=chorale
+  set macro1 "Beat"
+  set macro2 "Principal"
+  set macro3 "Flutes"
+  set macro4 "Octave"
+  set macro5 "Oboe"
+  set macro6 "Trem"
+  set macro7 "Wind"
+  set macro8 "Bow"
+  mac1_d1  #53
+  mac1_a1  0.15
+  mac2_d1  #67
+  mac2_a1  0.4
+  mac3_d1  #68
+  mac3_a1  0.4
+  mac4_d1  #16
+  mac4_a1  0.5
+  mac5_d1  #70
+  mac5_a1  0.35
+  mac6_d1  #66
+  mac6_a1  0.3
+  mac7_d1  #62
+  mac7_a1  0.25
+  mac7_d2  #64
+  mac7_a2  0.15
+  mac8_d1  #101
+  mac8_a1  0.15
+  ua_16          1
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.075
+  release        0.14
+  drive          0
+  principal      0.3
+  flute          0.15
+  string         1
+  reed           0
+  mixture        0
+  chiff          0.08
+  tracker        0.15
+  spray          0.3
+  sprayrate      0.55
+  spraywide      0.8
+  spraypat       #1
+  windsag        0.18
+  volume         0.325
+  pedalon        #1
+  pedsplit       44
+  pedal          0.95
+  pa_1           1
+  pa_2           0.75
+
+# A flute chorus with the quint and the tierce drawn - the mutations
+# that sum into a reedy formant without a reed being involved.
+patch "Sesquialtera" family=church note=60 range=48..84 role=chorale
+  set macro1 "No Tierce"
+  set macro2 "Reeds"
+  set macro3 "Principal"
+  set macro4 "Bourdon"
+  set macro5 "Chiff"
+  set macro6 "Wind"
+  set macro7 "Trem"
+  set macro8 "Pure"
+  mac1_d1  #17
+  mac1_a1  -0.6
+  mac2_d1  #70
+  mac2_a1  0.45
+  mac3_d1  #67
+  mac3_a1  0.5
+  mac4_d1  #11
+  mac4_a1  0.6
+  mac5_d1  #72
+  mac5_a1  0.3
+  mac5_d2  #73
+  mac5_a2  0.25
+  mac6_d1  #62
+  mac6_a1  0.25
+  mac6_d2  #64
+  mac6_a2  0.15
+  mac7_d1  #66
+  mac7_a1  0.3
+  mac8_d1  #69
+  mac8_a1  -0.5
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         0.625
+  ua_2           1
+  ua_135         1
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.02
+  release        0.09
+  drive          0
+  principal      0.2
+  flute          1
+  string         0.55
+  reed           0
+  mixture        0
+  chiff          0.3
+  tracker        0.2
+  windsag        0.25
+  volume         0.1675
+  pedalon        #1
+  pedsplit       44
+  pedal          0.95
+  pa_1           1
+  pa_2           0.75
+
+# The reed rank, which on this rig sits at the top of the stop list and
+# so wants a principal under it to be a trumpet rather than a whistle.
+patch "Reed Stop" family=church note=60 range=41..84 role=chorale
+  set macro1 "Mixture"
+  set macro2 "Principal"
+  set macro3 "Flutes"
+  set macro4 "Octave"
+  set macro5 "Chiff"
+  set macro6 "Wind"
+  set macro7 "Trem"
+  set macro8 "Strings"
+  mac1_d1  #71
+  mac1_a1  0.4
+  mac2_d1  #67
+  mac2_a1  0.4
+  mac3_d1  #68
+  mac3_a1  0.5
+  mac4_d1  #16
+  mac4_a1  0.6
+  mac5_d1  #72
+  mac5_a1  0.3
+  mac5_d2  #73
+  mac5_a2  0.25
+  mac6_d1  #62
+  mac6_a1  0.25
+  mac6_d2  #64
+  mac6_a2  0.15
+  mac7_d1  #66
+  mac7_a1  0.3
+  mac8_d1  #69
+  mac8_a1  0.4
+  ua_16          1
+  ua_513         0
+  ua_8           1
+  ua_4           0.5
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         1
+  ua_1           1
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.02
+  release        0.09
+  drive          0
+  principal      0.4
+  flute          0.08
+  string         0
+  reed           1
+  mixture        0.55
+  chiff          0.35
+  tracker        0.3
+  windsag        0.32
+  windresp       0.3
+  volume         0.2525
+  pedalon        #1
+  pedsplit       44
+  pedal          0.95
+  pa_1           1
+  pa_2           0.75
+
+# Principals from 8' up with the mixture on top and no flutes at all.
+# The bright, cold sound a chorus is built to make.
+patch Plenum family=church note=60 range=36..84 role=chorale
+  set macro1 "Mixture"
+  set macro2 "Reeds"
+  set macro3 "Bourdon"
+  set macro4 "Quint"
+  set macro5 "Flutes"
+  set macro6 "Chiff"
+  set macro7 "Wind"
+  set macro8 "Strings"
+  mac1_d1  #71
+  mac1_a1  0.4
+  mac2_d1  #70
+  mac2_a1  0.5
+  mac3_d1  #11
+  mac3_a1  0.5
+  mac4_d1  #18
+  mac4_a1  0.6
+  mac5_d1  #68
+  mac5_a1  0.4
+  mac6_d1  #72
+  mac6_a1  0.3
+  mac6_d2  #73
+  mac6_a2  0.25
+  mac7_d1  #62
+  mac7_a1  0.25
+  mac7_d2  #64
+  mac7_a2  0.15
+  mac8_d1  #69
+  mac8_a1  0.4
+  ua_16          0.5
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         0
+  ua_2           1
+  ua_135         0
+  ua_113         0
+  ua_1           1
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.02
+  release        0.09
+  drive          0
+  principal      1
+  flute          0
+  string         0.2
+  reed           0
+  mixture        0.6
+  chiff          0.25
+  tracker        0.3
+  windsag        0.38
+  windresp       0.3
+  windnoise      0.12
+  pedalon        #1
+  pedsplit       44
+  volume         0.195
+  pa_1           1
+  pa_2           1
+
+# Everything drawn and the feet on reeds. The wind sag is set high, so
+# a big chord pulls the pitch and the level down and letting go of it
+# lets them back - which is the part of a large organ you feel.
+patch "Full Organ" family=church note=60 range=33..88 role=chorale
+  set macro1 "No Reeds"
+  set macro2 "Less Mix"
+  set macro3 "No 16'"
+  set macro4 "Steady"
+  set macro5 "Strings"
+  set macro6 "Chiff"
+  set macro7 "Trem"
+  set macro8 "Flutes"
+  mac1_d1  #70
+  mac1_a1  -0.7
+  mac2_d1  #71
+  mac2_a1  -0.5
+  mac3_d1  #11
+  mac3_a1  -1
+  mac4_d1  #62
+  mac4_a1  -0.5
+  mac5_d1  #69
+  mac5_a1  0.4
+  mac6_d1  #72
+  mac6_a1  0.3
+  mac6_d2  #73
+  mac6_a2  0.25
+  mac7_d1  #66
+  mac7_a1  0.25
+  mac8_d1  #68
+  mac8_a1  0.2
+  ua_16          1
+  ua_513         1
+  ua_8           1
+  ua_4           1
+  ua_223         1
+  ua_2           1
+  ua_135         1
+  ua_113         1
+  ua_1           1
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.02
+  release        0.09
+  drive          0
+  principal      1
+  flute          0.8
+  string         0.6
+  reed           0.9
+  mixture        0.9
+  chiff          0.3
+  tracker        0.4
+  windsag        0.72
+  windresp       0.5
+  windnoise      0.22
+  pedalon        #1
+  pedsplit       44
+  pedal          1
+  volume         0.0825
+  pa_1           1
+  pa_2           1
+
+# One 8' flute played quietly. Everything in it is the attack and the
+# release: the chiff arriving, the tracker under the key, and a long
+# wind response so the supply is still catching up.
+patch "Gedackt" family=church note=60 range=48..88 role=chorale
+  set macro1 "4'"
+  set macro2 "2'"
+  set macro3 "Strings"
+  set macro4 "Principal"
+  set macro5 "Chiff"
+  set macro6 "Breath"
+  set macro7 "Trem"
+  set macro8 "Slow"
+  mac1_d1  #14
+  mac1_a1  0.375
+  mac2_d1  #16
+  mac2_a1  0.5
+  mac3_d1  #69
+  mac3_a1  0.35
+  mac4_d1  #67
+  mac4_a1  0.3
+  mac5_d1  #72
+  mac5_a1  0.3
+  mac5_d2  #73
+  mac5_a2  0.25
+  mac6_d1  #64
+  mac6_a1  0.25
+  mac7_d1  #66
+  mac7_a1  0.35
+  mac8_d1  #101
+  mac8_a1  0.12
+  ua_16          0.5
+  ua_513         0
+  ua_8           1
+  ua_4           0.625
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.045
+  release        0.16
+  drive          0
+  principal      0
+  flute          1
+  string         0
+  reed           0
+  mixture        0
+  chiff          0.45
+  tracker        0.7
+  windsag        0.3
+  windresp       0.9
+  windnoise      0.3
+  volume         0.3325
+  pedalon        #1
+  pedsplit       44
+  pedal          0.95
+  pa_1           1
+  pa_2           0.75
+
+# A principal chorus behind shutters. With the swell pedal down it is
+# far off and dull, and opening it brings the top of the chorus forward
+# as well as the level. The stops glide in over half a second.
+patch "Swell Organ" family=church note=60 range=36..84 role=chorale
+  set macro1 "Full"
+  set macro2 "Flutes"
+  set macro3 "Strings"
+  set macro4 "Reeds"
+  set macro5 "Shutters"
+  set macro6 "Chiff"
+  set macro7 "Wind"
+  set macro8 "Trem"
+  mac1_d1  #71
+  mac1_a1  0.5
+  mac1_d2  #16
+  mac1_a2  0.5
+  mac1_d3  #70
+  mac1_a3  0.3
+  mac2_d1  #67
+  mac2_a1  -0.6
+  mac2_d2  #68
+  mac2_a2  0.4
+  mac3_d1  #69
+  mac3_a1  0.6
+  mac3_d2  #53
+  mac3_a2  0.08
+  mac4_d1  #70
+  mac4_a1  0.6
+  mac5_d1  #116
+  mac5_a1  0.3
+  mac6_d1  #72
+  mac6_a1  0.4
+  mac6_d2  #73
+  mac6_a2  0.25
+  mac7_d1  #62
+  mac7_a1  0.3
+  mac7_d2  #64
+  mac7_a2  0.15
+  mac8_d1  #66
+  mac8_a1  0.25
+  ua_16          0.5
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         0
+  ua_2           0.5
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.02
+  release        0.12
+  drive          0
+  principal      1
+  flute          0.5
+  string         0.2
+  reed           0
+  mixture        0.2
+  chiff          0.2
+  tracker        0.2
+  windsag        0.3
+  windresp       0.35
+  windnoise      0.08
+  pedalon        #1
+  pedsplit       44
+  pa_1           1
+  pa_2           0.6
+  barglide       0.5
+  express        #3
+  swellbox       0.7
+  volume         0.16
+
+# One tibia at 8' with a breath of 4' and a gentle tremulant, behind
+# shutters on the swell pedal. The theatre organ at its quietest.
+patch "Soft Tibia" family=theatre note=60 range=41..84 role=chorale
+  set macro1 "Trem"
+  set macro2 "Trem Rate"
+  set macro3 "Shutters"
+  set macro4 "Kinura"
+  set macro5 "Strings"
+  set macro6 "Sub"
+  set macro7 "Top"
+  set macro8 "Glide"
+  mac1_d1  #66
+  mac1_a1  0.3
+  mac2_d1  #65
+  mac2_a1  0.15
+  mac3_d1  #116
+  mac3_a1  0.4
+  mac4_d1  #70
+  mac4_a1  0.4
+  mac4_d2  #98
+  mac4_a2  0.1
+  mac5_d1  #69
+  mac5_a1  0.4
+  mac5_d2  #53
+  mac5_a2  0.1
+  mac6_d1  #11
+  mac6_a1  0.5
+  mac7_d1  #16
+  mac7_a1  0.4
+  mac7_d2  #14
+  mac7_a2  0.4
+  mac8_d1  #117
+  mac8_a1  0.25
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           0.4
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  drive          0
+  principal      0
+  flute          1
+  string         0
+  reed           0
+  mixture        0
+  chiff          0.155
+  tracker        0.1
+  attack         0.025
+  release        0.2
+  tremrate       5.8
+  tremdepth      0.3
+  windsag        0.2
+  windresp       0.2
+  pedalon        #1
+  pedsplit       44
+  pa_1           1
+  pa_2           0.5
+  express        #3
+  swellbox       0.6
+  barglide       0.4
+  volume         0.555
+
+# A tibia, the theatre organ's big round flute, on unit footages from
+# 16' to 2' with a deep fast tremulant, behind shutters. Kinura adds the
+# buzzy little reed over it.
+patch "Tibia Trem" family=theatre note=60 range=41..84 role=chorale
+  set macro1 "Trem"
+  set macro2 "Trem Rate"
+  set macro3 "Shutters"
+  set macro4 "Kinura"
+  set macro5 "Strings"
+  set macro6 "Sub"
+  set macro7 "Top"
+  set macro8 "Glide"
+  mac1_d1  #66
+  mac1_a1  0.3
+  mac2_d1  #65
+  mac2_a1  0.15
+  mac3_d1  #116
+  mac3_a1  0.4
+  mac4_d1  #70
+  mac4_a1  0.5
+  mac4_d2  #98
+  mac4_a2  0.1
+  mac5_d1  #69
+  mac5_a1  0.5
+  mac5_d2  #53
+  mac5_a2  0.1
+  mac6_d1  #11
+  mac6_a1  0.4
+  mac7_d1  #16
+  mac7_a1  0.4
+  mac7_d2  #19
+  mac7_a2  0.5
+  mac8_d1  #117
+  mac8_a1  0.25
+  ua_16          0.6
+  ua_513         0
+  ua_8           1
+  ua_4           0.75
+  ua_223         0.3
+  ua_2           0.4
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.02
+  release        0.15
+  drive          0
+  principal      0
+  flute          1
+  string         0
+  reed           0
+  mixture        0
+  chiff          0.05
+  tracker        0.1
+  tremrate       6.2
+  tremdepth      0.45
+  windsag        0.2
+  windresp       0.2
+  pedalon        #1
+  pedsplit       44
+  pa_1           1
+  pa_2           0.5
+  barglide       0.4
+  express        #3
+  swellbox       0.6
+  volume         0.355
+
+# The kinura: a small thin reed that buzzes, at 8' and 4' over a quiet
+# tibia, with the tremulant on. It is meant to be a little silly.
+patch Kinura family=theatre note=60 range=41..84 role=chorale
+  set macro1 "Trem"
+  set macro2 "Trem Rate"
+  set macro3 "Shutters"
+  set macro4 "Tibia"
+  set macro5 "Thin"
+  set macro6 "Sub"
+  set macro7 "Top"
+  set macro8 "Glide"
+  mac1_d1  #66
+  mac1_a1  0.3
+  mac2_d1  #65
+  mac2_a1  0.15
+  mac3_d1  #116
+  mac3_a1  0.4
+  mac4_d1  #68
+  mac4_a1  0.3
+  mac5_d1  #68
+  mac5_a1  -0.35
+  mac5_d2  #97
+  mac5_a2  0.1
+  mac6_d1  #11
+  mac6_a1  0.5
+  mac7_d1  #16
+  mac7_a1  0.4
+  mac7_d2  #15
+  mac7_a2  0.4
+  mac8_d1  #117
+  mac8_a1  0.25
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           0.6
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  drive          0
+  principal      0
+  flute          0.35
+  string         0
+  reed           1
+  mixture        0
+  chiff          0.05
+  tracker        0.15
+  attack         0.015
+  release        0.12
+  treble         3
+  mid            -2
+  tremrate       6.6
+  tremdepth      0.35
+  windsag        0.2
+  windresp       0.2
+  pedalon        #1
+  pedsplit       44
+  pa_1           1
+  pa_2           0.5
+  express        #3
+  swellbox       0.6
+  barglide       0.4
+  volume         0.546
+
+# The vox humana: a soft reed with a little string, dark behind the
+# shutters, on a slow deep tremulant. A choir a long way off.
+patch "Vox Humana" family=theatre note=60 range=41..84 role=chorale
+  set macro1 "Trem"
+  set macro2 "Trem Rate"
+  set macro3 "Shutters"
+  set macro4 "Tibia"
+  set macro5 "Strings"
+  set macro6 "Sub"
+  set macro7 "Bright"
+  set macro8 "Glide"
+  mac1_d1  #66
+  mac1_a1  0.25
+  mac2_d1  #65
+  mac2_a1  0.15
+  mac3_d1  #116
+  mac3_a1  0.3
+  mac4_d1  #68
+  mac4_a1  0.3
+  mac5_d1  #69
+  mac5_a1  0.4
+  mac5_d2  #53
+  mac5_a2  0.1
+  mac6_d1  #11
+  mac6_a1  0.5
+  mac7_d1  #98
+  mac7_a1  0.15
+  mac8_d1  #117
+  mac8_a1  0.25
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           0.5
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  drive          0
+  principal      0
+  flute          0.3
+  string         0.2
+  reed           0.6
+  mixture        0
+  chiff          0
+  tracker        0.1
+  attack         0.04
+  release        0.25
+  treble         -5
+  tremrate       5.2
+  tremdepth      0.55
+  windsag        0.25
+  windresp       0.25
+  pedalon        #1
+  pedsplit       44
+  pa_1           1
+  pa_2           0.5
+  express        #3
+  swellbox       0.7
+  barglide       0.4
+  volume         0.714
+
+# Tibias at 8', 4', 2 2/3', 2' and the tierce, the chord a theatre
+# organist builds a solo out of, with the tremulant full on.
+patch "Tierce Tibia" family=theatre note=60 range=41..84 role=chorale
+  set macro1 "Trem"
+  set macro2 "Trem Rate"
+  set macro3 "Shutters"
+  set macro4 "Kinura"
+  set macro5 "No Tierce"
+  set macro6 "Sub"
+  set macro7 "Strings"
+  set macro8 "Glide"
+  mac1_d1  #66
+  mac1_a1  0.3
+  mac2_d1  #65
+  mac2_a1  0.15
+  mac3_d1  #116
+  mac3_a1  0.4
+  mac4_d1  #70
+  mac4_a1  0.4
+  mac4_d2  #98
+  mac4_a2  0.1
+  mac5_d1  #17
+  mac5_a1  -0.6
+  mac6_d1  #11
+  mac6_a1  0.5
+  mac7_d1  #69
+  mac7_a1  0.4
+  mac7_d2  #53
+  mac7_a2  0.1
+  mac8_d1  #117
+  mac8_a1  0.25
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         0.75
+  ua_2           0.6
+  ua_135         0.6
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  drive          0
+  principal      0
+  flute          1
+  string         0
+  reed           0
+  mixture        0
+  chiff          0.05
+  tracker        0.1
+  attack         0.02
+  release        0.15
+  tremrate       6.4
+  tremdepth      0.45
+  windsag        0.2
+  windresp       0.2
+  pedalon        #1
+  pedsplit       44
+  pa_1           1
+  pa_2           0.5
+  express        #3
+  swellbox       0.6
+  barglide       0.4
+  volume         0.369
+
+# Tibias, strings and the reeds from 16' up, on one tremulant and one
+# wind supply. The big ending.
+patch "Grand Theatre" family=theatre note=60 range=36..84 role=chorale
+  set macro1 "Trem"
+  set macro2 "Steady"
+  set macro3 "Shutters"
+  set macro4 "No Reeds"
+  set macro5 "Strings"
+  set macro6 "Top"
+  set macro7 "Wind"
+  set macro8 "Glide"
+  mac1_d1  #66
+  mac1_a1  0.3
+  mac2_d1  #66
+  mac2_a1  -0.3
+  mac3_d1  #116
+  mac3_a1  0.3
+  mac4_d1  #70
+  mac4_a1  -0.6
+  mac5_d1  #69
+  mac5_a1  0.4
+  mac6_d1  #16
+  mac6_a1  0.25
+  mac6_d2  #17
+  mac6_a2  0.5
+  mac7_d1  #62
+  mac7_a1  0.25
+  mac7_d2  #64
+  mac7_a2  0.15
+  mac8_d1  #117
+  mac8_a1  0.25
+  ua_16          1
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         0.5
+  ua_2           0.75
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  drive          0
+  principal      0.3
+  flute          1
+  string         0.6
+  reed           0.7
+  mixture        0
+  chiff          0.05
+  tracker        0.2
+  attack         0.02
+  release        0.15
+  tremrate       6
+  tremdepth      0.4
+  windsag        0.35
+  windresp       0.3
+  pedalon        #1
+  pedsplit       44
+  pa_1           1
+  pa_2           0.75
+  express        #3
+  swellbox       0.6
+  barglide       0.4
+  volume         0.175
+
+# A tibia and a string with the tremulant as deep and fast as it goes.
+# The wobble is the sound.
+patch "Deep Trem" family=theatre note=60 range=41..84 role=chorale
+  set macro1 "Steady"
+  set macro2 "Slower"
+  set macro3 "Shutters"
+  set macro4 "Kinura"
+  set macro5 "Wind"
+  set macro6 "Sub"
+  set macro7 "Top"
+  set macro8 "Glide"
+  mac1_d1  #66
+  mac1_a1  -0.5
+  mac2_d1  #65
+  mac2_a1  -0.25
+  mac3_d1  #116
+  mac3_a1  0.4
+  mac4_d1  #70
+  mac4_a1  0.4
+  mac4_d2  #98
+  mac4_a2  0.1
+  mac5_d1  #62
+  mac5_a1  0.25
+  mac5_d2  #64
+  mac5_a2  0.15
+  mac6_d1  #11
+  mac6_a1  0.5
+  mac7_d1  #16
+  mac7_a1  0.4
+  mac7_d2  #15
+  mac7_a2  0.4
+  mac8_d1  #117
+  mac8_a1  0.25
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           0.75
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  drive          0
+  principal      0
+  flute          1
+  string         0.5
+  reed           0
+  mixture        0
+  chiff          0.05
+  tracker        0.1
+  attack         0.02
+  release        0.15
+  tremrate       8.5
+  tremdepth      0.85
+  windsag        0.2
+  windresp       0.2
+  pedalon        #1
+  pedsplit       44
+  pa_1           1
+  pa_2           0.5
+  express        #3
+  swellbox       0.6
+  barglide       0.4
+  volume         0.441
+
+# Free reeds under bellows pressure. The buzz is the reed beating
+# against its frame and it grows with how hard the thing is pushed,
+# which is why this gets louder and dirtier at the same time.
+patch "Hand Pumped" family=reed note=60 range=41..81 role=swell
+  set macro1 "Pressure"
+  set macro2 "Buzz"
+  set macro3 "16'"
+  set macro4 "2'"
+  set macro5 "Trem"
+  set macro6 "Wind"
+  set macro7 "Celeste"
+  set macro8 "Dark"
+  mac1_d1  #82
+  mac1_a1  0.15
+  mac2_d1  #83
+  mac2_a1  0.3
+  mac3_d1  #11
+  mac3_a1  0.6
+  mac4_d1  #16
+  mac4_a1  0.5
+  mac5_d1  #84
+  mac5_a1  0.25
+  mac6_d1  #62
+  mac6_a1  0.25
+  mac6_d2  #64
+  mac6_a2  0.15
+  mac7_d1  #53
+  mac7_a1  0.15
+  mac8_d1  #98
+  mac8_a1  -0.15
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #3
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.012
+  release        0.05
+  drive          0
+  pressure       0.78
+  buzz           0.45
+  reedtrem       0.25
+  tremrate       1.7
+  tremdepth      0.18
+  windsag        0.42
+  windresp       0.3
+  windnoise      0.12
+  volume         0.4375
+  pedalon        #1
+  pedsplit       44
+  pedal          0.85
+  pa_1           0.875
+  pa_2           0.5
+
+# A single set of reeds at 8', blown gently, with a knee swell: the
+# swell pedal darkens it as it closes. The front room, not the chapel.
+patch "Parlour Reed" family=reed note=60 range=41..81 role=swell
+  set macro1 "Pressure"
+  set macro2 "Buzz"
+  set macro3 "4'"
+  set macro4 "16'"
+  set macro5 "Trem"
+  set macro6 "Shutters"
+  set macro7 "Celeste"
+  set macro8 "Wind"
+  mac1_d1  #82
+  mac1_a1  0.2
+  mac2_d1  #83
+  mac2_a1  0.3
+  mac3_d1  #14
+  mac3_a1  0.6
+  mac4_d1  #11
+  mac4_a1  0.5
+  mac5_d1  #84
+  mac5_a1  0.25
+  mac6_d1  #116
+  mac6_a1  0.4
+  mac7_d1  #53
+  mac7_a1  0.15
+  mac8_d1  #62
+  mac8_a1  0.25
+  mac8_d2  #64
+  mac8_a2  0.15
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           0
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #3
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.012
+  release        0.05
+  drive          0
+  pressure       0.6
+  buzz           0.2
+  reedtrem       0.1
+  tremrate       2
+  tremdepth      0
+  windsag        0.3
+  windresp       0.3
+  windnoise      0.1
+  treble         -3
+  pedalon        #1
+  pedsplit       44
+  pedal          0.85
+  pa_1           0.875
+  pa_2           0.5
+  express        #3
+  swellbox       0.5
+  volume         0.764
+
+# Three reeds to a key, a few cents apart. They are all at the same
+# pitch - that is what makes it a musette rather than a registration -
+# so the brightness has to come from the reed itself and not from
+# stacking footages on top of it. The beat is the spray across the
+# generator, and it is the same wheels for every key, so a chord
+# shimmers as one thing instead of drifting apart.
+patch "Shimmer Reeds" family=reed note=60 range=45..84 role=swell
+  set macro1 "Beat"
+  set macro2 "Buzz"
+  set macro3 "Pressure"
+  set macro4 "4'"
+  set macro5 "16'"
+  set macro6 "Trem"
+  set macro7 "Wind"
+  set macro8 "Dark"
+  mac1_d1  #53
+  mac1_a1  0.2
+  mac2_d1  #83
+  mac2_a1  0.3
+  mac3_d1  #82
+  mac3_a1  0.1
+  mac4_d1  #14
+  mac4_a1  0.375
+  mac5_d1  #11
+  mac5_a1  0.5
+  mac6_d1  #66
+  mac6_a1  0.3
+  mac7_d1  #62
+  mac7_a1  0.25
+  mac7_d2  #64
+  mac7_a2  0.15
+  mac8_d1  #98
+  mac8_a1  -0.15
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           0.625
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #3
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.012
+  release        0.05
+  drive          0
+  pressure       0.8
+  buzz           0.18
+  reedtrem       0
+  spray          0.55
+  sprayrate      0.9
+  spraywide      0.75
+  spraypat       #0
+  tremdepth      0
+  tremrate       5.4
+  windsag        0.28
+  volume         0.5
+  pedalon        #1
+  pedsplit       44
+  pedal          0.85
+  pa_1           0.875
+  pa_2           0.5
+
+# One 8' rank and a tremolo, which is a small reed organ's whole
+# vocabulary. Quiet, and it wheezes.
+patch Melodeon family=reed note=60 range=45..81 role=swell
+  set macro1 "Pressure"
+  set macro2 "Buzz"
+  set macro3 "Steady"
+  set macro4 "4'"
+  set macro5 "16'"
+  set macro6 "Celeste"
+  set macro7 "Wind"
+  set macro8 "Bright"
+  mac1_d1  #82
+  mac1_a1  0.08
+  mac2_d1  #83
+  mac2_a1  0.3
+  mac3_d1  #84
+  mac3_a1  -0.3
+  mac3_d2  #66
+  mac3_a2  -0.25
+  mac4_d1  #14
+  mac4_a1  0.5
+  mac5_d1  #11
+  mac5_a1  0.5
+  mac6_d1  #53
+  mac6_a1  0.15
+  mac7_d1  #62
+  mac7_a1  0.2
+  mac7_d2  #64
+  mac7_a2  0.2
+  mac8_d1  #98
+  mac8_a1  0.12
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           0.5
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #3
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.012
+  release        0.05
+  drive          0
+  pressure       0.92
+  buzz           0.3
+  reedtrem       0.45
+  tremrate       4.6
+  tremdepth      0.35
+  windsag        0.35
+  windresp       0.22
+  windnoise      0.28
+  volume         0.5
+  pedalon        #1
+  pedsplit       44
+  pedal          0.85
+  pa_1           0.875
+  pa_2           0.5
+
+# The supply deliberately too small for the instrument. Hold a big chord
+# and it sinks; let one note go and the rest come back up. That is a
+# foot pump, and it is a shared wind supply doing it, not an envelope.
+patch "Pump Organ" family=reed note=60 range=38..79 role=swell
+  set macro1 "Steady"
+  set macro2 "Buzz"
+  set macro3 "4'"
+  set macro4 "2'"
+  set macro5 "Pressure"
+  set macro6 "Trem"
+  set macro7 "Celeste"
+  set macro8 "Dark"
+  mac1_d1  #62
+  mac1_a1  -0.4
+  mac2_d1  #83
+  mac2_a1  0.3
+  mac3_d1  #14
+  mac3_a1  0.6
+  mac4_d1  #16
+  mac4_a1  0.5
+  mac5_d1  #82
+  mac5_a1  0.08
+  mac6_d1  #66
+  mac6_a1  0.3
+  mac7_d1  #53
+  mac7_a1  0.15
+  mac8_d1  #98
+  mac8_a1  -0.15
+  ua_16          1
+  ua_513         0
+  ua_8           1
+  ua_4           0
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #3
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.012
+  release        0.05
+  drive          0
+  pressure       0.9
+  buzz           0.5
+  reedtrem       0.2
+  windsag        0.95
+  windresp       0.85
+  windnoise      0.4
+  tremrate       3.2
+  tremdepth      0.12
+  bass           2
+  volume         0.34
+  pedalon        #1
+  pedsplit       44
+  pedal          0.85
+  pa_1           0.875
+  pa_2           0.5
+
+# 16', 8' and 4' with the buzz wound past polite. The tremolo is slow
+# and deep enough to be a voice rather than a shimmer.
+patch "Big Reed" family=reed note=60 range=36..81 role=swell
+  set macro1 "Clean"
+  set macro2 "2'"
+  set macro3 "Steady"
+  set macro4 "Wind"
+  set macro5 "Celeste"
+  set macro6 "Dark"
+  set macro7 "No 16'"
+  set macro8 "Faster Trem"
+  mac1_d1  #83
+  mac1_a1  -0.4
+  mac2_d1  #16
+  mac2_a1  0.5
+  mac3_d1  #84
+  mac3_a1  -0.3
+  mac3_d2  #66
+  mac3_a2  -0.25
+  mac4_d1  #62
+  mac4_a1  0.25
+  mac5_d1  #53
+  mac5_a1  0.15
+  mac6_d1  #98
+  mac6_a1  -0.15
+  mac7_d1  #11
+  mac7_a1  -0.8
+  mac8_d1  #65
+  mac8_a1  0.2
+  ua_16          1
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         0.25
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #3
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.012
+  release        0.05
+  drive          0
+  pressure       0.95
+  buzz           0.82
+  reedtrem       0.55
+  tremrate       2.4
+  tremdepth      0.4
+  windsag        0.5
+  windresp       0.35
+  windnoise      0.15
+  volume         0.375
+  pedalon        #1
+  pedsplit       44
+  pedal          0.85
+  pa_1           0.875
+  pa_2           0.5
+
+# Four sets of reeds from 16' to 2', each a little apart from the next,
+# on one wind supply that sags under a chord, in a room. Strange and big.
+patch "Reed Choir" family=reed note=60 range=36..81 role=swell
+  set macro1 "Beat"
+  set macro2 "Tighten"
+  set macro3 "Buzz"
+  set macro4 "Pressure"
+  set macro5 "Trem"
+  set macro6 "Steady"
+  set macro7 "No 16'"
+  set macro8 "Dark"
+  mac1_d1  #53
+  mac1_a1  0.2
+  mac2_d1  #53
+  mac2_a1  -0.2
+  mac3_d1  #83
+  mac3_a1  0.3
+  mac4_d1  #82
+  mac4_a1  0.1
+  mac5_d1  #84
+  mac5_a1  0.3
+  mac6_d1  #62
+  mac6_a1  -0.4
+  mac7_d1  #11
+  mac7_a1  -0.75
+  mac8_d1  #98
+  mac8_a1  -0.15
+  ua_16          0.75
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         0
+  ua_2           0.5
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #3
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.012
+  release        0.05
+  drive          0
+  pressure       0.85
+  buzz           0.4
+  reedtrem       0.2
+  tremrate       1.2
+  tremdepth      0
+  spray          0.25
+  sprayrate      0.6
+  spraywide      0.8
+  spraypat       #1
+  windsag        0.6
+  windresp       0.4
+  windnoise      0.15
+  pedalon        #1
+  pedsplit       44
+  pedal          0.85
+  pa_1           0.875
+  pa_2           0.5
+  volume         0.329
+  send reverb    0.15
+
+# The whole instrument at once, which is the thing this machine is for:
+# a bright upper with the tap, a soft lower to comp on, and the feet
+# on 16' and 8'. One rack, three registrations.
+patch "Two Manuals" family=split note=60 range=29..84 role=gospel
+  set macro1 "Top"
+  set macro2 "Lower"
+  set macro3 "Pedal 8'"
+  set macro4 "Walk"
+  set macro5 "Perc"
+  set macro6 "Drive"
+  set macro7 "Rotor"
+  set macro8 "Click"
+  mac1_d1  #16
+  mac1_a1  0.6
+  mac1_d2  #19
+  mac1_a2  0.5
+  mac2_d1  #8
+  mac2_a1  0.2
+  mac3_d1  #48
+  mac3_a1  0.25
+  mac4_d1  #10
+  mac4_a1  0.3
+  mac5_d1  #56
+  mac5_a1  0.3
+  mac6_d1  #94
+  mac6_a1  0.2
+  mac7_d1  #85
+  mac7_a1  0.3
+  mac7_d2  #87
+  mac7_a2  0.3
+  mac8_d1  #4
+  mac8_a1  0.3
+  ua_16          1
+  ua_513         1
+  ua_8           1
+  ua_4           1
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  la_16          0
+  la_513         0
+  la_8           0.5
+  la_4           0.625
+  la_223         0.5
+  la_2           0.5
+  la_135         0.25
+  la_113         0.25
+  la_1           0.25
+  pa_1           1
+  pa_2           0.75
+  loweron        #1
+  pedalon        #1
+  split          60
+  pedsplit       48
+  perc           #1
+  percharm       #1
+  perclvl        0.65
+  percfast       #1
+  lower          0.75
+  pedal          0.95
+  pedsus         0.25
+  rotspeed       #1
+  drive          0.3
+  volume         0.2525
+
+# Flutes in chorus on top, a soft 8' and 4' to comp on below, and the
+# feet light, with a little sustain to join a slow bass line.
+patch "Ballad Split" family=split note=60 range=29..84 role=gospel
+  set macro1 "Top"
+  set macro2 "Lower"
+  set macro3 "Lower 4'"
+  set macro4 "Walk"
+  set macro5 "Vibrato"
+  set macro6 "Drive"
+  set macro7 "Rotor"
+  set macro8 "Click"
+  mac1_d1  #19
+  mac1_a1  0.5
+  mac1_d2  #17
+  mac1_a2  0.4
+  mac2_d1  #8
+  mac2_a1  0.25
+  mac3_d1  #32
+  mac3_a1  0.4
+  mac4_d1  #10
+  mac4_a1  0.3
+  mac5_d1  #60
+  mac5_a1  0.3
+  mac6_d1  #94
+  mac6_a1  0.2
+  mac7_d1  #85
+  mac7_a1  0.3
+  mac7_d2  #87
+  mac7_a2  0.3
+  mac8_d1  #4
+  mac8_a1  0.3
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           0.75
+  ua_223         0
+  ua_2           0.5
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  la_16          0
+  la_513         0
+  la_8           0.75
+  la_4           0.5
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  pa_1           0.875
+  pa_2           0.375
+  loweron        #1
+  pedalon        #1
+  split          60
+  pedsplit       48
+  lower          0.7
+  pedal          0.9
+  pedsus         0.2
+  perc           #0
+  vibtype        #5
+  vibdepth       0.6
+  rotspeed       #1
+  drive          0.1
+  volume         0.3345
+
+# Written from the feet up. The pedal split is high enough that the left
+# hand walks on it, the sustain is long enough to join the notes, and
+# the manuals are left thin so the bass is the loudest thing.
+patch "Pedal Bass" family=split note=60 range=29..79 role=gospel
+  set macro1 "Upper"
+  set macro2 "Lower"
+  set macro3 "Walk"
+  set macro4 "Round"
+  set macro5 "Top"
+  set macro6 "Drive"
+  set macro7 "Rotor"
+  set macro8 "Click"
+  mac1_d1  #7
+  mac1_a1  0.3
+  mac2_d1  #8
+  mac2_a1  0.3
+  mac3_d1  #10
+  mac3_a1  0.3
+  mac4_d1  #48
+  mac4_a1  -0.5
+  mac5_d1  #16
+  mac5_a1  0.5
+  mac6_d1  #94
+  mac6_a1  0.2
+  mac7_d1  #85
+  mac7_a1  0.3
+  mac7_d2  #87
+  mac7_a2  0.3
+  mac8_d1  #4
+  mac8_a1  0.3
+  ua_16          0
+  ua_513         0
+  ua_8           0.5
+  ua_4           0.75
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  la_16          1
+  la_513         0
+  la_8           0.75
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  pa_1           1
+  pa_2           1
+  loweron        #1
+  pedalon        #1
+  split          64
+  pedsplit       53
+  pedal          1
+  pedsus         0.45
+  upper          0.7
+  lower          0.7
+  perc           #0
+  rotspeed       #1
+  drive          0.35
+  bass           3
+  volume         0.27
+
+# No pedals: the left hand plays the bass on the lower manual below the
+# split, at the key's own pitch, and the right hand comps and plays the
+# tune above it with the tap on.
+patch "Left Hand Bass" family=split note=60 range=29..84 role=gospel
+  set macro1 "Fill"
+  set macro2 "Top"
+  set macro3 "Bass 4'"
+  set macro4 "Vibrato"
+  set macro5 "Perc"
+  set macro6 "Drive"
+  set macro7 "Rotor"
+  set macro8 "Click"
+  mac1_d1  #14
+  mac1_a1  0.4
+  mac2_d1  #16
+  mac2_a1  0.6
+  mac2_d2  #19
+  mac2_a2  0.5
+  mac3_d1  #32
+  mac3_a1  0.4
+  mac4_d1  #60
+  mac4_a1  0.3
+  mac5_d1  #56
+  mac5_a1  0.3
+  mac6_d1  #94
+  mac6_a1  0.2
+  mac7_d1  #85
+  mac7_a1  0.3
+  mac7_d2  #87
+  mac7_a2  0.3
+  mac8_d1  #4
+  mac8_a1  0.3
   ua_16          1
   ua_513         1
   ua_8           1
@@ -1366,22 +3407,529 @@ patch "Cabinet Mod" family=cabinet note=60 range=48..84 role=gospel
   ua_135         0
   ua_113         0
   ua_1           0
+  la_16          0
+  la_513         0
+  la_8           1
+  la_4           0.25
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  loweron        #1
+  pedalon        #0
+  split          48
+  lower          1
+  perc           #1
+  percharm       #1
+  perclvl        0.55
+  percfast       #1
+  percdec        0.3
   rotspeed       #1
-  rotwide        0.8
-  micdist        0.55
-  micangle       0.85
-  m1_src         #11
-  m1_dst         #14
-  m1_amt         0.16
-  m2_src         #12
-  m2_dst         #10
-  m2_amt         0.3
-  m3_src         #11
-  m3_dst         #3
-  m3_amt         0.1
+  drive          0.25
+  bass           2
+  click          0.4
+  volume         0.22275
+
+# A combo organ with the bottom two octaves switched to a bass
+# registration, which is how these were played when there was no bass
+# player in the band.
+patch "Combo Split" family=split note=60 range=41..84 role=combo
+  set macro1 "2'"
+  set macro2 "Mixture"
+  set macro3 "Reedy"
+  set macro4 "Less Bass"
+  set macro5 "Vibrato"
+  set macro6 "Drive"
+  set macro7 "Dark"
+  set macro8 "16'"
+  mac1_d1  #77
+  mac1_a1  0.5
+  mac2_d1  #78
+  mac2_a1  0.4
+  mac2_d2  #79
+  mac2_a2  0.4
+  mac3_d1  #80
+  mac3_a1  0.25
+  mac4_d1  #8
+  mac4_a1  -0.3
+  mac5_d1  #60
+  mac5_a1  0.3
+  mac6_d1  #94
+  mac6_a1  0.2
+  mac7_d1  #98
+  mac7_a1  -0.15
+  mac8_d1  #74
+  mac8_a1  0.4
+  la_16          1
+  la_513         1
+  la_8           0
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  model          #1
+  combowave      #1
+  loweron        #1
+  split          60
+  tab16          0.5
+  tab8           1
+  tab4           0.7
+  tab2           0.35
+  tab2r          0.3
+  reedy          0.7
+  comboatk       0.07
+  lower          1
+  rotary         #0
   perc           #0
-  drive          0.22
-  volume         0.89
+  vibtype        #1
+  vibdepth       0.5
+  drive          0.45
+  bass           2.5
+  volume         0.225
+
+# Written for the feet: 16' and 8' in the pedals with the reeds up, the
+# pedal split raised so the left hand can play them, and the manual
+# left at a flute so it does not compete.
+patch "Pedal Reeds" family=split note=60 range=29..79 role=chorale
+  set macro1 "Mixture"
+  set macro2 "Principal"
+  set macro3 "Flutes"
+  set macro4 "Strings"
+  set macro5 "Walk"
+  set macro6 "Light Feet"
+  set macro7 "Chiff"
+  set macro8 "Wind"
+  mac1_d1  #71
+  mac1_a1  0.4
+  mac1_d2  #19
+  mac1_a2  0.4
+  mac2_d1  #67
+  mac2_a1  0.4
+  mac3_d1  #68
+  mac3_a1  0.3
+  mac4_d1  #69
+  mac4_a1  0.4
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #9
+  mac6_a1  -0.3
+  mac7_d1  #72
+  mac7_a1  0.3
+  mac7_d2  #73
+  mac7_a2  0.25
+  mac8_d1  #62
+  mac8_a1  0.25
+  mac8_d2  #64
+  mac8_a2  0.15
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           0.5
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.02
+  release        0.09
+  drive          0
+  principal      0.4
+  flute          0.7
+  string         0
+  reed           0.85
+  mixture        0.2
+  chiff          0.2
+  tracker        0.3
+  pedalon        #1
+  pedsplit       55
+  pedal          1
+  pedsus         0.3
+  windsag        0.45
+  windresp       0.4
+  bass           2.5
+  volume         0.23
+  pa_1           1
+  pa_2           1
+
+# The reed organ as a whole instrument: a bright upper set, a soft
+# lower to accompany on, and reed pedals under both.
+patch "Pump Split" family=split note=60 range=29..81 role=chorale
+  set macro1 "Pressure"
+  set macro2 "Buzz"
+  set macro3 "4'"
+  set macro4 "Lower"
+  set macro5 "Walk"
+  set macro6 "Trem"
+  set macro7 "Steady"
+  set macro8 "Dark"
+  mac1_d1  #82
+  mac1_a1  0.1
+  mac2_d1  #83
+  mac2_a1  0.3
+  mac3_d1  #14
+  mac3_a1  0.25
+  mac3_d2  #32
+  mac3_a2  0.5
+  mac4_d1  #8
+  mac4_a1  0.25
+  mac5_d1  #10
+  mac5_a1  0.3
+  mac6_d1  #84
+  mac6_a1  0.25
+  mac7_d1  #62
+  mac7_a1  -0.4
+  mac8_d1  #98
+  mac8_a1  -0.15
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           0.75
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  la_16          0
+  la_513         0
+  la_8           1
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  model          #3
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  attack         0.012
+  release        0.05
+  drive          0
+  pressure       0.8
+  buzz           0.4
+  reedtrem       0.2
+  tremrate       2
+  tremdepth      0
+  windsag        0.5
+  windresp       0.35
+  windnoise      0.15
+  loweron        #1
+  pedalon        #1
+  split          60
+  pedsplit       48
+  lower          0.7
+  pedal          1
+  pedsus         0.25
+  pa_1           1
+  pa_2           0.75
+  volume         0.48325
+
+# Two whole registrations and a slow LFO between them: the bars move
+# under a chord you are still holding, which no organ with real
+# drawbars can do without a second player.
+patch "Drawbar Morph" family=odd note=60 range=41..84 role=gospel
+  set macro1 "Settle"
+  set macro2 "Faster"
+  set macro3 "Lean B"
+  set macro4 "Drive"
+  set macro5 "Rotor"
+  set macro6 "Spray"
+  set macro7 "Click"
+  set macro8 "Dark"
+  mac1_d1  #52
+  mac1_a1  -0.6
+  mac1_d2  #112
+  mac1_a2  -0.6
+  mac2_d1  #111
+  mac2_a1  0.25
+  mac3_d1  #51
+  mac3_a1  0.4
+  mac4_d1  #94
+  mac4_a1  0.2
+  mac5_d1  #85
+  mac5_a1  0.3
+  mac5_d2  #87
+  mac5_a2  0.3
+  mac6_d1  #53
+  mac6_a1  0.12
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #98
+  mac8_a1  -0.15
+  ua_16          1
+  ua_513         1
+  ua_8           0.75
+  ua_4           0
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  ub_16          0
+  ub_513         0
+  ub_8           1
+  ub_4           1
+  ub_223         1
+  ub_2           1
+  ub_135         1
+  ub_113         1
+  ub_1           1
+  la_16          1
+  la_513         0
+  la_8           1
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  lb_16          0
+  lb_513         0
+  lb_8           0.5
+  lb_4           0.75
+  lb_223         0.75
+  lb_2           0.75
+  lb_135         0.5
+  lb_113         0
+  lb_1           0
+  loweron        #1
+  morph          0.4
+  morphsrc       #9
+  morphamt       1
+  lfo1wave       #1
+  lfo1rate       0.09
+  lfo1depth      1
+  m1_src         #9
+  m1_dst         #1
+  m1_amt         1
+  perc           #0
+  rotspeed       #1
+  drive          0.25
+  volume         0.2675
+  pedalon        #1
+  pedsplit       48
+  pedal          0.9
+  pa_1           1
+  pa_2           0.5
+
+# After a rest the 8' speaks alone and the envelope draws the 4', the 2'
+# and the 1' out over a second and a half. Playing legato keeps it open;
+# lifting off between phrases closes it again.
+patch "Opening Bars" family=odd note=60 range=41..84 role=gospel
+  set macro1 "Slow Open"
+  set macro2 "Close Again"
+  set macro3 "Sub"
+  set macro4 "Fill"
+  set macro5 "Drive"
+  set macro6 "Rotor"
+  set macro7 "Vibrato"
+  set macro8 "Click"
+  mac1_d1  #107
+  mac1_a1  0.15
+  mac2_d1  #109
+  mac2_a1  -0.6
+  mac3_d1  #11
+  mac3_a1  0.5
+  mac4_d1  #14
+  mac4_a1  0.5
+  mac5_d1  #94
+  mac5_a1  0.2
+  mac6_d1  #85
+  mac6_a1  0.3
+  mac6_d2  #87
+  mac6_a2  0.3
+  mac7_d1  #60
+  mac7_a1  0.3
+  mac8_d1  #4
+  mac8_a1  0.3
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           0
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  la_16          1
+  la_513         0
+  la_8           1
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  loweron        #1
+  eg2atk         1.5
+  eg2dec         2
+  eg2sus         1
+  m1_src         #8
+  m1_dst         #19
+  m1_amt         0.75
+  m2_src         #8
+  m2_dst         #21
+  m2_amt         0.75
+  m3_src         #8
+  m3_dst         #24
+  m3_amt         0.6
+  perc           #0
+  rotspeed       #1
+  drive          0.15
+  pedalon        #1
+  pedsplit       48
+  pedal          0.9
+  pa_1           1
+  pa_2           0.5
+  volume         0.3305
+
+# Every key draws its own registration: a random amount of the morph
+# from the gospel bars over to a bright flute set, chosen at the note-on.
+# A chord comes out as several organs at once.
+patch "Every Key" family=odd note=60 range=41..84 role=gospel
+  set macro1 "Spread"
+  set macro2 "Lean B"
+  set macro3 "Glide"
+  set macro4 "Drive"
+  set macro5 "Rotor"
+  set macro6 "Click"
+  set macro7 "Vibrato"
+  set macro8 "Dark"
+  mac1_d1  #52
+  mac1_a1  0.4
+  mac2_d1  #51
+  mac2_a1  0.3
+  mac3_d1  #117
+  mac3_a1  0.3
+  mac4_d1  #94
+  mac4_a1  0.2
+  mac5_d1  #85
+  mac5_a1  0.3
+  mac5_d2  #87
+  mac5_a2  0.3
+  mac6_d1  #4
+  mac6_a1  0.3
+  mac7_d1  #60
+  mac7_a1  0.3
+  mac8_d1  #98
+  mac8_a1  -0.15
+  ua_16          1
+  ua_513         1
+  ua_8           1
+  ua_4           0
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  la_16          1
+  la_513         0
+  la_8           1
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  ub_16          0
+  ub_513         0
+  ub_8           1
+  ub_4           1
+  ub_223         1
+  ub_2           1
+  ub_135         0
+  ub_113         0
+  ub_1           1
+  loweron        #1
+  morph          0.2
+  morphsrc       #6
+  morphamt       0.6
+  m1_src         #6
+  m1_dst         #1
+  m1_amt         1
+  perc           #0
+  rotspeed       #1
+  drive          0.2
+  pedalon        #1
+  pedsplit       48
+  pedal          0.9
+  pa_1           1
+  pa_2           0.5
+  volume         0.26475
+
+# An old one. The wheels are worn so the tuning wanders, the shielding
+# has given up so the generator is audible on its own, and the motor
+# is off so all you get is the cabinet standing still.
+patch "Tired Machine" family=odd note=60 range=41..79 role=gospel
+  set macro1 "Restore"
+  set macro2 "Hum"
+  set macro3 "Leak"
+  set macro4 "Spray"
+  set macro5 "Scratchy"
+  set macro6 "Drive"
+  set macro7 "Top"
+  set macro8 "Dark"
+  mac1_d1  #1
+  mac1_a1  -0.5
+  mac1_d2  #2
+  mac1_a2  -0.4
+  mac1_d3  #3
+  mac1_a3  -0.3
+  mac2_d1  #3
+  mac2_a1  0.3
+  mac3_d1  #2
+  mac3_a1  0.25
+  mac4_d1  #53
+  mac4_a1  0.15
+  mac5_d1  #6
+  mac5_a1  0.2
+  mac5_d2  #4
+  mac5_a2  0.2
+  mac6_d1  #94
+  mac6_a1  0.2
+  mac7_d1  #16
+  mac7_a1  0.5
+  mac8_d1  #98
+  mac8_a1  -0.15
+  ua_16          1
+  ua_513         1
+  ua_8           0.75
+  ua_4           0.5
+  ua_223         0
+  ua_2           0
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  la_16          1
+  la_513         0.5
+  la_8           1
+  la_4           0
+  la_223         0
+  la_2           0
+  la_135         0
+  la_113         0
+  la_1           0
+  loweron        #1
+  age            0.9
+  leakage        0.62
+  hum            0.35
+  spray          0.3
+  sprayrate      0.35
+  spraywide      0.6
+  click          0.7
+  clickoff       0.5
+  contacts       0.8
+  perc           #0
+  rotspeed       #0
+  drive          0.3
+  volume         0.3
   pedalon        #1
   pedsplit       48
   pedal          0.9
@@ -1391,7 +3939,35 @@ patch "Cabinet Mod" family=cabinet note=60 range=48..84 role=gospel
 # The wind supply as the instrument. Nothing here is an envelope: the
 # attack of a chord is the pressure falling as eight pipes start to
 # draw on it, and the swell at the end is it recovering.
-patch Breath family=cabinet note=60 range=36..81 role=swell
+patch "Starved Wind" family=odd note=60 range=36..81 role=swell
+  set macro1 "Wind"
+  set macro2 "Breath"
+  set macro3 "Slow Wind"
+  set macro4 "Reeds"
+  set macro5 "Mixture"
+  set macro6 "Chiff"
+  set macro7 "Trem"
+  set macro8 "Strings"
+  mac1_d1  #62
+  mac1_a1  0.2
+  mac2_d1  #64
+  mac2_a1  0.3
+  mac3_d1  #63
+  mac3_a1  0.2
+  mac4_d1  #70
+  mac4_a1  0.45
+  mac5_d1  #71
+  mac5_a1  0.4
+  mac5_d2  #19
+  mac5_a2  0.4
+  mac6_d1  #72
+  mac6_a1  0.3
+  mac6_d2  #73
+  mac6_a2  0.25
+  mac7_d1  #66
+  mac7_a1  0.3
+  mac8_d1  #69
+  mac8_a1  0.4
   ua_16          1
   ua_513         0
   ua_8           1
@@ -1426,14 +4002,109 @@ patch Breath family=cabinet note=60 range=36..81 role=swell
   m2_amt         0.3
   pedalon        #1
   pedsplit       44
-  volume         0.55
+  volume         0.1375
   pa_1           1
   pa_2           0.75
+
+# Flute and string ranks pulled well out of tune with each other, the
+# wind noisy and sagging and a slow tremulant, in a big room. An organ
+# in a building nobody has heated for years.
+patch "Ghost Pipes" family=odd note=60 range=41..84 role=chorale
+  set macro1 "Spray"
+  set macro2 "Tighten"
+  set macro3 "Breath"
+  set macro4 "Trem"
+  set macro5 "Shutters"
+  set macro6 "Strings"
+  set macro7 "Reeds"
+  set macro8 "Chiff"
+  mac1_d1  #53
+  mac1_a1  0.2
+  mac2_d1  #53
+  mac2_a1  -0.3
+  mac3_d1  #64
+  mac3_a1  0.25
+  mac4_d1  #66
+  mac4_a1  0.3
+  mac5_d1  #116
+  mac5_a1  0.3
+  mac6_d1  #69
+  mac6_a1  0.4
+  mac7_d1  #70
+  mac7_a1  0.45
+  mac8_d1  #72
+  mac8_a1  0.3
+  mac8_d2  #73
+  mac8_a2  0.25
+  ua_16          0
+  ua_513         0
+  ua_8           1
+  ua_4           1
+  ua_223         0
+  ua_2           0.4
+  ua_135         0
+  ua_113         0
+  ua_1           0
+  model          #2
+  rotary         #0
+  perc           #0
+  vibdepth       0
+  drive          0
+  principal      0.2
+  flute          1
+  string         0.6
+  reed           0
+  mixture        0
+  chiff          0.3
+  tracker        0.4
+  attack         0.06
+  release        0.5
+  spray          0.5
+  sprayrate      0.2
+  spraywide      0.9
+  spraypat       #1
+  windsag        0.45
+  windresp       0.5
+  windnoise      0.35
+  tremrate       0.9
+  tremdepth      0.25
+  pedalon        #1
+  pedsplit       44
+  pa_1           1
+  pa_2           0.5
+  express        #3
+  swellbox       0.5
+  volume         0.275
+  send reverb    0.2
 
 # Spray wound all the way up, which stops being a worn generator and
 # becomes an ensemble. It is a detune across the wheels, so two keys
 # sharing a harmonic are detuned by the same amount and stay together.
-patch Sprayed family=cabinet note=60 range=41..84 role=gospel
+patch Sprayed family=odd note=60 range=41..84 role=gospel
+  set macro1 "Spray"
+  set macro2 "Tighten"
+  set macro3 "Faster"
+  set macro4 "Narrow"
+  set macro5 "Top"
+  set macro6 "Drive"
+  set macro7 "Vibrato"
+  set macro8 "Dark"
+  mac1_d1  #53
+  mac1_a1  0.15
+  mac2_d1  #53
+  mac2_a1  -0.5
+  mac3_d1  #54
+  mac3_a1  0.2
+  mac4_d1  #55
+  mac4_a1  -0.5
+  mac5_d1  #16
+  mac5_a1  0.5
+  mac6_d1  #94
+  mac6_a1  0.2
+  mac7_d1  #60
+  mac7_a1  0.3
+  mac8_d1  #98
+  mac8_a1  -0.15
   ua_16          1
   ua_513         1
   ua_8           1
@@ -1463,7 +4134,7 @@ patch Sprayed family=cabinet note=60 range=41..84 role=gospel
   vibtype        #4
   vibdepth       0.3
   drive          0.2
-  volume         1.00
+  volume         0.25
   pedalon        #1
   pedsplit       48
   pedal          0.9

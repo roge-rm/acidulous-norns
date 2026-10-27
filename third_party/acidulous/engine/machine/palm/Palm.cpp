@@ -1,6 +1,7 @@
 #include "Palm.h"
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <engine/dsp/Math.h>
 #include <engine/machine/Voices.h>
 
@@ -153,6 +154,9 @@ constexpr StrokeDef kStrokes[Palm::ByVelocity] = {
     {0.97f, 0.0003f, 0.3f, 1.0f, 0.5f},   // rim: the fingers on the edge and the shell
 };
 
+/** A flam's grace stroke: its velocity and level against the stroke's. */
+constexpr float kGrace = 0.6f;
+
 /** How hard a cuíca's stick drives the head, against a stroke's impulse. */
 constexpr float kRub = 0.02f;
 
@@ -176,7 +180,7 @@ float shapeAt(int m, int n, float r) {
 Palm::Palm() { initParams(); }
 
 const ParamDef *Palm::paramDefs(int32_t &count) const {
-    static const ParamDef defs[Count] = {
+    static const ParamDef first[MacroBase] = {
         {"model", 0.0f, static_cast<float>(KindCount - 1), 2.0f, Curve::Stepped, KindCount, ""}, // tabla, bayan, djembe, cajon, frame, talking, conga, bongo, darbuka, riq, tar, bendir, kanjira, bata, mridangam, dholak, ashiko, udu, cuica
         {"tune", -100.0f, 100.0f, 0.0f, Curve::Linear, 0, "cents"},
         {"stroke", 0.0f, static_cast<float>(StrokeCount - 1), 0.0f, Curve::Stepped, StrokeCount, ""}, // open, slap, muted, bass, rim, by velocity
@@ -267,9 +271,96 @@ const ParamDef *Palm::paramDefs(int32_t &count) const {
         {"p16_stroke", 0.0f, static_cast<float>(StrokeCount - 1), 2.0f, Curve::Stepped, StrokeCount, ""},
         {"p16_note", 24.0f, 96.0f, 57.0f, Curve::Stepped, 73, ""},
         {"p16_level", 0.0f, 1.0f, 0.75f, Curve::Linear, 0, ""},
+        {"flam", 0.0f, 60.0f, 0.0f, Curve::Linear, 0, "ms"},
     };
+    static ParamDef defs[Count];
+    static char names[kMacros * MacroParams][12];
+    static bool built = false;
+    if (!built) {
+        for (int32_t i = 0; i < MacroBase; ++i) defs[i] = first[i];
+        auto put = [&](int32_t i, const char *n, float mn, float mx, float df, Curve c, int32_t steps) {
+            char *name = names[i - MacroBase];
+            std::snprintf(name, 12, "%s", n);
+            defs[i] = ParamDef{name, mn, mx, df, c, steps, ""};
+        };
+        for (int k = 0; k < kMacros; ++k) {
+            char n[12];
+            const int32_t b = MacroBase + k * MacroParams;
+            std::snprintf(n, sizeof(n), "mac%d", k + 1);
+            put(b, n, 0.0f, 1.0f, 0.0f, Curve::Linear, 0);
+            for (int r = 0; r < 4; ++r) {
+                std::snprintf(n, sizeof(n), "mac%d_d%d", k + 1, r + 1);
+                put(b + 1 + r, n, 0.0f, static_cast<float>(MacroDestCount - 1), 0.0f, Curve::Stepped, MacroDestCount);
+                std::snprintf(n, sizeof(n), "mac%d_a%d", k + 1, r + 1);
+                put(b + 5 + r, n, -1.0f, 1.0f, 0.0f, Curve::Linear, 0);
+            }
+        }
+        built = true;
+    }
     count = Count;
     return defs;
+}
+
+namespace {
+// The macro destination each param answers to, or -1 for none.
+struct DestMap {
+    int8_t of[Palm::Count];
+    DestMap() {
+        using P = Palm;
+        for (auto &d : of) d = -1;
+        const int32_t pairs[][2] = {
+            {P::Position, P::McPosition}, {P::Hand, P::McHand}, {P::Decay, P::McDecay}, {P::Damp, P::McDamp},
+            {P::Drop, P::McDrop}, {P::Squeeze, P::McSqueeze}, {P::Rattle, P::McRattle}, {P::Body, P::McBody},
+            {P::Roll, P::McRoll}, {P::Spread, P::McSpread}, {P::VelocityAmount, P::McVelocity},
+            {P::Volume, P::McVolume}, {P::Flam, P::McFlam},
+        };
+        for (const auto &pr : pairs) of[pr[0]] = static_cast<int8_t>(pr[1]);
+    }
+};
+const DestMap &destMap() {
+    static const DestMap m;
+    return m;
+}
+} // namespace
+
+float Palm::val(int32_t p, bool goal) const {
+    const float v = read(p, goal);
+    const int d = destMap().of[p];
+    const float off = d < 0 ? 0.0f : (goal ? macGoal_ : mac_)[d];
+    if (off == 0.0f) return v;
+    const ParamDef &def = params_.def(p);
+    return def.map(def.unmap(v) + off);
+}
+
+void Palm::updateMacroGoals() {
+    for (float &m : macGoal_) m = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = read(b, true);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            const int dest = static_cast<int>(read(b + 1 + r, true) + 0.5f);
+            if (dest > McOff && dest < MacroDestCount) macGoal_[dest] += knob * read(b + 5 + r, true);
+        }
+    }
+    // Two octaves either way.
+    macGoal_[McPitch] = std::clamp(macGoal_[McPitch], -1.0f, 1.0f);
+}
+
+void Palm::updateMacros() {
+    updateMacroGoals();
+    for (float &m : mac_) m = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = read(b, false);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            // The routes' destinations are steps, so their targets.
+            const int dest = static_cast<int>(read(b + 1 + r, true) + 0.5f);
+            if (dest > McOff && dest < MacroDestCount) mac_[dest] += knob * read(b + 5 + r, false);
+        }
+    }
+    mac_[McPitch] = std::clamp(mac_[McPitch], -1.0f, 1.0f);
 }
 
 void Palm::prepare(int32_t rate) {
@@ -300,8 +391,13 @@ void Palm::reset() {
         v.builtPitch = -1000.0f;
         v.level = 0.0f;
         v.rubPhase = v.rubStep = 0.0f;
+        v.flamLeft = 0;
+        v.flamVelocity = 0.0f;
+        v.macAt = v.macNow = 0.0f;
         v.quietBlocks = 0;
     }
+    for (float &m : mac_) m = 0.0f;
+    for (float &m : macGoal_) m = 0.0f;
     bend = wheel = channelPressure_ = 0.0f;
     retuneCountdown = 0;
     noise = 0x68e31da4u;
@@ -346,9 +442,9 @@ void Palm::build(Voice &v) {
     const Make &k = kMakes[kind];
     const StrokeDef &s = kStrokes[v.stroke];
     const float f = noteHz(v.pitch);
-    const float where = clampf(s.where + clampf(targetOf(Position), 0.0f, 1.0f) - 0.5f, 0.0f, 1.0f);
-    const float damp = 1.0f - 0.9f * clampf(targetOf(Damp), 0.0f, 1.0f);
-    const float t60 = clampf(k.t60 * std::pow(4.0f, targetOf(Decay) - 0.5f) * std::pow(kRefHz / f, k.pitchFall), 0.01f, 10.0f) * damp;
+    const float where = clampf(s.where + clampf(goalOf(Position), 0.0f, 1.0f) - 0.5f, 0.0f, 1.0f);
+    const float damp = 1.0f - 0.9f * clampf(goalOf(Damp), 0.0f, 1.0f);
+    const float t60 = clampf(k.t60 * std::pow(4.0f, goalOf(Decay) - 0.5f) * std::pow(kRefHz / f, k.pitchFall), 0.01f, 10.0f) * damp;
     v.modeCount = 0;
     for (int i = 0; i < k.count; ++i) {
         const ModeDef &d = k.modes[i];
@@ -371,8 +467,8 @@ void Palm::build(Voice &v) {
         // The udu's air rings however the pot is struck; anything else's body
         // answers a stroke near the middle.
         const float reach = v.kind == Udu ? 1.0f : (1.0f - where) * (1.0f - where);
-        m.amp = 1.5f * clampf(targetOf(Body), 0.0f, 1.0f) * reach;
-        m.t60 = k.bodyT60 * std::pow(4.0f, targetOf(Decay) - 0.5f) * damp * s.allDamp;
+        m.amp = 1.5f * clampf(goalOf(Body), 0.0f, 1.0f) * reach;
+        m.t60 = k.bodyT60 * std::pow(4.0f, goalOf(Decay) - 0.5f) * damp * s.allDamp;
     }
     for (int i = 0; i < v.modeCount; ++i) v.modes[i].r = poleFor(v.modes[i].t60, sampleRate);
     v.crackTone.set(v.stroke == Rim ? k.crackHz * 0.5f : k.crackHz, 0.4f);
@@ -382,7 +478,7 @@ void Palm::build(Voice &v) {
 }
 
 void Palm::retune(Voice &v) {
-    const float pitch = v.pitch + bend * paramOf(BendRange) + v.noteBend + v.drop + v.squeezed;
+    const float pitch = pitchNow(v) + v.drop + v.squeezed;
     if (std::fabs(pitch - v.builtPitch) < 0.002f && v.press == v.builtPress) return;
     v.builtPitch = pitch;
     // A finger sliding onto the head (MPE slide) damps it as it rings.
@@ -414,7 +510,7 @@ void Palm::strike(Voice &v, float velocity) {
     const StrokeDef &s = kStrokes[v.stroke];
     // The hand's contact: softer and longer for a palm, and a harder stroke
     // leaves sooner. Never longer than half the head's period.
-    const float hand = clampf(targetOf(Hand), 0.0f, 1.0f);
+    const float hand = clampf(goalOf(Hand), 0.0f, 1.0f);
     float seconds = s.contact * std::pow(3.0f, 0.5f - hand) * (1.3f - 0.6f * velocity);
     seconds = std::fmin(seconds, 0.5f / noteHz(v.pitch));
     const int len = std::clamp(static_cast<int>(seconds * sampleRate), 2, static_cast<int>(v.strike.size()));
@@ -425,10 +521,11 @@ void Palm::strike(Voice &v, float velocity) {
     v.strikeLength = len;
     v.strikeAt = 0;
     v.crack = s.crack * velocity;
-    v.drop = clampf(targetOf(Drop), 0.0f, 1.0f) * k.drop * velocity;
+    v.drop = clampf(goalOf(Drop), 0.0f, 1.0f) * k.drop * velocity;
 }
 
 void Palm::noteOn(uint8_t note, uint8_t velocity) {
+    updateMacroGoals(); // a note reads where the knobs are going, so renders repeat
     const bool kit = steppedTargetOf(Kit) != 0;
     const int pad = static_cast<int>(note) - kBaseNote;
     if (kit && (pad < 0 || pad >= kPads)) return;
@@ -441,13 +538,16 @@ void Palm::noteOn(uint8_t note, uint8_t velocity) {
     v->pad = kit ? pad : -1;
     const float played = kit ? static_cast<float>(steppedTargetOf(padParam(pad, PadNote))) : static_cast<float>(note);
     v->pitch = played + 12.0f * static_cast<float>(steppedTargetOf(Octave)) + targetOf(Tune) / 100.0f;
+    // The pitch macro where it's going is in the note; a move after it bends it.
+    v->macAt = v->macNow = macGoal_[McPitch];
+    if (v->macAt != 0.0f) v->pitch += v->macAt * 24.0f;
     v->held = true;
     v->noteBend = 0.0f;
     v->pressure = -1.0f;
     v->press = 0.0f;
     v->builtPress = -1.0f;
     const float vel = static_cast<float>(velocity) / 127.0f;
-    v->gain = kHouse * k.level * velocityGain(vel, targetOf(VelocityAmount));
+    v->gain = kHouse * k.level * velocityGain(vel, goalOf(VelocityAmount));
     // A pad's level is 0.75 for as loud as the drum played on its own.
     if (kit) v->gain *= clampf(targetOf(padParam(pad, PadLevel)), 0.0f, 1.0f) / 0.75f;
     if (fresh) {
@@ -458,10 +558,23 @@ void Palm::noteOn(uint8_t note, uint8_t velocity) {
         v->squeezed = 0.0f;
         v->rubPhase = 0.0f;
     }
-    strike(*v, vel);
-    const float spread = clampf(targetOf(Spread), 0.0f, 1.0f);
+    const float flam = goalOf(Flam);
+    if (flam > 0.0f) {
+        // The grace stroke now, softer and quieter; the stroke itself in render.
+        strike(*v, kGrace * vel);
+        for (int32_t i = 0; i < v->strikeLength; ++i) v->strike[static_cast<size_t>(i)] *= kGrace;
+        // The stroke waits for the grace's contact pulse to finish, and rolls
+        // keep the stroke's velocity.
+        v->velocity = vel;
+        v->flamLeft = std::max({1, static_cast<int32_t>(flam * 0.001f * sampleRate), v->strikeLength + v->settleLeft});
+        v->flamVelocity = vel;
+    } else {
+        v->flamLeft = 0;
+        strike(*v, vel);
+    }
+    const float spread = clampf(goalOf(Spread), 0.0f, 1.0f);
     v->pan = spread * clampf((v->pitch - 55.0f) / 24.0f, -1.0f, 1.0f);
-    const float roll = targetOf(Roll);
+    const float roll = goalOf(Roll);
     v->rollLeft = roll > 0.0f ? static_cast<int32_t>(sampleRate / roll) : 0;
     v->used = true;
     v->quietBlocks = 0;
@@ -510,6 +623,7 @@ void Palm::noteTimbre(uint8_t note, uint8_t value) {
 
 bool Palm::render(float *L, float *R, int32_t frames) {
     params_.tick();
+    updateMacros();
     for (int32_t i = 0; i < frames; ++i) L[i] = R[i] = 0.0f;
     if (asleep) return true;
 
@@ -524,6 +638,7 @@ bool Palm::render(float *L, float *R, int32_t frames) {
 
     for (Voice &v : voices) {
         if (!v.used) continue;
+        v.macNow = mac_[McPitch];
         const float rattle = rattleAmount * kMakes[v.kind].rattle;
         float peak = 0.0f;
         const float pl = std::sqrt(0.5f * (1.0f - v.pan)), pr = std::sqrt(0.5f * (1.0f + v.pan));
@@ -536,9 +651,14 @@ bool Palm::render(float *L, float *R, int32_t frames) {
                 const float aim = squeeze * std::fmax(press, wheel);
                 v.squeezed += (aim - v.squeezed) * 0.08f;
                 retune(v);
-                if (v.kind == Cuica) v.rubStep = noteHz(v.pitch + bend * paramOf(BendRange) + v.noteBend + v.squeezed) / sampleRate;
+                if (v.kind == Cuica) v.rubStep = noteHz(pitchNow(v) + v.squeezed) / sampleRate;
             }
-            if (v.held && roll > 0.0f && --v.rollLeft <= 0) {
+            if (v.flamLeft > 0 && --v.flamLeft == 0) {
+                strike(v, v.flamVelocity);
+                // The flam's stroke takes the place of a roll stroke.
+                if (roll > 0.0f) v.rollLeft = static_cast<int32_t>(sampleRate / roll);
+            }
+            if (v.held && roll > 0.0f && v.flamLeft == 0 && --v.rollLeft <= 0) {
                 strike(v, clampf(v.velocity * (0.8f + 0.15f * white()), 0.05f, 1.0f));
                 v.rollLeft = static_cast<int32_t>(sampleRate / roll * (1.0f + 0.08f * white()));
             }
@@ -586,7 +706,7 @@ bool Palm::render(float *L, float *R, int32_t frames) {
         }
         v.level = peak;
         const bool keeps = v.held && roll > 0.0f;
-        if (peak < kSilent && v.strikeAt >= v.strikeLength && !keeps) {
+        if (peak < kSilent && v.strikeAt >= v.strikeLength && v.flamLeft == 0 && !keeps) {
             if (++v.quietBlocks > 4) v.used = false;
         } else {
             v.quietBlocks = 0;

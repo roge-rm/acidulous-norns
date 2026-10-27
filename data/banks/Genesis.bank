@@ -1,4 +1,4 @@
-# Genesis - thirty-one kits and an Init, voiced against the debug build.
+# Genesis - forty-seven kits and an Init, voiced against the debug build.
 #
 # What separates this bank from Hexbeat's is the last six parameters. Genesis
 # has a *bus*: a compressor, a duck the kick drives, drive and drift. So a kit
@@ -27,7 +27,13 @@
 # are solved against the balance heard *through* the bus, because the
 # compressor hands back most of what a trim takes.
 #
-# Families: classic, bus, dirty, metal, perc, tone.
+# Families in tab order, plainest to strangest within each: classic 10 (Init
+# first), bus 8, dirty 8, metal 7, perc 8, tone 7. Every kit but Init carries
+# eight named macros. Effects are only where the kit needs them: Smoulder runs
+# through a tape, Overcooked an amp, Frayed a crusher and Fizz a chorus, and
+# Clang sends to the song's reverb.
+#
+# Every kit peaks at about -11 dB, like Init.
 #
 # Values are in each parameter's own units - decays here are in *seconds* -
 # and `audition params Genesis` lists them.
@@ -41,6 +47,14 @@ patch Straight family=classic
   # The workhorse. Everything where you would set it first: a kick with
   # enough sweep to carry on a small speaker, the bus doing just enough to
   # hold the kit together without being heard doing it.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Snap"
+  set macro4 "Weight"
+  set macro5 "Hats"
+  set macro6 "Clap"
+  set macro7 "Pump"
+  set macro8 "Room"
   kicktune       46 Hz
   kickdecay      0.62 s
   kickpunch      0.55
@@ -57,10 +71,265 @@ patch Straight family=classic
   duck           0.25
   drift          0.18
   volume         0.91
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac3_d2  #11
+  mac3_a2  0.3
+  mac3_d3  #5
+  mac3_a3  0.4
+  mac3_d4  #19
+  mac3_a4  0.3
+  mac4_d1  #2
+  mac4_a1  0.3
+  mac4_d2  #7
+  mac4_a2  0.15
+  mac4_d3  #4
+  mac4_a3  0.2
+  mac4_d4  #3
+  mac4_a4  0.2
+  mac5_d1  #27
+  mac5_a1  0.3
+  mac5_d2  #25
+  mac5_a2  0.2
+  mac5_d3  #26
+  mac5_a3  0.2
+  mac6_d1  #16
+  mac6_a1  0.3
+  mac6_d2  #14
+  mac6_a2  0.2
+  mac6_d3  #13
+  mac6_a3  0.2
+  mac7_d1  #40
+  mac7_a1  0.4
+  mac7_d2  #41
+  mac7_a2  0.5
+  mac7_d3  #42
+  mac7_a3  0.2
+  mac7_d4  #6
+  mac7_a4  0.2
+  mac8_d1  #14
+  mac8_a1  0.3
+  mac8_d2  #28
+  mac8_a2  0.3
+  mac8_d3  #31
+  mac8_a3  0.2
+  mac8_d4  #36
+  mac8_a4  0.2
+
+patch Handlebar family=classic
+  # A shade harder than Straight, with the clap forward and the hats crisper,
+  # and the eight macros named for what a hand reaches for.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Snap"
+  set macro4 "Pump"
+  set macro5 "Weight"
+  set macro6 "Bright"
+  set macro7 "Loose"
+  set macro8 "Room"
+  kicktune       50 Hz
+  kickdecay      0.5 s
+  kickpunch      0.65
+  kicksweep      0.05 s
+  kickclick      0.5
+  snaredecay     0.18 s
+  snaresnap      0.7
+  tomdecay       0.42 s
+  hatclosed      0.045 s
+  hatopen        0.35 s
+  crashdecay     1.5 s
+  ridedecay      1.4 s
+  comp           0.4
+  duck           0.35
+  drift          0.2
+  snaretune      205 Hz
+  claplevel      1.0
+  clapdecay      0.3 s
+  hattone        8000 Hz
+  volume         0.91
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac3_d2  #11
+  mac3_a2  0.3
+  mac3_d3  #5
+  mac3_a3  0.4
+  mac3_d4  #19
+  mac3_a4  0.3
+  mac4_d1  #40
+  mac4_a1  0.4
+  mac4_d2  #41
+  mac4_a2  0.5
+  mac4_d3  #42
+  mac4_a3  0.2
+  mac4_d4  #6
+  mac4_a4  0.2
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #7
+  mac5_a2  0.15
+  mac5_d3  #4
+  mac5_a3  0.2
+  mac5_d4  #3
+  mac5_a4  0.2
+  mac6_d1  #26
+  mac6_a1  0.3
+  mac6_d2  #29
+  mac6_a2  0.3
+  mac6_d3  #32
+  mac6_a3  0.3
+  mac6_d4  #27
+  mac6_a4  0.1
+  mac7_d1  #38
+  mac7_a1  0.6
+  mac7_d2  #13
+  mac7_a2  0.3
+  mac7_d3  #22
+  mac7_a3  0.3
+  mac7_d4  #39
+  mac7_a4  -0.3
+  mac8_d1  #14
+  mac8_a1  0.3
+  mac8_d2  #28
+  mac8_a2  0.3
+  mac8_d3  #31
+  mac8_a3  0.2
+  mac8_d4  #36
+  mac8_a4  0.2
+
+patch Cushion family=classic
+  # The soft end of the classic box: no click on the kick, a snare that is
+  # more body than wire, dark hats and an accent that barely lifts. For a
+  # pattern that sits under everything else.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Snap"
+  set macro4 "Weight"
+  set macro5 "Bright"
+  set macro6 "Room"
+  set macro7 "Loose"
+  set macro8 "Pump"
+  kicktune       44 Hz
+  kickdecay      1.1 s
+  kickpunch      0.3
+  kicksweep      0.06 s
+  kickclick      0
+  kickdrive      0
+  snaretune      170 Hz
+  snaredecay     0.26 s
+  snaresnap      0.35
+  snaretone      0.35
+  clapdecay      0.45 s
+  claptone       800 Hz
+  tomdecay       0.6 s
+  tombend        0.2
+  hatclosed      0.07 s
+  hatopen        0.5 s
+  hattone        4800 Hz
+  crashtone      3000 Hz
+  ridetone       4000 Hz
+  ridebell       0.25
+  accent         0.4
+  comp           0.2
+  compattack     0.02 s
+  duck           0.15
+  drift          0.15
+  drive          0
+  volume         0.598
+  crashlevel     0.8
+  ridelevel      0.8
+  belllevel      0.8
+  claplevel      1.0
+  rimlevel       0.9
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac3_d2  #11
+  mac3_a2  0.3
+  mac3_d3  #5
+  mac3_a3  0.4
+  mac3_d4  #19
+  mac3_a4  0.3
+  mac4_d1  #2
+  mac4_a1  0.3
+  mac4_d2  #7
+  mac4_a2  0.15
+  mac4_d3  #4
+  mac4_a3  0.2
+  mac4_d4  #3
+  mac4_a4  0.2
+  mac5_d1  #26
+  mac5_a1  0.3
+  mac5_d2  #29
+  mac5_a2  0.3
+  mac5_d3  #32
+  mac5_a3  0.3
+  mac5_d4  #27
+  mac5_a4  0.1
+  mac6_d1  #14
+  mac6_a1  0.3
+  mac6_d2  #28
+  mac6_a2  0.3
+  mac6_d3  #31
+  mac6_a3  0.2
+  mac6_d4  #36
+  mac6_a4  0.2
+  mac7_d1  #38
+  mac7_a1  0.6
+  mac7_d2  #13
+  mac7_a2  0.3
+  mac7_d3  #22
+  mac7_a3  0.3
+  mac7_d4  #39
+  mac7_a4  -0.3
+  mac8_d1  #40
+  mac8_a1  0.4
+  mac8_d2  #41
+  mac8_a2  0.5
+  mac8_d3  #42
+  mac8_a3  0.2
+  mac8_d4  #6
+  mac8_a4  0.2
 
 patch Boom family=classic
   # The long swept kick this box is for, with the bus barely doing anything so
   # you can hear how long it actually is.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Weight"
+  set macro4 "Sweep"
+  set macro5 "Snap"
+  set macro6 "Bright"
+  set macro7 "Pump"
+  set macro8 "Room"
   kicktune       36 Hz
   kickdecay      1.6 s
   kicksweep      0.09 s
@@ -72,10 +341,72 @@ patch Boom family=classic
   comp           0.15
   duck           0.1
   volume         0.87
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #2
+  mac3_a1  0.3
+  mac3_d2  #7
+  mac3_a2  0.15
+  mac3_d3  #4
+  mac3_a3  0.2
+  mac3_d4  #3
+  mac3_a4  0.2
+  mac4_d1  #4
+  mac4_a1  0.4
+  mac4_d2  #3
+  mac4_a2  0.3
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac5_d2  #11
+  mac5_a2  0.3
+  mac5_d3  #5
+  mac5_a3  0.4
+  mac5_d4  #19
+  mac5_a4  0.3
+  mac6_d1  #26
+  mac6_a1  0.3
+  mac6_d2  #29
+  mac6_a2  0.3
+  mac6_d3  #32
+  mac6_a3  0.3
+  mac6_d4  #27
+  mac6_a4  0.1
+  mac7_d1  #40
+  mac7_a1  0.4
+  mac7_d2  #41
+  mac7_a2  0.5
+  mac7_d3  #42
+  mac7_a3  0.2
+  mac7_d4  #6
+  mac7_a4  0.2
+  mac8_d1  #14
+  mac8_a1  0.3
+  mac8_d2  #28
+  mac8_a2  0.3
+  mac8_d3  #31
+  mac8_a3  0.2
+  mac8_d4  #36
+  mac8_a4  0.2
 
 patch Tight family=classic
   # Everything short, and the compressor quick enough to keep it that way.
   # For a pattern with no room in it.
+  set macro1 "Longer"
+  set macro2 "Pitch"
+  set macro3 "Snap"
+  set macro4 "Click"
+  set macro5 "Squeeze"
+  set macro6 "Hats"
+  set macro7 "Clap"
+  set macro8 "Loose"
   kicktune       52 Hz
   kickdecay      0.32 s
   kickpunch      0.7
@@ -95,11 +426,155 @@ patch Tight family=classic
   duck           0.3
   accent         0.65
   volume         0.91
+  mac1_d1  #2
+  mac1_a1  0.25
+  mac1_d2  #9
+  mac1_a2  0.3
+  mac1_d3  #21
+  mac1_a3  0.3
+  mac1_d4  #25
+  mac1_a4  0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac3_d2  #11
+  mac3_a2  0.3
+  mac3_d3  #5
+  mac3_a3  0.4
+  mac3_d4  #19
+  mac3_a4  0.3
+  mac4_d1  #5
+  mac4_a1  0.5
+  mac4_d2  #3
+  mac4_a2  0.2
+  mac5_d1  #40
+  mac5_a1  0.5
+  mac5_d2  #7
+  mac5_a2  0.1
+  mac6_d1  #27
+  mac6_a1  0.3
+  mac6_d2  #25
+  mac6_a2  0.2
+  mac6_d3  #26
+  mac6_a3  0.2
+  mac7_d1  #16
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.2
+  mac7_d3  #13
+  mac7_a3  0.2
+  mac8_d1  #38
+  mac8_a1  0.6
+  mac8_d2  #13
+  mac8_a2  0.3
+  mac8_d3  #22
+  mac8_a3  0.3
+  mac8_d4  #39
+  mac8_a4  -0.3
+
+patch Snappy family=classic
+  # The other classic box: a higher, harder kick with its own drive, a tight
+  # bright snare tuned up, a clap with its pulses close together and hats
+  # that cut. The bus is quick so the whole kit snaps back.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Snap"
+  set macro4 "Click"
+  set macro5 "Heat"
+  set macro6 "Bright"
+  set macro7 "Clap"
+  set macro8 "Pump"
+  kicktune       56 Hz
+  kickdecay      0.42 s
+  kickpunch      0.75
+  kicksweep      0.025 s
+  kickclick      0.6
+  kickdrive      0.35
+  snaretune      235 Hz
+  snaredecay     0.17 s
+  snaresnap      0.85
+  snaretone      0.65
+  snarelevel     1.0
+  clapspread     0.012 s
+  clapdecay      0.25 s
+  claptone       1500 Hz
+  rimtune        2000 Hz
+  tomdecay       0.3 s
+  hatclosed      0.04 s
+  hatopen        0.3 s
+  hattone        9500 Hz
+  crashtone      6000 Hz
+  ridetone       7500 Hz
+  ridebell       0.5
+  comp           0.45
+  compattack     0.004 s
+  comprelease    0.12 s
+  duck           0.25
+  drift          0.1
+  drive          0.2
+  volume         0.948
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac3_d2  #11
+  mac3_a2  0.3
+  mac3_d3  #5
+  mac3_a3  0.4
+  mac3_d4  #19
+  mac3_a4  0.3
+  mac4_d1  #5
+  mac4_a1  0.5
+  mac4_d2  #3
+  mac4_a2  0.2
+  mac5_d1  #42
+  mac5_a1  0.4
+  mac5_d2  #6
+  mac5_a2  0.3
+  mac6_d1  #26
+  mac6_a1  0.3
+  mac6_d2  #29
+  mac6_a2  0.3
+  mac6_d3  #32
+  mac6_a3  0.3
+  mac6_d4  #27
+  mac6_a4  0.1
+  mac7_d1  #16
+  mac7_a1  0.3
+  mac7_d2  #14
+  mac7_a2  0.2
+  mac7_d3  #13
+  mac7_a3  0.2
+  mac8_d1  #40
+  mac8_a1  0.4
+  mac8_d2  #41
+  mac8_a2  0.5
+  mac8_d3  #42
+  mac8_a3  0.2
+  mac8_d4  #6
+  mac8_a4  0.2
 
 patch Clicky family=classic
   # All attack: the click right up, the sweep short so the pitch is gone
   # before you notice it, and the compressor slow enough to let the transient
   # through before it grabs.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Click"
+  set macro4 "Snap"
+  set macro5 "Heat"
+  set macro6 "Bright"
+  set macro7 "Pump"
+  set macro8 "Room"
   kickclick      0.95
   kicksweep      0.012 s
   kickdecay      0.3 s
@@ -114,11 +589,158 @@ patch Clicky family=classic
   comp           0.3
   accent         0.7
   volume         0.96
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #5
+  mac3_a1  0.5
+  mac3_d2  #3
+  mac3_a2  0.2
+  mac4_d1  #10
+  mac4_a1  0.4
+  mac4_d2  #11
+  mac4_a2  0.3
+  mac4_d3  #5
+  mac4_a3  0.4
+  mac4_d4  #19
+  mac4_a4  0.3
+  mac5_d1  #42
+  mac5_a1  0.4
+  mac5_d2  #6
+  mac5_a2  0.3
+  mac6_d1  #26
+  mac6_a1  0.3
+  mac6_d2  #29
+  mac6_a2  0.3
+  mac6_d3  #32
+  mac6_a3  0.3
+  mac6_d4  #27
+  mac6_a4  0.1
+  mac7_d1  #40
+  mac7_a1  0.4
+  mac7_d2  #41
+  mac7_a2  0.5
+  mac7_d3  #42
+  mac7_a3  0.2
+  mac7_d4  #6
+  mac7_a4  0.2
+  mac8_d1  #14
+  mac8_a1  0.3
+  mac8_d2  #28
+  mac8_a2  0.3
+  mac8_d3  #31
+  mac8_a3  0.2
+  mac8_d4  #36
+  mac8_a4  0.2
+
+patch Cruise family=classic
+  # A kit for a running pattern on the ride: the ride long with its bell in,
+  # the open hat loose, the toms tuned up for fills and the snare pulled back
+  # behind them. Accent down so the ride keeps an even pace.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Bell"
+  set macro4 "Cymbals"
+  set macro5 "Hats"
+  set macro6 "Toms"
+  set macro7 "Loose"
+  set macro8 "Pump"
+  kicktune       50 Hz
+  kickdecay      0.5 s
+  kickpunch      0.5
+  snaredecay     0.18 s
+  snaresnap      0.5
+  snarelevel     0.75
+  ridedecay      2.6 s
+  ridetone       6000 Hz
+  ridebell       0.6
+  ridelevel      0.95
+  hatclosed      0.05 s
+  hatopen        0.7 s
+  hatlevel       0.85
+  crashdecay     2.4 s
+  tomlotune      100 Hz
+  tommidtune     145 Hz
+  tomhitune      210 Hz
+  tomdecay       0.38 s
+  tombend        0.25
+  rimtune        1800 Hz
+  rimlevel       0.8
+  comp           0.3
+  duck           0.2
+  drift          0.25
+  accent         0.75
+  volume         0.9
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #33
+  mac3_a1  0.5
+  mac3_d2  #37
+  mac3_a2  0.3
+  mac4_d1  #30
+  mac4_a1  0.3
+  mac4_d2  #34
+  mac4_a2  0.3
+  mac4_d3  #28
+  mac4_a3  0.2
+  mac4_d4  #31
+  mac4_a4  0.2
+  mac5_d1  #27
+  mac5_a1  0.3
+  mac5_d2  #25
+  mac5_a2  0.2
+  mac5_d3  #26
+  mac5_a3  0.2
+  mac6_d1  #23
+  mac6_a1  0.3
+  mac6_d2  #21
+  mac6_a2  0.2
+  mac6_d3  #22
+  mac6_a3  0.2
+  mac7_d1  #38
+  mac7_a1  0.6
+  mac7_d2  #13
+  mac7_a2  0.3
+  mac7_d3  #22
+  mac7_a3  0.3
+  mac7_d4  #39
+  mac7_a4  -0.3
+  mac8_d1  #40
+  mac8_a1  0.4
+  mac8_d2  #41
+  mac8_a2  0.5
+  mac8_d3  #42
+  mac8_a3  0.2
+  mac8_d4  #6
+  mac8_a4  0.2
 
 patch Deep family=classic
   # Low and unhurried. Not longer than Boom - lower, and with the toms brought
   # down to sit in the same place, which is a different kit and the reason
   # both are here.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Sub"
+  set macro4 "Toms"
+  set macro5 "Dark"
+  set macro6 "Room"
+  set macro7 "Loose"
+  set macro8 "Pump"
   kicktune       30 Hz
   kickdecay      1.0 s
   kicksweep      0.12 s
@@ -138,11 +760,73 @@ patch Deep family=classic
   duck           0.4
   comp           0.3
   volume         0.91
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #1
+  mac3_a1  -0.3
+  mac3_d2  #2
+  mac3_a2  0.3
+  mac3_d3  #5
+  mac3_a3  -0.3
+  mac4_d1  #23
+  mac4_a1  0.3
+  mac4_d2  #21
+  mac4_a2  0.2
+  mac4_d3  #22
+  mac4_a3  0.2
+  mac5_d1  #26
+  mac5_a1  -0.3
+  mac5_d2  #29
+  mac5_a2  -0.3
+  mac5_d3  #32
+  mac5_a3  -0.3
+  mac5_d4  #11
+  mac5_a4  -0.3
+  mac6_d1  #14
+  mac6_a1  0.3
+  mac6_d2  #28
+  mac6_a2  0.3
+  mac6_d3  #31
+  mac6_a3  0.2
+  mac6_d4  #36
+  mac6_a4  0.2
+  mac7_d1  #38
+  mac7_a1  0.6
+  mac7_d2  #13
+  mac7_a2  0.3
+  mac7_d3  #22
+  mac7_a3  0.3
+  mac7_d4  #39
+  mac7_a4  -0.3
+  mac8_d1  #40
+  mac8_a1  0.4
+  mac8_d2  #41
+  mac8_a2  0.5
+  mac8_d3  #42
+  mac8_a3  0.2
+  mac8_d4  #6
+  mac8_a4  0.2
 
 patch Pump family=bus
   # The compressor hard and the duck deep, so the whole kit heaves away from
   # the kick and comes back. The release is what you are setting: long enough
   # to be a swell rather than a flutter.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Squeeze"
+  set macro4 "Duck"
+  set macro5 "Weight"
+  set macro6 "Heat"
+  set macro7 "Bright"
+  set macro8 "Room"
   comp           0.85
   compattack     0.004 s
   comprelease    0.34 s
@@ -156,11 +840,141 @@ patch Pump family=bus
   crashdecay     2.6 s
   drive          0.25
   volume         0.93
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #40
+  mac3_a1  0.5
+  mac3_d2  #7
+  mac3_a2  0.1
+  mac4_d1  #41
+  mac4_a1  0.6
+  mac4_d2  #7
+  mac4_a2  0.1
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #7
+  mac5_a2  0.15
+  mac5_d3  #4
+  mac5_a3  0.2
+  mac5_d4  #3
+  mac5_a4  0.2
+  mac6_d1  #42
+  mac6_a1  0.4
+  mac6_d2  #6
+  mac6_a2  0.3
+  mac7_d1  #26
+  mac7_a1  0.3
+  mac7_d2  #29
+  mac7_a2  0.3
+  mac7_d3  #32
+  mac7_a3  0.3
+  mac7_d4  #27
+  mac7_a4  0.1
+  mac8_d1  #14
+  mac8_a1  0.3
+  mac8_d2  #28
+  mac8_a2  0.3
+  mac8_d3  #31
+  mac8_a3  0.2
+  mac8_d4  #36
+  mac8_a4  0.2
+
+patch Bounce family=bus
+  # A short kick with the duck right up, so every kick knocks the kit down
+  # for a moment and it springs straight back. The open hat is long so you
+  # can hear it being bounced.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Duck"
+  set macro4 "Squeeze"
+  set macro5 "Weight"
+  set macro6 "Hats"
+  set macro7 "Bright"
+  set macro8 "Heat"
+  kicktune       50 Hz
+  kickdecay      0.26 s
+  kickpunch      0.7
+  kickclick      0.45
+  kicklevel      1.2
+  duck           0.95
+  comp           0.7
+  compattack     0.001 s
+  comprelease    0.05 s
+  snaredecay     0.16 s
+  snaresnap      0.7
+  hatclosed      0.07 s
+  hatopen        0.9 s
+  hatlevel       0.9
+  crashdecay     2.0 s
+  clapdecay      0.3 s
+  drive          0.15
+  drift          0.1
+  volume         0.855
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #41
+  mac3_a1  0.6
+  mac3_d2  #7
+  mac3_a2  0.1
+  mac4_d1  #40
+  mac4_a1  0.5
+  mac4_d2  #7
+  mac4_a2  0.1
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #7
+  mac5_a2  0.15
+  mac5_d3  #4
+  mac5_a3  0.2
+  mac5_d4  #3
+  mac5_a4  0.2
+  mac6_d1  #27
+  mac6_a1  0.3
+  mac6_d2  #25
+  mac6_a2  0.2
+  mac6_d3  #26
+  mac6_a3  0.2
+  mac7_d1  #26
+  mac7_a1  0.3
+  mac7_d2  #29
+  mac7_a2  0.3
+  mac7_d3  #32
+  mac7_a3  0.3
+  mac7_d4  #27
+  mac7_a4  0.1
+  mac8_d1  #42
+  mac8_a1  0.4
+  mac8_d2  #6
+  mac8_a2  0.3
 
 patch Glue family=bus
   # The compressor doing the other job: fast, gentle and always on, so the kit
   # reads as one instrument rather than thirteen. No duck at all - nothing is
   # supposed to be heard moving.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Squeeze"
+  set macro4 "Duck"
+  set macro5 "Snap"
+  set macro6 "Heat"
+  set macro7 "Bright"
+  set macro8 "Loose"
   comp           0.6
   compattack     0.0008 s
   comprelease    0.1 s
@@ -173,11 +987,65 @@ patch Glue family=bus
   hatclosed      0.05 s
   drift          0.12
   volume         0.90
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #40
+  mac3_a1  0.5
+  mac3_d2  #7
+  mac3_a2  0.1
+  mac4_d1  #41
+  mac4_a1  0.6
+  mac4_d2  #7
+  mac4_a2  0.1
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac5_d2  #11
+  mac5_a2  0.3
+  mac5_d3  #5
+  mac5_a3  0.4
+  mac5_d4  #19
+  mac5_a4  0.3
+  mac6_d1  #42
+  mac6_a1  0.4
+  mac6_d2  #6
+  mac6_a2  0.3
+  mac7_d1  #26
+  mac7_a1  0.3
+  mac7_d2  #29
+  mac7_a2  0.3
+  mac7_d3  #32
+  mac7_a3  0.3
+  mac7_d4  #27
+  mac7_a4  0.1
+  mac8_d1  #38
+  mac8_a1  0.6
+  mac8_d2  #13
+  mac8_a2  0.3
+  mac8_d3  #22
+  mac8_a3  0.3
+  mac8_d4  #39
+  mac8_a4  -0.3
 
 patch Sidechain family=bus
   # All duck and no compression: the kick is the only thing that moves
   # anything, and it moves everything. The long release is the point - the kit
   # comes back up across the whole beat.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Duck"
+  set macro4 "Squeeze"
+  set macro5 "Weight"
+  set macro6 "Cymbals"
+  set macro7 "Hats"
+  set macro8 "Room"
   duck           1
   comp           0.1
   comprelease    0.5 s
@@ -191,11 +1059,67 @@ patch Sidechain family=bus
   crashdecay     3.2 s
   ridedecay      2.4 s
   volume         0.85
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #41
+  mac3_a1  0.6
+  mac3_d2  #7
+  mac3_a2  0.1
+  mac4_d1  #40
+  mac4_a1  0.5
+  mac4_d2  #7
+  mac4_a2  0.1
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #7
+  mac5_a2  0.15
+  mac5_d3  #4
+  mac5_a3  0.2
+  mac5_d4  #3
+  mac5_a4  0.2
+  mac6_d1  #30
+  mac6_a1  0.3
+  mac6_d2  #34
+  mac6_a2  0.3
+  mac6_d3  #28
+  mac6_a3  0.2
+  mac6_d4  #31
+  mac6_a4  0.2
+  mac7_d1  #27
+  mac7_a1  0.3
+  mac7_d2  #25
+  mac7_a2  0.2
+  mac7_d3  #26
+  mac7_a3  0.2
+  mac8_d1  #14
+  mac8_a1  0.3
+  mac8_d2  #28
+  mac8_a2  0.3
+  mac8_d3  #31
+  mac8_a3  0.2
+  mac8_d4  #36
+  mac8_a4  0.2
 
 patch Breathing family=bus
   # The slowest setting that still reads as the bus rather than as a mistake:
   # a long attack so every transient gets through untouched, and a long
   # release so what follows sags behind it.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Squeeze"
+  set macro4 "Duck"
+  set macro5 "Weight"
+  set macro6 "Snap"
+  set macro7 "Drift"
+  set macro8 "Room"
   comp           0.7
   compattack     0.06 s
   comprelease    0.7 s
@@ -209,10 +1133,142 @@ patch Breathing family=bus
   crashdecay     3.0 s
   drift          0.3
   volume         0.91
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #40
+  mac3_a1  0.5
+  mac3_d2  #7
+  mac3_a2  0.1
+  mac4_d1  #41
+  mac4_a1  0.6
+  mac4_d2  #7
+  mac4_a2  0.1
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #7
+  mac5_a2  0.15
+  mac5_d3  #4
+  mac5_a3  0.2
+  mac5_d4  #3
+  mac5_a4  0.2
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac6_d2  #11
+  mac6_a2  0.3
+  mac6_d3  #5
+  mac6_a3  0.4
+  mac6_d4  #19
+  mac6_a4  0.3
+  mac7_d1  #38
+  mac7_a1  0.6
+  mac8_d1  #14
+  mac8_a1  0.3
+  mac8_d2  #28
+  mac8_a2  0.3
+  mac8_d3  #31
+  mac8_a3  0.2
+  mac8_d4  #36
+  mac8_a4  0.2
+
+patch Sag family=bus
+  # The compressor at its slowest both ways and all the way up: every hit
+  # gets through whole, then the kit sinks and takes a second to come back.
+  # No duck, so the kick sags with everything else.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Squeeze"
+  set macro4 "Duck"
+  set macro5 "Weight"
+  set macro6 "Snap"
+  set macro7 "Bright"
+  set macro8 "Room"
+  comp           1
+  compattack     0.1 s
+  comprelease    1 s
+  duck           0
+  drive          0.2
+  kicktune       46 Hz
+  kickdecay      0.5 s
+  kickpunch      0.65
+  snaredecay     0.22 s
+  snaresnap      0.65
+  hatclosed      0.045 s
+  hatopen        0.5 s
+  ridedecay      2.0 s
+  ridelevel      0.75
+  crashlevel     0.7
+  accent         0.9
+  volume         0.926
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #40
+  mac3_a1  0.5
+  mac3_d2  #7
+  mac3_a2  0.1
+  mac4_d1  #41
+  mac4_a1  0.6
+  mac4_d2  #7
+  mac4_a2  0.1
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #7
+  mac5_a2  0.15
+  mac5_d3  #4
+  mac5_a3  0.2
+  mac5_d4  #3
+  mac5_a4  0.2
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac6_d2  #11
+  mac6_a2  0.3
+  mac6_d3  #5
+  mac6_a3  0.4
+  mac6_d4  #19
+  mac6_a4  0.3
+  mac7_d1  #26
+  mac7_a1  0.3
+  mac7_d2  #29
+  mac7_a2  0.3
+  mac7_d3  #32
+  mac7_a3  0.3
+  mac7_d4  #27
+  mac7_a4  0.1
+  mac8_d1  #14
+  mac8_a1  0.3
+  mac8_d2  #28
+  mac8_a2  0.3
+  mac8_d3  #31
+  mac8_a3  0.2
+  mac8_d4  #36
+  mac8_a4  0.2
 
 patch Slam family=bus
   # Everything at once: compressor maximum, attack at its fastest, drive up.
   # Nothing survives with its transient intact, which is the sound.
+  set macro1 "Longer"
+  set macro2 "Pitch"
+  set macro3 "Gentler"
+  set macro4 "Heat"
+  set macro5 "Weight"
+  set macro6 "Snap"
+  set macro7 "Bright"
+  set macro8 "Loose"
   comp           1
   compattack     0.0005 s
   comprelease    0.06 s
@@ -226,12 +1282,74 @@ patch Slam family=bus
   hatclosed      0.03 s
   accent         0.8
   volume         0.99
+  mac1_d1  #2
+  mac1_a1  0.25
+  mac1_d2  #9
+  mac1_a2  0.3
+  mac1_d3  #21
+  mac1_a3  0.3
+  mac1_d4  #25
+  mac1_a4  0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #40
+  mac3_a1  -0.4
+  mac3_d2  #41
+  mac3_a2  -0.4
+  mac3_d3  #42
+  mac3_a3  -0.3
+  mac3_d4  #6
+  mac3_a4  -0.3
+  mac4_d1  #42
+  mac4_a1  0.4
+  mac4_d2  #6
+  mac4_a2  0.3
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #7
+  mac5_a2  0.15
+  mac5_d3  #4
+  mac5_a3  0.2
+  mac5_d4  #3
+  mac5_a4  0.2
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac6_d2  #11
+  mac6_a2  0.3
+  mac6_d3  #5
+  mac6_a3  0.4
+  mac6_d4  #19
+  mac6_a4  0.3
+  mac7_d1  #26
+  mac7_a1  0.3
+  mac7_d2  #29
+  mac7_a2  0.3
+  mac7_d3  #32
+  mac7_a3  0.3
+  mac7_d4  #27
+  mac7_a4  0.1
+  mac8_d1  #38
+  mac8_a1  0.6
+  mac8_d2  #13
+  mac8_a2  0.3
+  mac8_d3  #22
+  mac8_a3  0.3
+  mac8_d4  #39
+  mac8_a4  -0.3
 
 patch Flattened family=bus
   # The compressor as an effect rather than as glue: so much of it that the
   # loud things and the quiet things arrive at the same size, and the hats end
   # up as prominent as the kick. Unmusical on purpose - one kit in a bank
   # should show what a control does at the end of its travel.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Gentler"
+  set macro4 "Heat"
+  set macro5 "Weight"
+  set macro6 "Hats"
+  set macro7 "Cymbals"
+  set macro8 "Loose"
   comp           1
   compattack     0.0005 s
   comprelease    0.02 s
@@ -244,10 +1362,70 @@ patch Flattened family=bus
   crashlevel     0.8
   accent         0.2
   volume         0.97
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #40
+  mac3_a1  -0.4
+  mac3_d2  #41
+  mac3_a2  -0.4
+  mac3_d3  #42
+  mac3_a3  -0.3
+  mac3_d4  #6
+  mac3_a4  -0.3
+  mac4_d1  #42
+  mac4_a1  0.4
+  mac4_d2  #6
+  mac4_a2  0.3
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #7
+  mac5_a2  0.15
+  mac5_d3  #4
+  mac5_a3  0.2
+  mac5_d4  #3
+  mac5_a4  0.2
+  mac6_d1  #27
+  mac6_a1  0.3
+  mac6_d2  #25
+  mac6_a2  0.2
+  mac6_d3  #26
+  mac6_a3  0.2
+  mac7_d1  #30
+  mac7_a1  0.3
+  mac7_d2  #34
+  mac7_a2  0.3
+  mac7_d3  #28
+  mac7_a3  0.2
+  mac7_d4  #31
+  mac7_a4  0.2
+  mac8_d1  #38
+  mac8_a1  0.6
+  mac8_d2  #13
+  mac8_a2  0.3
+  mac8_d3  #22
+  mac8_a3  0.3
+  mac8_d4  #39
+  mac8_a4  -0.3
 
 patch Dirty family=dirty
   # The bus drive doing the work, with the kick's own on top of it. Two
   # saturators in series is more than twice as dirty as one.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Heat"
+  set macro4 "Pump"
+  set macro5 "Weight"
+  set macro6 "Bright"
+  set macro7 "Loose"
+  set macro8 "Room"
   drive          0.7
   kickdrive      0.65
   kicktune       48 Hz
@@ -261,10 +1439,162 @@ patch Dirty family=dirty
   duck           0.3
   drift          0.3
   volume         0.99
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #42
+  mac3_a1  0.4
+  mac3_d2  #6
+  mac3_a2  0.3
+  mac4_d1  #40
+  mac4_a1  0.4
+  mac4_d2  #41
+  mac4_a2  0.5
+  mac4_d3  #42
+  mac4_a3  0.2
+  mac4_d4  #6
+  mac4_a4  0.2
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #7
+  mac5_a2  0.15
+  mac5_d3  #4
+  mac5_a3  0.2
+  mac5_d4  #3
+  mac5_a4  0.2
+  mac6_d1  #26
+  mac6_a1  0.3
+  mac6_d2  #29
+  mac6_a2  0.3
+  mac6_d3  #32
+  mac6_a3  0.3
+  mac6_d4  #27
+  mac6_a4  0.1
+  mac7_d1  #38
+  mac7_a1  0.6
+  mac7_d2  #13
+  mac7_a2  0.3
+  mac7_d3  #22
+  mac7_a3  0.3
+  mac7_d4  #39
+  mac7_a4  -0.3
+  mac8_d1  #14
+  mac8_a1  0.3
+  mac8_d2  #28
+  mac8_a2  0.3
+  mac8_d3  #31
+  mac8_a3  0.2
+  mac8_d4  #36
+  mac8_a4  0.2
+
+patch Smoulder family=dirty
+  # A little drive on the bus and the kick, then a tape that rounds the top
+  # off and leans on the low end. Warm, and heavier than it is dirty.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Heat"
+  set macro4 "Pump"
+  set macro5 "Weight"
+  set macro6 "Dark"
+  set macro7 "Loose"
+  set macro8 "Room"
+  drive          0.35
+  kickdrive      0.4
+  kicktune       45 Hz
+  kickdecay      0.7 s
+  kickpunch      0.5
+  kickclick      0.25
+  snaredecay     0.24 s
+  snaresnap      0.55
+  snaretone      0.4
+  hattone        5500 Hz
+  hatclosed      0.06 s
+  crashtone      3200 Hz
+  comp           0.45
+  compattack     0.01 s
+  duck           0.3
+  drift          0.3
+  volume         0.775
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #42
+  mac3_a1  0.4
+  mac3_d2  #6
+  mac3_a2  0.3
+  mac4_d1  #40
+  mac4_a1  0.4
+  mac4_d2  #41
+  mac4_a2  0.5
+  mac4_d3  #42
+  mac4_a3  0.2
+  mac4_d4  #6
+  mac4_a4  0.2
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #7
+  mac5_a2  0.15
+  mac5_d3  #4
+  mac5_a3  0.2
+  mac5_d4  #3
+  mac5_a4  0.2
+  mac6_d1  #26
+  mac6_a1  -0.3
+  mac6_d2  #29
+  mac6_a2  -0.3
+  mac6_d3  #32
+  mac6_a3  -0.3
+  mac6_d4  #11
+  mac6_a4  -0.3
+  mac7_d1  #38
+  mac7_a1  0.6
+  mac7_d2  #13
+  mac7_a2  0.3
+  mac7_d3  #22
+  mac7_a3  0.3
+  mac7_d4  #39
+  mac7_a4  -0.3
+  mac8_d1  #14
+  mac8_a1  0.3
+  mac8_d2  #28
+  mac8_a2  0.3
+  mac8_d3  #31
+  mac8_a3  0.2
+  mac8_d4  #36
+  mac8_a4  0.2
+  insert Tape
+    wow          0.1
+    flutter      0.1
+    drive        0.55
+    tone         8000 Hz
+    hiss         0.05
+    age          0.4
 
 patch Scorched family=dirty
   # Drive at the top of its travel. The kit stops being thirteen sounds and
   # becomes one squared-off block, and the cymbals are what still gets out.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Gentler"
+  set macro4 "Weight"
+  set macro5 "Snap"
+  set macro6 "Cymbals"
+  set macro7 "Loose"
+  set macro8 "Room"
   drive          1
   kickdrive      0.8
   kicktune       44 Hz
@@ -279,11 +1609,168 @@ patch Scorched family=dirty
   duck           0.35
   accent         0.85
   volume         0.99
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #40
+  mac3_a1  -0.4
+  mac3_d2  #41
+  mac3_a2  -0.4
+  mac3_d3  #42
+  mac3_a3  -0.3
+  mac3_d4  #6
+  mac3_a4  -0.3
+  mac4_d1  #2
+  mac4_a1  0.3
+  mac4_d2  #7
+  mac4_a2  0.15
+  mac4_d3  #4
+  mac4_a3  0.2
+  mac4_d4  #3
+  mac4_a4  0.2
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac5_d2  #11
+  mac5_a2  0.3
+  mac5_d3  #5
+  mac5_a3  0.4
+  mac5_d4  #19
+  mac5_a4  0.3
+  mac6_d1  #30
+  mac6_a1  0.3
+  mac6_d2  #34
+  mac6_a2  0.3
+  mac6_d3  #28
+  mac6_a3  0.2
+  mac6_d4  #31
+  mac6_a4  0.2
+  mac7_d1  #38
+  mac7_a1  0.6
+  mac7_d2  #13
+  mac7_a2  0.3
+  mac7_d3  #22
+  mac7_a3  0.3
+  mac7_d4  #39
+  mac7_a4  -0.3
+  mac8_d1  #14
+  mac8_a1  0.3
+  mac8_d2  #28
+  mac8_a2  0.3
+  mac8_d3  #31
+  mac8_a3  0.2
+  mac8_d4  #36
+  mac8_a4  0.2
+
+patch Overcooked family=dirty
+  # The kick's own drive at the top and the kit through an amp, so the kick
+  # comes out square and the snare and hats come out spitting.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Heat"
+  set macro4 "Snap"
+  set macro5 "Weight"
+  set macro6 "Bright"
+  set macro7 "Pump"
+  set macro8 "Loose"
+  kickdrive      1
+  kicktune       50 Hz
+  kickdecay      0.45 s
+  kickpunch      0.9
+  kickclick      0.7
+  kicklevel      1.2
+  drive          0.45
+  snaresnap      0.8
+  snaretone      0.7
+  snaredecay     0.18 s
+  clapdecay      0.3 s
+  hatclosed      0.035 s
+  hattone        9000 Hz
+  comp           0.6
+  compattack     0.002 s
+  duck           0.2
+  accent         0.9
+  volume         0.815
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #42
+  mac3_a1  0.4
+  mac3_d2  #6
+  mac3_a2  0.3
+  mac4_d1  #10
+  mac4_a1  0.4
+  mac4_d2  #11
+  mac4_a2  0.3
+  mac4_d3  #5
+  mac4_a3  0.4
+  mac4_d4  #19
+  mac4_a4  0.3
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #7
+  mac5_a2  0.15
+  mac5_d3  #4
+  mac5_a3  0.2
+  mac5_d4  #3
+  mac5_a4  0.2
+  mac6_d1  #26
+  mac6_a1  0.3
+  mac6_d2  #29
+  mac6_a2  0.3
+  mac6_d3  #32
+  mac6_a3  0.3
+  mac6_d4  #27
+  mac6_a4  0.1
+  mac7_d1  #40
+  mac7_a1  0.4
+  mac7_d2  #41
+  mac7_a2  0.5
+  mac7_d3  #42
+  mac7_a3  0.2
+  mac7_d4  #6
+  mac7_a4  0.2
+  mac8_d1  #38
+  mac8_a1  0.6
+  mac8_d2  #13
+  mac8_a2  0.3
+  mac8_d3  #22
+  mac8_a3  0.3
+  mac8_d4  #39
+  mac8_a4  -0.3
+  insert Amp
+    drive        0.55
+    bass         0.55
+    mid          0.6
+    treble       0.55
+    presence     0.4
+    master       0.35
 
 patch Drifting family=dirty
   # Drift at its maximum: every hit lands a little off where the last one did.
   # Slow, sparse patterns are where you hear it - on a busy one it reads as
   # noise rather than as a circuit.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Steady"
+  set macro4 "Toms"
+  set macro5 "Bend"
+  set macro6 "Cowbell"
+  set macro7 "Pump"
+  set macro8 "Room"
   drift          1
   kicktune       40 Hz
   kickdecay      0.9 s
@@ -297,10 +1784,64 @@ patch Drifting family=dirty
   comp           0.25
   duck           0.2
   volume         0.91
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #38
+  mac3_a1  -0.5
+  mac3_d2  #22
+  mac3_a2  -0.3
+  mac4_d1  #23
+  mac4_a1  0.3
+  mac4_d2  #21
+  mac4_a2  0.2
+  mac4_d3  #22
+  mac4_a3  0.2
+  mac5_d1  #22
+  mac5_a1  0.5
+  mac5_d2  #4
+  mac5_a2  0.2
+  mac6_d1  #37
+  mac6_a1  0.3
+  mac6_d2  #35
+  mac6_a2  0.2
+  mac6_d3  #36
+  mac6_a3  0.2
+  mac7_d1  #40
+  mac7_a1  0.4
+  mac7_d2  #41
+  mac7_a2  0.5
+  mac7_d3  #42
+  mac7_a3  0.2
+  mac7_d4  #6
+  mac7_a4  0.2
+  mac8_d1  #14
+  mac8_a1  0.3
+  mac8_d2  #28
+  mac8_a2  0.3
+  mac8_d3  #31
+  mac8_a3  0.2
+  mac8_d4  #36
+  mac8_a4  0.2
 
 patch Grit family=dirty
   # Dirt without weight: the drive up but the kick short and tuned high, so
   # what saturates is the top of the kit rather than the bottom of it.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Heat"
+  set macro4 "Snap"
+  set macro5 "Click"
+  set macro6 "Bright"
+  set macro7 "Rim"
+  set macro8 "Pump"
   drive          0.55
   kicktune       66 Hz
   kickdecay      0.24 s
@@ -319,11 +1860,67 @@ patch Grit family=dirty
   accent         0.8
   drift          0.35
   volume         0.99
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #42
+  mac3_a1  0.4
+  mac3_d2  #6
+  mac3_a2  0.3
+  mac4_d1  #10
+  mac4_a1  0.4
+  mac4_d2  #11
+  mac4_a2  0.3
+  mac4_d3  #5
+  mac4_a3  0.4
+  mac4_d4  #19
+  mac4_a4  0.3
+  mac5_d1  #5
+  mac5_a1  0.5
+  mac5_d2  #3
+  mac5_a2  0.2
+  mac6_d1  #26
+  mac6_a1  0.3
+  mac6_d2  #29
+  mac6_a2  0.3
+  mac6_d3  #32
+  mac6_a3  0.3
+  mac6_d4  #27
+  mac6_a4  0.1
+  mac7_d1  #19
+  mac7_a1  0.3
+  mac7_d2  #17
+  mac7_a2  0.2
+  mac7_d3  #18
+  mac7_a3  0.2
+  mac8_d1  #40
+  mac8_a1  0.4
+  mac8_d2  #41
+  mac8_a2  0.5
+  mac8_d3  #42
+  mac8_a3  0.2
+  mac8_d4  #6
+  mac8_a4  0.2
 
 patch Wobbler family=dirty
   # Drift high and the toms bending hard, so the pitched voices are never
   # quite where you left them. The bus kept gentle - two things wandering at
   # once is one too many.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Steady"
+  set macro4 "Toms"
+  set macro5 "Retune"
+  set macro6 "Weight"
+  set macro7 "Pump"
+  set macro8 "Room"
   drift          0.8
   tombend        1
   tomdecay       0.9 s
@@ -339,10 +1936,151 @@ patch Wobbler family=dirty
   comp           0.2
   duck           0.15
   volume         0.91
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #38
+  mac3_a1  -0.5
+  mac3_d2  #22
+  mac3_a2  -0.3
+  mac4_d1  #23
+  mac4_a1  0.3
+  mac4_d2  #21
+  mac4_a2  0.2
+  mac4_d3  #22
+  mac4_a3  0.2
+  mac5_d1  #20
+  mac5_a1  0.3
+  mac5_d2  #35
+  mac5_a2  0.3
+  mac5_d3  #17
+  mac5_a3  0.3
+  mac5_d4  #8
+  mac5_a4  0.2
+  mac6_d1  #2
+  mac6_a1  0.3
+  mac6_d2  #7
+  mac6_a2  0.15
+  mac6_d3  #4
+  mac6_a3  0.2
+  mac6_d4  #3
+  mac6_a4  0.2
+  mac7_d1  #40
+  mac7_a1  0.4
+  mac7_d2  #41
+  mac7_a2  0.5
+  mac7_d3  #42
+  mac7_a3  0.2
+  mac7_d4  #6
+  mac7_a4  0.2
+  mac8_d1  #14
+  mac8_a1  0.3
+  mac8_d2  #28
+  mac8_a2  0.3
+  mac8_d3  #31
+  mac8_a3  0.2
+  mac8_d4  #36
+  mac8_a4  0.2
+
+patch Frayed family=dirty
+  # Drift up and the kit through a crusher with a wandering clock, so the
+  # tails go grainy and no two hits are quite the same. Long cymbals and
+  # an open hat give the crusher something to chew on.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Heat"
+  set macro4 "Drift"
+  set macro5 "Weight"
+  set macro6 "Dark"
+  set macro7 "Room"
+  set macro8 "Pump"
+  drive          0.4
+  drift          0.5
+  kicktune       42 Hz
+  kickdecay      0.6 s
+  kicksweep      0.08 s
+  snaredecay     0.25 s
+  snaresnap      0.7
+  hatopen        0.6 s
+  crashdecay     2.5 s
+  rimlevel       0.9
+  belllevel      0.7
+  comp           0.4
+  duck           0.3
+  volume         0.981
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #42
+  mac3_a1  0.4
+  mac3_d2  #6
+  mac3_a2  0.3
+  mac4_d1  #38
+  mac4_a1  0.6
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #7
+  mac5_a2  0.15
+  mac5_d3  #4
+  mac5_a3  0.2
+  mac5_d4  #3
+  mac5_a4  0.2
+  mac6_d1  #26
+  mac6_a1  -0.3
+  mac6_d2  #29
+  mac6_a2  -0.3
+  mac6_d3  #32
+  mac6_a3  -0.3
+  mac6_d4  #11
+  mac6_a4  -0.3
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac7_d2  #28
+  mac7_a2  0.3
+  mac7_d3  #31
+  mac7_a3  0.2
+  mac7_d4  #36
+  mac7_a4  0.2
+  mac8_d1  #40
+  mac8_a1  0.4
+  mac8_d2  #41
+  mac8_a2  0.5
+  mac8_d3  #42
+  mac8_a3  0.2
+  mac8_d4  #6
+  mac8_a4  0.2
+  insert Bitcrusher
+    bits         6
+    rate         9000 Hz
+    jitter       0.35
+    tone         9000 Hz
+    mix          0.7
 
 patch Cymbals family=metal
   # Built around the crash and the ride, both long and both up, with the ride
   # bell well in so the two are told apart by more than their decay.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Bell"
+  set macro4 "Bright"
+  set macro5 "Dark"
+  set macro6 "Hats"
+  set macro7 "Duck"
+  set macro8 "Weight"
   crashdecay     4.4 s
   crashtone      5200 Hz
   crashlevel     0.95
@@ -357,17 +2095,73 @@ patch Cymbals family=metal
   comp           0.25
   duck           0.35
   volume         0.91
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #33
+  mac3_a1  0.5
+  mac3_d2  #37
+  mac3_a2  0.3
+  mac4_d1  #26
+  mac4_a1  0.3
+  mac4_d2  #29
+  mac4_a2  0.3
+  mac4_d3  #32
+  mac4_a3  0.3
+  mac4_d4  #27
+  mac4_a4  0.1
+  mac5_d1  #26
+  mac5_a1  -0.3
+  mac5_d2  #29
+  mac5_a2  -0.3
+  mac5_d3  #32
+  mac5_a3  -0.3
+  mac5_d4  #11
+  mac5_a4  -0.3
+  mac6_d1  #27
+  mac6_a1  0.3
+  mac6_d2  #25
+  mac6_a2  0.2
+  mac6_d3  #26
+  mac6_a3  0.2
+  mac7_d1  #41
+  mac7_a1  0.6
+  mac7_d2  #7
+  mac7_a2  0.1
+  mac8_d1  #2
+  mac8_a1  0.3
+  mac8_d2  #7
+  mac8_a2  0.15
+  mac8_d3  #4
+  mac8_a3  0.2
+  mac8_d4  #3
+  mac8_a4  0.2
 
 patch Splash family=metal
   # Cymbals at their shortest and brightest. A crash that stops is a
   # different instrument from one that rings, and this bank did not have one.
+  set macro1 "Longer"
+  set macro2 "Pitch"
+  set macro3 "Dark"
+  set macro4 "Bell"
+  set macro5 "Hats"
+  set macro6 "Snap"
+  set macro7 "Pump"
+  set macro8 "Room"
   crashdecay     0.2 s
   crashtone      9000 Hz
   crashlevel     0.9
   ridedecay      0.35 s
   ridetone       12000 Hz
   ridebell       0.2
-  ridelevel      0.75
+  ridelevel      0.9
   hatopen        0.18 s
   hatclosed      0.02 s
   hattone        11000 Hz
@@ -377,11 +2171,71 @@ patch Splash family=metal
   snaresnap      0.8
   accent         0.8
   volume         0.91
+  mac1_d1  #2
+  mac1_a1  0.25
+  mac1_d2  #9
+  mac1_a2  0.3
+  mac1_d3  #21
+  mac1_a3  0.3
+  mac1_d4  #25
+  mac1_a4  0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #26
+  mac3_a1  -0.3
+  mac3_d2  #29
+  mac3_a2  -0.3
+  mac3_d3  #32
+  mac3_a3  -0.3
+  mac3_d4  #11
+  mac3_a4  -0.3
+  mac4_d1  #33
+  mac4_a1  0.5
+  mac4_d2  #37
+  mac4_a2  0.3
+  mac5_d1  #27
+  mac5_a1  0.3
+  mac5_d2  #25
+  mac5_a2  0.2
+  mac5_d3  #26
+  mac5_a3  0.2
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac6_d2  #11
+  mac6_a2  0.3
+  mac6_d3  #5
+  mac6_a3  0.4
+  mac6_d4  #19
+  mac6_a4  0.3
+  mac7_d1  #40
+  mac7_a1  0.4
+  mac7_d2  #41
+  mac7_a2  0.5
+  mac7_d3  #42
+  mac7_a3  0.2
+  mac7_d4  #6
+  mac7_a4  0.2
+  mac8_d1  #14
+  mac8_a1  0.3
+  mac8_d2  #28
+  mac8_a2  0.3
+  mac8_d3  #31
+  mac8_a3  0.2
+  mac8_d4  #36
+  mac8_a4  0.2
 
 patch Tarnish family=metal
   # The metal tuned right down - the hat stack at the bottom of its range, the
   # cymbals dark - so the top of the kit is heavy rather than bright. The
   # opposite end of the same knob Splash sits at the top of.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Bright"
+  set macro4 "Bell"
+  set macro5 "Hats"
+  set macro6 "Cymbals"
+  set macro7 "Weight"
+  set macro8 "Pump"
   hattune        200 Hz
   hattone        2000 Hz
   hatclosed      0.11 s
@@ -400,10 +2254,159 @@ patch Tarnish family=metal
   snaretone      0.25
   comp           0.3
   volume         0.91
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #26
+  mac3_a1  0.3
+  mac3_d2  #29
+  mac3_a2  0.3
+  mac3_d3  #32
+  mac3_a3  0.3
+  mac3_d4  #27
+  mac3_a4  0.1
+  mac4_d1  #33
+  mac4_a1  0.5
+  mac4_d2  #37
+  mac4_a2  0.3
+  mac5_d1  #27
+  mac5_a1  0.3
+  mac5_d2  #25
+  mac5_a2  0.2
+  mac5_d3  #26
+  mac5_a3  0.2
+  mac6_d1  #30
+  mac6_a1  0.3
+  mac6_d2  #34
+  mac6_a2  0.3
+  mac6_d3  #28
+  mac6_a3  0.2
+  mac6_d4  #31
+  mac6_a4  0.2
+  mac7_d1  #2
+  mac7_a1  0.3
+  mac7_d2  #7
+  mac7_a2  0.15
+  mac7_d3  #4
+  mac7_a3  0.2
+  mac7_d4  #3
+  mac7_a4  0.2
+  mac8_d1  #40
+  mac8_a1  0.4
+  mac8_d2  #41
+  mac8_a2  0.5
+  mac8_d3  #42
+  mac8_a3  0.2
+  mac8_d4  #6
+  mac8_a4  0.2
+
+patch Clang family=metal
+  # Struck metal: the ride all bell, the cowbell high and ringing, the rim
+  # tuned to the top, and a little of the song's reverb behind them.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Bell"
+  set macro4 "Cowbell"
+  set macro5 "Ring"
+  set macro6 "Cymbals"
+  set macro7 "Dark"
+  set macro8 "Pump"
+  ridebell       1
+  ridetone       4000 Hz
+  ridedecay      3.2 s
+  ridelevel      1.0
+  belltune       1100 Hz
+  belldecay      0.8 s
+  belllevel      1.0
+  rimtune        2300 Hz
+  rimdecay       0.15 s
+  rimlevel       0.9
+  crashtone      2600 Hz
+  crashdecay     3.5 s
+  crashlevel     0.8
+  hattune        900 Hz
+  hattone        6000 Hz
+  hatopen        0.9 s
+  kicktune       44 Hz
+  kickdecay      0.5 s
+  snaredecay     0.2 s
+  snaretone      0.7
+  comp           0.3
+  duck           0.35
+  drift          0.15
+  volume         0.762
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #33
+  mac3_a1  0.5
+  mac3_d2  #37
+  mac3_a2  0.3
+  mac4_d1  #37
+  mac4_a1  0.3
+  mac4_d2  #35
+  mac4_a2  0.2
+  mac4_d3  #36
+  mac4_a3  0.2
+  mac5_d1  #21
+  mac5_a1  0.4
+  mac5_d2  #36
+  mac5_a2  0.3
+  mac5_d3  #18
+  mac5_a3  0.3
+  mac5_d4  #31
+  mac5_a4  0.2
+  mac6_d1  #30
+  mac6_a1  0.3
+  mac6_d2  #34
+  mac6_a2  0.3
+  mac6_d3  #28
+  mac6_a3  0.2
+  mac6_d4  #31
+  mac6_a4  0.2
+  mac7_d1  #26
+  mac7_a1  -0.3
+  mac7_d2  #29
+  mac7_a2  -0.3
+  mac7_d3  #32
+  mac7_a3  -0.3
+  mac7_d4  #11
+  mac7_a4  -0.3
+  mac8_d1  #40
+  mac8_a1  0.4
+  mac8_d2  #41
+  mac8_a2  0.5
+  mac8_d3  #42
+  mac8_a3  0.2
+  mac8_d4  #6
+  mac8_a4  0.2
+  send reverb    0.2
 
 patch Shimmer family=metal
   # High and thin and held: the hat open for most of a bar, the ride long, and
   # nothing underneath allowed to compete. For playing the top of a pattern.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Dark"
+  set macro4 "Duck"
+  set macro5 "Hats"
+  set macro6 "Cymbals"
+  set macro7 "Weight"
+  set macro8 "Drift"
   hatopen        2 s
   hatclosed      0.012 s
   hattune        980 Hz
@@ -422,11 +2425,65 @@ patch Shimmer family=metal
   comp           0.2
   duck           0.45
   volume         0.97
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #26
+  mac3_a1  -0.3
+  mac3_d2  #29
+  mac3_a2  -0.3
+  mac3_d3  #32
+  mac3_a3  -0.3
+  mac3_d4  #11
+  mac3_a4  -0.3
+  mac4_d1  #41
+  mac4_a1  0.6
+  mac4_d2  #7
+  mac4_a2  0.1
+  mac5_d1  #27
+  mac5_a1  0.3
+  mac5_d2  #25
+  mac5_a2  0.2
+  mac5_d3  #26
+  mac5_a3  0.2
+  mac6_d1  #30
+  mac6_a1  0.3
+  mac6_d2  #34
+  mac6_a2  0.3
+  mac6_d3  #28
+  mac6_a3  0.2
+  mac6_d4  #31
+  mac6_a4  0.2
+  mac7_d1  #2
+  mac7_a1  0.3
+  mac7_d2  #7
+  mac7_a2  0.15
+  mac7_d3  #4
+  mac7_a3  0.2
+  mac7_d4  #3
+  mac7_a4  0.2
+  mac8_d1  #38
+  mac8_a1  0.6
 
 patch Hiss family=metal
   # The snare as a noise source rather than a drum - snap at the top, tone
   # near the bottom - with the hats matched to it. What is left is a kit made
   # mostly of air.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Air"
+  set macro4 "Clap"
+  set macro5 "Hats"
+  set macro6 "Dark"
+  set macro7 "Weight"
+  set macro8 "Pump"
   snaresnap      1
   snaretone      0.1
   snaredecay     0.42 s
@@ -442,11 +2499,160 @@ patch Hiss family=metal
   kickclick      0.5
   comp           0.4
   duck           0.4
-  volume         0.83
+  volume         0.915
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac3_d2  #11
+  mac3_a2  -0.3
+  mac3_d3  #25
+  mac3_a3  0.3
+  mac3_d4  #14
+  mac3_a4  0.3
+  mac4_d1  #16
+  mac4_a1  0.3
+  mac4_d2  #14
+  mac4_a2  0.2
+  mac4_d3  #13
+  mac4_a3  0.2
+  mac5_d1  #27
+  mac5_a1  0.3
+  mac5_d2  #25
+  mac5_a2  0.2
+  mac5_d3  #26
+  mac5_a3  0.2
+  mac6_d1  #26
+  mac6_a1  -0.3
+  mac6_d2  #29
+  mac6_a2  -0.3
+  mac6_d3  #32
+  mac6_a3  -0.3
+  mac6_d4  #11
+  mac6_a4  -0.3
+  mac7_d1  #2
+  mac7_a1  0.3
+  mac7_d2  #7
+  mac7_a2  0.15
+  mac7_d3  #4
+  mac7_a3  0.2
+  mac7_d4  #3
+  mac7_a4  0.2
+  mac8_d1  #40
+  mac8_a1  0.4
+  mac8_d2  #41
+  mac8_a2  0.5
+  mac8_d3  #42
+  mac8_a3  0.2
+  mac8_d4  #6
+  mac8_a4  0.2
+
+patch Fizz family=metal
+  # Hats at the top of their tuning with the closed one left long, a short
+  # bright crash, all drifting, and a chorus that spreads the noise wide.
+  # The kick ducks the lot, so the fizz rises between the beats.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Hats"
+  set macro4 "Bright"
+  set macro5 "Air"
+  set macro6 "Drift"
+  set macro7 "Duck"
+  set macro8 "Cymbals"
+  hattune        1150 Hz
+  hattone        12000 Hz
+  hatclosed      0.14 s
+  hatopen        1.6 s
+  hatlevel       1.0
+  crashtone      9000 Hz
+  crashdecay     1.2 s
+  crashlevel     0.8
+  ridetone       12000 Hz
+  ridebell       0
+  ridedecay      1.5 s
+  snaresnap      0.9
+  snaretone      0.2
+  snaredecay     0.3 s
+  clapspread     0.03 s
+  clapdecay      0.5 s
+  claptone       2800 Hz
+  drift          0.6
+  kicktune       50 Hz
+  kickdecay      0.35 s
+  kicklevel      0.9
+  comp           0.35
+  duck           0.55
+  volume         0.656
+  ridelevel      0.9
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #27
+  mac3_a1  0.3
+  mac3_d2  #25
+  mac3_a2  0.2
+  mac3_d3  #26
+  mac3_a3  0.2
+  mac4_d1  #26
+  mac4_a1  0.3
+  mac4_d2  #29
+  mac4_a2  0.3
+  mac4_d3  #32
+  mac4_a3  0.3
+  mac4_d4  #27
+  mac4_a4  0.1
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac5_d2  #11
+  mac5_a2  -0.3
+  mac5_d3  #25
+  mac5_a3  0.3
+  mac5_d4  #14
+  mac5_a4  0.3
+  mac6_d1  #38
+  mac6_a1  0.6
+  mac7_d1  #41
+  mac7_a1  0.6
+  mac7_d2  #7
+  mac7_a2  0.1
+  mac8_d1  #30
+  mac8_a1  0.3
+  mac8_d2  #34
+  mac8_a2  0.3
+  mac8_d3  #28
+  mac8_a3  0.2
+  mac8_d4  #31
+  mac8_a4  0.2
+  insert Chorus
+    depth        0.6
+    mix          0.45
 
 patch Rimshot family=perc
   # The rim doing the snare's job for a whole pattern, tuned up where it cuts.
   # The snare stays in, right down, for the fills.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Rim"
+  set macro4 "Snap"
+  set macro5 "Hats"
+  set macro6 "Weight"
+  set macro7 "Loose"
+  set macro8 "Pump"
   rimtune        2500 Hz
   rimdecay       0.09 s
   rimlevel       1.3
@@ -460,11 +2666,73 @@ patch Rimshot family=perc
   comp           0.35
   duck           0.3
   accent         0.7
-  volume         0.87
+  volume         0.895
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #19
+  mac3_a1  0.3
+  mac3_d2  #17
+  mac3_a2  0.2
+  mac3_d3  #18
+  mac3_a3  0.2
+  mac4_d1  #10
+  mac4_a1  0.4
+  mac4_d2  #11
+  mac4_a2  0.3
+  mac4_d3  #5
+  mac4_a3  0.4
+  mac4_d4  #19
+  mac4_a4  0.3
+  mac5_d1  #27
+  mac5_a1  0.3
+  mac5_d2  #25
+  mac5_a2  0.2
+  mac5_d3  #26
+  mac5_a3  0.2
+  mac6_d1  #2
+  mac6_a1  0.3
+  mac6_d2  #7
+  mac6_a2  0.15
+  mac6_d3  #4
+  mac6_a3  0.2
+  mac6_d4  #3
+  mac6_a4  0.2
+  mac7_d1  #38
+  mac7_a1  0.6
+  mac7_d2  #13
+  mac7_a2  0.3
+  mac7_d3  #22
+  mac7_a3  0.3
+  mac7_d4  #39
+  mac7_a4  -0.3
+  mac8_d1  #40
+  mac8_a1  0.4
+  mac8_d2  #41
+  mac8_a2  0.5
+  mac8_d3  #42
+  mac8_a3  0.2
+  mac8_d4  #6
+  mac8_a4  0.2
 
 patch Handclap family=perc
   # Built on the clap and committed to it: wide spread so you hear the pulses
   # as pulses, long and dark, with the snare mostly out of the way.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Clap"
+  set macro4 "Together"
+  set macro5 "Snap"
+  set macro6 "Hats"
+  set macro7 "Weight"
+  set macro8 "Pump"
   clapspread     0.05 s
   clapdecay      1.1 s
   claptone       760 Hz
@@ -476,16 +2744,253 @@ patch Handclap family=perc
   kicklevel      1.1
   hatclosed      0.045 s
   hatopen        0.4 s
-  crashlevel     0.35
-  ridelevel      0.35
+  crashlevel     0.5
+  ridelevel      0.5
   comp           0.4
   duck           0.4
   volume         0.88
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #16
+  mac3_a1  0.3
+  mac3_d2  #14
+  mac3_a2  0.2
+  mac3_d3  #13
+  mac3_a3  0.2
+  mac4_d1  #13
+  mac4_a1  -0.5
+  mac4_d2  #14
+  mac4_a2  -0.2
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac5_d2  #11
+  mac5_a2  0.3
+  mac5_d3  #5
+  mac5_a3  0.4
+  mac5_d4  #19
+  mac5_a4  0.3
+  mac6_d1  #27
+  mac6_a1  0.3
+  mac6_d2  #25
+  mac6_a2  0.2
+  mac6_d3  #26
+  mac6_a3  0.2
+  mac7_d1  #2
+  mac7_a1  0.3
+  mac7_d2  #7
+  mac7_a2  0.15
+  mac7_d3  #4
+  mac7_a3  0.2
+  mac7_d4  #3
+  mac7_a4  0.2
+  mac8_d1  #40
+  mac8_a1  0.4
+  mac8_d2  #41
+  mac8_a2  0.5
+  mac8_d3  #42
+  mac8_a3  0.2
+  mac8_d4  #6
+  mac8_a4  0.2
+
+patch Sticks family=perc
+  # Rim and clap both cut down to a click, as if the pattern were played on
+  # the edge of the kit. The snare is there for the odd hit, the cymbals
+  # barely.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Rim"
+  set macro4 "Clap"
+  set macro5 "Snap"
+  set macro6 "Hats"
+  set macro7 "Loose"
+  set macro8 "Room"
+  rimtune        2200 Hz
+  rimdecay       0.025 s
+  rimlevel       1.2
+  clapspread     0.006 s
+  clapdecay      0.08 s
+  claptone       2400 Hz
+  claplevel      1.1
+  snarelevel     0.4
+  snaredecay     0.12 s
+  snaresnap      0.8
+  kicktune       52 Hz
+  kickdecay      0.32 s
+  kickpunch      0.7
+  kicklevel      0.9
+  hatclosed      0.02 s
+  hatopen        0.15 s
+  hattone        9000 Hz
+  crashlevel     0.55
+  ridelevel      0.55
+  tomdecay       0.2 s
+  comp           0.4
+  accent         0.8
+  drift          0.2
+  volume         0.948
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #19
+  mac3_a1  0.3
+  mac3_d2  #17
+  mac3_a2  0.2
+  mac3_d3  #18
+  mac3_a3  0.2
+  mac4_d1  #16
+  mac4_a1  0.3
+  mac4_d2  #14
+  mac4_a2  0.2
+  mac4_d3  #13
+  mac4_a3  0.2
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac5_d2  #11
+  mac5_a2  0.3
+  mac5_d3  #5
+  mac5_a3  0.4
+  mac5_d4  #19
+  mac5_a4  0.3
+  mac6_d1  #27
+  mac6_a1  0.3
+  mac6_d2  #25
+  mac6_a2  0.2
+  mac6_d3  #26
+  mac6_a3  0.2
+  mac7_d1  #38
+  mac7_a1  0.6
+  mac7_d2  #13
+  mac7_a2  0.3
+  mac7_d3  #22
+  mac7_a3  0.3
+  mac7_d4  #39
+  mac7_a4  -0.3
+  mac8_d1  #14
+  mac8_a1  0.3
+  mac8_d2  #28
+  mac8_a2  0.3
+  mac8_d3  #31
+  mac8_a3  0.2
+  mac8_d4  #36
+  mac8_a4  0.2
+
+patch Maraca family=perc
+  # The closed hat left open long enough to be a shaker, the snare as pure
+  # noise for a brush, and a spread clap behind it. Made for sixteenths.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Hats"
+  set macro4 "Air"
+  set macro5 "Clap"
+  set macro6 "Weight"
+  set macro7 "Loose"
+  set macro8 "Pump"
+  hatclosed      0.16 s
+  hatopen        0.35 s
+  hattune        760 Hz
+  hattone        6500 Hz
+  hatlevel       1.1
+  snaresnap      1
+  snaretone      0.05
+  snaredecay     0.14 s
+  snarelevel     0.7
+  clapspread     0.04 s
+  clapdecay      0.2 s
+  claptone       1900 Hz
+  claplevel      0.9
+  kicktune       50 Hz
+  kickdecay      0.4 s
+  kicklevel      0.9
+  rimlevel       0.6
+  crashlevel     0.5
+  ridelevel      0.5
+  comp           0.35
+  duck           0.3
+  accent         0.7
+  drift          0.35
+  volume         0.948
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #27
+  mac3_a1  0.3
+  mac3_d2  #25
+  mac3_a2  0.2
+  mac3_d3  #26
+  mac3_a3  0.2
+  mac4_d1  #10
+  mac4_a1  0.4
+  mac4_d2  #11
+  mac4_a2  -0.3
+  mac4_d3  #25
+  mac4_a3  0.3
+  mac4_d4  #14
+  mac4_a4  0.3
+  mac5_d1  #16
+  mac5_a1  0.3
+  mac5_d2  #14
+  mac5_a2  0.2
+  mac5_d3  #13
+  mac5_a3  0.2
+  mac6_d1  #2
+  mac6_a1  0.3
+  mac6_d2  #7
+  mac6_a2  0.15
+  mac6_d3  #4
+  mac6_a3  0.2
+  mac6_d4  #3
+  mac6_a4  0.2
+  mac7_d1  #38
+  mac7_a1  0.6
+  mac7_d2  #13
+  mac7_a2  0.3
+  mac7_d3  #22
+  mac7_a3  0.3
+  mac7_d4  #39
+  mac7_a4  -0.3
+  mac8_d1  #40
+  mac8_a1  0.4
+  mac8_d2  #41
+  mac8_a2  0.5
+  mac8_d3  #42
+  mac8_a3  0.2
+  mac8_d4  #6
+  mac8_a4  0.2
 
 patch Bellwork family=perc
   # The cowbell as the instrument: tuned high, rung long, and loud enough to
   # carry a pattern on its own. Everything else is accompaniment and levelled
   # as such.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Cowbell"
+  set macro4 "Rim"
+  set macro5 "Ring"
+  set macro6 "Hats"
+  set macro7 "Loose"
+  set macro8 "Pump"
   belltune       1200 Hz
   belldecay      0.85 s
   belllevel      1.35
@@ -498,14 +3003,165 @@ patch Bellwork family=perc
   snarelevel     0.6
   tomlevel       0.55
   hatlevel       0.5
-  crashlevel     0.3
-  ridelevel      0.35
+  crashlevel     0.45
+  ridelevel      0.45
   comp           0.3
-  volume         0.90
+  volume         0.993
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #37
+  mac3_a1  0.3
+  mac3_d2  #35
+  mac3_a2  0.2
+  mac3_d3  #36
+  mac3_a3  0.2
+  mac4_d1  #19
+  mac4_a1  0.3
+  mac4_d2  #17
+  mac4_a2  0.2
+  mac4_d3  #18
+  mac4_a3  0.2
+  mac5_d1  #21
+  mac5_a1  0.4
+  mac5_d2  #36
+  mac5_a2  0.3
+  mac5_d3  #18
+  mac5_a3  0.3
+  mac5_d4  #31
+  mac5_a4  0.2
+  mac6_d1  #27
+  mac6_a1  0.3
+  mac6_d2  #25
+  mac6_a2  0.2
+  mac6_d3  #26
+  mac6_a3  0.2
+  mac7_d1  #38
+  mac7_a1  0.6
+  mac7_d2  #13
+  mac7_a2  0.3
+  mac7_d3  #22
+  mac7_a3  0.3
+  mac7_d4  #39
+  mac7_a4  -0.3
+  mac8_d1  #40
+  mac8_a1  0.4
+  mac8_d2  #41
+  mac8_a2  0.5
+  mac8_d3  #42
+  mac8_a3  0.2
+  mac8_d4  #6
+  mac8_a4  0.2
+
+patch Knuckles family=perc
+  # Hand drums from the toms: tuned up into conga range, short, with a
+  # little bend, the rim as the slap and a low wood cowbell. Drift up so a
+  # run of hits sounds played.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Toms"
+  set macro4 "Bend"
+  set macro5 "Rim"
+  set macro6 "Ring"
+  set macro7 "Loose"
+  set macro8 "Pump"
+  tomlotune      150 Hz
+  tommidtune     215 Hz
+  tomhitune      300 Hz
+  tomdecay       0.22 s
+  tombend        0.3
+  tomlevel       1.25
+  rimtune        1300 Hz
+  rimdecay       0.04 s
+  rimlevel       1.0
+  belltune       520 Hz
+  belldecay      0.1 s
+  belllevel      0.7
+  kicktune       58 Hz
+  kickdecay      0.3 s
+  kicklevel      0.9
+  kickclick      0.3
+  snaretune      300 Hz
+  snaredecay     0.1 s
+  snaretone      0.4
+  snarelevel     0.6
+  hatclosed      0.03 s
+  hatlevel       0.6
+  crashlevel     0.45
+  ridelevel      0.5
+  comp           0.4
+  drift          0.4
+  accent         0.85
+  volume         0.959
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #23
+  mac3_a1  0.3
+  mac3_d2  #21
+  mac3_a2  0.2
+  mac3_d3  #22
+  mac3_a3  0.2
+  mac4_d1  #22
+  mac4_a1  0.5
+  mac4_d2  #4
+  mac4_a2  0.2
+  mac5_d1  #19
+  mac5_a1  0.3
+  mac5_d2  #17
+  mac5_a2  0.2
+  mac5_d3  #18
+  mac5_a3  0.2
+  mac6_d1  #21
+  mac6_a1  0.4
+  mac6_d2  #36
+  mac6_a2  0.3
+  mac6_d3  #18
+  mac6_a3  0.3
+  mac6_d4  #31
+  mac6_a4  0.2
+  mac7_d1  #38
+  mac7_a1  0.6
+  mac7_d2  #13
+  mac7_a2  0.3
+  mac7_d3  #22
+  mac7_a3  0.3
+  mac7_d4  #39
+  mac7_a4  -0.3
+  mac8_d1  #40
+  mac8_a1  0.4
+  mac8_d2  #41
+  mac8_a2  0.5
+  mac8_d3  #42
+  mac8_a3  0.2
+  mac8_d4  #6
+  mac8_a4  0.2
 
 patch Woodshop family=perc
   # Rim and cowbell both in the wood part of their ranges and both short, with
   # the toms up under them as the low blocks. Nothing here rings.
+  set macro1 "Longer"
+  set macro2 "Pitch"
+  set macro3 "Rim"
+  set macro4 "Cowbell"
+  set macro5 "Toms"
+  set macro6 "Weight"
+  set macro7 "Loose"
+  set macro8 "Pump"
   rimtune        1150 Hz
   rimdecay       0.02 s
   rimlevel       1.2
@@ -528,16 +3184,76 @@ patch Woodshop family=perc
   hatclosed      0.022 s
   hatopen        0.18 s
   hattone        5600 Hz
-  crashlevel     0.28
-  ridelevel      0.3
+  crashlevel     0.45
+  ridelevel      0.45
   comp           0.45
   drift          0.3
   volume         0.91
+  mac1_d1  #2
+  mac1_a1  0.25
+  mac1_d2  #9
+  mac1_a2  0.3
+  mac1_d3  #21
+  mac1_a3  0.3
+  mac1_d4  #25
+  mac1_a4  0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #19
+  mac3_a1  0.3
+  mac3_d2  #17
+  mac3_a2  0.2
+  mac3_d3  #18
+  mac3_a3  0.2
+  mac4_d1  #37
+  mac4_a1  0.3
+  mac4_d2  #35
+  mac4_a2  0.2
+  mac4_d3  #36
+  mac4_a3  0.2
+  mac5_d1  #23
+  mac5_a1  0.3
+  mac5_d2  #21
+  mac5_a2  0.2
+  mac5_d3  #22
+  mac5_a3  0.2
+  mac6_d1  #2
+  mac6_a1  0.3
+  mac6_d2  #7
+  mac6_a2  0.15
+  mac6_d3  #4
+  mac6_a3  0.2
+  mac6_d4  #3
+  mac6_a4  0.2
+  mac7_d1  #38
+  mac7_a1  0.6
+  mac7_d2  #13
+  mac7_a2  0.3
+  mac7_d3  #22
+  mac7_a3  0.3
+  mac7_d4  #39
+  mac7_a4  -0.3
+  mac8_d1  #40
+  mac8_a1  0.4
+  mac8_d2  #41
+  mac8_a2  0.5
+  mac8_d3  #42
+  mac8_a3  0.2
+  mac8_d4  #6
+  mac8_a4  0.2
 
 patch Ghosts family=perc
   # The rim at its quietest and quickest, for the notes between the notes.
   # Accent is what makes this playable: a light pattern with the occasional
   # hit through it, so the accent threshold is doing most of the arranging.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Rim"
+  set macro4 "Softer"
+  set macro5 "Snap"
+  set macro6 "Hats"
+  set macro7 "Loose"
+  set macro8 "Pump"
   rimdecay       0.01 s
   rimtune        1450 Hz
   rimlevel       0.85
@@ -555,10 +3271,70 @@ patch Ghosts family=perc
   duck           0.25
   drift          0.25
   volume         0.91
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #19
+  mac3_a1  0.3
+  mac3_d2  #17
+  mac3_a2  0.2
+  mac3_d3  #18
+  mac3_a3  0.2
+  mac4_d1  #39
+  mac4_a1  -0.4
+  mac4_d2  #5
+  mac4_a2  -0.3
+  mac4_d3  #10
+  mac4_a3  -0.3
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac5_d2  #11
+  mac5_a2  0.3
+  mac5_d3  #5
+  mac5_a3  0.4
+  mac5_d4  #19
+  mac5_a4  0.3
+  mac6_d1  #27
+  mac6_a1  0.3
+  mac6_d2  #25
+  mac6_a2  0.2
+  mac6_d3  #26
+  mac6_a3  0.2
+  mac7_d1  #38
+  mac7_a1  0.6
+  mac7_d2  #13
+  mac7_a2  0.3
+  mac7_d3  #22
+  mac7_a3  0.3
+  mac7_d4  #39
+  mac7_a4  -0.3
+  mac8_d1  #40
+  mac8_a1  0.4
+  mac8_d2  #41
+  mac8_a2  0.5
+  mac8_d3  #42
+  mac8_a3  0.2
+  mac8_d4  #6
+  mac8_a4  0.2
 
 patch Toms family=tone
   # The three toms low, long and bending, and loud enough to be the pattern
   # rather than the fill. The kick sits under them instead of in front.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Toms"
+  set macro4 "Bend"
+  set macro5 "Retune"
+  set macro6 "Weight"
+  set macro7 "Room"
+  set macro8 "Pump"
   tomlotune      60 Hz
   tommidtune     92 Hz
   tomhitune      138 Hz
@@ -574,12 +3350,72 @@ patch Toms family=tone
   hatopen        0.6 s
   comp           0.3
   duck           0.4
-  volume         0.87
+  volume         0.971
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #23
+  mac3_a1  0.3
+  mac3_d2  #21
+  mac3_a2  0.2
+  mac3_d3  #22
+  mac3_a3  0.2
+  mac4_d1  #22
+  mac4_a1  0.5
+  mac4_d2  #4
+  mac4_a2  0.2
+  mac5_d1  #20
+  mac5_a1  0.3
+  mac5_d2  #35
+  mac5_a2  0.3
+  mac5_d3  #17
+  mac5_a3  0.3
+  mac5_d4  #8
+  mac5_a4  0.2
+  mac6_d1  #2
+  mac6_a1  0.3
+  mac6_d2  #7
+  mac6_a2  0.15
+  mac6_d3  #4
+  mac6_a3  0.2
+  mac6_d4  #3
+  mac6_a4  0.2
+  mac7_d1  #14
+  mac7_a1  0.3
+  mac7_d2  #28
+  mac7_a2  0.3
+  mac7_d3  #31
+  mac7_a3  0.2
+  mac7_d4  #36
+  mac7_a4  0.2
+  mac8_d1  #40
+  mac8_a1  0.4
+  mac8_d2  #41
+  mac8_a2  0.5
+  mac8_d3  #42
+  mac8_a3  0.2
+  mac8_d4  #6
+  mac8_a4  0.2
 
 patch Descent family=tone
   # Every bit of bend the toms have and two seconds to fall through it, tuned
   # wide apart so the three of them are an instrument rather than three sizes
   # of the same one.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Steady"
+  set macro4 "Toms"
+  set macro5 "Retune"
+  set macro6 "Weight"
+  set macro7 "Duck"
+  set macro8 "Room"
   tomlotune      60 Hz
   tommidtune     140 Hz
   tomhitune      340 Hz
@@ -596,12 +3432,68 @@ patch Descent family=tone
   comp           0.25
   duck           0.5
   drift          0.4
-  volume         0.87
+  volume         0.916
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #38
+  mac3_a1  -0.5
+  mac3_d2  #22
+  mac3_a2  -0.3
+  mac4_d1  #23
+  mac4_a1  0.3
+  mac4_d2  #21
+  mac4_a2  0.2
+  mac4_d3  #22
+  mac4_a3  0.2
+  mac5_d1  #20
+  mac5_a1  0.3
+  mac5_d2  #35
+  mac5_a2  0.3
+  mac5_d3  #17
+  mac5_a3  0.3
+  mac5_d4  #8
+  mac5_a4  0.2
+  mac6_d1  #2
+  mac6_a1  0.3
+  mac6_d2  #7
+  mac6_a2  0.15
+  mac6_d3  #4
+  mac6_a3  0.2
+  mac6_d4  #3
+  mac6_a4  0.2
+  mac7_d1  #41
+  mac7_a1  0.6
+  mac7_d2  #7
+  mac7_a2  0.1
+  mac8_d1  #14
+  mac8_a1  0.3
+  mac8_d2  #28
+  mac8_a2  0.3
+  mac8_d3  #31
+  mac8_a3  0.2
+  mac8_d4  #36
+  mac8_a4  0.2
 
 patch Tuned family=tone
   # The toms and the cowbell tuned to a minor seventh, so the pads play a
   # chord. The kick sits a fifth below the low tom rather than wherever it
   # landed, and the bend is off - a chord that slides is not a chord.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Toms"
+  set macro4 "Ring"
+  set macro5 "Cowbell"
+  set macro6 "Bend"
+  set macro7 "Weight"
+  set macro8 "Room"
   tomlotune      98 Hz
   tommidtune     117 Hz
   tomhitune      147 Hz
@@ -623,12 +3515,170 @@ patch Tuned family=tone
   hattune        392 Hz
   drift          0.05
   comp           0.3
-  volume         0.90
+  volume         0.926
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #23
+  mac3_a1  0.3
+  mac3_d2  #21
+  mac3_a2  0.2
+  mac3_d3  #22
+  mac3_a3  0.2
+  mac4_d1  #21
+  mac4_a1  0.4
+  mac4_d2  #36
+  mac4_a2  0.3
+  mac4_d3  #18
+  mac4_a3  0.3
+  mac4_d4  #31
+  mac4_a4  0.2
+  mac5_d1  #37
+  mac5_a1  0.3
+  mac5_d2  #35
+  mac5_a2  0.2
+  mac5_d3  #36
+  mac5_a3  0.2
+  mac6_d1  #22
+  mac6_a1  0.5
+  mac6_d2  #4
+  mac6_a2  0.2
+  mac7_d1  #2
+  mac7_a1  0.3
+  mac7_d2  #7
+  mac7_a2  0.15
+  mac7_d3  #4
+  mac7_a3  0.2
+  mac7_d4  #3
+  mac7_a4  0.2
+  mac8_d1  #14
+  mac8_a1  0.3
+  mac8_d2  #28
+  mac8_a2  0.3
+  mac8_d3  #31
+  mac8_a3  0.2
+  mac8_d4  #36
+  mac8_a4  0.2
+
+patch Rounded family=tone
+  # Every voice with its edge taken off and its body left: the kick with no
+  # click, the snare all tone and no wire, the toms long and straight, the
+  # ride mostly bell. Hollow's opposite.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Toms"
+  set macro4 "Ring"
+  set macro5 "Weight"
+  set macro6 "Bright"
+  set macro7 "Loose"
+  set macro8 "Pump"
+  kickclick      0
+  kickpunch      0.25
+  kicktune       42 Hz
+  kickdecay      1.0 s
+  kicksweep      0.03 s
+  snaresnap      0.1
+  snaretone      1
+  snaretune      200 Hz
+  snaredecay     0.35 s
+  tomlotune      80 Hz
+  tommidtune     110 Hz
+  tomhitune      150 Hz
+  tomdecay       0.9 s
+  tombend        0.05
+  tomlevel       1.1
+  belltune       600 Hz
+  belldecay      0.6 s
+  rimtune        1000 Hz
+  rimdecay       0.08 s
+  hattune        400 Hz
+  hattone        3500 Hz
+  hatclosed      0.08 s
+  crashtone      2000 Hz
+  crashlevel     0.45
+  ridetone       2600 Hz
+  ridebell       0.7
+  accent         0.5
+  comp           0.25
+  duck           0.3
+  drift          0.1
+  volume         0.9
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #23
+  mac3_a1  0.3
+  mac3_d2  #21
+  mac3_a2  0.2
+  mac3_d3  #22
+  mac3_a3  0.2
+  mac4_d1  #21
+  mac4_a1  0.4
+  mac4_d2  #36
+  mac4_a2  0.3
+  mac4_d3  #18
+  mac4_a3  0.3
+  mac4_d4  #31
+  mac4_a4  0.2
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #7
+  mac5_a2  0.15
+  mac5_d3  #4
+  mac5_a3  0.2
+  mac5_d4  #3
+  mac5_a4  0.2
+  mac6_d1  #26
+  mac6_a1  0.3
+  mac6_d2  #29
+  mac6_a2  0.3
+  mac6_d3  #32
+  mac6_a3  0.3
+  mac6_d4  #27
+  mac6_a4  0.1
+  mac7_d1  #38
+  mac7_a1  0.6
+  mac7_d2  #13
+  mac7_a2  0.3
+  mac7_d3  #22
+  mac7_a3  0.3
+  mac7_d4  #39
+  mac7_a4  -0.3
+  mac8_d1  #40
+  mac8_a1  0.4
+  mac8_d2  #41
+  mac8_a2  0.5
+  mac8_d3  #42
+  mac8_a3  0.2
+  mac8_d4  #6
+  mac8_a4  0.2
 
 patch Subsonic family=tone
   # The kick at the bottom of its range with the longest sweep the machine
   # has, and nothing above it allowed to get in the way. More felt than heard,
   # which is the point and also the warning.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Click"
+  set macro4 "Snap"
+  set macro5 "Hats"
+  set macro6 "Cymbals"
+  set macro7 "Heat"
+  set macro8 "Pump"
   kicktune       30 Hz
   kickdecay      3 s
   kicksweep      0.2 s
@@ -641,17 +3691,73 @@ patch Subsonic family=tone
   tomlotune      64 Hz
   tomdecay       0.5 s
   tomlevel       0.6
-  hatlevel       0.45
-  crashlevel     0.3
-  ridelevel      0.3
+  hatlevel       0.65
+  crashlevel     0.5
+  ridelevel      0.5
   comp           0.2
   duck           0.1
   volume         0.83
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #5
+  mac3_a1  0.5
+  mac3_d2  #3
+  mac3_a2  0.2
+  mac4_d1  #10
+  mac4_a1  0.4
+  mac4_d2  #11
+  mac4_a2  0.3
+  mac4_d3  #5
+  mac4_a3  0.4
+  mac4_d4  #19
+  mac4_a4  0.3
+  mac5_d1  #27
+  mac5_a1  0.3
+  mac5_d2  #25
+  mac5_a2  0.2
+  mac5_d3  #26
+  mac5_a3  0.2
+  mac6_d1  #30
+  mac6_a1  0.3
+  mac6_d2  #34
+  mac6_a2  0.3
+  mac6_d3  #28
+  mac6_a3  0.2
+  mac6_d4  #31
+  mac6_a4  0.2
+  mac7_d1  #42
+  mac7_a1  0.4
+  mac7_d2  #6
+  mac7_a2  0.3
+  mac8_d1  #40
+  mac8_a1  0.4
+  mac8_d2  #41
+  mac8_a2  0.5
+  mac8_d3  #42
+  mac8_a3  0.2
+  mac8_d4  #6
+  mac8_a4  0.2
 
 patch Hollow family=tone
   # Tone down on everything that has one: the snare nearly all noise, the kick
   # with no click, the metal dark. What is left is the shape of the kit
   # without any of its edges.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Bright"
+  set macro4 "Snap"
+  set macro5 "Click"
+  set macro6 "Toms"
+  set macro7 "Loose"
+  set macro8 "Pump"
   snaretone      0
   snaresnap      0.45
   snaredecay     0.26 s
@@ -674,4 +3780,130 @@ patch Hollow family=tone
   comp           0.35
   duck           0.3
   drift          0.25
-  volume         0.91
+  volume         0.937
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #26
+  mac3_a1  0.3
+  mac3_d2  #29
+  mac3_a2  0.3
+  mac3_d3  #32
+  mac3_a3  0.3
+  mac3_d4  #27
+  mac3_a4  0.1
+  mac4_d1  #10
+  mac4_a1  0.4
+  mac4_d2  #11
+  mac4_a2  0.3
+  mac4_d3  #5
+  mac4_a3  0.4
+  mac4_d4  #19
+  mac4_a4  0.3
+  mac5_d1  #5
+  mac5_a1  0.5
+  mac5_d2  #3
+  mac5_a2  0.2
+  mac6_d1  #23
+  mac6_a1  0.3
+  mac6_d2  #21
+  mac6_a2  0.2
+  mac6_d3  #22
+  mac6_a3  0.2
+  mac7_d1  #38
+  mac7_a1  0.6
+  mac7_d2  #13
+  mac7_a2  0.3
+  mac7_d3  #22
+  mac7_a3  0.3
+  mac7_d4  #39
+  mac7_a4  -0.3
+  mac8_d1  #40
+  mac8_a1  0.4
+  mac8_d2  #41
+  mac8_a2  0.5
+  mac8_d3  #42
+  mac8_a3  0.2
+  mac8_d4  #6
+  mac8_a4  0.2
+
+patch Plunge family=tone
+  # The kick at the top of its tuning with the longest sweep, so it falls
+  # two octaves on every hit, and the toms bending all the way down with it.
+  # Everything pitched is up high and drifting. A kit of falling things.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Bend"
+  set macro4 "Sweep"
+  set macro5 "Toms"
+  set macro6 "Drift"
+  set macro7 "Duck"
+  set macro8 "Room"
+  kicktune       90 Hz
+  kicksweep      0.2 s
+  kickpunch      1
+  kickdecay      0.8 s
+  kickclick      0.1
+  tomlotune      180 Hz
+  tommidtune     260 Hz
+  tomhitune      380 Hz
+  tombend        1
+  tomdecay       0.7 s
+  tomlevel       1.1
+  snaretune      380 Hz
+  snaredecay     0.3 s
+  snaretone      0.9
+  snaresnap      0.3
+  belltune       1200 Hz
+  belldecay      0.5 s
+  rimtune        2500 Hz
+  hattune        1100 Hz
+  drift          0.5
+  comp           0.35
+  duck           0.5
+  volume         0.926
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #9
+  mac1_a2  -0.3
+  mac1_d3  #21
+  mac1_a3  -0.3
+  mac1_d4  #25
+  mac1_a4  -0.3
+  mac2_d1  #44
+  mac2_a1  0.25
+  mac3_d1  #22
+  mac3_a1  0.5
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #4
+  mac4_a1  0.4
+  mac4_d2  #3
+  mac4_a2  0.3
+  mac5_d1  #23
+  mac5_a1  0.3
+  mac5_d2  #21
+  mac5_a2  0.2
+  mac5_d3  #22
+  mac5_a3  0.2
+  mac6_d1  #38
+  mac6_a1  0.6
+  mac7_d1  #41
+  mac7_a1  0.6
+  mac7_d2  #7
+  mac7_a2  0.1
+  mac8_d1  #14
+  mac8_a1  0.3
+  mac8_d2  #28
+  mac8_a2  0.3
+  mac8_d3  #31
+  mac8_a3  0.2
+  mac8_d4  #36
+  mac8_a4  0.2

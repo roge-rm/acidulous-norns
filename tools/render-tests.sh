@@ -30,11 +30,11 @@ while read -r machine phrase patch; do
 done <<LIST
 Reflux acid Classic
 Reflux acid Squelch
-Hexbeat beat Straight
+Hexbeat beat Squared
 Hexbeat beat Punchy
 Trinity pad Wide Saws
 Trinity keys Bell Keys
-Ratio keys Tine
+Ratio keys Bell Piano
 Ratio keys Bell
 Formulate chip Pulse Lead
 Formulate chip Major Arp

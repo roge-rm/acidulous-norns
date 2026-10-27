@@ -22,6 +22,12 @@ class Biquad {
         b0 = (1.0f + alpha * A) / a0; b1 = -2.0f * c / a0; b2 = (1.0f - alpha * A) / a0;
         a1 = -2.0f * c / a0; a2 = (1.0f - alpha / A) / a0;
     }
+    /** A resonance with a peak gain of one at [hz] and nothing at DC or Nyquist. */
+    void bandpass(float hz, float q, float sr) {
+        const float w = kTwoPi * clampf(hz, 20.0f, sr * 0.45f) / sr, alpha = std::sin(w) / (2.0f * q), c = std::cos(w);
+        const float a0 = 1.0f + alpha;
+        b0 = alpha / a0; b1 = 0.0f; b2 = -alpha / a0; a1 = -2.0f * c / a0; a2 = (1.0f - alpha) / a0;
+    }
     void lowpass(float hz, float q, float sr) {
         const float w = kTwoPi * clampf(hz, 20.0f, sr * 0.45f) / sr, alpha = std::sin(w) / (2.0f * q), c = std::cos(w);
         const float a0 = 1.0f + alpha;

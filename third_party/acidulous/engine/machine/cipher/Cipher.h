@@ -66,8 +66,26 @@ class Cipher final : public Machine {
         MatrixBase,
         VoiceBase = MatrixBase + kMatrixSlots * kMatrixParams,
         VoiceMode = VoiceBase, Glide, BendRange, Octave, Transpose, Fine, VelocityAmount,
-        Count
+        // Eight macro knobs, each with four routes: a destination (a
+        // MacroDest) and a depth. A macro's knob times a route's depth is
+        // added to the destination, in its own 0..1 range. Block rate; what
+        // a note reads when it starts takes the knobs' targets. Pitch is 24
+        // semitones per unit.
+        MacroBase,
+        MacroParams = 9, // knob, 4 destinations, 4 depths
+        Count = MacroBase + 8 * MacroParams
     };
+    // Where a macro route goes. The switches, the stepped choices, the
+    // matrix, the mod envelopes and LFOs are left out.
+    enum MacroDest : int32_t {
+        McOff, McLow, McHigh, McQ, McAttack, McRelease, McSmear, McGate,
+        McShift, McStretch, McRemap, McMorph, McSibilance, McTrack, McFeedback, McFbTone,
+        McMix, McDetune, McPulseWidth, McSub, McNoise, McCarrierDrive,
+        McDry, McWet, McDrive, McVolume, McPan, McAmpAttack, McAmpRelease, McPitch,
+        MacroDestCount
+    };
+    static constexpr int kMacros = 8;
+    static_assert(Count <= kMaxParams, "too many parameters");
     enum MatP { XSrc = 0, XDest, XDepth };
 
     Cipher();
@@ -108,7 +126,14 @@ class Cipher final : public Machine {
         float centre = 100.0f;
     };
 
-    float paramOf(int32_t p) const { return params_.get(p); }
+    /** Param [p], smoothed, with the macros' routes to it added. */
+    float paramOf(int32_t p) const { return withMacros(p, params_.get(p), mac_); }
+    /** Param [p]'s target, with the macro knobs' targets added: for what a note reads when it starts. */
+    float goalOf(int32_t p) const { return withMacros(p, params_.target(p), macGoal_); }
+    float withMacros(int32_t p, float v, const float *mac) const;
+    /** Fills [mac_] from the smoothed macro knobs and [macGoal_] from their targets. */
+    void updateMacros();
+    float mac_[MacroDestCount]{}, macGoal_[MacroDestCount]{};
     int32_t steppedOf(int32_t p) const;
     void rebuildBands();
     float bandResonance(float q) const;
@@ -154,11 +179,21 @@ class Cipher final : public Machine {
     dsp::Svf sibilanceShaper;
     float feedbackSample = 0.0f;
     float feedbackLp = 0.0f;
+    // The unvoiced detector: the modulator's energy above and below the
+    // voice's formants, followed. Their ratio is high on an "s", "f" or a
+    // breath and low on a vowel. Only run while `unvoiced` is up.
+    dsp::Svf unvoicedHigh, unvoicedLow;
+    float unvoicedHighEnv = 0.0f, unvoicedLowEnv = 0.0f, unvoicedMix = 0.0f;
+    float unvoicedAttack = 0.0f, unvoicedRelease = 0.0f, unvoicedGlide = 0.0f;
 
     float bendSemis = 0.0f, modWheel = 0.0f, pressure = 0.0f;
     float bpm = 120.0f;
     static constexpr uint32_t kRngSeed = 0x2f6e1cu;
     uint32_t rngState = kRngSeed;
+    // The unvoiced path's own noise, so turning it up doesn't move the noise
+    // and sibilance paths' sequence.
+    static constexpr uint32_t kUnvoicedSeed = 0x9e3779b9u;
+    uint32_t unvoicedRng = kUnvoicedSeed;
     int32_t shuffleMap[kMaxBands] = {};
     int32_t shuffleSeed = -1;
 };

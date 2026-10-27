@@ -78,8 +78,55 @@ class Manual final : public Machine {
         MatrixBase,
         VoiceBase = MatrixBase + kMatrixSlots * kMatrixParams,
         BendRange = VoiceBase, Octave, Transpose, Fine, VelocityAmount, Expression,
-        Count
+        // Added later. Parameters are saved by name, so older patches just
+        // get the default, and 0 is off for both.
+        // How much a closed expression darkens as well as quietens, as a
+        // swell box's shutters do. A lowpass, ramped per sample.
+        SwellBox,
+        // Seconds for drawbar, tab, rank and morph moves to reach a new
+        // value, from anything that moves them. Ramped per sample.
+        BarGlide,
+        // Eight macro knobs, each with four routes: a destination (a
+        // MacroDest) and a depth. A macro's knob times a route's depth is
+        // added to the destination, in its own 0..1 range. Block rate. Pitch
+        // is 24 semitones per unit.
+        MacroBase,
+        MacroParams = 9, // knob, 4 destinations, 4 depths
+        Count = MacroBase + 8 * MacroParams
     };
+    // Where a macro route goes. Continuous params only: the model, the
+    // splits, the switches and stepped choices, the matrix and the tuning
+    // steps are left out.
+    enum MacroDest : int32_t {
+        McOff,
+        McAge, McLeakage, McHum, McClick, McClickOff, McContacts,
+        McUpperLevel, McLowerLevel, McPedalLevel, McPedalSustain,
+        McUpperA,                      // 9
+        McUpperB = McUpperA + kBars,   // 9
+        McLowerA = McUpperB + kBars,   // 9
+        McLowerB = McLowerA + kBars,   // 9
+        McPedalA = McLowerB + kBars,   // 2
+        McPedalB = McPedalA + kPedalBars, // 2
+        McMorph = McPedalB + kPedalBars, McMorphAmount,
+        McSpray, McSprayRate, McSprayWidth,
+        McPercLevel, McPercDecay, McPercKey,
+        McVibRate, McVibDepth, McVibStereo,
+        McWindSag, McWindResponse, McWindNoise, McTremRate, McTremDepth,
+        McPrincipal, McFlute, McString, McReed, McMixture, McChiff, McTracker,
+        McTab16, McTab8, McTab4, McTab2, McTabII, McTabIV, McComboReedy, McComboAttack,
+        McReedPressure, McReedBuzz, McReedTremolo,
+        McHornSlow, McHornFast, McDrumSlow, McDrumFast, McRampUp, McRampDown,
+        McMicDistance, McMicAngle, McRotSpread,
+        McDrive, McBias, McBass, McMid, McTreble, McVolume, McPan,
+        McAttack, McRelease,
+        McEg1A, McEg1D, McEg1S, McEg1R, McEg2A, McEg2D, McEg2S, McEg2R,
+        McLfo1Rate, McLfo1Depth, McLfo2Rate, McLfo2Depth,
+        McVelocity, McSwellBox, McBarGlide,
+        McPitch,
+        MacroDestCount
+    };
+    static constexpr int kMacros = 8;
+    static_assert(Count <= kMaxParams, "Manual declares more parameters than a unit can hold");
     enum MatP { XSrc = 0, XDest, XDepth };
 
     Manual();
@@ -119,9 +166,24 @@ class Manual final : public Machine {
         float barLevel[kBars] = {};     // resolved once a block, not per sample
         float rnd = 0.0f;
         float mod[DestCount] = {};
+        // The bar glide: where barLevel was a block ago, the matrix's moves
+        // on the bars as they glide, and whether the voice has had a block
+        // yet (a new note starts where its bars are, not from the old ones).
+        float barFrom[kBars] = {};
+        float barMod[DestCount] = {};
+        bool fresh = true;
     };
 
-    float paramOf(int32_t p) const { return params_.get(p); }
+    /** Param [p], smoothed, with the macros' routes to it added. */
+    float paramOf(int32_t p) const { return val(p, false); }
+    /** Param [p]'s target with the macros' targets added, for note-on seeds. */
+    float goalOf(int32_t p) const { return val(p, true); }
+    float val(int32_t p, bool goal) const;
+    /** Fills [mac_] from the macro knobs, smoothed or (when [goal]) their targets. */
+    void updateMacros(bool goal = false);
+    float read(int32_t p, bool goal) const { return goal ? params_.target(p) : params_.get(p); }
+    /** A drawbar, tab, rank or morph knob as the bar glide has it. */
+    float reg(int32_t p) const { return glided[p]; }
     int32_t steppedOf(int32_t p) const;
     void rebuildTuning();
     int32_t wheelFor(int32_t note, int32_t bar) const;
@@ -184,6 +246,22 @@ class Manual final : public Machine {
     uint32_t rngState = kRngSeed;
     int32_t heldCount = 0;
     float blockMod[DestCount] = {};
+    float mac_[MacroDestCount]{};
+    // The bar glide's copy of the registration params, by param index; only
+    // the drawbars, tabs, ranks and morph are used. Copied straight through
+    // when the glide is 0. `glideFresh` copies on the first block after a
+    // reset.
+    float glided[Count] = {};
+    bool glideFresh = true;
+    // The pipe stop gains a block ago, for ramping them while gliding.
+    float stopFrom[kBars][5] = {};
+    bool stopValid = false;
+    // The swell box: its depth (0 open, 1 closed at full), smoothed a block
+    // at a time, and the lowpass states for the dry signal and the two
+    // spray sides. `swellRunning` is false until the filter has a state.
+    float swellDepth = 0.0f;
+    float swellS[3] = {};
+    bool swellRunning = false;
 };
 
 } // namespace acidulous::machine

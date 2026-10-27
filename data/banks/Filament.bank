@@ -17,7 +17,7 @@
 #   - **Coupling was a gain.** Two strings over one bridge were each handed
 #     the other's whole output every sample: over a 145-sample turn at
 #     `couple` 0.8 that added two and a third to a loop gain already at
-#     0.999. The Wire patch was fourteen decibels louder with coupling on
+#     0.999. The Picked Wire patch was fourteen decibels louder with coupling on
 #     than off and its note-on read *fifty-four thousand times* the edge of
 #     its own tone. A bridge shares rather than makes, so each string now
 #     gets a fraction of the *difference*, and the fraction is of a turn.
@@ -62,7 +62,7 @@
 #     motion below its own fundamental. The bow reads +4 cents.
 #   - **A pick was noise times an alternating plus and minus one** - a square
 #     wave at Nyquist, which does not brighten a spectrum, it inverts it, and
-#     puts the whole burst where no string has a partial. Wire started twelve
+#     puts the whole burst where no string has a partial. Picked Wire started twelve
 #     times brighter than it continued and nothing on the string could reach
 #     it, because none of it was on the string. A pick is a harder, narrower
 #     contact, so it is a first-order tilt now.
@@ -71,7 +71,7 @@
 #     own share every turn and nothing counted it. The string works out what
 #     to ask its feedback for so that a whole turn comes to what the caller
 #     said - the same reason the brass and the woodwinds solve their loops.
-#     Measured on the fundamental alone: Nylon 1.72 s against 2 asked, Wire
+#     Measured on the fundamental alone: Nylon String 1.72 s against 2 asked, Picked Wire
 #     4.2 against 5. A stiff or tension-modulated string comes in shorter
 #     still, which is what dispersion and a bending pitch do.
 #
@@ -88,16 +88,16 @@
 # than the string at the played one - `harm` read 0.00 to 0.10 and taking
 # `bodymix` to zero brought the note straight back. The damper is halfway
 # along now, where it nulls the odd harmonics instead and every note returns.
-# The tenth was Blown at note 84, in tune and on the right partial but nine
+# The tenth was Blown String at note 84, in tune and on the right partial but nine
 # parts jet noise to one part note, so its range stops at 82. All 379 notes
 # of this bank now pass.
 #
-# **The spike in front of the note was a pulse train.** Nylon put one
+# **The spike in front of the note was a pulse train.** Nylon String put one
 # millisecond of excitation into a six millisecond loop, so what came out was
 # two milliseconds of sound and four of near silence, over and over, at the
 # right pitch - thirty decibels between the loud part and the quiet part of
 # every single period. A pluck displaces the *whole* string, and a
-# waveguide's string is one period long, so a pluck fills the loop. Nylon's
+# waveguide's string is one period long, so a pluck fills the loop. Nylon String's
 # note-on went from five times the corner of its own tone to one, its loudest
 # partial from the octave to the fundamental, and the note carries seven
 # decibels more of its own energy.
@@ -113,7 +113,7 @@
 #
 # **What is still wrong.** `Spoken To` is played by the audio input and so
 # measures as silence here, which is correct and means it cannot be
-# auditioned without one. Steel is three decibels under the rest of the bank
+# auditioned without one. Steel String is three decibels under the rest of the bank
 # at full volume, because its energy sits in high partials rather than at the
 # note. And `chiff` reads 1.0 whenever a patch's tail is under a twentieth of
 # its peak, which means "not measured" rather than "no chiff" - do not read
@@ -134,13 +134,81 @@
 # string for the whole note rather than acting at a point and leaving.
 # The four patches that set it had values chosen while it did nothing, so
 # they are chosen again. The harness's `pitch` is unreliable for a string
-# picked near its bridge - Steel's fundamental sits eleven decibels under its
+# picked near its bridge - Steel String's fundamental sits eleven decibels under its
 # own fifth harmonic, and a direct look at the spectrum says the note is
 # eight cents flat where the column says a hundred and ninety-six. Scoring a
 # whole harmonic series instead of walking down from the loudest peak was
-# tried and is worse; the column is wrong for Steel and Wire and the machine
+# tried and is worse; the column is wrong for Steel String and Picked Wire and the machine
 # is not. And `edge` says a plucked string is twenty times brighter at its
 # attack than in its tail, which is true and is not a click.
+#
+# **Two more faults, found filling out the plucked, picked and struck
+# families.** A hammer's blow was shaped over `length` while it lasted for
+# the note's own contact time, so away from middle C it started part way
+# into the bump or ran several bumps: a click on every struck note but one
+# octave. It is one bump over the contact now, which took about seven
+# decibels from Prepared's low notes, so its volume went up to match. And the feedback that makes
+# up the DC blocker's loss at the note made up too much above it: with the
+# tone open and a long ring the second and third partials went round at
+# just over one and grew for ever, so a harp left ringing with its tone
+# turned up ended twenty decibels louder than it started. The next few
+# partials are kept under one; nothing that did not grow changed.
+#
+# **The body and the sympathetic strings were too quiet to hear.** The body
+# was four peaks averaged with the bare string, under two decibels in any
+# third of an octave from none to all of it. It is six resonances per side
+# now, the string heard mostly through them, faded in on a law between a
+# straight and an equal-power fade so the middle of the knob neither dips nor
+# bulges, and each resonance scaled for its width so `bodydamp` changes the
+# colour more than the level. From none to all is five to nine decibels in a
+# third of an octave, and `size` and `bodydamp` as much again. At `bodymix` 0
+# nothing changed. Every patch with a body sounds different, and the plucks
+# were put back on their peaks and the rest on their loudness.
+#
+# The sympathetic strings each ring in a band a fraction of a hertz wide, so
+# a played partial a few cents off drives them hardly at all: the bank sat
+# fifteen to twenty decibels under the string and turning it on changed
+# nothing you could measure. It has fifteen times the gain now. The picked
+# and struck patches that had it on keep their sound, with `symlevel` taken
+# down by the square root of that (it sets both the feed and the output).
+# So does Spoken To, which the harness only hears with `--input voice`:
+# at 0.4 its strings rang on 24 dB louder after the voice stopped, and its
+# "More Strings" macro now takes it there. Songs and patches saved before
+# are moved the same way when they load (FilamentMigration).
+#
+# The body evens each note out by half of what it does to the note's first
+# eight harmonics, so a note on a resonance no longer jumps out: a bowed
+# string at full body went from 3.5..10.7 dB of spread across the keyboard
+# to 1.7..5.5, and no patch moved more than 0.7 dB.
+#
+# **`voicemode` and `glide` work.** Mono plays one string, legato moves the
+# pitch of a held string without plucking or bowing it again, and glide
+# slides the string in both. Letting go of the newest key goes back to the
+# one still held, without plucking again. Poly ignores glide.
+#
+# **Picked Wire's lowest note was a string picked so near the bridge** that its
+# fundamental sat 32 dB under the eighth harmonic. Its range starts a
+# semitone higher.
+#
+# The second and third partials sit ten to twenty cents flat of their
+# harmonics while the fundamental is within three, so the `tune` column
+# reads as much as twenty cents flat on patches old and new. The breath
+# patches read up to forty at the odd note, where the jet's noise outweighs
+# the low partials.
+#
+# Plucks and picks are levelled on peak, at -8, and the sympathetic and
+# prepared plucks on whichever of that and -28 loudness comes first, since
+# their strings ring on after the note. The struck patches meet Hammered
+# half way between its peak and its loudness, since a hard short blow and a
+# long ring cannot match on both. Bowed and blown patches sit at -28.5
+# loudness.
+#
+# Families in tab order: plucked (Init first), picked, struck, bowed, blown,
+# sympathetic, prepared. Every patch but Init carries eight named macros.
+# The bowed and blown patches have a gentle vibrato that fades in after the
+# note starts.
+# Macro destinations are numbered as in Filament.h's MacroDest, so #8 is
+# sustain, #47 vibrato depth and #49 pitch.
 #
 # Values are in each parameter's own units; `audition params Filament` lists
 # them. A patch names only what it changes.
@@ -153,7 +221,55 @@ role    tune
 
 patch Init family=plucked
 
-patch Nylon family=plucked  note=52 range=40..76
+patch "Nylon String" family=plucked  note=52 range=40..76
+  set macro1 "Bridge"
+  set macro2 "Brighter"
+  set macro3 "Ring"
+  set macro4 "Mute"
+  set macro5 "Body"
+  set macro6 "Chorus"
+  set macro7 "Vibrato"
+  set macro8 "Buzz"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac1_d2  #10
+  mac1_a2  0.2
+  mac1_d3  #5
+  mac1_a3  0.2
+  mac2_d1  #10
+  mac2_a1  0.4
+  mac2_d2  #5
+  mac2_a2  0.3
+  mac3_d1  #8
+  mac3_a1  0.2
+  mac3_d2  #9
+  mac3_a2  -0.3
+  mac4_d1  #15
+  mac4_a1  0.25
+  mac4_d2  #8
+  mac4_a2  -0.35
+  mac4_d3  #10
+  mac4_a3  -0.1
+  mac5_d1  #24
+  mac5_a1  0.4
+  mac5_d2  #23
+  mac5_a2  0.3
+  mac5_d3  #25
+  mac5_a3  -0.3
+  mac6_d1  #18
+  mac6_a1  0.2
+  mac6_d2  #20
+  mac6_a2  0.3
+  mac6_d3  #19
+  mac6_a3  0.4
+  mac7_d1  #47
+  mac7_a1  0.2
+  mac8_d1  #16
+  mac8_a1  0.4
+  mac8_d2  #17
+  mac8_a2  -0.15
+  mac8_d3  #26
+  mac8_a3  0.2
   bodymix        0.45
   couple         0.3
   detune         5 c
@@ -166,9 +282,507 @@ patch Nylon family=plucked  note=52 range=40..76
   size           0.55
   sustain        0.727
   tone           0.4
-  volume         1.00
+  volume         1.07
 
-patch Steel family=plucked  note=52 range=40..79
+patch Lute family=plucked  note=57 range=43..77
+  set macro1 "Bridge"
+  set macro2 "Brighter"
+  set macro3 "Ring"
+  set macro4 "Mute"
+  set macro5 "Bowl"
+  set macro6 "Courses"
+  set macro7 "Vibrato"
+  set macro8 "Thumb"
+  mac1_d1  #1
+  mac1_a1  -0.35
+  mac1_d2  #10
+  mac1_a2  0.2
+  mac2_d1  #10
+  mac2_a1  0.35
+  mac2_d2  #5
+  mac2_a2  0.3
+  mac3_d1  #8
+  mac3_a1  0.2
+  mac4_d1  #15
+  mac4_a1  0.3
+  mac4_d2  #8
+  mac4_a2  -0.3
+  mac5_d1  #24
+  mac5_a1  0.45
+  mac5_d2  #23
+  mac5_a2  0.35
+  mac5_d3  #25
+  mac5_a3  -0.4
+  mac5_d4  #10
+  mac5_a4  -0.12
+  mac6_d1  #18
+  mac6_a1  0.25
+  mac6_d2  #20
+  mac6_a2  0.3
+  mac7_d1  #47
+  mac7_a1  0.15
+  mac8_d1  #10
+  mac8_a1  -0.2
+  mac8_d2  #5
+  mac8_a2  -0.4
+  mac8_d3  #1
+  mac8_a3  0.15
+  bodydamp       0.6
+  bodymix        0.5
+  couple         0.45
+  detune         4 c
+  grit           0.4
+  position       0.2
+  size           0.68
+  sustain        0.66
+  tone           0.36
+  volume         1.21
+
+patch "Lever Harp" family=plucked  note=60 range=36..84
+  set macro1 "Bridge"
+  set macro2 "Brighter"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Body"
+  set macro6 "Shimmer"
+  set macro7 "Vibrato"
+  set macro8 "Buzz"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #5
+  mac2_a2  0.3
+  mac2_d3  #27
+  mac2_a3  -0.05
+  mac3_d1  #8
+  mac3_a1  0.12
+  mac3_d2  #9
+  mac3_a2  -0.3
+  mac4_d1  #8
+  mac4_a1  -0.35
+  mac4_d2  #10
+  mac4_a2  -0.1
+  mac5_d1  #24
+  mac5_a1  0.45
+  mac5_d2  #23
+  mac5_a2  0.35
+  mac5_d3  #25
+  mac5_a3  -0.4
+  mac5_d4  #10
+  mac5_a4  -0.12
+  mac6_d1  #18
+  mac6_a1  0.15
+  mac6_d2  #20
+  mac6_a2  0.3
+  mac7_d1  #47
+  mac7_a1  0.15
+  mac8_d1  #16
+  mac8_a1  0.6
+  mac8_d2  #17
+  mac8_a2  -0.3
+  "on release"   #0
+  bodymix        0.35
+  couple         0.1
+  detune         1 c
+  grit           0.35
+  position       0.3
+  size           0.62
+  sustain        0.82
+  sustainkey     0.55
+  tone           0.42
+  volume         0.93
+  send reverb    0.2
+
+patch Pizz family=plucked  note=60 range=43..84
+  set macro1 "Snap"
+  set macro2 "Brighter"
+  set macro3 "Longer"
+  set macro4 "Section"
+  set macro5 "Body"
+  set macro6 "Darker"
+  set macro7 "Vibrato"
+  set macro8 "Thump"
+  mac1_d1  #1
+  mac1_a1  -0.3
+  mac1_d2  #5
+  mac1_a2  0.4
+  mac1_d3  #10
+  mac1_a3  0.15
+  mac2_d1  #10
+  mac2_a1  0.35
+  mac3_d1  #8
+  mac3_a1  0.25
+  mac4_d1  #18
+  mac4_a1  0.3
+  mac4_d2  #20
+  mac4_a2  0.3
+  mac4_d3  #19
+  mac4_a3  0.4
+  mac5_d1  #24
+  mac5_a1  0.45
+  mac5_d2  #23
+  mac5_a2  0.35
+  mac5_d3  #25
+  mac5_a3  -0.4
+  mac5_d4  #10
+  mac5_a4  -0.12
+  mac6_d1  #10
+  mac6_a1  -0.2
+  mac6_d2  #11
+  mac6_a2  0.4
+  mac7_d1  #47
+  mac7_a1  0.2
+  mac8_d1  #13
+  mac8_a1  0.4
+  mac8_d2  #26
+  mac8_a2  0.2
+  bodydamp       0.45
+  bodymix        0.55
+  couple         0.2
+  detune         8 c
+  grit           0.5
+  position       0.24
+  size           0.45
+  spread         0.6
+  sustain        0.46
+  sustainkey     0.6
+  tone           0.36
+  volume         0.99
+  send reverb    0.15
+
+patch "Low Gut" family=plucked  note=40 range=28..55
+  set macro1 "Bridge"
+  set macro2 "Brighter"
+  set macro3 "Ring"
+  set macro4 "Mute"
+  set macro5 "Body"
+  set macro6 "Thump"
+  set macro7 "Slap"
+  set macro8 "Drive"
+  mac1_d1  #1
+  mac1_a1  -0.3
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.3
+  mac2_d2  #5
+  mac2_a2  0.3
+  mac3_d1  #8
+  mac3_a1  0.2
+  mac4_d1  #15
+  mac4_a1  0.3
+  mac4_d2  #8
+  mac4_a2  -0.3
+  mac5_d1  #24
+  mac5_a1  0.45
+  mac5_d2  #23
+  mac5_a2  0.35
+  mac5_d3  #25
+  mac5_a3  -0.4
+  mac5_d4  #10
+  mac5_a4  -0.12
+  mac6_d1  #13
+  mac6_a1  0.4
+  mac7_d1  #16
+  mac7_a1  0.5
+  mac7_d2  #17
+  mac7_a2  -0.2
+  mac7_d3  #5
+  mac7_a3  0.3
+  mac8_d1  #26
+  mac8_a1  0.7
+  mac8_d2  #10
+  mac8_a2  0.1
+  bodydamp       0.5
+  bodymix        0.5
+  couple         0.1
+  detune         1 c
+  grit           0.35
+  position       0.24
+  size           0.85
+  sustain        0.62
+  sustainkey     0.3
+  tension        0.25
+  tone           0.18
+  volume         1.44
+
+patch Quill family=plucked  note=62 range=41..84
+  set macro1 "Nasal"
+  set macro2 "Brighter"
+  set macro3 "Ring"
+  set macro4 "Lute Stop"
+  set macro5 "Choirs"
+  set macro6 "Body"
+  set macro7 "Click"
+  set macro8 "Buzz"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.3
+  mac2_d2  #5
+  mac2_a2  0.3
+  mac3_d1  #30
+  mac3_a1  0.4
+  mac3_d2  #8
+  mac3_a2  0.15
+  mac4_d1  #15
+  mac4_a1  0.4
+  mac4_d2  #10
+  mac4_a2  -0.2
+  mac5_d1  #18
+  mac5_a1  0.25
+  mac5_d2  #20
+  mac5_a2  0.3
+  mac6_d1  #24
+  mac6_a1  0.45
+  mac6_d2  #23
+  mac6_a2  0.35
+  mac6_d3  #25
+  mac6_a3  -0.4
+  mac6_d4  #10
+  mac6_a4  -0.12
+  mac7_d1  #29
+  mac7_a1  0.3
+  mac8_d1  #16
+  mac8_a1  0.6
+  mac8_d2  #17
+  mac8_a2  -0.3
+  bodymix        0.4
+  couple         0.5
+  "damp time"    0.08 s
+  detune         2 c
+  exciter        #1
+  grit           0.6
+  position       0.1
+  size           0.5
+  stiffness      0.1
+  sustain        0.75
+  tone           0.62
+  volume         0.83
+  send reverb    0.12
+
+patch "Silk Zither" family=plucked  note=62 range=50..86
+  set macro1 "Bridge"
+  set macro2 "Brighter"
+  set macro3 "Ring"
+  set macro4 "Press"
+  set macro5 "Board"
+  set macro6 "Twang"
+  set macro7 "Bend Up"
+  set macro8 "Mute"
+  mac1_d1  #1
+  mac1_a1  -0.3
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #5
+  mac2_a2  0.3
+  mac2_d3  #27
+  mac2_a3  -0.05
+  mac3_d1  #8
+  mac3_a1  0.2
+  mac4_d1  #47
+  mac4_a1  0.3
+  mac4_d2  #48
+  mac4_a2  -0.15
+  mac5_d1  #24
+  mac5_a1  0.45
+  mac5_d2  #23
+  mac5_a2  0.35
+  mac5_d3  #25
+  mac5_a3  -0.4
+  mac5_d4  #10
+  mac5_a4  -0.12
+  mac6_d1  #13
+  mac6_a1  0.6
+  mac6_d2  #1
+  mac6_a2  -0.05
+  mac7_d1  #49
+  mac7_a1  0.0833
+  mac8_d1  #15
+  mac8_a1  0.3
+  mac8_d2  #8
+  mac8_a2  -0.3
+  "on release"   #0
+  bodydamp       0.35
+  bodymix        0.55
+  couple         0.05
+  detune         1 c
+  grit           0.5
+  position       0.12
+  size           0.72
+  sustain        0.72
+  tension        0.4
+  tone           0.52
+  vibrate        5.5 Hz
+  vibdepth       12 c
+  vibdelay       0.5 s
+  volume         0.89
+  send reverb    0.15
+
+patch "Gourd Wire" family=plucked  note=67 range=55..84
+  set macro1 "Edge"
+  set macro2 "Brighter"
+  set macro3 "Ring"
+  set macro4 "Buzz"
+  set macro5 "Gourd"
+  set macro6 "Stiff"
+  set macro7 "Vibrato"
+  set macro8 "Mute"
+  mac1_d1  #1
+  mac1_a1  -0.35
+  mac1_d2  #10
+  mac1_a2  0.2
+  mac2_d1  #10
+  mac2_a1  0.3
+  mac3_d1  #8
+  mac3_a1  0.2
+  mac4_d1  #16
+  mac4_a1  0.4
+  mac4_d2  #17
+  mac4_a2  -0.1
+  mac5_d1  #24
+  mac5_a1  0.45
+  mac5_d2  #23
+  mac5_a2  0.35
+  mac5_d3  #25
+  mac5_a3  -0.4
+  mac5_d4  #10
+  mac5_a4  -0.12
+  mac6_d1  #12
+  mac6_a1  0.4
+  mac7_d1  #47
+  mac7_a1  0.15
+  mac8_d1  #15
+  mac8_a1  0.3
+  mac8_d2  #8
+  mac8_a2  -0.3
+  "on release"   #0
+  bodydamp       0.25
+  bodymix        0.6
+  couple         0
+  detune         0 c
+  grit           0.3
+  position       0.45
+  rattle         0.3
+  "rattle at"    0.15
+  size           0.3
+  stiffness      0.25
+  sustain        0.62
+  tone           0.36
+  volume         1.5
+
+patch "Tin Comb" family=plucked  note=79 range=60..96
+  set macro1 "Softer"
+  set macro2 "Brighter"
+  set macro3 "Ring"
+  set macro4 "Stiffer"
+  set macro5 "Box"
+  set macro6 "Wobble"
+  set macro7 "Detune"
+  set macro8 "Mute"
+  mac1_d1  #10
+  mac1_a1  -0.3
+  mac1_d2  #5
+  mac1_a2  -0.3
+  mac2_d1  #10
+  mac2_a1  0.2
+  mac2_d2  #1
+  mac2_a2  -0.04
+  mac3_d1  #8
+  mac3_a1  0.2
+  mac3_d2  #9
+  mac3_a2  -0.4
+  mac4_d1  #12
+  mac4_a1  0.35
+  mac5_d1  #24
+  mac5_a1  0.45
+  mac5_d2  #23
+  mac5_a2  0.35
+  mac5_d3  #25
+  mac5_a3  -0.4
+  mac5_d4  #10
+  mac5_a4  -0.12
+  mac6_d1  #47
+  mac6_a1  0.2
+  mac6_d2  #46
+  mac6_a2  0.25
+  mac7_d1  #18
+  mac7_a1  0.3
+  mac7_d2  #20
+  mac7_a2  -0.2
+  mac8_d1  #15
+  mac8_a1  0.3
+  mac8_d2  #8
+  mac8_a2  -0.3
+  "on release"   #0
+  bodydamp       0.3
+  bodymix        0.5
+  couple         0.2
+  detune         2 c
+  grit           0.3
+  position       0.08
+  size           0.18
+  stages         #4
+  stiffness      0.5
+  sustain        0.75
+  tone           0.72
+  volume         0.94
+  send reverb    0.2
+
+patch "Steel String" family=picked  note=52 range=40..79
+  set macro1 "Bridge"
+  set macro2 "Brighter"
+  set macro3 "Ring"
+  set macro4 "Palm Mute"
+  set macro5 "Body"
+  set macro6 "Chorus"
+  set macro7 "Vibrato"
+  set macro8 "Drive"
+  mac1_d1  #1
+  mac1_a1  -0.25
+  mac1_d2  #10
+  mac1_a2  0.1
+  mac2_d1  #10
+  mac2_a1  0.3
+  mac2_d2  #5
+  mac2_a2  0.3
+  mac3_d1  #8
+  mac3_a1  0.15
+  mac4_d1  #15
+  mac4_a1  0.3
+  mac4_d2  #8
+  mac4_a2  -0.4
+  mac4_d3  #10
+  mac4_a3  -0.15
+  mac5_d1  #24
+  mac5_a1  0.45
+  mac5_d2  #23
+  mac5_a2  0.35
+  mac5_d3  #25
+  mac5_a3  -0.4
+  mac5_d4  #10
+  mac5_a4  -0.12
+  mac6_d1  #18
+  mac6_a1  0.2
+  mac6_d2  #20
+  mac6_a2  0.2
+  mac6_d3  #19
+  mac6_a3  0.4
+  mac7_d1  #47
+  mac7_a1  0.2
+  mac8_d1  #26
+  mac8_a1  0.7
+  mac8_d2  #16
+  mac8_a2  0.3
+  mac8_d3  #17
+  mac8_a3  -0.2
   bodymix        0.4
   couple         0.4
   detune         6 c
@@ -184,7 +798,338 @@ patch Steel family=plucked  note=52 range=40..79
   tone           0.5
   volume         1.33
 
+patch Mandolin family=picked  note=67 range=55..88
+  set macro1 "Bridge"
+  set macro2 "Brighter"
+  set macro3 "Ring"
+  set macro4 "Tremolo"
+  set macro5 "Body"
+  set macro6 "Courses"
+  set macro7 "Vibrato"
+  set macro8 "Mute"
+  mac1_d1  #1
+  mac1_a1  -0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.3
+  mac2_d2  #5
+  mac2_a2  0.3
+  mac3_d1  #8
+  mac3_a1  0.2
+  mac4_d1  #40
+  mac4_a1  0.6
+  mac5_d1  #24
+  mac5_a1  0.45
+  mac5_d2  #23
+  mac5_a2  0.35
+  mac5_d3  #25
+  mac5_a3  -0.4
+  mac5_d4  #10
+  mac5_a4  -0.12
+  mac6_d1  #18
+  mac6_a1  0.2
+  mac6_d2  #20
+  mac6_a2  0.3
+  mac7_d1  #47
+  mac7_a1  0.2
+  mac8_d1  #15
+  mac8_a1  0.3
+  mac8_d2  #8
+  mac8_a2  -0.35
+  bodydamp       0.4
+  bodymix        0.45
+  couple         0.5
+  detune         7 c
+  exciter        #1
+  grit           0.55
+  lfo1wave       #4
+  lfo1rate       11 Hz
+  lfo1depth      0
+  m1_src         #9
+  m1_dst         #16
+  m1_amt         -0.5
+  position       0.12
+  size           0.3
+  stiffness      0.12
+  sustain        0.62
+  tone           0.56
+  volume         0.82
+  send reverb    0.12
+
+patch "Twelve Course" family=picked  note=55 range=40..79
+  set macro1 "Bridge"
+  set macro2 "Brighter"
+  set macro3 "Ring"
+  set macro4 "Twang"
+  set macro5 "Spread"
+  set macro6 "Body"
+  set macro7 "Vibrato"
+  set macro8 "Mute"
+  mac1_d1  #1
+  mac1_a1  -0.25
+  mac1_d2  #10
+  mac1_a2  0.1
+  mac2_d1  #10
+  mac2_a1  0.3
+  mac2_d2  #5
+  mac2_a2  0.3
+  mac3_d1  #8
+  mac3_a1  0.15
+  mac3_d2  #22
+  mac3_a2  0.1
+  mac4_d1  #13
+  mac4_a1  0.4
+  mac4_d2  #21
+  mac4_a2  0.6
+  mac5_d1  #18
+  mac5_a1  0.25
+  mac5_d2  #19
+  mac5_a2  0.4
+  mac6_d1  #24
+  mac6_a1  0.45
+  mac6_d2  #23
+  mac6_a2  0.35
+  mac6_d3  #25
+  mac6_a3  -0.4
+  mac6_d4  #10
+  mac6_a4  -0.12
+  mac7_d1  #47
+  mac7_a1  0.15
+  mac8_d1  #15
+  mac8_a1  0.3
+  mac8_d2  #8
+  mac8_a2  -0.35
+  bodymix        0.4
+  couple         0.35
+  detune         6 c
+  exciter        #1
+  grit           0.55
+  position       0.17
+  size           0.5
+  spread         0.5
+  stiffness      0.15
+  sustain        0.8
+  symlevel       0.0516
+  sympathy       #1
+  symsustain     0.7
+  symtune        #0
+  tone           0.56
+  volume         1.19
+  insert Chorus
+  mix          0.35
+
+patch Banjo family=picked  note=62 range=50..84
+  set macro1 "Bridge"
+  set macro2 "Softer"
+  set macro3 "Ring"
+  set macro4 "Head"
+  set macro5 "Twang"
+  set macro6 "Mute"
+  set macro7 "Courses"
+  set macro8 "Drive"
+  mac1_d1  #1
+  mac1_a1  -0.04
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  -0.3
+  mac2_d2  #5
+  mac2_a2  -0.4
+  mac2_d3  #1
+  mac2_a3  0.2
+  mac3_d1  #8
+  mac3_a1  0.2
+  mac4_d1  #24
+  mac4_a1  0.45
+  mac4_d2  #23
+  mac4_a2  0.35
+  mac4_d3  #25
+  mac4_a3  -0.4
+  mac4_d4  #10
+  mac4_a4  -0.12
+  mac5_d1  #13
+  mac5_a1  0.4
+  mac6_d1  #15
+  mac6_a1  0.3
+  mac6_d2  #8
+  mac6_a2  -0.3
+  mac7_d1  #18
+  mac7_a1  0.2
+  mac7_d2  #20
+  mac7_a2  0.3
+  mac8_d1  #26
+  mac8_a1  0.4
+  bodydamp       0.15
+  bodymix        0.65
+  couple         0.1
+  detune         2 c
+  drive          0.1
+  exciter        #1
+  grit           0.7
+  position       0.08
+  size           0.2
+  sustain        0.52
+  tension        0.35
+  tone           0.68
+  volume         0.96
+
+patch Bottleneck family=picked  note=55 range=40..76
+  set macro1 "Slide"
+  set macro2 "Brighter"
+  set macro3 "Ring"
+  set macro4 "Vibrato"
+  set macro5 "Body"
+  set macro6 "Drive"
+  set macro7 "Chorus"
+  set macro8 "Rattle"
+  mac1_d1  #49
+  mac1_a1  -0.0417
+  mac2_d1  #10
+  mac2_a1  0.3
+  mac2_d2  #5
+  mac2_a2  0.3
+  mac3_d1  #8
+  mac3_a1  0.15
+  mac4_d1  #47
+  mac4_a1  0.25
+  mac4_d2  #48
+  mac4_a2  -0.15
+  mac5_d1  #24
+  mac5_a1  0.45
+  mac5_d2  #23
+  mac5_a2  0.35
+  mac5_d3  #25
+  mac5_a3  -0.4
+  mac5_d4  #10
+  mac5_a4  -0.12
+  mac6_d1  #26
+  mac6_a1  0.7
+  mac6_d2  #10
+  mac6_a2  0.1
+  mac7_d1  #18
+  mac7_a1  0.2
+  mac7_d2  #20
+  mac7_a2  0.2
+  mac8_d1  #16
+  mac8_a1  0.6
+  mac8_d2  #17
+  mac8_a2  -0.3
+  bodymix        0.35
+  couple         0.3
+  detune         4 c
+  drive          0.2
+  eg1atk         0.001 s
+  eg1dec         0.12 s
+  eg1sus         0
+  eg1rel         0.05 s
+  exciter        #1
+  grit           0.5
+  m1_src         #7
+  m1_dst         #1
+  m1_amt         -0.083
+  position       0.2
+  size           0.55
+  stiffness      0.12
+  sustain        0.85
+  tone           0.5
+  vibrate        5 Hz
+  vibdepth       14 c
+  vibdelay       0.3 s
+  volume         1.00
+  send reverb    0.15
+
+patch "Picked Wire" family=picked  note=64 range=53..88
+  set macro1 "Softer"
+  set macro2 "Stiffer"
+  set macro3 "Ring"
+  set macro4 "Courses"
+  set macro5 "Twang"
+  set macro6 "Rattle"
+  set macro7 "Body"
+  set macro8 "Mute"
+  mac1_d1  #10
+  mac1_a1  -0.3
+  mac1_d2  #5
+  mac1_a2  -0.3
+  mac2_d1  #12
+  mac2_a1  0.15
+  mac3_d1  #8
+  mac3_a1  0.08
+  mac4_d1  #18
+  mac4_a1  -0.3
+  mac4_d2  #20
+  mac4_a2  -0.3
+  mac5_d1  #13
+  mac5_a1  0.2
+  mac6_d1  #16
+  mac6_a1  0.6
+  mac6_d2  #17
+  mac6_a2  -0.3
+  mac7_d1  #24
+  mac7_a1  0.45
+  mac7_d2  #23
+  mac7_a2  0.35
+  mac7_d3  #25
+  mac7_a3  -0.4
+  mac7_d4  #10
+  mac7_a4  -0.12
+  mac8_d1  #15
+  mac8_a1  0.3
+  mac8_d2  #8
+  mac8_a2  -0.4
+  couple         0.8
+  detune         30 c
+  drive          0.3
+  exciter        #1
+  position       0.044
+  rattle         0.3
+  stages         #4
+  stiffness      0.85
+  sustain        0.907
+  tension        0.8
+  tone           0.85
+  volume         0.86
+
 patch Hammered family=struck  note=60 range=36..84
+  set macro1 "Harder"
+  set macro2 "Brighter"
+  set macro3 "Strike Point"
+  set macro4 "Damp"
+  set macro5 "Buzz"
+  set macro6 "Stiffer"
+  set macro7 "Courses"
+  set macro8 "Body"
+  mac1_d1  #6
+  mac1_a1  -0.15
+  mac1_d2  #2
+  mac1_a2  0.3
+  mac2_d1  #10
+  mac2_a1  0.3
+  mac3_d1  #1
+  mac3_a1  0.25
+  mac4_d1  #8
+  mac4_a1  -0.35
+  mac4_d2  #15
+  mac4_a2  0.2
+  mac5_d1  #16
+  mac5_a1  0.6
+  mac5_d2  #17
+  mac5_a2  -0.3
+  mac6_d1  #12
+  mac6_a1  0.3
+  mac7_d1  #18
+  mac7_a1  0.2
+  mac7_d2  #20
+  mac7_a2  0.3
+  mac8_d1  #24
+  mac8_a1  0.45
+  mac8_d2  #23
+  mac8_a2  0.35
+  mac8_d3  #25
+  mac8_a3  -0.4
+  mac8_d4  #10
+  mac8_a4  -0.12
   bodymix        0.3
   couple         0.5
   exciter        #2
@@ -194,14 +1139,426 @@ patch Hammered family=struck  note=60 range=36..84
   stages         #4
   stiffness      0.55
   sustain        0.943
-  symlevel       0.25
+  symlevel       0.0645
   sympathy       #1
   symtune        #5
   tension        0.3
   tone           0.5
-  volume         0.34
+  volume         0.32
 
-patch Bowed family=sustained  note=55 range=36..76
+patch "Soft Hammers" family=struck  note=62 range=48..86
+  set macro1 "Harder"
+  set macro2 "Brighter"
+  set macro3 "Ring"
+  set macro4 "Damp"
+  set macro5 "Board"
+  set macro6 "Courses"
+  set macro7 "Buzz"
+  set macro8 "Tremble"
+  mac1_d1  #6
+  mac1_a1  -0.1
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac1_d3  #27
+  mac1_a3  -0.08
+  mac2_d1  #10
+  mac2_a1  0.3
+  mac3_d1  #8
+  mac3_a1  0.08
+  mac4_d1  #8
+  mac4_a1  -0.4
+  mac4_d2  #15
+  mac4_a2  0.2
+  mac5_d1  #24
+  mac5_a1  0.45
+  mac5_d2  #23
+  mac5_a2  0.35
+  mac5_d3  #25
+  mac5_a3  -0.4
+  mac5_d4  #10
+  mac5_a4  -0.2
+  mac6_d1  #18
+  mac6_a1  0.2
+  mac6_d2  #20
+  mac6_a2  0.3
+  mac7_d1  #16
+  mac7_a1  0.6
+  mac7_d2  #17
+  mac7_a2  -0.3
+  mac8_d1  #47
+  mac8_a1  0.1
+  "on release"   #0
+  bodymix        0.35
+  couple         0.4
+  detune         4 c
+  exciter        #2
+  hardness       0.2
+  length         0.004 s
+  position       0.12
+  size           0.5
+  stages         #2
+  stiffness      0.2
+  sustain        0.86
+  sustainkey     0.6
+  tone           0.42
+  volume         0.35
+  send reverb    0.15
+
+patch "Wide Hammers" family=struck  note=62 range=40..86
+  set macro1 "Harder"
+  set macro2 "Softer"
+  set macro3 "Ring"
+  set macro4 "Pedal"
+  set macro5 "Buzz"
+  set macro6 "Courses"
+  set macro7 "Stiffer"
+  set macro8 "Body"
+  mac1_d1  #6
+  mac1_a1  -0.05
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac1_d3  #27
+  mac1_a3  -0.1
+  mac2_d1  #6
+  mac2_a1  0.2
+  mac2_d2  #10
+  mac2_a2  -0.25
+  mac3_d1  #8
+  mac3_a1  0.1
+  mac3_d2  #22
+  mac3_a2  0.1
+  mac4_d1  #8
+  mac4_a1  -0.35
+  mac4_d2  #21
+  mac4_a2  -0.3
+  mac5_d1  #16
+  mac5_a1  0.6
+  mac5_d2  #17
+  mac5_a2  -0.3
+  mac6_d1  #18
+  mac6_a1  0.2
+  mac6_d2  #20
+  mac6_a2  0.3
+  mac7_d1  #12
+  mac7_a1  0.3
+  mac8_d1  #24
+  mac8_a1  0.45
+  mac8_d2  #23
+  mac8_a2  0.35
+  mac8_d3  #25
+  mac8_a3  -0.4
+  mac8_d4  #10
+  mac8_a4  -0.12
+  "on release"   #0
+  bodymix        0.4
+  couple         0.6
+  detune         5 c
+  exciter        #2
+  hardness       0.7
+  length         0.0009 s
+  position       0.11
+  size           0.7
+  spread         0.45
+  stages         #3
+  stiffness      0.35
+  sustain        0.9
+  symlevel       0.0775
+  sympathy       #1
+  symsustain     0.8
+  symtune        #5
+  tone           0.46
+  volume         0.47
+  send reverb    0.12
+
+patch "Pressed Wire" family=struck  note=60 range=41..84
+  set macro1 "Harder"
+  set macro2 "Brighter"
+  set macro3 "Ring"
+  set macro4 "Rock"
+  set macro5 "Felt"
+  set macro6 "Courses"
+  set macro7 "Body"
+  set macro8 "Buzz"
+  mac1_d1  #6
+  mac1_a1  -0.1
+  mac1_d2  #10
+  mac1_a2  0.2
+  mac2_d1  #10
+  mac2_a1  0.3
+  mac3_d1  #8
+  mac3_a1  0.15
+  mac3_d2  #30
+  mac3_a2  0.3
+  mac4_d1  #47
+  mac4_a1  0.25
+  mac4_d2  #48
+  mac4_a2  -0.1
+  mac5_d1  #15
+  mac5_a1  0.4
+  mac5_d2  #10
+  mac5_a2  -0.15
+  mac6_d1  #18
+  mac6_a1  0.2
+  mac6_d2  #20
+  mac6_a2  0.3
+  mac7_d1  #24
+  mac7_a1  0.45
+  mac7_d2  #23
+  mac7_a2  0.35
+  mac7_d3  #25
+  mac7_a3  -0.4
+  mac7_d4  #10
+  mac7_a4  -0.12
+  mac8_d1  #16
+  mac8_a1  0.6
+  mac8_d2  #17
+  mac8_a2  -0.3
+  bodymix        0.5
+  couple         0.3
+  "damp time"    0.03 s
+  detune         2 c
+  exciter        #2
+  hardness       0.9
+  length         0.0005 s
+  position       0.1
+  size           0.45
+  sustain        0.74
+  tone           0.55
+  vibrate        5.5 Hz
+  vibdepth       6 c
+  vibdelay       0.4 s
+  volume         0.57
+
+patch "Bare Wire" family=struck  note=60 range=36..88
+  set macro1 "Harder"
+  set macro2 "Brighter"
+  set macro3 "Strike Point"
+  set macro4 "Damp"
+  set macro5 "Stiffer"
+  set macro6 "Beating"
+  set macro7 "Board"
+  set macro8 "Buzz"
+  mac1_d1  #6
+  mac1_a1  -0.15
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.3
+  mac3_d1  #1
+  mac3_a1  0.2
+  mac4_d1  #8
+  mac4_a1  -0.35
+  mac4_d2  #15
+  mac4_a2  0.2
+  mac5_d1  #12
+  mac5_a1  0.5
+  mac5_d2  #13
+  mac5_a2  0.3
+  mac6_d1  #18
+  mac6_a1  0.15
+  mac6_d2  #20
+  mac6_a2  -0.3
+  mac7_d1  #24
+  mac7_a1  0.45
+  mac7_d2  #23
+  mac7_a2  0.35
+  mac7_d3  #25
+  mac7_a3  -0.4
+  mac7_d4  #10
+  mac7_a4  -0.12
+  mac8_d1  #16
+  mac8_a1  0.6
+  mac8_d2  #17
+  mac8_a2  -0.3
+  bodymix        0.25
+  couple         0.5
+  "damp time"    0.3 s
+  detune         1.5 c
+  exciter        #2
+  hardness       0.5
+  length         0.002 s
+  position       0.143
+  size           0.8
+  stages         #4
+  stiffness      0.45
+  sustain        0.93
+  sustainkey     0.6
+  symlevel       0
+  sympathy       #1
+  symtune        #5
+  tension        0.2
+  tone           0.55
+  volume         0.25
+  send reverb    0.12
+
+patch "Struck Bass" family=struck  note=38 range=28..55
+  set macro1 "Harder"
+  set macro2 "Brighter"
+  set macro3 "Strike Point"
+  set macro4 "Damp"
+  set macro5 "Buzz"
+  set macro6 "Vibrato"
+  set macro7 "Body"
+  set macro8 "Drive"
+  mac1_d1  #6
+  mac1_a1  -0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac1_d3  #27
+  mac1_a3  -0.1
+  mac2_d1  #10
+  mac2_a1  0.4
+  mac2_d2  #6
+  mac2_a2  -0.04
+  mac2_d3  #27
+  mac2_a3  -0.05
+  mac3_d1  #1
+  mac3_a1  0.25
+  mac4_d1  #8
+  mac4_a1  -0.35
+  mac4_d2  #15
+  mac4_a2  0.2
+  mac5_d1  #16
+  mac5_a1  0.6
+  mac5_d2  #17
+  mac5_a2  -0.3
+  mac6_d1  #47
+  mac6_a1  0.2
+  mac7_d1  #24
+  mac7_a1  0.45
+  mac7_d2  #23
+  mac7_a2  0.35
+  mac7_d3  #25
+  mac7_a3  -0.4
+  mac7_d4  #10
+  mac7_a4  -0.12
+  mac8_d1  #26
+  mac8_a1  0.7
+  mac8_d2  #10
+  mac8_a2  0.1
+  bodymix        0.35
+  couple         0.4
+  detune         3 c
+  drive          0.15
+  exciter        #2
+  hardness       0.4
+  length         0.006 s
+  position       0.14
+  size           0.9
+  stages         #4
+  stiffness      0.3
+  sustain        0.85
+  tension        0.3
+  tone           0.4
+  volume         1.31
+
+patch "Bell Wire" family=struck  note=67 range=55..83
+  set macro1 "Softer"
+  set macro2 "Brighter"
+  set macro3 "Twang"
+  set macro4 "Damp"
+  set macro5 "Tremolo"
+  set macro6 "Beating"
+  set macro7 "Strike Point"
+  set macro8 "Wobble"
+  mac1_d1  #6
+  mac1_a1  0.2
+  mac1_d2  #10
+  mac1_a2  -0.3
+  mac2_d1  #10
+  mac2_a1  0.15
+  mac3_d1  #13
+  mac3_a1  0.5
+  mac4_d1  #8
+  mac4_a1  -0.35
+  mac4_d2  #15
+  mac4_a2  0.2
+  mac5_d1  #40
+  mac5_a1  0.7
+  mac6_d1  #18
+  mac6_a1  0.3
+  mac7_d1  #1
+  mac7_a1  0.25
+  mac8_d1  #47
+  mac8_a1  0.1
+  mac8_d2  #46
+  mac8_a2  0.2
+  "on release"   #0
+  bodymix        0.2
+  couple         0.2
+  detune         20 c
+  exciter        #2
+  hardness       0.8
+  lfo1wave       #0
+  lfo1rate       5 Hz
+  lfo1depth      0
+  m1_src         #9
+  m1_dst         #16
+  m1_amt         -0.5
+  length         0.0006 s
+  position       0.22
+  size           0.3
+  stages         #4
+  stiffness      0.95
+  sustain        0.95
+  symlevel       0.0387
+  sympathy       #1
+  symsustain     0.85
+  symtune        #4
+  tone           0.8
+  volume         0.3
+  send reverb    0.25
+
+patch Bowed family=bowed  note=55 range=36..76
+  vibrate        5.2 Hz
+  vibdepth       12 c
+  vibdelay       0.45 s
+  set macro1 "Bow Harder"
+  set macro2 "Brighter"
+  set macro3 "Vibrato"
+  set macro4 "Sul Pont"
+  set macro5 "Body"
+  set macro6 "Ensemble"
+  set macro7 "Grit"
+  set macro8 "Darker"
+  mac1_d1  #3
+  mac1_a1  0.15
+  mac1_d2  #4
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.3
+  mac2_d2  #5
+  mac2_a2  0.2
+  mac3_d1  #47
+  mac3_a1  0.25
+  mac3_d2  #46
+  mac3_a2  0.1
+  mac4_d1  #10
+  mac4_a1  0.35
+  mac4_d2  #5
+  mac4_a2  0.4
+  mac4_d3  #4
+  mac4_a3  -0.1
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #23
+  mac5_a2  0.3
+  mac5_d3  #25
+  mac5_a3  -0.2
+  mac6_d1  #18
+  mac6_a1  0.15
+  mac6_d2  #20
+  mac6_a2  0.3
+  mac6_d3  #19
+  mac6_a3  0.4
+  mac7_d1  #5
+  mac7_a1  0.5
+  mac7_d2  #3
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  -0.25
+  mac8_d2  #5
+  mac8_a2  -0.2
   bodymix        0.4
   exciter        #3
   grit           0.3
@@ -215,12 +1572,392 @@ patch Bowed family=sustained  note=55 range=36..76
   sustain        0.454
   tone           0.4
   velocity       0.4
-  volume         0.17
+  volume         0.115
+
+patch "Low Bow" family=bowed  note=48 range=36..67
+  set macro1 "Bow Harder"
+  set macro2 "Brighter"
+  set macro3 "Vibrato"
+  set macro4 "Sul Pont"
+  set macro5 "Body"
+  set macro6 "Ensemble"
+  set macro7 "Flautando"
+  set macro8 "Darker"
+  mac1_d1  #3
+  mac1_a1  0.1
+  mac1_d2  #4
+  mac1_a2  0.1
+  mac2_d1  #10
+  mac2_a1  0.3
+  mac2_d2  #5
+  mac2_a2  0.2
+  mac3_d1  #47
+  mac3_a1  0.2
+  mac3_d2  #46
+  mac3_a2  0.08
+  mac4_d1  #10
+  mac4_a1  0.35
+  mac4_d2  #5
+  mac4_a2  0.4
+  mac4_d3  #4
+  mac4_a3  -0.1
+  mac5_d1  #24
+  mac5_a1  0.35
+  mac5_d2  #23
+  mac5_a2  -0.25
+  mac5_d3  #25
+  mac5_a3  -0.3
+  mac6_d1  #18
+  mac6_a1  0.15
+  mac6_d2  #20
+  mac6_a2  0.3
+  mac6_d3  #19
+  mac6_a3  0.4
+  mac7_d1  #3
+  mac7_a1  -0.1
+  mac7_d2  #4
+  mac7_a2  0.1
+  mac7_d3  #10
+  mac7_a3  -0.15
+  mac8_d1  #10
+  mac8_a1  -0.25
+  mac8_d2  #5
+  mac8_a2  -0.2
+  vibrate        4.8 Hz
+  vibdepth       14 c
+  vibdelay       0.5 s
+  bodydamp       0.4
+  bodymix        0.55
+  exciter        #3
+  grit           0.35
+  pressure       0.85
+  size           0.25
+  speed          0.75
+  sustain        0.5
+  tone           0.36
+  velocity       0.4
+  volume         0.144
+  send reverb    0.12
+
+patch "Folk Fiddle" family=bowed  note=69 range=55..88 role=lead
+  set macro1 "Bow Harder"
+  set macro2 "Brighter"
+  set macro3 "Vibrato"
+  set macro4 "Scratch"
+  set macro5 "Body"
+  set macro6 "Courses"
+  set macro7 "Drones"
+  set macro8 "Darker"
+  mac1_d1  #3
+  mac1_a1  0.15
+  mac1_d2  #4
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.3
+  mac2_d2  #5
+  mac2_a2  0.2
+  mac3_d1  #47
+  mac3_a1  0.2
+  mac3_d2  #46
+  mac3_a2  0.1
+  mac4_d1  #5
+  mac4_a1  0.5
+  mac4_d2  #3
+  mac4_a2  0.1
+  mac5_d1  #24
+  mac5_a1  0.35
+  mac5_d2  #23
+  mac5_a2  0.25
+  mac5_d3  #25
+  mac5_a3  -0.3
+  mac6_d1  #18
+  mac6_a1  0.2
+  mac6_d2  #20
+  mac6_a2  0.3
+  mac7_d1  #21
+  mac7_a1  0.6
+  mac8_d1  #10
+  mac8_a1  -0.3
+  mac8_d2  #5
+  mac8_a2  -0.2
+  vibrate        6 Hz
+  vibdepth       10 c
+  vibdelay       0.25 s
+  voicemode      #2
+  glide          0.06 s
+  bodymix        0.45
+  exciter        #3
+  grit           0.35
+  pressure       0.8
+  size           0.72
+  speed          0.85
+  sustain        0.45
+  symlevel       0
+  sympathy       #1
+  symtune        #1
+  tone           0.52
+  velocity       0.4
+  volume         0.121
+
+patch "Massed Bows" family=bowed  note=55 range=36..79
+  set macro1 "Bow Harder"
+  set macro2 "Brighter"
+  set macro3 "Vibrato"
+  set macro4 "Wider"
+  set macro5 "Body"
+  set macro6 "Slow Bow"
+  set macro7 "Sul Pont"
+  set macro8 "Darker"
+  mac1_d1  #3
+  mac1_a1  0.15
+  mac1_d2  #4
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.3
+  mac2_d2  #5
+  mac2_a2  0.2
+  mac3_d1  #47
+  mac3_a1  0.2
+  mac4_d1  #18
+  mac4_a1  0.3
+  mac4_d2  #19
+  mac4_a2  0.15
+  mac5_d1  #24
+  mac5_a1  0.35
+  mac5_d2  #23
+  mac5_a2  -0.25
+  mac5_d3  #25
+  mac5_a3  -0.3
+  mac6_d1  #4
+  mac6_a1  -0.15
+  mac7_d1  #10
+  mac7_a1  0.35
+  mac7_d2  #5
+  mac7_a2  0.4
+  mac8_d1  #10
+  mac8_a1  -0.25
+  mac8_d2  #5
+  mac8_a2  -0.2
+  vibrate        5.5 Hz
+  vibdepth       12 c
+  vibdelay       0.3 s
+  bodymix        0.5
+  couple         0.5
+  detune         14 c
+  exciter        #3
+  grit           0.3
+  pressure       0.85
+  size           0.4
+  speed          0.8
+  spread         0.9
+  sustain        0.5
+  tone           0.42
+  velocity       0.4
+  volume         0.133
+  insert Chorus
+  mix          0.4
+  send reverb    0.2
+
+patch "Tremolo Bow" family=bowed  note=57 range=43..76
+  set macro1 "Faster"
+  set macro2 "Deeper"
+  set macro3 "Bow Harder"
+  set macro4 "Brighter"
+  set macro5 "Vibrato"
+  set macro6 "Body"
+  set macro7 "Ensemble"
+  set macro8 "Darker"
+  mac1_d1  #39
+  mac1_a1  0.12
+  mac2_d1  #40
+  mac2_a1  0.4
+  mac3_d1  #3
+  mac3_a1  0.15
+  mac3_d2  #4
+  mac3_a2  0.15
+  mac4_d1  #10
+  mac4_a1  0.3
+  mac4_d2  #5
+  mac4_a2  0.2
+  mac5_d1  #47
+  mac5_a1  0.25
+  mac6_d1  #24
+  mac6_a1  0.35
+  mac6_d2  #23
+  mac6_a2  -0.25
+  mac6_d3  #25
+  mac6_a3  -0.3
+  mac7_d1  #18
+  mac7_a1  0.15
+  mac7_d2  #20
+  mac7_a2  0.3
+  mac7_d3  #19
+  mac7_a3  0.4
+  mac8_d1  #10
+  mac8_a1  -0.25
+  mac8_d2  #5
+  mac8_a2  -0.2
+  lfo1wave       #1
+  lfo1rate       9 Hz
+  lfo1depth      0.6
+  m1_src         #9
+  m1_dst         #6
+  m1_amt         0.4
+  m2_src         #9
+  m2_dst         #16
+  m2_amt         0.05
+  bodymix        0.4
+  exciter        #3
+  grit           0.3
+  pressure       0.85
+  speed          0.8
+  sustain        0.454
+  tone           0.42
+  velocity       0.4
+  volume         0.117
+
+patch Ponticello family=bowed  note=60 range=43..81
+  set macro1 "Glassier"
+  set macro2 "Bow Harder"
+  set macro3 "Scratch"
+  set macro4 "Vibrato"
+  set macro5 "Body"
+  set macro6 "Ensemble"
+  set macro7 "Ordinario"
+  set macro8 "Rattle"
+  mac1_d1  #10
+  mac1_a1  0.12
+  mac1_d2  #12
+  mac1_a2  0.25
+  mac2_d1  #3
+  mac2_a1  0.15
+  mac2_d2  #4
+  mac2_a2  0.15
+  mac3_d1  #5
+  mac3_a1  0.4
+  mac4_d1  #47
+  mac4_a1  0.25
+  mac5_d1  #24
+  mac5_a1  0.35
+  mac5_d2  #23
+  mac5_a2  -0.25
+  mac5_d3  #25
+  mac5_a3  -0.3
+  mac6_d1  #18
+  mac6_a1  0.15
+  mac6_d2  #20
+  mac6_a2  0.3
+  mac6_d3  #19
+  mac6_a3  0.4
+  mac7_d1  #10
+  mac7_a1  -0.4
+  mac7_d2  #5
+  mac7_a2  -0.3
+  mac8_d1  #16
+  mac8_a1  0.5
+  mac8_d2  #17
+  mac8_a2  -0.2
+  vibrate        5.6 Hz
+  vibdepth       6 c
+  vibdelay       0.4 s
+  bodymix        0.3
+  exciter        #3
+  grit           0.55
+  pressure       0.75
+  speed          0.9
+  stiffness      0.12
+  sustain        0.5
+  tone           0.82
+  tonekey        0
+  velocity       0.4
+  volume         0.148
+
+patch "Col Legno" family=bowed  note=57 range=40..79
+  set macro1 "More Wood"
+  set macro2 "More Hair"
+  set macro3 "Faster"
+  set macro4 "Brighter"
+  set macro5 "Ring"
+  set macro6 "Body"
+  set macro7 "Ensemble"
+  set macro8 "Darker"
+  mac1_d1  #5
+  mac1_a1  0.12
+  mac1_d2  #3
+  mac1_a2  -0.03
+  mac2_d1  #3
+  mac2_a1  0.06
+  mac2_d2  #5
+  mac2_a2  -0.15
+  mac3_d1  #4
+  mac3_a1  0.3
+  mac4_d1  #10
+  mac4_a1  0.3
+  mac5_d1  #8
+  mac5_a1  0.25
+  mac6_d1  #24
+  mac6_a1  0.35
+  mac6_d2  #23
+  mac6_a2  -0.25
+  mac6_d3  #25
+  mac6_a3  -0.3
+  mac7_d1  #18
+  mac7_a1  0.15
+  mac7_d2  #20
+  mac7_a2  0.3
+  mac7_d3  #19
+  mac7_a3  0.4
+  mac8_d1  #10
+  mac8_a1  -0.3
+  bodymix        0.45
+  exciter        #3
+  grit           0.8
+  pressure       0.8
+  size           0.55
+  speed          0.5
+  sustain        0.4
+  tone           0.55
+  velocity       0.4
+  volume         0.323
 
 # 48..82 rather than 84: at a kilohertz a string blown at rather than
 # struck is nine parts jet noise to one part note, and 84 measured 0.11 on
 # the harmonic series with the right pitch underneath it.
-patch Blown family=sustained  note=67 range=48..82
+
+patch "Blown String" family=blown  note=67 range=48..82
+  vibrate        4.8 Hz
+  vibdepth       10 c
+  vibdelay       0.6 s
+  set macro1 "Blow Harder"
+  set macro2 "Breathy"
+  set macro3 "Vibrato"
+  set macro4 "Brighter"
+  set macro5 "Body"
+  set macro6 "Ring"
+  set macro7 "Stiff"
+  set macro8 "Flutter"
+  mac1_d1  #3
+  mac1_a1  0.3
+  mac2_d1  #5
+  mac2_a1  0.25
+  mac2_d2  #29
+  mac2_a2  0.1
+  mac3_d1  #47
+  mac3_a1  0.25
+  mac4_d1  #10
+  mac4_a1  0.3
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #23
+  mac5_a2  -0.2
+  mac6_d1  #8
+  mac6_a1  0.25
+  mac7_d1  #12
+  mac7_a1  0.3
+  mac8_d1  #46
+  mac8_a1  0.25
+  mac8_d2  #47
+  mac8_a2  0.15
   bodymix        0.5
   exciter        #4
   grit           0.7
@@ -229,9 +1966,234 @@ patch Blown family=sustained  note=67 range=48..82
   stiffness      0.1
   sustain        0.41
   tone           0.3
-  volume         0.53
+  volume         0.602
 
-patch Sympathy family=prepared  note=60 range=45..81
+patch "Low Breath" family=blown  note=50 range=38..67
+  set macro1 "Blow Harder"
+  set macro2 "Breathy"
+  set macro3 "Vibrato"
+  set macro4 "Brighter"
+  set macro5 "Body"
+  set macro6 "Ring"
+  set macro7 "Stiff"
+  set macro8 "Darker"
+  mac1_d1  #3
+  mac1_a1  0.3
+  mac2_d1  #5
+  mac2_a1  0.25
+  mac2_d2  #29
+  mac2_a2  0.1
+  mac3_d1  #47
+  mac3_a1  0.25
+  mac4_d1  #10
+  mac4_a1  0.3
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #23
+  mac5_a2  -0.25
+  mac6_d1  #8
+  mac6_a1  0.25
+  mac7_d1  #12
+  mac7_a1  0.3
+  mac8_d1  #10
+  mac8_a1  -0.12
+  mac8_d2  #5
+  mac8_a2  -0.15
+  vibrate        4.4 Hz
+  vibdepth       8 c
+  vibdelay       0.7 s
+  bodymix        0.5
+  exciter        #4
+  grit           0.35
+  pressure       0.6
+  size           0.35
+  stiffness      0.05
+  sustain        0.5
+  tone           0.25
+  volume         1.07
+
+patch "Hard Breath" family=blown  note=62 range=48..79
+  set macro1 "Blow Harder"
+  set macro2 "Breathy"
+  set macro3 "Vibrato"
+  set macro4 "Brighter"
+  set macro5 "Body"
+  set macro6 "Ring"
+  set macro7 "Gentler"
+  set macro8 "Bite"
+  mac1_d1  #3
+  mac1_a1  0.15
+  mac2_d1  #5
+  mac2_a1  0.25
+  mac2_d2  #29
+  mac2_a2  0.1
+  mac3_d1  #47
+  mac3_a1  0.25
+  mac4_d1  #10
+  mac4_a1  0.3
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #23
+  mac5_a2  -0.2
+  mac6_d1  #8
+  mac6_a1  0.25
+  mac7_d1  #3
+  mac7_a1  -0.3
+  mac8_d1  #10
+  mac8_a1  0.2
+  mac8_d2  #5
+  mac8_a2  0.3
+  vibrate        5 Hz
+  vibdepth       10 c
+  vibdelay       0.4 s
+  bodymix        0.4
+  drive          0.25
+  exciter        #4
+  grit           0.4
+  pressure       0.85
+  sustain        0.5
+  tone           0.8
+  volume         0.38
+
+patch "Wind Wire" family=blown  note=64 range=50..84
+  set macro1 "Gusts"
+  set macro2 "Faster Gusts"
+  set macro3 "Blow Harder"
+  set macro4 "Stiffer"
+  set macro5 "Brighter"
+  set macro6 "Ring"
+  set macro7 "Whistle"
+  set macro8 "Courses"
+  mac1_d1  #40
+  mac1_a1  0.4
+  mac2_d1  #39
+  mac2_a1  0.2
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac4_d1  #12
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  0.25
+  mac6_d1  #8
+  mac6_a1  0.2
+  mac7_d1  #5
+  mac7_a1  -0.4
+  mac8_d1  #18
+  mac8_a1  0.3
+  mac8_d2  #20
+  mac8_a2  0.3
+  lfo1wave       #6
+  lfo1rate       0.4 Hz
+  lfo1depth      0.6
+  m1_src         #9
+  m1_dst         #6
+  m1_amt         0.5
+  couple         0.2
+  detune         12 c
+  exciter        #4
+  grit           0.85
+  pressure       0.6
+  stages         #4
+  stiffness      0.5
+  sustain        0.7
+  tension        0.6
+  tone           0.6
+  volume         0.248
+  send reverb    0.15
+
+patch "Aeolian Harp" family=blown  note=55 range=40..76
+  set macro1 "Gusts"
+  set macro2 "Faster Gusts"
+  set macro3 "Blow Harder"
+  set macro4 "Halo"
+  set macro5 "Brighter"
+  set macro6 "Body"
+  set macro7 "Calm"
+  set macro8 "Stiffer"
+  mac1_d1  #40
+  mac1_a1  0.4
+  mac2_d1  #39
+  mac2_a1  0.2
+  mac2_d2  #41
+  mac2_a2  0.2
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac4_d1  #21
+  mac4_a1  0.3
+  mac4_d2  #22
+  mac4_a2  0.1
+  mac5_d1  #10
+  mac5_a1  0.25
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #23
+  mac6_a2  -0.2
+  mac7_d1  #5
+  mac7_a1  -0.3
+  mac7_d2  #3
+  mac7_a2  -0.1
+  mac8_d1  #12
+  mac8_a1  0.3
+  lfo1wave       #6
+  lfo1rate       0.25 Hz
+  lfo1depth      0.6
+  lfo2wave       #6
+  lfo2rate       0.13 Hz
+  m1_src         #9
+  m1_dst         #6
+  m1_amt         0.6
+  m2_src         #10
+  m2_dst         #4
+  m2_amt         0.3
+  bodymix        0.4
+  exciter        #4
+  grit           0.6
+  pressure       0.65
+  size           0.6
+  sustain        0.8
+  symlevel       0.4
+  sympathy       #1
+  symsustain     0.85
+  symtune        #4
+  tone           0.45
+  volume         0.263
+  send reverb    0.25
+
+patch "Sympathetic Strings" family=sympathetic  note=60 range=45..81
+  set macro1 "More Halo"
+  set macro2 "Longer Halo"
+  set macro3 "Bridge"
+  set macro4 "Brighter"
+  set macro5 "Ring"
+  set macro6 "Mute"
+  set macro7 "Body"
+  set macro8 "Darker"
+  mac1_d1  #21
+  mac1_a1  0.3
+  mac2_d1  #22
+  mac2_a1  0.2
+  mac3_d1  #1
+  mac3_a1  -0.35
+  mac3_d2  #10
+  mac3_a2  0.15
+  mac4_d1  #10
+  mac4_a1  0.3
+  mac4_d2  #5
+  mac4_a2  0.3
+  mac5_d1  #8
+  mac5_a1  0.2
+  mac6_d1  #15
+  mac6_a1  0.3
+  mac6_d2  #8
+  mac6_a2  -0.3
+  mac7_d1  #24
+  mac7_a1  0.35
+  mac7_d2  #23
+  mac7_a2  -0.25
+  mac7_d3  #25
+  mac7_a3  -0.3
+  mac8_d1  #10
+  mac8_a1  -0.25
   "on release"   #0
   symlevel       0.7
   sympathy       #1
@@ -241,7 +2203,294 @@ patch Sympathy family=prepared  note=60 range=45..81
   tone           0.5
   volume         0.68
 
+patch "Fifths Drone" family=sympathetic  note=55 range=40..76
+  set macro1 "More Drone"
+  set macro2 "Shorter Drone"
+  set macro3 "Bridge"
+  set macro4 "Brighter"
+  set macro5 "Ring"
+  set macro6 "Mute"
+  set macro7 "Body"
+  set macro8 "Darker"
+  mac1_d1  #21
+  mac1_a1  0.3
+  mac2_d1  #22
+  mac2_a1  -0.35
+  mac3_d1  #1
+  mac3_a1  -0.35
+  mac3_d2  #10
+  mac3_a2  0.15
+  mac4_d1  #10
+  mac4_a1  0.2
+  mac4_d2  #5
+  mac4_a2  0.2
+  mac5_d1  #8
+  mac5_a1  0.2
+  mac6_d1  #15
+  mac6_a1  0.3
+  mac6_d2  #8
+  mac6_a2  -0.25
+  mac7_d1  #24
+  mac7_a1  0.35
+  mac7_d2  #23
+  mac7_a2  -0.25
+  mac7_d3  #25
+  mac7_a3  -0.3
+  mac8_d1  #10
+  mac8_a1  -0.25
+  "on release"   #0
+  bodymix        0.4
+  position       0.2
+  sustain        0.75
+  symlevel       0.5
+  sympathy       #1
+  symsustain     0.82
+  symtune        #1
+  tone           0.45
+  volume         0.688
+  send reverb    0.12
+
+patch "Course Shimmer" family=sympathetic  note=60 range=45..84
+  set macro1 "More Shimmer"
+  set macro2 "Longer"
+  set macro3 "Wider"
+  set macro4 "Brighter"
+  set macro5 "Bridge"
+  set macro6 "Mute"
+  set macro7 "Body"
+  set macro8 "Darker"
+  mac1_d1  #21
+  mac1_a1  0.3
+  mac2_d1  #22
+  mac2_a1  0.15
+  mac2_d2  #8
+  mac2_a2  0.15
+  mac3_d1  #18
+  mac3_a1  0.2
+  mac3_d2  #19
+  mac3_a2  0.3
+  mac4_d1  #10
+  mac4_a1  0.2
+  mac4_d2  #5
+  mac4_a2  0.2
+  mac5_d1  #1
+  mac5_a1  -0.3
+  mac6_d1  #15
+  mac6_a1  0.3
+  mac6_d2  #8
+  mac6_a2  -0.3
+  mac7_d1  #24
+  mac7_a1  0.35
+  mac7_d2  #23
+  mac7_a2  -0.25
+  mac7_d3  #25
+  mac7_a3  -0.3
+  mac8_d1  #10
+  mac8_a1  -0.25
+  "on release"   #0
+  bodymix        0.35
+  couple         0.4
+  detune         8 c
+  exciter        #1
+  position       0.15
+  spread         0.6
+  sustain        0.7
+  symlevel       0.75
+  sympathy       #1
+  symsustain     0.8
+  symtune        #5
+  symwide        1
+  tone           0.55
+  volume         1.17
+
+patch "Buzzing Drone" family=sympathetic  note=57 range=45..79
+  set macro1 "More Buzz"
+  set macro2 "Less Buzz"
+  set macro3 "More Strings"
+  set macro4 "Shorter"
+  set macro5 "Bridge"
+  set macro6 "Vibrato"
+  set macro7 "Body"
+  set macro8 "Darker"
+  mac1_d1  #16
+  mac1_a1  0.3
+  mac1_d2  #17
+  mac1_a2  -0.1
+  mac2_d1  #16
+  mac2_a1  -0.5
+  mac3_d1  #21
+  mac3_a1  0.25
+  mac4_d1  #22
+  mac4_a1  -0.3
+  mac4_d2  #8
+  mac4_a2  -0.3
+  mac5_d1  #1
+  mac5_a1  -0.3
+  mac5_d2  #10
+  mac5_a2  0.15
+  mac6_d1  #47
+  mac6_a1  0.25
+  mac7_d1  #24
+  mac7_a1  0.35
+  mac7_d2  #23
+  mac7_a2  -0.25
+  mac7_d3  #25
+  mac7_a3  -0.3
+  mac8_d1  #10
+  mac8_a1  -0.25
+  "on release"   #0
+  voicemode      #2
+  glide          0.09 s
+  bodymix        0.45
+  exciter        #1
+  position       0.08
+  rattle         0.5
+  "rattle at"    0.15
+  size           0.35
+  stiffness      0.1
+  sustain        0.8
+  symlevel       0.85
+  sympathy       #1
+  symsustain     0.88
+  symtune        #2
+  tone           0.6
+  volume         1.143
+
+patch "Bowed Sympathy" family=sympathetic  note=57 range=40..76
+  set macro1 "Bow Harder"
+  set macro2 "More Halo"
+  set macro3 "Shorter Halo"
+  set macro4 "Brighter"
+  set macro5 "Vibrato"
+  set macro6 "Ensemble"
+  set macro7 "Body"
+  set macro8 "Darker"
+  mac1_d1  #3
+  mac1_a1  0.1
+  mac1_d2  #4
+  mac1_a2  0.1
+  mac2_d1  #21
+  mac2_a1  0.3
+  mac3_d1  #22
+  mac3_a1  -0.35
+  mac4_d1  #10
+  mac4_a1  0.3
+  mac4_d2  #5
+  mac4_a2  0.2
+  mac5_d1  #47
+  mac5_a1  0.25
+  mac6_d1  #18
+  mac6_a1  0.15
+  mac6_d2  #20
+  mac6_a2  0.3
+  mac6_d3  #19
+  mac6_a3  0.4
+  mac7_d1  #24
+  mac7_a1  0.35
+  mac7_d2  #23
+  mac7_a2  -0.25
+  mac7_d3  #25
+  mac7_a3  -0.3
+  mac8_d1  #10
+  mac8_a1  -0.25
+  vibrate        5 Hz
+  vibdepth       10 c
+  vibdelay       0.5 s
+  bodymix        0.45
+  exciter        #3
+  grit           0.3
+  pressure       0.85
+  speed          0.8
+  sustain        0.454
+  symlevel       0.4
+  sympathy       #1
+  symsustain     0.9
+  symtune        #3
+  tone           0.4
+  velocity       0.4
+  volume         0.121
+
+patch "Harmonic Halo" family=sympathetic  note=55 range=40..76 role=drone
+  set macro1 "Brighter"
+  set macro2 "Shorter Halo"
+  set macro3 "Less Halo"
+  set macro4 "Ring"
+  set macro5 "Rattle"
+  set macro6 "Wider"
+  set macro7 "Body"
+  set macro8 "Darker"
+  mac1_d1  #2
+  mac1_a1  0.4
+  mac1_d2  #10
+  mac1_a2  0.2
+  mac2_d1  #22
+  mac2_a1  -0.25
+  mac3_d1  #21
+  mac3_a1  -0.5
+  mac4_d1  #8
+  mac4_a1  0.25
+  mac5_d1  #16
+  mac5_a1  0.5
+  mac5_d2  #17
+  mac5_a2  -0.25
+  mac6_d1  #19
+  mac6_a1  0.3
+  mac6_d2  #18
+  mac6_a2  0.2
+  mac7_d1  #24
+  mac7_a1  0.35
+  mac7_d2  #23
+  mac7_a2  -0.25
+  mac7_d3  #25
+  mac7_a3  -0.3
+  mac8_d1  #10
+  mac8_a1  -0.25
+  "on release"   #0
+  bodymix        0.3
+  exciter        #2
+  hardness       0.3
+  length         0.006 s
+  sustain        0.6
+  symlevel       0.75
+  sympathy       #1
+  symsustain     1
+  symtune        #4
+  symwide        1
+  tone           0.4
+  volume         0.353
+  send reverb    0.3
+
 patch Prepared family=prepared  note=55 range=36..76
+  set macro1 "Harder"
+  set macro2 "More Rattle"
+  set macro3 "Damper"
+  set macro4 "Move Damper"
+  set macro5 "Stiffer"
+  set macro6 "Ring"
+  set macro7 "Darker"
+  set macro8 "Body"
+  mac1_d1  #2
+  mac1_a1  0.4
+  mac2_d1  #16
+  mac2_a1  0.3
+  mac2_d2  #17
+  mac2_a2  -0.1
+  mac3_d1  #15
+  mac3_a1  0.5
+  mac4_d1  #14
+  mac4_a1  0.08
+  mac5_d1  #12
+  mac5_a1  0.4
+  mac6_d1  #8
+  mac6_a1  0.2
+  mac7_d1  #10
+  mac7_a1  -0.3
+  mac8_d1  #24
+  mac8_a1  0.35
+  mac8_d2  #23
+  mac8_a2  -0.25
+  mac8_d3  #25
+  mac8_a3  -0.3
   damper         0.4
   # Halfway rather than a third along. A damper nulls the harmonics that
   # have a node under it, and at a third it takes the fundamental with
@@ -259,29 +2508,262 @@ patch Prepared family=prepared  note=55 range=36..76
   stiffness      0.3
   sustain        0.727
   tone           0.6
-  volume         0.25
+  volume         0.39
+
+patch "Rubber Wedges" family=prepared  note=55 range=36..76
+  set macro1 "Harder"
+  set macro2 "Unmute"
+  set macro3 "Damper"
+  set macro4 "Brighter"
+  set macro5 "Rattle"
+  set macro6 "Stiffer"
+  set macro7 "Darker"
+  set macro8 "Body"
+  mac1_d1  #2
+  mac1_a1  0.4
+  mac2_d1  #8
+  mac2_a1  0.35
+  mac3_d1  #15
+  mac3_a1  0.4
+  mac4_d1  #10
+  mac4_a1  0.3
+  mac5_d1  #16
+  mac5_a1  0.5
+  mac5_d2  #17
+  mac5_a2  -0.2
+  mac6_d1  #12
+  mac6_a1  0.4
+  mac7_d1  #10
+  mac7_a1  -0.25
+  mac8_d1  #24
+  mac8_a1  0.35
+  mac8_d2  #23
+  mac8_a2  -0.25
+  mac8_d3  #25
+  mac8_a3  -0.3
+  bodymix        0.4
+  exciter        #2
+  hardness       0.5
+  length         0.003 s
+  sustain        0.3
+  tone           0.35
+  volume         0.299
+
+patch "Paper Weave" family=prepared  note=55 range=36..76
+  set macro1 "More Paper"
+  set macro2 "Less Paper"
+  set macro3 "Harder"
+  set macro4 "Ring"
+  set macro5 "Damper"
+  set macro6 "Brighter"
+  set macro7 "Darker"
+  set macro8 "Body"
+  mac1_d1  #16
+  mac1_a1  0.2
+  mac2_d1  #16
+  mac2_a1  -0.5
+  mac3_d1  #2
+  mac3_a1  0.4
+  mac4_d1  #8
+  mac4_a1  0.2
+  mac5_d1  #15
+  mac5_a1  0.5
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac6_d2  #2
+  mac6_a2  0.3
+  mac7_d1  #10
+  mac7_a1  -0.3
+  mac8_d1  #24
+  mac8_a1  0.35
+  mac8_d2  #23
+  mac8_a2  -0.25
+  mac8_d3  #25
+  mac8_a3  -0.3
+  bodymix        0.35
+  exciter        #2
+  hardness       0.6
+  grit           0.7
+  rattle         0.6
+  "rattle at"    0.05
+  sustain        0.6
+  tone           0.5
+  volume         0.783
+
+patch "Loose Screws" family=prepared  note=57 range=40..79
+  set macro1 "Looser"
+  set macro2 "Tighter"
+  set macro3 "Pick Harder"
+  set macro4 "Damper"
+  set macro5 "Stiffer"
+  set macro6 "Ring"
+  set macro7 "Darker"
+  set macro8 "Body"
+  mac1_d1  #17
+  mac1_a1  -0.15
+  mac2_d1  #16
+  mac2_a1  -0.5
+  mac3_d1  #5
+  mac3_a1  0.3
+  mac3_d2  #43
+  mac3_a2  -0.3
+  mac4_d1  #15
+  mac4_a1  0.3
+  mac5_d1  #12
+  mac5_a1  0.3
+  mac6_d1  #8
+  mac6_a1  0.2
+  mac7_d1  #10
+  mac7_a1  -0.3
+  mac8_d1  #24
+  mac8_a1  0.35
+  mac8_d2  #23
+  mac8_a2  -0.25
+  mac8_d3  #25
+  mac8_a3  -0.3
+  bodymix        0.4
+  exciter        #1
+  grit           0.6
+  position       0.12
+  rattle         0.65
+  "rattle at"    0.3
+  stiffness      0.3
+  sustain        0.7
+  tone           0.6
+  volume         0.999
+
+patch Bolted family=prepared  note=50 range=36..72
+  set macro1 "Harder"
+  set macro2 "Move Bolt"
+  set macro3 "Tighter"
+  set macro4 "Stiffer"
+  set macro5 "Shorter"
+  set macro6 "Loose"
+  set macro7 "Darker"
+  set macro8 "Body"
+  mac1_d1  #2
+  mac1_a1  0.4
+  mac2_d1  #14
+  mac2_a1  0.15
+  mac3_d1  #15
+  mac3_a1  0.3
+  mac4_d1  #12
+  mac4_a1  0.25
+  mac5_d1  #8
+  mac5_a1  -0.5
+  mac6_d1  #16
+  mac6_a1  0.4
+  mac6_d2  #17
+  mac6_a2  -0.1
+  mac7_d1  #10
+  mac7_a1  -0.45
+  mac8_d1  #24
+  mac8_a1  0.35
+  mac8_d2  #23
+  mac8_a2  -0.25
+  mac8_d3  #25
+  mac8_a3  -0.3
+  "damper at"    0.4
+  "on release"   #0
+  damper         0.3
+  exciter        #2
+  hardness       0.7
+  length         0.003 s
+  rattle         0.2
+  stages         #4
+  stiffness      0.6
+  sustain        0.85
+  tension        0.5
+  tone           0.6
+  volume         0.45
+  send reverb    0.15
+
+patch "Broken Wire" family=prepared  note=52 range=40..76
+  set macro1 "Flap"
+  set macro2 "Faster Flap"
+  set macro3 "Slap"
+  set macro4 "Further Apart"
+  set macro5 "Tighter"
+  set macro6 "Ring"
+  set macro7 "Darker"
+  set macro8 "Body"
+  mac1_d1  #40
+  mac1_a1  0.4
+  mac2_d1  #39
+  mac2_a1  0.2
+  mac3_d1  #16
+  mac3_a1  0.3
+  mac3_d2  #17
+  mac3_a2  -0.1
+  mac4_d1  #18
+  mac4_a1  0.3
+  mac5_d1  #13
+  mac5_a1  -0.4
+  mac6_d1  #8
+  mac6_a1  0.2
+  mac7_d1  #10
+  mac7_a1  -0.3
+  mac8_d1  #24
+  mac8_a1  0.35
+  mac8_d2  #23
+  mac8_a2  -0.25
+  mac8_d3  #25
+  mac8_a3  -0.3
+  lfo1wave       #5
+  lfo1rate       7 Hz
+  lfo1depth      0.6
+  m1_src         #9
+  m1_dst         #1
+  m1_amt         0.03
+  couple         0.9
+  detune         45 c
+  exciter        #1
+  position       0.15
+  rattle         0.4
+  "rattle at"    0.2
+  stiffness      0.4
+  sustain        0.55
+  tension        1
+  tone           0.6
+  volume         1.347
 
 patch "Spoken To" family=prepared  note=55 range=36..72
+  set macro1 "Louder In"
+  set macro2 "Ring"
+  set macro3 "More Strings"
+  set macro4 "Brighter"
+  set macro5 "Stiffer"
+  set macro6 "Damper"
+  set macro7 "Rattle"
+  set macro8 "Body"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac2_d1  #8
+  mac2_a1  0.2
+  mac3_d1  #21
+  mac3_a1  0.3
+  mac4_d1  #10
+  mac4_a1  0.3
+  mac5_d1  #12
+  mac5_a1  0.3
+  mac6_d1  #15
+  mac6_a1  0.4
+  mac7_d1  #16
+  mac7_a1  0.5
+  mac7_d2  #17
+  mac7_a2  -0.2
+  mac8_d1  #24
+  mac8_a1  0.35
+  mac8_d2  #23
+  mac8_a2  -0.25
+  mac8_d3  #25
+  mac8_a3  -0.3
   bodymix        0.3
   exciter        #5
   "in gain"      2
   sustain        0.727
-  symlevel       0.4
+  symlevel       0.1033
   sympathy       #1
   symtune        #2
   tone           0.55
   volume         1.50
-
-patch Wire family=plucked  note=64 range=52..88
-  couple         0.8
-  detune         30 c
-  drive          0.3
-  exciter        #1
-  position       0.044
-  rattle         0.3
-  stages         #4
-  stiffness      0.85
-  sustain        0.907
-  tension        0.8
-  tone           0.85
-  volume         0.86

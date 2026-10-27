@@ -1,4 +1,4 @@
-# Pollen - thirty-five patches and an Init, voiced against the debug build.
+# Pollen - fifty-four patches in seven families.
 #
 # Granular, both ways round: a cloud per note over a buffer, and that buffer
 # can be what is coming into the phone. Ninety-six grains across eight voices,
@@ -28,15 +28,32 @@
 # against the same drum loop the others granulate. On a phone that input is
 # you.
 #
+# Patches set only how the buffer is played, so every one works on whatever
+# file is loaded (on the norns too, where the file is loaded by hand).
+#
 # Stepped parameters are written as `#n`:
 #   window    #0 Hann  #1 Tukey  #2 percussive  #3 reversed
 #   scatter   #0 free  #1 octaves  #2 fifths  #3 triad  #4 in scale
-#   scale     #1 Dorian (the list the modifiers use); key #0 is C
+#   scale     #1 Dorian  #9 major pentatonic (the list the modifiers use); key #0 is C
 #   source    #0 the mounted file  #1 the live ring
 #   filtertype #0 LP6 #1 LP12 #2 LP18 #3 LP24  #4 HP6 ... #7 HP24
 #              #8 BP6 #9 BP12 #10 notch #11 peak
 #
-# Families: cloud, pitch, bloom, rhythm, texture, live.
+# Families: cloud 8, pitch 9, stretch 6, bloom 8, rhythm 8, texture 8, live 7.
+# The stretch family walks through the file slower or faster than it was
+# recorded, at the key's pitch.
+#
+# Every patch but Init carries eight named macros. Destinations are numbered
+# as in Pollen.h's MacroDest: #1 position, #2 scan, #3 spray, #4 snap,
+# #5 reverse, #6 size, #7 size spread, #8 density, #9 jitter, #10 skew,
+# #11 pitch (24 semitones a unit), #12 scatter amount, #13 bloom, #14 drift,
+# #15 mutate, #16 pan spread, #17 width, #18 bits, #19 rate, #20 wobble,
+# #21 cutoff, #22 resonance, #23 attack, #24 release, #25 drive,
+# #26 feedback, #27 thru, #28 velocity, #29 volume. Each family has its own
+# set of eight. A macro whose knob has no room left goes the other way under
+# the opposite name (Thinner, Shorter, Bright, Narrow, Bare...). Where a
+# macro at full moves the level by more than 1 dB, a volume route takes it
+# back out.
 #
 # Values are in each parameter's own units; `audition params Pollen` lists
 # them. A patch names only what it changes.
@@ -62,6 +79,42 @@ patch Drift family=cloud
   ampattack      0.6 s
   amprelease     2.5 s
   volume         0.66
+  set macro1 "Thicker"
+  mac1_d1  #8
+  mac1_a1  0.231
+  mac1_d2  #29
+  mac1_a2  -0.201
+  set macro2 "Longer"
+  mac2_d1  #6
+  mac2_a1  0.194
+  mac2_d2  #8
+  mac2_a2  -0.15
+  mac2_d3  #29
+  mac2_a3  -0.136
+  set macro3 "Spray"
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac3_d2  #29
+  mac3_a2  -0.052
+  set macro4 "Wander"
+  mac4_d1  #2
+  mac4_a1  0.05
+  set macro5 "Wide"
+  mac5_d1  #16
+  mac5_a1  0.3
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Bloom"
+  mac7_d1  #13
+  mac7_a1  0.7
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
+  mac8_d3  #29
+  mac8_a3  0.196
 
 patch Mist family=cloud
   # Grains too small and too many to hear separately: the break stops being a
@@ -76,6 +129,42 @@ patch Mist family=cloud
   ampattack      0.8 s
   amprelease     3 s
   volume         0.64
+  set macro1 "Thinner"
+  mac1_d1  #8
+  mac1_a1  -0.25
+  mac1_d2  #29
+  mac1_a2  0.377
+  set macro2 "Longer"
+  mac2_d1  #6
+  mac2_a1  0.2
+  mac2_d2  #8
+  mac2_a2  -0.15
+  mac2_d3  #29
+  mac2_a3  -0.099
+  set macro3 "Spray"
+  mac3_d1  #3
+  mac3_a1  0.4
+  set macro4 "Wander"
+  mac4_d1  #2
+  mac4_a1  0.05
+  set macro5 "Narrow"
+  mac5_d1  #16
+  mac5_a1  -0.5
+  mac5_d2  #17
+  mac5_a2  -0.6
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Bloom"
+  mac7_d1  #13
+  mac7_a1  0.7
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
+  mac8_d3  #29
+  mac8_a3  0.242
 
 patch Boulders family=cloud
   # The other end: long grains, sparse enough that each one arrives as a
@@ -97,6 +186,38 @@ patch Boulders family=cloud
   ampattack      0.2 s
   amprelease     2 s
   volume         0.61
+  set macro1 "Thicker"
+  mac1_d1  #8
+  mac1_a1  0.25
+  mac1_d2  #29
+  mac1_a2  -0.193
+  set macro2 "Shorter"
+  mac2_d1  #6
+  mac2_a1  -0.2
+  mac2_d2  #8
+  mac2_a2  0.15
+  mac2_d3  #29
+  mac2_a3  0.253
+  set macro3 "Spray"
+  mac3_d1  #3
+  mac3_a1  0.4
+  set macro4 "Wander"
+  mac4_d1  #2
+  mac4_a1  0.05
+  set macro5 "Wide"
+  mac5_d1  #16
+  mac5_a1  0.5
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Bloom"
+  mac7_d1  #13
+  mac7_a1  0.7
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
 
 patch Shiver family=cloud
   # Short grains with the birth timer at its most irregular. Nothing lands
@@ -111,6 +232,42 @@ patch Shiver family=cloud
   ampattack      0.05 s
   amprelease     1.2 s
   volume         0.71
+  set macro1 "Thinner"
+  mac1_d1  #8
+  mac1_a1  -0.25
+  mac1_d2  #29
+  mac1_a2  0.312
+  set macro2 "Longer"
+  mac2_d1  #6
+  mac2_a1  0.2
+  mac2_d2  #8
+  mac2_a2  -0.15
+  mac2_d3  #29
+  mac2_a3  -0.122
+  set macro3 "Spray"
+  mac3_d1  #3
+  mac3_a1  0.4
+  set macro4 "Wander"
+  mac4_d1  #2
+  mac4_a1  0.05
+  set macro5 "Narrow"
+  mac5_d1  #16
+  mac5_a1  -0.5
+  mac5_d2  #17
+  mac5_a2  -0.6
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Bloom"
+  mac7_d1  #13
+  mac7_a1  0.7
+  mac7_d2  #29
+  mac7_a2  -0.11
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
 
 patch Stillness family=cloud
   # The read point fixed and the grains long: one moment of the break held
@@ -125,6 +282,147 @@ patch Stillness family=cloud
   ampattack      1.2 s
   amprelease     4 s
   volume         0.97
+  set macro1 "Thicker"
+  mac1_d1  #8
+  mac1_a1  0.25
+  mac1_d2  #29
+  mac1_a2  -0.315
+  set macro2 "Shorter"
+  mac2_d1  #6
+  mac2_a1  -0.2
+  mac2_d2  #8
+  mac2_a2  0.15
+  mac2_d3  #29
+  mac2_a3  0.167
+  set macro3 "Spray"
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac3_d2  #29
+  mac3_a2  -0.173
+  set macro4 "Wander"
+  mac4_d1  #2
+  mac4_a1  0.05
+  mac4_d2  #29
+  mac4_a2  0.087
+  set macro5 "Wide"
+  mac5_d1  #16
+  mac5_a1  0.5
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Bloom"
+  mac7_d1  #13
+  mac7_a1  0.7
+  mac7_d2  #29
+  mac7_a2  -0.194
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.211
+  mac8_d2  #24
+  mac8_a2  0.141
+  mac8_d3  #29
+  mac8_a3  0.353
+
+patch "Narrow Haze" family=cloud
+  # A cloud with no stereo spread, so it sits in the middle of a mix.
+  size           160 ms
+  density        55 /s
+  jitter         0.4
+  spray          0.2
+  scan           0.02
+  panspread      0
+  width          0
+  ampattack      0.5 s
+  amprelease     2.5 s
+  volume         0.568
+  set macro1 "Thicker"
+  mac1_d1  #8
+  mac1_a1  0.215
+  mac1_d2  #29
+  mac1_a2  -0.14
+  set macro2 "Longer"
+  mac2_d1  #6
+  mac2_a1  0.183
+  mac2_d2  #8
+  mac2_a2  -0.15
+  mac2_d3  #29
+  mac2_a3  -0.06
+  set macro3 "Spray"
+  mac3_d1  #3
+  mac3_a1  0.4
+  set macro4 "Wander"
+  mac4_d1  #2
+  mac4_a1  0.05
+  set macro5 "Wide"
+  mac5_d1  #16
+  mac5_a1  0.5
+  mac5_d2  #17
+  mac5_a2  0.6
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Bloom"
+  mac7_d1  #13
+  mac7_a1  0.7
+  mac7_d2  #29
+  mac7_a2  -0.049
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
+  mac8_d3  #29
+  mac8_a3  0.169
+
+patch Droplets family=cloud
+  # Few short grains, far apart in time and scattered across the file and
+  # the stereo field: the file as rain on a roof.
+  size           55 ms
+  sizespread     0.5
+  density        35 /s
+  jitter         0.9
+  spray          0.6
+  window         #0
+  panspread      1
+  ampattack      0.05 s
+  amprelease     2 s
+  volume         0.946
+  set macro1 "Thicker"
+  mac1_d1  #8
+  mac1_a1  0.25
+  mac1_d2  #29
+  mac1_a2  -0.214
+  set macro2 "Longer"
+  mac2_d1  #6
+  mac2_a1  0.2
+  mac2_d2  #8
+  mac2_a2  -0.15
+  mac2_d3  #29
+  mac2_a3  -0.094
+  set macro3 "Spray"
+  mac3_d1  #3
+  mac3_a1  0.4
+  set macro4 "Wander"
+  mac4_d1  #2
+  mac4_a1  0.05
+  set macro5 "Narrow"
+  mac5_d1  #16
+  mac5_a1  -0.5
+  mac5_d2  #17
+  mac5_a2  -0.6
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Bloom"
+  mac7_d1  #13
+  mac7_a1  0.7
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
+  mac8_d3  #29
+  mac8_a3  0.128
 
 patch "Chord Dust" family=pitch
   # The pitch random quantised to a triad, so a spray that would be a smear
@@ -139,6 +437,40 @@ patch "Chord Dust" family=pitch
   ampattack      0.4 s
   amprelease     2.5 s
   volume         0.68
+  set macro1 "Scatter"
+  mac1_d1  #12
+  mac1_a1  0.4
+  set macro2 "Thicker"
+  mac2_d1  #8
+  mac2_a1  0.201
+  mac2_d2  #29
+  mac2_a2  -0.161
+  set macro3 "Octave Up"
+  mac3_d1  #11
+  mac3_a1  0.5
+  mac3_d2  #29
+  mac3_a2  -0.072
+  set macro4 "Spray"
+  mac4_d1  #3
+  mac4_a1  0.4
+  mac4_d2  #29
+  mac4_a2  -0.109
+  set macro5 "Wobble"
+  mac5_d1  #20
+  mac5_a1  0.4
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Longer"
+  mac7_d1  #6
+  mac7_a1  0.2
+  mac7_d2  #29
+  mac7_a2  -0.204
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
 
 patch Octaves family=pitch
   # The same spray snapped to octaves only: as wide as the machine gets and
@@ -152,6 +484,40 @@ patch Octaves family=pitch
   ampattack      0.5 s
   amprelease     3 s
   volume         0.78
+  set macro1 "Gather"
+  mac1_d1  #12
+  mac1_a1  -0.4
+  set macro2 "Thicker"
+  mac2_d1  #8
+  mac2_a1  0.215
+  mac2_d2  #29
+  mac2_a2  -0.214
+  set macro3 "Octave Up"
+  mac3_d1  #11
+  mac3_a1  0.5
+  set macro4 "Spray"
+  mac4_d1  #3
+  mac4_a1  0.4
+  mac4_d2  #29
+  mac4_a2  -0.168
+  set macro5 "Wobble"
+  mac5_d1  #20
+  mac5_a1  0.4
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Longer"
+  mac7_d1  #6
+  mac7_a1  0.194
+  mac7_d2  #29
+  mac7_a2  -0.247
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
+  mac8_d3  #29
+  mac8_a3  0.181
 
 patch Fifths family=pitch
   # Snapped to fifths. Hollow where Octaves is solid - a stack of fifths has
@@ -165,6 +531,42 @@ patch Fifths family=pitch
   ampattack      0.45 s
   amprelease     2.8 s
   volume         0.68
+  set macro1 "Scatter"
+  mac1_d1  #12
+  mac1_a1  0.208
+  set macro2 "Thicker"
+  mac2_d1  #8
+  mac2_a1  0.143
+  mac2_d2  #29
+  mac2_a2  -0.125
+  set macro3 "Octave Up"
+  mac3_d1  #11
+  mac3_a1  0.5
+  mac3_d2  #29
+  mac3_a2  -0.063
+  set macro4 "Spray"
+  mac4_d1  #3
+  mac4_a1  0.4
+  mac4_d2  #29
+  mac4_a2  -0.097
+  set macro5 "Wobble"
+  mac5_d1  #20
+  mac5_a1  0.4
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Longer"
+  mac7_d1  #6
+  mac7_a1  0.2
+  mac7_d2  #29
+  mac7_a2  -0.204
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
+  mac8_d3  #29
+  mac8_a3  0.098
 
 patch "Dorian Spray" family=pitch
   # Snapped to a scale rather than an interval, so the cloud is in a key and
@@ -181,6 +583,42 @@ patch "Dorian Spray" family=pitch
   ampattack      0.5 s
   amprelease     3 s
   volume         0.80
+  set macro1 "Gather"
+  mac1_d1  #12
+  mac1_a1  -0.4
+  set macro2 "Thicker"
+  mac2_d1  #8
+  mac2_a1  0.188
+  mac2_d2  #29
+  mac2_a2  -0.185
+  set macro3 "Octave Up"
+  mac3_d1  #11
+  mac3_a1  0.5
+  mac3_d2  #29
+  mac3_a2  -0.085
+  set macro4 "Spray"
+  mac4_d1  #3
+  mac4_a1  0.4
+  mac4_d2  #29
+  mac4_a2  -0.119
+  set macro5 "Wobble"
+  mac5_d1  #20
+  mac5_a1  0.4
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Longer"
+  mac7_d1  #6
+  mac7_a1  0.2
+  mac7_d2  #29
+  mac7_a2  -0.233
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
+  mac8_d3  #29
+  mac8_a3  0.162
 
 patch Descent family=pitch
   # Pitched down a fifth with the read point running forward: the cloud falls
@@ -195,6 +633,40 @@ patch Descent family=pitch
   ampattack      0.3 s
   amprelease     2.4 s
   volume         0.69
+  set macro1 "Scatter"
+  mac1_d1  #12
+  mac1_a1  0.4
+  set macro2 "Thicker"
+  mac2_d1  #8
+  mac2_a1  0.231
+  mac2_d2  #29
+  mac2_a2  -0.195
+  set macro3 "Octave Up"
+  mac3_d1  #11
+  mac3_a1  0.5
+  mac3_d2  #29
+  mac3_a2  -0.134
+  set macro4 "Spray"
+  mac4_d1  #3
+  mac4_a1  0.4
+  mac4_d2  #29
+  mac4_a2  -0.09
+  set macro5 "Wobble"
+  mac5_d1  #20
+  mac5_a1  0.4
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Longer"
+  mac7_d1  #6
+  mac7_a1  0.174
+  mac7_d2  #29
+  mac7_a2  -0.176
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
 
 patch Choir family=pitch
   # A small spread, densely, in a scale: not a chord so much as many voices
@@ -212,6 +684,477 @@ patch Choir family=pitch
   ampattack      1.4 s
   amprelease     4 s
   volume         0.62
+  set macro1 "Scatter"
+  mac1_d1  #12
+  mac1_a1  0.4
+  set macro2 "Thicker"
+  mac2_d1  #8
+  mac2_a1  0.201
+  mac2_d2  #29
+  mac2_a2  -0.161
+  set macro3 "Octave Up"
+  mac3_d1  #11
+  mac3_a1  0.5
+  mac3_d2  #29
+  mac3_a2  -0.1
+  set macro4 "Spray"
+  mac4_d1  #3
+  mac4_a1  0.4
+  mac4_d2  #29
+  mac4_a2  -0.096
+  set macro5 "Wobble"
+  mac5_d1  #20
+  mac5_a1  0.4
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Longer"
+  mac7_d1  #6
+  mac7_a1  0.132
+  mac7_d2  #29
+  mac7_a2  -0.137
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.194
+  mac8_d2  #24
+  mac8_a2  0.141
+  mac8_d3  #29
+  mac8_a3  0.289
+
+patch "Under Octave" family=pitch
+  # The file an octave down with the top taken off: a dark bed under a part.
+  pitch          -12 st
+  size           200 ms
+  density        50 /s
+  spray          0.2
+  cutoff         3500 Hz
+  panspread      0.6
+  ampattack      0.4 s
+  amprelease     2.5 s
+  volume         0.871
+  set macro1 "Scatter"
+  mac1_d1  #12
+  mac1_a1  0.4
+  set macro2 "Thicker"
+  mac2_d1  #8
+  mac2_a1  0.231
+  mac2_d2  #29
+  mac2_a2  -0.272
+  set macro3 "Octave Up"
+  mac3_d1  #11
+  mac3_a1  0.5
+  mac3_d2  #29
+  mac3_a2  -0.179
+  set macro4 "Spray"
+  mac4_d1  #3
+  mac4_a1  0.4
+  mac4_d2  #29
+  mac4_a2  -0.103
+  set macro5 "Wobble"
+  mac5_d1  #20
+  mac5_a1  0.4
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Longer"
+  mac7_d1  #6
+  mac7_a1  0.147
+  mac7_d2  #29
+  mac7_a2  -0.239
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
+
+patch Untuned family=pitch
+  # Key track off: every key plays the file at its own pitch, so a key only
+  # starts a cloud. For a texture played in time rather than in tune.
+  keytrack       0
+  size           220 ms
+  density        42 /s
+  spray          0.3
+  panspread      0.8
+  ampattack      0.8 s
+  amprelease     3 s
+  volume         0.462
+  set macro1 "Scatter"
+  mac1_d1  #12
+  mac1_a1  0.4
+  mac1_d2  #29
+  mac1_a2  0.062
+  set macro2 "Thicker"
+  mac2_d1  #8
+  mac2_a1  0.25
+  mac2_d2  #29
+  mac2_a2  -0.137
+  set macro3 "Octave Up"
+  mac3_d1  #11
+  mac3_a1  0.5
+  set macro4 "Spray"
+  mac4_d1  #3
+  mac4_a1  0.4
+  mac4_d2  #29
+  mac4_a2  -0.037
+  set macro5 "Wobble"
+  mac5_d1  #20
+  mac5_a1  0.4
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Longer"
+  mac7_d1  #6
+  mac7_a1  0.132
+  mac7_d2  #29
+  mac7_a2  -0.063
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
+  mac8_d3  #29
+  mac8_a3  0.197
+
+patch Pentatonic family=pitch
+  # Grains scattered over two octaves of the major pentatonic in C, so any
+  # file comes out as a bright, consonant shimmer.
+  spread         24 st
+  scatter        #4
+  scale          #9
+  key            #0
+  size           110 ms
+  density        70 /s
+  jitter         0.5
+  spray          0.3
+  panspread      0.9
+  ampattack      0.4 s
+  amprelease     3 s
+  volume         0.822
+  set macro1 "Gather"
+  mac1_d1  #12
+  mac1_a1  -0.4
+  set macro2 "Thicker"
+  mac2_d1  #8
+  mac2_a1  0.175
+  mac2_d2  #29
+  mac2_a2  -0.202
+  set macro3 "Octave Up"
+  mac3_d1  #11
+  mac3_a1  0.5
+  mac3_d2  #29
+  mac3_a2  -0.103
+  set macro4 "Spray"
+  mac4_d1  #3
+  mac4_a1  0.4
+  mac4_d2  #29
+  mac4_a2  -0.156
+  set macro5 "Wobble"
+  mac5_d1  #20
+  mac5_a1  0.4
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Longer"
+  mac7_d1  #6
+  mac7_a1  0.2
+  mac7_d2  #29
+  mac7_a2  -0.24
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
+
+patch "Half Speed" family=stretch
+  # Walks through the file at half the speed it was recorded at, at the
+  # key's pitch: the plain time stretch.
+  scan           0.5
+  size           160 ms
+  density        55 /s
+  jitter         0.2
+  spray          0.01
+  window         #1
+  panspread      0.4
+  ampattack      0.05 s
+  amprelease     1.5 s
+  volume         0.316
+  set macro1 "Faster"
+  mac1_d1  #2
+  mac1_a1  0.1
+  set macro2 "Smear"
+  mac2_d1  #6
+  mac2_a1  0.183
+  mac2_d2  #7
+  mac2_a2  0.4
+  mac2_d3  #29
+  mac2_a3  -0.098
+  set macro3 "Spray"
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #29
+  mac3_a2  0.028
+  set macro4 "Thicker"
+  mac4_d1  #8
+  mac4_a1  0.215
+  mac4_d2  #29
+  mac4_a2  -0.081
+  set macro5 "Wide"
+  mac5_d1  #16
+  mac5_a1  0.5
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Bloom"
+  mac7_d1  #13
+  mac7_a1  0.6
+  mac7_d2  #29
+  mac7_a2  -0.049
+  set macro8 "Backwards"
+  mac8_d1  #5
+  mac8_a1  0.6
+
+patch "Quarter Speed" family=stretch
+  # A quarter of the speed, with longer grains so the smear is smoother.
+  scan           0.25
+  size           240 ms
+  density        40 /s
+  jitter         0.25
+  spray          0.01
+  window         #1
+  panspread      0.5
+  ampattack      0.1 s
+  amprelease     0.8 s
+  volume         0.257
+  set macro1 "Faster"
+  mac1_d1  #2
+  mac1_a1  0.1
+  set macro2 "Smear"
+  mac2_d1  #6
+  mac2_a1  0.118
+  mac2_d2  #7
+  mac2_a2  0.4
+  mac2_d3  #29
+  mac2_a3  -0.058
+  set macro3 "Spray"
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #29
+  mac3_a2  0.144
+  set macro4 "Thicker"
+  mac4_d1  #8
+  mac4_a1  0.25
+  mac4_d2  #29
+  mac4_a2  -0.09
+  set macro5 "Wide"
+  mac5_d1  #16
+  mac5_a1  0.5
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Bloom"
+  mac7_d1  #13
+  mac7_a1  0.6
+  set macro8 "Backwards"
+  mac8_d1  #5
+  mac8_a1  0.6
+
+patch Glacier family=stretch
+  # Barely moving: a twentieth of the speed in long soft grains, so a few
+  # seconds of file last a minute. Starts a little in, past the quiet most
+  # files open with.
+  position       0.08
+  scan           0.05
+  size           450 ms
+  sizespread     0.3
+  density        14 /s
+  jitter         0.3
+  spray          0.02
+  panspread      0.8
+  ampattack      1.5 s
+  amprelease     5 s
+  volume         0.675
+  set macro1 "Faster"
+  mac1_d1  #2
+  mac1_a1  0.1
+  set macro2 "Sharpen"
+  mac2_d1  #6
+  mac2_a1  -0.2
+  mac2_d2  #7
+  mac2_a2  -0.3
+  mac2_d3  #29
+  mac2_a3  0.49
+  set macro3 "Spray"
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #29
+  mac3_a2  -0.116
+  set macro4 "Thicker"
+  mac4_d1  #8
+  mac4_a1  0.25
+  mac4_d2  #29
+  mac4_a2  -0.208
+  set macro5 "Narrow"
+  mac5_d1  #16
+  mac5_a1  -0.5
+  mac5_d2  #17
+  mac5_a2  -0.6
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Bloom"
+  mac7_d1  #13
+  mac7_a1  0.6
+  set macro8 "Backwards"
+  mac8_d1  #5
+  mac8_a1  0.6
+
+patch Rewind family=stretch
+  # Backwards through the file at half speed, each grain still playing
+  # forwards, so it unwinds without sounding reversed.
+  scan           -0.5
+  position       0.8
+  size           150 ms
+  density        55 /s
+  jitter         0.2
+  spray          0.01
+  window         #1
+  panspread      0.4
+  ampattack      0.05 s
+  amprelease     1.5 s
+  volume         0.623
+  set macro1 "Faster"
+  mac1_d1  #2
+  mac1_a1  0.1
+  mac1_d2  #29
+  mac1_a2  0.323
+  set macro2 "Smear"
+  mac2_d1  #6
+  mac2_a1  0.194
+  mac2_d2  #7
+  mac2_a2  0.4
+  mac2_d3  #29
+  mac2_a3  -0.138
+  set macro3 "Spray"
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #29
+  mac3_a2  -0.089
+  set macro4 "Thicker"
+  mac4_d1  #8
+  mac4_a1  0.215
+  mac4_d2  #29
+  mac4_a2  -0.21
+  set macro5 "Wide"
+  mac5_d1  #16
+  mac5_a1  0.5
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Bloom"
+  mac7_d1  #13
+  mac7_a1  0.6
+  mac7_d2  #29
+  mac7_a2  -0.078
+  set macro8 "Backwards"
+  mac8_d1  #5
+  mac8_a1  0.6
+
+patch "True Speed" family=stretch
+  # Through the file at the speed it was recorded, in short close grains:
+  # the file nearly as it is, but the keys move its pitch and not its time.
+  scan           1
+  size           80 ms
+  sizespread     0.1
+  density        70 /s
+  jitter         0.1
+  spray          0.003
+  window         #1
+  panspread      0.2
+  ampattack      0.01 s
+  amprelease     0.8 s
+  volume         0.398
+  set macro1 "Faster"
+  mac1_d1  #2
+  mac1_a1  0.1
+  mac1_d2  #29
+  mac1_a2  -0.052
+  set macro2 "Smear"
+  mac2_d1  #6
+  mac2_a1  0.2
+  mac2_d2  #7
+  mac2_a2  0.4
+  mac2_d3  #29
+  mac2_a3  -0.118
+  set macro3 "Spray"
+  mac3_d1  #3
+  mac3_a1  0.3
+  set macro4 "Thicker"
+  mac4_d1  #8
+  mac4_a1  0.175
+  mac4_d2  #29
+  mac4_a2  -0.105
+  set macro5 "Wide"
+  mac5_d1  #16
+  mac5_a1  0.5
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Bloom"
+  mac7_d1  #13
+  mac7_a1  0.6
+  set macro8 "Backwards"
+  mac8_d1  #5
+  mac8_a1  0.6
+
+patch "Slow Blur" family=stretch
+  # A slow walk in very long grains of mixed lengths, wide: the file as
+  # washes of colour.
+  scan           0.15
+  size           500 ms
+  sizespread     0.5
+  density        20 /s
+  jitter         0.4
+  spray          0.08
+  panspread      0.85
+  ampattack      0.8 s
+  amprelease     4 s
+  volume         0.407
+  set macro1 "Faster"
+  mac1_d1  #2
+  mac1_a1  0.1
+  mac1_d2  #29
+  mac1_a2  0.066
+  set macro2 "Sharpen"
+  mac2_d1  #6
+  mac2_a1  -0.2
+  mac2_d2  #7
+  mac2_a2  -0.4
+  mac2_d3  #29
+  mac2_a3  0.296
+  set macro3 "Spray"
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #29
+  mac3_a2  0.112
+  set macro4 "Thicker"
+  mac4_d1  #8
+  mac4_a1  0.25
+  mac4_d2  #29
+  mac4_a2  -0.14
+  set macro5 "Narrow"
+  mac5_d1  #16
+  mac5_a1  -0.5
+  mac5_d2  #17
+  mac5_a2  -0.6
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Bloom"
+  mac7_d1  #13
+  mac7_a1  0.6
+  set macro8 "Backwards"
+  mac8_d1  #5
+  mac8_a1  0.6
 
 patch Pollinate family=bloom
   # The signature. Grains seed children near where they died, and those
@@ -227,6 +1170,38 @@ patch Pollinate family=bloom
   ampattack      0.4 s
   amprelease     3 s
   volume         0.61
+  set macro1 "Bare"
+  mac1_d1  #13
+  mac1_a1  -0.5
+  mac1_d2  #29
+  mac1_a2  0.111
+  set macro2 "Mutate"
+  mac2_d1  #15
+  mac2_a1  0.4
+  set macro3 "Drift"
+  mac3_d1  #14
+  mac3_a1  0.4
+  set macro4 "Thicker"
+  mac4_d1  #8
+  mac4_a1  0.249
+  mac4_d2  #29
+  mac4_a2  -0.221
+  set macro5 "Spray"
+  mac5_d1  #3
+  mac5_a1  0.4
+  set macro6 "Wide"
+  mac6_d1  #16
+  mac6_a1  0.3
+  set macro7 "Dark"
+  mac7_d1  #21
+  mac7_a1  -0.4
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
+  mac8_d3  #29
+  mac8_a3  0.111
 
 patch Cascade family=bloom
   # Six generations deep with the mutation wide: the cloud keeps travelling
@@ -241,6 +1216,40 @@ patch Cascade family=bloom
   ampattack      0.6 s
   amprelease     4 s
   volume         0.49
+  set macro1 "Bare"
+  mac1_d1  #13
+  mac1_a1  -0.5
+  mac1_d2  #29
+  mac1_a2  0.08
+  set macro2 "Stable"
+  mac2_d1  #15
+  mac2_a1  -0.4
+  set macro3 "Drift"
+  mac3_d1  #14
+  mac3_a1  0.4
+  set macro4 "Thicker"
+  mac4_d1  #8
+  mac4_a1  0.25
+  mac4_d2  #29
+  mac4_a2  -0.108
+  set macro5 "Spray"
+  mac5_d1  #3
+  mac5_a1  0.4
+  set macro6 "Narrow"
+  mac6_d1  #16
+  mac6_a1  -0.5
+  mac6_d2  #17
+  mac6_a2  -0.6
+  set macro7 "Dark"
+  mac7_d1  #21
+  mac7_a1  -0.4
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.141
+  mac8_d3  #29
+  mac8_a3  0.215
 
 patch Seedling family=bloom
   # One generation and a light bloom: the effect at its most restrained,
@@ -254,6 +1263,36 @@ patch Seedling family=bloom
   ampattack      0.25 s
   amprelease     2 s
   volume         0.62
+  set macro1 "Bloom"
+  mac1_d1  #13
+  mac1_a1  0.5
+  mac1_d2  #29
+  mac1_a2  -0.057
+  set macro2 "Mutate"
+  mac2_d1  #15
+  mac2_a1  0.4
+  set macro3 "Drift"
+  mac3_d1  #14
+  mac3_a1  0.4
+  set macro4 "Thicker"
+  mac4_d1  #8
+  mac4_a1  0.249
+  mac4_d2  #29
+  mac4_a2  -0.201
+  set macro5 "Spray"
+  mac5_d1  #3
+  mac5_a1  0.4
+  set macro6 "Wide"
+  mac6_d1  #16
+  mac6_a1  0.5
+  set macro7 "Dark"
+  mac7_d1  #21
+  mac7_a1  -0.4
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
 
 patch Spore family=bloom
   # Bloom with the mutation moved onto position and pan rather than pitch, so
@@ -270,6 +1309,42 @@ patch Spore family=bloom
   ampattack      0.5 s
   amprelease     3.5 s
   volume         0.60
+  set macro1 "Bare"
+  mac1_d1  #13
+  mac1_a1  -0.5
+  mac1_d2  #29
+  mac1_a2  0.109
+  set macro2 "Stable"
+  mac2_d1  #15
+  mac2_a1  -0.4
+  set macro3 "Drift"
+  mac3_d1  #14
+  mac3_a1  0.4
+  set macro4 "Thicker"
+  mac4_d1  #8
+  mac4_a1  0.215
+  mac4_d2  #29
+  mac4_a2  -0.159
+  set macro5 "Spray"
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac5_d2  #29
+  mac5_a2  -0.052
+  set macro6 "Narrow"
+  mac6_d1  #16
+  mac6_a1  -0.5
+  mac6_d2  #17
+  mac6_a2  -0.6
+  set macro7 "Dark"
+  mac7_d1  #21
+  mac7_a1  -0.4
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
+  mac8_d3  #29
+  mac8_a3  0.098
 
 patch Thicket family=bloom
   # Bloom on top of a cloud that was already dense. Deliberately too much -
@@ -286,6 +1361,38 @@ patch Thicket family=bloom
   ampattack      0.3 s
   amprelease     2.5 s
   volume         0.61
+  set macro1 "Bare"
+  mac1_d1  #13
+  mac1_a1  -0.5
+  mac1_d2  #29
+  mac1_a2  0.082
+  set macro2 "Mutate"
+  mac2_d1  #15
+  mac2_a1  0.4
+  set macro3 "Drift"
+  mac3_d1  #14
+  mac3_a1  0.4
+  set macro4 "Thicker"
+  mac4_d1  #8
+  mac4_a1  0.133
+  mac4_d2  #29
+  mac4_a2  -0.129
+  set macro5 "Spray"
+  mac5_d1  #3
+  mac5_a1  0.4
+  set macro6 "Narrow"
+  mac6_d1  #16
+  mac6_a1  -0.5
+  mac6_d2  #17
+  mac6_a2  -0.6
+  set macro7 "Dark"
+  mac7_d1  #21
+  mac7_a1  -0.4
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
 
 patch Settle family=bloom
   # Bloom with a short amp decay under it, so the first generation is loud and
@@ -301,6 +1408,133 @@ patch Settle family=bloom
   ampsustain     0.15
   amprelease     3 s
   volume         0.90
+  set macro1 "Bare"
+  mac1_d1  #13
+  mac1_a1  -0.5
+  mac1_d2  #29
+  mac1_a2  0.121
+  set macro2 "Mutate"
+  mac2_d1  #15
+  mac2_a1  0.4
+  set macro3 "Drift"
+  mac3_d1  #14
+  mac3_a1  0.4
+  set macro4 "Thicker"
+  mac4_d1  #8
+  mac4_a1  0.25
+  mac4_d2  #29
+  mac4_a2  -0.285
+  set macro5 "Spray"
+  mac5_d1  #3
+  mac5_a1  0.4
+  set macro6 "Wide"
+  mac6_d1  #16
+  mac6_a1  0.5
+  set macro7 "Dark"
+  mac7_d1  #21
+  mac7_a1  -0.4
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
+
+patch Overgrowth family=bloom
+  # Every grain seeds six generations that wander far through the file but
+  # barely change pitch: the cloud spreads out rather than up.
+  bloom          1
+  mutate         0.12
+  drift          0.7
+  generations    6
+  size           130 ms
+  density        40 /s
+  spray          0.15
+  panspread      0.9
+  ampattack      0.5 s
+  amprelease     3.5 s
+  volume         0.6
+  set macro1 "Bare"
+  mac1_d1  #13
+  mac1_a1  -0.5
+  mac1_d2  #29
+  mac1_a2  0.081
+  set macro2 "Mutate"
+  mac2_d1  #15
+  mac2_a1  0.4
+  set macro3 "Drift"
+  mac3_d1  #14
+  mac3_a1  0.3
+  set macro4 "Thicker"
+  mac4_d1  #8
+  mac4_a1  0.25
+  mac4_d2  #29
+  mac4_a2  -0.188
+  set macro5 "Spray"
+  mac5_d1  #3
+  mac5_a1  0.4
+  set macro6 "Narrow"
+  mac6_d1  #16
+  mac6_a1  -0.5
+  mac6_d2  #17
+  mac6_a2  -0.6
+  set macro7 "Dark"
+  mac7_d1  #21
+  mac7_a1  -0.4
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
+  mac8_d3  #29
+  mac8_a3  0.172
+
+patch Wildflower family=bloom
+  # Parents in octaves, children mutated around them, so the cloud grows
+  # outward in pitch from a clear chord.
+  spread         12 st
+  scatter        #1
+  bloom          0.75
+  mutate         0.25
+  generations    3
+  size           140 ms
+  density        45 /s
+  spray          0.2
+  panspread      0.8
+  ampattack      0.4 s
+  amprelease     3 s
+  volume         0.66
+  set macro1 "Bloom"
+  mac1_d1  #13
+  mac1_a1  0.25
+  set macro2 "Mutate"
+  mac2_d1  #15
+  mac2_a1  0.4
+  set macro3 "Drift"
+  mac3_d1  #14
+  mac3_a1  0.4
+  set macro4 "Thicker"
+  mac4_d1  #8
+  mac4_a1  0.249
+  mac4_d2  #29
+  mac4_a2  -0.219
+  set macro5 "Spray"
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac5_d2  #29
+  mac5_a2  -0.052
+  set macro6 "Narrow"
+  mac6_d1  #16
+  mac6_a1  -0.5
+  mac6_d2  #17
+  mac6_a2  -0.6
+  set macro7 "Dark"
+  mac7_d1  #21
+  mac7_a1  -0.4
+  set macro8 "Swell"
+  mac8_d1  #23
+  mac8_a1  0.25
+  mac8_d2  #24
+  mac8_a2  0.15
 
 patch Slicer family=rhythm material=break
   # Snap full: grains land on the break's transients instead of wherever the
@@ -315,6 +1549,42 @@ patch Slicer family=rhythm material=break
   ampattack      0.01 s
   amprelease     1 s
   volume         1.50
+  set macro1 "Loose"
+  mac1_d1  #4
+  mac1_a1  -0.8
+  set macro2 "Shorter"
+  mac2_d1  #6
+  mac2_a1  -0.2
+  mac2_d2  #8
+  mac2_a2  0.15
+  mac2_d3  #29
+  mac2_a3  0
+  set macro3 "Faster"
+  mac3_d1  #8
+  mac3_a1  0.2
+  mac3_d2  #6
+  mac3_a2  -0.1
+  mac3_d3  #29
+  mac3_a3  -0.149
+  set macro4 "Backwards"
+  mac4_d1  #5
+  mac4_a1  0.7
+  set macro5 "Jitter"
+  mac5_d1  #9
+  mac5_a1  0.5
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.3
+  set macro7 "Crush"
+  mac7_d1  #18
+  mac7_a1  -0.6
+  mac7_d2  #19
+  mac7_a2  0.25
+  mac7_d3  #29
+  mac7_a3  0
+  set macro8 "Tail"
+  mac8_d1  #24
+  mac8_a1  0.2
 
 patch Stutter family=rhythm material=break
   # Snap with short grains, densely, and hardly any spray: the same transient
@@ -328,6 +1598,40 @@ patch Stutter family=rhythm material=break
   ampattack      0.005 s
   amprelease     0.4 s
   volume         1.50
+  set macro1 "Loose"
+  mac1_d1  #4
+  mac1_a1  -0.8
+  set macro2 "Shorter"
+  mac2_d1  #6
+  mac2_a1  -0.2
+  mac2_d2  #8
+  mac2_a2  0.15
+  set macro3 "Faster"
+  mac3_d1  #8
+  mac3_a1  0.2
+  mac3_d2  #6
+  mac3_a2  -0.1
+  mac3_d3  #29
+  mac3_a3  -0.259
+  set macro4 "Backwards"
+  mac4_d1  #5
+  mac4_a1  0.7
+  mac4_d2  #29
+  mac4_a2  -0.196
+  set macro5 "Jitter"
+  mac5_d1  #9
+  mac5_a1  0.5
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.3
+  set macro7 "Crush"
+  mac7_d1  #18
+  mac7_a1  -0.6
+  mac7_d2  #19
+  mac7_a2  0.25
+  set macro8 "Tail"
+  mac8_d1  #24
+  mac8_a1  0.2
 
 patch "Scan Up" family=rhythm
   # The read point sweeping forward while a note is held, so a held chord
@@ -341,6 +1645,44 @@ patch "Scan Up" family=rhythm
   ampattack      0.05 s
   amprelease     1.5 s
   volume         0.58
+  set macro1 "Snap"
+  mac1_d1  #4
+  mac1_a1  0.8
+  set macro2 "Shorter"
+  mac2_d1  #6
+  mac2_a1  -0.2
+  mac2_d2  #8
+  mac2_a2  0.15
+  mac2_d3  #29
+  mac2_a3  0.309
+  set macro3 "Faster"
+  mac3_d1  #8
+  mac3_a1  0.2
+  mac3_d2  #6
+  mac3_a2  -0.1
+  mac3_d3  #29
+  mac3_a3  -0.159
+  set macro4 "Backwards"
+  mac4_d1  #5
+  mac4_a1  0.7
+  set macro5 "Jitter"
+  mac5_d1  #9
+  mac5_a1  0.5
+  mac5_d2  #29
+  mac5_a2  -0.065
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.3
+  set macro7 "Crush"
+  mac7_d1  #18
+  mac7_a1  -0.6
+  mac7_d2  #19
+  mac7_a2  0.25
+  set macro8 "Tail"
+  mac8_d1  #24
+  mac8_a1  0.2
+  mac8_d2  #29
+  mac8_a2  -0.054
 
 patch "Scan Down" family=rhythm
   # The same, backwards through the buffer. Not the same as playing the
@@ -355,6 +1697,44 @@ patch "Scan Down" family=rhythm
   ampattack      0.05 s
   amprelease     1.5 s
   volume         0.79
+  set macro1 "Snap"
+  mac1_d1  #4
+  mac1_a1  0.8
+  mac1_d2  #29
+  mac1_a2  -0.136
+  set macro2 "Shorter"
+  mac2_d1  #6
+  mac2_a1  -0.2
+  mac2_d2  #8
+  mac2_a2  0.15
+  mac2_d3  #29
+  mac2_a3  0.337
+  set macro3 "Faster"
+  mac3_d1  #8
+  mac3_a1  0.2
+  mac3_d2  #6
+  mac3_a2  -0.1
+  mac3_d3  #29
+  mac3_a3  -0.217
+  set macro4 "Backwards"
+  mac4_d1  #5
+  mac4_a1  0.7
+  set macro5 "Jitter"
+  mac5_d1  #9
+  mac5_a1  0.5
+  mac5_d2  #29
+  mac5_a2  -0.063
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.3
+  set macro7 "Crush"
+  mac7_d1  #18
+  mac7_a1  -0.6
+  mac7_d2  #19
+  mac7_a2  0.25
+  set macro8 "Tail"
+  mac8_d1  #24
+  mac8_a1  0.2
 
 patch Ratchet family=rhythm material=break
   # Snap with the jitter at nothing, so the births are metronomic and land
@@ -369,6 +1749,40 @@ patch Ratchet family=rhythm material=break
   ampattack      0.002 s
   amprelease     0.3 s
   volume         1.50
+  set macro1 "Loose"
+  mac1_d1  #4
+  mac1_a1  -0.8
+  set macro2 "Shorter"
+  mac2_d1  #6
+  mac2_a1  -0.2
+  mac2_d2  #8
+  mac2_a2  0.15
+  set macro3 "Faster"
+  mac3_d1  #8
+  mac3_a1  0.2
+  mac3_d2  #6
+  mac3_a2  -0.1
+  mac3_d3  #29
+  mac3_a3  -0.284
+  set macro4 "Backwards"
+  mac4_d1  #5
+  mac4_a1  0.7
+  mac4_d2  #29
+  mac4_a2  -0.178
+  set macro5 "Jitter"
+  mac5_d1  #9
+  mac5_a1  0.5
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.3
+  set macro7 "Crush"
+  mac7_d1  #18
+  mac7_a1  -0.6
+  mac7_d2  #19
+  mac7_a2  0.25
+  set macro8 "Tail"
+  mac8_d1  #24
+  mac8_a1  0.2
 
 patch "Backwards Roll" family=rhythm material=break
   # Grains played tail-first but still landing on the beat: each hit arrives
@@ -383,6 +1797,142 @@ patch "Backwards Roll" family=rhythm material=break
   ampattack      0.02 s
   amprelease     1.4 s
   volume         1.50
+  set macro1 "Loose"
+  mac1_d1  #4
+  mac1_a1  -0.8
+  mac1_d2  #29
+  mac1_a2  -0.284
+  set macro2 "Shorter"
+  mac2_d1  #6
+  mac2_a1  -0.2
+  mac2_d2  #8
+  mac2_a2  0.15
+  set macro3 "Faster"
+  mac3_d1  #8
+  mac3_a1  0.2
+  mac3_d2  #6
+  mac3_a2  -0.1
+  mac3_d3  #29
+  mac3_a3  -0.457
+  set macro4 "Forwards"
+  mac4_d1  #5
+  mac4_a1  -0.7
+  mac4_d2  #29
+  mac4_a2  -0.196
+  set macro5 "Jitter"
+  mac5_d1  #9
+  mac5_a1  0.5
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.3
+  mac6_d2  #29
+  mac6_a2  0
+  set macro7 "Crush"
+  mac7_d1  #18
+  mac7_a1  -0.6
+  mac7_d2  #19
+  mac7_a2  0.25
+  mac7_d3  #29
+  mac7_a3  0
+  set macro8 "Tail"
+  mac8_d1  #24
+  mac8_a1  0.2
+
+patch "Grain Pluck" family=rhythm
+  # A played note: dense short grains under an envelope that dies away, so
+  # each key is a pluck cut from the file, a tenth of the way in.
+  position       0.1
+  size           60 ms
+  density        120 /s
+  jitter         0.3
+  spray          0.05
+  window         #1
+  ampattack      0.003 s
+  ampdecay       0.6 s
+  ampsustain     0
+  amprelease     0.3 s
+  volume         1.19
+  set macro1 "Snap"
+  mac1_d1  #4
+  mac1_a1  0.8
+  set macro2 "Shorter"
+  mac2_d1  #6
+  mac2_a1  -0.2
+  mac2_d2  #8
+  mac2_a2  0.0853
+  mac2_d3  #29
+  mac2_a3  0.207
+  set macro3 "Slower"
+  mac3_d1  #8
+  mac3_a1  -0.2
+  mac3_d2  #6
+  mac3_a2  0.1
+  mac3_d3  #29
+  mac3_a3  0.207
+  set macro4 "Backwards"
+  mac4_d1  #5
+  mac4_a1  0.7
+  set macro5 "Jitter"
+  mac5_d1  #9
+  mac5_a1  0.5
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.3
+  set macro7 "Crush"
+  mac7_d1  #18
+  mac7_a1  -0.6
+  mac7_d2  #19
+  mac7_a2  0.25
+  set macro8 "Tail"
+  mac8_d1  #24
+  mac8_a1  0.2
+
+patch "Pulse Train" family=rhythm material=break
+  # Eight grains a second with no jitter, half snapped to the hits: a
+  # steady pulse made of the file, whatever its tempo.
+  snap           0.5
+  size           120 ms
+  density        8 /s
+  jitter         0
+  spray          0.1
+  window         #1
+  ampattack      0.005 s
+  amprelease     0.6 s
+  volume         1.4
+  set macro1 "Snap"
+  mac1_d1  #4
+  mac1_a1  0.5
+  set macro2 "Shorter"
+  mac2_d1  #6
+  mac2_a1  -0.2
+  mac2_d2  #8
+  mac2_a2  0.15
+  set macro3 "Faster"
+  mac3_d1  #8
+  mac3_a1  0.2
+  mac3_d2  #6
+  mac3_a2  -0.1
+  mac3_d3  #29
+  mac3_a3  -0.249
+  set macro4 "Backwards"
+  mac4_d1  #5
+  mac4_a1  0.7
+  set macro5 "Jitter"
+  mac5_d1  #9
+  mac5_a1  0.5
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.3
+  mac6_d2  #29
+  mac6_a2  0.067
+  set macro7 "Crush"
+  mac7_d1  #18
+  mac7_a1  -0.6
+  mac7_d2  #19
+  mac7_a2  0.25
+  set macro8 "Tail"
+  mac8_d1  #24
+  mac8_a1  0.2
 
 patch Crushed family=texture
   # Four bits. The quiet parts of the break turn to steps and the loud parts
@@ -395,6 +1945,38 @@ patch Crushed family=texture
   ampattack      0.1 s
   amprelease     1.6 s
   volume         0.85
+  set macro1 "Clean"
+  mac1_d1  #18
+  mac1_a1  0.5
+  set macro2 "Rate"
+  mac2_d1  #19
+  mac2_a1  0.5
+  set macro3 "Wobble"
+  mac3_d1  #20
+  mac3_a1  0.5
+  set macro4 "Drive"
+  mac4_d1  #25
+  mac4_a1  0.6
+  mac4_d2  #29
+  mac4_a2  -0.221
+  set macro5 "Dark"
+  mac5_d1  #21
+  mac5_a1  -0.4
+  set macro6 "Ring"
+  mac6_d1  #22
+  mac6_a1  0.5
+  mac6_d2  #21
+  mac6_a2  -0.15
+  set macro7 "Spray"
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac7_d2  #29
+  mac7_a2  -0.117
+  set macro8 "Thicker"
+  mac8_d1  #8
+  mac8_a1  0.215
+  mac8_d2  #29
+  mac8_a2  -0.266
 
 patch Downsampled family=texture
   # Rate reduction rather than bit depth: the aliases land underneath the
@@ -406,6 +1988,38 @@ patch Downsampled family=texture
   ampattack      0.1 s
   amprelease     1.6 s
   volume         0.73
+  set macro1 "Crush"
+  mac1_d1  #18
+  mac1_a1  -0.5
+  set macro2 "Smooth"
+  mac2_d1  #19
+  mac2_a1  -0.5
+  set macro3 "Wobble"
+  mac3_d1  #20
+  mac3_a1  0.5
+  set macro4 "Drive"
+  mac4_d1  #25
+  mac4_a1  0.6
+  mac4_d2  #29
+  mac4_a2  -0.176
+  set macro5 "Dark"
+  mac5_d1  #21
+  mac5_a1  -0.4
+  set macro6 "Ring"
+  mac6_d1  #22
+  mac6_a1  0.5
+  mac6_d2  #21
+  mac6_a2  -0.15
+  set macro7 "Spray"
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac7_d2  #29
+  mac7_a2  -0.109
+  set macro8 "Thicker"
+  mac8_d1  #8
+  mac8_a1  0.231
+  mac8_d2  #29
+  mac8_a2  -0.237
 
 patch Wobbler family=texture
   # Per-grain pitch wobble, slowly. Tape that cannot hold its speed - and
@@ -419,6 +2033,38 @@ patch Wobbler family=texture
   ampattack      0.4 s
   amprelease     2.5 s
   volume         0.72
+  set macro1 "Crush"
+  mac1_d1  #18
+  mac1_a1  -0.5
+  set macro2 "Rate"
+  mac2_d1  #19
+  mac2_a1  0.5
+  set macro3 "Wobble"
+  mac3_d1  #20
+  mac3_a1  0.3
+  set macro4 "Drive"
+  mac4_d1  #25
+  mac4_a1  0.6
+  mac4_d2  #29
+  mac4_a2  -0.177
+  set macro5 "Dark"
+  mac5_d1  #21
+  mac5_a1  -0.4
+  set macro6 "Ring"
+  mac6_d1  #22
+  mac6_a1  0.5
+  mac6_d2  #21
+  mac6_a2  -0.15
+  set macro7 "Spray"
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac7_d2  #29
+  mac7_a2  -0.124
+  set macro8 "Thicker"
+  mac8_d1  #8
+  mac8_a1  0.249
+  mac8_d2  #29
+  mac8_a2  -0.289
 
 patch Underwater family=texture
   # Low and resonant. Everything above a few hundred hertz gone, and what is
@@ -432,6 +2078,40 @@ patch Underwater family=texture
   ampattack      0.6 s
   amprelease     3 s
   volume         0.78
+  set macro1 "Crush"
+  mac1_d1  #18
+  mac1_a1  -0.5
+  set macro2 "Rate"
+  mac2_d1  #19
+  mac2_a1  0.5
+  set macro3 "Wobble"
+  mac3_d1  #20
+  mac3_a1  0.5
+  set macro4 "Drive"
+  mac4_d1  #25
+  mac4_a1  0.6
+  mac4_d2  #29
+  mac4_a2  -0.196
+  set macro5 "Bright"
+  mac5_d1  #21
+  mac5_a1  0.2
+  set macro6 "Ring"
+  mac6_d1  #22
+  mac6_a1  0.45
+  mac6_d2  #21
+  mac6_a2  -0.135
+  mac6_d3  #29
+  mac6_a3  -0.214
+  set macro7 "Spray"
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac7_d2  #29
+  mac7_a2  -0.16
+  set macro8 "Thicker"
+  mac8_d1  #8
+  mac8_a1  0.231
+  mac8_d2  #29
+  mac8_a2  -0.268
 
 patch Driven family=texture
   # The drive stage hard, which on a cloud is not the same as on one note:
@@ -445,6 +2125,40 @@ patch Driven family=texture
   ampattack      0.15 s
   amprelease     1.8 s
   volume         0.43
+  set macro1 "Crush"
+  mac1_d1  #18
+  mac1_a1  -0.5
+  mac1_d2  #29
+  mac1_a2  0.058
+  set macro2 "Rate"
+  mac2_d1  #19
+  mac2_a1  0.5
+  set macro3 "Wobble"
+  mac3_d1  #20
+  mac3_a1  0.5
+  set macro4 "Gentle"
+  mac4_d1  #25
+  mac4_a1  -0.3
+  mac4_d2  #29
+  mac4_a2  0.195
+  set macro5 "Dark"
+  mac5_d1  #21
+  mac5_a1  -0.4
+  set macro6 "Ring"
+  mac6_d1  #22
+  mac6_a1  0.5
+  mac6_d2  #21
+  mac6_a2  -0.15
+  set macro7 "Spray"
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac7_d2  #29
+  mac7_a2  -0.034
+  set macro8 "Thicker"
+  mac8_d1  #8
+  mac8_a1  0.201
+  mac8_d2  #29
+  mac8_a2  -0.056
 
 patch Telephone family=texture
   # Band-passed and bit-reduced together: a narrow, gritty middle with little
@@ -468,6 +2182,139 @@ patch Telephone family=texture
   ampattack      0.08 s
   amprelease     1.2 s
   volume         1.50
+  set macro1 "Crush"
+  mac1_d1  #18
+  mac1_a1  -0.333
+  mac1_d2  #29
+  mac1_a2  -0.324
+  set macro2 "Rate"
+  mac2_d1  #19
+  mac2_a1  0.5
+  set macro3 "Wobble"
+  mac3_d1  #20
+  mac3_a1  0.5
+  set macro4 "Gentle"
+  mac4_d1  #25
+  mac4_a1  -0.3
+  mac4_d2  #29
+  mac4_a2  0
+  set macro5 "Dark"
+  mac5_d1  #21
+  mac5_a1  -0.219
+  mac5_d2  #29
+  mac5_a2  -0.593
+  set macro6 "Ring"
+  mac6_d1  #22
+  mac6_a1  0.5
+  mac6_d2  #21
+  mac6_a2  -0.15
+  set macro7 "Spray"
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac7_d2  #29
+  mac7_a2  -0.563
+  set macro8 "Thicker"
+  mac8_d1  #8
+  mac8_a1  0.201
+  mac8_d2  #29
+  mac8_a2  -0.487
+
+patch "Swell Grains" family=texture
+  # Each grain leans late, so it swells and stops, and a third play
+  # backwards: the file breathing in.
+  skew           0.8
+  reverse        0.3
+  size           220 ms
+  density        40 /s
+  spray          0.3
+  panspread      0.7
+  ampattack      0.4 s
+  amprelease     2.5 s
+  volume         0.661
+  set macro1 "Crush"
+  mac1_d1  #18
+  mac1_a1  -0.5
+  set macro2 "Rate"
+  mac2_d1  #19
+  mac2_a1  0.5
+  set macro3 "Wobble"
+  mac3_d1  #20
+  mac3_a1  0.5
+  set macro4 "Drive"
+  mac4_d1  #25
+  mac4_a1  0.6
+  mac4_d2  #29
+  mac4_a2  -0.178
+  set macro5 "Dark"
+  mac5_d1  #21
+  mac5_a1  -0.4
+  set macro6 "Ring"
+  mac6_d1  #22
+  mac6_a1  0.5
+  mac6_d2  #21
+  mac6_a2  -0.15
+  set macro7 "Spray"
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac7_d2  #29
+  mac7_a2  -0.107
+  set macro8 "Thicker"
+  mac8_d1  #8
+  mac8_a1  0.25
+  mac8_d2  #29
+  mac8_a2  -0.209
+
+patch "Thin Air" family=texture
+  # Grains through a high-pass with a little ring: the file with its body
+  # taken out.
+  filtertype     #5
+  cutoff         250 Hz
+  resonance      0.3
+  window         #1
+  size           200 ms
+  density        110 /s
+  jitter         0.5
+  spray          0.4
+  panspread      1
+  ampattack      0.3 s
+  amprelease     2 s
+  volume         1.08
+  set macro1 "Crush"
+  mac1_d1  #18
+  mac1_a1  -0.5
+  set macro2 "Rate"
+  mac2_d1  #19
+  mac2_a1  0.5
+  set macro3 "Wobble"
+  mac3_d1  #20
+  mac3_a1  0.5
+  set macro4 "Drive"
+  mac4_d1  #25
+  mac4_a1  0.6
+  mac4_d2  #29
+  mac4_a2  -0.309
+  set macro5 "Body"
+  mac5_d1  #21
+  mac5_a1  -0.3
+  mac5_d2  #29
+  mac5_a2  -0.427
+  set macro6 "Ring"
+  mac6_d1  #22
+  mac6_a1  0.5
+  mac6_d2  #21
+  mac6_a2  -0.15
+  mac6_d3  #29
+  mac6_a3  -0.549
+  set macro7 "Spray"
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac7_d2  #29
+  mac7_a2  -0.155
+  set macro8 "Thinner"
+  mac8_d1  #8
+  mac8_a1  -0.25
+  mac8_d2  #29
+  mac8_a2  0.28
 
 patch "Live Hold" family=live input=break
   # Reading the live ring rather than the file: the last several seconds of
@@ -488,6 +2335,42 @@ patch "Live Hold" family=live input=break
   ampattack      0.3 s
   amprelease     2.5 s
   volume         1.13
+  set macro1 "Feedback"
+  mac1_d1  #26
+  mac1_a1  0.4
+  set macro2 "Further Back"
+  mac2_d1  #1
+  mac2_a1  0.4
+  mac2_d2  #29
+  mac2_a2  0.247
+  set macro3 "Spray"
+  mac3_d1  #3
+  mac3_a1  0.4
+  set macro4 "Longer"
+  mac4_d1  #6
+  mac4_a1  0.194
+  mac4_d2  #29
+  mac4_a2  -0.428
+  set macro5 "Scatter"
+  mac5_d1  #12
+  mac5_a1  0.4
+  mac5_d2  #29
+  mac5_a2  0.102
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  mac6_d2  #29
+  mac6_a2  0.173
+  set macro7 "Bloom"
+  mac7_d1  #13
+  mac7_a1  0.6
+  mac7_d2  #29
+  mac7_a2  -0.214
+  set macro8 "Narrow"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #17
+  mac8_a2  -0.6
 
 patch "Eat Itself" family=live input=break
   # The output goes back into the ring, so the cloud granulates itself
@@ -503,6 +2386,40 @@ patch "Eat Itself" family=live input=break
   ampattack      0.3 s
   amprelease     3.5 s
   volume         1.22
+  set macro1 "Feedback"
+  mac1_d1  #26
+  mac1_a1  0.242
+  set macro2 "Further Back"
+  mac2_d1  #1
+  mac2_a1  0.4
+  set macro3 "Spray"
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac3_d2  #29
+  mac3_a2  0.142
+  set macro4 "Longer"
+  mac4_d1  #6
+  mac4_a1  0.2
+  mac4_d2  #29
+  mac4_a2  -0.424
+  set macro5 "Scatter"
+  mac5_d1  #12
+  mac5_a1  0.4
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  mac6_d2  #29
+  mac6_a2  0.12
+  set macro7 "Bloom"
+  mac7_d1  #13
+  mac7_a1  0.6
+  mac7_d2  #29
+  mac7_a2  -0.113
+  set macro8 "Narrow"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #17
+  mac8_a2  -0.6
 
 patch "Feedback Bloom" family=live input=break
   # Feedback and pollination at once, which is this machine being the most
@@ -521,6 +2438,40 @@ patch "Feedback Bloom" family=live input=break
   ampattack      0.4 s
   amprelease     4 s
   volume         0.77
+  set macro1 "Feedback"
+  mac1_d1  #26
+  mac1_a1  0.368
+  set macro2 "Further Back"
+  mac2_d1  #1
+  mac2_a1  0.4
+  mac2_d2  #29
+  mac2_a2  0.22
+  set macro3 "Spray"
+  mac3_d1  #3
+  mac3_a1  0.4
+  set macro4 "Longer"
+  mac4_d1  #6
+  mac4_a1  0.2
+  mac4_d2  #29
+  mac4_a2  -0.241
+  set macro5 "Scatter"
+  mac5_d1  #12
+  mac5_a1  0.4
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  mac6_d2  #29
+  mac6_a2  0.237
+  set macro7 "Bare"
+  mac7_d1  #13
+  mac7_a1  -0.6
+  mac7_d2  #29
+  mac7_a2  0.246
+  set macro8 "Narrow"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #17
+  mac8_a2  -0.6
 
 patch "Ring Scan" family=live input=break
   # A moving window on recent input: the ring keeps filling while the read
@@ -537,6 +2488,40 @@ patch "Ring Scan" family=live input=break
   ampattack      0.2 s
   amprelease     2 s
   volume         1.13
+  set macro1 "Feedback"
+  mac1_d1  #26
+  mac1_a1  0.4
+  set macro2 "Further Back"
+  mac2_d1  #1
+  mac2_a1  0.4
+  mac2_d2  #29
+  mac2_a2  -0.195
+  set macro3 "Spray"
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac3_d2  #29
+  mac3_a2  0.228
+  set macro4 "Longer"
+  mac4_d1  #6
+  mac4_a1  0.2
+  mac4_d2  #29
+  mac4_a2  -0.344
+  set macro5 "Scatter"
+  mac5_d1  #12
+  mac5_a1  0.4
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  mac6_d2  #29
+  mac6_a2  0.173
+  set macro7 "Bloom"
+  mac7_d1  #13
+  mac7_a1  0.6
+  mac7_d2  #29
+  mac7_a2  0.112
+  set macro8 "Wide"
+  mac8_d1  #16
+  mac8_a1  0.25
 
 patch Capture family=live input=break
   # The ring recording while you play over it, unfrozen, so the buffer is
@@ -553,6 +2538,38 @@ patch Capture family=live input=break
   ampattack      0.1 s
   amprelease     1.8 s
   volume         0.77
+  set macro1 "Feedback"
+  mac1_d1  #26
+  mac1_a1  0.4
+  set macro2 "Further Back"
+  mac2_d1  #1
+  mac2_a1  0.4
+  mac2_d2  #29
+  mac2_a2  0.195
+  set macro3 "Spray"
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac3_d2  #29
+  mac3_a2  0.097
+  set macro4 "Longer"
+  mac4_d1  #6
+  mac4_a1  0.2
+  mac4_d2  #29
+  mac4_a2  -0.178
+  set macro5 "Scatter"
+  mac5_d1  #12
+  mac5_a1  0.4
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  set macro7 "Bloom"
+  mac7_d1  #13
+  mac7_a1  0.6
+  set macro8 "Narrow"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #17
+  mac8_a2  -0.6
 
 patch Infinite family=live input=break
   # Fed back hard into a long ring, so what goes in keeps going round through
@@ -573,3 +2590,85 @@ patch Infinite family=live input=break
   ampattack      1 s
   amprelease     6 s
   volume         1.13
+  set macro1 "Less Feedback"
+  mac1_d1  #26
+  mac1_a1  -0.4
+  set macro2 "Further Back"
+  mac2_d1  #1
+  mac2_a1  0.4
+  set macro3 "Spray"
+  mac3_d1  #3
+  mac3_a1  0.4
+  set macro4 "Longer"
+  mac4_d1  #6
+  mac4_a1  0.147
+  mac4_d2  #29
+  mac4_a2  -0.278
+  set macro5 "Scatter"
+  mac5_d1  #12
+  mac5_a1  0.4
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  mac6_d2  #29
+  mac6_a2  0.132
+  set macro7 "Bloom"
+  mac7_d1  #13
+  mac7_a1  0.6
+  mac7_d2  #29
+  mac7_a2  -0.195
+  set macro8 "Narrow"
+  mac8_d1  #16
+  mac8_a1  -0.5
+  mac8_d2  #17
+  mac8_a2  -0.6
+
+patch "Short Echo" family=live input=break
+  # Half a second of ring fed back into itself: a grain delay that smears
+  # what you play into it.
+  source         #1
+  capture        1
+  buffer         0.5 s
+  feedback       0.5
+  position       0.4
+  size           80 ms
+  density        40 /s
+  spray          0.2
+  panspread      0.7
+  ampattack      0.05 s
+  amprelease     2 s
+  volume         1.02
+  set macro1 "Feedback"
+  mac1_d1  #26
+  mac1_a1  0.4
+  set macro2 "Further Back"
+  mac2_d1  #1
+  mac2_a1  0.4
+  mac2_d2  #29
+  mac2_a2  0.138
+  set macro3 "Spray"
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac3_d2  #29
+  mac3_a2  -0.095
+  set macro4 "Longer"
+  mac4_d1  #6
+  mac4_a1  0.2
+  mac4_d2  #29
+  mac4_a2  -0.293
+  set macro5 "Scatter"
+  mac5_d1  #12
+  mac5_a1  0.4
+  set macro6 "Dark"
+  mac6_d1  #21
+  mac6_a1  -0.4
+  mac6_d2  #29
+  mac6_a2  0.32
+  set macro7 "Bloom"
+  mac7_d1  #13
+  mac7_a1  0.6
+  mac7_d2  #29
+  mac7_a2  -0.127
+  set macro8 "Wide"
+  mac8_d1  #16
+  mac8_a1  0.3

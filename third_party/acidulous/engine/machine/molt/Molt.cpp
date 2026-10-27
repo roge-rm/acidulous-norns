@@ -2,6 +2,7 @@
 #include <engine/machine/Voices.h>
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <engine/dsp/Math.h>
 
 namespace acidulous::machine {
@@ -37,7 +38,7 @@ const float *hannTable() {
 Molt::Molt() { initParams(); }
 
 const ParamDef *Molt::paramDefs(int32_t &count) const {
-    static const ParamDef defs[Count] = {
+    static const ParamDef first[MacroBase] = {
         // The take is a file mounted like other machines' material. See the
         // recording window.
         {"start", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
@@ -76,8 +77,83 @@ const ParamDef *Molt::paramDefs(int32_t &count) const {
         {"volume", 0.0f, 1.5f, 0.8f, Curve::Linear, 0, ""},
         {"pan", -1.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
     };
+    static ParamDef defs[Count];
+    static char names[kMacros * MacroParams][12];
+    static bool built = false;
+    if (!built) {
+        for (int32_t i = 0; i < MacroBase; ++i) defs[i] = first[i];
+        auto put = [&](int32_t i, const char *n, float mn, float mx, float df, Curve c, int32_t steps) {
+            char *name = names[i - MacroBase];
+            std::snprintf(name, 12, "%s", n);
+            defs[i] = ParamDef{name, mn, mx, df, c, steps, ""};
+        };
+        for (int k = 0; k < kMacros; ++k) {
+            char n[12];
+            const int32_t b = MacroBase + k * MacroParams;
+            std::snprintf(n, sizeof(n), "mac%d", k + 1);
+            put(b, n, 0.0f, 1.0f, 0.0f, Curve::Linear, 0);
+            for (int r = 0; r < 4; ++r) {
+                std::snprintf(n, sizeof(n), "mac%d_d%d", k + 1, r + 1);
+                put(b + 1 + r, n, 0.0f, static_cast<float>(MacroDestCount - 1), 0.0f, Curve::Stepped, MacroDestCount);
+                std::snprintf(n, sizeof(n), "mac%d_a%d", k + 1, r + 1);
+                put(b + 5 + r, n, -1.0f, 1.0f, 0.0f, Curve::Linear, 0);
+            }
+        }
+        built = true;
+    }
     count = Count;
     return defs;
+}
+
+namespace {
+// The macro destination each param answers to, or -1 for none.
+struct DestMap {
+    int8_t of[Molt::Count];
+    DestMap() {
+        using P = Molt;
+        for (auto &d : of) d = -1;
+        const int32_t pairs[][2] = {
+            {P::Start, P::McStart}, {P::Tune, P::McTune}, {P::Rate, P::McRate},
+            {P::Formant, P::McFormant}, {P::Mega, P::McMega}, {P::Cutoff, P::McCutoff},
+            {P::Resonance, P::McResonance}, {P::AmpAttack, P::McAttack}, {P::AmpDecay, P::McDecay},
+            {P::AmpSustain, P::McSustain}, {P::AmpRelease, P::McRelease},
+            {P::VelocityAmount, P::McVelocity}, {P::Drive, P::McDrive}, {P::Volume, P::McVolume},
+            {P::Pan, P::McPan},
+        };
+        for (const auto &pr : pairs) of[pr[0]] = static_cast<int8_t>(pr[1]);
+    }
+};
+const DestMap &destMap() {
+    static const DestMap m;
+    return m;
+}
+} // namespace
+
+float Molt::withMacros(int32_t p, float v, const float *mac) const {
+    const int d = destMap().of[p];
+    if (d < 0 || mac[d] == 0.0f) return v;
+    const ParamDef &def = params_.def(p);
+    return def.map(def.unmap(v) + mac[d]);
+}
+
+void Molt::updateMacros() {
+    for (float &m : mac_) m = 0.0f;
+    for (float &m : macGoal_) m = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = params_.get(b), goal = params_.target(b);
+        if (knob == 0.0f && goal == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            // The routes' destinations are steps, so their targets.
+            const int dest = static_cast<int>(params_.target(b + 1 + r) + 0.5f);
+            if (dest <= McOff || dest >= MacroDestCount) continue;
+            mac_[dest] += knob * params_.get(b + 5 + r);
+            macGoal_[dest] += goal * params_.target(b + 5 + r);
+        }
+    }
+    // Two octaves either way.
+    mac_[McPitch] = std::clamp(mac_[McPitch], -1.0f, 1.0f);
+    macGoal_[McPitch] = std::clamp(macGoal_[McPitch], -1.0f, 1.0f);
 }
 
 void Molt::prepare(int32_t sr) {
@@ -102,6 +178,10 @@ void Molt::reset() {
         v.pressure = 0.0f;
         v.logPitch = 0.0f;
         v.primed = false;
+        v.notePitch = 0.0f;
+        v.glideFrom = 0.0f;
+        v.glideDone = 1.0f;
+        v.sinceOn = 0;
         v.untilGrain = 0.0f;
         v.accHead = 0;
         std::fill(v.acc.begin(), v.acc.end(), 0.0f);
@@ -112,9 +192,12 @@ void Molt::reset() {
     head = 0.0;
     running = false;
     channelBend = 0.0f;
+    updateMacros();
 }
 
 void Molt::noteOn(uint8_t note, uint8_t velocity) {
+    // A knob set in this block, before render, still counts.
+    updateMacros();
     Voice *v = nullptr;
     for (auto &c : voices) {
         if (!c.used) { v = &c; break; }
@@ -126,10 +209,30 @@ void Molt::noteOn(uint8_t note, uint8_t velocity) {
             if (c.amp.value() < v->amp.value()) v = &c;
         }
     }
+    // With glide up, the note slides over from the nearest note still
+    // sounding, so a line is sung as one and a chord moves voice by voice.
+    // From silence there's nothing to glide from. A note held down within
+    // 50 ms of another one held is part of a chord, so it only glides from
+    // notes let go.
+    const Voice *from = nullptr;
+    if (goalOf(Glide) > 0.0005f) {
+        const auto chord = static_cast<int32_t>(sampleRate * 0.05f);
+        bool inChord = false;
+        for (const auto &c : voices) inChord |= c.used && c.gate && c.sinceOn < chord;
+        int best = 1000;
+        for (const auto &c : voices) {
+            if (!c.used || !c.primed || (c.gate && inChord)) continue;
+            const int d = std::abs(static_cast<int>(c.note) - static_cast<int>(note));
+            if (d < best) { best = d; from = &c; }
+        }
+    }
+    v->glideFrom = from != nullptr ? from->notePitch : 0.0f;
+    v->glideDone = from != nullptr ? 0.0f : 1.0f;
+    v->sinceOn = 0;
     v->used = true;
     v->gate = true;
     v->note = note;
-    v->velocity = velocityGain(static_cast<float>(velocity) / 127.0f, targetOf(VelocityAmount));
+    v->velocity = velocityGain(static_cast<float>(velocity) / 127.0f, goalOf(VelocityAmount));
     v->bend = channelBend;
     v->primed = false;
     v->untilGrain = 0.0f;
@@ -140,7 +243,7 @@ void Molt::noteOn(uint8_t note, uint8_t velocity) {
     if (!running) {
         const audio::Utterance *u = source;
         if (u != nullptr && u->usable()) {
-            head = static_cast<double>(targetOf(Start)) * static_cast<double>(u->frames);
+            head = static_cast<double>(goalOf(Start)) * static_cast<double>(u->frames);
             running = true;
         }
     }
@@ -224,8 +327,15 @@ float Molt::layGrain(Voice &v, float formantRatio, float tune, float rateSec, bo
     if (e.voiced || robot) {
         const float pitchHz = noteHz(static_cast<float>(v.note) +
                                   static_cast<float>(steppedOf(Transpose)) +
-                                  12.0f * static_cast<float>(steppedOf(Octave)) + v.bend);
-        const float logNote = std::log2(pitchHz);
+                                  12.0f * static_cast<float>(steppedOf(Octave)) + v.bend +
+                                  24.0f * mac_[McPitch]);
+        float logNote = std::log2(pitchHz);
+        if (v.glideDone < 1.0f) {
+            // Eased at both ends, and it arrives in the glide time.
+            const float t = v.glideDone;
+            logNote = v.glideFrom + (logNote - v.glideFrom) * (t * t * (3.0f - 2.0f * t));
+        }
+        v.notePitch = logNote;
         float want = logNote;
         if (!robot && u->rootHz > 0.0f && e.voiced) {
             // Keep part of this moment's distance from the take's root. At
@@ -295,6 +405,7 @@ float Molt::layGrain(Voice &v, float formantRatio, float tune, float rateSec, bo
 
 bool Molt::render(float *L, float *R, int32_t frames) {
     params_.tick();
+    updateMacros();
     // The rack's buffer still holds its last block; the voices add into a clear one.
     for (int32_t i = 0; i < frames; ++i) L[i] = R[i] = 0.0f;
     // --- the block's settings ----------------------------------------------
@@ -306,8 +417,13 @@ bool Molt::render(float *L, float *R, int32_t frames) {
     const bool robot = rawOf(Robot) >= 0.5f;
     const bool loop = rawOf(Loop) >= 0.5f;
     const float startFrame = haveTake ? paramOf(Start) * static_cast<float>(u->frames) : 0.0f;
+    // How far a glide gets per frame. It moves once a grain, by the frames
+    // until the next one, since that's when the pitch is next laid down.
+    const float glideStep = 1.0f / (std::max(0.001f, paramOf(Glide)) * sampleRate);
 
+    const auto second = static_cast<int32_t>(sampleRate);
     for (auto &v : voices) {
+        if (v.used) v.sinceOn = std::min(second, v.sinceOn + frames);
         v.amp.set(0.0f, paramOf(AmpAttack), paramOf(AmpDecay), paramOf(AmpSustain),
                   paramOf(AmpRelease), false);
     }
@@ -341,7 +457,9 @@ bool Molt::render(float *L, float *R, int32_t frames) {
             if (!v.used) continue;
             if (running && haveTake) {
                 while (v.untilGrain <= 0.0f) {
-                    v.untilGrain += layGrain(v, formantRatio, tune, rateSec, robot);
+                    const float spacing = layGrain(v, formantRatio, tune, rateSec, robot);
+                    v.untilGrain += spacing;
+                    if (v.glideDone < 1.0f) v.glideDone = std::min(1.0f, v.glideDone + spacing * glideStep);
                 }
                 v.untilGrain -= 1.0f;
             }

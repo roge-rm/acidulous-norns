@@ -14,7 +14,7 @@
 #
 # **The range is the acceptance test, not the centre.** `audition sweep
 # Timber` plays every note of every range and says which ones are dead or on
-# the wrong partial. All two hundred and twenty pass. The centre alone never
+# the wrong partial. All 1095 pass. The centre alone never
 # saw the saxophone's bottom note come out an octave high or the oboe lose
 # the top five of its own.
 #
@@ -72,10 +72,12 @@
 # (+14 cents on Stopped Wood, -3 on the old tight oboe), and `fine` carries
 # it. Init sets nothing by rule and so reads 12 cents flat.
 #
-# Every centre is within 3 cents and every patch within half a decibel of
-# -22 dB RMS. Across a whole range the tuning is mostly within 10 cents with
-# the odd note at 20, which is the tube below the fingers pulling each
-# fingering differently, and 7-11 dB of loudness, which is a wind instrument.
+# Every patch sits between -25.0 and -25.4 dB RMS (Init -25.2), and every
+# centre is within 3 cents but Init (-18) and Contrabassoon (-11). Across a
+# whole range the tuning is mostly within 10 cents with the odd note at 20,
+# which is the tube below the fingers pulling each fingering differently
+# (Bassoon's worst note is 41 flat), and 3-14 dB of loudness, which is a wind
+# instrument.
 #
 # **What is still wrong.** The radiated fundamental sits 14 dB under its own
 # partials by construction (`arrive - 0.8 low`), which is backwards for a
@@ -85,6 +87,28 @@
 # second harmonic in a trough between modes. The flute's attack is eight
 # times the edge of its own tone, which is a chiff and probably right. And
 # the timbres past the bore and the embouchure are still as seeded.
+#
+# Families in tab order: clarinet (Init first), sax, double (oboe and the
+# other double reeds), flute, pipe, low, odd, plainest first in each. Every
+# patch but Init carries eight named macros.
+# A positive swell is a breath that grows into the note, a negative one an
+# accent; long rising swells stay off the low cones, where the breath spends
+# too long under the point the reed speaks. Macro destinations are numbered
+# as in Timber.h's MacroDest, so #9 is pressure, #35 swell and #37 pitch
+# (one semitone is 0.0417).
+#
+# The tongue only acts on a reed: a jet patch's chiff comes from `keys` and
+# its breath. Flutter acts on both, tapping a reed shut or breaking up the
+# air jet (Flutter Flute). On a jet `register` works as on a reed, the same
+# note on a higher partial of a longer tube, except in the bottom octave,
+# where the tube would be longer than the instrument. Baritone Sax (0.5) and Sax Section (0.48)
+# have the embouchure that keeps one low note from reading 40-odd cents
+# flat. On Alto Sax that note is 51, and a tongue over 0.7 lets the attack
+# ring a flat second mode louder than the note for 0.4 s.
+#
+# Contrabassoon tunes down to its body, note 28, though it plays 32..53.
+# Jug and Bent Bamboo take 110 and 160 ms to speak, a jug's puff and a
+# breath swell.
 #
 # Values are in each parameter's own units; `audition params Timber` lists
 # them. A patch names only what it changes.
@@ -99,9 +123,47 @@ role    tune
 # it: every other patch here declares its own note and range, and without one
 # Init was being measured in a dead spot of the bore - 6 dB down on note 60 for
 # the sake of two semitones, which read as a broken house level and was not.
-patch Init family=single  note=60
+patch Init family=clarinet  note=60
 
-patch Clarinet family=single  note=62 range=52..76
+patch Clarinet family=clarinet  note=62 range=52..76
+  set macro1 "Blow"
+  set macro2 "Looser"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Soft Tongue"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #8
+  mac2_a1  -0.25
+  mac2_d2  #7
+  mac2_a2  0.15
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac4_d1  #35
+  mac4_a1  0.2
+  mac4_d2  #36
+  mac4_a2  0.1
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #26
+  mac5_a2  -0.1
+  mac6_d1  #27
+  mac6_a1  -0.35
+  mac6_d2  #2
+  mac6_a2  -0.15
+  mac7_d1  #17
+  mac7_a1  0.5
+  mac8_d1  #15
+  mac8_a1  -0.4
+  mac8_d2  #20
+  mac8_a2  0.15
+  swell          0.35
+  swelltime      0.6 s
   attack         0.02 s
   breath         0.1
   keys           0.2
@@ -109,19 +171,349 @@ patch Clarinet family=single  note=62 range=52..76
 
   fine           11 cents
   volume         0.83
-patch "Bass Clarinet" family=single  note=50 range=40..62
-  body           73.4 Hz
-  breath         0.16
-  embouchure     0.5
-  keys           0.35
-  lattice        1000 Hz
-  pressure       0.9
-  tongue         0.6
-  volume         0.98
+patch "A Clarinet" family=clarinet  note=61 range=51..75
+  set macro1 "Blow"
+  set macro2 "Looser"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Brighter"
+  set macro7 "Flutter"
+  set macro8 "Soft Tongue"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #8
+  mac2_a1  -0.25
+  mac2_d2  #7
+  mac2_a2  0.15
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac4_d1  #35
+  mac4_a1  0.2
+  mac4_d2  #36
+  mac4_a2  0.1
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #26
+  mac5_a2  -0.1
+  mac6_d1  #2
+  mac6_a1  0.25
+  mac6_d2  #7
+  mac6_a2  0.15
+  mac6_d3  #32
+  mac6_a3  0.1
+  mac7_d1  #17
+  mac7_a1  0.5
+  mac8_d1  #15
+  mac8_a1  -0.4
+  mac8_d2  #20
+  mac8_a2  0.15
+  attack         0.025 s
+  body           138.6 Hz
+  breath         0.1
+  cutoff         5000 Hz
+  fine           11 cents
+  keys           0.2
+  lattice        1150 Hz
+  swell          0.2
+  swelltime      0.4 s
+  vibrato        0 cents
+  volume         0.667
+  send reverb    0.12
 
-  fine           13 cents
-  volume         0.98
-patch "Alto Sax" family=single  note=60 range=50..74
+patch "High Clarinet" family=clarinet  note=69 range=57..81
+  set macro1 "Blow"
+  set macro2 "Tighter"
+  set macro3 "Breathy"
+  set macro4 "Brighter"
+  set macro5 "Accent"
+  set macro6 "Vibrato"
+  set macro7 "Dark"
+  set macro8 "Flutter"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #8
+  mac2_a1  0.2
+  mac2_d2  #7
+  mac2_a2  -0.1
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac4_d1  #2
+  mac4_a1  0.25
+  mac4_d2  #7
+  mac4_a2  0.15
+  mac4_d3  #32
+  mac4_a3  0.1
+  mac5_d1  #35
+  mac5_a1  -0.3
+  mac5_d2  #36
+  mac5_a2  -0.1
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #26
+  mac6_a2  -0.1
+  mac7_d1  #27
+  mac7_a1  -0.35
+  mac7_d2  #2
+  mac7_a2  -0.15
+  mac8_d1  #17
+  mac8_a1  0.5
+  attack         0.012 s
+  body           196 Hz
+  embouchure     0.62
+  fine           7 cents
+  keys           0.2
+  lattice        2400 Hz
+  pressure       0.95
+  tongue         0.8
+  vibrato        0 cents
+  volume         0.857
+
+patch Chalumeau family=clarinet  note=57 range=50..66
+  set macro1 "Blow"
+  set macro2 "Breathy"
+  set macro3 "Swell"
+  set macro4 "Darker"
+  set macro5 "Looser"
+  set macro6 "Vibrato"
+  set macro7 "Slow Swell"
+  set macro8 "Soft Tongue"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.4
+  mac3_d1  #35
+  mac3_a1  0.2
+  mac3_d2  #36
+  mac3_a2  0.1
+  mac4_d1  #27
+  mac4_a1  -0.35
+  mac4_d2  #2
+  mac4_a2  -0.15
+  mac5_d1  #8
+  mac5_a1  -0.25
+  mac5_d2  #7
+  mac5_a2  0.15
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #26
+  mac6_a2  -0.1
+  mac7_d1  #35
+  mac7_a1  0.15
+  mac7_d2  #36
+  mac7_a2  0.15
+  mac8_d1  #15
+  mac8_a1  -0.4
+  mac8_d2  #20
+  mac8_a2  0.15
+  attack         0.05 s
+  breath         0.15
+  cutoff         3000 Hz
+  fine           3 cents
+  keys           0.15
+  lattice        1100 Hz
+  pressure       0.7
+  release        0.3 s
+  swell          0.4
+  swelltime      0.5 s
+  tongue         0.4
+  vibrato        0 cents
+  volume         0.85
+  send reverb    0.15
+
+patch "Basset Horn" family=clarinet  note=57 range=43..72
+  set macro1 "Blow"
+  set macro2 "Looser"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Brighter"
+  set macro7 "Soft Tongue"
+  set macro8 "Flutter"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #8
+  mac2_a1  -0.25
+  mac2_d2  #7
+  mac2_a2  0.15
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac4_d1  #35
+  mac4_a1  0.2
+  mac4_d2  #36
+  mac4_a2  0.1
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #26
+  mac5_a2  -0.1
+  mac6_d1  #2
+  mac6_a1  0.25
+  mac6_d2  #7
+  mac6_a2  0.15
+  mac6_d3  #32
+  mac6_a3  0.1
+  mac7_d1  #15
+  mac7_a1  -0.4
+  mac7_d2  #20
+  mac7_a2  0.15
+  mac8_d1  #17
+  mac8_a1  0.5
+  attack         0.03 s
+  body           87.3 Hz
+  breath         0.12
+  cutoff         4000 Hz
+  embouchure     0.52
+  fine           12 cents
+  keys           0.3
+  lattice        850 Hz
+  swell          0.25
+  swelltime      0.5 s
+  vibrato        4 cents
+  volume         0.63
+  send reverb    0.15
+
+patch "Jazz Clarinet" family=clarinet  note=64 range=52..79
+  set macro1 "Glide"
+  set macro2 "Vibrato"
+  set macro3 "Bend"
+  set macro4 "Blow"
+  set macro5 "Breathy"
+  set macro6 "Growl"
+  set macro7 "Swell"
+  set macro8 "Dark"
+  mac1_d1  #29
+  mac1_a1  0.3
+  mac2_d1  #24
+  mac2_a1  0.3
+  mac2_d2  #26
+  mac2_a2  -0.1
+  mac3_d1  #37
+  mac3_a1  -0.0417
+  mac4_d1  #9
+  mac4_a1  0.25
+  mac4_d2  #10
+  mac4_a2  0.15
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #17
+  mac6_a1  0.4
+  mac6_d2  #31
+  mac6_a2  0.3
+  mac7_d1  #35
+  mac7_a1  0.2
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #27
+  mac8_a1  -0.35
+  mac8_d2  #2
+  mac8_a2  -0.15
+  attack         0.02 s
+  breath         0.18
+  embouchure     0.5
+  fine           12 cents
+  glide          0.08 s
+  keys           0.2
+  swell          0.25
+  swelltime      0.3 s
+  vibrato        18 cents
+  vibratodelay   0.15 s
+  vibratorate    5.5 Hz
+  volume         0.621
+  send reverb    0.15
+
+patch Klezmer family=clarinet  note=67 range=55..81
+  set macro1 "Wail"
+  set macro2 "Glide"
+  set macro3 "Bend"
+  set macro4 "Blow"
+  set macro5 "Looser"
+  set macro6 "Accent"
+  set macro7 "Growl"
+  set macro8 "Breathy"
+  mac1_d1  #24
+  mac1_a1  0.4
+  mac1_d2  #25
+  mac1_a2  0.15
+  mac2_d1  #29
+  mac2_a1  0.3
+  mac3_d1  #37
+  mac3_a1  -0.0417
+  mac4_d1  #9
+  mac4_a1  0.25
+  mac4_d2  #10
+  mac4_a2  0.15
+  mac5_d1  #8
+  mac5_a1  -0.25
+  mac5_d2  #7
+  mac5_a2  0.15
+  mac6_d1  #35
+  mac6_a1  -0.3
+  mac6_d2  #36
+  mac6_a2  -0.1
+  mac7_d1  #17
+  mac7_a1  0.4
+  mac7_d2  #31
+  mac7_a2  0.3
+  mac8_d1  #10
+  mac8_a1  0.4
+  attack         0.015 s
+  breath         0.15
+  drive          0.15
+  embouchure     0.5
+  fine           1 cents
+  glide          0.12 s
+  keys           0.2
+  pressure       1
+  swell          -0.3
+  swelltime      0.15 s
+  tongue         0.8
+  vibrato        30 cents
+  vibratodelay   0.1 s
+  vibratorate    6.5 Hz
+  volume         0.519
+  send reverb    0.12
+
+patch "Alto Sax" family=sax  note=60 range=50..74
+  set macro1 "Growl"
+  set macro2 "Blow"
+  set macro3 "Looser"
+  set macro4 "Breathy"
+  set macro5 "Brighter"
+  set macro6 "Accent"
+  set macro7 "Vibrato"
+  set macro8 "Drive"
+  mac1_d1  #17
+  mac1_a1  0.4
+  mac1_d2  #31
+  mac1_a2  0.3
+  mac2_d1  #9
+  mac2_a1  0.2
+  mac3_d1  #8
+  mac3_a1  -0.2
+  mac4_d1  #10
+  mac4_a1  0.35
+  mac5_d1  #2
+  mac5_a1  0.25
+  mac6_d1  #35
+  mac6_a1  -0.3
+  mac6_d2  #36
+  mac6_a2  -0.1
+  mac7_d1  #24
+  mac7_a1  0.3
+  mac7_d2  #25
+  mac7_a2  0.1
+  mac8_d1  #31
+  mac8_a1  0.4
+  swell          -0.4
+  swelltime      0.2 s
   attack         0.015 s
   body           138.6 Hz
   bore           #1
@@ -130,46 +522,808 @@ patch "Alto Sax" family=single  note=60 range=50..74
   keys           0.3
   lattice        900 Hz
   pressure       0.95
-  tongue         0.75
+  tongue         0.7
   vibrato        9 cents
   volume         0.58
 
   fine           9 cents
   volume         0.57
+patch "Soprano Sax" family=sax  note=68 range=58..82
+  set macro1 "Blow"
+  set macro2 "Looser"
+  set macro3 "Breathy"
+  set macro4 "Brighter"
+  set macro5 "Accent"
+  set macro6 "Vibrato"
+  set macro7 "Glide"
+  set macro8 "Drive"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #8
+  mac2_a1  -0.25
+  mac2_d2  #7
+  mac2_a2  0.15
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac4_d1  #2
+  mac4_a1  0.25
+  mac4_d2  #7
+  mac4_a2  0.15
+  mac4_d3  #32
+  mac4_a3  0.1
+  mac5_d1  #35
+  mac5_a1  -0.3
+  mac5_d2  #36
+  mac5_a2  -0.1
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #26
+  mac6_a2  -0.1
+  mac7_d1  #29
+  mac7_a1  0.3
+  mac8_d1  #31
+  mac8_a1  0.4
+  attack         0.015 s
+  body           207.7 Hz
+  bore           #1
+  breath         0.15
+  embouchure     0.5
+  fine           9 cents
+  keys           0.25
+  lattice        1400 Hz
+  pressure       0.95
+  tongue         0.75
+  vibrato        12 cents
+  volume         0.463
+
+patch "Tenor Sax" family=sax  note=56 range=46..70
+  set macro1 "Growl"
+  set macro2 "Blow"
+  set macro3 "Looser"
+  set macro4 "Breathy"
+  set macro5 "Brighter"
+  set macro6 "Accent"
+  set macro7 "Vibrato"
+  set macro8 "Drive"
+  mac1_d1  #17
+  mac1_a1  0.4
+  mac1_d2  #31
+  mac1_a2  0.3
+  mac2_d1  #9
+  mac2_a1  0.25
+  mac2_d2  #10
+  mac2_a2  0.15
+  mac3_d1  #8
+  mac3_a1  -0.25
+  mac3_d2  #7
+  mac3_a2  0.15
+  mac4_d1  #10
+  mac4_a1  0.4
+  mac5_d1  #2
+  mac5_a1  0.25
+  mac5_d2  #7
+  mac5_a2  0.15
+  mac5_d3  #32
+  mac5_a3  0.1
+  mac6_d1  #35
+  mac6_a1  -0.3
+  mac6_d2  #36
+  mac6_a2  -0.1
+  mac7_d1  #24
+  mac7_a1  0.3
+  mac7_d2  #26
+  mac7_a2  -0.1
+  mac8_d1  #31
+  mac8_a1  0.4
+  attack         0.018 s
+  body           103.8 Hz
+  bore           #1
+  breath         0.22
+  embouchure     0.48
+  fine           13 cents
+  keys           0.3
+  lattice        700 Hz
+  pressure       0.95
+  swell          -0.3
+  swelltime      0.2 s
+  tongue         0.7
+  vibrato        10 cents
+  volume         0.477
+
+patch "Baritone Sax" family=sax  note=48 range=39..63
+  set macro1 "Growl"
+  set macro2 "Blow"
+  set macro3 "Looser"
+  set macro4 "Breathy"
+  set macro5 "Brighter"
+  set macro6 "Bark"
+  set macro7 "Vibrato"
+  set macro8 "Drive"
+  mac1_d1  #17
+  mac1_a1  0.4
+  mac1_d2  #31
+  mac1_a2  0.3
+  mac2_d1  #9
+  mac2_a1  0.25
+  mac2_d2  #10
+  mac2_a2  0.15
+  mac3_d1  #8
+  mac3_a1  -0.25
+  mac3_d2  #7
+  mac3_a2  0.15
+  mac4_d1  #10
+  mac4_a1  0.4
+  mac5_d1  #2
+  mac5_a1  0.25
+  mac5_d2  #7
+  mac5_a2  0.15
+  mac5_d3  #32
+  mac5_a3  0.1
+  mac6_d1  #35
+  mac6_a1  -0.4
+  mac6_d2  #36
+  mac6_a2  -0.1
+  mac7_d1  #24
+  mac7_a1  0.3
+  mac7_d2  #26
+  mac7_a2  -0.1
+  mac8_d1  #31
+  mac8_a1  0.4
+  attack         0.02 s
+  body           69.3 Hz
+  bore           #1
+  breath         0.2
+  embouchure     0.5
+  fine           9 cents
+  keys           0.35
+  lattice        500 Hz
+  pressure       0.95
+  tongue         0.7
+  vibrato        6 cents
+  volume         0.689
+
+patch Subtone family=sax  note=56 range=46..70
+  set macro1 "Air"
+  set macro2 "Push"
+  set macro3 "Darker"
+  set macro4 "Vibrato"
+  set macro5 "Swell"
+  set macro6 "Looser"
+  set macro7 "Glide"
+  set macro8 "Soft Tongue"
+  mac1_d1  #10
+  mac1_a1  0.45
+  mac1_d2  #9
+  mac1_a2  -0.1
+  mac2_d1  #9
+  mac2_a1  0.3
+  mac3_d1  #27
+  mac3_a1  -0.35
+  mac3_d2  #2
+  mac3_a2  -0.15
+  mac4_d1  #24
+  mac4_a1  0.3
+  mac4_d2  #26
+  mac4_a2  -0.1
+  mac5_d1  #35
+  mac5_a1  0.2
+  mac5_d2  #36
+  mac5_a2  0.1
+  mac6_d1  #8
+  mac6_a1  -0.25
+  mac6_d2  #7
+  mac6_a2  0.15
+  mac7_d1  #29
+  mac7_a1  0.3
+  mac8_d1  #15
+  mac8_a1  -0.4
+  mac8_d2  #20
+  mac8_a2  0.15
+  attack         0.05 s
+  body           103.8 Hz
+  bore           #1
+  breath         0.45
+  cutoff         2500 Hz
+  embouchure     0.45
+  fine           16 cents
+  keys           0.2
+  lattice        700 Hz
+  pressure       0.6
+  swell          0.2
+  swelltime      0.4 s
+  tongue         0.3
+  vibrato        14 cents
+  vibratorate    4.5 Hz
+  volume         0.554
+  send reverb    0.2
+
+patch "Ballad Tenor" family=sax  note=58 range=46..72
+  set macro1 "Vibrato"
+  set macro2 "Breathy"
+  set macro3 "Blow"
+  set macro4 "Glide"
+  set macro5 "Swell"
+  set macro6 "Darker"
+  set macro7 "Looser"
+  set macro8 "Growl"
+  mac1_d1  #24
+  mac1_a1  0.3
+  mac1_d2  #26
+  mac1_a2  -0.1
+  mac2_d1  #10
+  mac2_a1  0.4
+  mac3_d1  #9
+  mac3_a1  0.25
+  mac3_d2  #10
+  mac3_a2  0.15
+  mac4_d1  #29
+  mac4_a1  0.3
+  mac5_d1  #35
+  mac5_a1  0.2
+  mac5_d2  #36
+  mac5_a2  0.1
+  mac6_d1  #27
+  mac6_a1  -0.35
+  mac6_d2  #2
+  mac6_a2  -0.15
+  mac7_d1  #8
+  mac7_a1  -0.25
+  mac7_d2  #7
+  mac7_a2  0.15
+  mac8_d1  #17
+  mac8_a1  0.4
+  mac8_d2  #31
+  mac8_a2  0.3
+  attack         0.03 s
+  body           103.8 Hz
+  bore           #1
+  breath         0.3
+  embouchure     0.47
+  fine           13 cents
+  glide          0.1 s
+  keys           0.25
+  lattice        750 Hz
+  pressure       0.9
+  release        0.3 s
+  swell          0.3
+  swelltime      0.6 s
+  tongue         0.6
+  vibrato        20 cents
+  vibratodelay   0.25 s
+  vibratorate    5 Hz
+  volume         0.357
+  send reverb    0.25
+
+patch "Sax Section" family=sax  note=60 range=50..74
+  set macro1 "Blow"
+  set macro2 "Breathy"
+  set macro3 "Brighter"
+  set macro4 "Accent"
+  set macro5 "Vibrato"
+  set macro6 "Looser"
+  set macro7 "Growl"
+  set macro8 "Swell"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.4
+  mac3_d1  #2
+  mac3_a1  0.25
+  mac3_d2  #7
+  mac3_a2  0.15
+  mac3_d3  #32
+  mac3_a3  0.1
+  mac4_d1  #35
+  mac4_a1  -0.3
+  mac4_d2  #36
+  mac4_a2  -0.1
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #26
+  mac5_a2  -0.1
+  mac6_d1  #8
+  mac6_a1  -0.25
+  mac6_d2  #7
+  mac6_a2  0.15
+  mac7_d1  #17
+  mac7_a1  0.4
+  mac7_d2  #31
+  mac7_a2  0.3
+  mac8_d1  #35
+  mac8_a1  0.2
+  mac8_d2  #36
+  mac8_a2  0.1
+  attack         0.02 s
+  body           138.6 Hz
+  bore           #1
+  breath         0.2
+  embouchure     0.48
+  fine           9 cents
+  keys           0.3
+  lattice        900 Hz
+  mono           #0
+  pressure       0.95
+  tongue         0.75
+  vibrato        10 cents
+  volume         0.5
+  insert Chorus
+    mix          0.3
+  send reverb    0.15
+
+patch Honker family=sax  note=56 range=46..70
+  set macro1 "Growl"
+  set macro2 "Drive"
+  set macro3 "Blow"
+  set macro4 "Bark"
+  set macro5 "Brighter"
+  set macro6 "Glide"
+  set macro7 "Bend"
+  set macro8 "Looser"
+  mac1_d1  #17
+  mac1_a1  0.4
+  mac1_d2  #31
+  mac1_a2  0.3
+  mac2_d1  #31
+  mac2_a1  0.4
+  mac3_d1  #9
+  mac3_a1  0.25
+  mac3_d2  #10
+  mac3_a2  0.15
+  mac4_d1  #35
+  mac4_a1  -0.4
+  mac4_d2  #36
+  mac4_a2  -0.1
+  mac5_d1  #2
+  mac5_a1  0.25
+  mac5_d2  #7
+  mac5_a2  0.15
+  mac5_d3  #32
+  mac5_a3  0.1
+  mac6_d1  #29
+  mac6_a1  0.3
+  mac7_d1  #37
+  mac7_a1  -0.0417
+  mac8_d1  #8
+  mac8_a1  -0.25
+  mac8_d2  #7
+  mac8_a2  0.15
+  attack         0.012 s
+  body           103.8 Hz
+  bore           #1
+  breath         0.25
+  drive          0.5
+  embouchure     0.42
+  fine           14 cents
+  flutter        0.35
+  keys           0.3
+  lattice        800 Hz
+  pressure       1.1
+  swell          -0.4
+  swelltime      0.15 s
+  tongue         0.85
+  vibrato        6 cents
+  volume         0.512
+
 patch Oboe family=double  note=70 range=60..84
+  set macro1 "Blow"
+  set macro2 "Looser"
+  set macro3 "Breathy"
+  set macro4 "Darker"
+  set macro5 "Vibrato"
+  set macro6 "Swell"
+  set macro7 "Soft Tongue"
+  set macro8 "Accent"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #8
+  mac2_a1  -0.25
+  mac2_d2  #7
+  mac2_a2  0.15
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac4_d1  #27
+  mac4_a1  -0.35
+  mac4_d2  #2
+  mac4_a2  -0.15
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #26
+  mac5_a2  -0.1
+  mac6_d1  #35
+  mac6_a1  0.2
+  mac6_d2  #36
+  mac6_a2  0.1
+  mac7_d1  #15
+  mac7_a1  -0.4
+  mac7_d2  #20
+  mac7_a2  0.15
+  mac8_d1  #35
+  mac8_a1  -0.3
+  mac8_d2  #36
+  mac8_a2  -0.1
   attack         0.012 s
   body           233.1 Hz
   bore           #1
   breath         0.08
   embouchure     0.45
   family         #1
+  fine           8 cents
   keys           0.2
   lattice        1600 Hz
   pressure       0.95
   tongue         0.8
   vibrato        12 cents
-  volume         0.57
-
-  fine           8 cents
   volume         0.42
-patch Bassoon family=double  note=46 range=36..60
-  attack         0.025 s
-  body           58.3 Hz
-  bore           #1
-  # 0.45 is where the cone's harmonics come right, but the bassoon plays an
-  # octave and a half above its own body and that is where the wall loss has
-  # least to say about which mode wins: at 0.45 note 50 came out as two modes
-  # beating and no pitch at all. 0.48 keeps the series and settles it.
-  embouchure     0.48
-  family         #1
-  keys           0.4
-  lattice        700 Hz
-  pressure       0.9
-  volume         0.86
 
-  fine           10 cents
-  volume         0.86
+patch "Cor Anglais" family=double  note=62 range=52..76
+  set macro1 "Blow"
+  set macro2 "Looser"
+  set macro3 "Breathy"
+  set macro4 "Darker"
+  set macro5 "Vibrato"
+  set macro6 "Swell"
+  set macro7 "Soft Tongue"
+  set macro8 "Flutter"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #8
+  mac2_a1  -0.25
+  mac2_d2  #7
+  mac2_a2  0.15
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac4_d1  #27
+  mac4_a1  -0.35
+  mac4_d2  #2
+  mac4_a2  -0.15
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #26
+  mac5_a2  -0.1
+  mac6_d1  #35
+  mac6_a1  0.2
+  mac6_d2  #36
+  mac6_a2  0.1
+  mac7_d1  #15
+  mac7_a1  -0.4
+  mac7_d2  #20
+  mac7_a2  0.15
+  mac8_d1  #17
+  mac8_a1  0.5
+  attack         0.015 s
+  body           164.8 Hz
+  bore           #1
+  breath         0.1
+  cutoff         5000 Hz
+  embouchure     0.46
+  family         #1
+  fine           14 cents
+  keys           0.2
+  lattice        1100 Hz
+  pressure       0.95
+  swell          0.2
+  swelltime      0.4 s
+  tongue         0.75
+  vibrato        10 cents
+  volume         0.511
+  send reverb    0.15
+
+patch "Oboe d'Amore" family=double  note=66 range=56..80
+  set macro1 "Blow"
+  set macro2 "Looser"
+  set macro3 "Breathy"
+  set macro4 "Darker"
+  set macro5 "Vibrato"
+  set macro6 "Swell"
+  set macro7 "Soft Tongue"
+  set macro8 "Accent"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #8
+  mac2_a1  -0.25
+  mac2_d2  #7
+  mac2_a2  0.15
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac4_d1  #27
+  mac4_a1  -0.35
+  mac4_d2  #2
+  mac4_a2  -0.15
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #26
+  mac5_a2  -0.1
+  mac6_d1  #35
+  mac6_a1  0.2
+  mac6_d2  #36
+  mac6_a2  0.1
+  mac7_d1  #15
+  mac7_a1  -0.4
+  mac7_d2  #20
+  mac7_a2  0.15
+  mac8_d1  #35
+  mac8_a1  -0.3
+  mac8_d2  #36
+  mac8_a2  -0.1
+  attack         0.012 s
+  body           207.7 Hz
+  bore           #1
+  breath         0.09
+  cutoff         6000 Hz
+  embouchure     0.46
+  family         #1
+  fine           13 cents
+  keys           0.2
+  lattice        1400 Hz
+  pressure       0.95
+  tongue         0.8
+  vibrato        10 cents
+  volume         0.505
+  send reverb    0.1
+
+patch "Piccolo Oboe" family=double  note=74 range=64..88
+  set macro1 "Blow"
+  set macro2 "Looser"
+  set macro3 "Breathy"
+  set macro4 "Darker"
+  set macro5 "Vibrato"
+  set macro6 "Accent"
+  set macro7 "Flutter"
+  set macro8 "Soft Tongue"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #8
+  mac2_a1  -0.25
+  mac2_d2  #7
+  mac2_a2  0.15
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac4_d1  #27
+  mac4_a1  -0.35
+  mac4_d2  #2
+  mac4_a2  -0.15
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #26
+  mac5_a2  -0.1
+  mac6_d1  #35
+  mac6_a1  -0.3
+  mac6_d2  #36
+  mac6_a2  -0.1
+  mac7_d1  #17
+  mac7_a1  0.5
+  mac8_d1  #15
+  mac8_a1  -0.4
+  mac8_d2  #20
+  mac8_a2  0.15
+  attack         0.01 s
+  body           311.1 Hz
+  bore           #1
+  breath         0.08
+  embouchure     0.47
+  family         #1
+  fine           8 cents
+  keys           0.2
+  lattice        2200 Hz
+  pressure       0.95
+  tongue         0.85
+  vibrato        12 cents
+  volume         0.541
+
+patch Shawm family=double  note=69 range=62..81
+  set macro1 "Blast"
+  set macro2 "Drive"
+  set macro3 "Looser"
+  set macro4 "Darker"
+  set macro5 "Breathy"
+  set macro6 "Accent"
+  set macro7 "Vibrato"
+  set macro8 "Bend"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #8
+  mac1_a2  -0.1
+  mac2_d1  #31
+  mac2_a1  0.4
+  mac3_d1  #8
+  mac3_a1  -0.25
+  mac3_d2  #7
+  mac3_a2  0.15
+  mac4_d1  #27
+  mac4_a1  -0.35
+  mac4_d2  #2
+  mac4_a2  -0.15
+  mac5_d1  #10
+  mac5_a1  0.4
+  mac6_d1  #35
+  mac6_a1  -0.3
+  mac6_d2  #36
+  mac6_a2  -0.1
+  mac7_d1  #24
+  mac7_a1  0.3
+  mac7_d2  #26
+  mac7_a2  -0.1
+  mac8_d1  #37
+  mac8_a1  -0.0417
+  attack         0.01 s
+  body           293.7 Hz
+  bore           #1
+  breath         0.12
+  drive          0.3
+  embouchure     0.38
+  family         #1
+  fine           8 cents
+  keys           0.2
+  lattice        2500 Hz
+  pressure       1.1
+  tongue         0.9
+  vibrato        0 cents
+  volume         0.409
+  send reverb    0.2
+
+patch "Apricot Reed" family=double  note=64 range=56..72
+  set macro1 "Swell"
+  set macro2 "Breathy"
+  set macro3 "Bend"
+  set macro4 "Glide"
+  set macro5 "Vibrato"
+  set macro6 "Darker"
+  set macro7 "Blow"
+  set macro8 "Slow Swell"
+  mac1_d1  #35
+  mac1_a1  0.2
+  mac1_d2  #36
+  mac1_a2  0.1
+  mac2_d1  #10
+  mac2_a1  0.4
+  mac3_d1  #37
+  mac3_a1  -0.0417
+  mac4_d1  #29
+  mac4_a1  0.3
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #26
+  mac5_a2  -0.1
+  mac6_d1  #27
+  mac6_a1  -0.35
+  mac6_d2  #2
+  mac6_a2  -0.15
+  mac7_d1  #9
+  mac7_a1  0.25
+  mac7_d2  #10
+  mac7_a2  0.15
+  mac8_d1  #35
+  mac8_a1  0.15
+  mac8_d2  #36
+  mac8_a2  0.15
+  attack         0.08 s
+  body           196 Hz
+  bore           #0
+  breath         0.25
+  cutoff         2500 Hz
+  embouchure     0.5
+  family         #1
+  fine           5 cents
+  glide          0.15 s
+  keys           0.1
+  lattice        1300 Hz
+  pressure       0.75
+  release        0.4 s
+  swell          0.5
+  swelltime      0.8 s
+  tongue         0.5
+  vibrato        15 cents
+  vibratodelay   0.4 s
+  vibratorate    4.5 Hz
+  volume         0.541
+  send reverb    0.3
+
+patch Crumhorn family=double  note=60 range=53..67
+  set macro1 "Buzz"
+  set macro2 "Blow"
+  set macro3 "Drive"
+  set macro4 "Nasal"
+  set macro5 "Looser"
+  set macro6 "Accent"
+  set macro7 "Breathy"
+  set macro8 "Darker"
+  mac1_d1  #7
+  mac1_a1  0.3
+  mac1_d2  #8
+  mac1_a2  -0.15
+  mac2_d1  #9
+  mac2_a1  0.25
+  mac2_d2  #10
+  mac2_a2  0.15
+  mac3_d1  #31
+  mac3_a1  0.4
+  mac4_d1  #27
+  mac4_a1  -0.25
+  mac4_d2  #28
+  mac4_a2  0.45
+  mac5_d1  #8
+  mac5_a1  -0.25
+  mac5_d2  #7
+  mac5_a2  0.15
+  mac6_d1  #35
+  mac6_a1  -0.3
+  mac6_d2  #36
+  mac6_a2  -0.1
+  mac7_d1  #10
+  mac7_a1  0.4
+  mac8_d1  #27
+  mac8_a1  -0.35
+  mac8_d2  #2
+  mac8_a2  -0.15
+  attack         0.01 s
+  bell           0.1
+  body           174.6 Hz
+  bore           #0
+  breath         0.08
+  drive          0.25
+  embouchure     0.4
+  family         #1
+  fine           18 cents
+  holes          0.2
+  keys           0.2
+  lattice        1800 Hz
+  pressure       1.05
+  tongue         0.9
+  vibrato        0 cents
+  volume         0.567
+  send reverb    0.15
+
 patch Flute family=flute  note=72 range=62..86
+  set macro1 "Blow"
+  set macro2 "Breathy"
+  set macro3 "Overblow"
+  set macro4 "Vibrato"
+  set macro5 "Darker"
+  set macro6 "Swell"
+  set macro7 "Chiff"
+  set macro8 "Edge"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.4
+  mac3_d1  #9
+  mac3_a1  0.3
+  mac3_d2  #11
+  mac3_a2  -0.15
+  mac4_d1  #24
+  mac4_a1  0.3
+  mac4_d2  #26
+  mac4_a2  -0.1
+  mac5_d1  #27
+  mac5_a1  -0.35
+  mac5_d2  #2
+  mac5_a2  -0.15
+  mac6_d1  #35
+  mac6_a1  0.2
+  mac6_d2  #36
+  mac6_a2  0.1
+  mac7_d1  #19
+  mac7_a1  0.35
+  mac7_d2  #10
+  mac7_a2  0.1
+  mac8_d1  #12
+  mac8_a1  0.2
+  mac8_d2  #10
+  mac8_a2  -0.1
   attack         0.04 s
   body           261.6 Hz
   bore           #1
@@ -180,10 +1334,475 @@ patch Flute family=flute  note=72 range=62..86
   pressure       0.8
   tongue         0.35
   vibrato        10.8 cents
-  volume         0.62
-
   volume         0.23
-patch "Pan Pipe" family=flute  note=67 range=57..79
+
+patch "Alto Flute" family=flute  note=67 range=55..79
+  set macro1 "Blow"
+  set macro2 "Breathy"
+  set macro3 "Overblow"
+  set macro4 "Vibrato"
+  set macro5 "Darker"
+  set macro6 "Swell"
+  set macro7 "Chiff"
+  set macro8 "Edge"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.4
+  mac3_d1  #9
+  mac3_a1  0.3
+  mac3_d2  #11
+  mac3_a2  -0.15
+  mac4_d1  #24
+  mac4_a1  0.3
+  mac4_d2  #26
+  mac4_a2  -0.1
+  mac5_d1  #27
+  mac5_a1  -0.35
+  mac5_d2  #2
+  mac5_a2  -0.15
+  mac6_d1  #35
+  mac6_a1  0.2
+  mac6_d2  #36
+  mac6_a2  0.1
+  mac7_d1  #19
+  mac7_a1  0.35
+  mac7_d2  #10
+  mac7_a2  0.1
+  mac8_d1  #12
+  mac8_a1  0.2
+  mac8_d2  #10
+  mac8_a2  -0.1
+  attack         0.05 s
+  body           196 Hz
+  bore           #1
+  breath         0.5
+  cutoff         6000 Hz
+  family         #2
+  keys           0.15
+  lattice        1100 Hz
+  pressure       0.8
+  swell          0.2
+  swelltime      0.4 s
+  tongue         0.35
+  vibrato        10 cents
+  volume         0.22
+  send reverb    0.15
+
+patch "Piccolo Flute" family=flute  note=84 range=74..96
+  set macro1 "Blow"
+  set macro2 "Breathy"
+  set macro3 "Overblow"
+  set macro4 "Vibrato"
+  set macro5 "Darker"
+  set macro6 "Accent"
+  set macro7 "Chiff"
+  set macro8 "Edge"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.4
+  mac3_d1  #9
+  mac3_a1  0.15
+  mac3_d2  #11
+  mac3_a2  -0.08
+  mac4_d1  #24
+  mac4_a1  0.3
+  mac4_d2  #26
+  mac4_a2  -0.1
+  mac5_d1  #27
+  mac5_a1  -0.35
+  mac5_d2  #2
+  mac5_a2  -0.15
+  mac6_d1  #35
+  mac6_a1  -0.3
+  mac6_d2  #36
+  mac6_a2  -0.1
+  mac7_d1  #19
+  mac7_a1  0.35
+  mac7_d2  #10
+  mac7_a2  0.1
+  mac8_d1  #12
+  mac8_a1  0.2
+  mac8_d2  #10
+  mac8_a2  -0.1
+  attack         0.03 s
+  body           493.9 Hz
+  bore           #1
+  breath         0.35
+  family         #2
+  fine           -6 cents
+  keys           0.1
+  lattice        3000 Hz
+  pressure       0.8
+  tongue         0.4
+  vibrato        10 cents
+  volume         0.23
+
+patch "Whisper Flute" family=flute  note=72 range=62..86
+  set macro1 "Air"
+  set macro2 "Blow"
+  set macro3 "Vibrato"
+  set macro4 "Darker"
+  set macro5 "Swell"
+  set macro6 "Edge"
+  set macro7 "Glide"
+  set macro8 "Slow Attack"
+  mac1_d1  #10
+  mac1_a1  0.45
+  mac1_d2  #9
+  mac1_a2  -0.1
+  mac2_d1  #9
+  mac2_a1  0.25
+  mac2_d2  #10
+  mac2_a2  0.15
+  mac3_d1  #24
+  mac3_a1  0.3
+  mac3_d2  #26
+  mac3_a2  -0.1
+  mac4_d1  #27
+  mac4_a1  -0.35
+  mac4_d2  #2
+  mac4_a2  -0.15
+  mac5_d1  #35
+  mac5_a1  0.2
+  mac5_d2  #36
+  mac5_a2  0.1
+  mac6_d1  #12
+  mac6_a1  0.2
+  mac6_d2  #10
+  mac6_a2  -0.1
+  mac7_d1  #29
+  mac7_a1  0.3
+  mac8_d1  #20
+  mac8_a1  0.2
+  attack         0.06 s
+  body           261.6 Hz
+  bore           #1
+  breath         0.8
+  family         #2
+  keys           0.1
+  lattice        1400 Hz
+  pressure       0.65
+  release        0.3 s
+  swell          0.25
+  swelltime      0.5 s
+  tongue         0.25
+  vibrato        8 cents
+  volume         0.213
+  send reverb    0.25
+
+patch Traverso family=flute  note=69 range=62..84
+  set macro1 "Blow"
+  set macro2 "Breathy"
+  set macro3 "Wood"
+  set macro4 "Vibrato"
+  set macro5 "Swell"
+  set macro6 "Chiff"
+  set macro7 "Overblow"
+  set macro8 "Edge"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.4
+  mac3_d1  #27
+  mac3_a1  -0.3
+  mac3_d2  #3
+  mac3_a2  0.3
+  mac4_d1  #24
+  mac4_a1  0.3
+  mac4_d2  #26
+  mac4_a2  -0.1
+  mac5_d1  #35
+  mac5_a1  0.2
+  mac5_d2  #36
+  mac5_a2  0.1
+  mac6_d1  #19
+  mac6_a1  0.35
+  mac6_d2  #10
+  mac6_a2  0.1
+  mac7_d1  #9
+  mac7_a1  0.3
+  mac7_d2  #11
+  mac7_a2  -0.15
+  mac8_d1  #12
+  mac8_a1  0.2
+  mac8_d2  #10
+  mac8_a2  -0.1
+  attack         0.04 s
+  body           293.7 Hz
+  bore           #1
+  breath         0.35
+  cutoff         4000 Hz
+  family         #2
+  fingering      0.2
+  holes          0.6
+  keys           0.1
+  lattice        1600 Hz
+  pressure       0.7
+  tongue         0.4
+  vibrato        0 cents
+  volume         0.175
+  send reverb    0.2
+
+patch "Irish Flute" family=flute  note=72 range=62..86
+  set macro1 "Blow"
+  set macro2 "Breathy"
+  set macro3 "Accent"
+  set macro4 "Vibrato"
+  set macro5 "Wood"
+  set macro6 "Chiff"
+  set macro7 "Glide"
+  set macro8 "Overblow"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.4
+  mac3_d1  #35
+  mac3_a1  -0.3
+  mac3_d2  #36
+  mac3_a2  -0.1
+  mac4_d1  #24
+  mac4_a1  0.3
+  mac4_d2  #26
+  mac4_a2  -0.1
+  mac5_d1  #27
+  mac5_a1  -0.3
+  mac5_d2  #3
+  mac5_a2  0.3
+  mac6_d1  #19
+  mac6_a1  0.35
+  mac6_d2  #10
+  mac6_a2  0.1
+  mac7_d1  #29
+  mac7_a1  0.3
+  mac8_d1  #9
+  mac8_a1  0.15
+  mac8_d2  #11
+  mac8_a2  -0.08
+  attack         0.02 s
+  body           293.7 Hz
+  bore           #1
+  breath         0.55
+  cutoff         7000 Hz
+  family         #2
+  keys           0.2
+  lattice        1800 Hz
+  pressure       0.85
+  swell          -0.3
+  swelltime      0.12 s
+  tongue         0.6
+  vibrato        6 cents
+  volume         0.255
+  send reverb    0.15
+
+patch Bansuri family=flute  note=69 range=59..81
+  set macro1 "Bend"
+  set macro2 "Glide"
+  set macro3 "Vibrato"
+  set macro4 "Breathy"
+  set macro5 "Swell"
+  set macro6 "Blow"
+  set macro7 "Darker"
+  set macro8 "Edge"
+  mac1_d1  #37
+  mac1_a1  -0.0417
+  mac2_d1  #29
+  mac2_a1  0.3
+  mac3_d1  #24
+  mac3_a1  0.3
+  mac3_d2  #26
+  mac3_a2  -0.1
+  mac4_d1  #10
+  mac4_a1  0.4
+  mac5_d1  #35
+  mac5_a1  0.2
+  mac5_d2  #36
+  mac5_a2  0.1
+  mac6_d1  #9
+  mac6_a1  0.25
+  mac6_d2  #10
+  mac6_a2  0.15
+  mac7_d1  #27
+  mac7_a1  -0.35
+  mac7_d2  #2
+  mac7_a2  -0.15
+  mac8_d1  #12
+  mac8_a1  0.2
+  mac8_d2  #10
+  mac8_a2  -0.1
+  attack         0.06 s
+  body           246.9 Hz
+  bore           #1
+  breath         0.5
+  cutoff         6000 Hz
+  family         #2
+  glide          0.18 s
+  keys           0.05
+  lattice        1500 Hz
+  pressure       0.75
+  release        0.3 s
+  swell          0.35
+  swelltime      0.3 s
+  tongue         0.3
+  vibrato        14 cents
+  vibratodelay   0.4 s
+  vibratorate    5 Hz
+  volume         0.25
+  send reverb    0.3
+
+patch Overblown family=flute  note=72 range=62..86
+  set macro1 "Blow"
+  set macro2 "Breathy"
+  set macro3 "Edge"
+  set macro4 "Drive"
+  set macro5 "Vibrato"
+  set macro6 "Glide"
+  set macro7 "Bend"
+  set macro8 "Darker"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.4
+  mac3_d1  #12
+  mac3_a1  0.2
+  mac3_d2  #10
+  mac3_a2  -0.1
+  mac4_d1  #31
+  mac4_a1  0.4
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #26
+  mac5_a2  -0.1
+  mac6_d1  #29
+  mac6_a1  0.3
+  mac7_d1  #37
+  mac7_a1  -0.0417
+  mac8_d1  #27
+  mac8_a1  -0.35
+  mac8_d2  #2
+  mac8_a2  -0.15
+  aim            0.4
+  attack         0.02 s
+  body           261.6 Hz
+  bore           #1
+  breath         0.65
+  drive          0.35
+  family         #2
+  fine           -6 cents
+  glide          0.06 s
+  keys           0.2
+  lattice        1600 Hz
+  pressure       1.05
+  tongue         0.4
+  vibrato        16 cents
+  vibratodelay   0.2 s
+  vibratorate    5.5 Hz
+  volume         0.189
+  send reverb    0.12
+
+patch Recorder family=pipe  note=77 range=67..89
+  set macro1 "Blow"
+  set macro2 "Breathy"
+  set macro3 "Overblow"
+  set macro4 "Vibrato"
+  set macro5 "Darker"
+  set macro6 "Swell"
+  set macro7 "Chiff"
+  set macro8 "Edge"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.4
+  mac3_d1  #9
+  mac3_a1  0.3
+  mac3_d2  #11
+  mac3_a2  -0.15
+  mac4_d1  #24
+  mac4_a1  0.3
+  mac4_d2  #26
+  mac4_a2  -0.1
+  mac5_d1  #27
+  mac5_a1  -0.35
+  mac5_d2  #2
+  mac5_a2  -0.15
+  mac6_d1  #35
+  mac6_a1  0.2
+  mac6_d2  #36
+  mac6_a2  0.1
+  mac7_d1  #19
+  mac7_a1  0.35
+  mac7_d2  #10
+  mac7_a2  0.1
+  mac8_d1  #12
+  mac8_a1  0.2
+  mac8_d2  #10
+  mac8_a2  -0.1
+  aim            0.25
+  attack         0.03 s
+  body           349.2 Hz
+  bore           #1
+  breath         0.25
+  family         #2
+  fine           -4 cents
+  keys           0.1
+  lattice        2000 Hz
+  pressure       0.72
+  vibrato        0 cents
+  volume         0.232
+  send reverb    0.15
+
+patch "Pan Pipe" family=pipe  note=67 range=57..79
+  set macro1 "Blow"
+  set macro2 "Breathy"
+  set macro3 "Hollow"
+  set macro4 "Vibrato"
+  set macro5 "Darker"
+  set macro6 "Swell"
+  set macro7 "Chiff"
+  set macro8 "Edge"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.4
+  mac3_d1  #2
+  mac3_a1  -0.25
+  mac3_d2  #12
+  mac3_a2  -0.1
+  mac4_d1  #24
+  mac4_a1  0.3
+  mac4_d2  #26
+  mac4_a2  -0.1
+  mac5_d1  #27
+  mac5_a1  -0.35
+  mac5_d2  #2
+  mac5_a2  -0.15
+  mac6_d1  #35
+  mac6_a1  0.2
+  mac6_d2  #36
+  mac6_a2  0.1
+  mac7_d1  #19
+  mac7_a1  0.35
+  mac7_d2  #10
+  mac7_a2  0.1
+  mac8_d1  #12
+  mac8_a1  0.2
+  mac8_d2  #10
+  mac8_a2  -0.1
   aim            0.1
   attack         0.06 s
   body           196 Hz
@@ -193,10 +1812,507 @@ patch "Pan Pipe" family=flute  note=67 range=57..79
   lattice        2200 Hz
   pressure       0.7
   tongue         0.2
-  volume         0.55
+  volume         0.432
+  send reverb    0.25
 
-  volume         0.55
+patch "Tin Whistle" family=pipe  note=81 range=74..91
+  set macro1 "Blow"
+  set macro2 "Breathy"
+  set macro3 "Overblow"
+  set macro4 "Vibrato"
+  set macro5 "Cut"
+  set macro6 "Swell"
+  set macro7 "Bend"
+  set macro8 "Edge"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.4
+  mac3_d1  #9
+  mac3_a1  0.3
+  mac3_d2  #11
+  mac3_a2  -0.15
+  mac4_d1  #24
+  mac4_a1  0.3
+  mac4_d2  #26
+  mac4_a2  -0.1
+  mac5_d1  #37
+  mac5_a1  -0.0417
+  mac5_d2  #29
+  mac5_a2  0.3
+  mac6_d1  #35
+  mac6_a1  0.2
+  mac6_d2  #36
+  mac6_a2  0.1
+  mac7_d1  #37
+  mac7_a1  0.0417
+  mac8_d1  #12
+  mac8_a1  0.2
+  mac8_d2  #10
+  mac8_a2  -0.1
+  aim            0.35
+  attack         0.015 s
+  body           493.9 Hz
+  bore           #1
+  breath         0.45
+  family         #2
+  fine           -6 cents
+  glide          0.05 s
+  keys           0.2
+  lattice        2600 Hz
+  pressure       0.85
+  vibrato        6 cents
+  vibratodelay   0.5 s
+  vibratorate    6 Hz
+  volume         0.195
+  send reverb    0.2
+
+patch Ocarina family=pipe  note=74 range=67..84
+  set macro1 "Blow"
+  set macro2 "Breathy"
+  set macro3 "Hollow"
+  set macro4 "Vibrato"
+  set macro5 "Darker"
+  set macro6 "Swell"
+  set macro7 "Chiff"
+  set macro8 "Edge"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.4
+  mac3_d1  #2
+  mac3_a1  -0.25
+  mac3_d2  #12
+  mac3_a2  -0.1
+  mac4_d1  #24
+  mac4_a1  0.3
+  mac4_d2  #26
+  mac4_a2  -0.1
+  mac5_d1  #27
+  mac5_a1  -0.35
+  mac5_d2  #2
+  mac5_a2  -0.15
+  mac6_d1  #35
+  mac6_a1  0.2
+  mac6_d2  #36
+  mac6_a2  0.1
+  mac7_d1  #19
+  mac7_a1  0.35
+  mac7_d2  #10
+  mac7_a2  0.1
+  mac8_d1  #12
+  mac8_a1  0.2
+  mac8_d2  #10
+  mac8_a2  -0.1
+  aim            0.15
+  attack         0.05 s
+  body           349.2 Hz
+  breath         0.3
+  cutoff         5000 Hz
+  family         #2
+  fine           -7 cents
+  keys           0.05
+  lattice        1600 Hz
+  pressure       0.7
+  release        0.2 s
+  vibrato        8 cents
+  vibratodelay   0.4 s
+  volume         0.238
+  send reverb    0.3
+
+patch "Bent Bamboo" family=pipe  note=67 range=62..79
+  set macro1 "Bend Down"
+  set macro2 "Breathy"
+  set macro3 "Swell"
+  set macro4 "Blow"
+  set macro5 "Vibrato"
+  set macro6 "Darker"
+  set macro7 "Glide"
+  set macro8 "Edge"
+  mac1_d1  #37
+  mac1_a1  -0.0417
+  mac2_d1  #10
+  mac2_a1  0.35
+  mac3_d1  #35
+  mac3_a1  0.25
+  mac3_d2  #36
+  mac3_a2  0.1
+  mac4_d1  #9
+  mac4_a1  0.25
+  mac4_d2  #10
+  mac4_a2  0.1
+  mac5_d1  #24
+  mac5_a1  0.35
+  mac5_d2  #26
+  mac5_a2  -0.15
+  mac6_d1  #27
+  mac6_a1  -0.35
+  mac6_d2  #2
+  mac6_a2  -0.15
+  mac7_d1  #29
+  mac7_a1  0.3
+  mac8_d1  #12
+  mac8_a1  0.2
+  mac8_d2  #10
+  mac8_a2  -0.1
+  aim            0.2
+  attack         0.08 s
+  body           293.7 Hz
+  bore           #1
+  breath         0.8
+  cutoff         3500 Hz
+  family         #2
+  glide          0.25 s
+  keys           0.05
+  lattice        1100 Hz
+  pressure       0.75
+  release        0.4 s
+  swell          0.45
+  swelltime      0.6 s
+  vibrato        0 cents
+  volume         0.223
+  send reverb    0.35
+
+patch Jug family=pipe  note=55 range=48..64
+  set macro1 "Blow"
+  set macro2 "Breathy"
+  set macro3 "Swell"
+  set macro4 "Wobble"
+  set macro5 "Darker"
+  set macro6 "Bend"
+  set macro7 "Puff"
+  set macro8 "Edge"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.35
+  mac3_d1  #35
+  mac3_a1  0.25
+  mac3_d2  #36
+  mac3_a2  0.1
+  mac4_d1  #24
+  mac4_a1  0.5
+  mac4_d2  #25
+  mac4_a2  0.2
+  mac5_d1  #27
+  mac5_a1  -0.35
+  mac6_d1  #37
+  mac6_a1  -0.0417
+  mac7_d1  #19
+  mac7_a1  0.4
+  mac7_d2  #20
+  mac7_a2  -0.1
+  mac8_d1  #12
+  mac8_a1  0.2
+  mac8_d2  #10
+  mac8_a2  -0.1
+  aim            0.05
+  attack         0.05 s
+  body           123.5 Hz
+  breath         0.55
+  cutoff         2500 Hz
+  family         #2
+  keys           0.1
+  lattice        700 Hz
+  pressure       0.85
+  release        0.15 s
+  vibrato        0 cents
+  volume         0.387
+
+patch "Bass Clarinet" family=low  note=50 range=40..62
+  set macro1 "Blow"
+  set macro2 "Looser"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Soft Tongue"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #8
+  mac2_a1  -0.25
+  mac2_d2  #7
+  mac2_a2  0.15
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac4_d1  #35
+  mac4_a1  0.2
+  mac4_d2  #36
+  mac4_a2  0.1
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #26
+  mac5_a2  -0.1
+  mac6_d1  #27
+  mac6_a1  -0.35
+  mac6_d2  #2
+  mac6_a2  -0.15
+  mac7_d1  #17
+  mac7_a1  0.5
+  mac8_d1  #15
+  mac8_a1  -0.4
+  mac8_d2  #20
+  mac8_a2  0.15
+  body           73.4 Hz
+  breath         0.16
+  embouchure     0.5
+  fine           13 cents
+  keys           0.35
+  lattice        1000 Hz
+  pressure       0.9
+  tongue         0.6
+  volume         0.98
+
+patch Bassoon family=low  note=46 range=36..60
+  set macro1 "Blow"
+  set macro2 "Looser"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Buzz"
+  set macro8 "Soft Tongue"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #8
+  mac2_a1  -0.25
+  mac2_d2  #7
+  mac2_a2  0.15
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac4_d1  #35
+  mac4_a1  0.2
+  mac4_d2  #36
+  mac4_a2  0.1
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #26
+  mac5_a2  -0.1
+  mac6_d1  #27
+  mac6_a1  -0.35
+  mac6_d2  #2
+  mac6_a2  -0.15
+  mac7_d1  #17
+  mac7_a1  0.4
+  mac7_d2  #31
+  mac7_a2  0.2
+  mac8_d1  #15
+  mac8_a1  -0.4
+  mac8_d2  #20
+  mac8_a2  0.15
+  attack         0.025 s
+  body           58.3 Hz
+  bore           #1
+  # 0.45 is where the cone's harmonics come right, but the bassoon plays an
+  # octave and a half above its own body and that is where the wall loss has
+  # least to say about which mode wins: at 0.45 note 50 came out as two modes
+  # beating and no pitch at all. 0.48 keeps the series and settles it.
+  embouchure     0.48
+  family         #1
+  fine           10 cents
+  keys           0.4
+  lattice        700 Hz
+  pressure       0.9
+  volume         0.86
+
+patch "Bass Flute" family=low  note=60 range=50..74
+  set macro1 "Blow"
+  set macro2 "Breathy"
+  set macro3 "Overblow"
+  set macro4 "Vibrato"
+  set macro5 "Darker"
+  set macro6 "Swell"
+  set macro7 "Chiff"
+  set macro8 "Edge"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.4
+  mac3_d1  #9
+  mac3_a1  0.3
+  mac3_d2  #11
+  mac3_a2  -0.15
+  mac4_d1  #24
+  mac4_a1  0.3
+  mac4_d2  #26
+  mac4_a2  -0.1
+  mac5_d1  #27
+  mac5_a1  -0.35
+  mac5_d2  #2
+  mac5_a2  -0.15
+  mac6_d1  #35
+  mac6_a1  0.2
+  mac6_d2  #36
+  mac6_a2  0.1
+  mac7_d1  #19
+  mac7_a1  0.35
+  mac7_d2  #10
+  mac7_a2  0.1
+  mac8_d1  #12
+  mac8_a1  0.2
+  mac8_d2  #10
+  mac8_a2  -0.1
+  aim            0.25
+  attack         0.05 s
+  body           130.8 Hz
+  bore           #1
+  breath         0.4
+  family         #2
+  keys           0.2
+  lattice        1000 Hz
+  pressure       0.75
+  release        0.25 s
+  vibrato        9 cents
+  vibratodelay   0.4 s
+  volume         0.300
+  send reverb    0.2
+
+patch "Contrabass Clarinet" family=low  note=38 range=28..50
+  set macro1 "Blow"
+  set macro2 "Looser"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Soft Tongue"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #8
+  mac2_a1  -0.25
+  mac2_d2  #7
+  mac2_a2  0.15
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac4_d1  #35
+  mac4_a1  0.2
+  mac4_d2  #36
+  mac4_a2  0.1
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #26
+  mac5_a2  -0.1
+  mac6_d1  #27
+  mac6_a1  -0.35
+  mac6_d2  #2
+  mac6_a2  -0.15
+  mac7_d1  #17
+  mac7_a1  0.5
+  mac8_d1  #15
+  mac8_a1  -0.4
+  mac8_d2  #20
+  mac8_a2  0.15
+  attack         0.03 s
+  body           36.7 Hz
+  breath         0.15
+  embouchure     0.5
+  fine           8 cents
+  keys           0.35
+  lattice        600 Hz
+  pressure       0.95
+  tongue         0.6
+  volume         1.380
+
+patch Contrabassoon family=low  note=42 range=32..53
+  set macro1 "Blow"
+  set macro2 "Looser"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Buzz"
+  set macro8 "Soft Tongue"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #8
+  mac2_a1  -0.25
+  mac2_d2  #7
+  mac2_a2  0.15
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac4_d1  #35
+  mac4_a1  0.2
+  mac4_d2  #36
+  mac4_a2  0.1
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #26
+  mac5_a2  -0.1
+  mac6_d1  #27
+  mac6_a1  -0.35
+  mac6_d2  #2
+  mac6_a2  -0.15
+  mac7_d1  #17
+  mac7_a1  0.4
+  mac7_d2  #31
+  mac7_a2  0.2
+  mac8_d1  #15
+  mac8_a1  -0.4
+  mac8_d2  #20
+  mac8_a2  0.15
+  attack         0.03 s
+  body           41.2 Hz
+  bore           #1
+  embouchure     0.48
+  family         #1
+  fine           3 cents
+  keys           0.4
+  lattice        420 Hz
+  pressure       0.95
+  volume         0.733
+
 patch "Stopped Wood" family=odd  note=55 range=46..68
+  set macro1 "Blow"
+  set macro2 "Looser"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Soft Tongue"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #8
+  mac2_a1  -0.25
+  mac2_d2  #7
+  mac2_a2  0.15
+  mac3_d1  #10
+  mac3_a1  0.4
+  mac4_d1  #35
+  mac4_a1  0.2
+  mac4_d2  #36
+  mac4_a2  0.1
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #26
+  mac5_a2  -0.1
+  mac6_d1  #27
+  mac6_a1  -0.35
+  mac7_d1  #17
+  mac7_a1  0.5
+  mac8_d1  #15
+  mac8_a1  -0.4
+  mac8_d2  #20
+  mac8_a2  0.15
   answer         0.385
   attack         0.05 s
   body           110 Hz
@@ -210,31 +2326,261 @@ patch "Stopped Wood" family=odd  note=55 range=46..68
   cutoff         4000 Hz
   drive          0.2
   embouchure     0.45
+  fine           14 cents
   holes          0.5
   lattice        700 Hz
   pressure       1
   tongue         0.5
-  volume         0.97
+  volume         0.459
 
-  fine           14 cents
-  volume         0.47
 patch Forked family=odd  note=62 range=52..74
+  set macro1 "Blow"
+  set macro2 "Looser"
+  set macro3 "Fork"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Soft Tongue"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #8
+  mac2_a1  -0.25
+  mac2_d2  #7
+  mac2_a2  0.15
+  mac3_d1  #6
+  mac3_a1  0.1
+  mac3_d2  #4
+  mac3_a2  0.2
+  mac4_d1  #35
+  mac4_a1  0.2
+  mac4_d2  #36
+  mac4_a2  0.1
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #26
+  mac5_a2  -0.1
+  mac6_d1  #27
+  mac6_a1  -0.35
+  mac6_d2  #2
+  mac6_a2  -0.15
+  mac7_d1  #17
+  mac7_a1  0.5
+  mac8_d1  #15
+  mac8_a1  -0.4
+  mac8_d2  #20
+  mac8_a2  0.15
   # 0.4675, seeded from what shipped, is past the point where the fork
   # stops being a colour and becomes a note the tube cannot hold: it read
-  # -4137 cents, which is no pitch at all. It plays at 0.32.
-  answer         0.32
+  # -4137 cents, which is no pitch at all. At 0.28 and up, note 55 speaks
+  # an octave up or 50 cents flat on some breath noise and not others; 0.25
+  # held on twelve noise seeds.
+  answer         0.25
   attack         0.04 s
   below          1.74
   bore           #1
   breath         0.25
   embouchure     0.45
   family         #1
+  fine           2 cents
   fingering      0.8
   flutter        0.35
   lattice        1200 Hz
   pressure       1
   tongue         0.6
-  volume         0.59
-
-  fine           2 cents
   volume         0.27
+
+patch "Flutter Flute" family=odd  note=72 range=62..86
+  set macro1 "Flutter"
+  set macro2 "Rate"
+  set macro3 "Blow"
+  set macro4 "Breathy"
+  set macro5 "Vibrato"
+  set macro6 "Darker"
+  set macro7 "Swell"
+  set macro8 "Edge"
+  mac1_d1  #17
+  mac1_a1  0.35
+  mac2_d1  #18
+  mac2_a1  0.25
+  mac3_d1  #9
+  mac3_a1  0.25
+  mac3_d2  #10
+  mac3_a2  0.15
+  mac4_d1  #10
+  mac4_a1  0.4
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #26
+  mac5_a2  -0.1
+  mac6_d1  #27
+  mac6_a1  -0.35
+  mac6_d2  #2
+  mac6_a2  -0.15
+  mac7_d1  #35
+  mac7_a1  0.2
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #12
+  mac8_a1  0.2
+  mac8_d2  #10
+  mac8_a2  -0.1
+  attack         0.03 s
+  body           261.6 Hz
+  bore           #1
+  breath         0.45
+  family         #2
+  fine           -3 cents
+  flutter        0.5
+  flutterrate    22 Hz
+  keys           0.15
+  lattice        1400 Hz
+  pressure       0.8
+  vibrato        0 cents
+  volume         0.253
+  send reverb    0.2
+
+patch "Buzz Reed" family=odd  note=57 range=48..69
+  set macro1 "Buzz"
+  set macro2 "Rate"
+  set macro3 "Drive"
+  set macro4 "Blow"
+  set macro5 "Looser"
+  set macro6 "Dark"
+  set macro7 "Swell"
+  set macro8 "Bend"
+  mac1_d1  #17
+  mac1_a1  0.4
+  mac2_d1  #18
+  mac2_a1  0.3
+  mac3_d1  #31
+  mac3_a1  0.4
+  mac4_d1  #9
+  mac4_a1  0.25
+  mac4_d2  #10
+  mac4_a2  0.15
+  mac5_d1  #8
+  mac5_a1  -0.25
+  mac5_d2  #7
+  mac5_a2  0.15
+  mac6_d1  #27
+  mac6_a1  -0.35
+  mac6_d2  #2
+  mac6_a2  -0.15
+  mac7_d1  #35
+  mac7_a1  0.2
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #37
+  mac8_a1  -0.0417
+  attack         0.02 s
+  body           123.5 Hz
+  breath         0.2
+  drive          0.3
+  embouchure     0.45
+  fine           10 cents
+  flutter        0.55
+  flutterrate    38 Hz
+  keys           0.25
+  lattice        1000 Hz
+  pressure       1
+  tongue         0.8
+  vibrato        0 cents
+  volume         0.674
+
+patch Squeal family=odd  note=69 range=60..79
+  set macro1 "Blow"
+  set macro2 "Bite"
+  set macro3 "Drive"
+  set macro4 "Bend"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Swell"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #8
+  mac2_a1  0.1
+  mac3_d1  #31
+  mac3_a1  0.4
+  mac4_d1  #37
+  mac4_a1  -0.0417
+  mac5_d1  #24
+  mac5_a1  0.3
+  mac5_d2  #26
+  mac5_a2  -0.1
+  mac6_d1  #27
+  mac6_a1  -0.35
+  mac7_d1  #17
+  mac7_a1  0.5
+  mac8_d1  #35
+  mac8_a1  -0.2
+  mac8_d2  #36
+  mac8_a2  0.1
+  attack         0.01 s
+  body           146.8 Hz
+  breath         0.2
+  drive          0.4
+  embouchure     0.75
+  fine           -10 cents
+  keys           0.3
+  lattice        1800 Hz
+  pressure       1.25
+  tongue         0.9
+  vibrato        10 cents
+  volume         0.895
+
+patch "Glass Jet" family=odd  note=69 range=60..81
+  set macro1 "Blow"
+  set macro2 "Breathy"
+  set macro3 "Shine"
+  set macro4 "Vibrato"
+  set macro5 "Darker"
+  set macro6 "Swell"
+  set macro7 "Release"
+  set macro8 "Hollow"
+  mac1_d1  #9
+  mac1_a1  0.25
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.4
+  mac3_d1  #12
+  mac3_a1  0.25
+  mac3_d2  #2
+  mac3_a2  0.2
+  mac4_d1  #24
+  mac4_a1  0.3
+  mac4_d2  #26
+  mac4_a2  -0.1
+  mac5_d1  #27
+  mac5_a1  -0.35
+  mac5_d2  #2
+  mac5_a2  -0.15
+  mac6_d1  #35
+  mac6_a1  0.2
+  mac6_d2  #36
+  mac6_a2  0.1
+  mac7_d1  #23
+  mac7_a1  0.25
+  mac8_d1  #3
+  mac8_a1  0.2
+  aim            0.2
+  attack         0.1 s
+  body           246.9 Hz
+  breath         0.2
+  family         #2
+  fine           4 cents
+  holes          0.4
+  keys           0
+  lattice        3000 Hz
+  pressure       0.8
+  release        0.8 s
+  vibrato        5 cents
+  vibratorate    4 Hz
+  volume         0.333
+  send reverb    0.45

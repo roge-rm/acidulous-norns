@@ -13,7 +13,21 @@
 # Each patch plays the `jaw` phrase: one note plucked in a gallop, the mod
 # wheel (the mouth) stepping through vowels, then a pluck left to ring.
 # Mouth-mode patches play `harmonics` instead: legato keys walking the
-# drone's harmonics. 41 patches in seven families.
+# drone's harmonics. 62 patches in seven families: steel, northern,
+# southern, bamboo, reeds, rhythm and strange.
+#
+# Every patch but Init carries eight named macros. Destinations are
+# numbered as in Tongue.h's MacroDest: #1 set, #2 fit, #3 ring, #4 pluck,
+# #5 overtones, #6 vowel, #7 focus, #8 depth, #9 glide, #10 breath, #11 air,
+# #12 sustain, #13 stop, #14 strum, #15 accent, #16 ratchet, #17 words,
+# #18 wah, #19 wah rate, #20 velocity, #21 volume, #22 pitch (24 semitones
+# a unit). A held harp gets Bright, Longer, Vowel, Narrow, Breath, Wah,
+# Hard and Low; a pattern Accent and Ratchet in place of Longer and Hard;
+# a chord Strum; mouth mode Deep and Slide. A macro whose knob has no room
+# left goes the other way under the opposite name (Dark, Shorter, Wide,
+# Dry, Still, Soft, ...); Soft Steel goes High. Where a macro at full
+# moves the level by more than 1.2 dB, or peaks over -1 dBFS, a volume
+# route takes it back out: all of them sit within 1.4 dB and under -1 dBFS.
 # Values are in each parameter's own units; `audition params Tongue` lists
 # them. A patch names only what it changes.
 #
@@ -43,6 +57,42 @@ patch Init family=steel note=55 range=48..67
 
 patch "Bright Steel" family=steel note=55 range=48..67
   # A close-fitting reed flicked hard: every harmonic up, the mouth narrow.
+  set macro1 "Dark"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Wide"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Soft"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #5
+  mac1_a2  -0.25
+  mac1_d3  #21
+  mac1_a3  0.205
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.14
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  -0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.154
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  -0.4
+  mac8_d1  #22
+  mac8_a1  -0.5
   edge           0.85
   pluck          0.9
   focus          0.85
@@ -50,6 +100,42 @@ patch "Bright Steel" family=steel note=55 range=48..67
 
 patch "Soft Steel" family=steel note=55 range=48..67
   # Plucked gently with the pad of the finger, the mouth doing more of the work.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "High"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.172
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.283
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac7_d2  #21
+  mac7_a2  -0.154
+  mac8_d1  #22
+  mac8_a1  0.5
   pluck          0.2
   edge           0.35
   ring           4
@@ -57,8 +143,87 @@ patch "Soft Steel" family=steel note=55 range=48..67
   mouth          0.2
   volume         0.97
 
+patch "Hollow Steel" family=steel note=55 range=48..67
+  # The reed set in the middle of its slot and fitted loosely: the odd
+  # harmonics up, round and hollow.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.119
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.125
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.119
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac7_d2  #21
+  mac7_a2  -0.1
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.117
+  set            0
+  edge           0.3
+  volume         0.67
+
 patch "Breathing Steel" family=steel note=55 range=48..67
   # Breathed through as it's played, the breath keeping it going.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Dry"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  -0.5
+  mac5_d2  #12
+  mac5_a2  -0.6
+  mac5_d3  #21
+  mac5_a3  0.177
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.227
   breath         0.5
   air            0.5
   sustain        0.6
@@ -66,35 +231,351 @@ patch "Breathing Steel" family=steel note=55 range=48..67
 
 patch "Low Steel" family=steel note=43 range=36..52
   # A big steel harp down low, the mouth deep and slow.
+  set macro1 "Bright"
+  set macro2 "Shorter"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.222
+  mac2_d1  #3
+  mac2_a1  -0.12
+  mac2_d2  #21
+  mac2_a2  0.17
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac3_d2  #21
+  mac3_a2  -0.115
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.17
   ring           8
   depth          0.65
   glide          120
   volume         0.83
 
+patch "Deep Steel" family=steel note=38 range=31..45
+  # A low drone, rung long, the harmonics the mouth picks close together.
+  set macro1 "Bright"
+  set macro2 "Shorter"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.186
+  mac2_d1  #3
+  mac2_a1  -0.12
+  mac2_d2  #21
+  mac2_a2  0.161
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac3_d2  #21
+  mac3_a2  0.1
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac7_d2  #21
+  mac7_a2  -0.08
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.374
+  ring           9
+  depth          0.7
+  focus          0.7
+  stop           0
+  volume         0.62
+
 patch "Paired Steel" family=steel note=55 range=48..62
   # Two harps a few cents apart, played together.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Strum"
+  set macro6 "Breath"
+  set macro7 "Wah"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.138
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #14
+  mac5_a1  0.3
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac6_d4  #21
+  mac6_a4  -0.175
+  mac7_d1  #18
+  mac7_a1  0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.233
   reeds          2
   chord          1      # unison
   strum          8
+
+patch "Steel Tunes" family=steel note=48 range=48..84 role=harmonics
+  # The keys move the mouth over a C drone, each one plucking it again.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Deep"
+  set macro4 "Wide"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Slide"
+  set macro8 "Hard"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.076
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac3_d2  #21
+  mac3_a2  -0.087
+  mac4_d1  #7
+  mac4_a1  -0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.082
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #9
+  mac7_a1  0.35
+  mac8_d1  #4
+  mac8_a1  0.3
+  play           1      # mouth
+  drone          48
+  repluck        0      # every
+  focus          0.8
+  volume         0.55
 
 # --- northern harps: munnharpe, khomus, temir komuz --------------------------
 
 patch "Munnharpe" family=northern note=45 range=40..55
   # A low Norwegian harp: soft and round, the odd harmonics up.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.204
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.138
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac3_d2  #21
+  mac3_a2  -0.187
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.097
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac7_d2  #21
+  mac7_a2  -0.118
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.142
   model          1      # munnharpe
 
 patch "Khomus" family=northern note=55 range=48..62
   # A Sakha harp, breathed as it rings.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.131
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.221
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.212
   model          2      # khomus
   breath         0.25
   air            0.5
 
 patch "Temir Komuz" family=northern note=55 range=50..64
   # A Kyrgyz harp: a close fit, bright and ringing.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.138
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.124
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.15
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac7_d2  #21
+  mac7_a2  -0.124
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #4
+  mac8_a2  -0.3
   model          4      # temir komuz
 
 patch "Breathing Khomus" family=northern note=55 range=48..62
   # Breathed hard, so a held note never dies.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Dry"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  -0.55
+  mac5_d2  #12
+  mac5_a2  -0.75
+  mac5_d3  #21
+  mac5_a3  0.202
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.21
   model          2      # khomus
   breath         0.55
   air            0.6
@@ -103,6 +584,46 @@ patch "Breathing Khomus" family=northern note=55 range=48..62
 
 patch "Sweet Munnharpe" family=northern note=45 range=40..55
   # Soft, the mouth narrow and doing most of the work.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Wide"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.157
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.138
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  -0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.138
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac7_d2  #21
+  mac7_a2  -0.138
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.181
   model          1      # munnharpe
   pluck          0.35
   focus          0.85
@@ -111,23 +632,313 @@ patch "Sweet Munnharpe" family=northern note=45 range=40..55
 
 patch "Temir Pair" family=northern note=55 range=50..64
   # Temir komuz are often played two at once: a pair a hair apart.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Strum"
+  set macro6 "Breath"
+  set macro7 "Wah"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.047
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.124
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #14
+  mac5_a1  0.3
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac6_d4  #21
+  mac6_a4  -0.157
+  mac7_d1  #18
+  mac7_a1  0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
   model          4      # temir komuz
   reeds          2
   chord          1      # unison
   strum          12
 
+patch "Low Munnharpe" family=northern note=40 range=33..48
+  # A big munnharpe pitched low, soft and booming.
+  set macro1 "Bright"
+  set macro2 "Shorter"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.093
+  mac2_d1  #3
+  mac2_a1  -0.12
+  mac2_d2  #21
+  mac2_a2  0.104
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac3_d2  #21
+  mac3_a2  0.133
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac4_d2  #21
+  mac4_a2  0.081
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac7_d2  #21
+  mac7_a2  -0.063
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.506
+  model          1      # munnharpe
+  ring           8
+  depth          0.7
+  volume         0.40
+
+patch "Khomus Tunes" family=northern note=45 range=45..81 role=harmonics
+  # A khomus in mouth mode over an A drone, breathed, plucking again on the
+  # loud keys.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Deep"
+  set macro4 "Wide"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Slide"
+  set macro8 "Hard"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #7
+  mac4_a1  -0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.092
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #9
+  mac7_a1  0.35
+  mac8_d1  #4
+  mac8_a1  0.3
+  model          2      # khomus
+  play           1      # mouth
+  drone          45
+  repluck        2      # loud
+  breath         0.3
+  sustain        0.4
+  focus          0.8
+  volume         0.66
+
+patch "Khomus In And Out" family=northern note=50 range=45..60
+  # Breathed in and out through the harp, the mouth opening and shutting
+  # slowly with each breath.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Dry"
+  set macro6 "Still"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  -0.6
+  mac5_d2  #12
+  mac5_a2  -0.7
+  mac5_d3  #21
+  mac5_a3  0.221
+  mac6_d1  #18
+  mac6_a1  -0.5
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.094
+  model          2      # khomus
+  breath         0.6
+  air            0.6
+  sustain        0.7
+  wah            0.5
+  wahrate        0      # 1/4
+  wahshape       1      # smooth
+  glide          150
+  volume         0.58
+
 # --- southern harps: morsing and brass ---------------------------------------
 
 patch "Morsing" family=southern note=49 range=44..56
   # A big South Indian harp: low, dark and short, for rhythm.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.15
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.138
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac3_d2  #21
+  mac3_a2  -0.111
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #22
+  mac8_a1  -0.5
   model          3      # morsing
 
 patch "Brass Harp" family=southern note=50 range=45..60
   # A thin brass harp cut from its own frame: high and buzzy, quiet.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.138
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.104
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac3_d2  #21
+  mac3_a2  -0.097
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac4_d2  #21
+  mac4_a2  -0.104
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.131
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  -0.15
   model          5      # brass
 
 patch "Brass Whisper" family=southern note=50 range=45..60
   # A brass harp played softly and breathed through.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac3_d2  #21
+  mac3_a2  -0.155
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac4_d2  #21
+  mac4_a2  -0.125
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.346
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  -0.224
   model          5      # brass
   pluck          0.3
   depth          0.85
@@ -137,38 +948,444 @@ patch "Brass Whisper" family=southern note=50 range=45..60
 
 patch "Bright Brass" family=southern note=52 range=45..62
   # Flicked hard, every harmonic up and the mouth narrow.
+  set macro1 "Dark"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Wide"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #5
+  mac1_a2  -0.25
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.104
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac3_d2  #21
+  mac3_a2  -0.069
+  mac4_d1  #7
+  mac4_a1  -0.3
+  mac4_d2  #21
+  mac4_a2  0.113
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.131
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  -0.144
   model          5      # brass
   edge           0.85
   focus          0.9
 
 patch "Ringing Morsing" family=southern note=49 range=44..56
   # A morsing let ring, its finger off the reed.
+  set macro1 "Bright"
+  set macro2 "Shorter"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.12
+  mac2_d1  #3
+  mac2_a1  -0.12
+  mac2_d2  #21
+  mac2_a2  0.137
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac3_d2  #21
+  mac3_a2  -0.115
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #22
+  mac8_a1  -0.5
   model          3      # morsing
   ring           9
   stop           0
   volume         0.56
 
+patch "Low Morsing" family=southern note=42 range=36..48
+  # A morsing tuned down, deep and thudding.
+  set macro1 "Bright"
+  set macro2 "Shorter"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #3
+  mac2_a1  -0.12
+  mac2_d2  #21
+  mac2_a2  0.076
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac3_d2  #21
+  mac3_a2  0.153
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac4_d2  #21
+  mac4_a2  0.095
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.538
+  model          3      # morsing
+  ring           7
+  depth          0.65
+  volume         0.33
+
+patch "Humming Brass" family=southern note=50 range=45..60
+  # A brass harp breathed hard so it hums on while the key is down.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Dry"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.186
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac3_d2  #21
+  mac3_a2  -0.137
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac4_d2  #21
+  mac4_a2  -0.13
+  mac5_d1  #10
+  mac5_a1  -0.55
+  mac5_d2  #12
+  mac5_a2  -0.7
+  mac5_d3  #21
+  mac5_a3  0.114
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  -0.225
+  model          5      # brass
+  breath         0.55
+  sustain        0.7
+  air            0.4
+  depth          0.7
+  volume         0.77
+
+patch "Morsing Tunes" family=southern note=44 range=44..80 role=harmonics
+  # A morsing in mouth mode over a low drone, plucking with every key.
+  set macro1 "Bright"
+  set macro2 "Shorter"
+  set macro3 "Deep"
+  set macro4 "Wide"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Slide"
+  set macro8 "Hard"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  0.047
+  mac2_d1  #3
+  mac2_a1  -0.12
+  mac2_d2  #21
+  mac2_a2  0.063
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac3_d2  #21
+  mac3_a2  -0.06
+  mac4_d1  #7
+  mac4_a1  -0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #9
+  mac7_a1  0.35
+  mac8_d1  #4
+  mac8_a1  0.3
+  model          3      # morsing
+  play           1      # mouth
+  drone          44
+  repluck        0      # every
+  ring           8
+  focus          0.8
+  volume         0.29
+
 # --- bamboo ------------------------------------------------------------------
 
 patch "Bamboo Harp" family=bamboo note=57 range=50..64
   # Bamboo cut from its own frame: a woody tock, soft and short.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.15
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.15
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.144
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac7_d2  #21
+  mac7_a2  -0.097
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #2
+  mac8_a2  0.25
+  mac8_d3  #21
+  mac8_a3  0.3
   model          6      # bamboo
 
 patch "Mukkuri" family=bamboo note=52 range=45..60
   # A bamboo harp played by a pull on a string tied to its frame.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.118
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.157
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.144
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.212
   model          7      # mukkuri
 
 patch "Genggong" family=bamboo note=55 range=48..62
   # A string-pulled palm harp: a quick tug and a buzz.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.2
+  mac1_d2  #5
+  mac1_a2  0.15
+  mac1_d3  #21
+  mac1_a3  -0.054
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.104
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.104
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac7_d2  #21
+  mac7_a2  -0.175
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.223
   model          8      # genggong
 
 patch "Kouxian" family=bamboo note=60 range=52..67
   # Three reeds tuned to a pentatonic chord, plucked one after another.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  0.191
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.138
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.199
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #22
+  mac8_a1  -0.5
   model          9      # kouxian
   strum          60
 
 patch "Bamboo Whisper" family=bamboo note=57 range=50..64
   # Barely plucked, mostly breath through the bamboo.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.11
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.271
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.38
   model          6      # bamboo
   pluck          0.2
   breath         0.35
@@ -178,22 +1395,270 @@ patch "Bamboo Whisper" family=bamboo note=57 range=50..64
 
 patch "Slow Mukkuri" family=bamboo note=52 range=45..60
   # A long, slow pull on the string, the mouth doing the talking.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.24
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac3_d2  #21
+  mac3_a2  -0.215
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.197
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #22
+  mac8_a1  -0.5
   model          7      # mukkuri
   pluck          0.15
   depth          0.9
   mouth          0.2
   volume         0.96
 
+patch "Low Bamboo" family=bamboo note=45 range=40..52
+  # A long bamboo reed, low and woody.
+  set macro1 "Bright"
+  set macro2 "Shorter"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.298
+  mac2_d1  #3
+  mac2_a1  -0.08
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac3_d2  #21
+  mac3_a2  -0.2
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.208
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac7_d2  #21
+  mac7_a2  -0.223
+  mac8_d1  #22
+  mac8_a1  -0.5
+  model          6      # bamboo
+  edge           0.6
+  pluck          0.5
+  ring           9
+  depth          0.65
+  volume         0.86
+
+patch "Breathing Genggong" family=bamboo note=55 range=48..62
+  # Breathed in and out through the palm harp, the mouth swelling with it.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Dry"
+  set macro6 "Still"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.047
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.104
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac4_d2  #21
+  mac4_a2  0.079
+  mac5_d1  #10
+  mac5_a1  -0.55
+  mac5_d2  #12
+  mac5_a2  -0.6
+  mac5_d3  #21
+  mac5_a3  0.202
+  mac6_d1  #18
+  mac6_a1  -0.45
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac7_d2  #21
+  mac7_a2  -0.128
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.219
+  model          8      # genggong
+  breath         0.55
+  air            0.7
+  sustain        0.6
+  wah            0.45
+  wahrate        0      # 1/4
+  wahshape       1      # smooth
+  volume         0.53
+
+patch "Mukkuri Tunes" family=bamboo note=45 range=45..81 role=harmonics
+  # A mukkuri in mouth mode, each key a pull on its string.
+  set macro1 "Bright"
+  set macro2 "Shorter"
+  set macro3 "Deep"
+  set macro4 "Wide"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Slide"
+  set macro8 "Hard"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #3
+  mac2_a1  -0.12
+  mac2_d2  #21
+  mac2_a2  0.152
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #7
+  mac4_a1  -0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.104
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #9
+  mac7_a1  0.35
+  mac8_d1  #4
+  mac8_a1  0.3
+  model          7      # mukkuri
+  play           1      # mouth
+  drone          45
+  repluck        0      # every
+  ring           9
+  focus          0.8
+  volume         0.62
+
 # --- many reeds --------------------------------------------------------------
 
 patch "Fifths" family=reeds note=50 range=45..60
   # Two steel reeds a fifth apart, plucked together.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Strum"
+  set macro6 "Breath"
+  set macro7 "Wah"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.142
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #14
+  mac5_a1  0.3
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac6_d4  #21
+  mac6_a4  -0.2
+  mac7_d1  #18
+  mac7_a1  0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
   reeds          2
   chord          3      # fifths
   volume         0.8
 
 patch "Strummed Major" family=reeds note=55 range=48..62
   # Four steel reeds in a major chord, strummed down.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Strum"
+  set macro6 "Breath"
+  set macro7 "Wah"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.111
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #14
+  mac5_a1  0.3
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac6_d4  #21
+  mac6_a4  -0.204
+  mac7_d1  #18
+  mac7_a1  0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.122
   reeds          4
   chord          4      # major
   strum          45
@@ -201,6 +1666,42 @@ patch "Strummed Major" family=reeds note=55 range=48..62
 
 patch "Reeds In Turn" family=reeds note=55 range=48..62
   # Five bamboo reeds, one plucked a note in turn, so a run plays the chord.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Strum"
+  set macro6 "Breath"
+  set macro7 "Wah"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.15
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #14
+  mac5_a1  0.3
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac6_d4  #21
+  mac6_a4  -0.144
+  mac7_d1  #18
+  mac7_a1  0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.3
   model          6      # bamboo
   reeds          5
   chord          6      # pentatonic
@@ -208,28 +1709,295 @@ patch "Reeds In Turn" family=reeds note=55 range=48..62
 
 patch "Octave Harp" family=reeds note=48 range=40..60
   # Two reeds an octave apart.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Strum"
+  set macro6 "Breath"
+  set macro7 "Wah"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.148
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #14
+  mac5_a1  0.3
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac6_d4  #21
+  mac6_a4  -0.218
+  mac7_d1  #18
+  mac7_a1  0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.171
   reeds          2
   chord          2      # octaves
   volume         0.79
 
 patch "Minor Strum" family=reeds note=55 range=48..62
   # Four reeds in a minor chord, strummed up slowly.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Strum"
+  set macro6 "Breath"
+  set macro7 "Wah"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.104
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #14
+  mac5_a1  0.3
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac6_d4  #21
+  mac6_a4  -0.216
+  mac7_d1  #18
+  mac7_a1  0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.151
   reeds          4
   chord          5      # minor
   strum          70
 
 patch "Scattered Kouxian" family=reeds note=60 range=52..67
   # Five bamboo reeds, plucked in a different order each time.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Strum"
+  set macro6 "Breath"
+  set macro7 "Wah"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  0.182
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.14
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #14
+  mac5_a1  0.3
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac6_d4  #21
+  mac6_a4  -0.274
+  mac7_d1  #18
+  mac7_a1  0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
   model          9      # kouxian
   reeds          5
   order          3      # scatter
   strum          40
   volume         0.79
 
+patch "Breathed Fifths" family=reeds note=38 range=31..45
+  # Two low steel reeds a fifth apart, breathed into a drone that holds.
+  set macro1 "Bright"
+  set macro2 "Shorter"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Strum"
+  set macro6 "Dry"
+  set macro7 "Wah"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.152
+  mac2_d1  #3
+  mac2_a1  -0.12
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #14
+  mac5_a1  0.3
+  mac6_d1  #10
+  mac6_a1  -0.45
+  mac6_d2  #12
+  mac6_a2  -0.65
+  mac7_d1  #18
+  mac7_a1  0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.173
+  reeds          2
+  chord          3      # fifths
+  breath         0.45
+  sustain        0.65
+  ring           9
+  volume         0.57
+
+patch "Steel Arpeggio" family=reeds note=50 range=45..60
+  # Four steel reeds in a major chord, one plucked a note in turn.
+  set macro1 "Bright"
+  set macro2 "Shorter"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Strum"
+  set macro6 "Breath"
+  set macro7 "Wah"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.038
+  mac2_d1  #3
+  mac2_a1  -0.12
+  mac2_d2  #21
+  mac2_a2  0.157
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #14
+  mac5_a1  0.3
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac6_d4  #21
+  mac6_a4  -0.114
+  mac7_d1  #18
+  mac7_a1  0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
+  reeds          4
+  chord          4      # major
+  order          2      # in turn
+  ring           8
+  volume         0.68
+
+patch "Wah Chord" family=reeds note=50 range=45..60
+  # A minor chord strummed, the mouth swelling open on every second beat.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Strum"
+  set macro6 "Breath"
+  set macro7 "Still"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.148
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #14
+  mac5_a1  0.3
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac6_d4  #21
+  mac6_a4  -0.262
+  mac7_d1  #18
+  mac7_a1  -0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
+  reeds          4
+  chord          5      # minor
+  strum          35
+  wah            0.6
+  wahrate        0      # 1/4
+  wahshape       1      # smooth
+  volume         0.79
+
 # --- keys, rhythm, words and following ---------------------------------------
 
 patch "Mouth Tunes" family=rhythm note=50 range=50..86 role=harmonics
   # The keys move the mouth over a D drone, in a gallop.
+  set macro1 "Bright"
+  set macro2 "Accent"
+  set macro3 "Deep"
+  set macro4 "Wide"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Slide"
+  set macro8 "Hard"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #15
+  mac2_a1  0.35
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #7
+  mac4_a1  -0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #9
+  mac7_a1  0.35
+  mac8_d1  #4
+  mac8_a1  0.3
   play           1      # mouth
   drone          50
   repluck        2      # loud
@@ -239,6 +2007,40 @@ patch "Mouth Tunes" family=rhythm note=50 range=50..86 role=harmonics
 
 patch "Khomus Gallop" family=rhythm note=55 range=48..62
   # A khomus galloping on the beat, breathed.
+  set macro1 "Bright"
+  set macro2 "Vowel"
+  set macro3 "Narrow"
+  set macro4 "Even"
+  set macro5 "Ratchet"
+  set macro6 "Breath"
+  set macro7 "Wah"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #6
+  mac2_a1  0.45
+  mac3_d1  #7
+  mac3_a1  0.3
+  mac4_d1  #15
+  mac4_a1  -0.35
+  mac5_d1  #16
+  mac5_a1  0.45
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac6_d4  #21
+  mac6_a4  -0.084
+  mac7_d1  #18
+  mac7_a1  0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.283
   model          2      # khomus
   pattern        3      # gallop
   accent         0.7
@@ -247,6 +2049,42 @@ patch "Khomus Gallop" family=rhythm note=55 range=48..62
 
 patch "Genggong Runs" family=rhythm note=55 range=48..62
   # Quick runs of pulls and a rest.
+  set macro1 "Bright"
+  set macro2 "Vowel"
+  set macro3 "Narrow"
+  set macro4 "Accent"
+  set macro5 "Ratchet"
+  set macro6 "Breath"
+  set macro7 "Wah"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #6
+  mac2_a1  0.45
+  mac2_d2  #21
+  mac2_a2  0.079
+  mac3_d1  #7
+  mac3_a1  0.3
+  mac4_d1  #15
+  mac4_a1  0.35
+  mac5_d1  #16
+  mac5_a1  0.45
+  mac5_d2  #21
+  mac5_a2  -0.071
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac7_d1  #18
+  mac7_a1  0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.136
   model          8      # genggong
   pattern        5      # runs
   accent         0.6
@@ -254,6 +2092,44 @@ patch "Genggong Runs" family=rhythm note=55 range=48..62
 
 patch "Morsing Groupings" family=rhythm note=49 range=44..56
   # Sixteenths in groups of four and three, now and then doubled.
+  set macro1 "Bright"
+  set macro2 "Vowel"
+  set macro3 "Narrow"
+  set macro4 "Even"
+  set macro5 "Ratchet"
+  set macro6 "Breath"
+  set macro7 "Wah"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.121
+  mac2_d1  #6
+  mac2_a1  0.45
+  mac2_d2  #21
+  mac2_a2  -0.179
+  mac3_d1  #7
+  mac3_a1  0.3
+  mac4_d1  #15
+  mac4_a1  -0.35
+  mac5_d1  #16
+  mac5_a1  0.45
+  mac5_d2  #21
+  mac5_a2  -0.086
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac7_d1  #18
+  mac7_a1  0.6
+  mac7_d2  #21
+  mac7_a2  -0.135
+  mac8_d1  #22
+  mac8_a1  -0.5
   model          3      # morsing
   pattern        6      # groupings
   accent         0.8
@@ -262,6 +2138,42 @@ patch "Morsing Groupings" family=rhythm note=49 range=44..56
 
 patch "Talking Steel" family=rhythm note=50 range=45..60
   # Give its notes words: a deep, open mouth that says them, ringing on.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Mumble"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.095
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.142
+  mac3_d1  #17
+  mac3_a1  -0.7
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac5_d4  #21
+  mac5_a4  -0.172
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac8_d1  #22
+  mac8_a1  -0.5
   depth          0.8
   focus          0.4
   stop           0
@@ -270,6 +2182,38 @@ patch "Talking Steel" family=rhythm note=50 range=45..60
 
 patch "Follow Track 1" family=rhythm note=50 range=45..60
   # A drone galloping while track 1's melody moves the mouth.
+  set macro1 "Bright"
+  set macro2 "Vowel"
+  set macro3 "Wide"
+  set macro4 "Accent"
+  set macro5 "Ratchet"
+  set macro6 "Breath"
+  set macro7 "Wah"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #6
+  mac2_a1  0.45
+  mac3_d1  #7
+  mac3_a1  -0.3
+  mac4_d1  #15
+  mac4_a1  0.35
+  mac5_d1  #16
+  mac5_a1  0.45
+  mac5_d2  #21
+  mac5_a2  -0.129
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac7_d1  #18
+  mac7_a1  0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
   sidechain      1
   pattern        3      # gallop
   focus          0.8
@@ -277,13 +2221,213 @@ patch "Follow Track 1" family=rhythm note=50 range=45..60
 
 patch "Steel Triplets" family=rhythm note=55 range=48..62
   # Triplets with the first of each leaning.
+  set macro1 "Bright"
+  set macro2 "Vowel"
+  set macro3 "Narrow"
+  set macro4 "Accent"
+  set macro5 "Ratchet"
+  set macro6 "Breath"
+  set macro7 "Wah"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #6
+  mac2_a1  0.45
+  mac3_d1  #7
+  mac3_a1  0.3
+  mac4_d1  #15
+  mac4_a1  0.35
+  mac5_d1  #16
+  mac5_a1  0.45
+  mac5_d2  #21
+  mac5_a2  -0.131
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac6_d4  #21
+  mac6_a4  -0.097
+  mac7_d1  #18
+  mac7_a1  0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.104
   pattern        4      # triplets
   accent         0.6
+
+patch "Triplet Gallop" family=rhythm note=50 range=45..57
+  # A munnharpe galloping in triplets, the mouth opening on the off ones.
+  set macro1 "Bright"
+  set macro2 "Vowel"
+  set macro3 "Narrow"
+  set macro4 "Even"
+  set macro5 "Ratchet"
+  set macro6 "Breath"
+  set macro7 "Still"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.09
+  mac2_d1  #6
+  mac2_a1  0.45
+  mac3_d1  #7
+  mac3_a1  0.3
+  mac4_d1  #15
+  mac4_a1  -0.35
+  mac5_d1  #16
+  mac5_a1  0.45
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac7_d1  #18
+  mac7_a1  -0.5
+  mac8_d1  #22
+  mac8_a1  -0.5
+  model          1      # munnharpe
+  pattern        4      # triplets
+  accent         0.9
+  wah            0.5
+  wahrate        4      # 1/8T
+  volume         0.44
+
+patch "Rattling Steel" family=rhythm note=50 range=45..60
+  # Sixteenths that often break into quick doubles and triples.
+  set macro1 "Bright"
+  set macro2 "Vowel"
+  set macro3 "Narrow"
+  set macro4 "Even"
+  set macro5 "Ratchet"
+  set macro6 "Breath"
+  set macro7 "Wah"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #6
+  mac2_a1  0.45
+  mac3_d1  #7
+  mac3_a1  0.3
+  mac4_d1  #15
+  mac4_a1  -0.35
+  mac5_d1  #16
+  mac5_a1  0.45
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac7_d1  #18
+  mac7_a1  0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
+  pattern        2      # sixteenths
+  accent         0.7
+  ratchet        0.55
+  pluck          0.45
+  volume         0.47
+
+patch "Groove Bass" family=rhythm note=36 range=31..43
+  # A bass harp for a groove: low eighths, the mouth opening on the off-beat.
+  set macro1 "Dark"
+  set macro2 "Vowel"
+  set macro3 "Narrow"
+  set macro4 "Accent"
+  set macro5 "Ratchet"
+  set macro6 "Breath"
+  set macro7 "Still"
+  set macro8 "Low"
+  mac1_d1  #5
+  mac1_a1  -0.4
+  mac2_d1  #6
+  mac2_a1  0.45
+  mac3_d1  #7
+  mac3_a1  0.3
+  mac4_d1  #15
+  mac4_a1  0.35
+  mac5_d1  #16
+  mac5_a1  0.45
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac6_d4  #21
+  mac6_a4  -0.259
+  mac7_d1  #18
+  mac7_a1  -0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  -0.139
+  pattern        1      # eighths
+  accent         0.6
+  edge           0.9
+  ring           3
+  stop           0.6
+  wah            0.6
+  wahrate        3      # 1/8
+  depth          1
+  pluck          0.4
+  volume         1
 
 # --- strange -----------------------------------------------------------------
 
 patch "Glass Harp" family=strange note=60 range=52..72
   # A close fit and every overtone up, ringing for ever.
+  set macro1 "Dark"
+  set macro2 "Shorter"
+  set macro3 "Vowel"
+  set macro4 "Wide"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Soft"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #5
+  mac1_a2  -0.25
+  mac1_d3  #21
+  mac1_a3  0.076
+  mac2_d1  #3
+  mac2_a1  -0.12
+  mac2_d2  #21
+  mac2_a2  0.042
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  -0.3
+  mac4_d2  #21
+  mac4_a2  0.113
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  -0.4
+  mac7_d2  #21
+  mac7_a2  0.054
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #4
+  mac8_a2  -0.4
   model          4      # temir komuz
   edge           1
   pluck          1
@@ -296,6 +2440,44 @@ patch "Glass Harp" family=strange note=60 range=52..72
 
 patch "Sub Harp" family=strange note=36 range=28..43
   # A steel harp far below any real one: a slow, grinding buzz.
+  set macro1 "Bright"
+  set macro2 "Shorter"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.384
+  mac2_d1  #3
+  mac2_a1  -0.12
+  mac2_d2  #21
+  mac2_a2  0.16
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac3_d2  #21
+  mac3_a2  -0.188
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac7_d2  #21
+  mac7_a2  -0.18
+  mac8_d1  #22
+  mac8_a1  -0.5
   set            0.5
   edge           0.3
   ring           10
@@ -304,6 +2486,40 @@ patch "Sub Harp" family=strange note=36 range=28..43
 
 patch "Buzz Choir" family=strange note=50 range=45..60
   # Five reeds in unison, breathed so they never stop.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Strum"
+  set macro6 "Dry"
+  set macro7 "Wah"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.2
+  mac1_d2  #5
+  mac1_a2  0.15
+  mac1_d3  #21
+  mac1_a3  -0.076
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #14
+  mac5_a1  0.3
+  mac6_d1  #10
+  mac6_a1  -0.6
+  mac6_d2  #12
+  mac6_a2  -0.8
+  mac6_d3  #21
+  mac6_a3  0.2
+  mac7_d1  #18
+  mac7_a1  0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.021
   reeds          5
   chord          1      # unison
   breath         0.6
@@ -313,6 +2529,42 @@ patch "Buzz Choir" family=strange note=50 range=45..60
 
 patch "Robot Words" family=strange note=50 range=50..86 role=harmonics
   # Mouth mode with a mouth that snaps from shape to shape.
+  set macro1 "Bright"
+  set macro2 "Accent"
+  set macro3 "Shallow"
+  set macro4 "Wide"
+  set macro5 "Breath"
+  set macro6 "Wah"
+  set macro7 "Slide"
+  set macro8 "Hard"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  0.081
+  mac2_d1  #15
+  mac2_a1  0.35
+  mac3_d1  #8
+  mac3_a1  -0.3
+  mac3_d2  #21
+  mac3_a2  0.045
+  mac4_d1  #7
+  mac4_a1  -0.3
+  mac4_d2  #21
+  mac4_a2  0.064
+  mac5_d1  #10
+  mac5_a1  0.5
+  mac5_d2  #12
+  mac5_a2  0.4
+  mac5_d3  #11
+  mac5_a3  0.15
+  mac6_d1  #18
+  mac6_a1  0.6
+  mac7_d1  #9
+  mac7_a1  0.35
+  mac8_d1  #4
+  mac8_a1  0.3
   play           1      # mouth
   drone          50
   focus          1
@@ -324,9 +2576,194 @@ patch "Robot Words" family=strange note=50 range=50..86 role=harmonics
 
 patch "Broken Gallop" family=strange note=55 range=48..62
   # A genggong galloping, stumbling into doubles, pulled off its middle.
+  set macro1 "Bright"
+  set macro2 "Vowel"
+  set macro3 "Narrow"
+  set macro4 "Even"
+  set macro5 "Steady"
+  set macro6 "Breath"
+  set macro7 "Wah"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac2_d1  #6
+  mac2_a1  0.45
+  mac2_d2  #21
+  mac2_a2  0.072
+  mac3_d1  #7
+  mac3_a1  0.3
+  mac4_d1  #15
+  mac4_a1  -0.35
+  mac5_d1  #16
+  mac5_a1  -0.45
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac7_d1  #18
+  mac7_a1  0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  0.195
   model          8      # genggong
   pattern        6      # groupings
   ratchet        0.6
   accent         1
   set            -0.6
   volume         0.38
+
+patch "Bent Bells" family=strange note=60 range=52..72
+  # Three kouxian reeds a fifth apart, all overtone: their modes sit off the
+  # harmonics, so it rings like a cracked bell.
+  set macro1 "Dark"
+  set macro2 "Shorter"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Strum"
+  set macro6 "Breath"
+  set macro7 "Wah"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #5
+  mac1_a2  -0.25
+  mac2_d1  #3
+  mac2_a1  -0.12
+  mac2_d2  #21
+  mac2_a2  0.129
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac3_d2  #21
+  mac3_a2  -0.049
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac4_d2  #21
+  mac4_a2  -0.074
+  mac5_d1  #14
+  mac5_a1  0.3
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac6_d4  #21
+  mac6_a4  -0.084
+  mac7_d1  #18
+  mac7_a1  0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #21
+  mac8_a2  -0.084
+  model          9      # kouxian
+  reeds          3
+  chord          3      # fifths
+  overtones      1
+  pluck          1
+  edge           0.9
+  ring           10
+  stop           0
+  volume         0.50
+
+patch "Clanging Bamboo" family=strange note=48 range=40..60
+  # Two bamboo reeds an octave apart, plucked hard into their own overtones,
+  # which clash with each other.
+  set macro1 "Bright"
+  set macro2 "Longer"
+  set macro3 "Vowel"
+  set macro4 "Narrow"
+  set macro5 "Strum"
+  set macro6 "Breath"
+  set macro7 "Wah"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.2
+  mac1_d2  #5
+  mac1_a2  0.1
+  mac2_d1  #3
+  mac2_a1  0.12
+  mac2_d2  #21
+  mac2_a2  -0.058
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac3_d2  #21
+  mac3_a2  -0.021
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #14
+  mac5_a1  0.3
+  mac6_d1  #10
+  mac6_a1  0.5
+  mac6_d2  #12
+  mac6_a2  0.4
+  mac6_d3  #11
+  mac6_a3  0.15
+  mac6_d4  #21
+  mac6_a4  -0.027
+  mac7_d1  #18
+  mac7_a1  0.6
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #4
+  mac8_a2  -0.3
+  mac8_d3  #21
+  mac8_a3  0.392
+  model          6      # bamboo
+  reeds          2
+  chord          2      # octaves
+  overtones      1
+  pluck          0.85
+  set            -1
+  depth          0.8
+  volume         0.31
+
+patch "Wobble Drone" family=strange note=31 range=26..38
+  # A sub harp breathed into a held drone, the mouth wobbling in triplets.
+  set macro1 "Bright"
+  set macro2 "Shorter"
+  set macro3 "Vowel"
+  set macro4 "Wide"
+  set macro5 "Dry"
+  set macro6 "Still"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #5
+  mac1_a2  0.25
+  mac1_d3  #21
+  mac1_a3  -0.315
+  mac2_d1  #3
+  mac2_a1  -0.12
+  mac3_d1  #6
+  mac3_a1  0.45
+  mac3_d2  #21
+  mac3_a2  -0.096
+  mac4_d1  #7
+  mac4_a1  -0.3
+  mac5_d1  #10
+  mac5_a1  -0.6
+  mac5_d2  #12
+  mac5_a2  -0.8
+  mac6_d1  #18
+  mac6_a1  -0.9
+  mac7_d1  #4
+  mac7_a1  0.3
+  mac7_d2  #21
+  mac7_a2  -0.123
+  mac8_d1  #22
+  mac8_a1  -0.5
+  breath         0.6
+  sustain        0.8
+  ring           10
+  depth          0.9
+  focus          0.9
+  wah            0.9
+  wahrate        4      # 1/8T
+  wahshape       1      # smooth
+  volume         0.69

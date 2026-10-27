@@ -1,6 +1,7 @@
 #include "Fathom.h"
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <engine/dsp/Math.h>
 #include <engine/machine/Voices.h>
 
@@ -20,16 +21,20 @@ constexpr float kBubbleQ = 25.0f;
 constexpr float kRates[Fathom::KindCount] = {12.0f, 2.0f, 120.0f, 300.0f, 200.0f, 0.0f, 15.0f,
                                              0.0f, 40.0f, 600.0f, 500.0f, 1.5f, 6.0f, 1.0f, 3.0f, 150.0f};
 /** Where a struck roof or window rings, Hz, and for how long, seconds. */
-constexpr float kTinModes[4] = {910.0f, 1370.0f, 2120.0f, 2890.0f};
-constexpr float kGlassModes[4] = {2800.0f, 4100.0f, 5900.0f, 7300.0f};
-constexpr float kTinRing = 0.35f, kGlassRing = 0.08f;
+constexpr float kTinModes[8] = {530.0f, 910.0f, 1370.0f, 1780.0f, 2120.0f, 2890.0f, 3610.0f, 4730.0f};
+constexpr float kGlassModes[8] = {2800.0f, 3460.0f, 4100.0f, 5020.0f, 5900.0f, 6610.0f, 7300.0f, 8650.0f};
+constexpr float kTinRing = 0.15f, kGlassRing = 0.06f;
+/** Brings the four-pole rumble up to about where the other beds sit. */
+constexpr float kThunderGain = 11.0f;
+/** Rain on open water has no roof to ring and few bubbles, so it's brought up to the rest. */
+constexpr float kOpenRain = 3.0f;
 
 } // namespace
 
 Fathom::Fathom() { initParams(); }
 
 const ParamDef *Fathom::paramDefs(int32_t &count) const {
-    static const ParamDef defs[Count] = {
+    static const ParamDef first[MacroBase] = {
         {"model", 0.0f, static_cast<float>(KindCount - 1), 0.0f, Curve::Stepped, KindCount, ""}, // bubbles, drips, rain, stream, surf, wind, fire
         {"tune", -100.0f, 100.0f, 0.0f, Curve::Linear, 0, "cents"},
         {"density", 0.0f, 1.0f, 0.5f, Curve::Linear, 0, ""},
@@ -120,8 +125,81 @@ const ParamDef *Fathom::paramDefs(int32_t &count) const {
         {"p16_density", 0.0f, 1.0f, 0.7f, Curve::Linear, 0, ""},
         {"p16_level", 0.0f, 1.0f, 0.75f, Curve::Linear, 0, ""},
     };
+    static ParamDef defs[Count];
+    static char names[kMacros * MacroParams][12];
+    static bool built = false;
+    if (!built) {
+        for (int32_t i = 0; i < MacroBase; ++i) defs[i] = first[i];
+        auto put = [&](int32_t i, const char *n, float mn, float mx, float df, Curve c, int32_t steps) {
+            char *name = names[i - MacroBase];
+            std::snprintf(name, 12, "%s", n);
+            defs[i] = ParamDef{name, mn, mx, df, c, steps, ""};
+        };
+        for (int k = 0; k < kMacros; ++k) {
+            char n[12];
+            const int32_t b = MacroBase + k * MacroParams;
+            std::snprintf(n, sizeof(n), "mac%d", k + 1);
+            put(b, n, 0.0f, 1.0f, 0.0f, Curve::Linear, 0);
+            for (int r = 0; r < 4; ++r) {
+                std::snprintf(n, sizeof(n), "mac%d_d%d", k + 1, r + 1);
+                put(b + 1 + r, n, 0.0f, static_cast<float>(MacroDestCount - 1), 0.0f, Curve::Stepped, MacroDestCount);
+                std::snprintf(n, sizeof(n), "mac%d_a%d", k + 1, r + 1);
+                put(b + 5 + r, n, -1.0f, 1.0f, 0.0f, Curve::Linear, 0);
+            }
+        }
+        built = true;
+    }
     count = Count;
     return defs;
+}
+
+namespace {
+// The macro destination each param answers to, or -1 for none.
+struct DestMap {
+    int8_t of[Fathom::Count];
+    DestMap() {
+        using P = Fathom;
+        for (auto &d : of) d = -1;
+        const int32_t pairs[][2] = {
+            {P::Density, P::McDensity}, {P::Size, P::McSize}, {P::Rise, P::McRise}, {P::Decay, P::McDecay},
+            {P::Gust, P::McGust}, {P::Whistle, P::McWhistle}, {P::Tone, P::McTone}, {P::Swell, P::McSwell},
+            {P::Spread, P::McSpread}, {P::Fade, P::McFade}, {P::VelocityAmount, P::McVelocity},
+            {P::Volume, P::McVolume},
+        };
+        for (const auto &pr : pairs) of[pr[0]] = static_cast<int8_t>(pr[1]);
+        // The density route moves every pad's own density as well.
+        for (int pad = 0; pad < P::kPads; ++pad) of[P::padParam(pad, P::PadDensity)] = static_cast<int8_t>(P::McDensity);
+    }
+};
+const DestMap &destMap() {
+    static const DestMap m;
+    return m;
+}
+} // namespace
+
+float Fathom::paramOf(int32_t p) const {
+    const float v = params_.get(p);
+    const int d = destMap().of[p];
+    const float off = d < 0 ? 0.0f : mac_[d];
+    if (off == 0.0f) return v;
+    const ParamDef &def = params_.def(p);
+    return def.map(def.unmap(v) + off);
+}
+
+void Fathom::updateMacros() {
+    for (float &m : mac_) m = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = params_.get(b);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            // The routes' destinations are steps, so their targets.
+            const int dest = static_cast<int>(params_.target(b + 1 + r) + 0.5f);
+            if (dest > McOff && dest < MacroDestCount) mac_[dest] += knob * params_.get(b + 5 + r);
+        }
+    }
+    // Two octaves either way.
+    mac_[McPitch] = std::clamp(mac_[McPitch], -1.0f, 1.0f);
 }
 
 void Fathom::prepare(int32_t rate) {
@@ -145,14 +223,17 @@ void Fathom::reset() {
         v.bedLp = v.roarLp = v.roarLp2 = 0.0f;
         v.gustNow = v.gustAim = 0.0f;
         v.gustLeft = 0;
+        v.rollNow = v.rollAim = v.burst = 0.0f;
+        v.rollLeft = 0;
         v.waveAt = 0.0;
         v.peak = 0.0f;
         v.quietBlocks = 0;
     }
     for (Grain &g : grains) g.used = false;
     for (SurfaceMode &m : surface) m.y1 = m.y2 = 0.0f;
+    for (float &m : mac_) m = 0.0f;
     builtSurface = -1;
-    surfaceIn = 0.0f;
+    surfaceIn = surfaceBurst = 0.0f;
     bpm = 120.0f;
     bend = wheel = channelPressure_ = 0.0f;
     noise = 0x4f6cdd1du;
@@ -183,7 +264,7 @@ Fathom::Voice *Fathom::voiceFor(uint8_t note) {
     return pick;
 }
 
-void Fathom::spawn(Voice &, int kind, float hz, float amp, float decaySeconds, float rise) {
+Fathom::Grain *Fathom::spawn(Voice &, int kind, float hz, float amp, float decaySeconds, float rise) {
     // The quietest grain makes way if they're all busy.
     Grain *g = nullptr;
     for (Grain &c : grains) {
@@ -210,7 +291,9 @@ void Fathom::spawn(Voice &, int kind, float hz, float amp, float decaySeconds, f
     g->lpCoef = clampf(1.0f - std::exp(-kTwoPi * hz / sampleRate), 0.01f, 1.0f);
     g->pan = clampf(paramOf(Spread), 0.0f, 1.0f) * white();
     g->age = 0;
+    g->wait = 0;
     ++started;
+    return g;
 }
 
 void Fathom::event(Voice &v, float hz) {
@@ -237,18 +320,18 @@ void Fathom::event(Voice &v, float hz) {
         const int surf = std::clamp(steppedTargetOf(Surface), 0, SurfaceCount - 1);
         const float amp = 0.15f + 0.45f * uniform() * uniform();
         switch (surf) {
-        case Leaves: spawn(v, Tap, 1800.0f + 2500.0f * uniform(), amp * 1.4f, 0.006f, 0.0f); break;
+        case Leaves: spawn(v, Tick, 1500.0f + 2500.0f * uniform(), amp * 1.4f, 0.006f, 0.0f); break;
         case Tin:
         case Glass:
-            spawn(v, Tap, 7000.0f, amp * 0.5f, 0.0015f, 0.0f);
+            spawn(v, Tick, 6000.0f, amp * 0.5f, 0.0015f, 0.0f);
             surfaceIn += amp * (surf == Tin ? 0.5f : 0.35f) * (0.5f + 0.5f * uniform());
             break;
         default:
-            spawn(v, Tap, 5000.0f, amp * 0.6f, 0.0015f, 0.0f);
-            // Some drops on water catch a bubble.
-            if (uniform() < 0.3f) {
+            spawn(v, Tick, 3000.0f + 4000.0f * uniform(), amp * 0.6f * kOpenRain, 0.002f, 0.0f);
+            // A few drops on water catch a bubble.
+            if (uniform() < 0.08f) {
                 const float f = sized(hz * 2.0f, size);
-                spawn(v, Ring, f, amp, ring(f), rise + 0.3f);
+                spawn(v, Ring, f, amp * 0.4f * kOpenRain, ring(f) * 0.5f, rise);
             }
             break;
         }
@@ -276,10 +359,14 @@ void Fathom::event(Voice &v, float hz) {
         break;
     }
     case Hail: {
-        // Ice on a hard surface: a sharp tap and a short, high ring as it bounces.
+        // Ice on a hard surface: a hard tick, and often a smaller one as it bounces.
         const float amp = 0.6f + 1.2f * uniform();
-        spawn(v, Tap, 3000.0f + 5000.0f * uniform(), amp, 0.003f, 0.0f);
-        if (uniform() < 0.4f) spawn(v, Ring, sized(hz * 4.0f, size), amp * 0.4f, 0.01f, 0.0f);
+        const float f = (2000.0f + 3000.0f * uniform()) * (0.6f + 0.8f * clampf(paramOf(Tone), 0.0f, 1.0f));
+        spawn(v, Tick, f, amp * 2.0f, 0.0025f, 0.0f);
+        if (uniform() < 0.6f) spawn(v, Tick, f * 1.2f, amp * 0.7f, 0.0015f, 0.0f)->wait =
+            static_cast<int32_t>((0.02f + 0.06f * uniform()) * sampleRate);
+        const int surf = std::clamp(steppedTargetOf(Surface), 0, SurfaceCount - 1);
+        if (surf == Tin || surf == Glass) surfaceIn += amp * (surf == Tin ? 0.15f : 0.1f);
         break;
     }
     case Waterfall: {
@@ -355,6 +442,8 @@ void Fathom::noteOn(uint8_t note, uint8_t velocity) {
         v->waveAt = 0.0;
         v->gustNow = 0.5f;
         v->gustLeft = 0;
+        v->rollNow = v->rollAim = v->burst = 0.0f;
+        v->rollLeft = 0;
     }
     // A bubble or a drip comes at once.
     v->until = 0.0f;
@@ -398,6 +487,7 @@ void Fathom::notePressure(uint8_t note, uint8_t value) {
 
 bool Fathom::render(float *L, float *R, int32_t frames) {
     params_.tick();
+    updateMacros();
     for (int32_t i = 0; i < frames; ++i) L[i] = R[i] = 0.0f;
     if (asleep) return true;
 
@@ -419,10 +509,15 @@ bool Fathom::render(float *L, float *R, int32_t frames) {
         builtSurface = surf;
         const float *hz = surf == Glass ? kGlassModes : kTinModes;
         const float ringFor = surf == Glass ? kGlassRing : kTinRing;
-        for (int m = 0; m < 4; ++m) {
-            const float r = std::pow(10.0f, -3.0f / (ringFor / (1.0f + 0.4f * static_cast<float>(m)) * sampleRate));
-            surface[m].a1 = 2.0f * r * std::cos(kTwoPi * hz[m] / sampleRate);
+        float meanSin = 0.0f;
+        for (int m = 0; m < kSurfaceModes; ++m) meanSin += std::sin(kTwoPi * hz[m] / sampleRate) / kSurfaceModes;
+        for (int m = 0; m < kSurfaceModes; ++m) {
+            const float r = std::pow(10.0f, -3.0f / (ringFor / (1.0f + 0.25f * static_cast<float>(m)) * sampleRate));
+            const float w = kTwoPi * hz[m] / sampleRate;
+            surface[m].a1 = 2.0f * r * std::cos(w);
             surface[m].a2 = -r * r;
+            // A resonator's gain grows as 1/sin(w), so without this the lowest mode drowns the rest.
+            surface[m].in = std::sin(w) / meanSin;
         }
     }
 
@@ -430,7 +525,7 @@ bool Fathom::render(float *L, float *R, int32_t frames) {
     for (Voice &v : voices) {
         if (!v.used) continue;
         const int kind = v.kind;
-        rainHeard = rainHeard || kind == Rain;
+        rainHeard = rainHeard || kind == Rain || kind == Hail;
         // A pad has its own density and level.
         const float padDensity = v.pad >= 0 ? clampf(paramOf(padParam(v.pad, PadDensity)), 0.0f, 1.0f) : density;
         const float voiceScale = v.pad >= 0 ? 0.05f * std::pow(80.0f, padDensity) : densityScale;
@@ -438,20 +533,29 @@ bool Fathom::render(float *L, float *R, int32_t frames) {
         const float press = std::fmax(v.held ? (v.pressure >= 0.0f ? v.pressure : channelPressure_) : 0.0f, wheel);
         const float played = v.pad >= 0 ? static_cast<float>(steppedTargetOf(padParam(v.pad, PadNote))) : static_cast<float>(v.note);
         const float hz = noteHz(played + 12.0f * static_cast<float>(steppedTargetOf(Octave)) +
-                                paramOf(Tune) / 100.0f + bend * paramOf(BendRange) + v.noteBend);
+                                paramOf(Tune) / 100.0f + bend * paramOf(BendRange) + v.noteBend +
+                                (mac_[McPitch] != 0.0f ? mac_[McPitch] * 24.0f : 0.0f));
         const float aim = v.held ? padLevel * velocityGain(v.velocity, paramOf(VelocityAmount)) * (1.0f + 0.5f * press) : 0.0f;
         const float rate = kRates[kind] * voiceScale * (1.0f + press);
         // The beds: what each texture is besides its grains.
+        float thunderLow = 0.0f;
         if (kind == Wind) {
             const float centre = std::fmin(hz * (0.5f + 2.0f * tone) * std::exp2(2.0f * (v.gustNow - 0.5f) * gustDepth), sampleRate * 0.4f);
             v.bed.set(centre, 0.2f);
             v.whistle.set(hz, 0.9f + 0.09f * whistleAmount);
         } else if (kind == Rain) {
             v.bed.set(std::fmin(2000.0f + 8000.0f * tone, sampleRate * 0.4f), 0.1f);
+        } else if (kind == Thunder) {
+            // The rumble sits under the note, brighter with the tone; the rip higher up.
+            const float rumbleHz = clampf((120.0f + 200.0f * tone) * std::sqrt(hz / 82.4f), 20.0f, 400.0f);
+            v.bed.set(rumbleHz, 0.1f);
+            thunderLow = 1.0f - std::exp(-kTwoPi * rumbleHz / sampleRate);
+            v.whistle.set(400.0f + 1500.0f * tone, 0.15f);
         }
         float peak = 0.0f;
         for (int32_t i = 0; i < frames; ++i) {
-            v.level += (aim - v.level) * fadeCoef;
+            // Thunder starts with the strike; the fade only takes it away.
+            v.level += (aim - v.level) * (kind == Thunder && aim > v.level ? 1.0f : fadeCoef);
             if (v.held && rate > 0.0f) {
                 v.until -= 1.0f;
                 if (v.until <= 0.0f) {
@@ -470,7 +574,7 @@ bool Fathom::render(float *L, float *R, int32_t frames) {
             float bed = 0.0f;
             switch (kind) {
             case Rain:
-                bed = v.bed.step(white()).bp * 0.3f * std::sqrt(densityScale);
+                bed = v.bed.step(white()).bp * 0.3f * std::sqrt(densityScale) * (surf == Water ? kOpenRain : 1.0f);
                 break;
             case Stream:
                 v.bedLp += (white() - v.bedLp) * 0.08f;
@@ -495,17 +599,32 @@ bool Fathom::render(float *L, float *R, int32_t frames) {
                 break;
             }
             case Thunder: {
-                // A crack, then the rumble rolling away, swelling as it goes.
+                // Up close a crack and a rip of tearing bursts, then the rumble rolling away in swells.
                 const float t = static_cast<float>(v.waveAt);
                 v.waveAt += static_cast<double>(dt);
-                const float n = white();
-                const float crack = t < 0.08f ? (1.0f - t / 0.08f) : 0.0f;
-                const float low = 1.0f - std::exp(-kTwoPi * (60.0f + 300.0f * tone) / sampleRate);
-                v.roarLp += (n - v.roarLp) * low;
-                v.roarLp2 += (v.roarLp - v.roarLp2) * low;
-                const float rumble = std::exp(-t / (1.5f + 4.0f * clampf(paramOf(Decay), 0.0f, 1.0f))) * (0.5f + gust);
-                bed = (n - v.bedLp) * crack * 0.8f + v.roarLp2 * rumble * 6.0f;
-                v.bedLp = n;
+                const float tau = 1.5f + 4.0f * clampf(paramOf(Decay), 0.0f, 1.0f);
+                const float near = clampf((tone - 0.3f) / 0.6f, 0.0f, 1.0f);
+                const float crack = near * std::exp(-t / 0.006f) * white();
+                // Each burst of the rip starts at random, thick at first and thinning out.
+                const float ripRate = 1500.0f * std::exp(-t / (0.08f + 0.3f * near));
+                if (uniform() < ripRate * dt) v.burst = 0.4f + 0.6f * uniform();
+                v.burst *= 0.9985f;
+                const float rip = v.whistle.step(white() * v.burst).bp * near * std::exp(-t / 0.35f);
+                // The rumble: noise through four poles, so no hiss is left above it.
+                v.roarLp += (white() - v.roarLp) * thunderLow;
+                v.roarLp2 += (v.roarLp - v.roarLp2) * thunderLow;
+                const float deep = v.bed.step(v.roarLp2).lp;
+                if (--v.rollLeft <= 0) {
+                    v.rollAim = uniform();
+                    v.rollLeft = static_cast<int32_t>((0.08f + 0.5f * uniform()) * sampleRate);
+                }
+                v.rollNow += (v.rollAim - v.rollNow) * (dt / 0.12f);
+                const float roll = 1.0f - gustDepth + gustDepth * (0.2f + 1.6f * v.rollNow * v.rollNow);
+                // Far off it swells up slowly; close by it's there at once, with a boom.
+                const float attack = 0.01f + 0.6f * (1.0f - near);
+                const float rumble = (1.0f - std::exp(-t / attack)) * std::exp(-t / tau) * roll +
+                                     1.0f * near * std::exp(-t / 0.3f);
+                bed = crack * 3.0f + rip * 10.0f + deep * rumble * kThunderGain;
                 break;
             }
             case Waterfall: {
@@ -559,6 +678,7 @@ bool Fathom::render(float *L, float *R, int32_t frames) {
 
     // The grains, shared by every note.
     const float grainGain = kHouse * volume;
+    const float tickRamp = 1.0f / (0.0007f * sampleRate);
     float level = 0.0f;
     for (const Voice &v : voices) level = std::fmax(level, v.level);
     bool grainsLeft = false;
@@ -566,12 +686,23 @@ bool Fathom::render(float *L, float *R, int32_t frames) {
         if (!g.used) continue;
         const float pl = std::sqrt(0.5f * (1.0f - g.pan)), pr = std::sqrt(0.5f * (1.0f + g.pan));
         for (int32_t i = 0; i < frames; ++i) {
+            if (g.wait > 0) {
+                --g.wait;
+                continue;
+            }
             float y = 0.0f;
             if (g.kind == Ring) {
                 y = g.amp * std::sin(kTwoPi * g.phase);
                 g.phase += g.hz / sampleRate;
                 if (g.phase >= 1.0f) g.phase -= 1.0f;
                 g.hz = std::fmin(g.hz + g.rise, sampleRate * 0.45f);
+            } else if (g.kind == Tick) {
+                // A drop or a hailstone: a band of noise with no low end, eased in so it doesn't pop.
+                const float n = white() * g.amp;
+                g.lp += (n - g.lp) * g.lpCoef;
+                g.hpLast += (g.lp - g.hpLast) * g.lpCoef * 0.2f;
+                y = (g.lp - g.hpLast) * std::fmin(g.phase, 1.0f);
+                g.phase += tickRamp;
             } else {
                 // A tap or a crackle: a burst of noise, its top shaped.
                 const float n = white() * g.amp;
@@ -588,16 +719,20 @@ bool Fathom::render(float *L, float *R, int32_t frames) {
     }
     // The roof or window under the rain.
     if (rainHeard && (surf == Tin || surf == Glass)) {
+        const float surfaceFall = std::exp(-1.0f / (0.002f * sampleRate));
         for (int32_t i = 0; i < frames; ++i) {
-            const float x = i == 0 ? surfaceIn : 0.0f;
+            // Each drop strikes it with a short burst of noise, not a click, so it rattles rather than rings a note.
+            if (i == 0) surfaceBurst += surfaceIn;
+            const float x = white() * surfaceBurst * 0.3f;
+            surfaceBurst *= surfaceFall;
             float y = 0.0f;
             for (SurfaceMode &m : surface) {
-                const float out = x + m.a1 * m.y1 + m.a2 * m.y2;
+                const float out = x * m.in + m.a1 * m.y1 + m.a2 * m.y2;
                 m.y2 = m.y1;
                 m.y1 = out;
                 y += out;
             }
-            y *= 0.05f * grainGain;
+            y *= 0.08f * grainGain;
             L[i] += y;
             R[i] += y;
         }

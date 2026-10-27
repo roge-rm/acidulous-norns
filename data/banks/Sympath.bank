@@ -1,4 +1,4 @@
-# Sympath - plucked strings over a buzzing bridge.
+# Sympath - plucked and bowed strings over a buzzing bridge.
 #
 # Each note is a string lying over a wide, curved bridge. Once it swings far
 # enough it strikes the bridge, and every strike rings it: a bright buzz on
@@ -12,7 +12,20 @@
 # `first`. With one voice, `meend` slides from note to note; `gamak` (and
 # the mod wheel) shakes the note, and pressure pulls the string up.
 #
-# Families: sitar, veena, drone, east, bowed, bridge.
+# 96 patches in eight families: sitar, sarod, veena, drone, east, bowed,
+# fiddle and bridge. All ten scales are used somewhere.
+#
+# Every patch but Init carries eight named macros. Destinations are
+# numbered as in Sympath.h's MacroDest: #1 bridge, #2 curve, #3 pluck,
+# #4 position, #5 sustain, #6 bright, #7 tarbs, #8 chikari, #9 meend,
+# #10 gamak, #11 velocity, #12 volume, #13 pitch (24 semitones a unit).
+# A plucked string gets Buzz, Bright, Longer, Tarbs (or Mid String),
+# Chikari (or Hard), Gamak, Slide (one voice) or Touch, and Low; a tanpura
+# Jawari, Round and Waver; a bowed string Grip (the bow's pressure). A
+# macro whose knob has no room left goes the other way under the opposite
+# name (Clean, Dark, Shorter, Dry, ...); patches low in the range go High.
+# Where a macro at full moves the level by more than 1.2 dB, a volume
+# route takes it back out.
 
 machine Sympath
 role tune
@@ -21,24 +34,164 @@ patch Init family=sitar note=61 range=48..84
 
 patch Sitar family=sitar note=61 range=48..84 role=lead
   # One string, sliding between notes, the sympathetic strings ringing under it.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.144
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac4_d2  #12
+  mac4_a2  -0.104
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac5_d2  #12
+  mac5_a2  -0.104
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac6_d2  #12
+  mac6_a2  0.132
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.255
   voices         #0
   meend          120 ms
   tarbs          0.6
 
 patch "Sitar Chikari" family=sitar note=61 range=48..84 role=lead
   # Each note struck with the drone strings, as a phrase ends.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "No Chikari"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.104
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac4_d2  #12
+  mac4_a2  -0.104
+  mac5_d1  #8
+  mac5_a1  -0.6
+  mac5_d2  #12
+  mac5_a2  0.113
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac6_d2  #12
+  mac6_a2  0.171
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.3
   voices         #0
   meend          120 ms
   chikari        0.5
 
 patch "Sitar Gamak" family=sitar note=61 range=48..84 role=lead
   # Notes shaken fast and wide.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.157
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.161
   voices         #0
   meend          80 ms
   gamak          0.5
 
 patch "Bright Sitar" family=sitar note=64 range=48..88 role=lead
   # A hard plectrum near the bridge, a strong buzz.
+  set macro1 "Clean"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac1_d2  #2
+  mac1_a2  0.2
+  mac1_d3  #12
+  mac1_a3  0.3
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac2_d3  #12
+  mac2_a3  0.113
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
   voices         #0
   meend          100 ms
   pluck          0.85
@@ -47,13 +200,90 @@ patch "Bright Sitar" family=sitar note=64 range=48..88 role=lead
 
 patch "Sitar Kafi" family=sitar note=61 range=48..84 role=lead
   # The sympathetic strings tuned to a minor-sounding scale.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Dry"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.144
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  -0.45
+  mac4_d2  #12
+  mac4_a2  0.142
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac5_d2  #12
+  mac5_a2  -0.104
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac6_d2  #12
+  mac6_a2  0.202
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.277
   voices         #0
   meend          140 ms
   scale          #2
   tarbs          0.8
+  volume         0.661
 
 patch "Sitar Bhairav" family=sitar note=61 range=48..84 role=lead
   # Flat second and sixth in the sympathetic strings.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Dry"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.131
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  -0.45
+  mac4_d2  #12
+  mac4_a2  0.142
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac5_d2  #12
+  mac5_a2  -0.097
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac6_d2  #12
+  mac6_a2  0.191
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.289
   voices         #0
   meend          140 ms
   scale          #5
@@ -61,58 +291,710 @@ patch "Sitar Bhairav" family=sitar note=61 range=48..84 role=lead
 
 patch "Sitar Chords" family=sitar note=61 range=48..84 role=chord
   # Four strings at once, no slides.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.123
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac4_d2  #12
+  mac4_a2  -0.100
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac5_d2  #12
+  mac5_a2  -0.089
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac6_d2  #12
+  mac6_a2  0.096
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac7_d2  #12
+  mac7_a2  0.096
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.208
   tarbs          0.5
   sustain        0.6
-
-patch "Sarod" family=sitar note=60 range=48..84 role=lead
-  # No frets: notes slid on the steel plate, the shell plectrum bright.
-  model          #4
-  voices         #0
-  meend          100 ms
-
-patch "Sarod Jhala" family=sitar note=60 range=48..84 role=lead
-  # Fast strokes on the drone strings between the notes.
-  model          #4
-  chikari        0.7
-
-patch "Sarod Alap" family=sitar note=55 range=43..79 role=lead
-  # Slow and sliding, the opening of a raga.
-  model          #4
-  voices         #0
-  meend          250 ms
-  sustain        0.7
+  volume         0.596
 
 patch "Electric Sitar" family=sitar note=64 range=52..88
   # A guitar with a buzzing bridge, the sixties sound.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Touch"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.204
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #11
+  mac7_a1  0.35
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.142
   model          #10
 
 patch "Electric Sitar Bright" family=sitar note=64 range=52..88
   # Brighter, the sympathetic strings up.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Dry"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Touch"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.204
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  -0.45
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #11
+  mac7_a1  0.35
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.142
   model          #10
   bright         0.7
   tarbs          0.7
 
 patch "Electric Sitar Lead" family=sitar note=67 range=52..88 role=lead
   # One voice, sliding, for a lead line.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.199
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
   model          #10
   voices         #0
   meend          60 ms
 
+patch "Sitar Todi" family=sitar note=61 range=48..84 role=lead
+  # The sympathetic strings on a scale with flat second, third and sixth and a sharp fourth.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Dry"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.097
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  -0.45
+  mac4_d2  #12
+  mac4_a2  0.098
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac5_d2  #12
+  mac5_a2  -0.072
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac6_d2  #12
+  mac6_a2  0.157
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.189
+  voices         #0
+  meend          160 ms
+  scale          #9
+  tarbs          0.85
+  volume         0.519
+
+patch "Driven E-Sitar" family=sitar note=64 range=52..88 role=lead
+  # One voice through a hot pedal, sliding, the buzz turned up for a lead.
+  set macro1 "Clean"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Soft"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac1_d2  #2
+  mac1_a2  0.2
+  mac1_d3  #12
+  mac1_a3  0.071
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #3
+  mac5_a1  -0.4
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  model          #10
+  voices         #0
+  meend          70 ms
+  scale          #1
+  bridge         0.9
+  pluck          0.7
+  volume         0.363
+  insert Distortion
+    drive        10
+    tone         4200 Hz
+    mode         #1
+    mix          1
+    gain         4 dB
+
+patch "E-Sitar Amp" family=sitar note=64 range=52..88
+  # Chords through a small valve amp, just breaking up.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Touch"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.109
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #11
+  mac7_a1  0.35
+  mac8_d1  #13
+  mac8_a1  -0.5
+  model          #10
+  tarbs          0.6
+  volume         0.978
+  insert Amp
+    drive        0.6
+    bass         0.45
+    mid          0.6
+    treble       0.6
+    presence     0.45
+    master       0.5
+    gain         0 dB
+
+patch "Sarod" family=sarod note=60 range=48..84 role=lead
+  # No frets: notes slid on the steel plate, the shell plectrum bright.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac6_d2  #12
+  mac6_a2  0.113
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.212
+  model          #4
+  voices         #0
+  meend          100 ms
+
+patch "Sarod Jhala" family=sarod note=60 range=48..84 role=lead
+  # Fast strokes on the drone strings between the notes.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "No Chikari"
+  set macro6 "Gamak"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #8
+  mac5_a1  -0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac7_d2  #12
+  mac7_a2  0.181
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.171
+  model          #4
+  chikari        0.7
+
+patch "Sarod Alap" family=sarod note=55 range=43..79 role=lead
+  # Slow and sliding, the opening of a raga.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.191
+  model          #4
+  voices         #0
+  meend          250 ms
+  sustain        0.7
+
+patch "Sarod Meend" family=sarod note=60 range=48..84 role=lead
+  # Long slides on the steel plate, each note pulled from the last.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Quick Slide"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac6_d2  #12
+  mac6_a2  0.114
+  mac7_d1  #9
+  mac7_a1  -0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.218
+  model          #4
+  voices         #0
+  meend          420 ms
+  sustain        0.7
+  volume         0.653
+
+patch "Sarod Gat" family=sarod note=62 range=48..84 role=lead
+  # Quick, hard strokes for a composed tune, short slides between them.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.056
+  model          #4
+  voices         #0
+  meend          40 ms
+  pluck          0.8
+  chikari        0.25
+  volume         0.944
+
+patch "Sarod Purvi" family=sarod note=60 range=48..84 role=lead
+  # The sympathetic strings on an evening scale with a flat second and sixth and a sharp fourth.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Dry"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  -0.45
+  mac4_d2  #12
+  mac4_a2  0.156
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac6_d2  #12
+  mac6_a2  0.318
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.232
+  model          #4
+  voices         #0
+  meend          200 ms
+  scale          #8
+  tarbs          0.8
+  volume         0.468
+
+patch "Low Sarod" family=sarod note=48 range=36..72 role=lead
+  # The bass strings, deep and long, for a slow opening.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Shorter"
+  set macro4 "Tarbs"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  -0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  -0.215
+  model          #4
+  voices         #0
+  meend          300 ms
+  sustain        0.75
+  bright         0.4
+  volume         0.861
+
+patch "Sarod Ghaseet" family=sarod note=57 range=45..79 role=lead
+  # Wide slides that sweep across several notes, a shake on the way.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Quick Slide"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac5_d2  #12
+  mac5_a2  -0.122
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #9
+  mac7_a1  -0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.166
+  model          #4
+  voices         #0
+  meend          550 ms
+  gamak          0.2
+  chikari        0.3
+  volume         0.822
+
 patch Veena family=veena note=50 range=36..79 role=lead
   # Plucked with the nail, sliding along the frets.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  0.5
   model          #2
   voices         #0
   meend          150 ms
 
 patch "Veena Tala" family=veena note=50 range=36..79 role=lead
   # The side strings struck with each note.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "No Chikari"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #8
+  mac5_a1  -0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  0.5
   model          #2
   voices         #0
   meend          150 ms
   chikari        0.6
+  volume         0.519
 
 patch "Veena Gamak" family=veena note=50 range=36..79 role=lead
   # Deep, slow shakes of the note.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  0.5
   model          #2
   voices         #0
   meend          200 ms
@@ -120,23 +1002,142 @@ patch "Veena Gamak" family=veena note=50 range=36..79 role=lead
 
 patch "Low Veena" family=veena note=43 range=31..67 role=bass
   # The low strings, warm and long.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Hard"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac7_d2  #12
+  mac7_a2  0.151
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  -0.124
   model          #2
   bright         0.35
   sustain        0.7
 
 patch "Veena Chords" family=veena note=50 range=36..79 role=chord
   # Several strings at once.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Hard"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac7_d2  #12
+  mac7_a2  0.164
+  mac8_d1  #13
+  mac8_a1  0.5
   model          #2
   pluck          0.35
+  volume         0.603
 
 patch "Rudra Veena" family=veena note=48 range=36..72 role=lead
   # Deep and slow, the two gourds ringing.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  0.5
   model          #5
   voices         #0
   meend          200 ms
 
 patch "Rudra Veena Dhrupad" family=veena note=43 range=31..67 role=lead
   # Wide slides and shakes, dhrupad style.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  0.5
   model          #5
   voices         #0
   meend          350 ms
@@ -144,96 +1145,841 @@ patch "Rudra Veena Dhrupad" family=veena note=43 range=31..67 role=lead
 
 patch "Rudra Veena Soft" family=veena note=48 range=36..72
   # Plucked softly with the fingertip.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Hard"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac2_d3  #12
+  mac2_a3  0.191
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac4_d2  #12
+  mac4_a2  -0.144
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac7_d2  #12
+  mac7_a2  0.122
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  0.142
   model          #5
   pluck          0.2
   sustain        0.7
 
+patch "Veena Tanam" family=veena note=50 range=36..79 role=lead
+  # Rhythmic plucks, the side strings struck on every note.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac5_d2  #12
+  mac5_a2  -0.125
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  -0.085
+  model          #2
+  voices         #0
+  meend          60 ms
+  pluck          0.7
+  chikari        0.45
+  volume         0.59
+
+patch "Rudra Veena Alap" family=veena note=43 range=31..67 role=lead
+  # Very slow, every note slid into, the gourds ringing long.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Shorter"
+  set macro4 "Mid String"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Quick Slide"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  -0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #9
+  mac7_a1  -0.4
+  mac8_d1  #13
+  mac8_a1  0.5
+  model          #5
+  voices         #0
+  meend          480 ms
+  sustain        0.85
+  volume         0.582
+
+patch "Bright Veena" family=veena note=55 range=36..79
+  # Plucked hard with the nail near the bridge.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Soft"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac2_d3  #12
+  mac2_a3  0.171
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #3
+  mac7_a1  -0.4
+  mac8_d1  #13
+  mac8_a1  0.5
+  model          #2
+  pluck          0.85
+  position       0.07
+  bright         0.7
+
 patch Tanpura family=drone note=49 range=36..60 role=drone
   # Pa, Sa, Sa and low Sa, plucked in turn while the note's held.
+  set macro1 "Jawari"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Hard"
+  set macro5 "Round"
+  set macro6 "Waver"
+  set macro7 "Mid String"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.15
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.111
+  mac4_d1  #3
+  mac4_a1  0.4
+  mac4_d2  #12
+  mac4_a2  0.113
+  mac5_d1  #2
+  mac5_a1  0.45
+  mac6_d1  #10
+  mac6_a1  0.12
+  mac7_d1  #4
+  mac7_a1  0.2
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  0.142
   model          #1
 
 patch "Tanpura Ma" family=drone note=49 range=36..60 role=drone
   # The first string tuned to Ma, for ragas without Pa.
+  set macro1 "Jawari"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Hard"
+  set macro5 "Round"
+  set macro6 "Waver"
+  set macro7 "Mid String"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.15
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.111
+  mac4_d1  #3
+  mac4_a1  0.4
+  mac5_d1  #2
+  mac5_a1  0.45
+  mac6_d1  #10
+  mac6_a1  0.12
+  mac7_d1  #4
+  mac7_a1  0.2
+  mac8_d1  #13
+  mac8_a1  0.5
   model          #1
   first          #1
 
 patch "Tanpura Ni" family=drone note=49 range=36..60 role=drone
   # The first string tuned to Ni.
+  set macro1 "Jawari"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Hard"
+  set macro5 "Round"
+  set macro6 "Waver"
+  set macro7 "Mid String"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.15
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.104
+  mac4_d1  #3
+  mac4_a1  0.4
+  mac5_d1  #2
+  mac5_a1  0.45
+  mac6_d1  #10
+  mac6_a1  0.12
+  mac7_d1  #4
+  mac7_a1  0.2
+  mac7_d2  #12
+  mac7_a2  -0.111
+  mac8_d1  #13
+  mac8_a1  0.5
   model          #1
   first          #2
 
 patch "Slow Tanpura" family=drone note=49 range=36..60 role=drone
   # Eight beats a cycle, the strings ringing long.
+  set macro1 "Jawari"
+  set macro2 "Bright"
+  set macro3 "Shorter"
+  set macro4 "Hard"
+  set macro5 "Round"
+  set macro6 "Waver"
+  set macro7 "Mid String"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.15
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  -0.35
+  mac3_d2  #12
+  mac3_a2  0.151
+  mac4_d1  #3
+  mac4_a1  0.4
+  mac4_d2  #12
+  mac4_a2  0.142
+  mac5_d1  #2
+  mac5_a1  0.45
+  mac6_d1  #10
+  mac6_a1  0.12
+  mac7_d1  #4
+  mac7_a1  0.2
+  mac7_d2  #12
+  mac7_a2  -0.232
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  0.289
   model          #1
   cycle          #3
   sustain        0.75
 
 patch "Quick Tanpura" family=drone note=49 range=36..60 role=drone
   # Two beats a cycle.
+  set macro1 "Jawari"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Hard"
+  set macro5 "Round"
+  set macro6 "Waver"
+  set macro7 "Mid String"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.15
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.086
+  mac4_d1  #3
+  mac4_a1  0.4
+  mac5_d1  #2
+  mac5_a1  0.45
+  mac6_d1  #10
+  mac6_a1  0.12
+  mac7_d1  #4
+  mac7_a1  0.2
+  mac7_d2  #12
+  mac7_a2  -0.109
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  0.42
   model          #1
   cycle          #0
   sustain        0.4
+  volume         0.58
 
 patch "High Tanpura" family=drone note=61 range=48..72 role=drone
   # A smaller tanpura, an octave up.
+  set macro1 "Jawari"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Hard"
+  set macro5 "Round"
+  set macro6 "Waver"
+  set macro7 "Mid String"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.15
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #3
+  mac4_a1  0.4
+  mac5_d1  #2
+  mac5_a1  0.45
+  mac6_d1  #10
+  mac6_a1  0.12
+  mac7_d1  #4
+  mac7_a1  0.2
+  mac7_d2  #12
+  mac7_a2  -0.238
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  -0.118
   model          #1
   bright         0.6
 
 patch "Soft Tanpura" family=drone note=49 range=36..60 role=drone
   # Less of the buzz: round and calm.
+  set macro1 "Jawari"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Hard"
+  set macro5 "Round"
+  set macro6 "Waver"
+  set macro7 "Mid String"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.15
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.111
+  mac4_d1  #3
+  mac4_a1  0.4
+  mac4_d2  #12
+  mac4_a2  0.122
+  mac5_d1  #2
+  mac5_a1  0.45
+  mac6_d1  #10
+  mac6_a1  0.12
+  mac7_d1  #4
+  mac7_a1  0.2
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  0.142
   model          #1
   bridge         0.3
   bright         0.35
 
 patch "Swarmandal" family=drone note=72 range=60..96
   # A zither strummed open, bright and ringing.
+  set macro1 "Touch"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Shimmer"
+  set macro8 "Low"
+  mac1_d1  #11
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  0.122
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac2_d3  #12
+  mac2_a3  0.142
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac4_d2  #12
+  mac4_a2  -0.118
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac5_d2  #12
+  mac5_a2  0.181
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #5
+  mac7_a1  0.2
+  mac7_d2  #6
+  mac7_a2  0.2
+  mac8_d1  #13
+  mac8_a1  -0.5
   model          #6
 
 patch "Swarmandal Shimmer" family=drone note=72 range=60..96
   # Long rings over sympathetic shimmer.
+  set macro1 "Touch"
+  set macro2 "Bright"
+  set macro3 "Shorter"
+  set macro4 "Mid String"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Shimmer"
+  set macro8 "Low"
+  mac1_d1  #11
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  0.132
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac2_d3  #12
+  mac2_a3  0.151
+  mac3_d1  #5
+  mac3_a1  -0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac4_d2  #12
+  mac4_a2  -0.124
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac5_d2  #12
+  mac5_a2  0.202
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #5
+  mac7_a1  0.2
+  mac7_d2  #6
+  mac7_a2  0.2
+  mac8_d1  #13
+  mac8_a1  -0.5
   model          #6
   sustain        0.8
   tarbs          0.7
 
 patch "Swarmandal Soft" family=drone note=67 range=55..91
   # Plucked softly, under a voice.
+  set macro1 "Touch"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Shimmer"
+  set macro8 "Low"
+  mac1_d1  #11
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  0.122
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac2_d3  #12
+  mac2_a3  0.223
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac4_d2  #12
+  mac4_a2  -0.131
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac5_d2  #12
+  mac5_a2  0.132
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #5
+  mac7_a1  0.2
+  mac7_d2  #6
+  mac7_a2  0.2
+  mac8_d1  #13
+  mac8_a1  -0.5
   model          #6
   pluck          0.2
 
 patch "Ektara" family=drone note=52 range=40..64 role=lead
   # One string, squeezed for its bends.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.131
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac5_d2  #12
+  mac5_a2  0.161
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  0.5
   model          #9
   voices         #0
   meend          150 ms
 
 patch "Ektara Drone" family=drone note=48 range=40..60
   # The buzzing drone of a Baul singer.
+  set macro1 "Clean"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Touch"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac1_d2  #2
+  mac1_a2  0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #11
+  mac7_a1  0.35
+  mac8_d1  #13
+  mac8_a1  0.5
   model          #9
   bridge         0.8
 
 patch "Ektara Bright" family=drone note=55 range=43..67
   # Plucked hard, bright and buzzing.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Soft"
+  set macro6 "Gamak"
+  set macro7 "Touch"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.187
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac2_d3  #12
+  mac2_a3  0.104
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #3
+  mac5_a1  -0.4
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #11
+  mac7_a1  0.35
+  mac7_d2  #12
+  mac7_a2  0.113
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.191
   model          #9
   pluck          0.8
 
+patch "Female Tanpura" family=drone note=56 range=48..67 role=drone
+  # Pitched for a higher voice, Pa below Sa.
+  set macro1 "Jawari"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Hard"
+  set macro5 "Round"
+  set macro6 "Waver"
+  set macro7 "Mid String"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.15
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #3
+  mac4_a1  0.4
+  mac5_d1  #2
+  mac5_a1  0.45
+  mac6_d1  #10
+  mac6_a1  0.12
+  mac7_d1  #4
+  mac7_a1  0.2
+  mac7_d2  #12
+  mac7_a2  -0.175
+  mac8_d1  #13
+  mac8_a1  -0.5
+  model          #1
+  bright         0.55
+  volume         0.676
+
 patch Shamisen family=east note=57 range=45..81 role=tune
   # A big plectrum striking string and skin together.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Touch"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.104
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac5_d2  #12
+  mac5_a2  0.191
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #11
+  mac7_a1  0.35
+  mac7_d2  #12
+  mac7_a2  0.113
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.142
   model          #3
 
 patch "Shamisen Sawari" family=east note=57 range=45..81 role=tune
   # The low string tuned to A and buzzing on the neck under every A and E.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Dry"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Touch"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.104
+  mac4_d1  #7
+  mac4_a1  -0.45
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac5_d2  #12
+  mac5_a2  0.202
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #11
+  mac7_a1  0.35
+  mac7_d2  #12
+  mac7_a2  0.122
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.142
   model          #3
   sa             #9
   tarbs          1
 
 patch "Soft Shamisen" family=east note=57 range=45..81 role=tune
   # Played with the fingers: no snap.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Touch"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.111
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac5_d2  #12
+  mac5_a2  0.132
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #11
+  mac7_a1  0.35
+  mac7_d2  #12
+  mac7_a2  0.122
+  mac8_d1  #13
+  mac8_a1  -0.5
   model          #3
   pluck          0.1
   tarbs          0.4
 
 patch "Shamisen Slide" family=east note=57 range=45..81 role=lead
   # One string, sliding between notes.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac5_d2  #12
+  mac5_a2  0.212
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.161
   model          #3
   voices         #0
   meend          90 ms
@@ -241,32 +1987,236 @@ patch "Shamisen Slide" family=east note=57 range=45..81 role=lead
 
 patch "Low Shamisen" family=east note=50 range=40..72 role=tune
   # The thick-necked kind, lower and longer.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Shorter"
+  set macro4 "Tarbs"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Touch"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  -0.35
+  mac3_d2  #12
+  mac3_a2  0.113
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac5_d2  #12
+  mac5_a2  0.277
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #11
+  mac7_a1  0.35
+  mac7_d2  #12
+  mac7_a2  0.122
+  mac8_d1  #13
+  mac8_a1  0.5
   model          #3
   sustain        0.75
   bright         0.4
 
 patch "Biwa" family=east note=57 range=45..72
   # A Japanese lute, its sawari buzzing, the plectrum striking the body.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Touch"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.187
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.118
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #11
+  mac7_a1  0.35
+  mac8_d1  #13
+  mac8_a1  -0.5
   model          #7
 
 patch "Biwa Narrative" family=east note=52 range=45..69
   # Hard strokes that crack the body, as for a tale.
+  set macro1 "Clean"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Soft"
+  set macro6 "Gamak"
+  set macro7 "Touch"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac1_d2  #2
+  mac1_a2  0.2
+  mac1_d3  #12
+  mac1_a3  0.266
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.104
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #3
+  mac5_a1  -0.4
+  mac5_d2  #12
+  mac5_a2  -0.111
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #11
+  mac7_a1  0.35
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.142
   model          #7
   pluck          0.9
   bridge         0.9
 
 patch "Biwa Soft" family=east note=57 range=45..72
   # Softer strokes, more ring.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Touch"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.15
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.111
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac4_d2  #12
+  mac4_a2  -0.111
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #11
+  mac7_a1  0.35
+  mac7_d2  #12
+  mac7_a2  0.113
+  mac8_d1  #13
+  mac8_a1  -0.5
   model          #7
   pluck          0.3
   sustain        0.6
 
 patch "Sanxian" family=east note=60 range=45..76
   # Three strings over snakeskin, bright and dry.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Touch"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.111
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac5_d2  #12
+  mac5_a2  0.277
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #11
+  mac7_a1  0.35
+  mac7_d2  #12
+  mac7_a2  0.122
+  mac8_d1  #13
+  mac8_a1  -0.5
   model          #8
 
 patch "Sanxian Slide" family=east note=60 range=45..76 role=lead
   # Sliding on its fretless neck.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Soft"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.104
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #3
+  mac5_a1  -0.4
+  mac5_d2  #12
+  mac5_a2  -0.21
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
   model          #8
   voices         #0
   meend          80 ms
@@ -274,117 +2224,1536 @@ patch "Sanxian Slide" family=east note=60 range=45..76 role=lead
 
 patch "Sanxian Low" family=east note=52 range=40..67
   # Lower and rounder.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Touch"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.111
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac5_d2  #12
+  mac5_a2  0.233
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #11
+  mac7_a1  0.35
+  mac7_d2  #12
+  mac7_a2  0.122
+  mac8_d1  #13
+  mac8_a1  0.5
   model          #8
   pluck          0.4
 
+patch "Tsugaru Strike" family=east note=57 range=45..81 role=tune
+  # The plectrum slammed into string and skin, fast and loud.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Soft"
+  set macro6 "Gamak"
+  set macro7 "Touch"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.136
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac2_d3  #12
+  mac2_a3  -0.183
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #3
+  mac5_a1  -0.4
+  mac5_d2  #12
+  mac5_a2  -0.253
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #11
+  mac7_a1  0.35
+  mac7_d2  #12
+  mac7_a2  0.023
+  mac8_d1  #13
+  mac8_a1  -0.5
+  model          #3
+  pluck          0.95
+  position       0.08
+  sustain        0.6
+  volume         0.87
+
+patch "Biwa Shake" family=east note=55 range=45..72 role=lead
+  # Notes pressed behind the high frets and shaken.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.208
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.12
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac5_d2  #12
+  mac5_a2  0.152
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  model          #7
+  voices         #0
+  meend          120 ms
+  gamak          0.35
+  volume         0.804
+
+patch "Bright Sanxian" family=east note=62 range=45..76
+  # Picked close to the bridge, thin and cutting.
+  set macro1 "Buzz"
+  set macro2 "Dark"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Soft"
+  set macro6 "Gamak"
+  set macro7 "Touch"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.05
+  mac2_d1  #6
+  mac2_a1  -0.35
+  mac2_d2  #4
+  mac2_a2  0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac4_d2  #12
+  mac4_a2  -0.069
+  mac5_d1  #3
+  mac5_a1  -0.4
+  mac5_d2  #12
+  mac5_a2  -0.124
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #11
+  mac7_a1  0.35
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  -0.05
+  model          #8
+  pluck          0.85
+  position       0.09
+  bright         0.75
+  volume         0.891
+  insert Compressor
+    threshold    -24 dB
+    ratio        3
+    attack       15 ms
+    release      400 ms
+    gain         2.2 dB
+
 patch "Sarangi" family=bowed note=62 range=48..84 role=lead
   # Bowed, the nail sliding the string, a forest of sympathetics.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Buzz"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.071
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #1
+  mac5_a1  0.4
+  mac5_d2  #2
+  mac5_a2  -0.2
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
   model          #11
   voices         #0
   meend          120 ms
+  volume         0.513
 
 patch "Sarangi Vocal" family=bowed note=62 range=48..84 role=lead
   # Slides and shakes like a singing voice.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Buzz"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.081
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #1
+  mac5_a1  0.4
+  mac5_d2  #2
+  mac5_a2  -0.2
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
   model          #11
   voices         #0
   meend          220 ms
   gamak          0.3
+  volume         0.513
 
 patch "Sarangi Soft" family=bowed note=57 range=48..79
   # A lighter bow, the sympathetic strings louder.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Dry"
+  set macro5 "Buzz"
+  set macro6 "Gamak"
+  set macro7 "Heavy"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.079
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  -0.45
+  mac5_d1  #1
+  mac5_a1  0.4
+  mac5_d2  #2
+  mac5_a2  -0.2
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  0.082
+  mac7_d1  #6
+  mac7_a1  -0.3
+  mac7_d2  #3
+  mac7_a2  0.2
+  mac7_d3  #12
+  mac7_a3  -0.031
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.109
   model          #11
   pluck          0.3
   tarbs          0.7
+  volume         0.569
 
 patch "Esraj" family=bowed note=62 range=48..84 role=lead
   # A bowed fretted neck, soft and sweet.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Buzz"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #1
+  mac5_a1  0.4
+  mac5_d2  #2
+  mac5_a2  -0.2
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
   model          #12
   voices         #0
   meend          100 ms
+  volume         0.544
 
 patch "Esraj Gentle" family=bowed note=62 range=48..84
   # A light bow, airy.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Buzz"
+  set macro6 "Gamak"
+  set macro7 "Heavy"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #1
+  mac5_a1  0.4
+  mac5_d2  #2
+  mac5_a2  -0.2
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac7_d1  #6
+  mac7_a1  -0.3
+  mac7_d2  #3
+  mac7_a2  0.2
+  mac8_d1  #13
+  mac8_a1  -0.5
   model          #12
   pluck          0.25
+  volume         0.582
 
 patch "Esraj Song" family=bowed note=64 range=52..84 role=lead
   # With a gentle shake, for a song.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Buzz"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #1
+  mac5_a1  0.4
+  mac5_d2  #2
+  mac5_a2  -0.2
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
   model          #12
   voices         #0
   gamak          0.25
+  volume         0.544
 
 patch "Dilruba" family=bowed note=55 range=43..79 role=lead
   # Deeper and fuller than the esraj.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Buzz"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.078
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #1
+  mac5_a1  0.4
+  mac5_d2  #2
+  mac5_a2  -0.2
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
   model          #13
   voices         #0
   meend          120 ms
+  volume         0.525
 
 patch "Dilruba Kirtan" family=bowed note=55 range=43..79 role=lead
   # Slow and devotional.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Buzz"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.082
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #1
+  mac5_a1  0.4
+  mac5_d2  #2
+  mac5_a2  -0.2
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
   model          #13
   voices         #0
   meend          180 ms
   sustain        0.7
+  volume         0.52
 
 patch "Dilruba Bright" family=bowed note=60 range=48..84
   # More bow, more bite.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Buzz"
+  set macro6 "Gamak"
+  set macro7 "Heavy"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.08
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #1
+  mac5_a1  0.4
+  mac5_d2  #2
+  mac5_a2  -0.2
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.030
+  mac7_d1  #6
+  mac7_a1  -0.3
+  mac7_d2  #3
+  mac7_a2  0.2
+  mac7_d3  #12
+  mac7_a3  -0.032
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  -0.035
   model          #13
   bright         0.7
+  volume         0.507
 
-patch "Hardanger Fiddle" family=bowed note=69 range=55..91 role=lead
+patch "Sarangi Bhairavi" family=bowed note=62 range=48..84 role=lead
+  # A tender scale with every note flat but the fifth, singing slides.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Dry"
+  set macro5 "Buzz"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.038
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  -0.45
+  mac5_d1  #1
+  mac5_a1  0.4
+  mac5_d2  #2
+  mac5_a2  -0.2
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  model          #11
+  voices         #0
+  meend          240 ms
+  scale          #4
+  tarbs          0.8
+  volume         0.408
+
+patch "Low Sarangi" family=bowed note=55 range=43..72 role=lead
+  # The lower strings, dark and full.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Buzz"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.092
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #1
+  mac5_a1  0.4
+  mac5_d2  #2
+  mac5_a2  -0.2
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  model          #11
+  voices         #0
+  meend          160 ms
+  bright         0.35
+  volume         0.519
+
+patch "Esraj Asavari" family=bowed note=62 range=48..84 role=lead
+  # A serious, minor scale in the sympathetic strings.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Dry"
+  set macro5 "Buzz"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.074
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  -0.45
+  mac5_d1  #1
+  mac5_a1  0.4
+  mac5_d2  #2
+  mac5_a2  -0.2
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  model          #12
+  voices         #0
+  meend          150 ms
+  scale          #3
+  tarbs          0.8
+  volume         0.53
+
+patch "Dilruba Marwa" family=bowed note=57 range=43..79 role=lead
+  # A sunset scale, flat second and sharp fourth, unsettled.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Dry"
+  set macro5 "Buzz"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.073
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  -0.45
+  mac5_d1  #1
+  mac5_a1  0.4
+  mac5_d2  #2
+  mac5_a2  -0.2
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.039
+  model          #13
+  voices         #0
+  meend          180 ms
+  scale          #7
+  tarbs          0.8
+  volume         0.525
+
+patch "Low Dilruba" family=bowed note=48 range=38..67 role=lead
+  # The deepest of the bowed ones, slow and full.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Buzz"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "High"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.099
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #1
+  mac5_a1  0.4
+  mac5_d2  #2
+  mac5_a2  -0.2
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  0.018
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  0.5
+  model          #13
+  voices         #0
+  meend          200 ms
+  sustain        0.7
+  volume         0.53
+
+patch "Hardanger Fiddle" family=fiddle note=69 range=55..91 role=lead
   # A violin with four strings ringing under it.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Dance"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.075
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #3
+  mac5_a1  0.25
+  mac5_d2  #6
+  mac5_a2  0.15
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  0.018
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.067
   model          #14
   voices         #0
+  volume         0.513
 
-patch "Hardanger Dance" family=bowed note=69 range=55..91
+patch "Hardanger Dance" family=fiddle note=69 range=55..91
   # A hard bow, for a springar.
+  set macro1 "Airy"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Dance"
+  set macro6 "Gamak"
+  set macro7 "Heavy"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  -0.35
+  mac1_d2  #12
+  mac1_a2  0.105
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #3
+  mac5_a1  0.25
+  mac5_d2  #6
+  mac5_a2  0.15
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  0.027
+  mac7_d1  #6
+  mac7_a1  -0.3
+  mac7_d2  #3
+  mac7_a2  0.2
+  mac7_d3  #12
+  mac7_a3  0.009
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.071
   model          #14
   pluck          0.8
+  volume         0.436
 
-patch "Hardanger Drone" family=bowed note=62 range=55..86
+patch "Hardanger Drone" family=fiddle note=62 range=55..86
   # The sympathetic strings loud, almost a drone.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Dry"
+  set macro5 "Dance"
+  set macro6 "Gamak"
+  set macro7 "Heavy"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.094
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  -0.45
+  mac5_d1  #3
+  mac5_a1  0.25
+  mac5_d2  #6
+  mac5_a2  0.15
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac7_d1  #6
+  mac7_a1  -0.3
+  mac7_d2  #3
+  mac7_a2  0.2
+  mac8_d1  #13
+  mac8_a1  -0.5
   model          #14
   tarbs          0.8
+  volume         0.531
 
-patch "Nyckelharpa" family=bowed note=64 range=48..84 role=lead
+patch "Nyckelharpa" family=fiddle note=64 range=48..84 role=lead
   # A keyed fiddle, its strings shimmering under every note.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Dance"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.084
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #3
+  mac5_a1  0.25
+  mac5_d2  #6
+  mac5_a2  0.15
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
   model          #15
   voices         #0
+  volume         0.531
 
-patch "Nyckelharpa Polska" family=bowed note=64 range=48..84
+patch "Nyckelharpa Polska" family=fiddle note=64 range=48..84
   # Driving, for a polska.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Dry"
+  set macro5 "Dance"
+  set macro6 "Gamak"
+  set macro7 "Heavy"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.010
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  -0.45
+  mac5_d1  #3
+  mac5_a1  0.25
+  mac5_d2  #6
+  mac5_a2  0.15
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac7_d1  #6
+  mac7_a1  -0.3
+  mac7_d2  #3
+  mac7_a2  0.2
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.013
   model          #15
   pluck          0.7
   tarbs          0.7
+  volume         0.496
 
-patch "Nyckelharpa Soft" family=bowed note=60 range=48..79
+patch "Nyckelharpa Soft" family=fiddle note=60 range=48..79
   # A light bow, the shimmer to the front.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Dance"
+  set macro6 "Gamak"
+  set macro7 "Heavy"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #3
+  mac5_a1  0.25
+  mac5_d2  #6
+  mac5_a2  0.15
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.025
+  mac7_d1  #6
+  mac7_a1  -0.3
+  mac7_d2  #3
+  mac7_a2  0.2
+  mac7_d3  #12
+  mac7_a3  0.031
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.083
   model          #15
   pluck          0.25
+  volume         0.543
+
+patch "Hardanger Halling" family=fiddle note=69 range=55..91 role=lead
+  # A hard, bouncing bow for a leaping dance, the strings under it in A.
+  set macro1 "Airy"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Dry"
+  set macro5 "Dance"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  -0.35
+  mac1_d2  #12
+  mac1_a2  0.091
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  -0.45
+  mac5_d1  #3
+  mac5_a1  0.25
+  mac5_d2  #6
+  mac5_a2  0.15
+  mac5_d3  #12
+  mac5_a3  -0.025
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  0.113
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.064
+  model          #14
+  voices         #0
+  pluck          0.75
+  sa             #9
+  tarbs          0.65
+  volume         0.368
+
+patch "Hardanger Lydian" family=fiddle note=64 range=55..86 role=lead
+  # The sympathetic strings tuned with a raised fourth, bright and floating.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Dry"
+  set macro5 "Dance"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.036
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  -0.45
+  mac5_d1  #3
+  mac5_a1  0.25
+  mac5_d2  #6
+  mac5_a2  0.15
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.082
+  model          #14
+  voices         #0
+  sa             #2
+  scale          #6
+  tarbs          0.8
+  volume         0.437
+
+patch "Nyckelharpa Drone" family=fiddle note=57 range=48..79
+  # The sympathetic strings in A as loud as they go, a hum under every note.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Dry"
+  set macro5 "Dance"
+  set macro6 "Gamak"
+  set macro7 "Heavy"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.055
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  -0.45
+  mac4_d2  #12
+  mac4_a2  0.07
+  mac5_d1  #3
+  mac5_a1  0.25
+  mac5_d2  #6
+  mac5_a2  0.15
+  mac5_d3  #12
+  mac5_a3  -0.054
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  0.097
+  mac7_d1  #6
+  mac7_a1  -0.3
+  mac7_d2  #3
+  mac7_a2  0.2
+  mac7_d3  #12
+  mac7_a3  -0.059
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.159
+  model          #15
+  sa             #9
+  tarbs          1
+  sustain        0.7
+  volume         0.371
+
+patch "Nyckelharpa Dorian" family=fiddle note=62 range=48..84 role=lead
+  # A minor scale with a raised sixth, for an old dance tune.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Dry"
+  set macro5 "Dance"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.05
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  -0.45
+  mac5_d1  #3
+  mac5_a1  0.25
+  mac5_d2  #6
+  mac5_a2  0.15
+  mac6_d1  #10
+  mac6_a1  0.4
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  model          #15
+  voices         #0
+  sa             #2
+  scale          #2
+  tarbs          0.7
+  volume         0.432
 
 patch "Plain Bridge" family=bridge note=55 range=40..84 role=tune
   # The sitar's string with a sharp-edged bridge: no buzz at all.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Hard"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac7_d2  #12
+  mac7_a2  0.255
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  -0.124
   bridge         0
   tarbs          0.4
 
 patch "Grazing Bridge" family=bridge note=55 range=40..84 role=tune
   # A low curve: even soft notes buzz.
+  set macro1 "Clean"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Hard"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac1_d2  #2
+  mac1_a2  0.2
+  mac1_d3  #12
+  mac1_a3  0.151
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  -0.144
   bridge         0.8
   curve          0
 
 patch "Heavy Buzz" family=bridge note=50 range=36..79 role=tune
   # The bridge buzzing as hard as it goes.
+  set macro1 "Clean"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Hard"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac1_d2  #2
+  mac1_a2  0.2
+  mac1_d3  #12
+  mac1_a3  0.138
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  -0.15
   bridge         1
   curve          0.1
   volume         0.6
 
 patch "Sympathy Only" family=bridge note=61 range=48..84 role=pad
   # Short notes and long sympathetic strings: the scale rings on behind.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Dry"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.107
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.062
+  mac4_d1  #7
+  mac4_a1  -0.45
+  mac4_d2  #12
+  mac4_a2  0.083
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac5_d2  #12
+  mac5_a2  -0.076
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac6_d2  #12
+  mac6_a2  0.145
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac7_d2  #12
+  mac7_a2  0.083
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.153
   sustain        0.15
   tarbs          1
   scale          #6
+  volume         0.479
 
 patch "Buzz Bass" family=bridge note=37 range=28..55 role=bass
   # A low string, the bridge buzzing hard.
+  set macro1 "Clean"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Mid String"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Hard"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac1_d2  #2
+  mac1_a2  0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac5_d2  #12
+  mac5_a2  -0.118
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  -0.157
   model          #2
   bridge         0.9
+  volume         0.66
+
+patch "Buzzed Guitar" family=bridge note=52 range=40..79 role=tune
+  # The electric sitar with a low, gentle bridge: a guitar with a bit of buzz.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Touch"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.153
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #3
+  mac5_a1  0.4
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #11
+  mac7_a1  0.35
+  mac8_d1  #13
+  mac8_a1  0.5
+  model          #10
+  bridge         0.35
+  curve          0.6
+  tarbs          0.2
+  sustain        0.7
+  volume         1
+  insert Compressor
+    threshold    -24 dB
+    ratio        3
+    attack       10 ms
+    release      150 ms
+    gain         4 dB
+
+patch "Swarmandal Cluster" family=bridge note=72 range=60..96 role=chord
+  # Strummed clusters, every string left ringing.
+  set macro1 "Touch"
+  set macro2 "Bright"
+  set macro3 "Shorter"
+  set macro4 "Mid String"
+  set macro5 "Hard"
+  set macro6 "Gamak"
+  set macro7 "Dull"
+  set macro8 "Low"
+  mac1_d1  #11
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  0.109
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac2_d3  #12
+  mac2_a3  0.109
+  mac3_d1  #5
+  mac3_a1  -0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac4_d2  #12
+  mac4_a2  -0.115
+  mac5_d1  #3
+  mac5_a1  0.3
+  mac5_d2  #12
+  mac5_a2  0.109
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #5
+  mac7_a1  -0.2
+  mac7_d2  #6
+  mac7_a2  -0.2
+  mac8_d1  #13
+  mac8_a1  -0.5
+  model          #6
+  sustain        0.9
+  pluck          0.6
+  volume         0.891
+
+patch "Shadow Strings" family=bridge note=61 range=48..84 role=pad
+  # Short notes on a dark scale, the sympathetic strings ringing on behind.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Dry"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.2
+  mac1_d3  #12
+  mac1_a3  -0.13
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #12
+  mac3_a2  -0.081
+  mac4_d1  #7
+  mac4_a1  -0.45
+  mac4_d2  #12
+  mac4_a2  0.102
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac5_d2  #12
+  mac5_a2  -0.092
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac6_d2  #12
+  mac6_a2  0.194
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac7_d2  #12
+  mac7_a2  0.094
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.176
+  sustain        0.1
+  tarbs          1
+  scale          #9
+  volume         0.537
+
+patch "Rudra Buzz Bass" family=bridge note=36 range=24..52 role=bass
+  # The rudra veena's lowest string, the bridge as loud as it goes.
+  set macro1 "Clean"
+  set macro2 "Bright"
+  set macro3 "Shorter"
+  set macro4 "Mid String"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Hard"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac1_d2  #2
+  mac1_a2  0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  -0.35
+  mac4_d1  #4
+  mac4_a1  0.2
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  -0.165
+  model          #5
+  bridge         1
+  curve          0.05
+  sustain        0.8
+  volume         0.661
+
+patch "Touch Buzz" family=bridge note=55 range=40..84 role=tune
+  # A high, round bridge: soft notes ring clean, hard ones buzz.
+  set macro1 "Clean"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Hard"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  -0.4
+  mac1_d2  #2
+  mac1_a2  0.2
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac2_d2  #4
+  mac2_a2  -0.08
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.45
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #12
+  mac7_a2  0.088
+  mac8_d1  #13
+  mac8_a1  0.5
+  bridge         1
+  curve          1
+  velocity       1
+  volume         0.891
+
+patch "Drone Cloud" family=bridge note=49 range=36..60 role=pad
+  # Tanpuras stacked in chords, quick cycles blurring into a buzzing cloud.
+  set macro1 "Jawari"
+  set macro2 "Bright"
+  set macro3 "Shorter"
+  set macro4 "Hard"
+  set macro5 "Round"
+  set macro6 "Waver"
+  set macro7 "Mid String"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  -0.15
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  -0.35
+  mac3_d2  #12
+  mac3_a2  0.066
+  mac4_d1  #3
+  mac4_a1  0.4
+  mac5_d1  #2
+  mac5_a1  0.45
+  mac6_d1  #10
+  mac6_a1  0.12
+  mac7_d1  #4
+  mac7_a1  0.2
+  mac7_d2  #12
+  mac7_a2  -0.075
+  mac8_d1  #13
+  mac8_a1  0.5
+  mac8_d2  #12
+  mac8_a2  0.304
+  model          #1
+  cycle          #0
+  sustain        0.8
+  bright         0.4
+  volume         0.38

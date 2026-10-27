@@ -1,6 +1,7 @@
 #include "Sympath.h"
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <engine/dsp/Math.h>
 #include <engine/machine/Voices.h>
 
@@ -14,10 +15,19 @@ namespace {
 constexpr float kHouse = 1.0f;
 constexpr float kSilent = 2e-5f;
 constexpr int kRetuneEvery = 16;
-/** How hard the played strings shake the sympathetic ones. */
-constexpr float kSympathy = 1.5f;
+/**
+ * How hard the played strings shake the sympathetic ones. A bowed note keeps
+ * feeding them, so it shakes them half as hard to stay in front.
+ */
+constexpr float kSympathy = 1.5f, kBowedSympathy = 0.75f;
 /** How long the sympathetic and drone strings ring, seconds. */
 constexpr float kTarbT60 = 5.0f, kDroneT60 = 3.5f;
+/**
+ * The sympathetic strings spread across the stereo field, lowest left. One
+ * that rings on alone after the played string has died sits this far over,
+ * so at 0.45 it's never more than 8.4 dB louder in one channel.
+ */
+constexpr float kTarbSpread = 0.45f;
 /** Gamak at full, semitones, and its rate. */
 constexpr float kGamakDepth = 0.6f, kGamakHz = 6.0f;
 /** A finger pulling the string sideways at full pressure, semitones. */
@@ -28,10 +38,10 @@ constexpr float kCurveSpan = 0.25f;
 constexpr float kContactRound = 0.01f;
 /** How loud the bridge rings when struck, at full, and the most it can ring. */
 /**
- * How hard a bow drives a string, as the hurdy-gurdy's wheel, and how much
- * louder a bowed string is heard: it swings far less than a plucked one.
+ * How hard a bow drives a string, how loud a bowed string is heard against a
+ * plucked one, and the push as the bow first catches it.
  */
-constexpr float kBowGain = 0.12f, kBowedHeard = 28.0f;
+constexpr float kBowGain = 0.36f, kBowedHeard = 0.16f, kBowKick = 0.2f;
 constexpr float kZing = 50.0f, kZingMost = 0.35f;
 
 /**
@@ -117,7 +127,7 @@ constexpr float kCycleBeats[4] = {2.0f, 4.0f, 6.0f, 8.0f};
 Sympath::Sympath() { initParams(); }
 
 const ParamDef *Sympath::paramDefs(int32_t &count) const {
-    static const ParamDef defs[Count] = {
+    static const ParamDef first[MacroBase] = {
         {"model", 0.0f, static_cast<float>(KindCount - 1), 0.0f, Curve::Stepped, KindCount, ""}, // sitar, tanpura, veena, shamisen, sarod, rudra veena, swarmandal, biwa, sanxian, ektara, electric sitar, sarangi, esraj, dilruba, hardanger, nyckelharpa
         {"tune", -100.0f, 100.0f, 0.0f, Curve::Linear, 0, "cents"},
         // The tonic the drone and sympathetic strings are tuned to, C to B.
@@ -146,8 +156,93 @@ const ParamDef *Sympath::paramDefs(int32_t &count) const {
         {"octave", -2.0f, 2.0f, 0.0f, Curve::Stepped, 5, ""},
         {"volume", 0.0f, 1.0f, 0.7f, Curve::Linear, 0, ""},
     };
+    static ParamDef defs[Count];
+    static char names[kMacros * MacroParams][12];
+    static bool built = false;
+    if (!built) {
+        for (int32_t i = 0; i < MacroBase; ++i) defs[i] = first[i];
+        auto put = [&](int32_t i, const char *n, float mn, float mx, float df, acidulous::Curve c, int32_t steps) {
+            char *name = names[i - MacroBase];
+            std::snprintf(name, 12, "%s", n);
+            defs[i] = ParamDef{name, mn, mx, df, c, steps, ""};
+        };
+        for (int k = 0; k < kMacros; ++k) {
+            char n[12];
+            const int32_t b = MacroBase + k * MacroParams;
+            std::snprintf(n, sizeof(n), "mac%d", k + 1);
+            put(b, n, 0.0f, 1.0f, 0.0f, Curve::Linear, 0);
+            for (int r = 0; r < 4; ++r) {
+                std::snprintf(n, sizeof(n), "mac%d_d%d", k + 1, r + 1);
+                put(b + 1 + r, n, 0.0f, static_cast<float>(MacroDestCount - 1), 0.0f, Curve::Stepped, MacroDestCount);
+                std::snprintf(n, sizeof(n), "mac%d_a%d", k + 1, r + 1);
+                put(b + 5 + r, n, -1.0f, 1.0f, 0.0f, Curve::Linear, 0);
+            }
+        }
+        built = true;
+    }
     count = Count;
     return defs;
+}
+
+namespace {
+// The macro destination each param answers to, or -1 for none.
+struct DestMap {
+    int8_t of[Sympath::Count];
+    DestMap() {
+        using P = Sympath;
+        for (auto &d : of) d = -1;
+        const int32_t pairs[][2] = {
+            {P::Bridge, P::McBridge}, {P::Curve, P::McCurve}, {P::Pluck, P::McPluck}, {P::Position, P::McPosition},
+            {P::Sustain, P::McSustain}, {P::Bright, P::McBright}, {P::Tarbs, P::McTarbs}, {P::Chikari, P::McChikari},
+            {P::Meend, P::McMeend}, {P::Gamak, P::McGamak}, {P::VelocityAmount, P::McVelocity}, {P::Volume, P::McVolume},
+        };
+        for (const auto &pr : pairs) of[pr[0]] = static_cast<int8_t>(pr[1]);
+    }
+};
+const DestMap &destMap() {
+    static const DestMap m;
+    return m;
+}
+} // namespace
+
+float Sympath::val(int32_t p, bool goal) const {
+    const float v = read(p, goal);
+    const int d = destMap().of[p];
+    const float off = d < 0 ? 0.0f : (goal ? macGoal_ : mac_)[d];
+    if (off == 0.0f) return v;
+    const ParamDef &def = params_.def(p);
+    return def.map(def.unmap(v) + off);
+}
+
+void Sympath::updateMacroGoals() {
+    for (float &m : macGoal_) m = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = read(b, true);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            const int dest = static_cast<int>(read(b + 1 + r, true) + 0.5f);
+            if (dest > McOff && dest < MacroDestCount) macGoal_[dest] += knob * read(b + 5 + r, true);
+        }
+    }
+    // Two octaves either way.
+    macGoal_[McPitch] = std::clamp(macGoal_[McPitch], -1.0f, 1.0f);
+}
+
+void Sympath::updateMacros() {
+    updateMacroGoals();
+    for (float &m : mac_) m = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = read(b, false);
+        if (knob == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            // The routes' destinations are steps, so their targets.
+            const int dest = static_cast<int>(read(b + 1 + r, true) + 0.5f);
+            if (dest > McOff && dest < MacroDestCount) mac_[dest] += knob * read(b + 5 + r, false);
+        }
+    }
+    mac_[McPitch] = std::clamp(mac_[McPitch], -1.0f, 1.0f);
 }
 
 void Sympath::prepare(int32_t rate) {
@@ -165,7 +260,10 @@ void Sympath::prepare(int32_t rate) {
         f.stroke.assign(strokeSize, 0.0f);
     }
     body.setSampleRate(sampleRate);
-    for (Voice &v : voices) v.zing.setSampleRate(sampleRate);
+    for (Voice &v : voices) {
+        v.zing.setSampleRate(sampleRate);
+        v.bowCut.setSampleRate(sampleRate);
+    }
     tarbZing.setSampleRate(sampleRate);
     skinTone.setSampleRate(sampleRate);
     skinTone.set(1400.0f, 0.3f);
@@ -179,6 +277,7 @@ void Sympath::reset() {
             s.strokeLength = s.strokeAt = 0;
             s.sounding = false;
             s.bowDc = 0.0f;
+            s.bowLast = 0.0f;
             s.bowAt = 0;
         }
         v.used = v.held = false;
@@ -206,11 +305,13 @@ void Sympath::reset() {
     bpm = 120.0f;
     bend = wheel = channelPressure_ = 0.0f;
     gamakPhase = 0.0f;
+    updateMacros();
     retuneCountdown = 0;
     body.reset();
     bodyBuiltFor = -1.0f;
     for (Voice &v : voices) {
         v.zing.reset();
+        v.bowCut.reset();
         v.contactLast = 0.0f;
     }
     tarbZing.reset();
@@ -266,16 +367,27 @@ float Sympath::stringTone(float velocity) const {
     return clampf(1.0f - loss, 0.03f, 1.0f);
 }
 
-/** The highest a string is tuned, about note 100; see tuneString. */
+namespace {
+/** The highest a string is tuned, about note 100; see foldHz. */
 constexpr float kHighestHz = 2637.0f;
+/**
+ * Nothing above a string's reach: higher fold down an octave at a time.
+ * Past about note 105 the loop is too short to lose its energy, and with the
+ * bridge buzzing it rings for ever.
+ */
+float foldHz(float hz) {
+    while (hz > kHighestHz) hz *= 0.5f;
+    return hz;
+}
+} // namespace
 
 void Sympath::tuneString(Waveguide &w, float hz, float t60, float tone) {
-    // Nothing above a string's reach: higher fold down an octave at a time.
-    // Past about note 105 the loop is too short to lose its energy, and with
-    // the bridge buzzing it rings for ever.
-    while (hz > kHighestHz) hz *= 0.5f;
+    hz = foldHz(hz);
     const Make &k = kMakes[std::clamp(steppedTargetOf(Model), 0, KindCount - 1)];
     w.setFrequency(hz);
+    // The loop is trimmed for its DC blocker at the note, so the partials
+    // above run flat by about 2.8 cents per hundredth of the note it sits at.
+    // A bow's slow wander is taken out after the string, by bowCut.
     w.setDcCorner(0.01f);
     w.setDispersion(k.stiffness, k.stiffness > 0.0f ? 2 : 0);
     w.setDamping(std::pow(10.0f, -3.0f / (std::fmax(t60, 0.01f) * hz)), tone);
@@ -301,7 +413,7 @@ void Sympath::tuneFree() {
         if (kind != Shamisen) note = saNote + 12.0f + static_cast<float>(kScaleSteps[scale][i % 7] + 12 * (i / 7));
         Free &f = tarbs[i];
         f.hz = noteHz(note);
-        f.pan = tarbCount > 1 ? -0.7f + 1.4f * static_cast<float>(i) / static_cast<float>(tarbCount - 1) : 0.0f;
+        f.pan = tarbCount > 1 ? kTarbSpread * (2.0f * static_cast<float>(i) / static_cast<float>(tarbCount - 1) - 1.0f) : 0.0f;
         tuneString(f.wave, f.hz, kTarbT60, 0.97f);
     }
     droneCount = k.drones;
@@ -315,16 +427,16 @@ void Sympath::tuneFree() {
 
 int32_t Sympath::shapePluck(std::vector<float> &stroke, float hz, float velocity, float amount) {
     const Make &k = kMakes[std::clamp(steppedTargetOf(Model), 0, KindCount - 1)];
-    const float hard = clampf(targetOf(Pluck), 0.0f, 1.0f);
+    const float hard = clampf(goalOf(Pluck), 0.0f, 1.0f);
     const float seconds = k.pluck * std::pow(4.0f, 0.5f - hard);
     const int len = std::max(3, static_cast<int>(seconds * sampleRate));
     const float period = sampleRate / hz;
-    const int shift = std::max(1, static_cast<int>(std::lround(clampf(targetOf(Position), 0.04f, 0.5f) * period)));
+    const int shift = std::max(1, static_cast<int>(std::lround(clampf(goalOf(Position), 0.04f, 0.5f) * period)));
     const int total = std::min(static_cast<int>(stroke.size()), len + shift);
     std::fill(stroke.begin(), stroke.begin() + total, 0.0f);
     // The pluck goes into the string at the strength it was played: the
     // bridge buzzes more the wider the string swings.
-    const float amp = 0.6f * amount * velocityGain(velocity, targetOf(VelocityAmount));
+    const float amp = 0.6f * amount * velocityGain(velocity, goalOf(VelocityAmount));
     for (int i = 0; i < len && i < total; ++i) {
         stroke[static_cast<size_t>(i)] = amp * std::sin(3.14159265f * (static_cast<float>(i) + 0.5f) / static_cast<float>(len));
     }
@@ -347,9 +459,11 @@ void Sympath::pluck(Voice &v, int s) {
 void Sympath::start(uint8_t note, uint8_t velocity) {
     const int kind = std::clamp(steppedTargetOf(Model), 0, KindCount - 1);
     const Make &k = kMakes[kind];
-    const float pitch = static_cast<float>(note) + 12.0f * static_cast<float>(steppedTargetOf(Octave)) + targetOf(Tune) / 100.0f;
+    // The pitch macro counts in octaves here, so a route of half matches the octave knob at +1.
+    const float pitch = static_cast<float>(note) + 12.0f * (static_cast<float>(steppedTargetOf(Octave)) + 2.0f * macGoal_[McPitch]) +
+                        targetOf(Tune) / 100.0f;
     // With one voice, a held note slides to the new one: meend, no new pluck.
-    if (kind != Tanpura && steppedTargetOf(Voices) == 1 && targetOf(Meend) > 0.0f && voices[0].used && voices[0].held) {
+    if (kind != Tanpura && steppedTargetOf(Voices) == 1 && goalOf(Meend) > 0.0f && voices[0].used && voices[0].held) {
         Voice &v = voices[0];
         v.note = note;
         v.aim = pitch;
@@ -378,6 +492,7 @@ void Sympath::start(uint8_t note, uint8_t velocity) {
     if (!v->used) {
         for (String &s : v->strings) s.wave.clear();
         v->zing.reset();
+        v->bowCut.reset();
         v->contactLast = 0.0f;
     }
     const float tone = stringTone(v->velocity);
@@ -386,14 +501,20 @@ void Sympath::start(uint8_t note, uint8_t velocity) {
         tuneString(v->strings[s].wave, hz, stringT60(hz, true), tone);
         v->strings[s].strokeLength = v->strings[s].strokeAt = 0;
     }
+    if (k.bowed > 0.0f) v->bowCut.set(0.5f * foldHz(noteHz(pitch)), 0.3f);
     v->cycleAt = 0.0;
     v->nextString = 0;
     // A bowed string isn't plucked: the bow starts it, below.
     if (kind != Tanpura && kMakes[kind].bowed <= 0.0f) pluck(*v, 0);
+    // The bow starts from nothing: the last note's force left in bowDc would
+    // kick the string like a pluck.
     v->strings[0].bowAt = 0;
+    v->strings[0].bowLast = 0.0f;
+    v->strings[0].bowDc = 0.0f;
+    v->strings[0].kickLength = std::max(2, static_cast<int>(0.5f * sampleRate / foldHz(noteHz(pitch))));
     // The drone strings, struck with the note.
     tuneFree();
-    const float chikari = clampf(targetOf(Chikari), 0.0f, 1.0f);
+    const float chikari = clampf(goalOf(Chikari), 0.0f, 1.0f);
     if (chikari > 0.0f) {
         for (int i = 0; i < droneCount; ++i) {
             Free &f = drones[i];
@@ -408,7 +529,10 @@ void Sympath::start(uint8_t note, uint8_t velocity) {
     quietSamples = 0;
 }
 
-void Sympath::noteOn(uint8_t note, uint8_t velocity) { start(note, velocity); }
+void Sympath::noteOn(uint8_t note, uint8_t velocity) {
+    updateMacroGoals(); // a pluck reads where the knobs are going, so renders repeat
+    start(note, velocity);
+}
 
 void Sympath::noteOff(uint8_t note) {
     for (Voice &v : voices) {
@@ -445,6 +569,7 @@ void Sympath::notePressure(uint8_t note, uint8_t value) {
 
 bool Sympath::render(float *L, float *R, int32_t frames) {
     params_.tick();
+    updateMacros();
     for (int32_t i = 0; i < frames; ++i) L[i] = R[i] = 0.0f;
     if (asleep) return true;
 
@@ -452,14 +577,20 @@ bool Sympath::render(float *L, float *R, int32_t frames) {
     const Make &k = kMakes[kind];
     // The pluck knob, bowed: how hard the bow presses, from airy to gripping.
     const float pluckKnob = clampf(paramOf(Pluck), 0.0f, 1.0f);
+    // Where the rosin lets go: a firmer grip, a narrower curve. The string
+    // swings in proportion, so the push scales with it to keep the bow as
+    // lively, and what's heard is scaled most of the way back.
+    const float bowWidth = 0.05f + 0.2f * (1.0f - pluckKnob);
+    const float bowScale = bowWidth / 0.25f;
+    const float bowHeard = kBowedHeard * std::pow(bowScale, -0.8f);
     tuneFree();
     const float bridge = clampf(paramOf(Bridge) * k.bridge, 0.0f, 1.0f);
     const float curve = clampf(paramOf(Curve), 0.0f, 1.0f) * kCurveSpan;
     const float tarbLevel = clampf(paramOf(Tarbs), 0.0f, 1.0f);
     const float volume = paramOf(Volume);
     const float gamak = clampf(paramOf(Gamak) + wheel, 0.0f, 1.0f) * kGamakDepth;
-    const float meendCoef = targetOf(Meend) > 0.0f
-        ? 1.0f - std::exp(-static_cast<float>(kRetuneEvery) / (targetOf(Meend) * 0.001f * sampleRate / 3.0f)) : 1.0f;
+    const float meend = goalOf(Meend);
+    const float meendCoef = meend > 0.0f ? 1.0f - std::exp(-static_cast<float>(kRetuneEvery) / (meend * 0.001f * sampleRate / 3.0f)) : 1.0f;
     const double cycleLength = static_cast<double>(kCycleBeats[std::clamp(steppedTargetOf(Cycle), 0, 3)] * 60.0f / bpm * sampleRate);
     if (k.bodyHz != bodyBuiltFor) {
         bodyBuiltFor = k.bodyHz;
@@ -484,6 +615,7 @@ bool Sympath::render(float *L, float *R, int32_t frames) {
                 const float press = v.held ? (v.pressure >= 0.0f ? v.pressure : channelPressure_) : 0.0f;
                 v.pull += (press - v.pull) * 0.05f;
                 const float base = v.pitch + bend * paramOf(BendRange) + v.noteBend + shake + v.pull * kPullSemis;
+                if (k.bowed > 0.0f) v.bowCut.set(0.5f * foldHz(noteHz(base)), 0.3f);
                 const float tone = stringTone(v.velocity);
                 for (int s = 0; s < v.stringCount; ++s) {
                     const float hz = noteHz(base + v.strings[s].offset);
@@ -515,18 +647,31 @@ bool Sympath::render(float *L, float *R, int32_t frames) {
                 // Bowed: rosin's friction, as Filament's and the hurdy-gurdy's, on the
                 // played string while the key is held. Harder playing, a faster bow.
                 if (k.bowed > 0.0f && s == 0 && v.held) {
-                    const float speed = 0.4f + 0.6f * v.velocity;
-                    const float width = 0.05f + 0.2f * (1.0f - pluckKnob);
-                    const float relative = width * speed - st.wave.velocity();
-                    const float force = relative / (width + relative * relative / width);
+                    // The bow moves just past where the rosin lets go, where
+                    // the string's own swing makes it grip and slip once a
+                    // turn. Slower and the friction only damps the string.
+                    const float speed = 1.2f + 0.8f * v.velocity;
+                    const float relative = bowWidth * speed - st.wave.velocity();
+                    const float force = relative / (bowWidth + relative * relative / bowWidth);
                     // Set down gently, the push coming in over the bow's first 40 ms.
                     const float onset = std::fmin(1.0f, static_cast<float>(st.bowAt++) / (0.04f * sampleRate));
-                    float excite = (force * 0.65f + white() * 0.02f) * kBowGain * k.bowed * onset;
-                    st.bowDc += (excite - st.bowDc) * 0.002f;
-                    in += excite - st.bowDc;
+                    // Low strings take a harder push to speak quickly.
+                    const float drive = 1.0f + clampf((72.0f - v.pitch) / 24.0f, 0.0f, 1.0f);
+                    float excite = (force * 0.65f * drive + white() * 0.02f) * bowScale * kBowGain * k.bowed * onset;
+                    st.bowDc += (excite - st.bowDc) * 0.004f;
+                    excite -= st.bowDc;
+                    // Two samples averaged: a hard bow can't drive the string
+                    // at the top of the band, where it would squeal.
+                    in += 0.5f * (excite + st.bowLast);
+                    st.bowLast = excite;
+                    // Half a period's push as the bow catches the string, so
+                    // the note speaks at once.
+                    if (st.bowAt <= st.kickLength) {
+                        in += kBowKick * bowScale * std::sin(3.14159265f * static_cast<float>(st.bowAt) / static_cast<float>(st.kickLength + 1));
+                    }
                 }
                 const float y = st.wave.step(in);
-                out += k.bowed > 0.0f && s == 0 ? y * kBowedHeard : y;
+                out += k.bowed > 0.0f && s == 0 ? v.bowCut.highpass(y) * bowHeard : y;
                 // The bridge: once the string swings past its height it
                 // strikes it, harder the further past.
                 const float past = y - curve;
@@ -540,10 +685,11 @@ bool Sympath::render(float *L, float *R, int32_t frames) {
             peaks[vi] = std::fmax(peaks[vi], std::fabs(out));
         }
         // The sympathetic strings, shaken by everything played.
+        const float shakeBy = k.bowed > 0.0f ? kBowedSympathy : kSympathy;
         float sympathy = 0.0f, sl = 0.0f, sr = 0.0f;
         for (int t = 0; t < tarbCount; ++t) {
             Free &f = tarbs[t];
-            f.wave.exciteOverTurn(played * kSympathy);
+            f.wave.exciteOverTurn(played * shakeBy);
             float y = f.wave.step(0.0f);
             // The shamisen's low string lies on the neck: sawari.
             if (kind == Shamisen) {

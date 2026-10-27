@@ -14,6 +14,8 @@ class Reed {
     static constexpr int kModes = 3;
     /** What's left of a ringing reed's swing when the finger meets it to pluck again. */
     static constexpr float kCaught = 0.3f;
+    /** Catches that can fade at once, for plucks closer than a quarter period. */
+    static constexpr int kCatches = 8;
 
     void prepare(float sampleRate) { sr = sampleRate; clear(); }
 
@@ -29,6 +31,7 @@ class Reed {
 
     void clear() {
         for (int m = 0; m < kModes; ++m) y1[m] = y2[m] = 0.0f;
+        for (Catch &k : catches) k = Catch{};
         pulseLeft = snapLeft = pullLeft = 0;
         x = xBefore = v = 0.0f;
     }
@@ -50,6 +53,10 @@ class Reed {
             if (was > 0.0f && was != w[m]) {
                 const float c = (y1[m] * std::cos(was) - y2[m]) / std::sin(was);
                 y2[m] = y1[m] * std::cos(w[m]) - c * std::sin(w[m]);
+                for (Catch &k : catches) {
+                    const float cc = (k.c1[m] * std::cos(was) - k.c2[m]) / std::sin(was);
+                    k.c2[m] = k.c1[m] * std::cos(w[m]) - cc * std::sin(w[m]);
+                }
             }
             // The finger's push reaches the note; the overtones are set going
             // by the snap as it leaves (pluck()), [overtones] of the note's
@@ -140,6 +147,31 @@ class Reed {
             y1[m] = y;
             out += y;
         }
+        for (Catch &k : catches) {
+            if (k.left == 0) continue;
+            // The swing being caught rings on beside the new pluck, fading.
+            // The fade is on its level, not in its loop: a changed loop
+            // would be a changed pitch, and at a low note even a small one
+            // reads the same two samples as a much bigger swing. It starts
+            // and ends flat, so the reed's speed doesn't jump either: the
+            // sound is the slot's air, which follows the speed.
+            const float f = static_cast<float>(k.length - k.left + 1) / static_cast<float>(k.length);
+            k.caught = 1.0f - (1.0f - kCaught) * f * f * f * (f * (6.0f * f - 15.0f) + 10.0f);
+            for (int m = 0; m < kModes; ++m) {
+                const float c = a1[m] * k.c1[m] + a2[m] * k.c2[m];
+                k.c2[m] = k.c1[m];
+                k.c1[m] = c;
+                out += c * k.caught;
+            }
+            // Caught: what's left of it is the reed's again.
+            if (--k.left == 0) {
+                for (int m = 0; m < kModes; ++m) {
+                    y1[m] += k.c1[m] * k.caught;
+                    y2[m] += k.c2[m] * k.caught;
+                    k.c1[m] = k.c2[m] = 0.0f;
+                }
+            }
+        }
         xBefore = x;
         x = out;
         // Velocity in the swing's units a radian of the note: a reed swinging
@@ -154,14 +186,29 @@ class Reed {
     float hz() const { return note; }
 
   private:
-    /** The finger meets a ringing reed: most of its swing is taken out. */
+    /**
+     * The finger meets a ringing reed: most of its swing is taken out, over
+     * a quarter of the note's period. Taken out at once, the jump in where
+     * the reed is, or in how fast it's going, is a one-sample tick in the sound. The ringing moves
+     * to its own state and fades there, so the new pluck isn't damped too.
+     * A catch still fading keeps its own fade: restarting it would bend the
+     * level's slope at once, a tick of its own. Only with every slot busy
+     * does the newest take this one in and start again.
+     */
     void catchIt() {
-        for (int m = 0; m < kModes; ++m) {
-            y1[m] *= kCaught;
-            y2[m] *= kCaught;
+        Catch *k = nullptr;
+        for (Catch &c : catches) {
+            if (c.left == 0) { k = &c; break; }
+            if (k == nullptr || c.left > k->left) k = &c;
         }
-        x *= kCaught;
-        xBefore *= kCaught;
+        k->length = std::max(2, static_cast<int>(0.25f * sr / note));
+        for (int m = 0; m < kModes; ++m) {
+            k->c1[m] = k->c1[m] * k->caught + y1[m];
+            k->c2[m] = k->c2[m] * k->caught + y2[m];
+            y1[m] = y2[m] = 0.0f;
+        }
+        k->caught = 1.0f;
+        k->left = k->length;
     }
 
     /**
@@ -192,6 +239,13 @@ class Reed {
     int snapLeft = 0, snapLength = 2;
     float snapLevel[kModes] = {}, snapScale[kModes] = {};
     float x = 0.0f, xBefore = 0.0f, v = 0.0f;
+    // A swing being caught (catchIt), [left] samples to go.
+    struct Catch {
+        float c1[kModes] = {}, c2[kModes] = {};
+        int left = 0, length = 2;
+        float caught = 1.0f;
+    };
+    Catch catches[kCatches];
 };
 
 /**

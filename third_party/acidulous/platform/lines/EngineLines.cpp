@@ -1,6 +1,7 @@
 #include "EngineLines.h"
 
 #include <engine/machine/TableCounts.h>
+#include <engine/machine/filament/SymLevel.h>
 
 #include <cctype>
 #include <cerrno>
@@ -12,12 +13,14 @@
 namespace acidulous::lines {
 
 namespace {
-constexpr const char *kHeader = "acidulous-engine 3";
+constexpr const char *kHeader = "acidulous-engine 4";
 // Version 1 stored Trinity's waves over 12 steps and Nexus's wtosc table over
-// 8, and versions 1 and 2 Trinity's destinations over 34; upgradeLine moves
-// them onto today's counts.
+// 8, versions 1 and 2 Trinity's destinations over 34, and versions 1 to 3
+// Filament's sympathetic level for a quieter bank; upgradeLine moves them
+// onto today's.
 constexpr const char *kHeaderV1 = "acidulous-engine 1";
 constexpr const char *kHeaderV2 = "acidulous-engine 2";
+constexpr const char *kHeaderV3 = "acidulous-engine 3";
 constexpr const char *kZip = "zip:";
 
 bool isSpace(char c) { return c == ' ' || c == '\t' || c == '\r'; }
@@ -361,15 +364,24 @@ std::string Replay::upgradeLine(const std::string &line) {
     auto text = [&](size_t k) { return line.substr(w[k].first, w[k].second - w[k].first); };
     const std::string call = text(0);
     if (call == "MountMachine" && w.size() >= 3) {
-        machineOf[std::atoi(text(1).c_str())] = unquote(text(2));
+        const int rack = std::atoi(text(1).c_str());
+        machineOf[rack] = unquote(text(2));
+        filamentOf.erase(rack);
+        // A Filament that never sets its level plays it at the default,
+        // which was for the quieter bank.
+        if (version < 4 && machineOf[rack] == "Filament")
+            return line + "\nSetParam " + text(1) + " \"machine\" \"symlevel\" " +
+                   floatText(filament_levels::level(filament_levels::kLevelDefault)) + " false 0";
         return line;
     }
     if (call == "UnmountMachine") {
         machineOf.erase(std::atoi(text(1).c_str()));
+        filamentOf.erase(std::atoi(text(1).c_str()));
         return line;
     }
     // Which rule a parameter of a machine follows, if any.
     auto ruleFor = [&](const std::string &machine, int rack, const std::string &name) -> float (*)(float) {
+        if (version >= 3) return nullptr;
         if (machine == "Trinity" && tables::isTrinityDest(name)) return tables::trinityDest;
         if (version >= 2) return nullptr;
         if (machine == "Trinity" && tables::isTrinityWave(name)) return tables::trinityWave;
@@ -385,6 +397,32 @@ std::string Replay::upgradeLine(const std::string &line) {
         if (unquote(text(2)) != "machine") return line;
         const auto m = machineOf.find(rack);
         if (m == machineOf.end()) return line;
+        if (version < 4 && m->second == "Filament") {
+            // A depth follows whether its slot is aimed at the bank, and the
+            // slot can be aimed after the depth is set, so both are kept as
+            // written and the depth set again when the aim moves.
+            const std::string name = unquote(text(3));
+            const float v = std::strtof(text(4).c_str(), nullptr);
+            auto &f = filamentOf[rack];
+            if (name == "symlevel") return line.substr(0, w[4].first) + floatText(filament_levels::level(v)) + line.substr(w[4].second);
+            if (const int slot = filament_levels::matrixSlot(name, "amt")) {
+                f.amt[slot - 1] = v;
+                f.amtSet[slot - 1] = true;
+                if (!f.toBank[slot - 1]) return line;
+                return line.substr(0, w[4].first) + floatText(filament_levels::depth(v)) + line.substr(w[4].second);
+            }
+            if (const int slot = filament_levels::matrixSlot(name, "dst")) {
+                const bool before = f.toBank[slot - 1];
+                f.toBank[slot - 1] = filament_levels::aimsAtBank(v);
+                if (before == f.toBank[slot - 1] || !f.amtSet[slot - 1]) return line;
+                const float amt = f.amt[slot - 1];
+                char amtName[8];
+                std::snprintf(amtName, sizeof amtName, "m%d_amt", slot);
+                return line + "\nSetParam " + text(1) + " \"machine\" \"" + amtName + "\" " +
+                       floatText(f.toBank[slot - 1] ? filament_levels::depth(amt) : amt) + line.substr(w[4].second);
+            }
+            return line;
+        }
         const auto rule = ruleFor(m->second, rack, unquote(text(3)));
         if (rule == nullptr) return line;
         const float v = std::strtof(text(4).c_str(), nullptr);
@@ -394,7 +432,18 @@ std::string Replay::upgradeLine(const std::string &line) {
         // @h rack scene "machine" "unit" "name" linear f[n: tick value ...]
         const int rack = std::atoi(text(2).c_str());
         if (unquote(text(5)) != "machine") return line;
-        const auto rule = ruleFor(unquote(text(4)), rack, unquote(text(6)));
+        float (*rule)(float) = nullptr;
+        if (unquote(text(4)) == "Filament") {
+            const std::string name = unquote(text(6));
+            if (version >= 4) return line;
+            if (name == "symlevel") rule = filament_levels::level;
+            else if (const int slot = filament_levels::matrixSlot(name, "amt")) {
+                const auto f = filamentOf.find(rack);
+                if (f != filamentOf.end() && f->second.toBank[slot - 1]) rule = filament_levels::depth;
+            }
+        } else {
+            rule = ruleFor(unquote(text(4)), rack, unquote(text(6)));
+        }
         if (rule == nullptr) return line;
         std::string out = line.substr(0, w[8].second);
         // Points are pairs from word 9 on; every second one is a value, and -1 means the knob's own value.
@@ -414,6 +463,34 @@ std::string Replay::upgradeLine(const std::string &line) {
     }
     return line;
 }
+
+namespace {
+
+/** Replays one call. */
+void replayOne(const std::string &line, Replay &r) {
+    size_t from = 0;
+    while (from < line.size() && isSpace(line[from])) ++from;
+    if (from == line.size() || line[from] == '#') return;
+    size_t nameEnd = from;
+    while (nameEnd < line.size() && !isSpace(line[nameEnd])) ++nameEnd;
+    const std::string name = line.substr(from, nameEnd - from);
+    const Call *call = nullptr;
+    for (int k = 0; k < kCallCount; ++k) {
+        if (name == kCalls[k].name) { call = &kCalls[k]; break; }
+    }
+    if (call == nullptr) {
+        r.problem("no call named " + name);
+        ++r.skipped;
+    } else {
+        Reader in(line, nameEnd, r);
+        if (call->run(in, r)) ++r.calls;
+        else { r.problem("can't read the arguments of " + name); ++r.skipped; }
+    }
+    // Everything this line made, the arguments and the result.
+    jniweb::arena().clear();
+    if (r.afterLine) r.afterLine(r.line);
+}
+} // namespace
 
 bool replay(const std::string &text, Replay &r) {
     size_t at = 0;
@@ -438,35 +515,22 @@ bool replay(const std::string &text, Replay &r) {
                 }
             }
             else if (line == kHeaderV2) r.version = 2;
-            else if (line == kHeader) r.version = 3;
+            else if (line == kHeaderV3) r.version = 3;
+            else if (line == kHeader) r.version = 4;
             else {
                 r.problem("not engine lines (the first line should be \"" + std::string(kHeader) + "\")");
                 return false;
             }
             continue;
         }
-        if (r.version < 3) line = r.upgradeLine(line);
-        size_t from = 0;
-        while (from < line.size() && isSpace(line[from])) ++from;
-        if (from == line.size() || line[from] == '#') continue;
-        size_t nameEnd = from;
-        while (nameEnd < line.size() && !isSpace(line[nameEnd])) ++nameEnd;
-        const std::string name = line.substr(from, nameEnd - from);
-        const Call *call = nullptr;
-        for (int k = 0; k < kCallCount; ++k) {
-            if (name == kCalls[k].name) { call = &kCalls[k]; break; }
+        if (r.version < 4) line = r.upgradeLine(line);
+        // An upgrade can add lines after the one it was given.
+        for (size_t part = 0; part <= line.size();) {
+            size_t partEnd = line.find('\n', part);
+            if (partEnd == std::string::npos) partEnd = line.size();
+            replayOne(line.substr(part, partEnd - part), r);
+            part = partEnd + 1;
         }
-        if (call == nullptr) {
-            r.problem("no call named " + name);
-            ++r.skipped;
-        } else {
-            Reader in(line, nameEnd, r);
-            if (call->run(in, r)) ++r.calls;
-            else { r.problem("can't read the arguments of " + name); ++r.skipped; }
-        }
-        // Everything this line made, the arguments and the result.
-        jniweb::arena().clear();
-        if (r.afterLine) r.afterLine(r.line);
     }
     return true;
 }

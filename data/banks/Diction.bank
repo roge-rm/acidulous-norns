@@ -1,4 +1,4 @@
-# Diction - thirty singers, for the built-in voice or a recorded one.
+# Diction - forty-four singers and an Init, for the built-in voice or a recorded one.
 #
 # A patch is a singer: the size of the throat, how hard and how rough it
 # sings, how it moves between notes, and how many sing. The voice itself is
@@ -9,32 +9,176 @@
 # The throat is `formant`. Down is bigger and darker, up smaller and
 # brighter, and it doesn't move the pitch. Play a patch low or high for a low
 # or high singer: the notes decide that.
+#
+# Families: voices, colour, style, choir, harmony, strange. The harmony
+# family sings a chord on every note; it's auditioned on chords.
+#
+# Every patch but Init carries eight named macros. Destinations are numbered
+# as in Diction.h's MacroDest: #1 vowel, #2 formant, #3 breath,
+# #4 consonants, #5 vibrato, #6 vibrato rate, #7 vibrato delay, #8 drift,
+# #9 glide, #10 attack, #11 release, #12 velocity, #13 volume,
+# #14 consonant level, #15 clean, #16 effort, #17 rasp, #18 growl,
+# #19 whisper, #20 scoop, #21 track, #22 spread, #23 source, #24 throat,
+# #25 morph, #26 pitch (24 semitones a unit). Each family has its own set of
+# eight, all of them ones the built-in voice can be heard to do. A macro
+# whose knob has no room left goes the other way under the opposite name
+# (Smaller, Straight, Voiced...). Where a macro at full moves the level by
+# more than 1 dB, a volume route takes it back out.
 
 machine Diction
 
 patch Init family=voices
+
 patch Deep family=voices
   # A big, dark throat, sung a little soft. Best low.
   formant        -6 st
   effort         -0.2
   vibrato        22 ct
   vibratorate    5 Hz
+  set macro1 "Bigger"
+  mac1_d1  #2
+  mac1_a1  -0.25
+  set macro2 "Belt"
+  mac2_d1  #16
+  mac2_a1  0.4
+  mac2_d2  #13
+  mac2_a2  -0.115
+  set macro3 "Air"
+  mac3_d1  #3
+  mac3_a1  0.4
+  set macro4 "Vibrato"
+  mac4_d1  #5
+  mac4_a1  0.35
+  mac4_d2  #7
+  mac4_a2  -0.1
+  set macro5 "Brighter"
+  mac5_d1  #1
+  mac5_a1  0.3
+  set macro6 "Wander"
+  mac6_d1  #8
+  mac6_a1  0.4
+  set macro7 "Slower"
+  mac7_d1  #10
+  mac7_a1  0.25
+  mac7_d2  #11
+  mac7_a2  0.15
+  set macro8 "Octave Down"
+  mac8_d1  #26
+  mac8_a1  -0.5
+
 patch High family=voices
   formant        4 st
   effort         0.2
   vibrato        28 ct
+  set macro1 "Bigger"
+  mac1_d1  #2
+  mac1_a1  -0.25
+  set macro2 "Belt"
+  mac2_d1  #16
+  mac2_a1  0.4
+  mac2_d2  #13
+  mac2_a2  -0.226
+  set macro3 "Air"
+  mac3_d1  #3
+  mac3_a1  0.4
+  set macro4 "Vibrato"
+  mac4_d1  #5
+  mac4_a1  0.35
+  mac4_d2  #7
+  mac4_a2  -0.1
+  set macro5 "Brighter"
+  mac5_d1  #1
+  mac5_a1  0.3
+  set macro6 "Wander"
+  mac6_d1  #8
+  mac6_a1  0.4
+  set macro7 "Slower"
+  mac7_d1  #10
+  mac7_a1  0.25
+  mac7_d2  #11
+  mac7_a2  0.15
+  set macro8 "Octave Down"
+  mac8_d1  #26
+  mac8_a1  -0.5
+
 patch Child family=voices
   # A small throat that gets smaller as it goes up, and a little air.
   formant        7 st
   track          0.3
   breath         0.25
   vibrato        15 ct
+  set macro1 "Bigger"
+  mac1_d1  #2
+  mac1_a1  -0.25
+  set macro2 "Belt"
+  mac2_d1  #16
+  mac2_a1  0.4
+  mac2_d2  #13
+  mac2_a2  -0.201
+  set macro3 "Air"
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac3_d2  #13
+  mac3_a2  -0.074
+  set macro4 "Vibrato"
+  mac4_d1  #5
+  mac4_a1  0.35
+  mac4_d2  #7
+  mac4_a2  -0.1
+  set macro5 "Brighter"
+  mac5_d1  #1
+  mac5_a1  0.3
+  set macro6 "Wander"
+  mac6_d1  #8
+  mac6_a1  0.4
+  set macro7 "Slower"
+  mac7_d1  #10
+  mac7_a1  0.25
+  mac7_d2  #11
+  mac7_a2  0.15
+  set macro8 "Octave Down"
+  mac8_d1  #26
+  mac8_a1  -0.5
+
 patch Neither family=voices
   # Between the two, with a steadier line than either.
   formant        1 st
   breath         0.3
   drift          0.2
   vibrato        15 ct
+  set macro1 "Bigger"
+  mac1_d1  #2
+  mac1_a1  -0.25
+  set macro2 "Belt"
+  mac2_d1  #16
+  mac2_a1  0.4
+  mac2_d2  #13
+  mac2_a2  -0.177
+  set macro3 "Air"
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac3_d2  #13
+  mac3_a2  -0.069
+  set macro4 "Vibrato"
+  mac4_d1  #5
+  mac4_a1  0.35
+  mac4_d2  #7
+  mac4_a2  -0.1
+  set macro5 "Brighter"
+  mac5_d1  #1
+  mac5_a1  0.3
+  set macro6 "Wander"
+  mac6_d1  #8
+  mac6_a1  0.4
+  set macro7 "Slower"
+  mac7_d1  #10
+  mac7_a1  0.25
+  mac7_d2  #11
+  mac7_a2  0.15
+  set macro8 "Octave Down"
+  mac8_d1  #26
+  mac8_a1  -0.5
+
 patch Giant family=voices
   # A throat twice the size, darker still on the high notes.
   formant        -10 st
@@ -42,6 +186,114 @@ patch Giant family=voices
   growl          0.2
   effort         0.3
   vibrato        10 ct
+  set macro1 "Smaller"
+  mac1_d1  #2
+  mac1_a1  0.25
+  set macro2 "Belt"
+  mac2_d1  #16
+  mac2_a1  0.35
+  mac2_d2  #13
+  mac2_a2  -0.142
+  set macro3 "Air"
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac3_d2  #13
+  mac3_a2  -0.069
+  set macro4 "Vibrato"
+  mac4_d1  #5
+  mac4_a1  0.35
+  mac4_d2  #7
+  mac4_a2  -0.1
+  set macro5 "Brighter"
+  mac5_d1  #1
+  mac5_a1  0.3
+  set macro6 "Wander"
+  mac6_d1  #8
+  mac6_a1  0.4
+  set macro7 "Slower"
+  mac7_d1  #10
+  mac7_a1  0.25
+  mac7_d2  #11
+  mac7_a2  0.15
+  set macro8 "Octave Down"
+  mac8_d1  #26
+  mac8_a1  -0.5
+
+patch Tenor family=voices
+  # A man's voice sung out, a little brighter than Deep.
+  formant        -2 st
+  effort         0.3
+  vibrato        30 ct
+  vibratorate    5.5 Hz
+  volume         0.755
+  set macro1 "Bigger"
+  mac1_d1  #2
+  mac1_a1  -0.25
+  set macro2 "Belt"
+  mac2_d1  #16
+  mac2_a1  0.35
+  mac2_d2  #13
+  mac2_a2  -0.171
+  set macro3 "Air"
+  mac3_d1  #3
+  mac3_a1  0.4
+  set macro4 "Vibrato"
+  mac4_d1  #5
+  mac4_a1  0.35
+  mac4_d2  #7
+  mac4_a2  -0.1
+  set macro5 "Brighter"
+  mac5_d1  #1
+  mac5_a1  0.3
+  set macro6 "Wander"
+  mac6_d1  #8
+  mac6_a1  0.4
+  set macro7 "Slower"
+  mac7_d1  #10
+  mac7_a1  0.25
+  mac7_d2  #11
+  mac7_a2  0.15
+  set macro8 "Octave Down"
+  mac8_d1  #26
+  mac8_a1  -0.5
+
+patch Alto family=voices
+  # A woman's voice, low and warm, with some air.
+  formant        2 st
+  effort         -0.1
+  breath         0.2
+  vibrato        22 ct
+  volume         0.838
+  set macro1 "Bigger"
+  mac1_d1  #2
+  mac1_a1  -0.25
+  set macro2 "Belt"
+  mac2_d1  #16
+  mac2_a1  0.4
+  mac2_d2  #13
+  mac2_a2  -0.185
+  set macro3 "Air"
+  mac3_d1  #3
+  mac3_a1  0.4
+  set macro4 "Vibrato"
+  mac4_d1  #5
+  mac4_a1  0.35
+  mac4_d2  #7
+  mac4_a2  -0.1
+  set macro5 "Brighter"
+  mac5_d1  #1
+  mac5_a1  0.3
+  set macro6 "Wander"
+  mac6_d1  #8
+  mac6_a1  0.4
+  set macro7 "Slower"
+  mac7_d1  #10
+  mac7_a1  0.25
+  mac7_d2  #11
+  mac7_a2  0.15
+  set macro8 "Octave Down"
+  mac8_d1  #26
+  mac8_a1  -0.5
 
 patch Soft family=colour
   # Close and gentle: the top of the voice down, and some air.
@@ -49,6 +301,41 @@ patch Soft family=colour
   breath         0.5
   attack         0.12 s
   vibrato        15 ct
+  set macro1 "Belt"
+  mac1_d1  #16
+  mac1_a1  0.4
+  set macro2 "Air"
+  mac2_d1  #3
+  mac2_a1  0.4
+  mac2_d2  #13
+  mac2_a2  -0.142
+  set macro3 "Rasp"
+  mac3_d1  #17
+  mac3_a1  0.4
+  set macro4 "Growl"
+  mac4_d1  #18
+  mac4_a1  0.5
+  set macro5 "Whisper"
+  mac5_d1  #19
+  mac5_a1  0.6
+  mac5_d2  #13
+  mac5_a2  -0.193
+  set macro6 "Bigger"
+  mac6_d1  #2
+  mac6_a1  -0.25
+  mac6_d2  #13
+  mac6_a2  0.086
+  set macro7 "Vibrato"
+  mac7_d1  #5
+  mac7_a1  0.35
+  mac7_d2  #7
+  mac7_a2  -0.1
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+  mac8_d2  #13
+  mac8_a2  -0.09
+
 patch Belter family=colour
   # Sung out: bright, pushed up into each note, a wide late vibrato.
   effort         1
@@ -56,21 +343,161 @@ patch Belter family=colour
   rasp           0.1
   vibrato        45 ct
   vibratodelay   0.5 s
+  set macro1 "Hush"
+  mac1_d1  #16
+  mac1_a1  -0.4
+  mac1_d2  #13
+  mac1_a2  0.342
+  set macro2 "Air"
+  mac2_d1  #3
+  mac2_a1  0.4
+  mac2_d2  #13
+  mac2_a2  0.072
+  set macro3 "Rasp"
+  mac3_d1  #17
+  mac3_a1  0.4
+  set macro4 "Growl"
+  mac4_d1  #18
+  mac4_a1  0.5
+  mac4_d2  #13
+  mac4_a2  0.093
+  set macro5 "Whisper"
+  mac5_d1  #19
+  mac5_a1  0.6
+  mac5_d2  #13
+  mac5_a2  0.256
+  set macro6 "Bigger"
+  mac6_d1  #2
+  mac6_a1  -0.25
+  mac6_d2  #13
+  mac6_a2  0.108
+  set macro7 "Vibrato"
+  mac7_d1  #5
+  mac7_a1  0.35
+  mac7_d2  #7
+  mac7_a2  -0.1
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+  mac8_d2  #13
+  mac8_a2  0.123
+
 patch Rasp family=colour
   rasp           0.55
   effort         0.4
   drift          0.5
+  set macro1 "Belt"
+  mac1_d1  #16
+  mac1_a1  0.3
+  mac1_d2  #13
+  mac1_a2  -0.177
+  set macro2 "Air"
+  mac2_d1  #3
+  mac2_a1  0.4
+  set macro3 "Rasp"
+  mac3_d1  #17
+  mac3_a1  0.4
+  set macro4 "Growl"
+  mac4_d1  #18
+  mac4_a1  0.5
+  mac4_d2  #13
+  mac4_a2  0.093
+  set macro5 "Whisper"
+  mac5_d1  #19
+  mac5_a1  0.6
+  mac5_d2  #13
+  mac5_a2  0.079
+  set macro6 "Bigger"
+  mac6_d1  #2
+  mac6_a1  -0.25
+  mac6_d2  #13
+  mac6_a2  0.079
+  set macro7 "Vibrato"
+  mac7_d1  #5
+  mac7_a1  0.35
+  mac7_d2  #7
+  mac7_a2  -0.1
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+
 patch Growl family=colour
   growl          0.7
   effort         0.6
   formant        -2 st
   scoop          0.4 st
+  set macro1 "Hush"
+  mac1_d1  #16
+  mac1_a1  -0.4
+  mac1_d2  #13
+  mac1_a2  0.186
+  set macro2 "Air"
+  mac2_d1  #3
+  mac2_a1  0.4
+  set macro3 "Rasp"
+  mac3_d1  #17
+  mac3_a1  0.4
+  set macro4 "Growl"
+  mac4_d1  #18
+  mac4_a1  0.3
+  set macro5 "Whisper"
+  mac5_d1  #19
+  mac5_a1  0.6
+  mac5_d2  #13
+  mac5_a2  -0.063
+  set macro6 "Bigger"
+  mac6_d1  #2
+  mac6_a1  -0.25
+  set macro7 "Vibrato"
+  mac7_d1  #5
+  mac7_a1  0.35
+  mac7_d2  #7
+  mac7_a2  -0.1
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+
 patch Whisper family=colour
   whisper        1
   attack         0.08 s
   vibrato        0 ct
   # A whisper is quieter than a voice; brought most of the way up.
   volume         1.15
+  set macro1 "Belt"
+  mac1_d1  #16
+  mac1_a1  0.4
+  set macro2 "Air"
+  mac2_d1  #3
+  mac2_a1  0.4
+  mac2_d2  #13
+  mac2_a2  -0.205
+  set macro3 "Rasp"
+  mac3_d1  #17
+  mac3_a1  0.4
+  set macro4 "Growl"
+  mac4_d1  #18
+  mac4_a1  0.5
+  set macro5 "Voiced"
+  mac5_d1  #19
+  mac5_a1  -0.6
+  mac5_d2  #13
+  mac5_a2  0.233
+  set macro6 "Bigger"
+  mac6_d1  #2
+  mac6_a1  -0.25
+  mac6_d2  #13
+  mac6_a2  0.233
+  set macro7 "Vibrato"
+  mac7_d1  #5
+  mac7_a1  0.35
+  mac7_d2  #7
+  mac7_a2  -0.1
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+  mac8_d2  #13
+  mac8_a2  -0.236
+
 patch Pure family=colour
   # No breath left: a recorded voice cleaned right through, the built-in
   # one with none, and hardly a waver.
@@ -78,6 +505,121 @@ patch Pure family=colour
   breath         0
   drift          0.1
   vibrato        12 ct
+  set macro1 "Belt"
+  mac1_d1  #16
+  mac1_a1  0.4
+  mac1_d2  #13
+  mac1_a2  -0.185
+  set macro2 "Air"
+  mac2_d1  #3
+  mac2_a1  0.4
+  set macro3 "Rasp"
+  mac3_d1  #17
+  mac3_a1  0.4
+  set macro4 "Growl"
+  mac4_d1  #18
+  mac4_a1  0.5
+  mac4_d2  #13
+  mac4_a2  0.101
+  set macro5 "Whisper"
+  mac5_d1  #19
+  mac5_a1  0.6
+  mac5_d2  #13
+  mac5_a2  0.086
+  set macro6 "Bigger"
+  mac6_d1  #2
+  mac6_a1  -0.25
+  set macro7 "Vibrato"
+  mac7_d1  #5
+  mac7_a1  0.35
+  mac7_d2  #7
+  mac7_a2  -0.1
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+
+patch Breathy family=colour
+  # More air than voice, sung close and soft.
+  breath         0.7
+  effort         -0.5
+  attack         0.08 s
+  vibrato        18 ct
+  volume         0.738
+  set macro1 "Belt"
+  mac1_d1  #16
+  mac1_a1  0.4
+  set macro2 "Air"
+  mac2_d1  #3
+  mac2_a1  0.3
+  mac2_d2  #13
+  mac2_a2  -0.101
+  set macro3 "Rasp"
+  mac3_d1  #17
+  mac3_a1  0.4
+  set macro4 "Growl"
+  mac4_d1  #18
+  mac4_a1  0.5
+  set macro5 "Whisper"
+  mac5_d1  #19
+  mac5_a1  0.6
+  mac5_d2  #13
+  mac5_a2  -0.171
+  set macro6 "Bigger"
+  mac6_d1  #2
+  mac6_a1  -0.25
+  mac6_d2  #13
+  mac6_a2  0.135
+  set macro7 "Vibrato"
+  mac7_d1  #5
+  mac7_a1  0.35
+  mac7_d2  #7
+  mac7_a2  -0.1
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+  mac8_d2  #13
+  mac8_a2  -0.11
+
+patch Edge family=colour
+  # Bright and forward, a hard edge on the top of the voice.
+  effort         0.7
+  formant        1 st
+  vowel          3
+  rasp           0.05
+  vibrato        30 ct
+  volume         0.635
+  set macro1 "Hush"
+  mac1_d1  #16
+  mac1_a1  -0.4
+  mac1_d2  #13
+  mac1_a2  0.128
+  set macro2 "Air"
+  mac2_d1  #3
+  mac2_a1  0.4
+  set macro3 "Rasp"
+  mac3_d1  #17
+  mac3_a1  0.4
+  set macro4 "Growl"
+  mac4_d1  #18
+  mac4_a1  0.5
+  mac4_d2  #13
+  mac4_a2  0.092
+  set macro5 "Whisper"
+  mac5_d1  #19
+  mac5_a1  0.6
+  set macro6 "Bigger"
+  mac6_d1  #2
+  mac6_a1  -0.25
+  set macro7 "Vibrato"
+  mac7_d1  #5
+  mac7_a1  0.35
+  mac7_d2  #7
+  mac7_a2  -0.1
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.25
+  mac8_d2  #13
+  mac8_a2  0.092
 
 patch Chant family=style
   # Straight and steady: no vibrato, hardly any wander.
@@ -85,6 +627,37 @@ patch Chant family=style
   drift          0.05
   glide          0.05 s
   vowel          1
+  set macro1 "Vibrato"
+  mac1_d1  #5
+  mac1_a1  0.35
+  mac1_d2  #7
+  mac1_a2  -0.1
+  set macro2 "Scoop"
+  mac2_d1  #20
+  mac2_a1  0.25
+  set macro3 "Glide"
+  mac3_d1  #9
+  mac3_a1  0.2
+  set macro4 "Wander"
+  mac4_d1  #8
+  mac4_a1  0.4
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #13
+  mac5_a2  -0.133
+  set macro6 "Air"
+  mac6_d1  #3
+  mac6_a1  0.4
+  set macro7 "Bigger"
+  mac7_d1  #2
+  mac7_a1  -0.25
+  set macro8 "Slower"
+  mac8_d1  #10
+  mac8_a1  0.25
+  mac8_d2  #11
+  mac8_a2  0.15
+
 patch Ballad family=style
   # Late, gentle vibrato, an easy scoop into each note, sung soft and breathy.
   vibrato        25 ct
@@ -94,6 +667,39 @@ patch Ballad family=style
   scoop          0.5 st
   effort         -0.3
   breath         0.3
+  set macro1 "Vibrato"
+  mac1_d1  #5
+  mac1_a1  0.35
+  mac1_d2  #7
+  mac1_a2  -0.1
+  set macro2 "Scoop"
+  mac2_d1  #20
+  mac2_a1  0.25
+  set macro3 "Glide"
+  mac3_d1  #9
+  mac3_a1  0.2
+  set macro4 "Wander"
+  mac4_d1  #8
+  mac4_a1  0.4
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #13
+  mac5_a2  -0.119
+  set macro6 "Air"
+  mac6_d1  #3
+  mac6_a1  0.4
+  mac6_d2  #13
+  mac6_a2  -0.105
+  set macro7 "Bigger"
+  mac7_d1  #2
+  mac7_a1  -0.25
+  set macro8 "Slower"
+  mac8_d1  #10
+  mac8_a1  0.25
+  mac8_d2  #11
+  mac8_a2  0.15
+
 patch Opera family=style
   # Wide vibrato that comes in early, a darker throat, sung out, hardly any air.
   vibrato        70 ct
@@ -102,6 +708,37 @@ patch Opera family=style
   formant        -1 st
   breath         0.04
   effort         0.5
+  set macro1 "Vibrato"
+  mac1_d1  #5
+  mac1_a1  0.3
+  mac1_d2  #7
+  mac1_a2  -0.1
+  set macro2 "Scoop"
+  mac2_d1  #20
+  mac2_a1  0.25
+  set macro3 "Glide"
+  mac3_d1  #9
+  mac3_a1  0.2
+  set macro4 "Wander"
+  mac4_d1  #8
+  mac4_a1  0.4
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.25
+  mac5_d2  #13
+  mac5_a2  -0.151
+  set macro6 "Air"
+  mac6_d1  #3
+  mac6_a1  0.4
+  set macro7 "Bigger"
+  mac7_d1  #2
+  mac7_a1  -0.25
+  set macro8 "Slower"
+  mac8_d1  #10
+  mac8_a1  0.25
+  mac8_d2  #11
+  mac8_a2  0.15
+
 patch Crooner family=style
   # Low and soft, sliding up into the notes.
   scoop          1 st
@@ -110,6 +747,39 @@ patch Crooner family=style
   vibratodelay   0.7 s
   effort         -0.4
   formant        -2 st
+  set macro1 "Vibrato"
+  mac1_d1  #5
+  mac1_a1  0.35
+  mac1_d2  #7
+  mac1_a2  -0.1
+  set macro2 "Scoop"
+  mac2_d1  #20
+  mac2_a1  0.25
+  set macro3 "Glide"
+  mac3_d1  #9
+  mac3_a1  0.2
+  set macro4 "Wander"
+  mac4_d1  #8
+  mac4_a1  0.4
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #13
+  mac5_a2  -0.11
+  set macro6 "Air"
+  mac6_d1  #3
+  mac6_a1  0.4
+  mac6_d2  #13
+  mac6_a2  -0.063
+  set macro7 "Bigger"
+  mac7_d1  #2
+  mac7_a1  -0.25
+  set macro8 "Slower"
+  mac8_d1  #10
+  mac8_a1  0.25
+  mac8_d2  #11
+  mac8_a2  0.15
+
 patch Lullaby family=style
   # Soft and close: a slow start, a little air and vibrato that waits.
   vowel          1
@@ -119,11 +789,73 @@ patch Lullaby family=style
   vibrato        15 ct
   vibratodelay   0.9 s
   glide          0.15 s
+  set macro1 "Vibrato"
+  mac1_d1  #5
+  mac1_a1  0.35
+  mac1_d2  #7
+  mac1_a2  -0.1
+  set macro2 "Scoop"
+  mac2_d1  #20
+  mac2_a1  0.25
+  set macro3 "Glide"
+  mac3_d1  #9
+  mac3_a1  0.2
+  set macro4 "Wander"
+  mac4_d1  #8
+  mac4_a1  0.4
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.4
+  set macro6 "Air"
+  mac6_d1  #3
+  mac6_a1  0.4
+  mac6_d2  #13
+  mac6_a2  -0.119
+  set macro7 "Bigger"
+  mac7_d1  #2
+  mac7_a1  -0.25
+  set macro8 "Slower"
+  mac8_d1  #10
+  mac8_a1  0.25
+  mac8_d2  #11
+  mac8_a2  0.15
+
 patch Swoop family=style
   # Slides between notes and wanders on them.
   glide          0.25 s
   drift          0.6
   scoop          1.5 st
+  set macro1 "Vibrato"
+  mac1_d1  #5
+  mac1_a1  0.35
+  mac1_d2  #7
+  mac1_a2  -0.1
+  set macro2 "Scoop"
+  mac2_d1  #20
+  mac2_a1  0.125
+  set macro3 "Glide"
+  mac3_d1  #9
+  mac3_a1  0.2
+  set macro4 "Wander"
+  mac4_d1  #8
+  mac4_a1  0.4
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #13
+  mac5_a2  -0.185
+  set macro6 "Air"
+  mac6_d1  #3
+  mac6_a1  0.4
+  set macro7 "Bigger"
+  mac7_d1  #2
+  mac7_a1  -0.25
+  set macro8 "Slower"
+  mac8_d1  #10
+  mac8_a1  0.25
+  mac8_d2  #11
+  mac8_a2  0.15
+
 patch Robot family=style
   # Dead on the note: no wander, no vibrato, no slide. A recorded voice
   # sings it through the built-in folds.
@@ -135,28 +867,280 @@ patch Robot family=style
   effort         0.3
   # The built-in folds' pulse peaks high for its level: 0.88 at full.
   volume         0.5
+  set macro1 "Vibrato"
+  mac1_d1  #5
+  mac1_a1  0.35
+  mac1_d2  #7
+  mac1_a2  -0.1
+  set macro2 "Scoop"
+  mac2_d1  #20
+  mac2_a1  0.25
+  set macro3 "Glide"
+  mac3_d1  #9
+  mac3_a1  0.2
+  set macro4 "Wander"
+  mac4_d1  #8
+  mac4_a1  0.4
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.35
+  mac5_d2  #13
+  mac5_a2  -0.121
+  set macro6 "Air"
+  mac6_d1  #3
+  mac6_a1  0.4
+  set macro7 "Bigger"
+  mac7_d1  #2
+  mac7_a1  -0.25
+  set macro8 "Slower"
+  mac8_d1  #10
+  mac8_a1  0.25
+  mac8_d2  #11
+  mac8_a2  0.15
+
+patch Folk family=style
+  # Plain and near straight: a short scoop, a little wander, vibrato only on
+  # long notes.
+  vibrato        12 ct
+  vibratodelay   0.8 s
+  drift          0.3
+  scoop          0.3 st
+  glide          0.06 s
+  effort         0.1
+  volume         0.782
+  set macro1 "Vibrato"
+  mac1_d1  #5
+  mac1_a1  0.35
+  mac1_d2  #7
+  mac1_a2  -0.1
+  set macro2 "Scoop"
+  mac2_d1  #20
+  mac2_a1  0.25
+  set macro3 "Glide"
+  mac3_d1  #9
+  mac3_a1  0.2
+  set macro4 "Wander"
+  mac4_d1  #8
+  mac4_a1  0.4
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #13
+  mac5_a2  -0.189
+  set macro6 "Air"
+  mac6_d1  #3
+  mac6_a1  0.4
+  set macro7 "Bigger"
+  mac7_d1  #2
+  mac7_a1  -0.25
+  set macro8 "Slower"
+  mac8_d1  #10
+  mac8_a1  0.25
+  mac8_d2  #11
+  mac8_a2  0.15
+
+patch Soul family=style
+  # Slides up into the notes and leans on them, a quick vibrato and a little
+  # grit.
+  scoop          1.2 st
+  glide          0.18 s
+  drift          0.5
+  vibrato        35 ct
+  vibratorate    6 Hz
+  vibratodelay   0.4 s
+  effort         0.4
+  rasp           0.08
+  volume         0.665
+  set macro1 "Vibrato"
+  mac1_d1  #5
+  mac1_a1  0.35
+  mac1_d2  #7
+  mac1_a2  -0.1
+  set macro2 "Scoop"
+  mac2_d1  #20
+  mac2_a1  0.2
+  set macro3 "Glide"
+  mac3_d1  #9
+  mac3_a1  0.2
+  set macro4 "Wander"
+  mac4_d1  #8
+  mac4_a1  0.4
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.3
+  mac5_d2  #13
+  mac5_a2  -0.144
+  set macro6 "Air"
+  mac6_d1  #3
+  mac6_a1  0.4
+  set macro7 "Bigger"
+  mac7_d1  #2
+  mac7_a1  -0.25
+  mac7_d2  #13
+  mac7_a2  0.06
+  set macro8 "Slower"
+  mac8_d1  #10
+  mac8_a1  0.25
+  mac8_d2  #11
+  mac8_a2  0.15
 
 patch Duo family=choir
   singers        2
   spread         0.3
+  set macro1 "Spread"
+  mac1_d1  #22
+  mac1_a1  0.4
+  set macro2 "Air"
+  mac2_d1  #3
+  mac2_a1  0.4
+  set macro3 "Vibrato"
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #7
+  mac3_a2  -0.1
+  set macro4 "Bigger"
+  mac4_d1  #2
+  mac4_a1  -0.25
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #13
+  mac5_a2  -0.185
+  set macro6 "Slower"
+  mac6_d1  #10
+  mac6_a1  0.25
+  mac6_d2  #11
+  mac6_a2  0.15
+  set macro7 "Wander"
+  mac7_d1  #8
+  mac7_a1  0.4
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+
 patch Choir family=choir
   singers        6
   spread         0.5
   vibrato        20 ct
   attack         0.1 s
   release        0.4 s
+  set macro1 "Spread"
+  mac1_d1  #22
+  mac1_a1  0.4
+  set macro2 "Air"
+  mac2_d1  #3
+  mac2_a1  0.4
+  mac2_d2  #13
+  mac2_a2  0.093
+  set macro3 "Vibrato"
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #7
+  mac3_a2  -0.1
+  set macro4 "Bigger"
+  mac4_d1  #2
+  mac4_a1  -0.25
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #13
+  mac5_a2  -0.177
+  set macro6 "Slower"
+  mac6_d1  #10
+  mac6_a1  0.25
+  mac6_d2  #11
+  mac6_a2  0.15
+  mac6_d3  #13
+  mac6_a3  0.178
+  set macro7 "Wander"
+  mac7_d1  #8
+  mac7_a1  0.4
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+
 patch Chamber family=choir
   # Four, close together and clean.
   singers        4
   spread         0.25
   clean          0.5
   vibrato        18 ct
+  set macro1 "Spread"
+  mac1_d1  #22
+  mac1_a1  0.4
+  mac1_d2  #13
+  mac1_a2  0.108
+  set macro2 "Air"
+  mac2_d1  #3
+  mac2_a1  0.4
+  mac2_d2  #13
+  mac2_a2  0.086
+  set macro3 "Vibrato"
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #7
+  mac3_a2  -0.1
+  set macro4 "Bigger"
+  mac4_d1  #2
+  mac4_a1  -0.25
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #13
+  mac5_a2  -0.181
+  set macro6 "Slower"
+  mac6_d1  #10
+  mac6_a1  0.25
+  mac6_d2  #11
+  mac6_a2  0.15
+  set macro7 "Wander"
+  mac7_d1  #8
+  mac7_a1  0.4
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+
 patch Crowd family=choir
   # Six who don't agree: late, out of tune, all over the place.
   singers        6
   spread         1
   drift          0.6
   rasp           0.2
+  set macro1 "Together"
+  mac1_d1  #22
+  mac1_a1  -0.4
+  set macro2 "Air"
+  mac2_d1  #3
+  mac2_a1  0.4
+  mac2_d2  #13
+  mac2_a2  0.072
+  set macro3 "Vibrato"
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #7
+  mac3_a2  -0.1
+  set macro4 "Bigger"
+  mac4_d1  #2
+  mac4_a1  -0.25
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #13
+  mac5_a2  -0.173
+  set macro6 "Slower"
+  mac6_d1  #10
+  mac6_a1  0.25
+  mac6_d2  #11
+  mac6_a2  0.15
+  mac6_d3  #13
+  mac6_a3  0.079
+  set macro7 "Wander"
+  mac7_d1  #8
+  mac7_a1  0.4
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+
 patch Chorale family=choir
   # Three a note on every note of a chord.
   harmony        1
@@ -165,26 +1149,466 @@ patch Chorale family=choir
   attack         0.12 s
   release        0.5 s
   vibrato        15 ct
+  set macro1 "Spread"
+  mac1_d1  #22
+  mac1_a1  0.4
+  set macro2 "Air"
+  mac2_d1  #3
+  mac2_a1  0.4
+  set macro3 "Vibrato"
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #7
+  mac3_a2  -0.1
+  set macro4 "Bigger"
+  mac4_d1  #2
+  mac4_a1  -0.25
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #13
+  mac5_a2  -0.177
+  set macro6 "Slower"
+  mac6_d1  #10
+  mac6_a1  0.25
+  mac6_d2  #11
+  mac6_a2  0.15
+  mac6_d3  #13
+  mac6_a3  0.154
+  set macro7 "Wander"
+  mac7_d1  #8
+  mac7_a1  0.4
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+
 patch Harmony family=choir
   # A chord sings the words on every note, a close pair on each.
   harmony        1
   singers        2
   spread         0.2
+  set macro1 "Spread"
+  mac1_d1  #22
+  mac1_a1  0.4
+  set macro2 "Air"
+  mac2_d1  #3
+  mac2_a1  0.4
+  set macro3 "Vibrato"
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #7
+  mac3_a2  -0.1
+  set macro4 "Bigger"
+  mac4_d1  #2
+  mac4_a1  -0.25
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #13
+  mac5_a2  -0.185
+  set macro6 "Slower"
+  mac6_d1  #10
+  mac6_a1  0.25
+  mac6_d2  #11
+  mac6_a2  0.15
+  set macro7 "Wander"
+  mac7_d1  #8
+  mac7_a1  0.4
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+
+patch Unison family=choir
+  # Three singing as one, close in time and pitch.
+  singers        3
+  spread         0.15
+  vibrato        15 ct
+  volume         0.73
+  set macro1 "Spread"
+  mac1_d1  #22
+  mac1_a1  0.4
+  mac1_d2  #13
+  mac1_a2  0.085
+  set macro2 "Air"
+  mac2_d1  #3
+  mac2_a1  0.4
+  mac2_d2  #13
+  mac2_a2  0.072
+  set macro3 "Vibrato"
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #7
+  mac3_a2  -0.1
+  set macro4 "Bigger"
+  mac4_d1  #2
+  mac4_a1  -0.25
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #13
+  mac5_a2  -0.165
+  set macro6 "Slower"
+  mac6_d1  #10
+  mac6_a1  0.25
+  mac6_d2  #11
+  mac6_a2  0.15
+  set macro7 "Wander"
+  mac7_d1  #8
+  mac7_a1  0.4
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+
+patch "Far Choir" family=choir
+  # Six, soft and airy, slow to come in and slow to go.
+  singers        6
+  spread         0.7
+  breath         0.35
+  effort         -0.4
+  attack         0.3 s
+  release        0.8 s
+  volume         1.04
+  set macro1 "Spread"
+  mac1_d1  #22
+  mac1_a1  0.3
+  set macro2 "Air"
+  mac2_d1  #3
+  mac2_a1  0.4
+  set macro3 "Vibrato"
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac3_d2  #7
+  mac3_a2  -0.1
+  set macro4 "Bigger"
+  mac4_d1  #2
+  mac4_a1  -0.25
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #13
+  mac5_a2  -0.136
+  set macro6 "Slower"
+  mac6_d1  #10
+  mac6_a1  0.227
+  mac6_d2  #11
+  mac6_a2  0.15
+  mac6_d3  #13
+  mac6_a3  0.14
+  set macro7 "Wander"
+  mac7_d1  #8
+  mac7_a1  0.4
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+  mac8_d2  #13
+  mac8_a2  -0.123
+
+patch "Close Harmony" family=harmony role=chord
+  # One singer a note: a chord sung by a small group.
+  harmony        1
+  vibrato        20 ct
+  volume         0.816
+  set macro1 "Spread"
+  mac1_d1  #22
+  mac1_a1  0.4
+  set macro2 "Vibrato"
+  mac2_d1  #5
+  mac2_a1  0.35
+  mac2_d2  #7
+  mac2_a2  -0.1
+  set macro3 "Air"
+  mac3_d1  #3
+  mac3_a1  0.4
+  set macro4 "Bigger"
+  mac4_d1  #2
+  mac4_a1  -0.25
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #13
+  mac5_a2  -0.185
+  set macro6 "Slower"
+  mac6_d1  #10
+  mac6_a1  0.25
+  mac6_d2  #11
+  mac6_a2  0.15
+  set macro7 "Glide"
+  mac7_d1  #9
+  mac7_a1  0.2
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+
+patch Barbershop family=harmony role=chord
+  # One a note, sung out and dead steady, so the chord rings.
+  harmony        1
+  effort         0.3
+  drift          0.1
+  vibrato        10 ct
+  glide          0.05 s
+  volume         0.722
+  set macro1 "Spread"
+  mac1_d1  #22
+  mac1_a1  0.4
+  set macro2 "Vibrato"
+  mac2_d1  #5
+  mac2_a1  0.35
+  mac2_d2  #7
+  mac2_a2  -0.1
+  set macro3 "Air"
+  mac3_d1  #3
+  mac3_a1  0.4
+  set macro4 "Bigger"
+  mac4_d1  #2
+  mac4_a1  -0.25
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.35
+  mac5_d2  #13
+  mac5_a2  -0.174
+  set macro6 "Slower"
+  mac6_d1  #10
+  mac6_a1  0.25
+  mac6_d2  #11
+  mac6_a2  0.15
+  set macro7 "Glide"
+  mac7_d1  #9
+  mac7_a1  0.2
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+
+patch Gospel family=harmony role=chord
+  # Three a note, sung out, sliding up into the chords.
+  harmony        1
+  singers        3
+  spread         0.35
+  scoop          0.8 st
+  vibrato        30 ct
+  effort         0.5
+  volume         0.553
+  set macro1 "Spread"
+  mac1_d1  #22
+  mac1_a1  0.4
+  set macro2 "Vibrato"
+  mac2_d1  #5
+  mac2_a1  0.35
+  mac2_d2  #7
+  mac2_a2  -0.1
+  set macro3 "Air"
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac3_d2  #13
+  mac3_a2  0.075
+  set macro4 "Bigger"
+  mac4_d1  #2
+  mac4_a1  -0.25
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.25
+  mac5_d2  #13
+  mac5_a2  -0.108
+  set macro6 "Slower"
+  mac6_d1  #10
+  mac6_a1  0.25
+  mac6_d2  #11
+  mac6_a2  0.15
+  set macro7 "Glide"
+  mac7_d1  #9
+  mac7_a1  0.2
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+
+patch "Pad Voices" family=harmony role=chord
+  # Two a note on oh, slow to come in and slow to go: a choir pad.
+  harmony        1
+  singers        2
+  spread         0.5
+  vowel          1
+  breath         0.3
+  attack         0.4 s
+  release        1 s
+  vibrato        12 ct
+  volume         0.984
+  set macro1 "Spread"
+  mac1_d1  #22
+  mac1_a1  0.4
+  set macro2 "Vibrato"
+  mac2_d1  #5
+  mac2_a1  0.35
+  mac2_d2  #7
+  mac2_a2  -0.1
+  set macro3 "Air"
+  mac3_d1  #3
+  mac3_a1  0.4
+  set macro4 "Bigger"
+  mac4_d1  #2
+  mac4_a1  -0.25
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #13
+  mac5_a2  -0.158
+  set macro6 "Slower"
+  mac6_d1  #10
+  mac6_a1  0.173
+  mac6_d2  #11
+  mac6_a2  0.131
+  set macro7 "Glide"
+  mac7_d1  #9
+  mac7_a1  0.2
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+
+patch Hymn family=harmony role=chord
+  # Four a note, soft and plain, with hardly any vibrato.
+  harmony        1
+  singers        4
+  spread         0.3
+  vibrato        8 ct
+  drift          0.1
+  effort         -0.2
+  attack         0.15 s
+  release        0.6 s
+  volume         0.764
+  set macro1 "Spread"
+  mac1_d1  #22
+  mac1_a1  0.4
+  mac1_d2  #13
+  mac1_a2  0.125
+  set macro2 "Vibrato"
+  mac2_d1  #5
+  mac2_a1  0.35
+  mac2_d2  #7
+  mac2_a2  -0.1
+  set macro3 "Air"
+  mac3_d1  #3
+  mac3_a1  0.4
+  set macro4 "Bigger"
+  mac4_d1  #2
+  mac4_a1  -0.25
+  set macro5 "Belt"
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #13
+  mac5_a2  -0.14
+  set macro6 "Slower"
+  mac6_d1  #10
+  mac6_a1  0.25
+  mac6_d2  #11
+  mac6_a2  0.15
+  mac6_d3  #13
+  mac6_a3  0.125
+  set macro7 "Glide"
+  mac7_d1  #9
+  mac7_a1  0.2
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
 
 patch Chipmunk family=strange
   track          1
   formant        3 st
+  set macro1 "Against"
+  mac1_d1  #21
+  mac1_a1  -0.3
+  set macro2 "Growl"
+  mac2_d1  #18
+  mac2_a1  0.5
+  mac2_d2  #13
+  mac2_a2  0.115
+  set macro3 "Whisper"
+  mac3_d1  #19
+  mac3_a1  0.6
+  set macro4 "Rasp"
+  mac4_d1  #17
+  mac4_a1  0.4
+  set macro5 "Bigger"
+  mac5_d1  #2
+  mac5_a1  -0.25
+  set macro6 "Scoop"
+  mac6_d1  #20
+  mac6_a1  0.25
+  set macro7 "Octave Down"
+  mac7_d1  #26
+  mac7_a1  -0.5
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+
 patch Undertow family=strange
   # The throat grows as the notes go up, and a growl under it.
   track          -1
   formant        -4 st
   growl          0.4
   glide          0.3 s
+  set macro1 "Follow"
+  mac1_d1  #21
+  mac1_a1  0.3
+  set macro2 "Growl"
+  mac2_d1  #18
+  mac2_a1  0.5
+  mac2_d2  #13
+  mac2_a2  0.072
+  set macro3 "Whisper"
+  mac3_d1  #19
+  mac3_a1  0.6
+  mac3_d2  #13
+  mac3_a2  -0.11
+  set macro4 "Rasp"
+  mac4_d1  #17
+  mac4_a1  0.4
+  set macro5 "Bigger"
+  mac5_d1  #2
+  mac5_a1  -0.25
+  set macro6 "Scoop"
+  mac6_d1  #20
+  mac6_a1  0.25
+  set macro7 "Octave Down"
+  mac7_d1  #26
+  mac7_a1  -0.5
+  mac7_d2  #13
+  mac7_a2  -0.063
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+
 patch Fry family=strange
   # Down in the throat's crackle.
   growl          1
   effort         -0.3
   formant        -3 st
+  set macro1 "Follow"
+  mac1_d1  #21
+  mac1_a1  0.3
+  set macro2 "Smooth"
+  mac2_d1  #18
+  mac2_a1  -0.5
+  set macro3 "Whisper"
+  mac3_d1  #19
+  mac3_a1  0.6
+  mac3_d2  #13
+  mac3_a2  -0.138
+  set macro4 "Rasp"
+  mac4_d1  #17
+  mac4_a1  0.4
+  set macro5 "Bigger"
+  mac5_d1  #2
+  mac5_a1  -0.25
+  set macro6 "Scoop"
+  mac6_d1  #20
+  mac6_a1  0.25
+  set macro7 "Octave Down"
+  mac7_d1  #26
+  mac7_a1  -0.5
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+  mac8_d2  #13
+  mac8_a2  0.093
+
 patch Ghosts family=strange
   # Four whispering, far apart.
   whisper        0.7
@@ -192,6 +1616,37 @@ patch Ghosts family=strange
   spread         1
   release        0.8 s
   volume         1.4
+  set macro1 "Follow"
+  mac1_d1  #21
+  mac1_a1  0.3
+  set macro2 "Growl"
+  mac2_d1  #18
+  mac2_a1  0.5
+  set macro3 "Whisper"
+  mac3_d1  #19
+  mac3_a1  0.3
+  mac3_d2  #13
+  mac3_a2  -0.241
+  set macro4 "Rasp"
+  mac4_d1  #17
+  mac4_a1  0.4
+  set macro5 "Bigger"
+  mac5_d1  #2
+  mac5_a1  -0.25
+  mac5_d2  #13
+  mac5_a2  0.067
+  set macro6 "Scoop"
+  mac6_d1  #20
+  mac6_a1  0.25
+  set macro7 "Octave Down"
+  mac7_d1  #26
+  mac7_a1  -0.5
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+  mac8_d2  #13
+  mac8_a2  -0.257
+
 patch Buzz family=strange
   # Bright and hard. A recorded voice sings it through the built-in folds
   # and half the built-in throat.
@@ -201,3 +1656,113 @@ patch Buzz family=strange
   throat         0.5
   rasp           0.15
   volume         0.5
+  set macro1 "Follow"
+  mac1_d1  #21
+  mac1_a1  0.3
+  set macro2 "Growl"
+  mac2_d1  #18
+  mac2_a1  0.5
+  mac2_d2  #13
+  mac2_a2  0.067
+  set macro3 "Whisper"
+  mac3_d1  #19
+  mac3_a1  0.6
+  mac3_d2  #13
+  mac3_a2  0.207
+  set macro4 "Rasp"
+  mac4_d1  #17
+  mac4_a1  0.4
+  set macro5 "Bigger"
+  mac5_d1  #2
+  mac5_a1  -0.25
+  mac5_d2  #13
+  mac5_a2  0.054
+  set macro6 "Scoop"
+  mac6_d1  #20
+  mac6_a1  0.25
+  set macro7 "Octave Down"
+  mac7_d1  #26
+  mac7_a1  -0.5
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+  mac8_d2  #13
+  mac8_a2  0.082
+
+patch Helium family=strange
+  # A tiny throat that gets smaller as it goes up, with a fast wide vibrato.
+  formant        10 st
+  track          0.5
+  effort         0.2
+  vibrato        40 ct
+  vibratorate    7.5 Hz
+  volume         0.681
+  set macro1 "Follow"
+  mac1_d1  #21
+  mac1_a1  0.25
+  set macro2 "Growl"
+  mac2_d1  #18
+  mac2_a1  0.5
+  mac2_d2  #13
+  mac2_a2  0.098
+  set macro3 "Whisper"
+  mac3_d1  #19
+  mac3_a1  0.6
+  mac3_d2  #13
+  mac3_a2  0.138
+  set macro4 "Rasp"
+  mac4_d1  #17
+  mac4_a1  0.4
+  set macro5 "Bigger"
+  mac5_d1  #2
+  mac5_a1  -0.25
+  set macro6 "Scoop"
+  mac6_d1  #20
+  mac6_a1  0.25
+  set macro7 "Octave Down"
+  mac7_d1  #26
+  mac7_a1  -0.5
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3
+  mac8_d2  #13
+  mac8_a2  0.067
+
+patch Monster family=strange
+  # The biggest throat there is, an octave down and growling.
+  formant        -12 st
+  growl          0.8
+  track          -0.5
+  octave         -1
+  effort         0.5
+  volume         0.867
+  set macro1 "Follow"
+  mac1_d1  #21
+  mac1_a1  0.3
+  mac1_d2  #13
+  mac1_a2  0.086
+  set macro2 "Smooth"
+  mac2_d1  #18
+  mac2_a1  -0.5
+  set macro3 "Whisper"
+  mac3_d1  #19
+  mac3_a1  0.6
+  set macro4 "Rasp"
+  mac4_d1  #17
+  mac4_a1  0.4
+  set macro5 "Smaller"
+  mac5_d1  #2
+  mac5_a1  0.25
+  mac5_d2  #13
+  mac5_a2  -0.069
+  set macro6 "Scoop"
+  mac6_d1  #20
+  mac6_a1  0.25
+  set macro7 "Octave Up"
+  mac7_d1  #26
+  mac7_a1  0.5
+  mac7_d2  #13
+  mac7_a2  0.101
+  set macro8 "Brighter"
+  mac8_d1  #1
+  mac8_a1  0.3

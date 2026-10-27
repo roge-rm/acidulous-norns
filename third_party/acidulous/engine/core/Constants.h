@@ -19,6 +19,6 @@ constexpr int32_t kInputSlots = 2;
 // One per modifier. The keyboard strip has a control each for chord, scale
 // and arp, so all three can run at once.
 constexpr int32_t kInputModSlots = 3;
-constexpr int32_t kMaxParams = 256;    // per unit (Forage: 14 per pad x 13 pads, plus globals)
+constexpr int32_t kMaxParams = 288;    // per unit (Forage: 14 per pad x 13 pads, globals and eight macros of 9)
 
 } // namespace acidulous

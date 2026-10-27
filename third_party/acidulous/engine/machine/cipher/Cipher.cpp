@@ -17,6 +17,13 @@ constexpr float kCarrierNominal = 0.5f;
 // The level of the consonant (sibilance) path. It should sit under the
 // vocoded signal, not over it.
 constexpr float kSibilanceMakeup = 2.0f;
+// The unvoiced detector's split: above the high corner is hiss, below the
+// low one is the voice's fundamental and first formant.
+constexpr float kUnvoicedHighHz = 2500.0f;
+constexpr float kUnvoicedLowHz = 800.0f;
+// Where the share of hiss counts as unvoiced: none at the first, all at the
+// second. A vowel sits under 0.2 and an "s" over 0.8.
+constexpr float kUnvoicedFrom = 0.3f, kUnvoicedTo = 0.7f;
 // Output gain that puts Init at the same level as other machines.
 constexpr float kHouse = 0.94f;
 // The volume knob's maximum, shared by the knob and the clamp in render.
@@ -132,10 +139,76 @@ const ParamDef *Cipher::paramDefs(int32_t &count) const {
         lin(Transpose, "transpose", -12.0f, 12.0f, 0.0f);
         lin(Fine, "fine", -50.0f, 50.0f, 0.0f, "c");
         lin(VelocityAmount, "vel", 0.0f, 1.0f, 1.0f);
+        for (int k = 0; k < kMacros; ++k) {
+            char n[12];
+            const int32_t b = MacroBase + k * MacroParams;
+            std::snprintf(n, sizeof(n), "mac%d", k + 1);
+            lin(b, n, 0.0f, 1.0f, 0.0f);
+            for (int r = 0; r < 4; ++r) {
+                std::snprintf(n, sizeof(n), "mac%d_d%d", k + 1, r + 1);
+                step(b + 1 + r, n, MacroDestCount, 0.0f);
+                std::snprintf(n, sizeof(n), "mac%d_a%d", k + 1, r + 1);
+                lin(b + 5 + r, n, -1.0f, 1.0f, 0.0f);
+            }
+        }
         built = true;
     }
     count = Count;
     return defs;
+}
+
+namespace {
+// The macro destination each param answers to, or -1 for none.
+struct DestMap {
+    int8_t of[Cipher::Count];
+    DestMap() {
+        using P = Cipher;
+        for (auto &d : of) d = -1;
+        const int32_t pairs[][2] = {
+            {P::LowHz, P::McLow}, {P::HighHz, P::McHigh}, {P::BandQ, P::McQ},
+            {P::Attack, P::McAttack}, {P::Release, P::McRelease}, {P::Smear, P::McSmear},
+            {P::Gate, P::McGate}, {P::Shift, P::McShift}, {P::Stretch, P::McStretch},
+            {P::RemapAmount, P::McRemap}, {P::FreezeMorph, P::McMorph}, {P::Sibilance, P::McSibilance},
+            {P::TrackAmount, P::McTrack}, {P::Feedback, P::McFeedback}, {P::FeedbackTone, P::McFbTone},
+            {P::CarrierMix, P::McMix}, {P::Detune, P::McDetune}, {P::PulseWidth, P::McPulseWidth},
+            {P::SubLevel, P::McSub}, {P::NoiseLevel, P::McNoise}, {P::CarrierDrive, P::McCarrierDrive},
+            {P::Dry, P::McDry}, {P::Wet, P::McWet}, {P::Drive, P::McDrive}, {P::Volume, P::McVolume},
+            {P::Pan, P::McPan}, {P::AmpAttack, P::McAmpAttack}, {P::AmpRelease, P::McAmpRelease},
+        };
+        for (const auto &pr : pairs) of[pr[0]] = static_cast<int8_t>(pr[1]);
+    }
+};
+const DestMap &destMap() {
+    static const DestMap m;
+    return m;
+}
+} // namespace
+
+float Cipher::withMacros(int32_t p, float v, const float *mac) const {
+    const int d = destMap().of[p];
+    if (d < 0 || mac[d] == 0.0f) return v;
+    const ParamDef &def = params_.def(p);
+    return def.map(def.unmap(v) + mac[d]);
+}
+
+void Cipher::updateMacros() {
+    for (float &m : mac_) m = 0.0f;
+    for (float &m : macGoal_) m = 0.0f;
+    for (int k = 0; k < kMacros; ++k) {
+        const int32_t b = MacroBase + k * MacroParams;
+        const float knob = params_.get(b), goal = params_.target(b);
+        if (knob == 0.0f && goal == 0.0f) continue;
+        for (int r = 0; r < 4; ++r) {
+            // The routes' destinations are steps, so their targets.
+            const int dest = static_cast<int>(params_.target(b + 1 + r) + 0.5f);
+            if (dest <= McOff || dest >= MacroDestCount) continue;
+            mac_[dest] += knob * params_.get(b + 5 + r);
+            macGoal_[dest] += goal * params_.target(b + 5 + r);
+        }
+    }
+    // Two octaves either way.
+    mac_[McPitch] = std::clamp(mac_[McPitch], -1.0f, 1.0f);
+    macGoal_[McPitch] = std::clamp(macGoal_[McPitch], -1.0f, 1.0f);
 }
 
 int32_t Cipher::steppedOf(int32_t p) const { return static_cast<int32_t>(paramOf(p) + 0.5f); }
@@ -151,6 +224,15 @@ void Cipher::prepare(int32_t sr) {
     }
     sibilanceFilter.setSampleRate(sampleRate);
     sibilanceShaper.setSampleRate(sampleRate);
+    unvoicedHigh.setSampleRate(sampleRate);
+    unvoicedLow.setSampleRate(sampleRate);
+    unvoicedHigh.set(kUnvoicedHighHz, 0.3f);
+    unvoicedLow.set(kUnvoicedLowHz, 0.3f);
+    // 2 ms up and 20 ms down for the followers, and 5 ms for the mix, so the
+    // switch to noise doesn't click.
+    unvoicedAttack = 1.0f - std::exp(-1.0f / (0.002f * sampleRate));
+    unvoicedRelease = 1.0f - std::exp(-1.0f / (0.02f * sampleRate));
+    unvoicedGlide = 1.0f - std::exp(-1.0f / (0.005f * sampleRate));
     for (auto &v : voices) v.amp.setSampleRate(sampleRate);
     for (auto &e : eg) e.setSampleRate(sampleRate);
     lastCount = -1;
@@ -197,27 +279,52 @@ float Cipher::bandResonance(float q) const {
     return clampf((2.0f - 1.0f / wanted) / 1.96f, 0.0f, 0.995f);
 }
 
+// Everything that carries state goes back to how prepare() left it, so a
+// render after a panic doesn't depend on what was played before.
 void Cipher::reset() {
-    for (auto &v : voices) { v.used = false; v.gate = false; v.amp.kill(); }
+    for (auto &v : voices) {
+        v = Voice();
+        v.amp.setSampleRate(sampleRate);
+    }
     for (int i = 0; i < kMaxBands; ++i) {
         bands[i].analysis1.reset(); bands[i].analysis2.reset();
         bands[i].synthesis1.reset(); bands[i].synthesis2.reset();
         bands[i].envelope = 0.0f;
         bands[i].held = 0.0f;
     }
+    // The band layout and coefficients are solved again on the next block,
+    // since the edges hold on to small changes.
+    lastCount = -1;
+    lastLow = lastHigh = lastQ = -1.0f;
+    for (auto &k : lastBandKey) k = NAN;
+    shuffleSeed = -1;
     sibilanceFilter.reset();
     sibilanceShaper.reset();
     for (auto &e : eg) e.reset();
-    feedbackSample = 0.0f;
-    loudness = brightness = 0.0f;
+    for (auto &l : lfo) l = LfoGen();
+    lfoValue[0] = lfoValue[1] = 0.0f;
+    for (float &m : mod) m = 0.0f;
+    feedbackSample = feedbackLp = 0.0f;
+    loudness = brightness = trackedHz = trackedNote = 0.0f;
+    zeroPrev = 0.0f;
+    zeroCount = zeroWindow = 0;
+    sibilanceEnv = 0.0f;
+    unvoicedHigh.reset();
+    unvoicedLow.reset();
+    unvoicedHighEnv = unvoicedLowEnv = unvoicedMix = 0.0f;
+    unvoicedRng = kUnvoicedSeed;
+    rngState = kRngSeed;
     quietBlocks = 0;
     asleep = false;
+    updateMacros();
 }
 
 void Cipher::noteOn(uint8_t note, uint8_t velocity) {
     // The two mod envelopes belong to the machine, not a voice, so the first
     // note of a phrase starts them and notes added to a held chord don't.
     // tools/modsource_test.sh checks they run.
+    // A knob set in this block, before render, still counts.
+    updateMacros();
     bool held = false;
     for (const auto &cand : voices) if (cand.used && cand.gate) { held = true; break; }
     if (!held) for (auto &e : eg) e.retrigger();
@@ -234,11 +341,11 @@ void Cipher::noteOn(uint8_t note, uint8_t velocity) {
     v->note = note;
     v->bend = 0.0f;
     v->velocity = static_cast<float>(velocity) / 127.0f;
-    v->velGain = velocityGain(v->velocity, targetOf(VelocityAmount));
+    v->velGain = velocityGain(v->velocity, goalOf(VelocityAmount));
     v->key01 = clampf((static_cast<float>(note) - 24.0f) / 72.0f, 0.0f, 1.0f);
     v->target = noteHz(static_cast<float>(note));
     if (wasIdle) v->freq = v->target;
-    v->amp.set(0.0f, targetOf(AmpAttack), targetOf(AmpDecay), targetOf(AmpSustain), targetOf(AmpRelease), false);
+    v->amp.set(0.0f, goalOf(AmpAttack), goalOf(AmpDecay), goalOf(AmpSustain), goalOf(AmpRelease), false);
     v->amp.retrigger();
 }
 
@@ -364,6 +471,7 @@ float Cipher::carrierSample(Voice &v, float glideK, float detuneMul, float pitch
 
 bool Cipher::render(float *L, float *R, int32_t frames) {
     params_.tick();
+    updateMacros();
     applyMatrix(); // first, since the band edges can be modulated
     rebuildBands();
 
@@ -430,6 +538,9 @@ bool Cipher::render(float *L, float *R, int32_t frames) {
     const float glideK = glideSeconds <= 0.002f ? 1.0f
                                                 : clampf(invSampleRate / glideSeconds, 0.0f, 1.0f);
     const float noiseLevel = clampf(paramOf(NoiseLevel) + mod[DstNoise], 0.0f, 1.0f);
+    // Only with the input as the modulator: swapped, the input is what's
+    // heard and the oscillators are what's measured.
+    const float unvoiced = role == InputIsModulator ? paramOf(Unvoiced) : 0.0f;
     const float carrierDrive = paramOf(CarrierDrive);
     const float dry = paramOf(Dry), wet = paramOf(Wet);
     const float drive = clampf(paramOf(Drive) + mod[DstDrive], 0.0f, 1.0f);
@@ -447,7 +558,8 @@ bool Cipher::render(float *L, float *R, int32_t frames) {
     const bool track = steppedOf(PitchTrack) != 0;
     const float trackAmount = paramOf(TrackAmount);
     const float pitchScale = std::pow(2.0f, (bendSemis + paramOf(Octave) * 12.0f + paramOf(Transpose) +
-                                             paramOf(Fine) * 0.01f + mod[DstCarrierPitch] * 12.0f) / 12.0f);
+                                             paramOf(Fine) * 0.01f + mod[DstCarrierPitch] * 12.0f +
+                                             24.0f * mac_[McPitch]) / 12.0f);
 
     sibilanceFilter.set(paramOf(SibilanceHz), 0.4f);
     sibilanceShaper.set(paramOf(SibilanceHz), 0.25f);
@@ -510,6 +622,9 @@ bool Cipher::render(float *L, float *R, int32_t frames) {
             sibilanceFilter.reset();
             sibilanceShaper.reset();
             sibilanceEnv = feedbackLp = feedbackSample = 0.0f;
+            unvoicedHigh.reset();
+            unvoicedLow.reset();
+            unvoicedHighEnv = unvoicedLowEnv = unvoicedMix = 0.0f;
             loudness = brightness = 0.0f;
             asleep = true;
         }
@@ -538,7 +653,36 @@ bool Cipher::render(float *L, float *R, int32_t frames) {
             }
             carrier += carrierSample(v, glideK, detuneMul, pitchScale, waveA, waveB, mix, pw, sub) *
                        env * v.velGain;
-            ampSum += env;
+            ampSum += env * v.velGain;
+        }
+        // Unvoiced: while the modulator is on a consonant or a breath, the
+        // carrier gives way to noise at the level the notes are playing, so
+        // the bands have hiss to shape where the oscillators have little.
+        // It keeps running while the mix glides down after the knob reaches
+        // 0, so dropping it mid-consonant doesn't step.
+        if (unvoiced > 0.0f || unvoicedMix > 0.0f) {
+            const float hi = std::fabs(unvoicedHigh.highpass(external));
+            const float lo = std::fabs(unvoicedLow.lowpass(external));
+            unvoicedHighEnv += (hi - unvoicedHighEnv) * (hi > unvoicedHighEnv ? unvoicedAttack : unvoicedRelease);
+            unvoicedLowEnv += (lo - unvoicedLowEnv) * (lo > unvoicedLowEnv ? unvoicedAttack : unvoicedRelease);
+            const float share = unvoicedHighEnv / (unvoicedHighEnv + unvoicedLowEnv + 1e-9f);
+            const float u = clampf((share - kUnvoicedFrom) / (kUnvoicedTo - kUnvoicedFrom), 0.0f, 1.0f);
+            unvoicedMix += (u * u * (3.0f - 2.0f * u) * unvoiced - unvoicedMix) * unvoicedGlide;
+            // Settled at none rather than decaying into denormals.
+            if (unvoicedMix < 1e-6f) {
+                unvoicedMix = 0.0f;
+                // Off now, so it starts fresh when the knob comes back up.
+                if (unvoiced <= 0.0f) {
+                    unvoicedHigh.reset();
+                    unvoicedLow.reset();
+                    unvoicedHighEnv = unvoicedLowEnv = 0.0f;
+                }
+            }
+            if (unvoicedMix > 0.0f) {
+                unvoicedRng = unvoicedRng * 1664525u + 1013904223u;
+                const float noise = (static_cast<float>((unvoicedRng >> 9) & 0xffff) / 32768.0f) - 1.0f;
+                carrier += (noise * std::fmin(1.0f, ampSum) - carrier) * unvoicedMix;
+            }
         }
         if (noiseLevel > 0.0f) {
             rngState = rngState * 1664525u + 1013904223u;

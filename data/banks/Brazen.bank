@@ -1,205 +1,459 @@
-# Brazen - fourteen instruments, and they are meant to be telling apart.
+# Brazen - forty-eight brass patches in seven families, each in its own range,
+# each levelled, and each playing every note of that range.
 #
-# The bank this replaces had nine patches whose spectral centroids were 2427,
-# 2423 and 2422 Hz for Trombone, Trumpet and Growl - three names on one sound,
-# and seven of the nine between 2420 and 2800. Dan heard it before the harness
-# was asked the right question.
+# Families in tab order, plainest first in each and the strangest last:
 #
-# The right question, for this machine, is the harmonic ladder and not the
-# centroid, and Brazen's own section of the plan says so: "the centroid moves
-# only 614 to 645 Hz, because the fundamental grows with everything else; the
-# ladder is the evidence". `audition play Brazen Trumpet --ladder` prints it.
-# A tuba is a fundamental with two partials over it; a trumpet is an even
-# rolloff eight harmonics deep. That is the difference, and it is measurable.
+#   high      Init, the trumpets, cornet and piccolo (8)
+#   horn      horn, flugel, alto horn, euphonium, Wagner tuba (7)
+#   low       trombones, tubas, cimbasso, sousaphone (8)
+#   muted     straight, cup, bucket, harmon, practice and plunger mutes (7)
+#   section   two to four players on one note, and the growl (8)
+#   natural   valveless horns: bugle, post horn, alphorn, conch, ram horn (5)
+#   odd       too small, too big, all air, a swarm, a gargle (5)
 #
-# Three things move it, and the old bank varied none of them enough:
+# Every patch but Init carries eight named macros. Destinations are numbered
+# as in Brazen.h's MacroDest, so #7 is pressure, #33 swell, #35 flutter and
+# #37 pitch (one semitone is 0.0417). Every macro at full keeps the note
+# within a few cents of where it was; the loudest drops are the Wah and Mute
+# Tone macros (3-7 dB, the mute's band moving away from the notes), Loose on
+# the sections (3-5 dB, the players coming apart) and Short on Brass Hits.
+#
+# `swell` moves the breath from note-on: positive grows into the note,
+# negative is an accent that falls back into it, and a slur keeps it. Swells
+# here are moderate, since a note shorter than its swell never reaches its
+# own level. `flutter` chops the air at `flutterrate`; past about 0.6 it
+# costs more level than it adds, so the Flutter macros go to 0.4 from
+# nothing.
+#
+# **What makes the instruments different is the harmonic ladder, not the
+# centroid.** `audition play Brazen Trumpet --ladder` prints it: a tuba is a
+# fundamental with two partials over it, a trumpet an even rolloff eight or
+# ten harmonics deep. Three things move it:
 #
 #   size      the bore, 0 a tuba's wide slow one and 1 a trumpet's narrow one
-#   bell      how much of the wave comes back - and it is not a brightness
-#             slider. The ladder peaks around 0.6 and falls away on both
-#             sides: too open and nothing reflects to build a standing wave,
-#             too closed and the top of it is absorbed. The first draft of
-#             this bank put every bright instrument at 0.14 to 0.35, off the
-#             far edge, and made them all thin instead of bright
-#   brass     the shock front - and it only bites in the upper register, which
-#             is why a bank played at one pitch could not hear it at all
+#   bell      how much of the wave comes back, and not a brightness slider.
+#             The ladder peaks around 0.6 and falls away on both sides: too
+#             open and nothing reflects to build a standing wave, too closed
+#             and the top of it is absorbed
+#   brass     the shock front, which only bites in the upper register
 #
-# And the fourth is register. These do not transpose: a preset that silently
-# moves the keyboard is a preset that surprises you later. Each says the note
-# it is meant for instead, which is where `audition bank Brazen` plays it.
+# **`tension` is not a tone control.** It is how tight the lips are, which
+# decides which partial of the tube you are playing. Off 1 it detunes (0.7
+# plays 97 cents sharp at F4, 1.35 plays 997 sharp) and the ladder collapses.
+# Use it to pick a partial or leave it alone.
 #
-# One thing not to touch: `tension` is not a tone control. It is how tight the
-# lips are, and on a brass instrument that decides *which partial of the tube
-# you are playing* - which is how a bugle works. Moved off 1 it detunes:
-# measured at F4, tension 0.7 plays 97 cents sharp, 1.2 plays 55 flat and 1.35
-# plays 997 cents sharp, and the harmonic ladder collapses from twelve
-# harmonics to three or four every time, because the lips are fighting the
-# tube instead of driving it. Three patches here had it set for brightness and
-# all three were playing the wrong note. Use it to pick a partial deliberately
-# or leave it alone.
+# **A big horn is blown hard.** `bite`, `brass` and `pressure` are the lips
+# and the air, and a tuba takes more of both than a trumpet; what makes it
+# dark is `size`, `bell` and `cutoff`. Blown gently the low patches read
+# `hollow` -19 to -28, a tuba with its second harmonic under its third, and
+# take 300 ms or more to speak. Driven, a brass patch reads -8 to -16, and
+# the lips pull 10-20 cents flat, which `fine` carries.
 #
-# The other thing that had to be voiced, and could not be seen at all until
-# there was a column for it, is **how long a patch takes to speak**. A
-# waveguide builds a standing wave over hundreds of milliseconds at low
-# pitches, so a big instrument can be perfectly good on a held note and
-# produce almost nothing in a phrase. Measured against the level the note
-# settles at, the first draft read: Tuba 740 ms, Bass Trombone 550, Horn 520,
-# Trombone 310 - against notes 475 ms long. Three of them never reached half
-# volume before they were released, and what you heard was a burst of
-# excitation with no tube behind it, which is the "clicky, missing notes" Dan
-# reported. A shorter attack, more pressure and more bite bring them all
-# under 210 ms, and the ladder holds its gradient.
+# **How long a patch takes to speak** is voiced as carefully as its tone. A
+# waveguide builds its standing wave over hundreds of milliseconds at low
+# pitches, so a low patch with the machine's defaults (480 ms) gives a burst
+# of air with no tube behind it in a phrase. Everything here speaks within
+# 100 ms but the swell patches, which are named for it (Foghorn ~300 ms).
+# Seating the lips already tensioned at note-on does not help: it makes the
+# note take longer to build, not shorter.
 #
-# The machine's own defaults still take 480 ms, which is worth knowing before
-# anybody writes a low patch from Init.
+# The natural horns let go in a tenth of a second or less. Their tunes are
+# short tongued notes, and a longer release rings under the next note at
+# the old pitch, which is heard as the new note out of tune.
 #
-# **The click on the front of a note** was the third thing that had to be
-# voiced and the third that no existing number could see. It is not an
-# overshoot - these measured well *under* the tone they settle into - it is a
-# burst of high frequency the body of the sound never has, and the darker the
-# instrument the more it sticks out.
+# **A mute is a filter, not a volume knob.** Straight takes the body out,
+# cup the edge, harmon nearly everything but the upper partials. Their
+# volumes go up to 1.4 to stay level, and Straight Mute, Harmon and Muted
+# Trombone vary 15-17 dB across a range: the mute's own resonance decides how
+# much of each note gets out.
 #
-# **And it was the machine's, not the bank's.** The right way to see it is the
-# first pass down the tube: at note-on the line is empty, so nothing comes out
-# of the bell until the wave has been down and back - 11.7 ms on this tuba,
-# 5.7 on the horn - and what arrives then has been round the loop *once*. The
-# settled tone has been round it hundreds of times. Measured as the ratio
-# between the two above 1.5 kHz, the machine read Tuba 24.7x, Horn 24.1x,
-# Trombone 11.5x and Trumpet 0.9x - which is Dan's complaint list in order,
-# and the reason the trumpet was never on it.
+# **The players in a section have their own tubes, and they sum.** With
+# `lock` high they sit within a few cents of each other, so a `scatter` of
+# even 2 ms starts them at random phases and the note comes out anywhere in
+# a 10-15 dB window, with the beating read as 30-60 cents of tuning. The
+# locked sections start together (`scatter` 0) and come apart through
+# `spread` and `drift`; Shambles and Hornet, loosely locked, scatter on
+# purpose. Width 0.7 is the most a section takes before it loses level
+# summed to mono.
 #
-# Four things were wrong and all four are fixed in the machine:
+# Notes down to about 22 play their fundamental in tune. The tubas, cimbasso,
+# sousaphone and Foghorn still stop at G1 (31), the bottom of their ranges.
 #
-#   - the mouth pressure was worked out once per 64-frame block and held, so
-#     a 50 ms attack went into the tube as 37 treads of 4% each - a 750 Hz
-#     sawtooth on the front of every note
-#   - the line length is solved once a block too, and it moves while a note
-#     starts, so the read pointer walked about seventeen samples in a hundred
-#     discrete jumps
-#   - the lip follower was one symmetric pole at a fixed 34.7 ms. A one-pole
-#     chasing an input that is still growing settles at a fraction of it, so
-#     the valve spent every onset some three times further open than the note
-#     it was playing. It counts in cycles now, three up and twelve down
-#   - and the hiss was flat to Nyquist, which no airstream is
+# The demo is `role tune`, a melody that stays inside each range. On a
+# range narrower than the tune its high answer is sung lower in the same
+# scale, so every note is still a note of the tune's key.
 #
-# It now reads Tuba 2.1x, Horn 4.6x, Trombone 4.5x, Trumpet 0.2x, and the
-# onset edge column across the whole bank is 2.4x at worst against 5.3x.
-#
-# **So the low-pass came off.** It was chosen to tame that onset and says so
-# above; the onset is gone at the source, and the filter was costing the dark
-# instruments their body for nothing. Tuba 850 Hz to 1600, Bass Trombone 2000
-# to 3200, Trombone 3000 to 5000, Horn 3400 to 4800, Cup Mute 2400 to 3200.
-# What is left is chosen for tone, which is its job.
-#
-# One idea recorded so nobody spends a day on it: seating the lips already
-# tensioned at note-on. The valve sits at its full resting width for the first
-# pass because the follower is a measurement and there is nothing yet to
-# measure, so pre-tensioning looks like the fix. It is not - every e-fold by
-# which the injection is reduced costs a fixed slice of time, and the note
-# simply takes longer to build. Seating the tuba at 20% of its resting width
-# put its excess *up* from 3.6x to 23.1x and its speak time from 70 ms to 180.
-#
-# The ladder is a clean gradient now and is the thing to protect: Tuba 4,
-# Bass Trombone 4, Trombone 5, Horn 5, Flugel 5, Cornet 6, Trumpet 10,
-# Piccolo 11, Harmon 12.
-#
-# **The big instruments were being blown as gently as they look**, and that
-# was the last thing wrong with this bank. A column for it arrived with the
-# woodwinds: `hollow` is the even harmonics against the odd ones in decibels,
-# and a brass instrument's series is complete, so anything past about -15
-# means the lips are barely working. The dark half of this bank read -19 to
-# -28 - a tuba with its second harmonic *under* its third, which is a
-# clarinet's signature and not a tuba's - because `bite`, `brass` and
-# `pressure` had all been graded by the size of the instrument. They are the
-# lips and the air, and a tuba takes more of both than a trumpet; what makes
-# it dark is the bore and the bell, which is where `size`, `bell` and
-# `cutoff` already put it. Driven properly the dark seven read -11 to -15
-# with the same centroids they had, the ladder gains a harmonic or two each,
-# and Section and Shambles went from 120 and 330 ms to speak down to 70 and
-# 80. It cost 11 to 18 cents of pitch, which `fine` carries - the lips pull
-# flat as they are leaned on, here as anywhere.
-#
-# `audition sweep Brazen` plays every note of every range and names the dead
-# ones and the ones on the wrong partial. All 428 pass, and the tuning holds
-# within 12 cents across a range except where a patch detunes itself on
-# purpose (Section, Shambles, Fanfare). Straight Mute and Harmon vary 14 and
-# 16 dB across a range, which is a mute's own resonance deciding how much of
-# each note gets out, and is what a mute does.
-#
-# Levelled to about -20 dB RMS. The harmon sits 6 dB under it at its volume's
-# maximum and no amount of knob will fetch it back, because most of the
-# instrument is not coming out of the bell any more - which is what a mute is.
-#
-# Shambles still reads 330 ms to speak on a single note. Four players
-# scattered over 85 ms behind a 70 ms attack is the patch, not a fault.
-#
-# And they are auditioned with a melody rather than one held note - `role
-# tune` - because one note is what one note sounds like. Every patch in the
-# bank this replaces passed a held note and they were still indistinguishable
-# in a phrase.
+# Levelled on `loud` to between -25.8 and -25.5 dB, the level Init lands at.
+# `audition sweep Brazen` plays every note of every range (1248): none dead,
+# none on the wrong partial. What reads oddly on purpose: Foghorn's and Hornet's `hollow` (-30,
+# the swell still rising and the flutter's sidebands), Air Leak's breath.
 #
 # Values are in each parameter's own units; `audition params Brazen` lists them.
 
 machine Brazen
 role    tune
 
-patch Init family=horn
+patch Init family=high
 
-patch Tuba family=low  note=41 range=29..53
-  # The widest bore and the dullest bell, blown gently. Two partials over the
-  # fundamental and nothing above them.
-  size           0.03
-  bell           0.88
+patch Trumpet family=high  note=62 range=52..82
+  # Narrow bore, open bell, leant on. Eight harmonics and an even rolloff -
+  # the thing the tuba is not.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Growl"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.2
+  mac2_d2  #9
+  mac2_a2  0.15
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.35
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #11
+  mac8_a1  0.4
+  size           0.95
+  bell           0.58
+  brass          0.78
+  pressure       0.9
+  lipdamp        0.62
+  bite           0.6
+  attack         0.014 s
+  vibrato        8 cents
+  vibratodelay   0.5 s
+  breath         0.08
+  volume         0.57
+  fine           4 cents
+
+patch "C Trumpet" family=high  note=64 range=54..84
+  # A little shorter than the trumpet and a little harder, so it sits on top
+  # of a band rather than in it.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Growl"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #11
+  mac8_a1  0.4
+  size           0.98
+  bell           0.6
+  brass          0.8
+  pressure       0.9
+  lipdamp        0.65
+  bite           0.62
+  attack         0.012 s
+  vibrato        6 cents
+  vibratodelay   0.4 s
+  breath         0.07
+  fine           5 cents
+  volume         0.57
+
+patch Cornet family=high  note=60 range=52..77
+  # Between the flugel and the trumpet, which is exactly what it is.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Soft Attack"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #18
+  mac8_a1  0.15
+  mac8_d2  #7
+  mac8_a2  -0.08
+  size           0.72
+  bell           0.62
   brass          0.62
-  pressure       0.88
-  lipdamp        0.45
-  bite           0.9
-  attack         0.05 s
-  release        0.32 s
-  vibrato        2 cents
-  # Breath right off. At the default 0.15 the noise sat *above* the tone in
-  # the band brightness is measured over and the tuba read 3795 Hz - brighter
-  # than the piccolo. A big instrument blown gently is nearly all fundamental
-  # and the hiss has nowhere to hide behind.
-  breath         0
-  fine           13 cents
-  volume         0.71
+  pressure       0.85
+  bite           0.72
+  attack         0.022 s
+  vibrato        7 cents
+  breath         0.06
+  fine           8 cents
+  volume         0.59
 
-  cutoff         1600 Hz
-patch "Bass Trombone" family=low  note=43 range=34..58
-  # Still wide, but the bell lets more out than a tuba's and it is blown
-  # harder, so the ladder reaches further before it gives up.
-  size           0.16
-  bell           0.76
-  brass          0.68
-  pressure       0.88
+patch "Rotary Trumpet" family=high  note=62 range=52..80
+  # The round, dark one: a wider bell throat and no vibrato, played into a
+  # hall rather than at the audience.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Soft Attack"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #18
+  mac8_a1  0.15
+  mac8_d2  #7
+  mac8_a2  -0.08
+  size           0.84
+  bell           0.72
+  brass          0.5
+  pressure       0.85
   lipdamp        0.5
-  bite           0.88
-  attack         0.04 s
-  glide          0.09 s
-  vibrato        4 cents
-  breath         0.03
-  fine           15 cents
-  volume         0.70
-
-  cutoff         3200 Hz
-patch Trombone family=low  note=48 range=40..67
-  # The slide is the glide, and it is the only thing here that has one worth
-  # hearing: a trombone gets between two notes rather than stepping.
-  size           0.3
-  bell           0.66
-  brass          0.72
-  pressure       0.88
-  lipdamp        0.55
-  bite           0.82
-  attack         0.028 s
-  glide          0.12 s
-  vibrato        5 cents
+  bite           0.75
+  attack         0.024 s
+  vibrato        0 cents
   breath         0.04
-  fine           18 cents
-  volume         0.64
+  fine           10 cents
+  volume         0.55
+  cutoff         3800 Hz
+  send reverb    0.15
 
-  cutoff         5000 Hz
+patch "Lead Trumpet" family=high  note=67 range=58..86
+  # The top chair of a big band: everything leant on, a quick wide vibrato
+  # on the long notes.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Fall Off"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Bark"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  -0.3
+  mac4_d2  #34
+  mac4_a2  0.15
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #10
+  mac8_a1  0.2
+  mac8_d2  #29
+  mac8_a2  0.25
+  size           1
+  bell           0.6
+  brass          0.95
+  pressure       0.95
+  lipdamp        0.7
+  bite           0.66
+  attack         0.008 s
+  vibrato        12 cents
+  vibratorate    5.5 Hz
+  vibratodelay   0.3 s
+  breath         0.06
+  drive          0.15
+  fine           7 cents
+  volume         0.55
+
+patch Piccolo family=high  note=70 range=64..91
+  # The same instrument again, shorter and harder, up where it screams. The
+  # top of the machine's range and the top of the bank's.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Growl"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #11
+  mac8_a1  0.4
+  size           1
+  bell           0.64
+  brass          0.9
+  pressure       0.98
+  lipdamp        0.7
+  bite           0.75
+  attack         0.008 s
+  vibrato        6 cents
+  breath         0.1
+  fine           11 cents
+  volume         0.56
+
+patch "Late Set" family=high  note=62 range=52..80
+  # A small-room jazz trumpet: one voice that slides into its notes, a slow
+  # wide vibrato and a lot of air.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Slide"
+  set macro8 "Growl"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #27
+  mac7_a1  0.25
+  mac8_d1  #11
+  mac8_a1  0.4
+  mono           #1
+  glide          0.08 s
+  swell          0.2
+  swelltime      0.3 s
+  size           0.92
+  bell           0.6
+  brass          0.6
+  pressure       0.86
+  lipdamp        0.55
+  bite           0.65
+  attack         0.02 s
+  vibrato        18 cents
+  vibratorate    4.5 Hz
+  vibratodelay   0.25 s
+  breath         0.14
+  fine           6 cents
+  volume         0.51
+  send reverb    0.2
+
 patch Horn family=horn  note=53 range=41..72
   # Bell high and the bore wide: a horn is played into its own bell and that
   # is why it is the mellow one.
@@ -209,6 +463,42 @@ patch Horn family=horn  note=53 range=41..72
   # which is the model working, since the players really do listen to one
   # another, but a preset should not have a hole in it. Section and Shambles
   # are where the ensemble lives.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Soft Attack"
+  mac1_d1  #7
+  mac1_a1  0.12
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.3
+  mac2_d2  #9
+  mac2_a2  0.1
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.1
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #35
+  mac7_a1  0.5
+  mac8_d1  #18
+  mac8_a1  0.15
+  mac8_d2  #7
+  mac8_a2  -0.1
+  swell          0.3
+  swelltime      0.5 s
   size           0.34
   bell           0.8
   brass          0.6
@@ -222,11 +512,47 @@ patch Horn family=horn  note=53 range=41..72
   breath         0.05
   fine           12 cents
   volume         0.62
-
   cutoff         4800 Hz
+
 patch Flugel family=horn  note=58 range=52..77
   # A trumpet's pitch through a horn's bore. The one that shows size and
   # register are separate things.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Soft Attack"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #18
+  mac8_a1  0.15
+  mac8_d2  #7
+  mac8_a2  -0.08
   size           0.55
   bell           0.72
   brass          0.55
@@ -239,52 +565,725 @@ patch Flugel family=horn  note=58 range=52..77
   fine           7 cents
   volume         0.61
 
-patch Cornet family=high  note=60 range=52..77
-  # Between the flugel and the trumpet, which is exactly what it is.
-  size           0.72
-  bell           0.62
-  brass          0.62
-  pressure       0.85
-  bite           0.72
-  attack         0.022 s
-  vibrato        7 cents
-  breath         0.06
-  fine           11 cents
-  volume         0.59
-
-patch Trumpet family=high  note=62 range=52..82
-  # Narrow bore, open bell, leant on. Eight harmonics and an even rolloff -
-  # the thing the tuba is not.
-  size           0.95
-  bell           0.58
-  brass          0.78
-  pressure       0.9
-  lipdamp        0.62
-  bite           0.6
-  attack         0.014 s
-  vibrato        8 cents
-  vibratodelay   0.5 s
-  breath         0.08
-  volume         0.57
-
-patch Piccolo family=high  note=70 range=64..91
-  # The same instrument again, shorter and harder, up where it screams. The
-  # top of the machine's range and the top of the bank's.
-  size           1
-  bell           0.64
-  brass          0.9
-  pressure       0.98
-  lipdamp        0.7
+patch "Alto Horn" family=horn  note=55 range=48..74
+  # The band's middle voice: a horn's roundness with a valve trumpet's
+  # quickness, and less bell than either.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Soft Attack"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #18
+  mac8_a1  0.15
+  mac8_d2  #7
+  mac8_a2  -0.08
+  size           0.45
+  bell           0.7
+  brass          0.55
+  pressure       0.84
+  lipdamp        0.45
   bite           0.75
-  attack         0.008 s
-  vibrato        6 cents
-  breath         0.1
-  fine           11 cents
-  volume         0.56
+  attack         0.03 s
+  vibrato        4 cents
+  breath         0.05
+  fine           13 cents
+  volume         0.6
+  cutoff         4500 Hz
+
+patch Euphonium family=horn  note=50 range=40..70
+  # A tenor tuba: a wide bore and a warm, singing middle, with vibrato for
+  # the solo line.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Soft Attack"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #18
+  mac8_a1  0.15
+  mac8_d2  #7
+  mac8_a2  -0.08
+  size           0.22
+  bell           0.78
+  brass          0.6
+  pressure       0.87
+  lipdamp        0.45
+  bite           0.85
+  attack         0.035 s
+  vibrato        7 cents
+  vibratodelay   0.4 s
+  breath         0.03
+  fine           18 cents
+  volume         0.62
+  cutoff         3500 Hz
+
+patch "Wagner Tuba" family=horn  note=48 range=38..65
+  # A horn player's tuba: the horn's bell on a wider bore, veiled and
+  # solemn. No vibrato.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Bigger"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #1
+  mac8_a1  -0.12
+  mac8_d2  #2
+  mac8_a2  0.06
+  size           0.28
+  bell           0.84
+  brass          0.55
+  pressure       0.86
+  lipdamp        0.4
+  bite           0.82
+  attack         0.05 s
+  release        0.4 s
+  vibrato        0 cents
+  breath         0.03
+  fine           19 cents
+  volume         0.53
+  cutoff         2600 Hz
+  send reverb    0.2
+
+patch "Distant Horn" family=horn  note=53 range=41..72
+  # A horn across a valley: each note swells in from under its pitch and the
+  # bell is turned away.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Soft Attack"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #18
+  mac8_a1  0.15
+  mac8_d2  #7
+  mac8_a2  -0.08
+  swell          0.5
+  swelltime      0.9 s
+  size           0.34
+  bell           0.82
+  brass          0.45
+  pressure       0.86
+  lipdamp        0.42
+  bite           0.8
+  attack         0.07 s
+  release        0.6 s
+  vibrato        4 cents
+  breath         0.06
+  fine           16 cents
+  volume         0.48
+  cutoff         2800 Hz
+  send reverb    0.3
+
+patch "Horn Call" family=horn  note=55 range=43..74
+  # Bells up: an accent on every note that falls back into it, and one voice
+  # that rips between notes.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Fall Off"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Slide"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  -0.3
+  mac4_d2  #34
+  mac4_a2  0.15
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #27
+  mac8_a1  0.25
+  mono           #1
+  glide          0.05 s
+  swell          -0.3
+  swelltime      0.25 s
+  size           0.36
+  bell           0.74
+  brass          0.85
+  pressure       0.9
+  lipdamp        0.5
+  bite           0.8
+  attack         0.02 s
+  vibrato        3 cents
+  breath         0.05
+  fine           17 cents
+  volume         0.46
+  send reverb    0.25
+
+patch Trombone family=low  note=48 range=40..67
+  # The slide is the glide, and it is the only thing here that has one worth
+  # hearing: a trombone gets between two notes rather than stepping.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Slide"
+  set macro8 "Growl"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #27
+  mac7_a1  0.25
+  mac8_d1  #11
+  mac8_a1  0.4
+  size           0.3
+  bell           0.66
+  brass          0.72
+  pressure       0.88
+  lipdamp        0.55
+  bite           0.82
+  attack         0.028 s
+  glide          0.12 s
+  vibrato        5 cents
+  breath         0.04
+  fine           18 cents
+  volume         0.64
+  cutoff         5000 Hz
+
+patch "Valve Trombone" family=low  note=50 range=40..67
+  # A trombone with valves: the same tube, stepped between notes rather than
+  # slid, and a touch more edge.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Growl"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #11
+  mac8_a1  0.4
+  size           0.4
+  bell           0.58
+  brass          0.82
+  pressure       0.88
+  lipdamp        0.55
+  bite           0.8
+  attack         0.02 s
+  glide          0 s
+  vibrato        4 cents
+  breath         0.07
+  fine           16 cents
+  volume         0.64
+  cutoff         6000 Hz
+
+patch "Bass Trombone" family=low  note=43 range=34..58
+  # Still wide, but the bell lets more out than a tuba's and it is blown
+  # harder, so the ladder reaches further before it gives up.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Slide"
+  set macro8 "Growl"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #27
+  mac7_a1  0.25
+  mac8_d1  #11
+  mac8_a1  0.4
+  size           0.16
+  bell           0.76
+  brass          0.68
+  pressure       0.88
+  lipdamp        0.5
+  bite           0.88
+  attack         0.04 s
+  glide          0.09 s
+  vibrato        4 cents
+  breath         0.03
+  fine           15 cents
+  volume         0.70
+  cutoff         3200 Hz
+
+patch Tuba family=low  note=41 range=31..53
+  # The widest bore and the dullest bell, blown hard. A fundamental with two
+  # partials over it and little above them.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Soft Attack"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #18
+  mac8_a1  0.15
+  mac8_d2  #7
+  mac8_a2  -0.08
+  size           0.03
+  bell           0.88
+  brass          0.62
+  pressure       0.88
+  lipdamp        0.45
+  bite           0.9
+  attack         0.05 s
+  release        0.32 s
+  vibrato        2 cents
+  # Breath right off: a tuba is nearly all fundamental, so the hiss has
+  # nowhere to hide and at the default 0.15 read brighter than the piccolo.
+  breath         0
+  fine           16 cents
+  volume         0.71
+  cutoff         1600 Hz
+
+patch "Contrabass Tuba" family=low  note=38 range=31..50
+  # The biggest bore there is and the darkest bell, all floor.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Soft Attack"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #18
+  mac8_a1  0.15
+  mac8_d2  #7
+  mac8_a2  -0.08
+  size           0
+  bell           0.9
+  brass          0.66
+  pressure       0.92
+  lipdamp        0.42
+  bite           0.95
+  attack         0.06 s
+  release        0.35 s
+  vibrato        0 cents
+  breath         0
+  fine           17 cents
+  volume         0.78
+  cutoff         1200 Hz
+
+patch Cimbasso family=low  note=38 range=31..55
+  # A contrabass trombone on valves, its bell pointing forward: as low as the
+  # tuba with a trombone's edge.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Bark"
+  set macro8 "Growl"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #10
+  mac7_a1  0.2
+  mac7_d2  #29
+  mac7_a2  0.25
+  mac8_d1  #11
+  mac8_a1  0.4
+  size           0.1
+  bell           0.66
+  brass          0.8
+  pressure       0.92
+  lipdamp        0.55
+  bite           0.9
+  attack         0.04 s
+  vibrato        0 cents
+  breath         0.02
+  drive          0.1
+  fine           16 cents
+  volume         0.79
+  cutoff         2600 Hz
+
+patch Sousaphone family=low  note=36 range=31..53
+  # A tuba wrapped round a marching player: short, bouncy notes with the
+  # bell pointed at the street.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Soft Attack"
+  set macro8 "Growl"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #18
+  mac7_a1  0.15
+  mac7_d2  #7
+  mac7_a2  -0.08
+  mac8_d1  #11
+  mac8_a1  0.4
+  size           0.06
+  bell           0.7
+  brass          0.72
+  pressure       0.9
+  lipdamp        0.5
+  bite           0.9
+  attack         0.04 s
+  decay          0.4 s
+  sustain        0.7
+  release        0.15 s
+  vibrato        0 cents
+  breath         0.02
+  fine           20 cents
+  volume         0.94
+  cutoff         2200 Hz
+
+patch Tailgate family=low  note=48 range=40..67
+  # The old street-band trombone: every note a smear up from the last, a
+  # buzz in the lips and a wide shake on top.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Slide"
+  set macro8 "Growl"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #27
+  mac7_a1  0.25
+  mac8_d1  #11
+  mac8_a1  0.4
+  mono           #1
+  glide          0.22 s
+  growl          0.2
+  growlrate      30 Hz
+  size           0.3
+  bell           0.62
+  brass          0.82
+  pressure       0.9
+  lipdamp        0.6
+  bite           0.82
+  attack         0.02 s
+  vibrato        14 cents
+  vibratorate    6 Hz
+  vibratodelay   0.2 s
+  breath         0.06
+  fine           18 cents
+  volume         0.69
 
 patch "Straight Mute" family=muted  note=62 range=52..82
   # A mute is a filter here and not a volume knob. The straight one takes the
   # body out and leaves the edge.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Mute Tone"
+  set macro7 "Flutter"
+  set macro8 "Growl"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #4
+  mac6_a1  0.4
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #11
+  mac8_a1  0.4
   mute           #1
   mutetone       0.7
   size           0.9
@@ -295,11 +1294,46 @@ patch "Straight Mute" family=muted  note=62 range=52..82
   attack         0.016 s
   breath         0.09
   volume         1.06
-
   cutoff         4200 Hz
+  fine           3 cents
+
 patch "Cup Mute" family=muted  note=58 range=52..82
   # And the cup one takes the edge out and leaves the body: the same
   # instrument, the opposite half of it.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Mute Tone"
+  set macro7 "Flutter"
+  set macro8 "Growl"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #4
+  mac6_a1  0.4
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #11
+  mac8_a1  0.4
   mute           #2
   mutetone       0.3
   size           0.82
@@ -309,13 +1343,150 @@ patch "Cup Mute" family=muted  note=58 range=52..82
   bite           0.82
   attack         0.026 s
   breath         0.06
-  fine           16 cents
+  fine           13 cents
   volume         0.65
-
   cutoff         3200 Hz
+
+patch "Bucket Mute" family=muted  note=62 range=52..80
+  # A bucket of felt on the bell: no edge at all, a soft, velvety trumpet
+  # for ballads.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Mute Tone"
+  set macro7 "Flutter"
+  set macro8 "Soft Attack"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #4
+  mac6_a1  0.4
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #18
+  mac8_a1  0.15
+  mac8_d2  #7
+  mac8_a2  -0.08
+  mute           #2
+  mutetone       0.15
+  size           0.9
+  bell           0.68
+  brass          0.5
+  pressure       0.84
+  bite           0.7
+  attack         0.03 s
+  vibrato        6 cents
+  breath         0.08
+  fine           9 cents
+  volume         0.54
+  cutoff         2200 Hz
+
+patch "Muted Trombone" family=muted  note=50 range=40..67
+  # The trombone with a straight mute: buzzing and close, all middle.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Mute Tone"
+  set macro7 "Slide"
+  set macro8 "Growl"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #4
+  mac6_a1  0.4
+  mac7_d1  #27
+  mac7_a1  0.25
+  mac8_d1  #11
+  mac8_a1  0.4
+  mute           #1
+  mutetone       0.35
+  size           0.3
+  bell           0.62
+  brass          0.74
+  pressure       0.88
+  lipdamp        0.55
+  bite           0.82
+  attack         0.022 s
+  glide          0.1 s
+  vibrato        4 cents
+  breath         0.06
+  fine           16 cents
+  volume         1.38
+  cutoff         4000 Hz
+
 patch Harmon family=muted  note=62 range=52..82
   # The one everybody knows, and the reason the mutes are filters: it is all
   # upper partials and no fundamental to speak of.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Wah"
+  set macro7 "Flutter"
+  set macro8 "Growl"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #4
+  mac6_a1  0.6
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #11
+  mac8_a1  0.4
   mute           #3
   mutetone       0.65
   size           0.95
@@ -327,21 +1498,159 @@ patch Harmon family=muted  note=62 range=52..82
   vibrato        10 cents
   breath         0.12
   volume         1.17
-
   cutoff         5000 Hz
-patch Section family=ensemble  note=55 range=55..79
+
+patch "Practice Mute" family=muted  note=62 range=52..80
+  # Nearly sealed, so the neighbours can sleep: thin and nasal, with the
+  # player's air louder than it should be.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Mute Tone"
+  set macro7 "Flutter"
+  set macro8 "Growl"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #4
+  mac6_a1  0.4
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #11
+  mac8_a1  0.4
+  mute           #2
+  mutetone       0.8
+  size           0.95
+  bell           0.55
+  brass          0.6
+  pressure       0.85
+  bite           0.6
+  attack         0.016 s
+  vibrato        4 cents
+  breath         0.2
+  fine           4 cents
+  volume         0.64
+  cutoff         2400 Hz
+  resonance      0.5
+
+patch Plunger family=muted  note=60 range=52..80
+  # A rubber cup worked in front of the bell: the Wah macro opens it, and a
+  # growl in the throat under it.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Wah"
+  set macro7 "Flutter"
+  set macro8 "Growl"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #4
+  mac6_a1  0.6
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #11
+  mac8_a1  0.4
+  mute           #3
+  mutetone       0.3
+  growl          0.25
+  growlrate      38 Hz
+  size           0.92
+  bell           0.55
+  brass          0.7
+  pressure       0.88
+  bite           0.62
+  attack         0.018 s
+  vibrato        8 cents
+  breath         0.1
+  fine           5 cents
+  volume         1.1
+  cutoff         4500 Hz
+
+patch Section family=section  note=55 range=55..79
   # Four players, each a whole instrument with its own tube and its own idea
   # of the note, pulled tight together. Not one player detuned four times.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Loose"
+  set macro8 "Growl"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #15
+  mac7_a1  -0.5
+  mac7_d2  #16
+  mac7_a2  0.25
+  mac7_d3  #14
+  mac7_a3  0.15
+  mac8_d1  #11
+  mac8_a1  0.4
   players        #3
   lock           0.88
   spread         14 cents
-  scatter        22 ms
+  scatter        0 ms
   drift          8 cents
-  # 0.85 with the lips this far into their own clamp lost six decibels
-  # summed to mono: four players with four tunings are four uncorrelated
-  # sources, and the wider they sit the less of them survives a phone
-  # speaker. 0.7 reads +3.6 dB, which is what uncorrelated means rather
-  # than what cancelling means.
+  # Wider than 0.7 and the section loses level summed to mono, which is
+  # what a phone speaker does.
   width          0.7
   size           0.55
   bell           0.6
@@ -351,12 +1660,404 @@ patch Section family=ensemble  note=55 range=55..79
   attack         0.045 s
   breath         0.05
   fine           6 cents
-  volume         0.43
-
+  volume         0.17
   cutoff         4000 Hz
-patch Shambles family=ensemble  note=55 range=55..79
+
+patch "Horn Choir" family=section  note=53 range=41..70
+  # Four horns breathing in together: a slow swell on every note, bells
+  # turned away, the soft end of a brass section.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Loose"
+  set macro8 "Soft Attack"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #15
+  mac7_a1  -0.5
+  mac7_d2  #16
+  mac7_a2  0.25
+  mac7_d3  #14
+  mac7_a3  0.15
+  mac8_d1  #18
+  mac8_a1  0.15
+  mac8_d2  #7
+  mac8_a2  -0.08
+  players        #3
+  lock           0.8
+  spread         10 cents
+  scatter        0 ms
+  drift          6 cents
+  width          0.7
+  size           0.34
+  bell           0.8
+  brass          0.55
+  pressure       0.85
+  lipdamp        0.42
+  bite           0.78
+  attack         0.05 s
+  release        0.5 s
+  vibrato        3 cents
+  breath         0.04
+  fine           12 cents
+  volume         0.14
+  cutoff         3600 Hz
+  send reverb    0.25
+
+patch "Trombone Choir" family=section  note=48 range=40..67
+  # Three trombones and a bass trombone under them, close and warm, the
+  # chorale sound.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Loose"
+  set macro8 "Slide"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #15
+  mac7_a1  -0.5
+  mac7_d2  #16
+  mac7_a2  0.25
+  mac7_d3  #14
+  mac7_a3  0.15
+  mac8_d1  #27
+  mac8_a1  0.25
+  players        #3
+  lock           0.85
+  spread         12 cents
+  scatter        0 ms
+  drift          6 cents
+  width          0.7
+  size           0.3
+  bell           0.66
+  brass          0.7
+  pressure       0.88
+  lipdamp        0.55
+  bite           0.82
+  attack         0.035 s
+  release        0.35 s
+  glide          0.08 s
+  vibrato        3 cents
+  breath         0.04
+  fine           19 cents
+  volume         0.21
+  cutoff         4200 Hz
+  players        #2
+  send reverb    0.2
+
+patch "Big Band" family=section  note=62 range=55..82
+  # A trumpet section leant on hard, tight enough to hit together, a quick
+  # shake on the long notes.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Fall Off"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Loose"
+  set macro8 "Bark"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  -0.3
+  mac4_d2  #34
+  mac4_a2  0.15
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #15
+  mac7_a1  -0.5
+  mac7_d2  #16
+  mac7_a2  0.25
+  mac7_d3  #14
+  mac7_a3  0.15
+  mac8_d1  #10
+  mac8_a1  0.2
+  mac8_d2  #29
+  mac8_a2  0.25
+  players        #3
+  lock           0.9
+  spread         10 cents
+  scatter        0 ms
+  drift          6 cents
+  width          0.7
+  size           0.95
+  bell           0.6
+  brass          0.9
+  pressure       0.93
+  lipdamp        0.68
+  bite           0.65
+  attack         0.01 s
+  vibrato        10 cents
+  vibratorate    5.5 Hz
+  vibratodelay   0.3 s
+  breath         0.06
+  drive          0.1
+  fine           6 cents
+  volume         0.17
+
+patch Fanfare family=section  note=65 range=55..79
+  # Everything leant on at once. Brass at the top is the shock front, which is
+  # a rolloff eight deep rather than a bag of partials - and the reason it is
+  # a delay in the model and not a distortion.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Fall Off"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Loose"
+  set macro8 "Bark"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  -0.3
+  mac4_d2  #34
+  mac4_a2  0.15
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #15
+  mac7_a1  -0.5
+  mac7_d2  #16
+  mac7_a2  0.25
+  mac7_d3  #14
+  mac7_a3  0.15
+  mac8_d1  #10
+  mac8_a1  0.2
+  mac8_d2  #29
+  mac8_a2  0.25
+  size           1
+  bell           0.62
+  brass          1
+  pressure       0.93
+  lipdamp        0.68
+  bite           0.8
+  attack         0.01 s
+  players        #1
+  lock           0.9
+  spread         9 cents
+  vibrato        4 cents
+  breath         0.07
+  fine           14 cents
+  volume         0.47
+
+patch "Brass Hits" family=section  note=60 range=48..79
+  # Short hits for a horn line: four players on the same attack, the air
+  # cut off almost as soon as it starts.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Short"
+  set macro6 "Dark"
+  set macro7 "Loose"
+  set macro8 "Bark"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #19
+  mac5_a1  -0.2
+  mac5_d2  #20
+  mac5_a2  -0.3
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #15
+  mac7_a1  -0.3
+  mac7_d2  #16
+  mac7_a2  0.15
+  mac7_d3  #14
+  mac7_a3  0.1
+  mac8_d1  #10
+  mac8_a1  0.2
+  mac8_d2  #29
+  mac8_a2  0.25
+  players        #3
+  lock           0.92
+  spread         10 cents
+  scatter        0 ms
+  drift          4 cents
+  width          0.7
+  size           0.8
+  bell           0.6
+  brass          0.9
+  pressure       0.95
+  lipdamp        0.65
+  bite           0.75
+  attack         0.006 s
+  decay          0.15 s
+  sustain        0.6
+  release        0.08 s
+  vibrato        0 cents
+  breath         0.05
+  drive          0.15
+  fine           0 cents
+  volume         0.19
+  send reverb    0.12
+
+patch Growl family=section  note=58 range=55..77
+  # The player humming against their own note: sidebands on the air and on the
+  # lips at once, which is not a tremolo and does not sound like one.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Growl"
+  set macro8 "Grit"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #11
+  mac7_a1  0.2
+  mac7_d2  #12
+  mac7_a2  -0.15
+  mac8_d1  #29
+  mac8_a1  0.25
+  growl          0.75
+  growlrate      42 Hz
+  size           0.86
+  bell           0.56
+  brass          0.85
+  pressure       0.92
+  lipdamp        0.68
+  bite           0.65
+  drive          0.28
+  attack         0.018 s
+  breath         0.07
+  fine           10 cents
+  volume         0.83
+
+patch Shambles family=section  note=55 range=55..79
   # The same four with nobody listening to anybody. The `lock` knob is the one
   # control here a sampled library cannot have, and this is the far end of it.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Tighten"
+  set macro8 "Growl"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #15
+  mac7_a1  0.5
+  mac7_d2  #16
+  mac7_a2  -0.2
+  mac8_d1  #11
+  mac8_a1  0.4
   players        #3
   lock           0.03
   spread         48 cents
@@ -372,40 +2073,559 @@ patch Shambles family=ensemble  note=55 range=55..79
   breath         0.06
   fine           27 cents
   volume         0.28
-
   cutoff         4400 Hz
-patch Growl family=ensemble  note=58 range=55..77
-  # The player humming against their own note: sidebands on the air and on the
-  # lips at once, which is not a tremolo and does not sound like one.
-  growl          0.75
-  growlrate      42 Hz
-  size           0.86
-  bell           0.56
+
+patch Bugle family=natural  note=64 range=55..72
+  # No valves: a narrow range, played as calls, one voice that rips up to
+  # a note played over a held one.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Rip"
+  set macro8 "Flutter"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #27
+  mac7_a1  0.3
+  mac7_d2  #33
+  mac7_a2  0.25
+  mac8_d1  #35
+  mac8_a1  0.4
+  mac8_d2  #36
+  mac8_a2  0.1
+  mono           #1
+  glide          0.04 s
+  size           0.85
+  bell           0.6
+  brass          0.75
+  pressure       0.9
+  lipdamp        0.6
+  bite           0.65
+  attack         0.012 s
+  release        0.12 s
+  vibrato        0 cents
+  breath         0.07
+  fine           6 cents
+  volume         0.49
+  send reverb    0.15
+
+patch "Post Horn" family=natural  note=67 range=60..79
+  # A small coiled horn, bright and close, for a coach coming down the road.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Rip"
+  set macro8 "Flutter"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #27
+  mac7_a1  0.3
+  mac7_d2  #33
+  mac7_a2  0.25
+  mac8_d1  #35
+  mac8_a1  0.4
+  mac8_d2  #36
+  mac8_a2  0.1
+  mono           #1
+  glide          0.03 s
+  size           1
+  bell           0.64
   brass          0.85
   pressure       0.92
-  lipdamp        0.68
-  bite           0.65
-  drive          0.28
-  attack         0.018 s
-  breath         0.07
+  lipdamp        0.66
+  bite           0.7
+  attack         0.01 s
+  release        0.12 s
+  vibrato        0 cents
+  breath         0.08
   fine           10 cents
-  volume         0.86
+  volume         0.50
+  send reverb    0.15
 
-patch Fanfare family=ensemble  note=65 range=55..79
-  # Everything leant on at once. Brass at the top is the shock front, which is
-  # a rolloff eight deep rather than a bag of partials - and the reason it is
-  # a delay in the model and not a distortion.
+patch Alphorn family=natural  note=55 range=48..67
+  # A long wooden horn across a valley: wide and dark, each note swelling
+  # in gently, the hall doing half the work.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Rip"
+  set macro8 "Soft Attack"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #27
+  mac7_a1  0.3
+  mac7_d2  #33
+  mac7_a2  0.25
+  mac8_d1  #18
+  mac8_a1  0.15
+  mac8_d2  #7
+  mac8_a2  -0.08
+  mono           #1
+  glide          0.1 s
+  swell          0.15
+  swelltime      0.25 s
+  size           0.25
+  bell           0.82
+  brass          0.5
+  pressure       0.86
+  lipdamp        0.42
+  bite           0.82
+  attack         0.06 s
+  release        0.08 s
+  vibrato        0 cents
+  breath         0.05
+  fine           19 cents
+  volume         0.42
+  cutoff         2600 Hz
+  send reverb    0.35
+
+patch Conch family=natural  note=55 range=48..62
+  # A shell blown like a horn: few partials, a lot of air, and a slurred
+  # note that bends in from under itself.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Rip"
+  set macro8 "Air"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #27
+  mac7_a1  0.3
+  mac7_d2  #33
+  mac7_a2  0.25
+  mac8_d1  #8
+  mac8_a1  0.25
+  mac8_d2  #7
+  mac8_a2  -0.04
+  mono           #1
+  glide          0.15 s
+  swell          0.15
+  swelltime      0.2 s
+  size           0.2
+  bell           0.88
+  brass          0.3
+  pressure       0.86
+  lipdamp        0.4
+  bite           0.85
+  attack         0.05 s
+  release        0.08 s
+  vibrato        0 cents
+  breath         0.25
+  fine           21 cents
+  volume         0.44
+  cutoff         1800 Hz
+  send reverb    0.25
+
+patch "Ram Horn" family=natural  note=62 range=55..70
+  # A rough animal horn, blown in blasts: every note hit hard and falling
+  # back, rips between held notes, a rasp in the lips.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Fall Off"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Rip"
+  set macro8 "Growl"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  -0.3
+  mac4_d2  #34
+  mac4_a2  0.15
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #27
+  mac7_a1  0.3
+  mac7_d2  #33
+  mac7_a2  0.25
+  mac8_d1  #11
+  mac8_a1  0.3
+  mono           #1
+  glide          0.12 s
+  swell          -0.4
+  swelltime      0.3 s
+  growl          0.15
+  growlrate      30 Hz
+  size           0.7
+  bell           0.5
+  brass          0.9
+  pressure       0.92
+  lipdamp        0.66
+  bite           0.65
+  attack         0.015 s
+  release        0.12 s
+  vibrato        0 cents
+  breath         0.1
+  drive          0.2
+  fine           9 cents
+  volume         0.43
+  send reverb    0.2
+
+patch "Tin Horn" family=odd  note=74 range=67..91
+  # A horn too small to be anything but a toy: thin, nasal, and very sure of
+  # itself.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Mute Tone"
+  set macro7 "Flutter"
+  set macro8 "Smaller"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #4
+  mac6_a1  -0.4
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #2
+  mac8_a1  -0.1
+  mute           #1
+  mutetone       0.9
   size           1
-  bell           0.62
-  brass          1
+  bell           0.42
+  brass          0.85
+  pressure       0.92
+  lipdamp        0.7
+  bite           0.6
+  attack         0.008 s
+  vibrato        5 cents
+  breath         0.1
+  fine           4 cents
+  volume         0.52
+
+patch Foghorn family=odd  note=36 range=31..48
+  # A horn too big to carry: two players on one long note that swells up out
+  # of nothing and hangs in the air.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Tide"
+  set macro8 "Growl"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #34
+  mac4_a1  0.12
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #34
+  mac7_a1  0.25
+  mac7_d2  #21
+  mac7_a2  0.15
+  mac8_d1  #11
+  mac8_a1  0.4
+  players        #1
+  lock           0.6
+  spread         8 cents
+  drift          6 cents
+  width          0.6
+  swell          0.6
+  swelltime      1.2 s
+  size           0
+  bell           0.9
+  brass          0.66
+  pressure       0.92
+  lipdamp        0.42
+  bite           0.95
+  attack         0.3 s
+  release        1.5 s
+  vibrato        0 cents
+  breath         0.03
+  fine           19 cents
+  volume         0.44
+  cutoff         1400 Hz
+  scatter        0 ms
+  send reverb    0.35
+
+patch "Air Leak" family=odd  note=60 range=50..74
+  # Blown more through than into: the air louder than the note, the tone
+  # coming and going under it.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Air"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Flutter"
+  set macro8 "Soft Attack"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac3_d2  #7
+  mac3_a2  -0.05
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #35
+  mac7_a1  0.4
+  mac7_d2  #36
+  mac7_a2  0.1
+  mac8_d1  #18
+  mac8_a1  0.15
+  mac8_d2  #7
+  mac8_a2  -0.08
+  swell          0.3
+  swelltime      0.5 s
+  size           0.7
+  bell           0.66
+  brass          0.4
+  pressure       0.8
+  lipdamp        0.5
+  bite           0.7
+  attack         0.04 s
+  release        0.4 s
+  vibrato        6 cents
+  breath         0.7
+  fine           7 cents
+  volume         0.49
+  send reverb    0.2
+
+patch Hornet family=odd  note=64 range=55..82
+  # Four trumpets flutter-tongued at once and out of step: a swarm.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Rate"
+  set macro8 "Loose"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #36
+  mac7_a1  -0.4
+  mac8_d1  #15
+  mac8_a1  -0.5
+  mac8_d2  #16
+  mac8_a2  0.25
+  mac8_d3  #14
+  mac8_a3  0.15
+  flutter        0.4
+  flutterrate    32 Hz
+  players        #1
+  lock           0.5
+  spread         20 cents
+  scatter        30 ms
+  drift          12 cents
+  width          0.7
+  size           0.95
+  bell           0.6
+  brass          0.85
+  pressure       0.92
+  lipdamp        0.66
+  bite           0.65
+  attack         0.012 s
+  vibrato        0 cents
+  breath         0.06
+  fine           12 cents
+  volume         0.5
+
+patch Gargle family=odd  note=55 range=45..72
+  # The growl turned all the way up and driven: a horn with gravel in it.
+  set macro1 "Blow"
+  set macro2 "Brassy"
+  set macro3 "Breathy"
+  set macro4 "Swell"
+  set macro5 "Vibrato"
+  set macro6 "Dark"
+  set macro7 "Gargle"
+  set macro8 "Grit"
+  mac1_d1  #7
+  mac1_a1  0.08
+  mac1_d2  #10
+  mac1_a2  0.15
+  mac2_d1  #10
+  mac2_a1  0.25
+  mac2_d2  #9
+  mac2_a2  0.12
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac4_d1  #33
+  mac4_a1  0.2
+  mac4_d2  #34
+  mac4_a2  0.1
+  mac5_d1  #22
+  mac5_a1  0.2
+  mac5_d2  #24
+  mac5_a2  -0.15
+  mac6_d1  #25
+  mac6_a1  -0.3
+  mac7_d1  #12
+  mac7_a1  0.3
+  mac8_d1  #29
+  mac8_a1  0.3
+  growl          1
+  growlrate      24 Hz
+  size           0.6
+  bell           0.56
+  brass          0.95
   pressure       0.93
   lipdamp        0.68
-  bite           0.8
-  attack         0.01 s
-  players        #1
-  lock           0.9
-  spread         9 cents
-  vibrato        4 cents
-  breath         0.07
-  fine           14 cents
-  volume         0.47
+  bite           0.7
+  attack         0.015 s
+  breath         0.08
+  drive          0.5
+  fine           17 cents
+  volume         0.92

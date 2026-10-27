@@ -33,8 +33,26 @@ class Fret final : public Machine {
         Drive, Feedback,
         Voices, VelocityAmount, BendRange, Octave, Volume,
         Ring,
-        Count
+        // A volume-knob fade-in: each note rises from silence over this
+        // many seconds. 0 is off.
+        Swell,
+        // Eight macro knobs, each with four routes: a destination (a
+        // MacroDest) and a depth. A macro's knob times a route's depth is
+        // added to the destination, in its own 0..1 range. Block rate. Pitch
+        // is 24 semitones per unit.
+        MacroBase,
+        MacroParams = 9, // knob, 4 destinations, 4 depths
+        Count = MacroBase + 8 * MacroParams
     };
+    // Where a macro route goes. Continuous params only: the model, pickups,
+    // coil, stroke, harmonic, direction, voices and the tuning are left out.
+    enum MacroDest : int32_t {
+        McOff, McTone, McHardness, McPosition, McMute, McSustain, McBright, McBuzz,
+        McStrum, McSlide, McVibrato, McDrive, McFeedback, McVelocity, McVolume, McRing, McSwell,
+        McPitch,
+        MacroDestCount
+    };
+    static constexpr int kMacros = 8;
     static_assert(Count <= kMaxParams, "too many parameters");
 
     enum Kind : int32_t { Guitar = 0, Twelve, Baritone, Bass, Bass5, Hollow, Steel, Fretless, KindCount };
@@ -85,6 +103,10 @@ class Fret final : public Machine {
         float level = 0.0f;
         int quietBlocks = 0;
         uint32_t age = 0;
+        /** The volume-knob swell: how far up it is (0..1) and how far a sample moves it. */
+        float swellPos = 1.0f, swellStep = 0.0f;
+        /** The pitch macro the strings are tuned for, in its 0..1 units. */
+        float macPitch = 0.0f;
     };
     /** A note waiting its turn in a strum. */
     struct Waiting {
@@ -93,7 +115,16 @@ class Fret final : public Machine {
         bool placed = false;
     };
 
-    float paramOf(int32_t i) const { return params_.get(i); }
+    /** Param [p], smoothed, with the macros' routes to it added. */
+    float paramOf(int32_t p) const { return val(p, false); }
+    /** Param [p]'s target with the macros' targets added, for note-on seeds. */
+    float goalOf(int32_t p) const { return val(p, true); }
+    float val(int32_t p, bool goal) const;
+    /** Fills [mac_] from the smoothed macro knobs and [macGoal_] from their targets. */
+    void updateMacros();
+    /** Fills [macGoal_] alone, for a note-on between blocks. */
+    void updateMacroGoals();
+    float read(int32_t p, bool goal) const { return goal ? params_.target(p) : params_.get(p); }
     Voice *voiceFor(uint8_t note);
     void start(uint8_t note, uint8_t velocity);
     void shapeStroke(Voice &v);
@@ -126,6 +157,7 @@ class Fret final : public Machine {
     uint32_t clock = 0;
     int32_t quietSamples = 0;
     bool asleep = true;
+    float mac_[MacroDestCount]{}, macGoal_[MacroDestCount]{};
 };
 
 } // namespace acidulous::machine

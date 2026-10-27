@@ -6,6 +6,8 @@
 #
 #   m|<slot>|<type>[|mono]     a module in a slot
 #   c|<slot>.<port>|<slot>.<port>|<depth>
+#   c|<slot>.<port>|<slot>.<port>|<a>|<b>|<slot>.<port>|<amount>
+#                              a cable whose depth a third jack turns up
 #
 # Knobs are ordinary parameters, `sNN_pM`, and a patch names only the ones it
 # wants different: everything else takes the module's own default. That is new
@@ -16,21 +18,32 @@
 # because enumerating them was thought to need the engine over JNI. It does
 # not: the graph is text.
 #
-# Families: basic, house, macro, morph, generative, texture.
+# Families in tab order: lead 10, bass 10, pad 12, house 16, percussion 10,
+# generative 14, morph 10 and texture 14. Init is first, so lead is the first
+# tab. Within a family they run plainest to strangest.
 #
-# The last six use the modules lifted from the other machines and the insert
-# effects: Brazen's horn, Tongue's reed through Diction's throat, Formulate's
+# Some generative and texture patches have no voice module and play
+# themselves from the transport. The morph patches are built around A->B:
+# their cables carry an A and a B depth and the play card's A->B knob turns
+# from one to the other.
+#
+# A text depth on a `c|` line is not what plays: the first 24 cables take
+# their depths from the parameters cNN_a and cNN_b, which start at 1. A patch
+# that wants another depth sets those.
+#
+# The house patches use the modules lifted from the other machines and the
+# insert effects: Brazen's horn, Tongue's reed through Diction's throat, Formulate's
 # expressions (the `e|` line is the formula module's text), Molt's ear
 # playing Hammer, and Draw's reed beside Timber's pipe.
 #
-# The spread across this bank is wide on purpose. Plucked, Rotor String and
-# Listening are a struck string and a grain cloud among held notes: `loud` is
-# the loudest four hundred milliseconds, and a pluck spends most of that
-# window decaying. Their peaks sit with everything else.
+# Levels: held and pattern patches sit at -24.5 dB on `loud`, the loudest
+# four hundred milliseconds. A pluck spends most of that window decaying, so
+# the plucks stop where their peak reaches -8 dBFS and sit lower. Drums are
+# levelled by their peaks. Gain past the top of volume is an Eq insert.
 
 machine Nexus
 
-patch Init family=basic
+patch Init family=lead
   # A voice, not a drone. An oscillator wired straight to the output is the
   # smallest graph that makes a noise, and it was Init until it had to set the
   # house level: with no envelope it sounds at full level forever, which is
@@ -39,27 +52,1585 @@ patch Init family=basic
   # would actually keep - oscillator, filter, envelope, amplifier.
   set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|filter\nm|3|env\nm|4|vca\nm|5|out|mono\nc|1.0|2.0|1.0\nc|2.0|4.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0"
 
-patch Subtractive family=basic
+patch Subtractive family=lead
   # The patch everybody builds first, so it is here already: an oscillator
   # through a filter, opened by an envelope.
-  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|filter\nm|3|env\nm|4|vca\nm|5|out|mono\nc|1.0|2.0|1.0\nc|2.0|4.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0"
+  # The macros reach it through cables that carry nothing at 0, so with
+  # every macro down this is still the plain patch.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|filter\nm|3|env\nm|4|vca\nm|5|out|mono\nc|1.0|2.0|1.0\nc|2.0|4.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0\nm|6|macro|mono\nm|7|lfo|mono\nm|8|delay|mono\nc|6.0|2.1|0.4\nc|6.1|2.2|0.6\nc|3.0|2.1|0.0|0.0|6.2|0.4\nc|7.0|1.1|0.0|0.0|6.3|0.02\nc|6.4|7.0|0.5\nc|4.0|8.0|0.0|0.0|6.5|0.6\nc|8.0|5.0|1.0\nc|6.6|8.1|0.3\nc|7.0|2.1|0.0|0.0|6.7|0.15"
+  set macro1 "Cutoff"
+  set macro2 "Reso"
+  set macro3 "Env"
+  set macro4 "Vibrato"
+  set macro5 "Rate"
+  set macro6 "Echo"
+  set macro7 "Time"
+  set macro8 "Wobble"
   s02_p2         0.45
   s02_p3         0.35
   s03_p2         0.05
   s03_p4         0.3
   s05_p1         0.35
+  c05_a          0.4000
+  c05_b          0.4000
+  c06_a          0.6000
+  c06_b          0.6000
+  c07_a          0.0000
+  c07_b          0.0000
+  c08_a          0.0000
+  c08_b          0.0000
+  c09_a          0.5000
+  c09_b          0.5000
+  c10_a          0.0000
+  c10_b          0.0000
+  c12_a          0.3000
+  c12_b          0.3000
+  c13_a          0.0000
+  c13_b          0.0000
+  s07_p2         0.737
+  s08_p1         0.739
+  s08_p2         0.35
+  s08_p3         0.4
+  s08_p4         1.0
+  volume         1.000
+  insert Eq
+    gain         1.3 dB
+
+patch "Width Walker" note=67 range=48..88 family=lead
+  # A pulse whose width an LFO walks, through a four-pole filter. The
+  # vibrato comes in late: a second envelope turns up the depth of the cable
+  # from the vibrato LFO, so a held note starts straight and then sings.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|filter\nm|3|env\nm|4|vca\nm|5|lfo|mono\nm|6|lfo|mono\nm|7|env\nm|8|delay|mono\nm|9|macro|mono\nm|10|out|mono\nc|1.0|2.0|1\nc|2.0|4.0|1\nc|0.1|3.0|1\nc|3.0|4.1|1\nc|4.0|10.0|1\nc|3.0|2.1|0.25|0.25|9.2|0.3\nc|5.0|1.2|0.25|0.25|9.1|0.2\nc|0.1|7.0|1\nc|6.0|1.1|0.0|0.0|7.0|0.012\nc|6.0|1.1|0.0|0.0|9.3|0.02\nc|4.0|8.0|0.2|0.2|9.4|0.5\nc|8.0|10.0|1\nc|9.0|2.1|0.35\nc|9.5|2.2|0.5\nc|9.6|8.1|0.3\nc|5.0|2.1|0.0|0.0|9.7|0.15"
+  set macro1 "Bright"
+  set macro2 "Width"
+  set macro3 "Env"
+  set macro4 "Vibrato"
+  set macro5 "Echo"
+  set macro6 "Reso"
+  set macro7 "Time"
+  set macro8 "Wobble"
+  c05_a          0.2500
+  c05_b          0.2500
+  c06_a          0.2500
+  c06_b          0.2500
+  c08_a          0.0000
+  c08_b          0.0000
+  c09_a          0.0000
+  c09_b          0.0000
+  c10_a          0.2000
+  c10_b          0.2000
+  c12_a          0.3500
+  c12_b          0.3500
+  c13_a          0.5000
+  c13_b          0.5000
+  c14_a          0.3000
+  c14_b          0.3000
+  c15_a          0.0000
+  c15_b          0.0000
+  s01_p1         0.3
+  s02_p1         0.29
+  s02_p2         0.625
+  s02_p3         0.25
+  s02_p6         0.3
+  s03_p1         0.238
+  s03_p2         0.609
+  s03_p3         0.7
+  s03_p4         0.555
+  s05_p2         0.445
+  s06_p2         0.761
+  s07_p1         0.748
+  s07_p2         0.714
+  s07_p3         1.0
+  s07_p4         0.576
+  s08_p1         0.739
+  s08_p2         0.35
+  s08_p3         0.4
+  s08_p4         1.0
+  volume         0.34
+
+patch "One Knob, Four Things" family=lead
+  # The same macro into four places, each cable at its own depth - which is
+  # the whole argument for every cable being a VCA. One knob opens the filter
+  # a lot, detunes the second oscillator a little, and turns up the cable
+  # from the noise.
+  # The other seven macros each do one thing, and do nothing at 0.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|noise\nm|4|mix|mono\nm|5|filter\nm|6|env\nm|7|vca\nm|8|macro|mono\nm|9|out|mono\nc|1.0|4.0|1.0\nc|2.0|4.1|0.6\nc|3.0|4.2|0.25|0.25|8.0|0.5\nc|4.0|5.0|1.0\nc|5.0|7.0|1.0\nc|0.1|6.0|1.0\nc|6.0|7.1|1.0\nc|7.0|9.0|1.0\nc|8.0|5.1|0.9\nc|8.0|2.1|0.02\nm|10|lfo|mono\nm|11|delay|mono\nc|8.1|5.2|0.5\nc|6.0|5.1|0.0|0.0|8.2|0.3\nc|10.0|1.1|0.0|0.0|8.3|0.02\nc|10.0|2.1|0.0|0.0|8.3|0.02\nc|8.4|10.0|0.5\nc|7.0|11.0|0.0|0.0|8.5|0.5\nc|11.0|9.0|1.0\nc|8.6|11.1|0.3\nc|10.0|5.1|0.0|0.0|8.7|0.15"
+  set macro2 "Reso"
+  set macro3 "Env"
+  set macro4 "Vibrato"
+  set macro5 "Rate"
+  set macro6 "Echo"
+  set macro7 "Time"
+  set macro8 "Wobble"
+  set macro1 "Thicken"
+  macro1         0.4
+  s02_p2         0.52
+  s05_p2         0.25
+  s05_p3         0.4
+  s06_p1         0.02
+  s06_p4         0.3
+  s09_p1         0.8
+  c01_a          0.60
+  c01_b          0.60
+  c02_a          0.25
+  c02_b          0.25
+  c08_a          0.90
+  c08_b          0.90
+  c09_a          0.02
+  c09_b          0.02
+  c10_a          0.5000
+  c10_b          0.5000
+  c11_a          0.0000
+  c11_b          0.0000
+  c12_a          0.0000
+  c12_b          0.0000
+  c13_a          0.0000
+  c13_b          0.0000
+  c14_a          0.5000
+  c14_b          0.5000
+  c15_a          0.0000
+  c15_b          0.0000
+  c17_a          0.3000
+  c17_b          0.3000
+  c18_a          0.0000
+  c18_b          0.0000
+  s10_p2         0.737
+  s11_p1         0.739
+  s11_p2         0.35
+  s11_p3         0.4
+  s11_p4         1.0
+  volume         0.57
+
+patch "Wired Lead" note=67 range=48..88 family=lead
+  # Two saws through a filter, with vibrato, a wah, an echo and a breath of noise
+  # each on a macro. The echo is a send: the dry voice goes straight out, and
+  # Echo turns up the cable into the delay.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|noise\nm|4|mix\nm|5|filter\nm|6|env\nm|7|vca\nm|8|lfo|mono\nm|9|delay|mono\nm|10|macro|mono\nm|11|out|mono\nm|12|lfo|mono\nc|1.0|4.0|1.0\nc|2.0|4.1|1.0\nc|3.0|4.2|0.0|0.0|10.6|0.5\nc|4.0|5.0|1.0\nc|5.0|7.0|1.0\nc|0.1|6.0|1.0\nc|6.0|7.1|1.0\nc|7.0|11.0|1.0\nc|7.0|9.0|0.0|0.0|10.3|0.7\nc|9.0|11.0|1.0\nc|10.0|5.1|0.45\nc|10.1|5.2|0.5\nc|8.0|1.1|0.0|0.0|10.2|0.02\nc|8.0|2.1|0.0|0.0|10.2|0.02\nc|10.4|2.1|0.03\nc|10.5|9.1|0.3\nc|12.0|5.1|0.0|0.0|10.7|0.3"
+  set macro1 "Bright"
+  set macro2 "Bite"
+  set macro3 "Vibrato"
+  set macro4 "Echo"
+  set macro5 "Spread"
+  set macro6 "Time"
+  set macro7 "Breath"
+  set macro8 "Wah"
+  macro1         0.3
+  macro2         0.2
+  macro4         0.3
+  macro5         0.3
+  macro6         0.2
+  c02_a          0.00
+  c02_b          0.00
+  c08_a          0.00
+  c08_b          0.00
+  c10_a          0.45
+  c10_b          0.45
+  c11_a          0.50
+  c11_b          0.50
+  c12_a          0.00
+  c12_b          0.00
+  c13_a          0.00
+  c13_b          0.00
+  c14_a          0.03
+  c14_b          0.03
+  c15_a          0.30
+  c15_b          0.30
+  c16_a          0.00
+  c16_b          0.00
+  s02_p3         0.56
+  s05_p1         0.29
+  s05_p2         0.4
+  s05_p3         0.25
+  s05_p6         0.5
+  s06_p2         0.5
+  s06_p3         0.75
+  s06_p4         0.5
+  s08_p2         0.75
+  s09_p1         0.6
+  s09_p2         0.35
+  s09_p4         1.0
+  s11_p1         0.5
+  s12_p2         0.64
+  volume         0.45
+
+patch "Frame Lead" note=67 range=48..88 family=lead
+  # A wavetable whose frame an envelope sweeps on every note, a saw an
+  # octave down beside it, a little drive and an echo sent off the end.
+  set nexus "v|2\nm|0|voice\nm|1|wtosc\nm|2|osc\nm|3|mix\nm|4|filter\nm|5|env\nm|6|env\nm|7|vca\nm|8|drive\nm|9|delay|mono\nm|10|lfo|mono\nm|11|macro|mono\nm|12|out|mono\nc|1.0|3.0|1\nc|2.0|3.1|0.4|0.4|11.3|0.6\nc|3.0|4.0|1\nc|4.0|7.0|1\nc|0.1|5.0|1\nc|5.0|7.1|1\nc|0.1|6.0|1\nc|6.0|1.2|0.5|0.5|11.1|0.4\nc|7.0|8.0|1\nc|8.0|12.0|1\nc|8.0|9.0|0.2|0.2|11.4|0.5\nc|9.0|12.0|1\nc|11.0|4.1|0.35\nc|10.0|1.2|0.0|0.0|11.2|0.3\nc|10.0|1.1|0.0|0.0|11.5|0.015\nc|11.6|8.1|0.5\nc|11.7|9.1|0.3"
+  set macro1 "Bright"
+  set macro2 "Scan"
+  set macro3 "Motion"
+  set macro4 "Sub"
+  set macro5 "Echo"
+  set macro6 "Vibrato"
+  set macro7 "Drive"
+  set macro8 "Time"
+  c01_a          0.4000
+  c01_b          0.4000
+  c07_a          0.5000
+  c07_b          0.5000
+  c10_a          0.2000
+  c10_b          0.2000
+  c12_a          0.3500
+  c12_b          0.3500
+  c13_a          0.0000
+  c13_b          0.0000
+  c14_a          0.0000
+  c14_b          0.0000
+  c15_a          0.5000
+  c15_b          0.5000
+  c16_a          0.3000
+  c16_b          0.3000
+  s01_p1         0.3594
+  s01_p2         0.1
+  s02_p2         0.25
+  s04_p1         0.12
+  s04_p2         0.737
+  s04_p3         0.15
+  s04_p6         0.3
+  s05_p1         0.185
+  s05_p2         0.635
+  s05_p3         0.8
+  s05_p4         0.555
+  s06_p1         0.143
+  s06_p2         0.656
+  s06_p3         0.1
+  s06_p4         0.576
+  s08_p1         0.3
+  s08_p2         0.6
+  s08_p3         0.5
+  s09_p1         0.699
+  s09_p2         0.3
+  s09_p3         0.4
+  s09_p4         1.0
+  s10_p2         0.749
+  volume         0.65
+
+patch "Operator Lead" note=67 range=48..88 family=lead
+  # Two operators patched by hand: the modulator a ratio of two, its
+  # depth on an envelope through a VCA. Vibrato is a cable from the LFO into
+  # both pitch jacks beside the voice's own pitch, which the jacks add up.
+  set nexus "v|2\nm|0|voice\nm|1|op\nm|2|op\nm|3|op\nm|4|env\nm|5|vca\nm|6|env\nm|7|vca\nm|8|lfo|mono\nm|9|delay|mono\nm|10|macro|mono\nm|11|out|mono\nc|0.0|1.2|1\nc|0.0|2.2|1\nc|8.0|1.2|0.0009|0.0009|10.3|0.002\nc|8.0|2.2|0.0009|0.0009|10.3|0.002\nc|1.0|5.0|1\nc|0.1|4.0|1\nc|4.0|5.1|1\nc|5.0|2.0|0.25|0.25|10.0|0.3\nc|2.0|7.0|1\nc|0.1|6.0|1\nc|6.0|7.1|1\nc|7.0|11.0|1\nc|7.0|9.0|0.2|0.2|10.4|0.5\nc|9.0|11.0|1\nc|10.1|5.1|0.5\nc|3.0|7.0|0.0|0.0|10.2|0.5\nc|10.5|9.1|0.3\nc|1.0|2.0|0.0|0.0|10.6|0.4\nc|10.7|1.2|0.001"
+  set macro1 "Bright"
+  set macro2 "Body"
+  set macro3 "Sub"
+  set macro4 "Vibrato"
+  set macro5 "Echo"
+  set macro6 "Time"
+  set macro7 "Bite"
+  set macro8 "Drift"
+  c02_a          0.0009
+  c02_b          0.0009
+  c03_a          0.0009
+  c03_b          0.0009
+  c07_a          0.2500
+  c07_b          0.2500
+  c12_a          0.2000
+  c12_b          0.2000
+  c14_a          0.5000
+  c14_b          0.5000
+  c15_a          0.0000
+  c15_b          0.0000
+  c16_a          0.3000
+  c16_b          0.3000
+  c17_a          0.0000
+  c17_b          0.0000
+  c18_a          0.0010
+  c18_b          0.0010
+  s01_p2         0.0968
+  s01_p4         0.15
+  s03_p2         0.0
+  s04_p1         0.143
+  s04_p2         0.594
+  s04_p3         0.35
+  s04_p4         0.576
+  s06_p1         0.215
+  s06_p2         0.635
+  s06_p3         0.85
+  s06_p4         0.576
+  s08_p2         0.754
+  s09_p1         0.725
+  s09_p2         0.3
+  s09_p3         0.4
+  s09_p4         1.0
+  volume         0.32
+
+patch "Spinning Lead" note=67 range=48..88 family=lead
+  # Two taps off the tonewheels, driven a little, into the rotating
+  # cabinet. Slow brings the rotors down; Fifth brings in a third wheel.
+  set nexus "v|2\nm|0|voice\nm|1|wheels\nm|2|wheels\nm|3|wheels\nm|4|mix\nm|5|filter\nm|6|env\nm|7|vca\nm|8|drive\nm|9|rotary|mono\nm|10|delay|mono\nm|11|macro|mono\nm|12|out|mono\nc|1.0|4.0|1\nc|2.0|4.1|0.5|0.5|11.1|0.5\nc|3.0|4.2|0.0|0.0|11.3|0.5\nc|4.0|5.0|1\nc|5.0|7.0|1\nc|0.1|6.0|1\nc|6.0|7.1|1\nc|7.0|8.0|1\nc|8.0|9.0|1\nc|9.0|12.0|1\nc|9.1|12.2|1\nc|11.0|9.1|-0.85\nc|11.2|8.1|0.5\nc|11.4|5.1|0.3\nc|8.0|10.0|0.0|0.0|11.5|0.5\nc|10.0|12.0|1\nc|10.0|12.2|1\nc|11.6|10.1|0.3\nc|11.7|5.2|0.6"
+  set macro1 "Slow"
+  set macro2 "Octave"
+  set macro3 "Drive"
+  set macro4 "Fifth"
+  set macro5 "Bright"
+  set macro6 "Echo"
+  set macro7 "Time"
+  set macro8 "Reso"
+  c01_a          0.5000
+  c01_b          0.5000
+  c02_a          0.0000
+  c02_b          0.0000
+  c11_a          -0.8500
+  c11_b          -0.8500
+  c12_a          0.5000
+  c12_b          0.5000
+  c13_a          0.3000
+  c13_b          0.3000
+  c14_a          0.0000
+  c14_b          0.0000
+  c17_a          0.3000
+  c17_b          0.3000
+  c18_a          0.6000
+  c18_b          0.6000
+  s01_p1         0.611
+  s02_p1         0.056
+  s02_p2         0.75
+  s03_p1         0.056
+  s03_p2         0.8958
+  s05_p1         0.12
+  s05_p2         0.759
+  s05_p3         0.1
+  s05_p6         0.2
+  s06_p1         0.215
+  s06_p2         0.576
+  s06_p3         0.9
+  s06_p4         0.45
+  s08_p1         0.3
+  s08_p2         0.5
+  s08_p3         1.0
+  s10_p1         0.725
+  s10_p2         0.3
+  s10_p3         0.4
+  s10_p4         1.0
+  s12_p1         0.535
   volume         1.00
 
-patch Plucked family=house
+patch "Rosin Lead" note=67 range=48..88 family=lead
+  # The string, bowed rather than plucked: an oscillator and a little
+  # noise drive it for as long as the key is down. The vibrato is on the string's
+  # own pitch jack and comes in late, from a second envelope.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|noise\nm|3|mix\nm|4|env\nm|5|vca\nm|6|string\nm|7|filter\nm|8|lfo|mono\nm|9|env\nm|10|reverb|mono\nm|11|macro|mono\nm|12|out|mono\nc|1.0|3.0|1\nc|2.0|3.1|0.15|0.15|11.1|0.4\nc|3.0|5.0|1\nc|0.1|4.0|1\nc|4.0|5.1|1\nc|5.0|6.0|0.3|0.3|11.2|0.4\nc|0.0|6.1|1\nc|0.1|9.0|1\nc|8.0|6.1|0.0|0.0|9.0|0.0012\nc|6.0|7.0|1\nc|7.0|12.0|1\nc|7.0|12.2|1\nc|7.0|10.0|0.3|0.3|11.4|0.5\nc|10.0|12.0|1\nc|10.1|12.2|1\nc|11.0|7.1|0.3\nc|8.0|6.1|0.0|0.0|11.3|0.002\nc|11.5|6.2|0.5\nc|11.6|1.2|0.35\nc|11.7|10.1|0.4"
+  set macro1 "Bright"
+  set macro2 "Rosin"
+  set macro3 "Pressure"
+  set macro4 "Vibrato"
+  set macro5 "Space"
+  set macro6 "Ring"
+  set macro7 "Width"
+  set macro8 "Size"
+  c01_a          0.1500
+  c01_b          0.1500
+  c05_a          0.3000
+  c05_b          0.3000
+  c08_a          0.0000
+  c08_b          0.0000
+  c12_a          0.3000
+  c12_b          0.3000
+  c15_a          0.3000
+  c15_b          0.3000
+  c16_a          0.0000
+  c16_b          0.0000
+  c17_a          0.5000
+  c17_b          0.5000
+  c18_a          0.3500
+  c18_b          0.3500
+  c19_a          0.4000
+  c19_b          0.4000
+  s01_p1         0.3
+  s01_p4         0.4
+  s02_p1         0.4
+  s04_p1         0.453
+  s04_p2         0.635
+  s04_p3         0.85
+  s04_p4         0.496
+  s06_p2         0.9
+  s06_p3         0.45
+  s07_p1         0.12
+  s07_p2         0.812
+  s07_p6         0.2
+  s08_p2         0.754
+  s09_p1         0.732
+  s09_p2         0.714
+  s09_p3         1.0
+  s09_p4         0.576
+  s10_p1         0.45
+  s10_p5         1.0
+  volume         0.28
+
+patch "Saying Ah" note=67 range=48..84 family=lead
+  # Two oscillators through Diction's throat. An envelope opens each
+  # note from oo to ah, so the lead says a word; Talk lets an LFO keep it talking.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|noise\nm|4|mix\nm|5|throat\nm|6|env\nm|7|vca\nm|8|env\nm|9|lfo|mono\nm|10|delay|mono\nm|11|macro|mono\nm|12|out|mono\nc|1.0|4.0|1\nc|2.0|4.1|0.7\nc|3.0|4.2|0.0|0.0|11.6|0.3\nc|4.0|5.0|1\nc|5.0|7.0|1\nc|0.1|6.0|1\nc|6.0|7.1|1\nc|7.0|12.0|1\nc|0.1|8.0|1\nc|8.0|5.1|0.4|0.4|11.1|0.4\nc|9.0|5.1|0.0|0.0|11.2|0.25\nc|9.0|1.1|0.0|0.0|11.3|0.02\nc|9.0|2.1|0.0|0.0|11.3|0.02\nc|7.0|10.0|0.15|0.15|11.4|0.5\nc|10.0|12.0|1\nc|11.0|5.2|0.5\nc|11.5|5.1|0.5\nc|11.7|2.1|0.5833"
+  set macro1 "Size"
+  set macro2 "Say"
+  set macro3 "Talk"
+  set macro4 "Vibrato"
+  set macro5 "Echo"
+  set macro6 "Vowel"
+  set macro7 "Breath"
+  set macro8 "Fifth"
+  c01_a          0.7000
+  c01_b          0.7000
+  c02_a          0.0000
+  c02_b          0.0000
+  c09_a          0.4000
+  c09_b          0.4000
+  c10_a          0.0000
+  c10_b          0.0000
+  c11_a          0.0000
+  c11_b          0.0000
+  c12_a          0.0000
+  c12_b          0.0000
+  c13_a          0.1500
+  c13_b          0.1500
+  c15_a          0.5000
+  c15_b          0.5000
+  c16_a          0.5000
+  c16_b          0.5000
+  c17_a          0.5833
+  c17_b          0.5833
+  s02_p1         0.3
+  s02_p3         0.57
+  s03_p1         0.5
+  s05_p1         0.05
+  s05_p2         0.5
+  s05_p3         0.1
+  s06_p1         0.286
+  s06_p2         0.635
+  s06_p3         0.85
+  s06_p4         0.555
+  s08_p1         0.589
+  s08_p2         0.609
+  s08_p3         0.6
+  s08_p4         0.576
+  s09_p2         0.737
+  s10_p1         0.725
+  s10_p2         0.3
+  s10_p3         0.4
+  s10_p4         1.0
+  volume         0.64
+
+patch "Round Floor" note=40 range=28..64 family=bass
+  # A sine with a triangle an octave up, softly filtered: the plainest
+  # bass there is. Thump puts a quick drop on the pitch, and Pluck swaps the
+  # held envelope for a short one.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|mix\nm|4|filter\nm|5|env\nm|6|vca\nm|7|env\nm|8|drive\nm|9|macro|mono\nm|10|out|mono\nm|11|lfo|mono\nm|12|env\nc|1.0|3.0|1\nc|2.0|3.1|0.35|0.35|9.1|0.6\nc|3.0|4.0|1\nc|4.0|6.0|1\nc|0.1|5.0|1\nc|5.0|6.1|1.0|1.0|9.7|-1.0\nc|6.0|10.0|1\nc|0.1|7.0|1\nc|7.0|1.1|0.0|0.0|9.2|0.5\nc|7.0|2.1|0.0|0.0|9.2|0.5\nc|6.0|8.0|0.0|0.0|9.3|0.8\nc|8.0|10.0|1\nc|9.0|4.1|0.4\nc|9.4|4.2|0.5\nc|11.0|4.1|0.0|0.0|9.5|0.25\nc|9.6|11.0|1\nc|0.1|12.0|1\nc|12.0|6.1|0.0|0.0|9.7|1.0"
+  set macro1 "Tone"
+  set macro2 "Upper"
+  set macro3 "Thump"
+  set macro4 "Grit"
+  set macro5 "Reso"
+  set macro6 "Wobble"
+  set macro7 "Rate"
+  set macro8 "Pluck"
+  c01_a          0.3500
+  c01_b          0.3500
+  c08_a          0.0000
+  c08_b          0.0000
+  c09_a          0.0000
+  c09_b          0.0000
+  c10_a          0.0000
+  c10_b          0.0000
+  c12_a          0.4000
+  c12_b          0.4000
+  c13_a          0.5000
+  c13_b          0.5000
+  c14_a          0.0000
+  c14_b          0.0000
+  c17_a          0.0000
+  c17_b          0.0000
+  s01_p1         0.85
+  s02_p1         0.6
+  s02_p2         0.75
+  s04_p1         0.12
+  s04_p2         0.523
+  s04_p3         0.1
+  s04_p6         0.3
+  s05_p1         0.185
+  s05_p2         0.576
+  s05_p3         0.9
+  s05_p4         0.471
+  s07_p1         0.0
+  s07_p2         0.391
+  s07_p3         0.0
+  s07_p4         0.37
+  s08_p1         0.5
+  s08_p2         0.4
+  s08_p3         1.0
+  s11_p2         0.639
+  s12_p1         0.143
+  s12_p2         0.555
+  s12_p3         0.0
+  s12_p4         0.45
+  volume         0.47
+
+patch "Macro Sweep" family=bass
+  # What a macro is. The `macro` module has no knobs and eight outputs, each
+  # carrying one of the eight macro parameters - so you assign a macro by
+  # patching it, not by choosing it from a list. Here macro 1 goes to the
+  # filter's cutoff, and turning it sweeps the patch.
+  # The other seven macros go the same way, each a cable from the module.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|filter\nm|3|env\nm|4|vca\nm|5|macro|mono\nm|6|out|mono\nc|1.0|2.0|1.0\nc|2.0|4.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|6.0|1.0\nc|5.0|2.1|0.8\nm|7|lfo|mono\nm|8|delay|mono\nm|9|drive\nm|10|osc\nc|5.1|2.2|0.6\nc|3.0|2.1|0.0|0.0|5.2|0.4\nc|7.0|2.1|0.0|0.0|5.3|0.2\nc|5.4|7.0|1.0\nc|4.0|9.0|0.0|0.0|5.5|0.8\nc|9.0|6.0|1.0\nc|4.0|8.0|0.0|0.0|5.6|0.5\nc|8.0|6.0|1.0\nc|10.0|2.0|0.0|0.0|5.7|0.6"
+  set macro2 "Reso"
+  set macro3 "Env"
+  set macro4 "Wobble"
+  set macro5 "Rate"
+  set macro6 "Grit"
+  set macro7 "Echo"
+  set macro8 "Sub"
+  set macro1 "Cutoff"
+  macro1         0.45
+  s02_p2         0.3
+  s02_p3         0.45
+  s03_p1         0.02
+  s03_p4         0.25
+  s06_p1         0.85
+  c05_a          0.80
+  c05_b          0.80
+  c06_a          0.6000
+  c06_b          0.6000
+  c07_a          0.0000
+  c07_b          0.0000
+  c08_a          0.0000
+  c08_b          0.0000
+  c10_a          0.0000
+  c10_b          0.0000
+  c12_a          0.0000
+  c12_b          0.0000
+  c14_a          0.0000
+  c14_b          0.0000
+  s07_p2         0.604
+  s08_p1         0.758
+  s08_p2         0.3
+  s08_p3         0.4
+  s08_p4         1.0
+  s09_p3         1.0
+  s10_p1         0.3
+  s10_p2         0.25
+  volume         0.41
+
+patch "Rubber Saw" note=40 range=28..64 family=bass
+  # A saw and a square an octave down into a resonant four-pole
+  # filter, snapped open by a short envelope on every note.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|mix\nm|4|filter\nm|5|env\nm|6|env\nm|7|vca\nm|8|drive\nm|9|delay|mono\nm|10|macro|mono\nm|11|out|mono\nm|12|lfo|mono\nc|1.0|3.0|1\nc|2.0|3.1|0.35|0.35|10.3|0.6\nc|3.0|4.0|1\nc|4.0|7.0|1\nc|0.1|5.0|1\nc|5.0|7.1|1\nc|0.1|6.0|1\nc|6.0|4.1|0.35|0.35|10.2|0.3\nc|7.0|11.0|1\nc|10.0|4.1|0.3\nc|10.1|4.2|0.5\nc|7.0|8.0|0.0|0.0|10.4|0.8\nc|8.0|11.0|1\nc|7.0|9.0|0.0|0.0|10.5|0.5\nc|9.0|11.0|1\nc|12.0|4.1|0.0|0.0|10.6|0.2\nc|10.7|1.1|0.01"
+  set macro1 "Cutoff"
+  set macro2 "Reso"
+  set macro3 "Env"
+  set macro4 "Sub"
+  set macro5 "Grit"
+  set macro6 "Echo"
+  set macro7 "Wobble"
+  set macro8 "Detune"
+  c01_a          0.3500
+  c01_b          0.3500
+  c07_a          0.3500
+  c07_b          0.3500
+  c09_a          0.3000
+  c09_b          0.3000
+  c10_a          0.5000
+  c10_b          0.5000
+  c11_a          0.0000
+  c11_b          0.0000
+  c13_a          0.0000
+  c13_b          0.0000
+  c15_a          0.0000
+  c15_b          0.0000
+  c16_a          0.0100
+  c16_b          0.0100
+  s02_p1         0.3
+  s02_p2         0.25
+  s04_p1         0.29
+  s04_p2         0.371
+  s04_p3         0.45
+  s04_p6         0.25
+  s05_p1         0.143
+  s05_p2         0.609
+  s05_p3         0.5
+  s05_p4         0.424
+  s06_p1         0.0
+  s06_p2         0.517
+  s06_p3         0.0
+  s06_p4         0.45
+  s08_p1         0.5
+  s08_p3         1.0
+  s09_p1         0.758
+  s09_p2         0.3
+  s09_p3         0.4
+  s09_p4         1.0
+  s12_p2         0.596
+  volume         0.96
+
+patch "Wired Bass" note=40 range=28..64 family=bass
+  # A saw and a pulse an octave down, with eight macros patched by hand. Each
+  # macro is a cable from the macro module, and three of them turn up the depth
+  # of another cable instead of a knob: Env, Sub and Growl.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|mix\nm|4|filter\nm|5|env\nm|6|env\nm|7|vca\nm|8|drive\nm|9|macro|mono\nm|10|out|mono\nc|1.0|3.0|1.0\nc|2.0|3.1|0.3|0.3|9.3|0.7\nc|3.0|4.0|1.0\nc|4.0|7.0|1.0\nc|0.1|5.0|1.0\nc|5.0|7.1|1.0\nc|0.1|6.0|1.0\nc|6.0|4.1|0.15|0.15|9.2|0.6\nc|7.0|8.0|1.0\nc|8.0|10.0|1.0\nc|9.0|4.1|0.5\nc|9.1|4.2|0.6\nc|9.4|2.2|0.4\nc|9.5|8.1|0.6\nc|9.6|1.1|0.02\nc|2.0|1.1|0.0|0.0|9.7|0.5"
+  set macro1 "Cutoff"
+  set macro2 "Reso"
+  set macro3 "Env"
+  set macro4 "Sub"
+  set macro5 "Width"
+  set macro6 "Drive"
+  set macro7 "Detune"
+  set macro8 "Growl"
+  macro1         0.3
+  macro2         0.2
+  macro3         0.5
+  macro4         0.5
+  c01_a          0.30
+  c01_b          0.30
+  c07_a          0.15
+  c07_b          0.15
+  c10_a          0.50
+  c10_b          0.50
+  c11_a          0.60
+  c11_b          0.60
+  c12_a          0.40
+  c12_b          0.40
+  c13_a          0.60
+  c13_b          0.60
+  c14_a          0.02
+  c14_b          0.02
+  c15_a          0.00
+  c15_b          0.00
+  s02_p1         0.30
+  s02_p2         0.25
+  s04_p1         0.29
+  s04_p2         0.22
+  s04_p3         0.25
+  s04_p6         0.3
+  s05_p1         0.05
+  s05_p2         0.4
+  s05_p3         0.6
+  s05_p4         0.3
+  s06_p1         0.0
+  s06_p2         0.55
+  s06_p3         0.0
+  s06_p4         0.3
+  s08_p1         0.2
+  s10_p1         1.0
+  volume         0.813
+
+patch "Drift Pair" note=40 range=28..64 family=bass
+  # Two saws a little apart, so they beat, and a slow LFO leaning on
+  # the cutoff. Phase sends it through the phaser beside the dry signal.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|mix\nm|4|filter\nm|5|env\nm|6|vca\nm|7|lfo|mono\nm|8|osc\nm|9|drive\nm|10|phaser|mono\nm|11|macro|mono\nm|12|out|mono\nc|1.0|3.0|1\nc|2.0|3.1|1\nc|8.0|3.2|0.4|0.4|11.2|0.5\nc|3.0|4.0|1\nc|4.0|6.0|1\nc|0.1|5.0|1\nc|5.0|6.1|1\nc|6.0|12.0|1\nc|7.0|4.1|0.08|0.08|11.3|0.15\nc|11.0|4.1|0.35\nc|11.1|2.1|0.02\nc|6.0|9.0|0.0|0.0|11.4|0.8\nc|9.0|12.0|1\nc|6.0|10.0|0.0|0.0|11.5|0.7\nc|10.0|12.0|1\nc|11.6|4.2|0.5\nc|11.7|7.0|1"
+  set macro1 "Cutoff"
+  set macro2 "Spread"
+  set macro3 "Sub"
+  set macro4 "Drift"
+  set macro5 "Grit"
+  set macro6 "Phase"
+  set macro7 "Reso"
+  set macro8 "Rate"
+  c02_a          0.4000
+  c02_b          0.4000
+  c08_a          0.0800
+  c08_b          0.0800
+  c09_a          0.3500
+  c09_b          0.3500
+  c10_a          0.0200
+  c10_b          0.0200
+  c11_a          0.0000
+  c11_b          0.0000
+  c13_a          0.0000
+  c13_b          0.0000
+  c15_a          0.5000
+  c15_b          0.5000
+  s01_p3         0.38
+  s02_p3         0.62
+  s04_p1         0.29
+  s04_p2         0.44
+  s04_p3         0.25
+  s04_p6         0.3
+  s05_p1         0.185
+  s05_p2         0.635
+  s05_p3         0.85
+  s05_p4         0.496
+  s07_p2         0.41
+  s08_p1         0.85
+  s08_p2         0.25
+  s09_p1         0.5
+  s09_p3         1.0
+  s10_p6         1.0
+  volume         0.44
+
+patch "Wheel Bass" note=40 range=28..64 family=bass
+  # Tonewheel taps for a bass, with a click of noise at the key and a
+  # little drive. Cabinet sends it through the rotary beside the dry signal.
+  set nexus "v|2\nm|0|voice\nm|1|wheels\nm|2|wheels\nm|3|noise\nm|4|mix\nm|5|env\nm|6|env\nm|7|vca\nm|8|vca\nm|9|filter\nm|10|drive\nm|11|macro|mono\nm|12|out|mono\nm|13|rotary|mono\nm|14|wheels\nc|1.0|4.0|1\nc|2.0|4.1|0.6|0.6|11.1|0.4\nc|3.0|7.0|1\nc|0.1|6.0|1\nc|6.0|7.1|1\nc|7.0|4.2|0.2|0.2|11.2|0.5\nc|4.0|8.0|1\nc|0.1|5.0|1\nc|5.0|8.1|1\nc|8.0|9.0|1\nc|9.0|10.0|1\nc|10.0|12.0|1\nc|10.0|12.2|1\nc|11.3|10.1|0.5\nc|11.0|9.1|0.35\nc|10.0|13.0|0.0|0.0|11.4|1.0\nc|13.0|12.0|1\nc|13.1|12.2|1\nc|14.0|4.3|0.0|0.0|11.5|0.5\nc|11.6|9.2|0.5\nc|11.7|13.1|-0.85"
+  set macro1 "Tone"
+  set macro2 "Low"
+  set macro3 "Click"
+  set macro4 "Drive"
+  set macro5 "Cabinet"
+  set macro6 "Upper"
+  set macro7 "Reso"
+  set macro8 "Slow"
+  c01_a          0.6000
+  c01_b          0.6000
+  c05_a          0.2000
+  c05_b          0.2000
+  c13_a          0.5000
+  c13_b          0.5000
+  c14_a          0.3500
+  c14_b          0.3500
+  c15_a          0.0000
+  c15_b          0.0000
+  c18_a          0.0000
+  c18_b          0.0000
+  c19_a          0.5000
+  c19_b          0.5000
+  c20_a          -0.8500
+  c20_b          -0.8500
+  s01_p1         0.167
+  s02_p1         0.056
+  s02_p2         0.25
+  s03_p1         0.3
+  s05_p1         0.185
+  s05_p2         0.576
+  s05_p3         0.8
+  s05_p4         0.424
+  s06_p1         0.0
+  s06_p2         0.206
+  s06_p3         0.0
+  s06_p4         0.185
+  s09_p1         0.12
+  s09_p2         0.602
+  s09_p3         0.1
+  s09_p6         0.3
+  s10_p1         0.35
+  s10_p2         0.4
+  s10_p3         1.0
+  s12_p1         0.595
+  s14_p1         0.722
+  s14_p2         0.75
+  volume         1.00
+
+patch "Operator Bass" note=40 range=28..64 family=bass
+  # FM for the low end: a modulator at the same ratio, its depth on a
+  # quick envelope, and an operator an octave down underneath.
+  set nexus "v|2\nm|0|voice\nm|1|op\nm|2|vca\nm|3|env\nm|4|op\nm|5|op\nm|6|mix\nm|7|env\nm|8|vca\nm|9|filter\nm|10|drive\nm|11|macro|mono\nm|12|out|mono\nm|13|op\nc|0.1|3.0|1\nc|1.0|2.0|1\nc|3.0|2.1|1\nc|2.0|4.0|0.3|0.3|11.0|0.4\nc|4.0|6.0|1\nc|5.0|6.1|0.4|0.4|11.2|0.6\nc|6.0|8.0|1\nc|0.1|7.0|1\nc|7.0|8.1|1\nc|8.0|9.0|1\nc|9.0|12.0|1\nc|11.1|2.1|0.4\nc|1.0|5.0|0.0|0.0|11.3|0.2\nc|9.0|10.0|0.0|0.0|11.4|0.8\nc|10.0|12.0|1\nc|11.5|9.1|-0.4\nc|13.0|4.0|0.0|0.0|11.6|0.15\nc|11.7|9.2|0.6"
+  set macro1 "Bright"
+  set macro2 "Body"
+  set macro3 "Sub"
+  set macro4 "Snarl"
+  set macro5 "Drive"
+  set macro6 "Dark"
+  set macro7 "Metal"
+  set macro8 "Reso"
+  c03_a          0.3000
+  c03_b          0.3000
+  c05_a          0.4000
+  c05_b          0.4000
+  c11_a          0.4000
+  c11_b          0.4000
+  c12_a          0.0000
+  c12_b          0.0000
+  c13_a          0.0000
+  c13_b          0.0000
+  c15_a          -0.4000
+  c15_b          -0.4000
+  c16_a          0.0000
+  c16_b          0.0000
+  c17_a          0.6000
+  c17_b          0.6000
+  s01_p4         0.2
+  s03_p1         0.185
+  s03_p2         0.555
+  s03_p3         0.15
+  s03_p4         0.45
+  s05_p2         0.0
+  s07_p1         0.238
+  s07_p2         0.635
+  s07_p3         0.8
+  s07_p4         0.45
+  s09_p1         0.12
+  s09_p2         0.737
+  s09_p6         0.2
+  s10_p1         0.5
+  s10_p3         1.0
+  s13_p2         0.1613
+  volume         0.52
+
+patch "Folded Floor" note=40 range=28..64 family=bass
+  # The fold table, swept from its plain frame into its folded ones by
+  # an envelope on every note, over a sine an octave down.
+  set nexus "v|2\nm|0|voice\nm|1|wtosc\nm|2|osc\nm|3|mix\nm|4|filter\nm|5|env\nm|6|env\nm|7|vca\nm|8|drive\nm|9|lfo|mono\nm|10|macro|mono\nm|11|out|mono\nm|12|crush\nc|1.0|3.0|1\nc|2.0|3.1|0.5|0.5|10.3|0.5\nc|3.0|4.0|1\nc|4.0|7.0|1\nc|0.1|5.0|1\nc|5.0|7.1|1\nc|0.1|6.0|1\nc|6.0|1.2|0.6|0.6|10.1|0.3\nc|6.0|4.1|0.25|0.25|10.2|0.3\nc|7.0|8.0|1\nc|8.0|11.0|1\nc|10.0|4.1|0.35\nc|9.0|1.2|0.0|0.0|10.4|0.4\nc|10.5|8.1|0.5\nc|7.0|12.0|0.0|0.0|10.6|0.8\nc|12.0|11.0|1\nc|10.7|4.2|0.5"
+  set macro1 "Cutoff"
+  set macro2 "Fold"
+  set macro3 "Env"
+  set macro4 "Sub"
+  set macro5 "Motion"
+  set macro6 "Drive"
+  set macro7 "Crush"
+  set macro8 "Reso"
+  c01_a          0.5000
+  c01_b          0.5000
+  c07_a          0.6000
+  c07_b          0.6000
+  c08_a          0.2500
+  c08_b          0.2500
+  c11_a          0.3500
+  c11_b          0.3500
+  c12_a          0.0000
+  c12_b          0.0000
+  c13_a          0.5000
+  c13_b          0.5000
+  c14_a          0.0000
+  c14_b          0.0000
+  c16_a          0.5000
+  c16_b          0.5000
+  s01_p1         0.1719
+  s02_p1         0.85
+  s02_p2         0.25
+  s04_p1         0.29
+  s04_p2         0.5
+  s04_p3         0.2
+  s04_p6         0.3
+  s05_p1         0.143
+  s05_p2         0.609
+  s05_p3         0.8
+  s05_p4         0.45
+  s06_p1         0.072
+  s06_p2         0.594
+  s06_p3         0.1
+  s06_p4         0.529
+  s08_p1         0.3
+  s08_p2         0.5
+  s08_p3         1.0
+  s09_p2         0.577
+  s11_p1         0.64
+  volume         1.00
+
+patch "Gut Bass" note=40 range=28..64 family=bass
+  # The string, plucked low by a softened burst of noise, like a
+  # finger on a thick string. Mute shortens it; Ring lets it carry.
+  set nexus "v|2\nm|0|voice\nm|1|noise\nm|2|env\nm|3|vca\nm|4|filter\nm|5|string\nm|6|filter\nm|7|env\nm|8|vca\nm|9|drive\nm|10|delay|mono\nm|11|macro|mono\nm|12|out|mono\nc|1.0|3.0|1\nc|0.1|2.0|1\nc|2.0|3.1|1\nc|3.0|4.0|1\nc|4.0|5.0|4.0\nc|5.0|6.0|1\nc|6.0|8.0|1\nc|0.1|7.0|1\nc|7.0|8.1|1\nc|8.0|12.0|1\nc|11.0|4.1|0.35\nc|11.1|5.2|0.1\nc|11.2|5.2|-0.3\nc|11.3|6.1|-0.4\nc|8.0|9.0|0.0|0.0|11.4|0.8\nc|9.0|12.0|1\nc|8.0|10.0|0.0|0.0|11.5|0.5\nc|10.0|12.0|1\nc|11.6|10.1|0.3\nc|11.7|6.2|0.5\nc|0.0|5.1|0.9933"
+  set macro1 "Bright"
+  set macro2 "Ring"
+  set macro3 "Mute"
+  set macro4 "Dark"
+  set macro5 "Drive"
+  set macro6 "Echo"
+  set macro7 "Time"
+  set macro8 "Reso"
+  c04_a          4.0000
+  c04_b          4.0000
+  c10_a          0.3500
+  c10_b          0.3500
+  c11_a          0.1000
+  c11_b          0.1000
+  c12_a          -0.3000
+  c12_b          -0.3000
+  c13_a          -0.4000
+  c13_b          -0.4000
+  c14_a          0.0000
+  c14_b          0.0000
+  c16_a          0.0000
+  c16_b          0.0000
+  c18_a          0.3000
+  c18_b          0.3000
+  c19_a          0.5000
+  c19_b          0.5000
+  c20_a          0.9933
+  c20_b          0.9933
+  s01_p1         0.5
+  s02_p1         0.0
+  s02_p2         0.159
+  s02_p3         0.0
+  s02_p4         0.105
+  s04_p1         0.12
+  s04_p2         0.71
+  s05_p1         0.5093
+  s05_p2         0.9
+  s05_p3         0.3
+  s05_p8         1.0
+  s06_p1         0.12
+  s06_p2         0.779
+  s07_p1         0.0
+  s07_p2         0.45
+  s07_p3         1.0
+  s07_p4         0.471
+  s09_p1         0.5
+  s09_p3         1.0
+  s10_p1         0.725
+  s10_p2         0.3
+  s10_p3         0.4
+  s10_p4         1.0
+  s12_p1         0.47
+  volume         1.000
+  insert Eq
+    gain         2.8 dB
+
+patch "Bass Vowels" note=40 range=28..64 family=bass
+  # A saw and a square through the throat, an envelope pulling each
+  # note from oo towards ah, so the bass says wow.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|mix\nm|4|throat\nm|5|env\nm|6|env\nm|7|vca\nm|8|drive\nm|9|lfo|mono\nm|10|macro|mono\nm|11|out|mono\nc|1.0|3.0|1\nc|2.0|3.1|0.6|0.6|10.3|0.4\nc|3.0|4.0|1\nc|4.0|7.0|1\nc|0.1|5.0|1\nc|5.0|7.1|1\nc|0.1|6.0|1\nc|6.0|4.1|0.55|0.55|10.1|0.4\nc|7.0|8.0|1\nc|8.0|11.0|1\nc|9.0|4.1|0.0|0.0|10.2|0.3\nc|10.0|4.1|0.5\nc|10.4|8.1|0.5\nc|10.5|9.0|1\nc|10.6|4.2|0.5\nc|9.0|4.2|0.0|0.0|10.7|0.4"
+  set macro1 "Vowel"
+  set macro2 "Say"
+  set macro3 "Talk"
+  set macro4 "Sub"
+  set macro5 "Drive"
+  set macro6 "Rate"
+  set macro7 "Size"
+  set macro8 "Wobble"
+  c01_a          0.6000
+  c01_b          0.6000
+  c07_a          0.5500
+  c07_b          0.5500
+  c10_a          0.0000
+  c10_b          0.0000
+  c11_a          0.5000
+  c11_b          0.5000
+  c12_a          0.5000
+  c12_b          0.5000
+  c14_a          0.5000
+  c14_b          0.5000
+  c15_a          0.0000
+  c15_b          0.0000
+  s02_p1         0.3
+  s02_p2         0.25
+  s04_p1         0.0
+  s04_p2         0.6
+  s04_p3         0.1
+  s05_p1         0.143
+  s05_p2         0.609
+  s05_p3         0.8
+  s05_p4         0.45
+  s06_p1         0.309
+  s06_p2         0.594
+  s06_p3         0.3
+  s06_p4         0.529
+  s08_p1         0.45
+  s08_p2         0.5
+  s08_p3         1.0
+  s09_p2         0.688
+  s11_p1         0.89
+  volume         1.00
+
+patch "Slow Saws" note=60 range=36..84 family=pad
+  # Two saws a little apart, a filter that opens over a second or so,
+  # a chorus and a reverb sent off the chorus.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|mix\nm|4|filter\nm|5|env\nm|6|env\nm|7|vca\nm|8|chorus|mono\nm|9|reverb|mono\nm|10|lfo|mono\nm|11|macro|mono\nm|12|out|mono\nc|1.0|3.0|1\nc|2.0|3.1|1\nc|3.0|4.0|1\nc|4.0|7.0|1\nc|0.1|5.0|1\nc|5.0|7.1|1\nc|0.1|6.0|1\nc|6.0|4.1|0.2|0.2|11.2|0.3\nc|7.0|8.0|1\nc|8.0|12.0|1\nc|8.1|12.2|1\nc|8.0|9.0|0.25|0.25|11.4|0.5\nc|9.0|12.0|1\nc|9.1|12.2|1\nc|11.0|4.1|0.3\nc|11.1|2.1|0.02\nc|10.0|4.1|0.0|0.0|11.3|0.15\nc|11.5|9.1|0.4\nc|11.6|8.1|0.5\nc|11.7|4.2|0.5"
+  set macro1 "Bright"
+  set macro2 "Detune"
+  set macro3 "Swell"
+  set macro4 "Motion"
+  set macro5 "Space"
+  set macro6 "Size"
+  set macro7 "Depth"
+  set macro8 "Reso"
+  c07_a          0.2000
+  c07_b          0.2000
+  c11_a          0.2500
+  c11_b          0.2500
+  c14_a          0.3000
+  c14_b          0.3000
+  c15_a          0.0200
+  c15_b          0.0200
+  c16_a          0.0000
+  c16_b          0.0000
+  c17_a          0.4000
+  c17_b          0.4000
+  c18_a          0.5000
+  c18_b          0.5000
+  c19_a          0.5000
+  c19_b          0.5000
+  s01_p3         0.42
+  s02_p3         0.58
+  s04_p1         0.12
+  s04_p2         0.602
+  s04_p3         0.15
+  s04_p6         0.25
+  s05_p1         0.714
+  s05_p2         0.714
+  s05_p3         0.9
+  s05_p4         0.761
+  s06_p1         0.804
+  s06_p2         0.794
+  s06_p3         0.5
+  s06_p4         0.761
+  s09_p1         0.6
+  s09_p5         1.0
+  s10_p2         0.327
+  volume         0.33
+
+patch "Breathing Pulse" note=60 range=36..84 family=pad
+  # Two pulses whose widths two slow LFOs move at different rates, so
+  # the pad never sits still, into a chorus and a reverb.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|mix\nm|4|filter\nm|5|env\nm|6|vca\nm|7|lfo|mono\nm|8|lfo|mono\nm|9|chorus|mono\nm|10|reverb|mono\nm|11|macro|mono\nm|12|out|mono\nm|13|noise\nc|1.0|3.0|1\nc|2.0|3.1|1\nc|13.0|3.2|0.0|0.0|11.5|0.15\nc|3.0|4.0|1\nc|4.0|6.0|1\nc|0.1|5.0|1\nc|5.0|6.1|1\nc|7.0|1.2|0.3|0.3|11.1|0.1\nc|8.0|2.2|0.3|0.3|11.1|0.1\nc|6.0|9.0|1\nc|9.0|12.0|1\nc|9.1|12.2|1\nc|9.0|10.0|0.3|0.3|11.4|0.5\nc|10.0|12.0|1\nc|10.1|12.2|1\nc|11.0|4.1|0.3\nc|5.0|4.1|0.0|0.0|11.2|0.3\nc|7.0|4.1|0.0|0.0|11.3|0.12\nc|11.6|2.1|0.5833\nc|11.7|10.1|0.4"
+  set macro1 "Bright"
+  set macro2 "Width"
+  set macro3 "Swell"
+  set macro4 "Breathe"
+  set macro5 "Space"
+  set macro6 "Air"
+  set macro7 "Fifth"
+  set macro8 "Size"
+  c02_a          0.0000
+  c02_b          0.0000
+  c07_a          0.3000
+  c07_b          0.3000
+  c08_a          0.3000
+  c08_b          0.3000
+  c12_a          0.3000
+  c12_b          0.3000
+  c15_a          0.3000
+  c15_b          0.3000
+  c16_a          0.0000
+  c16_b          0.0000
+  c17_a          0.0000
+  c17_b          0.0000
+  c18_a          0.5833
+  c18_b          0.5833
+  c19_a          0.4000
+  c19_b          0.4000
+  s01_p1         0.3
+  s02_p1         0.3
+  s02_p3         0.56
+  s04_p1         0.29
+  s04_p2         0.635
+  s04_p3         0.2
+  s04_p6         0.25
+  s05_p1         0.691
+  s05_p2         0.714
+  s05_p3         0.9
+  s05_p4         0.753
+  s07_p2         0.388
+  s08_p1         0.15
+  s08_p2         0.435
+  s10_p1         0.6
+  s10_p5         1.0
+  s13_p1         0.7
+  volume         0.32
+
+patch "Wired Pad" note=60 range=36..84 family=pad
+  # A wavetable and a saw, slow to open, through a chorus and a reverb send.
+  # Scan moves through the table and Motion lets an LFO move it too.
+  set nexus "v|2\nm|0|voice\nm|1|wtosc\nm|2|osc\nm|3|noise\nm|4|mix\nm|5|filter\nm|6|env\nm|7|vca\nm|8|lfo|mono\nm|9|chorus|mono\nm|10|reverb|mono\nm|11|macro|mono\nm|12|out|mono\nc|1.0|4.0|1.0\nc|2.0|4.1|0.3|0.3|11.7|0.4\nc|3.0|4.2|0.0|0.0|11.4|0.2\nc|4.0|5.0|1.0\nc|5.0|7.0|1.0\nc|0.1|6.0|1.0\nc|6.0|7.1|1.0\nc|7.0|9.0|1.0\nc|9.0|12.0|1.0\nc|9.1|12.2|1.0\nc|9.0|10.0|0.15|0.15|11.5|0.6\nc|10.0|12.0|1.0\nc|10.1|12.2|1.0\nc|11.0|5.1|0.4\nc|11.1|1.2|0.8\nc|8.0|1.2|0.0|0.0|11.2|0.4\nc|11.3|2.1|0.03\nc|11.6|10.1|0.5"
+  set macro1 "Bright"
+  set macro2 "Scan"
+  set macro3 "Motion"
+  set macro4 "Detune"
+  set macro5 "Air"
+  set macro6 "Space"
+  set macro7 "Size"
+  set macro8 "Edge"
+  macro1         0.4
+  macro2         0.2
+  macro3         0.4
+  macro4         0.3
+  macro6         0.4
+  macro7         0.4
+  c01_a          0.30
+  c01_b          0.30
+  c02_a          0.00
+  c02_b          0.00
+  c10_a          0.15
+  c10_b          0.15
+  c13_a          0.40
+  c13_b          0.40
+  c14_a          0.80
+  c14_b          0.80
+  c15_a          0.00
+  c15_b          0.00
+  c16_a          0.03
+  c16_b          0.03
+  c17_a          0.50
+  c17_b          0.50
+  s02_p3         0.55
+  s05_p1         0.12
+  s05_p2         0.45
+  s05_p3         0.15
+  s05_p6         0.3
+  s06_p1         0.83
+  s06_p2         0.6
+  s06_p3         0.8
+  s06_p4         0.79
+  s08_p2         0.36
+  s10_p5         1.0
+  s12_p1         0.5
+  volume         0.80
+
+patch "Wheel Haze" note=60 range=36..84 family=pad
+  # Three tonewheel taps, swelling in slowly, through the cabinet with
+  # its rotors barely turning. Spin speeds them up.
+  set nexus "v|2\nm|0|voice\nm|1|wheels\nm|2|wheels\nm|3|wheels\nm|4|mix\nm|5|env\nm|6|vca\nm|7|filter\nm|8|rotary|mono\nm|9|reverb|mono\nm|10|macro|mono\nm|11|out|mono\nm|12|lfo|mono\nc|1.0|4.0|1\nc|2.0|4.1|0.5|0.5|10.1|0.5\nc|3.0|4.2|0.0|0.0|10.2|0.5\nc|4.0|7.0|1\nc|7.0|6.0|1\nc|0.1|5.0|1\nc|5.0|6.1|1\nc|6.0|8.0|1\nc|8.0|11.0|1\nc|8.1|11.2|1\nc|8.0|9.0|0.3|0.3|10.4|0.5\nc|9.0|11.0|1\nc|9.1|11.2|1\nc|10.0|7.1|0.3\nc|10.3|8.1|4\nc|12.0|7.1|0.0|0.0|10.5|0.15\nc|10.6|9.1|0.4\nc|10.7|7.2|0.5"
+  set macro1 "Bright"
+  set macro2 "Upper"
+  set macro3 "Fifth"
+  set macro4 "Spin"
+  set macro5 "Space"
+  set macro6 "Motion"
+  set macro7 "Size"
+  set macro8 "Reso"
+  c01_a          0.5000
+  c01_b          0.5000
+  c02_a          0.0000
+  c02_b          0.0000
+  c10_a          0.3000
+  c10_b          0.3000
+  c13_a          0.3000
+  c13_b          0.3000
+  c14_a          4.0000
+  c14_b          4.0000
+  c15_a          0.0000
+  c15_b          0.0000
+  c16_a          0.4000
+  c16_b          0.4000
+  c17_a          0.5000
+  c17_b          0.5000
+  s01_p1         0.833
+  s02_p1         0.722
+  s02_p2         0.75
+  s03_p1         0.056
+  s03_p2         0.8958
+  s05_p1         0.732
+  s05_p2         0.714
+  s05_p3         1.0
+  s05_p4         0.761
+  s07_p1         0.12
+  s07_p2         0.71
+  s07_p6         0.2
+  s08_p1         0.2
+  s08_p2         0.2
+  s09_p1         0.6
+  s09_p5         1.0
+  s12_p2         0.361
+  volume         0.32
+
+patch "Machine Choir" note=60 range=36..84 family=pad
+  # Two copies of the choir table a little apart, each with its own
+  # slow LFO on the frame, so the voices drift between vowels on their own.
+  set nexus "v|2\nm|0|voice\nm|1|wtosc\nm|2|wtosc\nm|3|mix\nm|4|filter\nm|5|env\nm|6|vca\nm|7|lfo|mono\nm|8|lfo|mono\nm|9|chorus|mono\nm|10|reverb|mono\nm|11|macro|mono\nm|12|out|mono\nm|13|noise\nc|1.0|3.0|1\nc|2.0|3.1|1\nc|13.0|3.2|0.0|0.0|11.5|0.12\nc|3.0|4.0|1\nc|4.0|6.0|1\nc|0.1|5.0|1\nc|5.0|6.1|1\nc|7.0|1.2|0.25|0.25|11.2|0.3\nc|8.0|2.2|0.25|0.25|11.2|0.3\nc|6.0|9.0|1\nc|9.0|12.0|1\nc|9.1|12.2|1\nc|9.0|10.0|0.35|0.35|11.4|0.5\nc|10.0|12.0|1\nc|10.1|12.2|1\nc|11.0|4.1|0.3\nc|11.1|1.2|0.6\nc|11.1|2.2|0.6\nc|11.3|2.1|0.02\nc|11.6|10.1|0.4\nc|11.7|9.1|0.5"
+  set macro1 "Bright"
+  set macro2 "Scan"
+  set macro3 "Motion"
+  set macro4 "Detune"
+  set macro5 "Space"
+  set macro6 "Breath"
+  set macro7 "Size"
+  set macro8 "Depth"
+  c02_a          0.0000
+  c02_b          0.0000
+  c07_a          0.2500
+  c07_b          0.2500
+  c08_a          0.2500
+  c08_b          0.2500
+  c12_a          0.3500
+  c12_b          0.3500
+  c15_a          0.3000
+  c15_b          0.3000
+  c16_a          0.6000
+  c16_b          0.6000
+  c17_a          0.6000
+  c17_b          0.6000
+  c18_a          0.0200
+  c18_b          0.0200
+  c19_a          0.4000
+  c19_b          0.4000
+  c20_a          0.5000
+  c20_b          0.5000
+  s01_p1         0.6406
+  s01_p2         0.3
+  s02_p1         0.6406
+  s02_p2         0.3
+  s02_p3         0.5017
+  s04_p1         0.12
+  s04_p2         0.737
+  s04_p3         0.1
+  s04_p6         0.2
+  s05_p1         0.748
+  s05_p2         0.714
+  s05_p3         1.0
+  s05_p4         0.782
+  s07_p2         0.309
+  s08_p1         0.15
+  s08_p2         0.355
+  s10_p1         0.6
+  s10_p5         1.0
+  s13_p1         0.7
+  volume         0.40
+
+patch "Slow Phase" note=60 range=36..84 family=pad
+  # Three saws, one an octave up, through the phaser and into a
+  # reverb. Swell lets the amp envelope open the filter too.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|osc\nm|4|mix\nm|5|filter\nm|6|env\nm|7|vca\nm|8|phaser|mono\nm|9|reverb|mono\nm|10|macro|mono\nm|11|out|mono\nm|12|lfo|mono\nc|1.0|4.0|1\nc|2.0|4.1|1\nc|3.0|4.2|0.3|0.3|10.1|0.4\nc|4.0|5.0|1\nc|5.0|7.0|1\nc|0.1|6.0|1\nc|6.0|7.1|1\nc|7.0|8.0|1\nc|8.0|11.0|1\nc|8.1|11.2|1\nc|8.0|9.0|0.3|0.3|10.4|0.5\nc|9.0|11.0|1\nc|9.1|11.2|1\nc|10.0|5.1|0.3\nc|10.2|8.1|0.3\nc|12.0|5.1|0.0|0.0|10.3|0.15\nc|10.5|2.1|0.02\nc|10.6|9.1|0.4\nc|6.0|5.1|0.0|0.0|10.7|0.3"
+  set macro1 "Bright"
+  set macro2 "Octave"
+  set macro3 "Depth"
+  set macro4 "Motion"
+  set macro5 "Space"
+  set macro6 "Detune"
+  set macro7 "Size"
+  set macro8 "Swell"
+  c02_a          0.3000
+  c02_b          0.3000
+  c10_a          0.3000
+  c10_b          0.3000
+  c13_a          0.3000
+  c13_b          0.3000
+  c14_a          0.3000
+  c14_b          0.3000
+  c15_a          0.0000
+  c15_b          0.0000
+  c16_a          0.0200
+  c16_b          0.0200
+  c17_a          0.4000
+  c17_b          0.4000
+  c18_a          0.0000
+  c18_b          0.0000
+  s01_p3         0.45
+  s02_p3         0.55
+  s03_p2         0.75
+  s05_p1         0.12
+  s05_p2         0.677
+  s05_p3         0.15
+  s05_p6         0.25
+  s06_p1         0.714
+  s06_p2         0.714
+  s06_p3         0.9
+  s06_p4         0.761
+  s08_p3         0.5
+  s08_p6         0.5
+  s09_p1         0.6
+  s09_p5         1.0
+  s12_p2         0.3
+  volume         0.37
+
+patch "Glass Ops" note=60 range=36..84 family=pad
+  # Two carriers, at one and two, under a modulator at four whose
+  # depth swells in slowly, so the pad turns from sine to glass as it holds.
+  set nexus "v|2\nm|0|voice\nm|1|op\nm|2|op\nm|3|op\nm|4|mix\nm|5|env\nm|6|vca\nm|7|env\nm|8|vca\nm|9|chorus|mono\nm|10|reverb|mono\nm|11|macro|mono\nm|12|out|mono\nm|13|lfo|mono\nc|0.1|7.0|1\nc|1.0|8.0|1\nc|7.0|8.1|1\nc|8.0|2.0|0.15|0.15|11.0|0.25\nc|8.0|3.0|0.1|0.1|11.0|0.2\nc|2.0|4.0|1\nc|3.0|4.1|0.5|0.5|11.1|0.5\nc|4.0|6.0|1\nc|0.1|5.0|1\nc|5.0|6.1|1\nc|6.0|9.0|1\nc|9.0|12.0|1\nc|9.1|12.2|1\nc|9.0|10.0|0.35|0.35|11.4|0.5\nc|10.0|12.0|1\nc|10.1|12.2|1\nc|13.0|8.1|0.0|0.0|11.2|0.3\nc|11.3|8.1|0.5\nc|11.5|10.1|0.4\nc|11.6|9.1|0.5\nc|0.0|3.2|1\nc|11.7|3.2|0.0008"
+  set macro1 "Glass"
+  set macro2 "Upper"
+  set macro3 "Motion"
+  set macro4 "Edge"
+  set macro5 "Space"
+  set macro6 "Size"
+  set macro7 "Depth"
+  set macro8 "Drift"
+  c03_a          0.1500
+  c03_b          0.1500
+  c04_a          0.1000
+  c04_b          0.1000
+  c06_a          0.5000
+  c06_b          0.5000
+  c13_a          0.3500
+  c13_b          0.3500
+  c16_a          0.0000
+  c16_b          0.0000
+  c17_a          0.5000
+  c17_b          0.5000
+  c18_a          0.4000
+  c18_b          0.4000
+  c19_a          0.5000
+  c19_b          0.5000
+  c21_a          0.0008
+  c21_b          0.0008
+  s01_p2         0.2258
+  s03_p2         0.0968
+  s03_p3         0.8
+  s05_p1         0.691
+  s05_p2         0.714
+  s05_p3         0.9
+  s05_p4         0.794
+  s07_p1         0.774
+  s07_p2         0.794
+  s07_p3         0.5
+  s07_p4         0.761
+  s10_p1         0.6
+  s10_p5         1.0
+  s13_p2         0.41
+  volume         0.31
+
+patch "Bowed Wire" note=60 range=36..84 family=pad
+  # Two strings, an octave apart, bowed by a soft noise for as long as
+  # the key is down. Bow presses harder; Ring lets the lower string carry.
+  set nexus "v|2\nm|0|voice\nm|1|noise\nm|2|filter\nm|3|env\nm|4|vca\nm|5|string\nm|6|string\nm|7|mix\nm|8|env\nm|9|vca\nm|10|chorus|mono\nm|11|reverb|mono\nm|12|macro|mono\nm|13|out|mono\nm|14|lfo|mono\nc|1.0|2.0|1\nc|2.0|4.0|1\nc|0.1|3.0|1\nc|3.0|4.1|1\nc|4.0|5.0|0.3|0.3|12.1|0.3\nc|4.0|6.0|0.2|0.2|12.1|0.3\nc|5.0|7.0|1\nc|6.0|7.1|0.6|0.6|12.2|0.5\nc|7.0|9.0|1\nc|0.1|8.0|1\nc|8.0|9.1|1\nc|9.0|10.0|1\nc|10.0|13.0|1\nc|10.1|13.2|1\nc|10.0|11.0|0.4|0.4|12.4|0.5\nc|11.0|13.0|1\nc|11.1|13.2|1\nc|12.0|2.1|0.3\nc|12.3|5.2|0.5\nc|14.0|2.1|0.0|0.0|12.5|0.2\nc|12.6|11.1|0.4\nc|12.7|10.1|0.5"
+  set macro1 "Bright"
+  set macro2 "Bow"
+  set macro3 "Upper"
+  set macro4 "Ring"
+  set macro5 "Space"
+  set macro6 "Motion"
+  set macro7 "Size"
+  set macro8 "Depth"
+  c04_a          0.3000
+  c04_b          0.3000
+  c05_a          0.2000
+  c05_b          0.2000
+  c07_a          0.6000
+  c07_b          0.6000
+  c14_a          0.4000
+  c14_b          0.4000
+  c17_a          0.3000
+  c17_b          0.3000
+  c18_a          0.5000
+  c18_b          0.5000
+  c19_a          0.0000
+  c19_b          0.0000
+  c20_a          0.4000
+  c20_b          0.4000
+  c21_a          0.5000
+  c21_b          0.5000
+  s01_p1         0.6
+  s02_p1         0.12
+  s02_p2         0.635
+  s02_p6         0.5
+  s03_p1         0.677
+  s03_p2         0.714
+  s03_p3         1.0
+  s03_p4         0.635
+  s05_p1         0.5021
+  s05_p2         0.97
+  s05_p3         0.4
+  s05_p5         0.0
+  s06_p1         0.7521
+  s06_p2         0.97
+  s06_p3         0.35
+  s06_p5         0.0
+  s08_p1         0.309
+  s08_p2         0.714
+  s08_p3         1.0
+  s08_p4         0.794
+  s11_p1         0.6
+  s11_p5         1.0
+  s14_p2         0.361
+  volume         0.52
+
+patch "Upper Air" note=60 range=36..84 family=pad
+  # The glass table and a triangle an octave up, slow to swell, into a
+  # reverb with its shimmer up, so the tail climbs an octave.
+  set nexus "v|2\nm|0|voice\nm|1|wtosc\nm|2|osc\nm|3|mix\nm|4|filter\nm|5|env\nm|6|vca\nm|7|chorus|mono\nm|8|reverb|mono\nm|9|lfo|mono\nm|10|macro|mono\nm|11|out|mono\nc|1.0|3.0|1\nc|2.0|3.1|0.4|0.4|10.1|0.5\nc|3.0|4.0|1\nc|4.0|6.0|1\nc|0.1|5.0|1\nc|5.0|6.1|1\nc|6.0|7.0|1\nc|7.0|11.0|1\nc|7.1|11.2|1\nc|7.0|8.0|0.5|0.5|10.4|0.5\nc|8.0|11.0|1\nc|8.1|11.2|1\nc|10.0|4.1|0.3\nc|9.0|1.2|0.3|0.3|10.2|0.3\nc|10.3|1.2|0.6\nc|10.5|8.1|0.3\nc|10.6|7.1|0.5\nc|10.7|2.1|0.5833"
+  set macro1 "Bright"
+  set macro2 "Upper"
+  set macro3 "Motion"
+  set macro4 "Scan"
+  set macro5 "Space"
+  set macro6 "Size"
+  set macro7 "Depth"
+  set macro8 "Fifth"
+  c01_a          0.4000
+  c01_b          0.4000
+  c09_a          0.5000
+  c09_b          0.5000
+  c12_a          0.3000
+  c12_b          0.3000
+  c13_a          0.3000
+  c13_b          0.3000
+  c14_a          0.6000
+  c14_b          0.6000
+  c15_a          0.3000
+  c15_b          0.3000
+  c16_a          0.5000
+  c16_b          0.5000
+  c17_a          0.5833
+  c17_b          0.5833
+  s01_p1         0.0469
+  s01_p2         0.2
+  s02_p1         0.6
+  s02_p2         0.75
+  s04_p1         0.12
+  s04_p2         0.812
+  s04_p6         0.2
+  s05_p1         0.774
+  s05_p2         0.714
+  s05_p3         1.0
+  s05_p4         0.82
+  s08_p1         0.75
+  s08_p2         0.3
+  s08_p5         1.0
+  s08_p7         0.5
+  s09_p2         0.278
+  volume         0.41
+
+patch "Slow Vowels" note=60 range=36..84 family=pad
+  # Two saws through the throat, a random LFO walking the vowel, so
+  # the pad sings a different word every few seconds.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|mix\nm|4|throat\nm|5|env\nm|6|vca\nm|7|lfo|mono\nm|8|chorus|mono\nm|9|reverb|mono\nm|10|macro|mono\nm|11|out|mono\nm|12|lfo|mono\nc|1.0|3.0|1\nc|2.0|3.1|1\nc|3.0|4.0|1\nc|4.0|6.0|1\nc|0.1|5.0|1\nc|5.0|6.1|1\nc|7.0|4.1|0.3|0.3|10.2|0.3\nc|6.0|8.0|1\nc|8.0|11.0|1\nc|8.1|11.2|1\nc|8.0|9.0|0.35|0.35|10.4|0.5\nc|9.0|11.0|1\nc|9.1|11.2|1\nc|10.0|4.1|0.6\nc|10.1|4.2|0.5\nc|12.0|4.2|0.0|0.0|10.3|0.3\nc|10.5|2.1|0.02\nc|10.6|9.1|0.4\nc|10.7|8.1|0.5"
+  set macro1 "Vowel"
+  set macro2 "Size"
+  set macro3 "Talk"
+  set macro4 "Gulp"
+  set macro5 "Space"
+  set macro6 "Detune"
+  set macro7 "Room"
+  set macro8 "Depth"
+  c06_a          0.3000
+  c06_b          0.3000
+  c10_a          0.3500
+  c10_b          0.3500
+  c13_a          0.6000
+  c13_b          0.6000
+  c14_a          0.5000
+  c14_b          0.5000
+  c15_a          0.0000
+  c15_b          0.0000
+  c16_a          0.0200
+  c16_b          0.0200
+  c17_a          0.4000
+  c17_b          0.4000
+  c18_a          0.5000
+  c18_b          0.5000
+  s01_p3         0.45
+  s02_p3         0.55
+  s04_p1         0.2
+  s04_p2         0.5
+  s04_p3         0.2
+  s05_p1         0.714
+  s05_p2         0.714
+  s05_p3         1.0
+  s05_p4         0.761
+  s07_p1         0.72
+  s07_p2         0.41
+  s09_p1         0.6
+  s09_p5         1.0
+  s12_p2         0.289
+  volume         0.31
+
+patch "Cloud Saw" note=60 range=36..84 family=pad
+  # Saws into a grain cloud that reads back over the last moments of
+  # what was played. Octave adds a second cloud an octave up.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|mix\nm|4|env\nm|5|vca\nm|6|grain|mono\nm|7|grain|mono\nm|8|chorus|mono\nm|9|reverb|mono\nm|10|lfo|mono\nm|11|macro|mono\nm|12|out|mono\nm|13|filter\nc|1.0|3.0|1\nc|2.0|3.1|1\nc|3.0|13.0|1\nc|13.0|5.0|1\nc|0.1|4.0|1\nc|4.0|5.1|1\nc|5.0|6.0|1\nc|5.0|7.0|0.0|0.0|11.1|0.6\nc|6.0|8.0|1\nc|7.0|8.0|1\nc|5.0|8.0|0.3|0.3|11.2|0.5\nc|8.0|12.0|1\nc|8.1|12.2|1\nc|8.0|9.0|0.4|0.4|11.4|0.5\nc|9.0|12.0|1\nc|9.1|12.2|1\nc|10.0|6.1|0.2|0.2|11.3|0.3\nc|11.0|13.1|0.3\nc|11.5|6.2|0.5\nc|11.6|9.1|0.4\nc|11.7|6.1|0.5"
+  set macro1 "Bright"
+  set macro2 "Octave"
+  set macro3 "Source"
+  set macro4 "Drift"
+  set macro5 "Space"
+  set macro6 "Density"
+  set macro7 "Size"
+  set macro8 "Reach"
+  c07_a          0.0000
+  c07_b          0.0000
+  c10_a          0.3000
+  c10_b          0.3000
+  c13_a          0.4000
+  c13_b          0.4000
+  c16_a          0.2000
+  c16_b          0.2000
+  c17_a          0.3000
+  c17_b          0.3000
+  c18_a          0.5000
+  c18_b          0.5000
+  c19_a          0.4000
+  c19_b          0.4000
+  c20_a          0.5000
+  c20_b          0.5000
+  s01_p3         0.45
+  s02_p3         0.55
+  s04_p1         0.661
+  s04_p2         0.714
+  s04_p3         1.0
+  s04_p4         0.761
+  s06_p1         0.2
+  s06_p2         0.78
+  s06_p3         0.6
+  s06_p4         0.4
+  s07_p1         0.2
+  s07_p2         0.78
+  s07_p3         0.6
+  s07_p4         0.4
+  s07_p5         0.75
+  s09_p1         0.6
+  s09_p5         1.0
+  s10_p2         0.278
+  s13_p1         0.12
+  s13_p2         0.737
+  s13_p6         0.2
+  volume         0.49
+
+patch "Shifted Sky" note=60 range=36..84 family=pad
+  # Saws through the frequency shifter, a few hertz off and fed back,
+  # so every partial slides a little away from the harmonic series and back.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|mix\nm|4|filter\nm|5|env\nm|6|vca\nm|7|shift|mono\nm|8|reverb|mono\nm|9|lfo|mono\nm|10|macro|mono\nm|11|out|mono\nc|1.0|3.0|1\nc|2.0|3.1|1\nc|3.0|4.0|1\nc|4.0|6.0|1\nc|0.1|5.0|1\nc|5.0|6.1|1\nc|6.0|7.0|1\nc|7.0|11.0|1\nc|7.1|11.2|1\nc|7.0|8.0|0.4|0.4|10.4|0.5\nc|8.0|11.0|1\nc|8.1|11.2|1\nc|10.0|4.1|0.3\nc|9.0|7.1|0.002|0.002|10.2|0.005\nc|10.1|7.1|0.05\nc|10.3|2.1|0.02\nc|10.5|8.1|0.4\nc|5.0|4.1|0.0|0.0|10.6|0.3\nc|10.7|9.0|1"
+  set macro1 "Bright"
+  set macro2 "Shift"
+  set macro3 "Wander"
+  set macro4 "Detune"
+  set macro5 "Space"
+  set macro6 "Size"
+  set macro7 "Swell"
+  set macro8 "Rate"
+  c09_a          0.4000
+  c09_b          0.4000
+  c12_a          0.3000
+  c12_b          0.3000
+  c13_a          0.0020
+  c13_b          0.0020
+  c14_a          0.0500
+  c14_b          0.0500
+  c15_a          0.0200
+  c15_b          0.0200
+  c16_a          0.4000
+  c16_b          0.4000
+  c17_a          0.0000
+  c17_b          0.0000
+  s01_p3         0.45
+  s02_p3         0.55
+  s04_p1         0.12
+  s04_p2         0.71
+  s04_p6         0.25
+  s05_p1         0.732
+  s05_p2         0.714
+  s05_p3         1.0
+  s05_p4         0.782
+  s07_p2         0.575
+  s07_p3         0.4
+  s07_p4         0.3
+  s07_p5         0.5
+  s08_p1         0.65
+  s08_p5         1.0
+  s09_p2         0.327
+  volume         0.35
+
+patch "Patched String" family=house
   # Filament's string, plucked by a burst of noise. No other modular has this
   # block, because no other app has Filament.
-  set nexus "v|2\nm|0|voice\nm|1|noise\nm|2|env\nm|3|vca\nm|4|string\nm|5|out|mono\nc|1.0|3.0|1.0\nc|0.1|2.0|1.0\nc|2.0|3.1|1.0\nc|3.0|4.0|1.0\nc|4.0|5.0|1.0"
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|voice\nm|1|noise\nm|2|env\nm|3|vca\nm|4|string\nm|5|out|mono\nc|1.0|3.0|1.0\nc|0.1|2.0|1.0\nc|2.0|3.1|1.0\nc|3.0|4.0|1.0\nc|4.0|5.0|1.0\nm|6|macro|mono\nm|7|delay|mono\nm|8|reverb|mono\nm|9|drive|mono\nc|4.0|7.0|0.0|0.0|6.0|0.5\nc|7.0|5.0|1.0\nc|6.1|7.1|0.3\nc|4.0|8.0|0.0|0.0|6.2|0.6\nc|8.0|5.0|1.0\nc|6.3|8.1|0.4\nc|4.0|9.0|0.0|0.0|6.4|0.5\nc|9.0|5.0|1.0\nc|6.5|4.2|0.04\nc|2.0|3.1|0.0|0.0|6.6|1.0\nc|6.7|4.2|-0.5"
+  set macro1 "Echo"
+  set macro2 "Time"
+  set macro3 "Space"
+  set macro4 "Size"
+  set macro5 "Grit"
+  set macro6 "Ring"
+  set macro7 "Hard"
+  set macro8 "Mute"
   s02_p2         0.0
   s02_p3         0.02
   s02_p4         0.0
   s04_p2         0.94
   s05_p1         0.95
-  volume         1.00
+  c05_a          0.0000
+  c05_b          0.0000
+  c07_a          0.3000
+  c07_b          0.3000
+  c08_a          0.0000
+  c08_b          0.0000
+  c10_a          0.4000
+  c10_b          0.4000
+  c11_a          0.0000
+  c11_b          0.0000
+  c13_a          0.0400
+  c13_b          0.0400
+  c14_a          0.0000
+  c14_b          0.0000
+  c15_a          -0.5000
+  c15_b          -0.5000
+  s07_p1         0.739
+  s07_p2         0.35
+  s07_p3         0.4
+  s07_p4         1.0
+  s08_p1         0.55
+  s08_p5         1.0
+  s09_p1         0.6
+  s09_p3         1.0
+  volume         1.000
+  insert Eq
+    gain         1.7 dB
 
 patch "Rotor String" family=house
   # And through Manual's cabinet, which is the other block nothing else can
@@ -69,32 +1640,636 @@ patch "Rotor String" family=house
   # one - because a rotary speaker heard through a single microphone is not one.
   # Until the sink grew a second input there was nowhere for that cable to go,
   # and this patch was two bit-identical channels.
-  set nexus "v|2\nm|0|voice\nm|1|noise\nm|2|env\nm|3|vca\nm|4|string\nm|5|rotary|mono\nm|6|out|mono\nc|1.0|3.0|1.0\nc|0.1|2.0|1.0\nc|2.0|3.1|1.0\nc|3.0|4.0|1.0\nc|4.0|5.0|1.0\nc|5.0|6.0|1.0\nc|5.1|6.2|1.0"
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|voice\nm|1|noise\nm|2|env\nm|3|vca\nm|4|string\nm|5|rotary|mono\nm|6|out|mono\nc|1.0|3.0|1.0\nc|0.1|2.0|1.0\nc|2.0|3.1|1.0\nc|3.0|4.0|1.0\nc|4.0|5.0|1.0\nc|5.0|6.0|1.0\nc|5.1|6.2|1.0\nm|7|macro|mono\nm|8|delay|mono\nm|9|reverb|mono\nm|10|drive|mono\nc|4.0|8.0|0.0|0.0|7.0|0.5\nc|8.0|6.0|1.0\nc|8.0|6.2|1.0\nc|7.1|8.1|0.3\nc|4.0|9.0|0.0|0.0|7.2|0.6\nc|9.0|6.0|1.0\nc|9.1|6.2|1.0\nc|7.3|9.1|0.4\nc|4.0|10.0|0.0|0.0|7.4|0.5\nc|10.0|6.0|1.0\nc|10.0|6.2|1.0\nc|7.5|4.2|0.03\nc|2.0|3.1|0.0|0.0|7.6|1.0\nc|7.7|4.2|-0.5"
+  set macro1 "Echo"
+  set macro2 "Time"
+  set macro3 "Space"
+  set macro4 "Size"
+  set macro5 "Grit"
+  set macro6 "Ring"
+  set macro7 "Hard"
+  set macro8 "Mute"
   s02_p2         0.0
   s02_p3         0.02
   s02_p4         0.0
   s04_p2         0.95
   s06_p1         0.95
-  volume         1.00
+  c07_a          0.0000
+  c07_b          0.0000
+  c10_a          0.3000
+  c10_b          0.3000
+  c11_a          0.0000
+  c11_b          0.0000
+  c14_a          0.4000
+  c14_b          0.4000
+  c15_a          0.0000
+  c15_b          0.0000
+  c18_a          0.0300
+  c18_b          0.0300
+  c19_a          0.0000
+  c19_b          0.0000
+  c20_a          -0.5000
+  c20_b          -0.5000
+  s08_p1         0.739
+  s08_p2         0.35
+  s08_p3         0.4
+  s08_p4         1.0
+  s09_p1         0.55
+  s09_p5         1.0
+  s10_p1         0.6
+  s10_p3         1.0
+  volume         1.000
+  insert Eq
+    gain         8.1 dB
 
 patch "Two Operators" family=house
   # Two operators and the rest of Ratio taken apart and patched by hand.
-  set nexus "v|2\nm|0|voice\nm|1|op\nm|2|op\nm|3|env\nm|4|vca\nm|5|out|mono\nc|1.0|2.0|1.0\nc|2.0|4.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0"
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|voice\nm|1|op\nm|2|op\nm|3|env\nm|4|vca\nm|5|out|mono\nc|1.0|2.0|1.0\nc|2.0|4.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0\nm|6|macro|mono\nm|7|delay|mono\nm|8|reverb|mono\nm|9|drive|mono\nm|10|lfo|mono\nc|4.0|7.0|0.0|0.0|6.0|0.5\nc|7.0|5.0|1.0\nc|6.1|7.1|0.3\nc|4.0|8.0|0.0|0.0|6.2|0.6\nc|8.0|5.0|1.0\nc|6.3|8.1|0.4\nc|4.0|9.0|0.0|0.0|6.4|0.5\nc|9.0|5.0|1.0\nc|1.0|2.0|0.0|0.0|6.5|1.0\nc|10.0|4.1|0.0|0.0|6.6|0.5\nc|6.7|10.0|0.6"
+  set macro1 "Echo"
+  set macro2 "Time"
+  set macro3 "Space"
+  set macro4 "Size"
+  set macro5 "Grit"
+  set macro6 "Bright"
+  set macro7 "Tremolo"
+  set macro8 "Rate"
   s01_p2         0.1
   s03_p3         0.5
   s05_p1         0.35
+  c05_a          0.0000
+  c05_b          0.0000
+  c07_a          0.3000
+  c07_b          0.3000
+  c08_a          0.0000
+  c08_b          0.0000
+  c10_a          0.4000
+  c10_b          0.4000
+  c11_a          0.0000
+  c11_b          0.0000
+  c13_a          0.0000
+  c13_b          0.0000
+  c14_a          0.0000
+  c14_b          0.0000
+  c15_a          0.6000
+  c15_b          0.6000
+  s07_p1         0.739
+  s07_p2         0.35
+  s07_p3         0.4
+  s07_p4         1.0
+  s08_p1         0.55
+  s08_p5         1.0
+  s09_p1         0.6
+  s09_p3         1.0
+  s10_p2         0.749
   volume         0.87
 
-patch "Runs Itself" family=generative
-  # A patch that plays itself: the transport drives a Euclidean pattern, the
-  # pattern drives a random, the random is quantised to a scale, and nothing
-  # here is waiting for a key.
-  set nexus "v|2\nm|0|clock|mono\nm|1|euclid|mono\nm|2|rand|mono\nm|3|quant|mono\nm|4|osc\nm|5|env\nm|6|vca\nm|7|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nc|2.0|3.0|1.0\nc|3.0|4.0|1.0\nc|1.0|5.0|1.0\nc|4.0|6.0|1.0\nc|5.0|6.1|1.0\nc|6.0|7.0|1.0"
-  s01_p2         0.3
-  s05_p2         0.05
-  s05_p4         0.25
-  s07_p1         0.35
-  volume         0.82
+patch Tonewheels family=house
+  # Manual's generator as a block. Ninety-one wheels turning, through a filter
+  # and an envelope - an organ nobody built, because the generator is not
+  # supposed to come out of the organ.
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|voice\nm|1|wheels\nm|2|filter\nm|3|env\nm|4|vca\nm|5|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nc|2.0|4.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0\nm|6|macro|mono\nm|7|delay|mono\nm|8|reverb|mono\nm|9|drive|mono\nm|10|lfo|mono\nc|4.0|7.0|0.0|0.0|6.0|0.5\nc|7.0|5.0|1.0\nc|6.1|7.1|0.3\nc|4.0|8.0|0.0|0.0|6.2|0.6\nc|8.0|5.0|1.0\nc|6.3|8.1|0.4\nc|4.0|9.0|0.0|0.0|6.4|0.5\nc|9.0|5.0|1.0\nc|6.5|2.1|0.3\nc|6.6|2.2|0.5\nc|10.0|4.1|0.0|0.0|6.7|0.5"
+  set macro1 "Echo"
+  set macro2 "Time"
+  set macro3 "Space"
+  set macro4 "Size"
+  set macro5 "Grit"
+  set macro6 "Bright"
+  set macro7 "Reso"
+  set macro8 "Tremolo"
+  s02_p2         0.55
+  s03_p1         0.04
+  s03_p4         0.2
+  s05_p1         0.8
+  c06_a          0.0000
+  c06_b          0.0000
+  c08_a          0.3000
+  c08_b          0.3000
+  c09_a          0.0000
+  c09_b          0.0000
+  c11_a          0.4000
+  c11_b          0.4000
+  c12_a          0.0000
+  c12_b          0.0000
+  c14_a          0.3000
+  c14_b          0.3000
+  c15_a          0.5000
+  c15_b          0.5000
+  c16_a          0.0000
+  c16_b          0.0000
+  s07_p1         0.739
+  s07_p2         0.35
+  s07_p3         0.4
+  s07_p4         1.0
+  s08_p1         0.55
+  s08_p5         1.0
+  s09_p1         0.6
+  s09_p3         1.0
+  s10_p2         0.771
+  volume         0.39
+
+patch "Wavetable Drift" family=house
+  # Trinity's wavetable bank, with an LFO walking through the frames. The
+  # table is a module here, so the thing that scans it can be anything - and
+  # an LFO is only the least surprising choice.
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|voice\nm|1|wtosc\nm|2|lfo|mono\nm|3|filter\nm|4|env\nm|5|vca\nm|6|out|mono\nc|0.0|1.0|1.0\nc|2.0|1.2|0.7\nc|1.0|3.0|1.0\nc|3.0|5.0|1.0\nc|0.1|4.0|1.0\nc|4.0|5.1|1.0\nc|5.0|6.0|1.0\nm|7|macro|mono\nm|8|delay|mono\nm|9|reverb|mono\nm|10|drive|mono\nc|5.0|8.0|0.0|0.0|7.0|0.5\nc|8.0|6.0|1.0\nc|7.1|8.1|0.3\nc|5.0|9.0|0.0|0.0|7.2|0.6\nc|9.0|6.0|1.0\nc|7.3|9.1|0.4\nc|5.0|10.0|0.0|0.0|7.4|0.5\nc|10.0|6.0|1.0\nc|7.5|3.1|0.3\nc|7.6|1.2|0.4\nc|2.0|1.2|0.0|0.0|7.7|0.5"
+  set macro1 "Echo"
+  set macro2 "Time"
+  set macro3 "Space"
+  set macro4 "Size"
+  set macro5 "Grit"
+  set macro6 "Bright"
+  set macro7 "Scan"
+  set macro8 "Drift"
+  s02_p2         0.22
+  s03_p2         0.6
+  s04_p1         0.08
+  s04_p4         0.35
+  s06_p1         0.85
+  c01_a          0.7000
+  c01_b          0.7000
+  c07_a          0.0000
+  c07_b          0.0000
+  c09_a          0.3000
+  c09_b          0.3000
+  c10_a          0.0000
+  c10_b          0.0000
+  c12_a          0.4000
+  c12_b          0.4000
+  c13_a          0.0000
+  c13_b          0.0000
+  c15_a          0.3000
+  c15_b          0.3000
+  c16_a          0.4000
+  c16_b          0.4000
+  c17_a          0.0000
+  c17_b          0.0000
+  s08_p1         0.739
+  s08_p2         0.35
+  s08_p3         0.4
+  s08_p4         1.0
+  s09_p1         0.55
+  s09_p5         1.0
+  s10_p1         0.6
+  s10_p3         1.0
+  volume         0.74
+
+patch "Motor Bars" note=65 range=55..84 family=house
+  # Tine's vibraphone as a block, its motor turning, into a filter and a
+  # chorus. Tremolo is a VCA the macro opens onto an LFO, on top of the motor.
+  set nexus "v|2\nm|0|voice\nm|1|mallets|mono\nm|2|filter|mono\nm|3|vca|mono\nm|4|lfo|mono\nm|5|chorus|mono\nm|6|delay|mono\nm|7|reverb|mono\nm|8|drive|mono\nm|9|macro|mono\nm|10|out|mono\nc|0.0|1.0|1\nc|0.1|1.1|1\nc|0.2|1.2|1\nc|1.0|2.0|1\nc|2.0|3.0|1\nc|3.0|5.0|1\nc|5.0|10.0|1\nc|5.1|10.2|1\nc|9.0|2.1|-0.35\nc|4.0|3.1|0.0|0.0|9.1|0.5\nc|9.2|4.0|0.6\nc|9.3|5.1|0.5\nc|3.0|6.0|0.0|0.0|9.4|0.5\nc|6.0|10.0|1\nc|6.0|10.2|1\nc|3.0|7.0|0.0|0.0|9.5|0.6\nc|7.0|10.0|1\nc|7.1|10.2|1\nc|3.0|8.0|0.0|0.0|9.6|0.6\nc|8.0|10.0|1\nc|8.0|10.2|1\nc|9.7|2.2|0.6"
+  set macro1 "Soft"
+  set macro2 "Tremolo"
+  set macro3 "Rate"
+  set macro4 "Chorus"
+  set macro5 "Echo"
+  set macro6 "Space"
+  set macro7 "Grit"
+  set macro8 "Ring"
+  c08_a          -0.3500
+  c08_b          -0.3500
+  c09_a          0.0000
+  c09_b          0.0000
+  c10_a          0.6000
+  c10_b          0.6000
+  c11_a          0.5000
+  c11_b          0.5000
+  c12_a          0.0000
+  c12_b          0.0000
+  c15_a          0.0000
+  c15_b          0.0000
+  c18_a          0.0000
+  c18_b          0.0000
+  c21_a          0.6000
+  c21_b          0.6000
+  s01_p1         0.0556
+  s01_p2         0.45
+  s01_p3         0.3
+  s01_p4         0.6
+  s01_p5         0.5
+  s01_p6         0.6
+  s01_p7         0.45
+  s01_p8         0.5
+  s02_p1         0.12
+  s02_p2         0.898
+  s02_p3         0.1
+  s03_p1         1.0
+  s04_p1         0.0
+  s04_p2         0.749
+  s05_p6         0.35
+  s06_p1         0.758
+  s06_p2         0.35
+  s06_p3         0.4
+  s06_p4         1.0
+  s07_p1         0.6
+  s07_p5         1.0
+  s08_p1         0.5
+  s08_p3         1.0
+  s10_p1         0.7568
+  volume         0.80
+
+patch "Free Reeds" family=house
+  # Draw's accordion reed with a slow bellows attack, and a pipe an octave down.
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|voice\nm|1|env\nm|2|reed\nm|3|pipe\nm|4|mix\nm|5|out|mono\nc|0.1|1.0|1.0\nc|1.0|2.0|1.0\nc|1.0|3.0|0.9\nc|0.0|2.1|1.0\nc|0.0|3.1|1.0\nc|2.0|4.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0\nm|6|macro|mono\nm|7|delay|mono\nm|8|reverb|mono\nm|9|drive|mono\nc|4.0|7.0|0.0|0.0|6.0|0.5\nc|7.0|5.0|1.0\nc|6.1|7.1|0.3\nc|4.0|8.0|0.0|0.0|6.2|0.6\nc|8.0|5.0|1.0\nc|6.3|8.1|0.4\nc|4.0|9.0|0.0|0.0|6.4|0.5\nc|9.0|5.0|1.0\nc|3.0|4.1|0.0|0.0|6.5|1.0\nc|2.0|4.0|0.0|0.0|6.6|0.6\nc|1.0|2.0|0.0|0.0|6.7|0.3"
+  set macro1 "Echo"
+  set macro2 "Time"
+  set macro3 "Space"
+  set macro4 "Size"
+  set macro5 "Grit"
+  set macro6 "Pipe"
+  set macro7 "Reed"
+  set macro8 "Bellows"
+  s01_p1         0.2
+  s01_p3         0.9
+  s02_p1         0.3
+  s03_p2         0.25
+  s03_p8         0.35
+  c02_a          0.9000
+  c02_b          0.9000
+  c08_a          0.0000
+  c08_b          0.0000
+  c10_a          0.3000
+  c10_b          0.3000
+  c11_a          0.0000
+  c11_b          0.0000
+  c13_a          0.4000
+  c13_b          0.4000
+  c14_a          0.0000
+  c14_b          0.0000
+  c16_a          0.0000
+  c16_b          0.0000
+  c17_a          0.0000
+  c17_b          0.0000
+  c18_a          0.0000
+  c18_b          0.0000
+  s07_p1         0.739
+  s07_p2         0.35
+  s07_p3         0.4
+  s07_p4         1.0
+  s08_p1         0.55
+  s08_p5         1.0
+  s09_p1         0.6
+  s09_p3         1.0
+  volume         1.000
+  insert Eq
+    gain         5.1 dB
+
+patch "Patched Pipes" note=62 range=55..79 family=house
+  # Chanter's smallpipes, played from the keys, through a filter, with a
+  # reverb and an echo the macros send to. Drone is a sine an octave under
+  # the note, since the block's own drones answer to its knob alone.
+  set nexus "v|2\nm|0|voice\nm|1|pipes|mono\nm|2|filter|mono\nm|3|osc\nm|4|env\nm|5|vca\nm|6|reverb|mono\nm|7|delay|mono\nm|8|lfo|mono\nm|9|vca|mono\nm|10|macro|mono\nm|11|out|mono\nc|0.0|1.0|1\nc|0.1|1.1|1\nc|0.2|1.2|1\nc|1.0|2.0|1\nc|2.0|9.0|1\nc|9.0|11.0|1.4735\nc|10.0|2.1|-0.35\nc|10.1|2.2|0.6\nc|3.0|5.0|0.0|0.0|10.2|0.05\nc|0.1|4.0|1\nc|4.0|5.1|1\nc|5.0|11.0|1.4735\nc|9.0|6.0|0.0|0.0|10.3|0.6\nc|6.0|11.0|1.4735\nc|6.1|11.2|1.4735\nc|9.0|7.0|0.0|0.0|10.4|0.5\nc|7.0|11.0|1.4735\nc|8.0|9.1|0.0|0.0|10.5|0.4\nc|10.6|6.1|0.4\nc|10.7|7.1|0.3\nc|9.0|11.2|1.4735\nc|5.0|11.2|1.4735\nc|7.0|11.2|1.4735"
+  set macro1 "Mellow"
+  set macro2 "Reed"
+  set macro3 "Drone"
+  set macro4 "Space"
+  set macro5 "Echo"
+  set macro6 "Tremble"
+  set macro7 "Size"
+  set macro8 "Time"
+  c05_a          1.4735
+  c05_b          1.4735
+  c06_a          -0.3500
+  c06_b          -0.3500
+  c07_a          0.6000
+  c07_b          0.6000
+  c08_a          0.0000
+  c08_b          0.0000
+  c11_a          1.4735
+  c11_b          1.4735
+  c12_a          0.0000
+  c12_b          0.0000
+  c13_a          1.4735
+  c13_b          1.4735
+  c14_a          1.4735
+  c14_b          1.4735
+  c15_a          0.0000
+  c15_b          0.0000
+  c16_a          1.4735
+  c16_b          1.4735
+  c17_a          0.0000
+  c17_b          0.0000
+  c18_a          0.4000
+  c18_b          0.4000
+  c19_a          0.3000
+  c19_b          0.3000
+  c20_a          1.4735
+  c20_b          1.4735
+  c21_a          1.4735
+  c21_b          1.4735
+  c22_a          1.4735
+  c22_b          1.4735
+  s01_p1         0.0833
+  s01_p3         0.6
+  s01_p5         0.5
+  s01_p6         0.0
+  s02_p1         0.12
+  s02_p2         0.881
+  s02_p3         0.05
+  s03_p1         0.85
+  s03_p2         0.25
+  s04_p1         0.476
+  s04_p2         0.576
+  s04_p3         1.0
+  s04_p4         0.529
+  s06_p1         0.65
+  s06_p5         1.0
+  s07_p1         0.725
+  s07_p2         0.3
+  s07_p3         0.4
+  s07_p4         1.0
+  s08_p2         0.771
+  s09_p1         1.0
+  s11_p1         1.0
+  volume         0.80
+  insert Eq
+    gain         1.2 dB
+
+patch "Horn in a Hall" family=house
+  # Brazen's horn blown by an envelope, into the reverb.
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|voice\nm|1|env\nm|2|bore\nm|3|reverb|mono\nm|4|out|mono\nc|0.1|1.0|1.0\nc|1.0|2.0|1.0\nc|0.0|2.1|1.0\nc|2.0|3.0|1.0\nc|3.0|4.0|1.0\nc|3.1|4.2|1.0\nm|5|macro|mono\nm|6|delay|mono\nm|7|drive|mono\nm|8|noise\nc|2.0|6.0|0.0|0.0|5.0|0.5\nc|6.0|4.0|1.0\nc|6.0|4.2|1.0\nc|5.1|6.1|0.3\nc|2.0|7.0|0.0|0.0|5.2|0.5\nc|7.0|4.0|1.0\nc|7.0|4.2|1.0\nc|2.0|3.0|0.0|0.0|5.3|1.0\nc|5.4|3.1|0.4\nc|2.0|4.0|0.0|0.0|5.5|0.5\nc|2.0|4.2|0.0|0.0|5.5|0.5\nc|1.0|2.0|0.0|0.0|5.6|0.3\nc|8.0|2.0|0.0|0.0|5.7|0.05"
+  set macro1 "Echo"
+  set macro2 "Time"
+  set macro3 "Grit"
+  set macro4 "Hall"
+  set macro5 "Size"
+  set macro6 "Close"
+  set macro7 "Push"
+  set macro8 "Breath"
+  s01_p1         0.08
+  s01_p3         0.8
+  s01_p4         0.25
+  s03_p5         0.25
+  c06_a          0.0000
+  c06_b          0.0000
+  c09_a          0.3000
+  c09_b          0.3000
+  c10_a          0.0000
+  c10_b          0.0000
+  c13_a          0.0000
+  c13_b          0.0000
+  c14_a          0.4000
+  c14_b          0.4000
+  c15_a          0.0000
+  c15_b          0.0000
+  c16_a          0.0000
+  c16_b          0.0000
+  c17_a          0.0000
+  c17_b          0.0000
+  c18_a          0.0000
+  c18_b          0.0000
+  s06_p1         0.739
+  s06_p2         0.35
+  s06_p3         0.4
+  s06_p4         1.0
+  s07_p1         0.6
+  s07_p3         1.0
+  volume         1.000
+  insert Eq
+    gain         14.7 dB
+
+patch "Bridge Sitar" note=55 range=43..79 family=house
+  # Sympath's electric sitar, the buzzing bridge and no drone, dry into a
+  # chorus. The macros darken it, send it to an echo and a room, and drive it.
+  set nexus "v|2\nm|0|voice\nm|1|sitar|mono\nm|2|filter|mono\nm|3|chorus|mono\nm|4|delay|mono\nm|5|reverb|mono\nm|6|drive|mono\nm|7|lfo|mono\nm|8|macro|mono\nm|9|out|mono\nc|0.0|1.0|1\nc|0.1|1.1|1\nc|0.2|1.2|1\nc|1.0|2.0|1\nc|2.0|3.0|1\nc|3.0|9.0|1\nc|3.1|9.2|1\nc|8.0|2.1|-0.35\nc|8.1|3.1|0.5\nc|2.0|4.0|0.0|0.0|8.2|0.5\nc|4.0|9.0|1\nc|4.0|9.2|1\nc|2.0|5.0|0.0|0.0|8.3|0.6\nc|5.0|9.0|1\nc|5.1|9.2|1\nc|2.0|6.0|0.0|0.0|8.4|0.6\nc|6.0|9.0|1\nc|6.0|9.2|1\nc|7.0|2.1|0.0|0.0|8.5|0.25\nc|8.6|2.2|0.6\nc|8.7|4.1|0.3"
+  set macro1 "Dark"
+  set macro2 "Chorus"
+  set macro3 "Echo"
+  set macro4 "Space"
+  set macro5 "Drive"
+  set macro6 "Wah"
+  set macro7 "Reso"
+  set macro8 "Time"
+  c07_a          -0.3500
+  c07_b          -0.3500
+  c08_a          0.5000
+  c08_b          0.5000
+  c09_a          0.0000
+  c09_b          0.0000
+  c12_a          0.0000
+  c12_b          0.0000
+  c15_a          0.0000
+  c15_b          0.0000
+  c18_a          0.0000
+  c18_b          0.0000
+  c19_a          0.6000
+  c19_b          0.6000
+  c20_a          0.3000
+  c20_b          0.3000
+  s01_p1         0.6667
+  s01_p4         0.6
+  s01_p6         0.5
+  s01_p7         0.5
+  s01_p8         0.3
+  s02_p1         0.12
+  s02_p2         0.914
+  s02_p3         0.05
+  s03_p6         0.3
+  s04_p1         0.739
+  s04_p2         0.35
+  s04_p3         0.4
+  s04_p4         1.0
+  s05_p1         0.55
+  s05_p5         1.0
+  s06_p1         0.5
+  s06_p3         1.0
+  s07_p2         0.604
+  s09_p1         0.7385
+  volume         0.80
+  insert Eq
+    gain         3.5 dB
+
+patch "Talking Harp" family=house
+  # Tongue's jaw harp through Diction's throat, an LFO moving the vowel.
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|voice\nm|1|jaw\nm|2|lfo|mono\nm|3|throat\nm|4|out|mono\nc|0.1|1.0|1.0\nc|0.0|1.1|1.0\nc|1.0|3.0|1.0\nc|2.1|3.1|0.8\nc|3.0|4.0|1.0\nm|5|macro|mono\nm|6|delay|mono\nm|7|reverb|mono\nm|8|drive|mono\nc|3.0|6.0|0.0|0.0|5.0|0.5\nc|6.0|4.0|1.0\nc|5.1|6.1|0.3\nc|3.0|7.0|0.0|0.0|5.2|0.6\nc|7.0|4.0|1.0\nc|5.3|7.1|0.4\nc|3.0|8.0|0.0|0.0|5.4|0.5\nc|8.0|4.0|1.0\nc|2.1|3.1|0.0|0.0|5.5|0.5\nc|5.6|3.1|0.5\nc|5.7|1.2|0.5"
+  set macro1 "Echo"
+  set macro2 "Time"
+  set macro3 "Space"
+  set macro4 "Size"
+  set macro5 "Grit"
+  set macro6 "Talk"
+  set macro7 "Vowel"
+  set macro8 "Twang"
+  s01_p8         0.9
+  s02_p2         0.25
+  s03_p1         0.1
+  s03_p5         1.0
+  c03_a          0.8000
+  c03_b          0.8000
+  c05_a          0.0000
+  c05_b          0.0000
+  c07_a          0.3000
+  c07_b          0.3000
+  c08_a          0.0000
+  c08_b          0.0000
+  c10_a          0.4000
+  c10_b          0.4000
+  c11_a          0.0000
+  c11_b          0.0000
+  c13_a          0.0000
+  c13_b          0.0000
+  c14_a          0.5000
+  c14_b          0.5000
+  c15_a          0.5000
+  c15_b          0.5000
+  s06_p1         0.739
+  s06_p2         0.35
+  s06_p3         0.4
+  s06_p4         1.0
+  s07_p1         0.55
+  s07_p5         1.0
+  s08_p1         0.6
+  s08_p3         1.0
+  volume         1.000
+  insert Eq
+    gain         12.5 dB
+
+patch "Talk Box Guitar" family=house
+  # Fret's guitar, driven, through Diction's throat with an LFO on the vowel.
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|voice\nm|1|guitar|mono\nm|2|lfo|mono\nm|3|throat|mono\nm|4|out|mono\nc|0.0|1.0|1.0\nc|0.1|1.1|1.0\nc|0.2|1.2|1.0\nc|1.0|3.0|1.0\nc|2.1|3.1|0.8\nc|3.0|4.0|1.0\nm|5|macro|mono\nm|6|delay|mono\nm|7|reverb|mono\nm|8|drive|mono\nc|3.0|6.0|0.0|0.0|5.0|0.5\nc|6.0|4.0|1.0\nc|5.1|6.1|0.3\nc|3.0|7.0|0.0|0.0|5.2|0.6\nc|7.0|4.0|1.0\nc|5.3|7.1|0.4\nc|3.0|8.0|0.0|0.0|5.4|0.5\nc|8.0|4.0|1.0\nc|2.1|3.1|0.0|0.0|5.5|0.5\nc|5.6|3.1|0.5\nc|5.7|3.2|0.4"
+  set macro1 "Echo"
+  set macro2 "Time"
+  set macro3 "Space"
+  set macro4 "Size"
+  set macro5 "Grit"
+  set macro6 "Talk"
+  set macro7 "Vowel"
+  set macro8 "Mouth"
+  s01_p7         0.8
+  s02_p2         0.2
+  s03_p5         1.0
+  s04_p1         1.0
+  c04_a          0.8000
+  c04_b          0.8000
+  c06_a          0.0000
+  c06_b          0.0000
+  c08_a          0.3000
+  c08_b          0.3000
+  c09_a          0.0000
+  c09_b          0.0000
+  c11_a          0.4000
+  c11_b          0.4000
+  c12_a          0.0000
+  c12_b          0.0000
+  c14_a          0.0000
+  c14_b          0.0000
+  c15_a          0.5000
+  c15_b          0.5000
+  c16_a          0.4000
+  c16_b          0.4000
+  s06_p1         0.739
+  s06_p2         0.35
+  s06_p3         0.4
+  s06_p4         1.0
+  s07_p1         0.55
+  s07_p5         1.0
+  s08_p1         0.6
+  s08_p3         1.0
+  volume         1.000
+  insert Eq
+    gain         2.0 dB
+
+patch "Whistled Tune" note=72 range=60..88 family=house
+  # Aviary's whistle as a block, playing the note it is given, so a
+  # bird sings the tune off the keys. An echo and a wood around it.
+  set nexus "v|2\nm|0|voice\nm|1|bird|mono\nm|2|filter|mono\nm|3|delay|mono\nm|4|reverb|mono\nm|5|vca|mono\nm|6|lfo|mono\nm|7|macro|mono\nm|8|out|mono\nc|0.0|1.0|1\nc|0.1|1.1|1\nc|0.2|1.2|1\nc|1.0|2.0|1\nc|2.0|5.0|1\nc|5.0|8.0|1\nc|5.0|3.0|0.15|0.15|7.0|0.5\nc|3.0|8.0|1\nc|3.0|8.2|1\nc|5.0|4.0|0.2|0.2|7.1|0.5\nc|4.0|8.0|1\nc|4.1|8.2|1\nc|7.2|2.1|-0.2\nc|6.0|5.1|0.0|0.0|7.3|0.5\nc|7.4|4.1|0.4\nc|7.5|3.1|0.3\nc|7.6|2.2|0.6\nc|7.7|6.0|0.6\nc|5.0|8.2|1"
+  set macro1 "Echo"
+  set macro2 "Wood"
+  set macro3 "Far"
+  set macro4 "Flutter"
+  set macro5 "Size"
+  set macro6 "Time"
+  set macro7 "Reed"
+  set macro8 "Rate"
+  c06_a          0.1500
+  c06_b          0.1500
+  c09_a          0.2000
+  c09_b          0.2000
+  c12_a          -0.2000
+  c12_b          -0.2000
+  c13_a          0.0000
+  c13_b          0.0000
+  c14_a          0.4000
+  c14_b          0.4000
+  c15_a          0.3000
+  c15_b          0.3000
+  c16_a          0.6000
+  c16_b          0.6000
+  c17_a          0.6000
+  c17_b          0.6000
+  s01_p1         0.0
+  s01_p2         0.5
+  s01_p3         0.6
+  s01_p4         0.4
+  s01_p5         0.05
+  s01_p8         0.0
+  s02_p1         0.12
+  s02_p2         0.94
+  s02_p3         0.05
+  s03_p1         0.752
+  s03_p2         0.35
+  s03_p3         0.4
+  s03_p4         1.0
+  s04_p1         0.6
+  s04_p5         1.0
+  s05_p1         1.0
+  s06_p2         0.806
+  s08_p1         0.5546
+  volume         0.80
+
+patch Talking family=house input=break
+  # Cipher's band map as a block: what is plugged in shapes the oscillators.
+  # A vocoder wired by hand, and the carrier is whatever you patch to it
+  # rather than whatever the machine decided.
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|audioin|mono\nm|3|bands|mono\nm|4|env\nm|5|vca\nm|6|out|mono\nc|0.0|1.0|1.0\nc|1.0|3.0|1.0\nc|2.0|3.1|1.0\nc|3.0|5.0|1.0\nc|0.1|4.0|1.0\nc|4.0|5.1|1.0\nc|5.0|6.0|1.0\nm|7|macro|mono\nm|8|delay|mono\nm|9|reverb|mono\nm|10|drive|mono\nm|11|lfo|mono\nc|5.0|8.0|0.0|0.0|7.0|0.5\nc|8.0|6.0|1.0\nc|7.1|8.1|0.3\nc|5.0|9.0|0.0|0.0|7.2|0.6\nc|9.0|6.0|1.0\nc|7.3|9.1|0.4\nc|5.0|10.0|0.0|0.0|7.4|0.5\nc|10.0|6.0|1.0\nc|7.5|1.2|0.35\nc|11.0|1.1|0.0|0.0|7.6|0.02\nc|7.7|11.0|0.6"
+  set macro1 "Echo"
+  set macro2 "Time"
+  set macro3 "Space"
+  set macro4 "Size"
+  set macro5 "Grit"
+  set macro6 "Width"
+  set macro7 "Vibrato"
+  set macro8 "Rate"
+  s01_p1         0.25
+  s04_p1         0.02
+  s04_p4         0.2
+  s06_p1         0.9
+  c07_a          0.0000
+  c07_b          0.0000
+  c09_a          0.3000
+  c09_b          0.3000
+  c10_a          0.0000
+  c10_b          0.0000
+  c12_a          0.4000
+  c12_b          0.4000
+  c13_a          0.0000
+  c13_b          0.0000
+  c15_a          0.3500
+  c15_b          0.3500
+  c16_a          0.0000
+  c16_b          0.0000
+  c17_a          0.6000
+  c17_b          0.6000
+  s08_p1         0.739
+  s08_p2         0.35
+  s08_p3         0.4
+  s08_p4         1.0
+  s09_p1         0.55
+  s09_p5         1.0
+  s10_p1         0.6
+  s10_p3         1.0
+  s11_p2         0.749
+  volume         1.000
+  insert Eq
+    gain         2.1 dB
 
 patch Listening family=house input=break
   # Whatever is plugged in, granulated. On a phone that input is you.
@@ -103,107 +2278,2483 @@ patch Listening family=house input=break
   # render that happens to end on a swell reads as a tail getting louder,
   # which is what a runaway looks like from outside. Rotor String next door
   # is where the cabinet belongs, under something that decays.
-  set nexus "v|2\nm|0|audioin|mono\nm|1|grain|mono\nm|2|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0"
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|audioin|mono\nm|1|grain|mono\nm|2|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nm|3|macro|mono\nm|4|delay|mono\nm|5|reverb|mono\nm|6|drive|mono\nm|7|chorus|mono\nc|1.0|4.0|0.0|0.0|3.0|0.5\nc|4.0|2.0|1.0\nc|3.1|4.1|0.3\nc|1.0|5.0|0.0|0.0|3.2|0.6\nc|5.0|2.0|1.0\nc|3.3|5.1|0.4\nc|1.0|6.0|0.0|0.0|3.4|0.5\nc|6.0|2.0|1.0\nc|3.5|1.1|0.4\nc|3.6|1.2|0.4\nc|1.0|7.0|0.0|0.0|3.7|0.6\nc|7.0|2.0|1.0"
+  set macro1 "Echo"
+  set macro2 "Time"
+  set macro3 "Space"
+  set macro4 "Size"
+  set macro5 "Grit"
+  set macro6 "Reach"
+  set macro7 "Dense"
+  set macro8 "Chorus"
   s01_p2         0.18
   s01_p3         0.6
   s01_p6         0.9
   s02_p1         0.95
-  volume         1.00
-patch "Macro Sweep" family=macro
-  # What a macro is. The `macro` module has no knobs and eight outputs, each
-  # carrying one of the eight macro parameters - so you assign a macro by
-  # patching it, not by choosing it from a list. Here macro 1 goes to the
-  # filter's cutoff, and turning it sweeps the patch.
-  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|filter\nm|3|env\nm|4|vca\nm|5|macro|mono\nm|6|out|mono\nc|1.0|2.0|1.0\nc|2.0|4.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|6.0|1.0\nc|5.0|2.1|0.8"
-  macro1         0.45
-  s02_p2         0.3
-  s02_p3         0.45
-  s03_p1         0.02
-  s03_p4         0.25
-  s06_p1         0.85
-  volume         0.41
+  c02_a          0.0000
+  c02_b          0.0000
+  c04_a          0.3000
+  c04_b          0.3000
+  c05_a          0.0000
+  c05_b          0.0000
+  c07_a          0.4000
+  c07_b          0.4000
+  c08_a          0.0000
+  c08_b          0.0000
+  c10_a          0.4000
+  c10_b          0.4000
+  c11_a          0.4000
+  c11_b          0.4000
+  c12_a          0.0000
+  c12_b          0.0000
+  s04_p1         0.739
+  s04_p2         0.35
+  s04_p3         0.4
+  s04_p4         1.0
+  s05_p1         0.55
+  s05_p5         1.0
+  s06_p1         0.6
+  s06_p3         1.0
+  s07_p6         1.0
+  volume         1.000
+  insert Eq
+    gain         3.0 dB
 
-patch "One Knob, Four Things" family=macro
-  # The same macro into four places, each cable at its own depth - which is
-  # the whole argument for every cable being a VCA. One knob opens the filter
-  # a lot, detunes the second oscillator a little, and brings up the noise.
-  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|noise\nm|4|mix|mono\nm|5|filter\nm|6|env\nm|7|vca\nm|8|macro|mono\nm|9|out|mono\nc|1.0|4.0|1.0\nc|2.0|4.1|0.6\nc|3.0|4.2|0.25\nc|4.0|5.0|1.0\nc|5.0|7.0|1.0\nc|0.1|6.0|1.0\nc|6.0|7.1|1.0\nc|7.0|9.0|1.0\nc|8.0|5.1|0.9\nc|8.0|2.0|0.1\nc|8.0|4.2|0.5"
-  macro1         0.4
-  s02_p2         0.52
-  s05_p2         0.25
+patch "Sing to the Piano" family=house input=break
+  # Hum into the phone and Hammer's piano follows your pitch.
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|audioin|mono\nm|1|follow|mono\nm|2|piano|mono\nm|3|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nc|1.1|2.1|1.0\nc|2.0|3.0|1.0\nc|2.1|3.2|1.0\nm|4|macro|mono\nm|5|delay|mono\nm|6|reverb|mono\nm|7|drive|mono\nm|8|chorus|mono\nc|2.0|5.0|0.0|0.0|4.0|0.5\nc|5.0|3.0|1.0\nc|5.0|3.2|1.0\nc|4.1|5.1|0.3\nc|2.0|6.0|0.0|0.0|4.2|0.6\nc|6.0|3.0|1.0\nc|6.1|3.2|1.0\nc|4.3|6.1|0.4\nc|2.0|7.0|0.0|0.0|4.4|0.5\nc|7.0|3.0|1.0\nc|7.0|3.2|1.0\nc|0.0|3.0|0.0|0.0|4.5|0.5\nc|0.0|3.2|0.0|0.0|4.5|0.5\nc|2.0|8.0|0.0|0.0|4.6|0.6\nc|8.0|3.0|1.0\nc|8.1|3.2|1.0\nc|4.7|8.1|0.5"
+  set macro1 "Echo"
+  set macro2 "Time"
+  set macro3 "Space"
+  set macro4 "Size"
+  set macro5 "Grit"
+  set macro6 "Hum"
+  set macro7 "Chorus"
+  set macro8 "Depth"
+  s01_p3         1.0
+  c05_a          0.0000
+  c05_b          0.0000
+  c08_a          0.3000
+  c08_b          0.3000
+  c09_a          0.0000
+  c09_b          0.0000
+  c12_a          0.4000
+  c12_b          0.4000
+  c13_a          0.0000
+  c13_b          0.0000
+  c16_a          0.0000
+  c16_b          0.0000
+  c17_a          0.0000
+  c17_b          0.0000
+  c18_a          0.0000
+  c18_b          0.0000
+  c21_a          0.5000
+  c21_b          0.5000
+  s05_p1         0.739
+  s05_p2         0.35
   s05_p3         0.4
-  s06_p1         0.02
-  s06_p4         0.3
-  s09_p1         0.8
-  volume         0.40
+  s05_p4         1.0
+  s06_p1         0.55
+  s06_p5         1.0
+  s07_p1         0.6
+  s07_p3         1.0
+  s08_p6         1.0
+  volume         0.550
 
-patch Morphing family=morph
-  # A cable's depth is a *pair*, A and B, and `morph` crossfades between them
-  # - so one control rewires the patch while it plays. At morph 0 the string
-  # is plucked by noise; at 1 it is driven by the oscillator instead, and
-  # everything in between is a blend of the two.
-  set nexus "v|2\nm|0|voice\nm|1|noise\nm|2|osc\nm|3|env\nm|4|vca\nm|5|string\nm|6|out|mono\nc|1.0|4.0|1.0|0.0\nc|2.0|4.0|0.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0\nc|5.0|6.0|1.0"
-  morph          0.35
+patch "Wired Kick" note=36 range=24..48 family=percussion
+  # A sine with an envelope dropping its pitch three octaves in forty
+  # milliseconds: the kick drum, patched. Length brings in a second, longer
+  # envelope beside the short one.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|env\nm|3|env\nm|4|env\nm|5|vca\nm|6|noise\nm|7|env\nm|8|vca\nm|9|filter\nm|10|drive\nm|11|delay|mono\nm|12|osc\nm|13|macro|mono\nm|14|out|mono\nc|0.1|2.0|1\nc|2.0|1.1|1.0|1.0|13.0|0.4\nc|1.0|5.0|1\nc|0.1|3.0|1\nc|3.0|5.1|1\nc|0.1|4.0|1\nc|4.0|5.1|0.0|0.0|13.1|0.8\nc|5.0|9.0|1\nc|9.0|14.0|1\nc|13.2|1.1|0.08\nc|6.0|8.0|0.0|0.0|13.3|0.6\nc|0.1|7.0|1\nc|7.0|8.1|1\nc|8.0|9.0|1\nc|5.0|10.0|0.0|0.0|13.4|0.5\nc|10.0|14.0|1\nc|13.5|9.1|-0.3\nc|12.0|5.0|0.0|0.0|13.6|0.6\nc|9.0|11.0|0.0|0.0|13.7|0.4\nc|11.0|14.0|1"
+  set macro1 "Punch"
+  set macro2 "Length"
+  set macro3 "Tune"
+  set macro4 "Click"
+  set macro5 "Drive"
+  set macro6 "Dark"
+  set macro7 "Sub"
+  set macro8 "Echo"
+  c06_a          0.0000
+  c06_b          0.0000
+  c09_a          0.0800
+  c09_b          0.0800
+  c10_a          0.0000
+  c10_b          0.0000
+  c14_a          0.0000
+  c14_b          0.0000
+  c16_a          -0.3000
+  c16_b          -0.3000
+  c17_a          0.0000
+  c17_b          0.0000
+  c18_a          0.0000
+  c18_b          0.0000
+  s01_p1         0.85
+  s01_p2         0.3958
+  s01_p5         0.75
+  s02_p1         0.0
+  s02_p2         0.344
+  s02_p3         0.0
+  s02_p4         0.344
   s03_p1         0.0
-  s03_p2         0.03
+  s03_p2         0.594
   s03_p3         0.0
-  s05_p2         0.93
-  s06_p1         0.9
-  volume         1.00
+  s03_p4         0.576
+  s04_p1         0.0
+  s04_p2         0.714
+  s04_p3         0.0
+  s04_p4         0.689
+  s06_p1         0.0
+  s07_p1         0.0
+  s07_p2         0.159
+  s07_p3         0.0
+  s07_p4         0.159
+  s09_p1         0.12
+  s09_p2         0.838
+  s09_p3         0.0
+  s10_p1         0.6
+  s10_p3         1.0
+  s11_p1         0.699
+  s11_p2         0.3
+  s11_p3         0.3
+  s11_p4         1.0
+  s12_p1         0.85
+  s12_p2         0.1458
+  s14_p1         0.7217
+  volume         0.80
+  insert Eq
+    gain         0.8 dB
 
-patch Tonewheels family=house
-  # Manual's generator as a block. Ninety-one wheels turning, through a filter
-  # and an envelope - an organ nobody built, because the generator is not
-  # supposed to come out of the organ.
-  set nexus "v|2\nm|0|voice\nm|1|wheels\nm|2|filter\nm|3|env\nm|4|vca\nm|5|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nc|2.0|4.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0"
-  s02_p2         0.55
-  s03_p1         0.04
-  s03_p4         0.2
-  s05_p1         0.8
-  volume         0.39
+patch "Wired Snare" note=48 range=36..60 family=percussion
+  # A triangle with a little pitch drop for the head, and noise through a
+  # high pass for the wires, each on its own short envelope.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|env\nm|3|env\nm|4|vca\nm|5|noise\nm|6|filter\nm|7|env\nm|8|vca\nm|9|mix\nm|10|filter\nm|11|drive\nm|12|reverb|mono\nm|13|macro|mono\nm|14|out|mono\nc|0.1|2.0|1\nc|2.0|1.1|1\nc|1.0|4.0|1\nc|0.1|3.0|1\nc|3.0|4.1|1\nc|5.0|6.0|1\nc|6.0|8.0|1\nc|0.1|7.0|1\nc|7.0|8.1|1\nc|4.0|9.0|1|1|13.0|0.8\nc|8.0|9.1|1|1|13.1|0.8\nc|9.0|10.0|1\nc|10.0|14.0|1\nc|13.2|1.1|0.06\nc|13.3|6.1|-0.25\nc|9.0|11.0|0.0|0.0|13.4|0.5\nc|11.0|14.0|1\nc|10.0|12.0|0.0|0.0|13.5|0.6\nc|12.0|14.0|1\nc|12.1|14.2|1\nc|13.6|10.1|-0.3\nc|13.7|12.1|0.4\nc|10.0|14.2|1\nc|11.0|14.2|1"
+  set macro1 "Body"
+  set macro2 "Wires"
+  set macro3 "Tune"
+  set macro4 "Hush"
+  set macro5 "Drive"
+  set macro6 "Room"
+  set macro7 "Muffle"
+  set macro8 "Size"
+  c13_a          0.0600
+  c13_b          0.0600
+  c14_a          -0.2500
+  c14_b          -0.2500
+  c15_a          0.0000
+  c15_b          0.0000
+  c17_a          0.0000
+  c17_b          0.0000
+  c20_a          -0.3000
+  c20_b          -0.3000
+  c21_a          0.4000
+  c21_b          0.4000
+  s01_p1         0.6
+  s01_p2         0.6458
+  s01_p5         0.25
+  s02_p1         0.0
+  s02_p2         0.311
+  s02_p3         0.0
+  s02_p4         0.311
+  s03_p1         0.0
+  s03_p2         0.471
+  s03_p3         0.0
+  s03_p4         0.45
+  s05_p1         0.0
+  s06_p1         0.46
+  s06_p2         0.662
+  s06_p3         0.1
+  s07_p1         0.0
+  s07_p2         0.529
+  s07_p3         0.0
+  s07_p4         0.517
+  s09_p1         0.7
+  s09_p2         0.675
+  s10_p1         0.12
+  s10_p2         0.94
+  s10_p3         0.0
+  s11_p1         0.6
+  s11_p3         1.0
+  s12_p1         0.35
+  s12_p5         1.0
+  s14_p1         0.3793
+  volume         0.80
 
-patch "Wavetable Drift" family=house
-  # Trinity's wavetable bank, with an LFO walking through the frames. The
-  # table is a module here, so the thing that scans it can be anything - and
-  # an LFO is only the least surprising choice.
-  set nexus "v|2\nm|0|voice\nm|1|wtosc\nm|2|lfo|mono\nm|3|filter\nm|4|env\nm|5|vca\nm|6|out|mono\nc|0.0|1.0|1.0\nc|2.0|1.2|0.7\nc|1.0|3.0|1.0\nc|3.0|5.0|1.0\nc|0.1|4.0|1.0\nc|4.0|5.1|1.0\nc|5.0|6.0|1.0"
-  s02_p2         0.22
-  s03_p2         0.6
-  s04_p1         0.08
-  s04_p4         0.35
-  s06_p1         0.85
-  volume         0.74
+patch "Wired Hat" note=60 range=48..72 family=percussion
+  # Noise through a high pass on a very short envelope. Open brings in a
+  # longer one, and Metal mixes in six square waves at odd ratios.
+  set nexus "v|2\nm|0|voice\nm|1|noise\nm|2|osc\nm|3|osc\nm|4|osc\nm|5|mix\nm|6|filter\nm|7|env\nm|8|env\nm|9|vca\nm|10|crush\nm|11|delay|mono\nm|12|macro|mono\nm|13|out|mono\nc|1.0|5.0|1\nc|2.0|5.1|0.0|0.0|12.1|0.4\nc|3.0|5.1|0.0|0.0|12.1|0.4\nc|4.0|5.1|0.0|0.0|12.1|0.4\nc|5.0|6.0|1\nc|6.0|9.0|1\nc|0.1|7.0|1\nc|7.0|9.1|1\nc|9.0|13.0|1\nc|0.1|8.0|1\nc|8.0|9.1|0.0|0.0|12.0|0.8\nc|12.2|6.1|-0.2\nc|12.3|6.2|0.6\nc|9.0|10.0|0.0|0.0|12.4|0.6\nc|10.0|13.0|1\nc|9.0|11.0|0.0|0.0|12.5|0.5\nc|11.0|13.0|1\nc|12.6|6.1|0.15\nc|12.7|11.1|0.3"
+  set macro1 "Open"
+  set macro2 "Metal"
+  set macro3 "Dark"
+  set macro4 "Ring"
+  set macro5 "Crush"
+  set macro6 "Echo"
+  set macro7 "Sizzle"
+  set macro8 "Time"
+  c01_a          0.0000
+  c01_b          0.0000
+  c02_a          0.0000
+  c02_b          0.0000
+  c03_a          0.0000
+  c03_b          0.0000
+  c10_a          0.0000
+  c10_b          0.0000
+  c11_a          -0.2000
+  c11_b          -0.2000
+  c12_a          0.6000
+  c12_b          0.6000
+  c13_a          0.0000
+  c13_b          0.0000
+  c15_a          0.0000
+  c15_b          0.0000
+  c17_a          0.1500
+  c17_b          0.1500
+  c18_a          0.3000
+  c18_b          0.3000
+  s01_p1         0.0
+  s02_p1         0.3
+  s02_p2         0.8542
+  s03_p1         0.3
+  s03_p2         0.9646
+  s04_p1         0.3
+  s04_p2         0.9917
+  s06_p1         0.46
+  s06_p2         0.826
+  s06_p3         0.15
+  s07_p1         0.0
+  s07_p2         0.37
+  s07_p3         0.0
+  s07_p4         0.37
+  s08_p1         0.0
+  s08_p2         0.623
+  s08_p3         0.0
+  s08_p4         0.609
+  s10_p1         0.3
+  s10_p5         1.0
+  s11_p1         0.657
+  s11_p2         0.35
+  s11_p3         0.6
+  s11_p4         1.0
+  s13_p1         0.4355
+  volume         0.80
 
-patch Talking family=house input=break
-  # Cipher's band map as a block: what is plugged in shapes the oscillators.
-  # A vocoder wired by hand, and the carrier is whatever you patch to it
-  # rather than whatever the machine decided.
-  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|audioin|mono\nm|3|bands|mono\nm|4|env\nm|5|vca\nm|6|out|mono\nc|0.0|1.0|1.0\nc|1.0|3.0|1.0\nc|2.0|3.1|1.0\nc|3.0|5.0|1.0\nc|0.1|4.0|1.0\nc|4.0|5.1|1.0\nc|5.0|6.0|1.0"
-  s01_p1         0.25
-  s04_p1         0.02
-  s04_p4         0.2
-  s06_p1         0.9
-  volume         0.88
+patch "Wired Clap" note=50 range=38..62 family=percussion
+  # Noise through a band pass, chopped by an envelope that loops every
+  # dozen milliseconds while a short one fades it, then a longer tail of the
+  # same noise: a handclap's few bursts and its room.
+  set nexus "v|2\nm|0|voice\nm|1|noise\nm|2|filter\nm|3|env\nm|4|vca\nm|5|env\nm|6|vca\nm|7|env\nm|8|vca\nm|9|mix\nm|10|reverb|mono\nm|11|drive\nm|12|macro|mono\nm|13|out|mono\nc|1.0|2.0|1\nc|2.0|4.0|1\nc|0.1|3.0|1\nc|3.0|4.1|1\nc|4.0|6.0|1\nc|0.1|5.0|1\nc|5.0|6.1|1\nc|2.0|8.0|1\nc|0.1|7.0|1\nc|7.0|8.1|1\nc|6.0|9.0|1\nc|8.0|9.1|1|1|12.0|0.8\nc|9.0|13.0|1.5631\nc|12.1|2.1|-0.08\nc|12.2|2.2|0.5\nc|9.0|10.0|0.0|0.0|12.3|0.6\nc|10.0|13.0|1.5631\nc|10.1|13.2|1.5631\nc|9.0|11.0|0.0|0.0|12.4|0.5\nc|11.0|13.0|1.5631\nc|12.5|2.1|0.2\nc|12.6|10.1|0.4\nc|6.0|9.0|0.0|0.0|12.7|0.6\nc|9.0|13.2|1.5631\nc|11.0|13.2|1.5631"
+  set macro1 "Tail"
+  set macro2 "Dark"
+  set macro3 "Ring"
+  set macro4 "Room"
+  set macro5 "Drive"
+  set macro6 "Bright"
+  set macro7 "Size"
+  set macro8 "Hands"
+  c12_a          1.5631
+  c12_b          1.5631
+  c13_a          -0.0800
+  c13_b          -0.0800
+  c14_a          0.5000
+  c14_b          0.5000
+  c15_a          0.0000
+  c15_b          0.0000
+  c16_a          1.5631
+  c16_b          1.5631
+  c17_a          1.5631
+  c17_b          1.5631
+  c18_a          0.0000
+  c18_b          0.0000
+  c19_a          1.5631
+  c19_b          1.5631
+  c20_a          0.2000
+  c20_b          0.2000
+  c21_a          0.4000
+  c21_b          0.4000
+  c22_a          0.0000
+  c22_b          0.0000
+  c23_a          1.5631
+  c23_b          1.5631
+  s01_p1         0.0
+  s02_p1         0.79
+  s02_p2         0.614
+  s02_p3         0.3
+  s03_p1         0.0
+  s03_p2         0.196
+  s03_p3         0.0
+  s03_p4         0.185
+  s03_p5         1.0
+  s05_p1         0.0
+  s05_p2         0.344
+  s05_p3         0.0
+  s05_p4         0.344
+  s07_p1         0.328
+  s07_p2         0.517
+  s07_p3         0.0
+  s07_p4         0.496
+  s09_p1         0.75
+  s09_p2         0.625
+  s10_p1         0.35
+  s10_p5         1.0
+  s11_p1         0.6
+  s11_p3         1.0
+  s13_p1         1.0
+  volume         0.80
+
+patch "Key Toms" note=45 range=36..60 family=percussion
+  # A sine tom with its pitch falling a fifth and a breath of noise on
+  # the stroke, tuned by the key, so a run up the keyboard is a fill.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|env\nm|3|env\nm|4|vca\nm|5|noise\nm|6|filter\nm|7|env\nm|8|vca\nm|9|filter\nm|10|reverb|mono\nm|11|drive\nm|12|env\nm|13|macro|mono\nm|14|out|mono\nc|0.1|2.0|1\nc|2.0|1.1|1|1|13.0|0.6\nc|1.0|4.0|1\nc|0.1|3.0|1\nc|3.0|4.1|1\nc|4.0|9.0|1\nc|9.0|14.0|1\nc|5.0|6.0|1\nc|6.0|8.0|1\nc|0.1|7.0|1\nc|7.0|8.1|1\nc|8.0|9.0|0.3|0.3|13.1|0.6\nc|0.1|12.0|1\nc|12.0|4.1|0.0|0.0|13.2|0.8\nc|13.3|9.1|-0.3\nc|9.0|10.0|0.0|0.0|13.4|0.6\nc|10.0|14.0|1\nc|10.1|14.2|1\nc|4.0|11.0|0.0|0.0|13.5|0.5\nc|11.0|14.0|1\nc|13.6|10.1|0.4\nc|13.7|6.1|0.3\nc|9.0|14.2|1\nc|11.0|14.2|1"
+  set macro1 "Drop"
+  set macro2 "Skin"
+  set macro3 "Length"
+  set macro4 "Dark"
+  set macro5 "Room"
+  set macro6 "Drive"
+  set macro7 "Size"
+  set macro8 "Snap"
+  c11_a          0.3000
+  c11_b          0.3000
+  c13_a          0.0000
+  c13_b          0.0000
+  c14_a          -0.3000
+  c14_b          -0.3000
+  c15_a          0.0000
+  c15_b          0.0000
+  c18_a          0.0000
+  c18_b          0.0000
+  c20_a          0.4000
+  c20_b          0.4000
+  c21_a          0.3000
+  c21_b          0.3000
+  s01_p1         0.85
+  s01_p5         0.15
+  s02_p1         0.0
+  s02_p2         0.471
+  s02_p3         0.0
+  s02_p4         0.45
+  s03_p1         0.0
+  s03_p2         0.623
+  s03_p3         0.0
+  s03_p4         0.609
+  s05_p1         0.3
+  s06_p1         0.79
+  s06_p2         0.71
+  s06_p3         0.2
+  s07_p1         0.0
+  s07_p2         0.311
+  s07_p3         0.0
+  s07_p4         0.311
+  s09_p1         0.12
+  s09_p2         0.812
+  s09_p3         0.0
+  s10_p1         0.45
+  s10_p5         1.0
+  s11_p1         0.6
+  s11_p3         1.0
+  s12_p1         0.0
+  s12_p2         0.735
+  s12_p3         0.0
+  s12_p4         0.714
+  s14_p1         0.5741
+  volume         0.80
+
+patch "Ring Metal" note=60 range=48..84 family=percussion
+  # Two square waves a sixth apart through a band pass, on a quick
+  # envelope: a cowbell. Ring modulation from an operator turns it to a bell
+  # of no particular metal.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|mix\nm|4|filter\nm|5|env\nm|6|vca\nm|7|op\nm|8|vca\nm|9|env\nm|10|delay|mono\nm|11|reverb|mono\nm|12|macro|mono\nm|13|out|mono\nc|1.0|3.0|1\nc|2.0|3.1|1\nc|3.0|4.0|1\nc|4.0|6.0|1\nc|0.1|5.0|1\nc|5.0|6.1|1\nc|6.0|13.0|1\nc|7.0|8.0|0.0|0.0|12.0|0.6\nc|3.0|8.1|1\nc|8.0|4.0|1\nc|0.1|9.0|1\nc|9.0|6.1|0.0|0.0|12.1|0.8\nc|12.2|4.1|0.12\nc|12.3|4.2|0.3\nc|6.0|10.0|0.0|0.0|12.4|0.5\nc|10.0|13.0|1\nc|6.0|11.0|0.0|0.0|12.5|0.6\nc|11.0|13.0|1\nc|11.1|13.2|1\nc|12.6|2.1|0.1\nc|12.7|10.1|0.3\nc|6.0|13.2|1\nc|10.0|13.2|1"
+  set macro1 "Bell"
+  set macro2 "Length"
+  set macro3 "Bright"
+  set macro4 "Ring"
+  set macro5 "Echo"
+  set macro6 "Room"
+  set macro7 "Bend"
+  set macro8 "Time"
+  c07_a          0.0000
+  c07_b          0.0000
+  c11_a          0.0000
+  c11_b          0.0000
+  c12_a          0.1200
+  c12_b          0.1200
+  c13_a          0.3000
+  c13_b          0.3000
+  c14_a          0.0000
+  c14_b          0.0000
+  c16_a          0.0000
+  c16_b          0.0000
+  c19_a          0.1000
+  c19_b          0.1000
+  c20_a          0.3000
+  c20_b          0.3000
+  s01_p1         0.3
+  s01_p2         0.75
+  s02_p1         0.3
+  s02_p2         0.9333
+  s03_p1         0.65
+  s03_p2         0.65
+  s04_p1         0.79
+  s04_p2         0.635
+  s04_p3         0.35
+  s04_p6         0.5
+  s05_p1         0.0
+  s05_p2         0.555
+  s05_p3         0.0
+  s05_p4         0.529
+  s07_p2         0.1935
+  s09_p1         0.0
+  s09_p2         0.761
+  s09_p3         0.0
+  s09_p4         0.735
+  s10_p1         0.699
+  s10_p2         0.35
+  s10_p3         0.5
+  s10_p4         1.0
+  s11_p1         0.5
+  s11_p5         1.0
+  s13_p1         0.3013
+  volume         0.80
+
+patch "Hand Drum" note=50 range=36..72 family=percussion
+  # Palm's djembe as a block, the stroke chosen by how hard you play.
+  # The macros work on what is around it: a filter, a room, an echo, a drive.
+  set nexus "v|2\nm|0|voice\nm|1|drum|mono\nm|2|filter|mono\nm|3|reverb|mono\nm|4|delay|mono\nm|5|drive|mono\nm|6|lfo|mono\nm|7|macro|mono\nm|8|out|mono\nc|0.0|1.0|1\nc|0.1|1.1|1\nc|0.2|1.2|1\nc|1.0|2.0|1\nc|2.0|8.0|1\nc|7.0|2.1|-0.35\nc|2.0|3.0|0.0|0.0|7.1|0.6\nc|3.0|8.0|1\nc|3.1|8.2|1\nc|2.0|4.0|0.0|0.0|7.2|0.5\nc|4.0|8.0|1\nc|2.0|5.0|0.0|0.0|7.3|0.5\nc|5.0|8.0|1\nc|7.4|2.2|0.6\nc|6.0|2.1|0.0|0.0|7.5|0.25\nc|7.6|3.1|0.4\nc|7.7|4.1|0.3\nc|2.0|8.2|1\nc|4.0|8.2|1\nc|5.0|8.2|1"
+  set macro1 "Muffle"
+  set macro2 "Room"
+  set macro3 "Echo"
+  set macro4 "Drive"
+  set macro5 "Ring"
+  set macro6 "Wah"
+  set macro7 "Size"
+  set macro8 "Time"
+  c05_a          -0.3500
+  c05_b          -0.3500
+  c06_a          0.0000
+  c06_b          0.0000
+  c09_a          0.0000
+  c09_b          0.0000
+  c11_a          0.0000
+  c11_b          0.0000
+  c13_a          0.6000
+  c13_b          0.6000
+  c14_a          0.0000
+  c14_b          0.0000
+  c15_a          0.4000
+  c15_b          0.4000
+  c16_a          0.3000
+  c16_b          0.3000
+  s01_p1         0.1111
+  s01_p2         1.0
+  s01_p3         0.5
+  s01_p4         0.5
+  s01_p5         0.5
+  s01_p8         0.5
+  s02_p1         0.12
+  s02_p2         0.94
+  s02_p3         0.0
+  s03_p1         0.45
+  s03_p5         1.0
+  s04_p1         0.699
+  s04_p2         0.35
+  s04_p3         0.4
+  s04_p4         1.0
+  s05_p1         0.6
+  s05_p3         1.0
+  s06_p2         0.639
+  s08_p1         0.6081
+  volume         0.80
+
+patch "Struck Bars" note=72 range=53..96 family=percussion
+  # Tine's xylophone as a block, hard mallets, short and bright. The
+  # macros soften it with a filter, add a tremolo, an echo and a hall.
+  set nexus "v|2\nm|0|voice\nm|1|mallets|mono\nm|2|filter|mono\nm|3|vca|mono\nm|4|lfo|mono\nm|5|delay|mono\nm|6|reverb|mono\nm|7|drive|mono\nm|8|macro|mono\nm|9|out|mono\nc|0.0|1.0|1\nc|0.1|1.1|1\nc|0.2|1.2|1\nc|1.0|2.0|1\nc|2.0|3.0|1\nc|3.0|9.0|1\nc|8.0|2.1|-0.35\nc|4.0|3.1|0.0|0.0|8.1|0.5\nc|3.0|5.0|0.0|0.0|8.2|0.5\nc|5.0|9.0|1\nc|5.0|9.2|1\nc|3.0|6.0|0.0|0.0|8.3|0.6\nc|6.0|9.0|1\nc|6.1|9.2|1\nc|3.0|7.0|0.0|0.0|8.4|0.5\nc|7.0|9.0|1\nc|8.5|2.2|0.6\nc|8.6|6.1|0.4\nc|8.7|5.1|0.3\nc|3.0|9.2|1\nc|7.0|9.2|1"
+  set macro1 "Soft"
+  set macro2 "Tremolo"
+  set macro3 "Echo"
+  set macro4 "Hall"
+  set macro5 "Drive"
+  set macro6 "Ring"
+  set macro7 "Size"
+  set macro8 "Time"
+  c06_a          -0.3500
+  c06_b          -0.3500
+  c07_a          0.0000
+  c07_b          0.0000
+  c08_a          0.0000
+  c08_b          0.0000
+  c11_a          0.0000
+  c11_b          0.0000
+  c14_a          0.0000
+  c14_b          0.0000
+  c16_a          0.6000
+  c16_b          0.6000
+  c17_a          0.4000
+  c17_b          0.4000
+  c18_a          0.3000
+  c18_b          0.3000
+  s01_p1         0.1111
+  s01_p2         0.8
+  s01_p3         0.3
+  s01_p4         0.5
+  s01_p5         0.5
+  s01_p6         0.6
+  s01_p7         0.0
+  s01_p8         0.5
+  s02_p1         0.12
+  s02_p2         0.963
+  s02_p3         0.0
+  s03_p1         1.0
+  s04_p2         0.79
+  s05_p1         0.699
+  s05_p2         0.35
+  s05_p3         0.4
+  s05_p4         1.0
+  s06_p1         0.6
+  s06_p5         1.0
+  s07_p1         0.6
+  s07_p3         1.0
+  s09_p1         0.4768
+  volume         0.80
+  insert Eq
+    gain         1.9 dB
+
+patch "Knocked String" note=48 range=36..72 family=percussion
+  # Filament's string knocked by a click of noise and damped almost at
+  # once, so it is a pitched thud more than a note. Ring lifts the damper.
+  set nexus "v|2\nm|0|voice\nm|1|noise\nm|2|env\nm|3|vca\nm|4|string\nm|5|osc\nm|6|env\nm|7|vca\nm|8|mix\nm|9|filter\nm|10|reverb|mono\nm|11|drive\nm|12|macro|mono\nm|13|out|mono\nc|1.0|3.0|1\nc|0.1|2.0|1\nc|2.0|3.1|1\nc|3.0|4.0|3\nc|4.0|8.0|1\nc|5.0|7.0|1\nc|0.1|6.0|1\nc|6.0|7.1|1\nc|7.0|8.1|1|1|12.1|0.6\nc|8.0|9.0|1\nc|9.0|13.0|1\nc|12.0|4.2|0.6\nc|12.2|9.1|-0.3\nc|9.0|10.0|0.0|0.0|12.3|0.6\nc|10.0|13.0|1\nc|10.1|13.2|1\nc|8.0|11.0|0.0|0.0|12.4|0.5\nc|11.0|13.0|1\nc|12.5|9.2|0.6\nc|12.6|10.1|0.4\nc|1.0|3.0|0.0|0.0|12.7|0.8\nc|9.0|13.2|1\nc|11.0|13.2|1"
+  set macro1 "Ring"
+  set macro2 "Thump"
+  set macro3 "Dark"
+  set macro4 "Room"
+  set macro5 "Drive"
+  set macro6 "Reso"
+  set macro7 "Size"
+  set macro8 "Knock"
+  c03_a          3.0000
+  c03_b          3.0000
+  c11_a          0.6000
+  c11_b          0.6000
+  c12_a          -0.3000
+  c12_b          -0.3000
+  c13_a          0.0000
+  c13_b          0.0000
+  c16_a          0.0000
+  c16_b          0.0000
+  c18_a          0.6000
+  c18_b          0.6000
+  c19_a          0.4000
+  c19_b          0.4000
+  c20_a          0.0000
+  c20_b          0.0000
+  s01_p1         0.3
+  s02_p1         0.0
+  s02_p2         0.206
+  s02_p3         0.0
+  s02_p4         0.185
+  s04_p2         0.45
+  s04_p3         0.5
+  s04_p7         0.5
+  s05_p1         0.85
+  s06_p1         0.0
+  s06_p2         0.424
+  s06_p3         0.0
+  s06_p4         0.391
+  s08_p1         0.75
+  s08_p2         0.6
+  s09_p1         0.12
+  s09_p2         0.881
+  s09_p3         0.0
+  s10_p1         0.45
+  s10_p5         1.0
+  s11_p1         0.6
+  s11_p3         1.0
+  s13_p1         0.6902
+  volume         0.80
+
+patch "Euclid Hands" family=percussion
+  # Plays itself from the transport: a Euclidean five over sixteen strikes
+  # Palm's conga and a three over sixteen opens a noise hat, whatever the keys
+  # do. Busy fills the conga's gaps; Shift turns the hat's pattern round.
+  set nexus "v|2\nm|0|clock|mono\nm|1|euclid|mono\nm|2|drum|mono\nm|3|euclid|mono\nm|4|noise|mono\nm|5|filter|mono\nm|6|env|mono\nm|7|vca|mono\nm|8|euclid|mono\nm|9|reverb|mono\nm|10|delay|mono\nm|11|mix|mono\nm|12|macro|mono\nm|13|out|mono\nc|0.0|1.0|1\nc|1.0|2.1|1\nc|2.0|11.0|1\nc|0.0|3.0|1\nc|3.0|6.0|1\nc|4.0|5.0|1\nc|5.0|7.0|1\nc|6.0|7.1|1\nc|7.0|11.1|1|1|12.1|0.6\nc|11.0|13.0|1\nc|0.0|8.0|1\nc|8.0|2.1|0.0|0.0|12.0|1.0\nc|12.2|5.1|-0.2\nc|11.0|9.0|0.0|0.0|12.3|0.6\nc|9.0|13.0|1\nc|9.1|13.2|1\nc|11.0|10.0|0.0|0.0|12.4|0.5\nc|10.0|13.0|1\nc|2.0|11.0|0.0|0.0|12.5|-0.6\nc|12.6|9.1|0.4\nc|12.7|10.1|0.3\nc|11.0|13.2|1\nc|10.0|13.2|1"
+  set macro1 "Busy"
+  set macro2 "Hat"
+  set macro3 "Shade"
+  set macro4 "Room"
+  set macro5 "Echo"
+  set macro6 "Duck"
+  set macro7 "Size"
+  set macro8 "Time"
+  c11_a          0.0000
+  c11_b          0.0000
+  c12_a          -0.2000
+  c12_b          -0.2000
+  c13_a          0.0000
+  c13_b          0.0000
+  c16_a          0.0000
+  c16_b          0.0000
+  c18_a          0.0000
+  c18_b          0.0000
+  c19_a          0.4000
+  c19_b          0.4000
+  c20_a          0.3000
+  c20_b          0.3000
+  s00_p1         0.6111
+  s00_p2         0.3
+  s01_p1         0.9688
+  s01_p2         0.3235
+  s01_p3         0.0
+  s02_p1         0.3333
+  s02_p2         0.0
+  s02_p5         0.5
+  s02_p8         0.5
+  s03_p1         0.9688
+  s03_p2         0.2059
+  s03_p3         0.1563
+  s04_p1         0.0
+  s05_p1         0.46
+  s05_p2         0.861
+  s05_p3         0.1
+  s06_p1         0.0
+  s06_p2         0.391
+  s06_p3         0.0
+  s06_p4         0.391
+  s08_p1         0.9688
+  s08_p2         0.1471
+  s08_p3         0.4688
+  s09_p1         0.45
+  s09_p5         1.0
+  s10_p1         0.657
+  s10_p2         0.35
+  s10_p3         0.4
+  s10_p4         1.0
+  s11_p1         0.75
+  s11_p2         0.625
+  s13_p1         0.4355
+  volume         0.80
+
+patch "Octave Climb" note=48 range=36..60 family=generative
+  # Hold a key and it climbs in octaves, a sixteenth a step, four steps
+  # to the beat. A quarter-note clock's ramp, sampled by the sixteenths,
+  # is the staircase; the key gates the clock.
+  set nexus "v|2\nm|0|voice\nm|1|clock|mono\nm|2|clock|mono\nm|3|snh|mono\nm|4|math\nm|5|logic\nm|6|osc\nm|7|osc\nm|8|filter\nm|9|env\nm|10|vca\nm|11|macro|mono\nm|12|drive|mono\nm|13|delay|mono\nm|14|reverb|mono\nm|15|out|mono\nc|1.0|3.1|1\nc|2.1|3.0|1\nc|0.0|4.0|1\nc|3.0|4.1|0.37795\nc|0.1|5.0|1\nc|1.0|5.1|1\nc|5.0|9.0|1\nc|4.0|6.0|1\nc|6.0|8.0|1\nc|8.0|10.0|1\nc|9.0|10.1|1\nc|9.0|8.1|0.25\nc|10.0|15.0|1\nc|11.0|8.1|0.3\nc|11.1|8.2|0.5\nc|9.0|8.1|0|0|11.2|0.3\nc|4.0|7.0|1\nc|7.0|8.0|0|0|11.3|0.6\nc|10.0|12.0|0|0|11.5|0.6\nc|12.0|15.0|1\nc|10.0|13.0|0|0|11.6|0.5\nc|13.0|15.0|1\nc|13.0|15.2|1\nc|10.0|14.0|0|0|11.7|0.6\nc|14.0|15.0|1\nc|14.1|15.2|1\nc|11.4|6.2|0.35\nc|10.0|15.2|1\nc|12.0|15.2|1"
+  set macro1 "Bright"
+  set macro2 "Reso"
+  set macro3 "Env"
+  set macro4 "Sub"
+  set macro5 "Width"
+  set macro6 "Grit"
+  set macro7 "Echo"
+  set macro8 "Space"
+  c03_a          0.3780
+  c03_b          0.3780
+  c11_a          0.2500
+  c11_b          0.2500
+  c13_a          0.3000
+  c13_b          0.3000
+  c14_a          0.5000
+  c14_b          0.5000
+  c15_a          0.0000
+  c15_b          0.0000
+  c17_a          0.0000
+  c17_b          0.0000
+  c18_a          0.0000
+  c18_b          0.0000
+  c20_a          0.0000
+  c20_b          0.0000
+  c23_a          0.0000
+  c23_b          0.0000
+  s01_p1         0.6111
+  s01_p2         0.5
+  s02_p1         0.2778
+  s06_p1         0.3
+  s06_p4         0.45
+  s07_p1         0.3
+  s07_p2         0.25
+  s08_p1         0.29
+  s08_p2         0.662
+  s08_p3         0.3
+  s09_p1         0.143
+  s09_p2         0.496
+  s09_p3         0.0
+  s09_p4         0.424
+  s12_p1         0.6
+  s12_p3         1.0
+  s13_p1         0.758
+  s13_p2         0.35
+  s13_p3         0.4
+  s13_p4         1.0
+  s14_p1         0.6
+  s14_p5         1.0
+  s15_p1         0.3539
+  volume         0.80
+
+patch "Fifth Scatter" note=48 range=36..60 family=generative
+  # Hold a key and a random step picks the root, the fifth, the ninth or
+  # the octave and a fifth, every sixteenth, with a rest now and then.
+  # Rests makes more of them.
+  set nexus "v|2\nm|0|voice\nm|1|clock|mono\nm|2|rand|mono\nm|3|prob|mono\nm|4|math\nm|5|logic\nm|6|osc\nm|7|osc\nm|8|filter\nm|9|env\nm|10|vca\nm|11|macro|mono\nm|12|drive|mono\nm|13|delay|mono\nm|14|reverb|mono\nm|15|out|mono\nc|1.0|2.0|1\nc|1.0|3.0|1\nc|0.0|4.0|1\nc|2.0|4.1|0.16535\nc|0.1|5.0|1\nc|3.0|5.1|1\nc|5.0|9.0|1\nc|4.0|6.0|1\nc|6.0|8.0|1\nc|8.0|10.0|1\nc|9.0|10.1|1\nc|9.0|8.1|0.3\nc|10.0|15.0|1\nc|11.0|8.1|0.3\nc|11.1|8.2|0.5\nc|11.2|3.1|-0.6\nc|11.3|6.2|0.35\nc|0.0|7.0|1\nc|7.0|8.0|0|0|11.7|0.5\nc|10.0|12.0|0|0|11.4|0.6\nc|12.0|15.0|1\nc|10.0|13.0|0|0|11.5|0.5\nc|13.0|15.0|1\nc|13.0|15.2|1\nc|10.0|14.0|0|0|11.6|0.6\nc|14.0|15.0|1\nc|14.1|15.2|1\nc|10.0|15.2|1\nc|12.0|15.2|1"
+  set macro1 "Bright"
+  set macro2 "Reso"
+  set macro3 "Rests"
+  set macro4 "Width"
+  set macro5 "Grit"
+  set macro6 "Echo"
+  set macro7 "Space"
+  set macro8 "Drone"
+  c03_a          0.1653
+  c03_b          0.1653
+  c11_a          0.3000
+  c11_b          0.3000
+  c13_a          0.3000
+  c13_b          0.3000
+  c14_a          0.5000
+  c14_b          0.5000
+  c15_a          -0.6000
+  c15_b          -0.6000
+  c16_a          0.3500
+  c16_b          0.3500
+  c18_a          0.0000
+  c18_b          0.0000
+  c19_a          0.0000
+  c19_b          0.0000
+  c21_a          0.0000
+  c21_b          0.0000
+  s01_p1         0.6111
+  s02_p2         0.2647
+  s03_p1         0.8
+  s06_p1         0.3
+  s06_p4         0.4
+  s07_p1         0.0
+  s07_p2         0.25
+  s08_p1         0.12
+  s08_p2         0.635
+  s08_p3         0.25
+  s09_p1         0.072
+  s09_p2         0.471
+  s09_p3         0.0
+  s09_p4         0.45
+  s12_p1         0.6
+  s12_p3         1.0
+  s13_p1         0.699
+  s13_p2         0.35
+  s13_p3         0.4
+  s13_p4         1.0
+  s14_p1         0.6
+  s14_p5         1.0
+  s15_p1         0.3881
+  volume         0.80
+
+patch "Euclid Bass" note=36 range=28..52 family=generative
+  # Hold a key for a bass line: seven over sixteen gates it and three
+  # over sixteen lifts those steps an octave. Fifth lifts them a fifth
+  # further.
+  set nexus "v|2\nm|0|voice\nm|1|clock|mono\nm|2|euclid|mono\nm|3|euclid|mono\nm|4|math\nm|5|logic\nm|6|osc\nm|7|osc\nm|8|filter\nm|9|env\nm|10|vca\nm|11|macro|mono\nm|12|drive|mono\nm|13|delay|mono\nm|14|reverb|mono\nm|15|out|mono\nc|1.0|2.0|1\nc|1.0|3.0|1\nc|0.1|5.0|1\nc|5.0|9.0|1\nc|0.0|4.0|1\nc|3.1|4.1|0.09449\nc|4.0|6.0|1\nc|4.0|7.0|1\nc|6.0|8.0|1\nc|7.0|8.0|0|0|11.7|0.7\nc|8.0|10.0|1\nc|9.0|10.1|1\nc|9.0|8.1|0.35\nc|10.0|15.0|1\nc|11.0|8.1|0.3\nc|11.1|8.2|0.4\nc|9.0|8.1|0|0|11.2|0.3\nc|10.0|12.0|0|0|11.4|0.6\nc|12.0|15.0|1\nc|10.0|13.0|0|0|11.5|0.5\nc|13.0|15.0|1\nc|13.0|15.2|1\nc|10.0|14.0|0|0|11.6|0.6\nc|14.0|15.0|1\nc|14.1|15.2|1\nc|2.0|5.1|1\nc|3.1|4.1|0|0|11.3|0.05512\nc|10.0|15.2|1\nc|12.0|15.2|1"
+  set macro1 "Cutoff"
+  set macro2 "Reso"
+  set macro3 "Env"
+  set macro4 "Fifth"
+  set macro5 "Grit"
+  set macro6 "Echo"
+  set macro7 "Space"
+  set macro8 "Sub"
+  c05_a          0.0945
+  c05_b          0.0945
+  c09_a          0.0000
+  c09_b          0.0000
+  c12_a          0.3500
+  c12_b          0.3500
+  c14_a          0.3000
+  c14_b          0.3000
+  c15_a          0.4000
+  c15_b          0.4000
+  c16_a          0.0000
+  c16_b          0.0000
+  c17_a          0.0000
+  c17_b          0.0000
+  c19_a          0.0000
+  c19_b          0.0000
+  c22_a          0.0000
+  c22_b          0.0000
+  s01_p1         0.6111
+  s01_p2         0.6
+  s02_p1         0.9688
+  s02_p2         0.4412
+  s03_p1         0.9688
+  s03_p2         0.2059
+  s03_p3         0.1562
+  s06_p1         0.0
+  s07_p1         0.85
+  s07_p2         0.25
+  s08_p1         0.29
+  s08_p2         0.473
+  s08_p3         0.45
+  s09_p1         0.072
+  s09_p2         0.517
+  s09_p3         0.0
+  s09_p4         0.391
+  s12_p1         0.6
+  s12_p3         1.0
+  s13_p1         0.758
+  s13_p2         0.35
+  s13_p3         0.4
+  s13_p4         1.0
+  s14_p1         0.45
+  s14_p5         1.0
+  volume         1.000
+  insert Eq
+    gain         2.9 dB
 
 patch "Sample and Hold" family=generative
   # A clock, a random, and a sample-and-hold quantised to a scale: the oldest
   # trick in modular, and it needs no keyboard. The envelope is fired by the
   # same clock that moves the pitch, so every note is on the grid.
-  set nexus "v|2\nm|0|clock|mono\nm|1|rand|mono\nm|2|quant|mono\nm|3|osc\nm|4|env\nm|5|vca\nm|6|filter\nm|7|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nc|2.0|3.0|1.0\nc|0.0|4.0|1.0\nc|3.0|6.0|1.0\nc|6.0|5.0|1.0\nc|4.0|5.1|1.0\nc|5.0|7.0|1.0"
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|clock|mono\nm|1|rand|mono\nm|2|quant|mono\nm|3|osc\nm|4|env\nm|5|vca\nm|6|filter\nm|7|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nc|2.0|3.0|1.0\nc|0.0|4.0|1.0\nc|3.0|6.0|1.0\nc|6.0|5.0|1.0\nc|4.0|5.1|1.0\nc|5.0|7.0|1.0\nm|8|macro|mono\nm|9|delay|mono\nm|10|reverb|mono\nm|11|drive|mono\nm|12|lfo|mono\nc|5.0|9.0|0.0|0.0|8.0|0.5\nc|9.0|7.0|1.0\nc|8.1|9.1|0.3\nc|5.0|10.0|0.0|0.0|8.2|0.6\nc|10.0|7.0|1.0\nc|8.3|10.1|0.4\nc|5.0|11.0|0.0|0.0|8.4|0.5\nc|11.0|7.0|1.0\nc|8.5|6.1|0.3\nc|8.6|6.2|0.5\nc|12.0|3.1|0.0|0.0|8.7|0.02"
+  set macro1 "Echo"
+  set macro2 "Time"
+  set macro3 "Space"
+  set macro4 "Size"
+  set macro5 "Grit"
+  set macro6 "Bright"
+  set macro7 "Reso"
+  set macro8 "Vibrato"
   s00_p1         0.3
   s04_p1         0.01
   s04_p4         0.18
   s06_p2         0.45
   s06_p3         0.35
   s07_p1         0.8
+  c08_a          0.0000
+  c08_b          0.0000
+  c10_a          0.3000
+  c10_b          0.3000
+  c11_a          0.0000
+  c11_b          0.0000
+  c13_a          0.4000
+  c13_b          0.4000
+  c14_a          0.0000
+  c14_b          0.0000
+  c16_a          0.3000
+  c16_b          0.3000
+  c17_a          0.5000
+  c17_b          0.5000
+  c18_a          0.0000
+  c18_b          0.0000
+  s09_p1         0.739
+  s09_p2         0.35
+  s09_p3         0.4
+  s09_p4         1.0
+  s10_p1         0.55
+  s10_p5         1.0
+  s11_p1         0.6
+  s11_p3         1.0
+  s12_p2         0.749
   volume         0.62
+
+patch "Runs Itself" family=generative
+  # A patch that plays itself: the transport drives a Euclidean pattern, the
+  # pattern drives a random, the random is quantised to a scale, and nothing
+  # here is waiting for a key.
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|clock|mono\nm|1|euclid|mono\nm|2|rand|mono\nm|3|quant|mono\nm|4|osc\nm|5|env\nm|6|vca\nm|7|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nc|2.0|3.0|1.0\nc|3.0|4.0|1.0\nc|1.0|5.0|1.0\nc|4.0|6.0|1.0\nc|5.0|6.1|1.0\nc|6.0|7.0|1.0\nm|8|macro|mono\nm|9|delay|mono\nm|10|reverb|mono\nm|11|drive|mono\nm|12|lfo|mono\nm|13|osc\nc|6.0|9.0|0.0|0.0|8.0|0.5\nc|9.0|7.0|1.0\nc|8.1|9.1|0.3\nc|6.0|10.0|0.0|0.0|8.2|0.6\nc|10.0|7.0|1.0\nc|8.3|10.1|0.4\nc|6.0|11.0|0.0|0.0|8.4|0.5\nc|11.0|7.0|1.0\nc|12.0|4.1|0.0|0.0|8.5|0.02\nc|8.6|12.0|0.6\nc|3.0|13.0|1.0\nc|13.0|6.0|0.0|0.0|8.7|0.6"
+  set macro1 "Echo"
+  set macro2 "Time"
+  set macro3 "Space"
+  set macro4 "Size"
+  set macro5 "Grit"
+  set macro6 "Vibrato"
+  set macro7 "Rate"
+  set macro8 "Sub"
+  s01_p2         0.3
+  s05_p2         0.05
+  s05_p4         0.25
+  s07_p1         0.35
+  c08_a          0.0000
+  c08_b          0.0000
+  c10_a          0.3000
+  c10_b          0.3000
+  c11_a          0.0000
+  c11_b          0.0000
+  c13_a          0.4000
+  c13_b          0.4000
+  c14_a          0.0000
+  c14_b          0.0000
+  c16_a          0.0000
+  c16_b          0.0000
+  c17_a          0.6000
+  c17_b          0.6000
+  c19_a          0.0000
+  c19_b          0.0000
+  s09_p1         0.739
+  s09_p2         0.35
+  s09_p3         0.4
+  s09_p4         1.0
+  s10_p1         0.55
+  s10_p5         1.0
+  s11_p1         0.6
+  s11_p3         1.0
+  s12_p2         0.749
+  s13_p1         0.85
+  s13_p2         0.25
+  volume         0.82
+
+patch "Pentatonic Walk" family=generative
+  # Plays itself from the transport. A random note every eighth, eased
+  # towards by a slew before the quantiser, so it walks there up or down
+  # the minor pentatonic in A. Rests skips some of them.
+  set nexus "v|2\nm|0|clock|mono\nm|1|rand|mono\nm|2|prob|mono\nm|3|math|mono\nm|4|slew|mono\nm|5|quant|mono\nm|6|osc|mono\nm|7|osc|mono\nm|8|filter|mono\nm|9|env|mono\nm|10|vca|mono\nm|11|macro|mono\nm|12|drive|mono\nm|13|delay|mono\nm|14|reverb|mono\nm|15|out|mono\nc|0.0|1.0|1\nc|0.0|2.0|1\nc|2.0|9.0|1\nc|1.0|3.0|0.18898\nc|3.0|4.0|1\nc|4.0|5.0|1\nc|5.0|6.0|1\nc|5.0|7.0|1\nc|6.0|8.0|1\nc|7.0|8.0|0|0|11.7|0.5\nc|8.0|10.0|1\nc|9.0|10.1|1\nc|9.0|8.1|0.2\nc|10.0|15.0|1\nc|11.0|8.1|0.3\nc|11.1|2.1|-0.6\nc|1.0|3.0|0|0|11.2|0.09449\nc|10.0|12.0|0|0|11.4|0.6\nc|12.0|15.0|1\nc|10.0|13.0|0|0|11.5|0.5\nc|13.0|15.0|1\nc|13.0|15.2|1\nc|10.0|14.0|0|0|11.6|0.6\nc|14.0|15.0|1\nc|14.1|15.2|1\nc|11.3|3.1|0.09449\nc|10.0|15.2|1\nc|12.0|15.2|1"
+  set macro1 "Bright"
+  set macro2 "Rests"
+  set macro3 "Range"
+  set macro4 "Higher"
+  set macro5 "Grit"
+  set macro6 "Echo"
+  set macro7 "Space"
+  set macro8 "Octave"
+  c03_a          0.1890
+  c03_b          0.1890
+  c09_a          0.0000
+  c09_b          0.0000
+  c12_a          0.2000
+  c12_b          0.2000
+  c14_a          0.3000
+  c14_b          0.3000
+  c15_a          -0.6000
+  c15_b          -0.6000
+  c16_a          0.0000
+  c16_b          0.0000
+  c17_a          0.0000
+  c17_b          0.0000
+  c19_a          0.0000
+  c19_b          0.0000
+  c22_a          0.0000
+  c22_b          0.0000
+  s00_p1         0.3889
+  s00_p2         0.5
+  s02_p1         0.85
+  s03_p2         0.6122
+  s04_p1         0.495
+  s04_p2         0.495
+  s05_p1         0.3182
+  s05_p2         0.7917
+  s06_p1         0.6
+  s07_p1         0.85
+  s07_p2         0.75
+  s08_p1         0.12
+  s08_p2         0.737
+  s08_p3         0.15
+  s09_p1         0.185
+  s09_p2         0.555
+  s09_p3         0.2
+  s09_p4         0.496
+  s12_p1         0.6
+  s12_p3         1.0
+  s13_p1         0.758
+  s13_p2         0.35
+  s13_p3         0.4
+  s13_p4         1.0
+  s14_p1         0.6
+  s14_p5         1.0
+  s15_p1         0.1923
+  volume         0.80
+
+patch "Wandering Note" note=60 range=48..72 family=generative
+  # Hold a key and the note wanders an octave up or down and back,
+  # gliding, a new place every beat. Fifths lets it land on the fifth
+  # as well.
+  set nexus "v|2\nm|0|voice\nm|1|clock|mono\nm|2|rand|mono\nm|3|rand|mono\nm|4|slew|mono\nm|5|math\nm|6|osc\nm|7|filter\nm|8|env\nm|9|vca\nm|10|lfo|mono\nm|11|macro|mono\nm|12|drive|mono\nm|13|delay|mono\nm|14|reverb|mono\nm|15|out|mono\nc|1.0|2.0|1\nc|1.0|3.0|1\nc|2.0|4.0|0.09449\nc|3.0|4.0|0|0|11.2|0.05512\nc|0.0|5.0|1\nc|4.0|5.1|1\nc|5.0|6.0|1\nc|6.0|7.0|1\nc|7.0|9.0|1\nc|0.1|8.0|1\nc|8.0|9.1|1\nc|9.0|15.0|1\nc|11.0|7.1|0.3\nc|10.0|6.1|0|0|11.1|0.02\nc|11.7|10.0|0.5\nc|9.0|12.0|0|0|11.3|0.6\nc|12.0|15.0|1\nc|9.0|13.0|0|0|11.4|0.5\nc|13.0|15.0|1\nc|13.0|15.2|1\nc|9.0|14.0|0|0|11.5|0.6\nc|14.0|15.0|1\nc|14.1|15.2|1\nc|11.6|14.1|0.4\nc|9.0|15.2|1\nc|12.0|15.2|1"
+  set macro1 "Bright"
+  set macro2 "Vibrato"
+  set macro3 "Fifths"
+  set macro4 "Grit"
+  set macro5 "Echo"
+  set macro6 "Space"
+  set macro7 "Size"
+  set macro8 "Rate"
+  c02_a          0.0945
+  c02_b          0.0945
+  c03_a          0.0000
+  c03_b          0.0000
+  c12_a          0.3000
+  c12_b          0.3000
+  c13_a          0.0000
+  c13_b          0.0000
+  c14_a          0.5000
+  c14_b          0.5000
+  c15_a          0.0000
+  c15_b          0.0000
+  c17_a          0.0000
+  c17_b          0.0000
+  c20_a          0.0000
+  c20_b          0.0000
+  c23_a          0.4000
+  c23_b          0.4000
+  s01_p1         0.2778
+  s02_p1         1.0
+  s02_p2         0.2059
+  s03_p2         0.1471
+  s04_p1         0.566
+  s04_p2         0.566
+  s06_p1         0.6
+  s07_p1         0.12
+  s07_p2         0.71
+  s07_p3         0.1
+  s08_p1         0.453
+  s08_p2         0.576
+  s08_p3         1.0
+  s08_p4         0.609
+  s10_p2         0.749
+  s12_p1         0.6
+  s12_p3         1.0
+  s13_p1         0.799
+  s13_p2         0.35
+  s13_p3         0.4
+  s13_p4         1.0
+  s14_p1         0.6
+  s14_p5         1.0
+  s15_p1         0.1734
+  volume         0.80
+
+patch "Euclid Bells" family=generative
+  # Plays itself from the transport: Tine's glockenspiel as a block,
+  # struck by five and three over sixteen, each strike a random note of
+  # F major pentatonic. Busy adds a third pattern.
+  set nexus "v|2\nm|0|clock|mono\nm|1|euclid|mono\nm|2|euclid|mono\nm|3|euclid|mono\nm|4|mix|mono\nm|5|rand|mono\nm|6|math|mono\nm|7|math|mono\nm|8|quant|mono\nm|9|mallets|mono\nm|10|filter|mono\nm|11|macro|mono\nm|12|drive|mono\nm|13|delay|mono\nm|14|reverb|mono\nm|15|out|mono\nc|0.0|1.0|1\nc|0.0|2.0|1\nc|0.0|3.0|1\nc|1.0|4.0|1\nc|2.0|4.1|1\nc|3.0|4.2|0|0|11.0|1\nc|4.0|9.1|1\nc|0.0|5.0|1\nc|5.0|6.0|0.18898\nc|6.0|8.0|1\nc|8.0|9.0|1\nc|7.0|9.2|1\nc|9.0|10.0|1\nc|10.0|15.0|1\nc|11.1|10.1|-0.3\nc|10.0|12.0|0|0|11.2|0.6\nc|12.0|15.0|1\nc|10.0|13.0|0|0|11.3|0.5\nc|13.0|15.0|1\nc|13.0|15.2|1\nc|10.0|14.0|0|0|11.4|0.6\nc|14.0|15.0|1\nc|14.1|15.2|1\nc|11.5|14.1|0.35\nc|11.6|13.1|0.3\nc|11.7|10.2|0.6\nc|10.0|15.2|1\nc|12.0|15.2|1"
+  set macro1 "Busy"
+  set macro2 "Soft"
+  set macro3 "Grit"
+  set macro4 "Echo"
+  set macro5 "Space"
+  set macro6 "Size"
+  set macro7 "Time"
+  set macro8 "Reso"
+  c05_a          0.0000
+  c05_b          0.0000
+  c08_a          0.1890
+  c08_b          0.1890
+  c14_a          -0.3000
+  c14_b          -0.3000
+  c15_a          0.0000
+  c15_b          0.0000
+  c17_a          0.0000
+  c17_b          0.0000
+  c20_a          0.0000
+  c20_b          0.0000
+  c23_a          0.3500
+  c23_b          0.3500
+  s00_p1         0.6111
+  s00_p2         0.4
+  s01_p1         0.9688
+  s01_p2         0.3235
+  s02_p1         0.9688
+  s02_p2         0.2059
+  s02_p3         0.4062
+  s03_p1         0.9688
+  s03_p2         0.2647
+  s03_p3         0.2188
+  s04_p1         0.75
+  s04_p2         0.75
+  s04_p3         0.75
+  s04_p5         0.5
+  s06_p2         0.6417
+  s07_p2         0.6875
+  s08_p1         0.2879
+  s08_p2         0.4583
+  s09_p1         0.1667
+  s09_p2         0.5
+  s09_p4         0.5
+  s09_p5         0.5
+  s10_p1         0.12
+  s10_p2         0.963
+  s10_p3         0.0
+  s12_p1         0.6
+  s12_p3         1.0
+  s13_p1         0.758
+  s13_p2         0.35
+  s13_p3         0.4
+  s13_p4         1.0
+  s14_p1         0.65
+  s14_p5         1.0
+  volume         1.000
+  insert Eq
+    gain         2.0 dB
+
+patch "Coin Toss Kit" family=generative
+  # Plays itself from the transport: a kick that comes on the beat nine
+  # times in ten and a hat on the sixteenths half the time, each a coin
+  # toss. Kick and Hat change the odds.
+  set nexus "v|2\nm|0|clock|mono\nm|1|clock|mono\nm|2|prob|mono\nm|3|prob|mono\nm|4|env|mono\nm|5|env|mono\nm|6|osc|mono\nm|7|vca|mono\nm|8|noise|mono\nm|9|filter|mono\nm|10|env|mono\nm|11|vca|mono\nm|12|mix|mono\nm|13|macro|mono\nm|14|reverb|mono\nm|15|out|mono\nc|1.0|2.0|1\nc|0.0|3.0|1\nc|2.0|4.0|1\nc|2.0|5.0|1\nc|4.0|6.1|1|1|13.5|0.5\nc|6.0|7.0|1\nc|5.0|7.1|1\nc|7.0|12.0|1\nc|8.0|9.0|1\nc|9.0|11.0|1\nc|3.0|10.0|1\nc|10.0|11.1|1\nc|11.0|12.1|1\nc|12.0|15.0|1\nc|13.0|2.1|0.1\nc|13.1|3.1|0.5\nc|13.2|9.1|-0.2\nc|12.0|14.0|0|0|13.3|0.6\nc|14.0|15.0|1\nc|14.1|15.2|1\nc|13.4|14.1|0.4\nc|7.0|12.0|0|0|13.6|-0.6\nc|11.0|12.1|0|0|13.7|0.8\nc|12.0|15.2|1"
+  set macro1 "Kick"
+  set macro2 "Hat"
+  set macro3 "Shade"
+  set macro4 "Room"
+  set macro5 "Size"
+  set macro6 "Drop"
+  set macro7 "Duck"
+  set macro8 "Hats Up"
+  c14_a          0.1000
+  c14_b          0.1000
+  c15_a          0.5000
+  c15_b          0.5000
+  c16_a          -0.2000
+  c16_b          -0.2000
+  c17_a          0.0000
+  c17_b          0.0000
+  c20_a          0.4000
+  c20_b          0.4000
+  c21_a          0.0000
+  c21_b          0.0000
+  c22_a          0.0000
+  c22_b          0.0000
+  s00_p1         0.6111
+  s00_p2         0.3
+  s01_p1         0.2778
+  s01_p2         0.2
+  s02_p1         0.9
+  s03_p1         0.5
+  s04_p1         0.0
+  s04_p2         0.344
+  s04_p3         0.0
+  s04_p4         0.344
+  s05_p1         0.0
+  s05_p2         0.576
+  s05_p3         0.0
+  s05_p4         0.555
+  s06_p1         0.85
+  s06_p2         0.0
+  s06_p5         0.75
+  s08_p1         0.0
+  s09_p1         0.46
+  s09_p2         0.861
+  s09_p3         0.1
+  s10_p1         0.0
+  s10_p2         0.37
+  s10_p3         0.0
+  s10_p4         0.344
+  s12_p1         0.75
+  s12_p2         0.6125
+  s14_p1         0.4
+  s14_p5         1.0
+  s15_p1         0.5
+  volume         0.80
+
+patch "Drum Echoes" family=generative
+  # Palm's tabla, struck by each note, into a delay that feeds back.
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|voice\nm|1|drum|mono\nm|2|delay|mono\nm|3|out|mono\nc|0.0|1.0|1.0\nc|0.1|1.1|1.0\nc|0.2|1.2|1.0\nc|1.0|2.0|1.0\nc|2.0|3.0|1.0\nm|4|macro|mono\nm|5|reverb|mono\nm|6|drive|mono\nm|7|lfo|mono\nm|8|delay|mono\nc|2.0|5.0|0.0|0.0|4.0|0.6\nc|5.0|3.0|1.0\nc|4.1|5.1|0.4\nc|2.0|6.0|0.0|0.0|4.2|0.5\nc|6.0|3.0|1.0\nc|4.3|2.1|0.3\nc|7.0|2.1|0.0|0.0|4.4|0.004\nc|4.5|7.0|0.6\nc|1.0|3.0|0.0|0.0|4.6|0.6\nc|2.0|8.0|0.0|0.0|4.7|0.5\nc|8.0|3.0|1.0"
+  set macro1 "Space"
+  set macro2 "Size"
+  set macro3 "Grit"
+  set macro4 "Time"
+  set macro5 "Wobble"
+  set macro6 "Rate"
+  set macro7 "Dry"
+  set macro8 "Long"
+  s01_p1         0.0
+  s02_p2         0.55
+  c05_a          0.0000
+  c05_b          0.0000
+  c07_a          0.4000
+  c07_b          0.4000
+  c08_a          0.0000
+  c08_b          0.0000
+  c10_a          0.3000
+  c10_b          0.3000
+  c11_a          0.0000
+  c11_b          0.0000
+  c12_a          0.6000
+  c12_b          0.6000
+  c13_a          0.0000
+  c13_b          0.0000
+  c14_a          0.0000
+  c14_b          0.0000
+  s05_p1         0.55
+  s05_p5         1.0
+  s06_p1         0.6
+  s06_p3         1.0
+  s07_p2         0.512
+  s08_p1         0.799
+  s08_p2         0.45
+  s08_p3         0.35
+  s08_p4         1.0
+  volume         1.000
+  insert Eq
+    gain         3.7 dB
+
+patch "Gate Logic" note=60 range=48..72 family=generative
+  # Hold a key: five over sixteen against one over three, both on the
+  # sixteenths, played only where one of them is on and the other is not.
+  # Each hit of the five flips the octave, so the line jumps.
+  set nexus "v|2\nm|0|voice\nm|1|clock|mono\nm|2|euclid|mono\nm|3|euclid|mono\nm|4|logic|mono\nm|5|logic|mono\nm|6|logic\nm|7|math\nm|8|op\nm|9|op\nm|10|env\nm|11|vca\nm|12|macro|mono\nm|13|delay|mono\nm|14|reverb|mono\nm|15|out|mono\nc|1.0|2.0|1\nc|2.0|4.0|1\nc|3.0|4.1|1\nc|2.0|5.0|1\nc|4.0|6.1|1\nc|0.1|6.0|1\nc|6.0|10.0|1\nc|0.0|7.0|1\nc|5.0|7.1|0.09449\nc|5.1|7.1|0|0|12.1|0.05512\nc|7.0|8.2|1\nc|7.0|9.2|1\nc|9.0|8.0|0.25|0.25|12.0|0.5\nc|8.0|11.0|1\nc|10.0|11.1|1\nc|11.0|15.0|1\nc|11.0|13.0|0|0|12.3|0.5\nc|13.0|15.0|1\nc|13.0|15.2|1\nc|11.0|14.0|0|0|12.4|0.6\nc|14.0|15.0|1\nc|14.1|15.2|1\nc|12.5|14.1|0.4\nc|12.6|13.1|0.3\nc|12.2|9.2|0.05512\nc|11.0|15.2|1"
+  set macro1 "Bright"
+  set macro2 "Fifth"
+  set macro3 "Clang"
+  set macro4 "Echo"
+  set macro5 "Space"
+  set macro6 "Size"
+  set macro7 "Time"
+  set macro8 "Feedback"
+  c08_a          0.0945
+  c08_b          0.0945
+  c09_a          0.0000
+  c09_b          0.0000
+  c12_a          0.2500
+  c12_b          0.2500
+  c16_a          0.0000
+  c16_b          0.0000
+  c19_a          0.0000
+  c19_b          0.0000
+  c22_a          0.4000
+  c22_b          0.4000
+  c23_a          0.3000
+  c23_b          0.3000
+  s01_p1         0.6111
+  s01_p2         0.5
+  s02_p1         0.9688
+  s02_p2         0.3235
+  s03_p1         0.1562
+  s03_p2         0.0882
+  s04_p1         0.4167
+  s05_p1         0.75
+  s06_p1         0.0833
+  s08_p2         0.0323
+  s09_p2         0.0968
+  s09_p4         0.0
+  s10_p1         0.072
+  s10_p2         0.488
+  s10_p3         0.0
+  s10_p4         0.45
+  s13_p1         0.758
+  s13_p2         0.35
+  s13_p3         0.4
+  s13_p4         1.0
+  s14_p1         0.6
+  s14_p5         1.0
+  volume         1.000
+  insert Eq
+    gain         0.3 dB
+
+patch "Counting Song" family=generative
+  # Plays itself from the transport. A formula counts in fives round
+  # twelve and the eighths sample it, so the tune comes round in a long
+  # loop, quantised to D dorian. Shift turns the formula's x up.
+  set nexus "v|2\nm|0|clock|mono\nm|1|formula|mono\nm|2|snh|mono\nm|3|math|mono\nm|4|quant|mono\nm|5|osc|mono\nm|6|osc|mono\nm|7|filter|mono\nm|8|env|mono\nm|9|vca|mono\nm|10|lfo|mono\nm|11|macro|mono\nm|12|drive|mono\nm|13|delay|mono\nm|14|reverb|mono\nm|15|out|mono\nc|1.0|2.0|1\nc|0.0|2.1|1\nc|2.0|3.0|0.10079\nc|3.0|4.0|1\nc|4.0|5.0|1\nc|4.0|6.0|1\nc|0.0|8.0|1\nc|5.0|7.0|1\nc|6.0|7.0|0|0|11.7|0.5\nc|7.0|9.0|1\nc|8.0|9.1|1\nc|8.0|7.1|0.25\nc|9.0|15.0|1\nc|11.0|7.1|0.3\nc|11.1|7.2|0.5\nc|11.2|1.0|0.5\nc|10.0|5.1|0|0|11.3|0.02\nc|9.0|12.0|0|0|11.4|0.6\nc|12.0|15.0|1\nc|9.0|13.0|0|0|11.5|0.5\nc|13.0|15.0|1\nc|13.0|15.2|1\nc|9.0|14.0|0|0|11.6|0.6\nc|14.0|15.0|1\nc|14.1|15.2|1\nc|9.0|15.2|1\nc|12.0|15.2|1\ne|01|128 + ((t >> 9) * 5 % 12 + (x >> 4)) * 10"
+  set macro1 "Bright"
+  set macro2 "Reso"
+  set macro3 "Shift"
+  set macro4 "Vibrato"
+  set macro5 "Grit"
+  set macro6 "Echo"
+  set macro7 "Space"
+  set macro8 "Octave"
+  c02_a          0.1008
+  c02_b          0.1008
+  c08_a          0.0000
+  c08_b          0.0000
+  c11_a          0.2500
+  c11_b          0.2500
+  c13_a          0.3000
+  c13_b          0.3000
+  c14_a          0.5000
+  c14_b          0.5000
+  c15_a          0.5000
+  c15_b          0.5000
+  c16_a          0.0000
+  c16_b          0.0000
+  c17_a          0.0000
+  c17_b          0.0000
+  c19_a          0.0000
+  c19_b          0.0000
+  c22_a          0.0000
+  c22_b          0.0000
+  s00_p1         0.3889
+  s00_p2         0.5
+  s01_p2         0.0
+  s01_p6         0.0
+  s01_p7         1.0
+  s03_p2         0.5984
+  s04_p1         0.0455
+  s04_p2         0.2083
+  s05_p1         0.3
+  s05_p4         0.3
+  s06_p1         0.85
+  s06_p2         0.75
+  s07_p1         0.12
+  s07_p2         0.691
+  s07_p3         0.2
+  s08_p1         0.143
+  s08_p2         0.529
+  s08_p3         0.3
+  s08_p4         0.471
+  s10_p2         0.749
+  s12_p1         0.6
+  s12_p3         1.0
+  s13_p1         0.758
+  s13_p2         0.35
+  s13_p3         0.4
+  s13_p4         1.0
+  s14_p1         0.6
+  s14_p5         1.0
+  s15_p1         0.2109
+  volume         0.80
+
+patch "Note Rain" family=generative
+  # Plays itself from the transport. On a third of the thirty-seconds a
+  # click of noise strikes a string, tuned at that moment to a random note
+  # of the hirajoshi scale, into a long hall. Heavier makes it pour.
+  set nexus "v|2\nm|0|clock|mono\nm|1|prob|mono\nm|2|rand|mono\nm|3|snh|mono\nm|4|math|mono\nm|5|quant|mono\nm|6|noise|mono\nm|7|env|mono\nm|8|vca|mono\nm|9|string|mono\nm|10|filter|mono\nm|11|reverb|mono\nm|12|delay|mono\nm|13|macro|mono\nm|14|out|mono\nc|0.0|1.0|1\nc|0.0|2.0|1\nc|2.0|3.0|1\nc|1.0|3.1|1\nc|3.0|4.0|0.18898\nc|4.0|5.0|1\nc|5.0|9.1|1\nc|6.0|8.0|1\nc|1.0|7.0|1\nc|7.0|8.1|1\nc|8.0|9.0|2\nc|9.0|10.0|1\nc|10.0|14.0|1\nc|10.0|11.0|0.5|0.5|13.3|0.5\nc|11.0|14.0|1\nc|11.1|14.2|1\nc|13.0|1.1|0.5\nc|13.1|9.2|0.05\nc|13.2|10.1|-0.3\nc|13.4|11.1|0.3\nc|10.0|12.0|0|0|13.5|0.5\nc|12.0|14.0|1\nc|12.0|14.2|1\nc|13.6|4.1|-0.18898\nc|13.7|12.1|0.3\nc|10.0|14.2|1"
+  set macro1 "Heavier"
+  set macro2 "Ring"
+  set macro3 "Dark"
+  set macro4 "Space"
+  set macro5 "Size"
+  set macro6 "Echo"
+  set macro7 "Low"
+  set macro8 "Time"
+  c04_a          0.1890
+  c04_b          0.1890
+  c10_a          2.0000
+  c10_b          2.0000
+  c13_a          0.5000
+  c13_b          0.5000
+  c16_a          0.5000
+  c16_b          0.5000
+  c17_a          0.0500
+  c17_b          0.0500
+  c18_a          -0.3000
+  c18_b          -0.3000
+  c19_a          0.3000
+  c19_b          0.3000
+  c20_a          0.0000
+  c20_b          0.0000
+  c23_a          -0.1890
+  c23_b          -0.1890
+  s00_p1         0.8333
+  s00_p2         0.4
+  s01_p1         0.3
+  s04_p2         0.6378
+  s05_p1         0.5303
+  s05_p2         0.375
+  s06_p1         0.2
+  s07_p1         0.0
+  s07_p2         0.126
+  s07_p3         0.0
+  s07_p4         0.105
+  s09_p2         0.85
+  s09_p3         0.6
+  s10_p1         0.12
+  s10_p2         0.898
+  s10_p3         0.0
+  s11_p1         0.75
+  s11_p5         1.0
+  s12_p1         0.758
+  s12_p2         0.4
+  s12_p3         0.4
+  s12_p4         1.0
+  volume         0.847
+
+patch Bytebeat family=generative
+  # A formula as an oscillator at the note's pitch, through the bitcrusher.
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|voice\nm|1|formula\nm|2|env\nm|3|vca\nm|4|crush\nm|5|out|mono\nc|0.0|1.1|1.0\nc|1.0|3.0|1.0\nc|0.1|2.0|1.0\nc|2.0|3.1|1.0\nc|3.0|4.0|1.0\nc|4.0|5.0|1.0\ne|01|t * (t >> 5 | t >> 8)\nm|6|macro|mono\nm|7|delay|mono\nm|8|reverb|mono\nm|9|drive|mono\nm|10|osc\nm|11|lfo|mono\nc|4.0|7.0|0.0|0.0|6.0|0.5\nc|7.0|5.0|1.0\nc|6.1|7.1|0.3\nc|4.0|8.0|0.0|0.0|6.2|0.6\nc|8.0|5.0|1.0\nc|6.3|8.1|0.4\nc|4.0|9.0|0.0|0.0|6.4|0.5\nc|9.0|5.0|1.0\nc|0.0|10.0|1.0\nc|10.0|3.0|0.0|0.0|6.5|0.5\nc|11.0|3.1|0.0|0.0|6.6|0.5\nc|6.7|11.0|0.6"
+  set macro1 "Echo"
+  set macro2 "Time"
+  set macro3 "Space"
+  set macro4 "Size"
+  set macro5 "Grit"
+  set macro6 "Sub"
+  set macro7 "Tremolo"
+  set macro8 "Rate"
+  s01_p2         0.3
+  s02_p3         0.6
+  s04_p1         0.6
+  s05_p1         0.4
+  c06_a          0.0000
+  c06_b          0.0000
+  c08_a          0.3000
+  c08_b          0.3000
+  c09_a          0.0000
+  c09_b          0.0000
+  c11_a          0.4000
+  c11_b          0.4000
+  c12_a          0.0000
+  c12_b          0.0000
+  c15_a          0.0000
+  c15_b          0.0000
+  c16_a          0.0000
+  c16_b          0.0000
+  c17_a          0.6000
+  c17_b          0.6000
+  s07_p1         0.739
+  s07_p2         0.35
+  s07_p3         0.4
+  s07_p4         1.0
+  s08_p1         0.55
+  s08_p5         1.0
+  s09_p1         0.6
+  s09_p3         1.0
+  s10_p1         0.85
+  s10_p2         0.25
+  s11_p2         0.771
+  volume         1.000
+  insert Eq
+    gain         2.4 dB
+
+patch "Saw to Square" note=60 range=36..84 family=morph
+  # A saw at A, a square whose width wanders at B, through one filter:
+  # turn A->B to go from one to the other while it plays.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|filter\nm|4|env\nm|5|vca\nm|6|lfo|mono\nm|7|osc\nm|8|math|mono\nm|9|macro|mono\nm|10|drive|mono\nm|11|delay|mono\nm|12|reverb|mono\nm|13|out|mono\nc|1.0|3.0|1|0\nc|2.0|3.0|0|0.65\nc|6.0|2.2|0|0.3\nc|8.0|3.1|0|-0.05\nc|3.0|5.0|1\nc|0.1|4.0|1\nc|4.0|5.1|1\nc|5.0|13.0|1\nc|9.0|3.1|0.3\nc|9.1|3.2|0.5\nc|4.0|3.1|0|0|9.2|0.3\nc|6.0|1.1|0|0|9.3|0.02\nc|0.0|7.0|1\nc|7.0|3.0|0|0|9.7|0.6\nc|5.0|10.0|0|0|9.4|0.6\nc|10.0|13.0|1\nc|5.0|11.0|0|0|9.5|0.5\nc|11.0|13.0|1\nc|11.0|13.2|1\nc|5.0|12.0|0|0|9.6|0.6\nc|12.0|13.0|1\nc|12.1|13.2|1\nc|5.0|13.2|1\nc|10.0|13.2|1"
+  set macro1 "Cutoff"
+  set macro2 "Reso"
+  set macro3 "Env"
+  set macro4 "Vibrato"
+  set macro5 "Grit"
+  set macro6 "Echo"
+  set macro7 "Space"
+  set macro8 "Sub"
+  c00_a          1.0000
+  c00_b          0.0000
+  c01_a          0.0000
+  c01_b          0.6500
+  c02_a          0.0000
+  c02_b          0.3000
+  c03_a          0.0000
+  c03_b          -0.0500
+  c08_a          0.3000
+  c08_b          0.3000
+  c09_a          0.5000
+  c09_b          0.5000
+  c10_a          0.0000
+  c10_b          0.0000
+  c11_a          0.0000
+  c11_b          0.0000
+  c13_a          0.0000
+  c13_b          0.0000
+  c14_a          0.0000
+  c14_b          0.0000
+  c16_a          0.0000
+  c16_b          0.0000
+  c19_a          0.0000
+  c19_b          0.0000
+  s01_p1         0.0
+  s02_p1         0.3
+  s02_p4         0.5
+  s03_p1         0.29
+  s03_p2         0.716
+  s03_p3         0.2
+  s04_p1         0.238
+  s04_p2         0.609
+  s04_p3         0.85
+  s04_p4         0.576
+  s06_p2         0.512
+  s07_p1         0.85
+  s07_p2         0.25
+  s08_p2         0.75
+  s10_p1         0.6
+  s10_p3         1.0
+  s11_p1         0.758
+  s11_p2         0.35
+  s11_p3         0.4
+  s11_p4         1.0
+  s12_p1         0.6
+  s12_p5         1.0
+  s13_p1         0.3539
+  volume         0.80
+
+patch "Still to Wobble" note=40 range=28..64 family=morph
+  # A saw bass, still at A. Towards B an LFO on the eighths opens the
+  # filter in and out and the resonance comes up: the wobble is the
+  # morph.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|filter\nm|4|env\nm|5|vca\nm|6|lfo|mono\nm|7|math|mono\nm|8|macro|mono\nm|9|drive|mono\nm|10|delay|mono\nm|11|reverb|mono\nm|12|osc\nm|13|out|mono\nc|1.0|3.0|1\nc|2.0|3.0|0.5\nc|6.0|3.1|0|0.3\nc|7.0|3.2|0|0.3\nc|7.0|3.1|0|0.05\nc|3.0|5.0|1\nc|0.1|4.0|1\nc|4.0|5.1|1\nc|5.0|13.0|1\nc|8.0|3.1|0.3\nc|8.1|3.2|0.4\nc|0.0|2.0|1\nc|5.0|9.0|0|0|8.2|0.6\nc|9.0|13.0|1\nc|5.0|10.0|0|0|8.3|0.5\nc|10.0|13.0|1\nc|10.0|13.2|1\nc|5.0|11.0|0|0|8.4|0.6\nc|11.0|13.0|1\nc|11.1|13.2|1\nc|2.0|3.0|0|0|8.5|0.6\nc|6.0|1.1|0|0|8.7|0.01\nc|0.0|12.0|1\nc|12.0|3.0|0|0|8.6|0.7\nc|5.0|13.2|1\nc|9.0|13.2|1"
+  set macro1 "Cutoff"
+  set macro2 "Reso"
+  set macro3 "Grit"
+  set macro4 "Echo"
+  set macro5 "Space"
+  set macro6 "Sub"
+  set macro7 "Width"
+  set macro8 "Drift"
+  c01_a          0.5000
+  c01_b          0.5000
+  c02_a          0.0000
+  c02_b          0.3000
+  c03_a          0.0000
+  c03_b          0.3000
+  c04_a          0.0000
+  c04_b          0.0500
+  c09_a          0.3000
+  c09_b          0.3000
+  c10_a          0.4000
+  c10_b          0.4000
+  c12_a          0.0000
+  c12_b          0.0000
+  c14_a          0.0000
+  c14_b          0.0000
+  c17_a          0.0000
+  c17_b          0.0000
+  c20_a          0.0000
+  c20_b          0.0000
+  c21_a          0.0000
+  c21_b          0.0000
+  c23_a          0.0000
+  c23_b          0.0000
+  s01_p1         0.0
+  s02_p1         0.3
+  s02_p2         0.25
+  s03_p1         0.29
+  s03_p2         0.473
+  s03_p3         0.25
+  s04_p1         0.185
+  s04_p2         0.576
+  s04_p3         0.9
+  s04_p4         0.45
+  s06_p1         0.0
+  s06_p3         0.75
+  s07_p2         0.75
+  s09_p1         0.6
+  s09_p3         1.0
+  s10_p1         0.758
+  s10_p2         0.35
+  s10_p3         0.4
+  s10_p4         1.0
+  s11_p1         0.45
+  s11_p5         1.0
+  s12_p1         0.0
+  s12_p3         0.6
+  s13_p1         0.3539
+  volume         0.80
+
+patch "Slow to Snappy" note=60 range=36..84 family=morph
+  # Two envelopes on one VCA: a slow swell at A, a short pluck with the
+  # filter snapping shut at B. The same saws are a pad at one end and keys
+  # at the other.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|filter\nm|4|env\nm|5|env\nm|6|vca\nm|7|lfo|mono\nm|8|macro|mono\nm|9|drive|mono\nm|10|delay|mono\nm|11|reverb|mono\nm|12|out|mono\nc|1.0|3.0|1\nc|2.0|3.0|1\nc|0.1|4.0|1\nc|0.1|5.0|1\nc|4.0|6.1|1|0\nc|5.0|6.1|0|1\nc|5.0|3.1|0|0.35\nc|4.0|3.1|0.1|0\nc|3.0|6.0|1\nc|6.0|12.0|1\nc|8.0|3.1|0.3\nc|8.1|3.2|0.5\nc|7.0|1.1|0|0|8.2|0.02\nc|7.0|3.1|0|0|8.3|0.15\nc|6.0|9.0|0|0|8.4|0.6\nc|9.0|12.0|1\nc|6.0|10.0|0|0|8.5|0.5\nc|10.0|12.0|1\nc|10.0|12.2|1\nc|6.0|11.0|0|0|8.6|0.6\nc|11.0|12.0|1\nc|11.1|12.2|1\nc|8.7|11.1|0.35\nc|6.0|12.2|1\nc|9.0|12.2|1"
+  set macro1 "Cutoff"
+  set macro2 "Reso"
+  set macro3 "Vibrato"
+  set macro4 "Motion"
+  set macro5 "Grit"
+  set macro6 "Echo"
+  set macro7 "Space"
+  set macro8 "Size"
+  c04_a          1.0000
+  c04_b          0.0000
+  c05_a          0.0000
+  c05_b          1.0000
+  c06_a          0.0000
+  c06_b          0.3500
+  c07_a          0.1000
+  c07_b          0.0000
+  c10_a          0.3000
+  c10_b          0.3000
+  c11_a          0.5000
+  c11_b          0.5000
+  c12_a          0.0000
+  c12_b          0.0000
+  c13_a          0.0000
+  c13_b          0.0000
+  c14_a          0.0000
+  c14_b          0.0000
+  c16_a          0.0000
+  c16_b          0.0000
+  c19_a          0.0000
+  c19_b          0.0000
+  c22_a          0.3500
+  c22_b          0.3500
+  s01_p1         0.0
+  s02_p1         0.0
+  s02_p3         0.56
+  s03_p1         0.29
+  s03_p2         0.635
+  s03_p3         0.15
+  s04_p1         0.732
+  s04_p2         0.714
+  s04_p3         1.0
+  s04_p4         0.735
+  s05_p1         0.072
+  s05_p2         0.594
+  s05_p3         0.3
+  s05_p4         0.576
+  s07_p2         0.445
+  s09_p1         0.6
+  s09_p3         1.0
+  s10_p1         0.758
+  s10_p2         0.35
+  s10_p3         0.4
+  s10_p4         1.0
+  s11_p1         0.65
+  s11_p5         1.0
+  s12_p1         0.1794
+  volume         0.80
+
+patch "Pure to Bell" note=72 range=48..96 family=morph
+  # Two operators. At A the modulator barely touches the carrier and it is
+  # a sine; at B it sits at three and a half and swings hard, so the same
+  # key rings as a bell.
+  set nexus "v|2\nm|0|voice\nm|1|op\nm|2|op\nm|3|env\nm|4|vca\nm|5|env\nm|6|env\nm|7|vca\nm|8|lfo|mono\nm|9|macro|mono\nm|10|drive|mono\nm|11|delay|mono\nm|12|reverb|mono\nm|13|out|mono\nc|0.0|1.2|1\nc|0.0|2.2|1\nc|0.1|3.0|1\nc|2.0|4.0|1\nc|3.0|4.1|1\nc|4.0|1.0|0.04|0.45\nc|1.0|7.0|1\nc|0.1|5.0|1\nc|5.0|7.1|1\nc|7.0|13.0|1\nc|4.0|1.0|0|0|9.0|0.4\nc|0.1|6.0|1\nc|6.0|7.1|0|0|9.1|0.6\nc|8.0|1.2|0|0|9.2|0.0015\nc|7.0|10.0|0|0|9.3|0.6\nc|10.0|13.0|1\nc|7.0|11.0|0|0|9.4|0.5\nc|11.0|13.0|1\nc|11.0|13.2|1\nc|7.0|12.0|0|0|9.5|0.6\nc|12.0|13.0|1\nc|12.1|13.2|1\nc|9.6|12.1|0.35\nc|9.7|8.0|0.5\nc|7.0|13.2|1\nc|10.0|13.2|1"
+  set macro1 "Bright"
+  set macro2 "Ring"
+  set macro3 "Vibrato"
+  set macro4 "Grit"
+  set macro5 "Echo"
+  set macro6 "Space"
+  set macro7 "Size"
+  set macro8 "Rate"
+  c05_a          0.0400
+  c05_b          0.4500
+  c10_a          0.0000
+  c10_b          0.0000
+  c12_a          0.0000
+  c12_b          0.0000
+  c13_a          0.0000
+  c13_b          0.0000
+  c14_a          0.0000
+  c14_b          0.0000
+  c16_a          0.0000
+  c16_b          0.0000
+  c19_a          0.0000
+  c19_b          0.0000
+  c22_a          0.3500
+  c22_b          0.3500
+  c23_a          0.5000
+  c23_b          0.5000
+  s01_p2         0.0323
+  s02_p2         0.1935
+  s03_p1         0.072
+  s03_p2         0.735
+  s03_p3         0.2
+  s03_p4         0.714
+  s05_p1         0.072
+  s05_p2         0.82
+  s05_p3         0.0
+  s05_p4         0.761
+  s06_p1         0.072
+  s06_p2         0.92
+  s06_p3         0.0
+  s06_p4         0.874
+  s08_p2         0.749
+  s10_p1         0.6
+  s10_p3         1.0
+  s11_p1         0.799
+  s11_p2         0.35
+  s11_p3         0.4
+  s11_p4         1.0
+  s12_p1         0.65
+  s12_p5         1.0
+  s13_p1         0.2877
+  volume         0.80
+
+patch "Pluck to Bow" note=48 range=36..72 family=morph
+  # Filament's string with two ways in: a click of noise plucks it at A,
+  # a steady breath of noise bows it at B, and in between it is both.
+  set nexus "v|2\nm|0|voice\nm|1|noise\nm|2|env\nm|3|env\nm|4|vca\nm|5|string\nm|6|filter\nm|7|lfo|mono\nm|8|math|mono\nm|9|macro|mono\nm|10|drive|mono\nm|11|delay|mono\nm|12|reverb|mono\nm|13|out|mono\nc|1.0|4.0|1\nc|0.1|2.0|1\nc|0.1|3.0|1\nc|2.0|4.1|1|0\nc|3.0|4.1|0|0.035\nc|4.0|5.0|2\nc|8.0|5.2|0|0.05\nc|5.0|6.0|1\nc|6.0|13.0|1\nc|9.0|6.1|-0.3\nc|9.1|5.2|0.05\nc|6.0|10.0|0|0|9.2|0.6\nc|10.0|13.0|1\nc|6.0|11.0|0|0|9.3|0.5\nc|11.0|13.0|1\nc|11.0|13.2|1\nc|6.0|12.0|0|0|9.4|0.6\nc|12.0|13.0|1\nc|12.1|13.2|1\nc|9.5|12.1|0.35\nc|3.0|4.1|0|0|9.6|0.08\nc|1.0|6.0|0|0|9.7|0.03\nc|6.0|13.2|1\nc|10.0|13.2|1"
+  set macro1 "Dark"
+  set macro2 "Ring"
+  set macro3 "Grit"
+  set macro4 "Echo"
+  set macro5 "Space"
+  set macro6 "Size"
+  set macro7 "Bow"
+  set macro8 "Air"
+  c03_a          1.0000
+  c03_b          0.0000
+  c04_a          0.0000
+  c04_b          0.0350
+  c05_a          2.0000
+  c05_b          2.0000
+  c06_a          0.0000
+  c06_b          0.0500
+  c09_a          -0.3000
+  c09_b          -0.3000
+  c10_a          0.0500
+  c10_b          0.0500
+  c11_a          0.0000
+  c11_b          0.0000
+  c13_a          0.0000
+  c13_b          0.0000
+  c16_a          0.0000
+  c16_b          0.0000
+  c19_a          0.3500
+  c19_b          0.3500
+  c20_a          0.0000
+  c20_b          0.0000
+  c21_a          0.0000
+  c21_b          0.0000
+  s01_p1         0.5
+  s02_p1         0.0
+  s02_p2         0.159
+  s02_p3         0.0
+  s02_p4         0.126
+  s03_p1         0.589
+  s03_p2         0.576
+  s03_p3         1.0
+  s03_p4         0.576
+  s05_p2         0.75
+  s05_p3         0.5
+  s06_p1         0.12
+  s06_p2         0.898
+  s06_p3         0.0
+  s07_p2         0.749
+  s08_p2         0.75
+  s10_p1         0.6
+  s10_p3         1.0
+  s11_p1         0.758
+  s11_p2         0.35
+  s11_p3         0.4
+  s11_p4         1.0
+  s12_p1         0.55
+  s12_p5         1.0
+  volume         1.000
+  insert Eq
+    gain         9.6 dB
+
+patch Morphing family=morph
+  # A cable's depth is a *pair*, A and B, and `morph` crossfades between them
+  # - so one control rewires the patch while it plays. At morph 0 the string
+  # is plucked by noise; at 1 it is driven by the oscillator instead, and
+  # everything in between is a blend of the two.
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|voice\nm|1|noise\nm|2|osc\nm|3|env\nm|4|vca\nm|5|string\nm|6|out|mono\nc|1.0|4.0|1.0|0.0\nc|2.0|4.0|0.0|1.0\nc|0.1|3.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0\nc|5.0|6.0|1.0\nm|7|macro|mono\nm|8|delay|mono\nm|9|reverb|mono\nm|10|drive|mono\nc|5.0|8.0|0.0|0.0|7.0|0.5\nc|8.0|6.0|1.0\nc|7.1|8.1|0.3\nc|5.0|9.0|0.0|0.0|7.2|0.6\nc|9.0|6.0|1.0\nc|7.3|9.1|0.4\nc|5.0|10.0|0.0|0.0|7.4|0.5\nc|10.0|6.0|1.0\nc|7.5|5.2|0.04\nc|3.0|4.1|0.0|0.0|7.6|1.0\nc|7.7|5.2|-0.5"
+  set macro1 "Echo"
+  set macro2 "Time"
+  set macro3 "Space"
+  set macro4 "Size"
+  set macro5 "Grit"
+  set macro6 "Ring"
+  set macro7 "Hard"
+  set macro8 "Mute"
+  morph          0.35
+  s03_p1         0.0
+  s03_p2         0.03
+  s03_p3         0.0
+  s05_p2         0.93
+  s06_p1         1.0
+  c00_b          0.00
+  c01_a          0.00
+  c06_a          0.0000
+  c06_b          0.0000
+  c08_a          0.3000
+  c08_b          0.3000
+  c09_a          0.0000
+  c09_b          0.0000
+  c11_a          0.4000
+  c11_b          0.4000
+  c12_a          0.0000
+  c12_b          0.0000
+  c14_a          0.0400
+  c14_b          0.0400
+  c15_a          0.0000
+  c15_b          0.0000
+  c16_a          -0.5000
+  c16_b          -0.5000
+  s08_p1         0.739
+  s08_p2         0.35
+  s08_p3         0.4
+  s08_p4         1.0
+  s09_p1         0.55
+  s09_p5         1.0
+  s10_p1         0.6
+  s10_p3         1.0
+  volume         1.000
+  insert Eq
+    gain         7.9 dB
+
+patch "Ah to Oo" note=57 range=45..64 family=morph
+  # A saw and a pulse sung through Diction's throat. A->B moves the mouth
+  # from ah to oo, and the throat gets bigger on the way.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|throat\nm|4|env\nm|5|vca\nm|6|lfo|mono\nm|7|math|mono\nm|8|macro|mono\nm|9|drive|mono\nm|10|delay|mono\nm|11|reverb|mono\nm|12|out|mono\nc|1.0|3.0|1\nc|2.0|3.0|0.6\nc|7.0|3.1|0|-0.5\nc|7.0|3.2|0|0.2\nc|3.0|5.0|1\nc|0.1|4.0|1\nc|4.0|5.1|1\nc|5.0|12.0|1\nc|6.0|1.1|0|0|8.0|0.02\nc|6.0|2.1|0|0|8.0|0.02\nc|8.1|3.1|0.3\nc|8.2|3.2|-0.3\nc|6.0|3.1|0|0|8.3|0.15\nc|5.0|9.0|0|0|8.4|0.6\nc|9.0|12.0|1\nc|5.0|10.0|0|0|8.5|0.5\nc|10.0|12.0|1\nc|10.0|12.2|1\nc|5.0|11.0|0|0|8.6|0.6\nc|11.0|12.0|1\nc|11.1|12.2|1\nc|8.7|11.1|0.35\nc|5.0|12.2|1\nc|9.0|12.2|1"
+  set macro1 "Vibrato"
+  set macro2 "Brighter"
+  set macro3 "Smaller"
+  set macro4 "Talk"
+  set macro5 "Grit"
+  set macro6 "Echo"
+  set macro7 "Space"
+  set macro8 "Size"
+  c01_a          0.6000
+  c01_b          0.6000
+  c02_a          0.0000
+  c02_b          -0.5000
+  c03_a          0.0000
+  c03_b          0.2000
+  c08_a          0.0000
+  c08_b          0.0000
+  c09_a          0.0000
+  c09_b          0.0000
+  c10_a          0.3000
+  c10_b          0.3000
+  c11_a          -0.3000
+  c11_b          -0.3000
+  c12_a          0.0000
+  c12_b          0.0000
+  c13_a          0.0000
+  c13_b          0.0000
+  c15_a          0.0000
+  c15_b          0.0000
+  c18_a          0.0000
+  c18_b          0.0000
+  c21_a          0.3500
+  c21_b          0.3500
+  s01_p1         0.0
+  s02_p1         0.3
+  s02_p3         0.55
+  s02_p4         0.3
+  s03_p1         0.5
+  s03_p2         0.5
+  s04_p1         0.495
+  s04_p2         0.609
+  s04_p3         0.9
+  s04_p4         0.594
+  s06_p2         0.749
+  s07_p2         0.75
+  s09_p1         0.6
+  s09_p3         1.0
+  s10_p1         0.758
+  s10_p2         0.35
+  s10_p3         0.4
+  s10_p4         1.0
+  s11_p1         0.6
+  s11_p5         1.0
+  s12_p1         0.2339
+  volume         0.80
+
+patch "Clean to Crushed" note=67 range=48..88 family=morph
+  # A pulse lead, clean at A. Towards B it goes through the bitcrusher
+  # instead, and the bits come down as it gets there.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|filter\nm|3|crush\nm|4|env\nm|5|vca\nm|6|lfo|mono\nm|7|math|mono\nm|8|macro|mono\nm|9|drive|mono\nm|10|delay|mono\nm|11|reverb|mono\nm|12|out|mono\nc|1.0|2.0|1\nc|2.0|5.0|1\nc|0.1|4.0|1\nc|4.0|5.1|1\nc|5.0|12.0|1|0\nc|5.0|3.0|0|1\nc|3.0|12.0|1\nc|7.0|3.1|0|-0.15\nc|8.0|2.1|0.3\nc|8.1|2.2|0.5\nc|6.0|1.1|0|0|8.2|0.02\nc|8.3|1.2|0.3\nc|5.0|9.0|0|0|8.4|0.6\nc|9.0|12.0|1\nc|5.0|10.0|0|0|8.5|0.5\nc|10.0|12.0|1\nc|10.0|12.2|1\nc|5.0|11.0|0|0|8.6|0.6\nc|11.0|12.0|1\nc|11.1|12.2|1\nc|8.7|3.1|-0.3\nc|5.0|12.2|1|0\nc|3.0|12.2|1\nc|9.0|12.2|1"
+  set macro1 "Bright"
+  set macro2 "Reso"
+  set macro3 "Vibrato"
+  set macro4 "Width"
+  set macro5 "Grit"
+  set macro6 "Echo"
+  set macro7 "Space"
+  set macro8 "Bits"
+  c04_a          1.0000
+  c04_b          0.0000
+  c05_a          0.0000
+  c05_b          1.0000
+  c07_a          0.0000
+  c07_b          -0.1500
+  c08_a          0.3000
+  c08_b          0.3000
+  c09_a          0.5000
+  c09_b          0.5000
+  c10_a          0.0000
+  c10_b          0.0000
+  c11_a          0.3000
+  c11_b          0.3000
+  c12_a          0.0000
+  c12_b          0.0000
+  c14_a          0.0000
+  c14_b          0.0000
+  c17_a          0.0000
+  c17_b          0.0000
+  c20_a          -0.3000
+  c20_b          -0.3000
+  c21_a          1.0000
+  c21_b          0.0000
+  s01_p1         0.3
+  s01_p4         0.35
+  s02_p1         0.12
+  s02_p2         0.779
+  s02_p3         0.15
+  s03_p1         0.35
+  s03_p2         0.45
+  s03_p5         1.0
+  s04_p1         0.185
+  s04_p2         0.576
+  s04_p3         0.8
+  s04_p4         0.529
+  s06_p2         0.761
+  s07_p2         0.75
+  s09_p1         0.6
+  s09_p3         1.0
+  s10_p1         0.758
+  s10_p2         0.35
+  s10_p3         0.4
+  s10_p4         1.0
+  s11_p1         0.6
+  s11_p5         1.0
+  s12_p1         0.2061
+  volume         0.80
+
+patch "Unison to Fifths" note=48 range=36..72 family=morph
+  # Three saws. At A they are one note, spread a little; at B the second
+  # has climbed to the fifth and the third to the twelfth, so the same
+  # key plays a power chord.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|osc\nm|4|filter\nm|5|env\nm|6|vca\nm|7|lfo|mono\nm|8|math|mono\nm|9|macro|mono\nm|10|drive|mono\nm|11|delay|mono\nm|12|reverb|mono\nm|13|out|mono\nc|1.0|4.0|1\nc|2.0|4.0|1\nc|3.0|4.0|1\nc|8.0|2.1|0.01|0.58333\nc|8.0|3.1|-0.01|1.58333\nc|4.0|6.0|1\nc|0.1|5.0|1\nc|5.0|6.1|1\nc|6.0|13.0|1\nc|9.0|4.1|0.3\nc|9.1|4.2|0.5\nc|7.0|4.1|0|0|9.2|0.15\nc|7.0|1.1|0|0|9.3|0.01\nc|6.0|10.0|0|0|9.4|0.6\nc|10.0|13.0|1\nc|6.0|11.0|0|0|9.5|0.5\nc|11.0|13.0|1\nc|11.0|13.2|1\nc|6.0|12.0|0|0|9.6|0.6\nc|12.0|13.0|1\nc|12.1|13.2|1\nc|9.7|12.1|0.35\nc|6.0|13.2|1\nc|10.0|13.2|1"
+  set macro1 "Cutoff"
+  set macro2 "Reso"
+  set macro3 "Motion"
+  set macro4 "Drift"
+  set macro5 "Grit"
+  set macro6 "Echo"
+  set macro7 "Space"
+  set macro8 "Size"
+  c03_a          0.0100
+  c03_b          0.5833
+  c04_a          -0.0100
+  c04_b          1.5833
+  c09_a          0.3000
+  c09_b          0.3000
+  c10_a          0.5000
+  c10_b          0.5000
+  c11_a          0.0000
+  c11_b          0.0000
+  c12_a          0.0000
+  c12_b          0.0000
+  c13_a          0.0000
+  c13_b          0.0000
+  c15_a          0.0000
+  c15_b          0.0000
+  c18_a          0.0000
+  c18_b          0.0000
+  c21_a          0.3500
+  c21_b          0.3500
+  s01_p1         0.0
+  s02_p1         0.0
+  s03_p1         0.0
+  s04_p1         0.29
+  s04_p2         0.704
+  s04_p3         0.15
+  s05_p1         0.476
+  s05_p2         0.635
+  s05_p3         0.9
+  s05_p4         0.656
+  s07_p2         0.41
+  s08_p2         0.75
+  s10_p1         0.6
+  s10_p3         1.0
+  s11_p1         0.758
+  s11_p2         0.35
+  s11_p3         0.4
+  s11_p4         1.0
+  s12_p1         0.6
+  s12_p5         1.0
+  s13_p1         0.151
+  volume         0.80
+
+patch "Struck to Blown" note=60 range=55..79 family=morph
+  # Tine's marimba as a block at A and Timber's pipe blown at B, from the
+  # same keys. Between them the bar is struck and the pipe breathes
+  # under it.
+  set nexus "v|2\nm|0|voice\nm|1|mallets|mono\nm|2|pipe\nm|3|env\nm|4|filter|mono\nm|5|lfo|mono\nm|6|macro|mono\nm|7|drive|mono\nm|8|delay|mono\nm|9|reverb|mono\nm|10|out|mono\nc|0.0|1.0|1\nc|0.1|1.1|1\nc|0.2|1.2|1\nc|0.1|3.0|1\nc|3.0|2.0|1\nc|0.0|2.1|1\nc|1.0|4.0|1|0\nc|2.0|4.0|0|1\nc|4.0|10.0|1\nc|6.0|4.1|-0.3\nc|5.0|2.0|0|0|6.1|0.15\nc|4.0|7.0|0|0|6.2|0.6\nc|7.0|10.0|1\nc|4.0|8.0|0|0|6.3|0.5\nc|8.0|10.0|1\nc|8.0|10.2|1\nc|4.0|9.0|0|0|6.4|0.6\nc|9.0|10.0|1\nc|9.1|10.2|1\nc|6.5|9.1|0.35\nc|6.6|8.1|0.3\nc|6.7|4.2|0.6\nc|4.0|10.2|1\nc|7.0|10.2|1"
+  set macro1 "Soft"
+  set macro2 "Flutter"
+  set macro3 "Grit"
+  set macro4 "Echo"
+  set macro5 "Space"
+  set macro6 "Size"
+  set macro7 "Time"
+  set macro8 "Reso"
+  c06_a          1.0000
+  c06_b          0.0000
+  c07_a          0.0000
+  c07_b          1.0000
+  c09_a          -0.3000
+  c09_b          -0.3000
+  c10_a          0.0000
+  c10_b          0.0000
+  c11_a          0.0000
+  c11_b          0.0000
+  c13_a          0.0000
+  c13_b          0.0000
+  c16_a          0.0000
+  c16_b          0.0000
+  c19_a          0.3500
+  c19_b          0.3500
+  c20_a          0.3000
+  c20_b          0.3000
+  c21_a          0.6000
+  c21_b          0.6000
+  s01_p1         0.0
+  s01_p2         0.45
+  s01_p4         0.55
+  s02_p1         0.0
+  s03_p1         0.453
+  s03_p2         0.576
+  s03_p3         0.85
+  s03_p4         0.529
+  s04_p1         0.12
+  s04_p2         0.94
+  s04_p3         0.0
+  s05_p2         0.749
+  s07_p1         0.6
+  s07_p3         1.0
+  s08_p1         0.758
+  s08_p2         0.35
+  s08_p3         0.4
+  s08_p4         1.0
+  s09_p1         0.55
+  s09_p5         1.0
+  volume         1.000
+  insert Eq
+    gain         7.6 dB
+
+patch "Wall Pad" family=texture
+  # A saw pad with Swell on every voice and a chorus after.
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|env\nm|3|vca\nm|4|swell\nm|5|chorus|mono\nm|6|out|mono\nc|1.0|3.0|1.0\nc|0.1|2.0|1.0\nc|2.0|3.1|1.0\nc|3.0|4.0|1.0\nc|4.0|5.0|1.0\nc|5.0|6.0|1.0\nc|5.1|6.2|1.0\nm|7|macro|mono\nm|8|delay|mono\nm|9|reverb|mono\nm|10|drive|mono\nm|11|lfo|mono\nc|5.0|8.0|0.0|0.0|7.0|0.5\nc|8.0|6.0|1.0\nc|8.0|6.2|1.0\nc|7.1|8.1|0.3\nc|5.0|9.0|0.0|0.0|7.2|0.6\nc|9.0|6.0|1.0\nc|9.1|6.2|1.0\nc|7.3|9.1|0.4\nc|5.0|10.0|0.0|0.0|7.4|0.5\nc|10.0|6.0|1.0\nc|10.0|6.2|1.0\nc|7.5|4.1|0.4\nc|7.6|5.1|0.4\nc|11.0|1.1|0.0|0.0|7.7|0.02"
+  set macro1 "Echo"
+  set macro2 "Time"
+  set macro3 "Space"
+  set macro4 "Size"
+  set macro5 "Grit"
+  set macro6 "Swell"
+  set macro7 "Chorus"
+  set macro8 "Vibrato"
+  s01_p1         0.66
+  s02_p1         0.4
+  s02_p4         0.6
+  s04_p3         0.8
+  s04_p5         0.4
+  c07_a          0.0000
+  c07_b          0.0000
+  c10_a          0.3000
+  c10_b          0.3000
+  c11_a          0.0000
+  c11_b          0.0000
+  c14_a          0.4000
+  c14_b          0.4000
+  c15_a          0.0000
+  c15_b          0.0000
+  c18_a          0.4000
+  c18_b          0.4000
+  c19_a          0.4000
+  c19_b          0.4000
+  c20_a          0.0000
+  c20_b          0.0000
+  s08_p1         0.739
+  s08_p2         0.35
+  s08_p3         0.4
+  s08_p4         1.0
+  s09_p1         0.55
+  s09_p5         1.0
+  s10_p1         0.6
+  s10_p3         1.0
+  s11_p2         0.749
+  volume         0.560
+
+patch "Two Saw Drone" note=36 range=24..48 family=texture
+  # Two saws a few cents apart over a sine an octave down, through a
+  # filter that drifts open and shut over twelve seconds. Hold a low key.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|osc\nm|4|osc\nm|5|filter\nm|6|env\nm|7|vca\nm|8|lfo|mono\nm|9|macro|mono\nm|10|drive|mono\nm|11|delay|mono\nm|12|reverb|mono\nm|13|out|mono\nc|1.0|5.0|1\nc|2.0|5.0|1\nc|3.0|5.0|0.8\nc|8.0|5.1|0.12\nc|5.0|7.0|1\nc|0.1|6.0|1\nc|6.0|7.1|1\nc|7.0|13.0|1\nc|9.0|5.1|0.3\nc|9.1|5.2|0.5\nc|8.0|5.1|0|0|9.2|0.2\nc|4.0|5.0|0|0|9.3|0.7\nc|7.0|10.0|0|0|9.4|0.6\nc|10.0|13.0|1\nc|7.0|11.0|0|0|9.5|0.5\nc|11.0|13.0|1\nc|11.0|13.2|1\nc|7.0|12.0|0|0|9.6|0.6\nc|12.0|13.0|1\nc|12.1|13.2|1\nc|9.7|12.1|0.3\nc|7.0|13.2|1\nc|10.0|13.2|1"
+  set macro1 "Cutoff"
+  set macro2 "Reso"
+  set macro3 "Motion"
+  set macro4 "Fifth"
+  set macro5 "Grit"
+  set macro6 "Echo"
+  set macro7 "Space"
+  set macro8 "Size"
+  c02_a          0.8000
+  c02_b          0.8000
+  c03_a          0.1200
+  c03_b          0.1200
+  c08_a          0.3000
+  c08_b          0.3000
+  c09_a          0.5000
+  c09_b          0.5000
+  c10_a          0.0000
+  c10_b          0.0000
+  c11_a          0.0000
+  c11_b          0.0000
+  c12_a          0.0000
+  c12_b          0.0000
+  c14_a          0.0000
+  c14_b          0.0000
+  c17_a          0.0000
+  c17_b          0.0000
+  c20_a          0.3000
+  c20_b          0.3000
+  s01_p1         0.0
+  s02_p1         0.0
+  s02_p3         0.57
+  s03_p1         0.85
+  s03_p2         0.25
+  s04_p1         0.0
+  s04_p2         0.6458
+  s05_p1         0.29
+  s05_p2         0.523
+  s05_p3         0.3
+  s06_p1         0.762
+  s06_p2         0.714
+  s06_p3         1.0
+  s06_p4         0.794
+  s08_p2         0.256
+  s10_p1         0.6
+  s10_p3         1.0
+  s11_p1         0.826
+  s11_p2         0.35
+  s11_p3         0.4
+  s11_p4         1.0
+  s12_p1         0.7
+  s12_p5         1.0
+  s13_p1         0.2421
+  volume         0.80
+
+patch "Organ Hum" note=48 range=36..72 family=texture
+  # Manual's wheels at the note, the octave and the twelfth, into the
+  # rotary speaker turning slowly. Fast spins it up.
+  set nexus "v|2\nm|0|voice\nm|1|wheels\nm|2|wheels\nm|3|wheels\nm|4|mix\nm|5|env\nm|6|vca\nm|7|rotary|mono\nm|8|filter|mono\nm|9|macro|mono\nm|10|drive|mono\nm|11|delay|mono\nm|12|reverb|mono\nm|13|out|mono\nc|1.0|4.0|1\nc|2.0|4.1|1\nc|3.0|4.2|1\nc|4.0|6.0|1\nc|0.1|5.0|1\nc|5.0|6.1|1\nc|6.0|8.0|1\nc|8.0|7.0|1\nc|7.0|13.0|1\nc|7.1|13.2|1\nc|9.0|7.1|1\nc|2.0|4.1|0|0|9.1|0.6\nc|3.0|4.2|0|0|9.2|0.6\nc|9.3|8.1|-0.3\nc|6.0|10.0|0|0|9.4|0.6\nc|10.0|13.0|1\nc|8.0|11.0|0|0|9.5|0.5\nc|11.0|13.0|1\nc|11.0|13.2|1\nc|8.0|12.0|0|0|9.6|0.6\nc|12.0|13.0|1\nc|12.1|13.2|1\nc|9.7|12.1|0.3\nc|10.0|13.2|1"
+  set macro1 "Fast"
+  set macro2 "Octave"
+  set macro3 "Twelfth"
+  set macro4 "Dark"
+  set macro5 "Grit"
+  set macro6 "Echo"
+  set macro7 "Space"
+  set macro8 "Size"
+  c11_a          0.0000
+  c11_b          0.0000
+  c12_a          0.0000
+  c12_b          0.0000
+  c13_a          -0.3000
+  c13_b          -0.3000
+  c14_a          0.0000
+  c14_b          0.0000
+  c16_a          0.0000
+  c16_b          0.0000
+  c19_a          0.0000
+  c19_b          0.0000
+  c22_a          0.3000
+  c22_b          0.3000
+  s01_p1         0.12
+  s02_p1         0.12
+  s02_p2         0.75
+  s03_p1         0.12
+  s03_p2         0.8958
+  s04_p1         0.75
+  s04_p2         0.625
+  s04_p3         0.575
+  s04_p5         0.5
+  s05_p1         0.381
+  s05_p2         0.576
+  s05_p3         1.0
+  s05_p4         0.576
+  s07_p3         0.5
+  s08_p1         0.12
+  s08_p2         0.898
+  s08_p3         0.05
+  s10_p1         0.6
+  s10_p3         1.0
+  s11_p1         0.799
+  s11_p2         0.35
+  s11_p3         0.4
+  s11_p4         1.0
+  s12_p1         0.65
+  s12_p5         1.0
+  s13_p1         0.1794
+  volume         0.80
+
+patch "Filtered Wind" note=60 range=36..84 family=texture
+  # Pink noise through two narrow band-passes that follow the key, a
+  # fifth apart, each pushed about by its own slow LFO. Hold a key and it
+  # blows at that pitch.
+  set nexus "v|2\nm|0|voice\nm|1|noise\nm|2|filter\nm|3|filter\nm|4|lfo|mono\nm|5|lfo|mono\nm|6|env\nm|7|vca\nm|8|macro|mono\nm|9|delay|mono\nm|10|reverb|mono\nm|11|out|mono\nc|1.0|2.0|1\nc|1.0|3.0|1\nc|2.0|7.0|1\nc|3.0|7.0|0.7\nc|4.0|2.1|0.04\nc|5.0|3.1|0.04\nc|0.1|6.0|1\nc|6.0|7.1|1\nc|7.0|11.0|1\nc|4.0|2.1|0|0|8.0|0.1\nc|5.0|3.1|0|0|8.0|0.1\nc|8.1|2.2|0.1\nc|8.1|3.2|0.1\nc|8.2|2.1|-0.15\nc|8.2|3.1|-0.15\nc|8.3|4.0|0.5\nc|8.3|5.0|0.5\nc|1.0|7.0|0|0|8.4|0.05\nc|7.0|9.0|0|0|8.5|0.5\nc|9.0|11.0|1\nc|9.0|11.2|1\nc|7.0|10.0|0|0|8.6|0.6\nc|10.0|11.0|1\nc|10.1|11.2|1\nc|8.7|10.1|0.3\nc|7.0|11.2|1"
+  set macro1 "Gust"
+  set macro2 "Whistle"
+  set macro3 "Dark"
+  set macro4 "Rate"
+  set macro5 "Hiss"
+  set macro6 "Echo"
+  set macro7 "Space"
+  set macro8 "Size"
+  c03_a          0.7000
+  c03_b          0.7000
+  c04_a          0.0400
+  c04_b          0.0400
+  c05_a          0.0400
+  c05_b          0.0400
+  c09_a          0.0000
+  c09_b          0.0000
+  c10_a          0.0000
+  c10_b          0.0000
+  c11_a          0.1000
+  c11_b          0.1000
+  c12_a          0.1000
+  c12_b          0.1000
+  c13_a          -0.1500
+  c13_b          -0.1500
+  c14_a          -0.1500
+  c14_b          -0.1500
+  c15_a          0.5000
+  c15_b          0.5000
+  c16_a          0.5000
+  c16_b          0.5000
+  c17_a          0.0000
+  c17_b          0.0000
+  c18_a          0.0000
+  c18_b          0.0000
+  c21_a          0.0000
+  c21_b          0.0000
+  s01_p1         0.7
+  s02_p1         0.79
+  s02_p2         0.48
+  s02_p3         0.85
+  s02_p6         0.51
+  s03_p1         0.79
+  s03_p2         0.539
+  s03_p3         0.85
+  s03_p6         0.51
+  s04_p2         0.309
+  s05_p1         0.0
+  s05_p2         0.367
+  s06_p1         0.714
+  s06_p2         0.714
+  s06_p3         1.0
+  s06_p4         0.761
+  s09_p1         0.799
+  s09_p2         0.35
+  s09_p3         0.4
+  s09_p4         1.0
+  s10_p1         0.7
+  s10_p5         1.0
+  volume         1.000
+  insert Eq
+    gain         7.8 dB
+
+patch "Sitar Hall" family=texture
+  # Sympath's sitar into a long reverb, the sympathetic strings up.
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|voice\nm|1|sitar|mono\nm|2|reverb|mono\nm|3|out|mono\nc|0.0|1.0|1.0\nc|0.1|1.1|1.0\nc|0.2|1.2|1.0\nc|1.0|2.0|1.0\nc|2.0|3.0|1.0\nc|2.1|3.2|1.0\nm|4|macro|mono\nm|5|delay|mono\nm|6|drive|mono\nm|7|chorus|mono\nc|1.0|5.0|0.0|0.0|4.0|0.5\nc|5.0|3.0|1.0\nc|5.0|3.2|1.0\nc|4.1|5.1|0.3\nc|1.0|6.0|0.0|0.0|4.2|0.5\nc|6.0|3.0|1.0\nc|6.0|3.2|1.0\nc|4.3|2.1|0.3\nc|1.0|3.0|0.0|0.0|4.4|0.5\nc|1.0|3.2|0.0|0.0|4.4|0.5\nc|1.0|7.0|0.0|0.0|4.5|0.6\nc|7.0|3.0|1.0\nc|7.1|3.2|1.0\nc|4.6|7.1|0.4\nc|1.0|2.0|0.0|0.0|4.7|0.5"
+  set macro1 "Echo"
+  set macro2 "Time"
+  set macro3 "Grit"
+  set macro4 "Size"
+  set macro5 "Dry"
+  set macro6 "Chorus"
+  set macro7 "Depth"
+  set macro8 "Wet"
+  s01_p8         0.9
+  s02_p1         0.8
+  s02_p5         0.45
+  c06_a          0.0000
+  c06_b          0.0000
+  c09_a          0.3000
+  c09_b          0.3000
+  c10_a          0.0000
+  c10_b          0.0000
+  c13_a          0.3000
+  c13_b          0.3000
+  c14_a          0.0000
+  c14_b          0.0000
+  c15_a          0.0000
+  c15_b          0.0000
+  c16_a          0.0000
+  c16_b          0.0000
+  c19_a          0.4000
+  c19_b          0.4000
+  c20_a          0.0000
+  c20_b          0.0000
+  s05_p1         0.739
+  s05_p2         0.35
+  s05_p3         0.4
+  s05_p4         1.0
+  s06_p1         0.6
+  s06_p3         1.0
+  s07_p6         1.0
+  volume         0.90
+
+patch "Shimmer Cloud" note=60 range=36..72 family=texture
+  # A triangle and a sine an octave up into a reverb with its shimmer
+  # up and its tail swimming, half wet. Held chords pile up into a
+  # cloud.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|filter\nm|4|env\nm|5|vca\nm|6|noise\nm|7|reverb|mono\nm|8|lfo|mono\nm|9|macro|mono\nm|10|drive|mono\nm|11|delay|mono\nm|12|out|mono\nc|1.0|3.0|1\nc|2.0|3.0|0.4\nc|3.0|5.0|1\nc|0.1|4.0|1\nc|4.0|5.1|1\nc|5.0|12.0|0.6\nc|5.0|7.0|0.7|0.7|9.2|0.5\nc|7.0|12.0|1\nc|7.1|12.2|1\nc|9.0|3.1|0.3\nc|8.0|1.1|0|0|9.1|0.02\nc|9.3|7.1|0.3\nc|6.0|5.0|0|0|9.4|0.08\nc|2.0|3.0|0|0|9.7|0.6\nc|5.0|10.0|0|0|9.5|0.6\nc|10.0|12.0|1\nc|5.0|11.0|0|0|9.6|0.5\nc|11.0|12.0|1\nc|11.0|12.2|1\nc|5.0|12.2|0.6\nc|10.0|12.2|1"
+  set macro1 "Bright"
+  set macro2 "Motion"
+  set macro3 "Wet"
+  set macro4 "Size"
+  set macro5 "Air"
+  set macro6 "Grit"
+  set macro7 "Echo"
+  set macro8 "Octave"
+  c01_a          0.4000
+  c01_b          0.4000
+  c05_a          0.6000
+  c05_b          0.6000
+  c06_a          0.7000
+  c06_b          0.7000
+  c09_a          0.3000
+  c09_b          0.3000
+  c10_a          0.0000
+  c10_b          0.0000
+  c11_a          0.3000
+  c11_b          0.3000
+  c12_a          0.0000
+  c12_b          0.0000
+  c13_a          0.0000
+  c13_b          0.0000
+  c14_a          0.0000
+  c14_b          0.0000
+  c16_a          0.0000
+  c16_b          0.0000
+  c19_a          0.6000
+  c19_b          0.6000
+  s01_p1         0.6
+  s02_p1         0.85
+  s02_p2         0.75
+  s03_p1         0.12
+  s03_p2         0.759
+  s03_p3         0.05
+  s04_p1         0.691
+  s04_p2         0.714
+  s04_p3         1.0
+  s04_p4         0.761
+  s06_p1         0.8
+  s07_p1         0.8
+  s07_p5         1.0
+  s07_p7         0.6
+  s07_p8         0.5
+  s08_p2         0.737
+  s10_p1         0.6
+  s10_p3         1.0
+  s11_p1         0.799
+  s11_p2         0.4
+  s11_p3         0.4
+  s11_p4         1.0
+  s12_p1         0.1145
+  volume         0.80
+
+patch "Grain Haze" note=60 range=36..84 family=texture
+  # Saws into a grain cloud that reads back from the last two seconds,
+  # scattered wide, and the cloud into a hall. The dry saws stay out
+  # unless Dry brings them in.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|osc\nm|3|env\nm|4|vca\nm|5|grain|mono\nm|6|grain|mono\nm|7|filter|mono\nm|8|reverb|mono\nm|9|lfo|mono\nm|10|macro|mono\nm|11|delay|mono\nm|12|out|mono\nc|1.0|4.0|1\nc|2.0|4.0|1\nc|0.1|3.0|1\nc|3.0|4.1|1\nc|4.0|5.0|1\nc|4.0|6.0|0|0|10.2|1\nc|5.0|7.0|1\nc|6.0|7.0|1\nc|9.0|5.1|0.1\nc|7.0|12.0|1\nc|7.0|8.0|0.5|0.5|10.4|0.5\nc|8.0|12.0|1\nc|8.1|12.2|1\nc|10.0|5.2|0.5\nc|10.1|5.1|0.3\nc|10.3|7.1|0.3\nc|10.5|8.1|0.3\nc|4.0|12.0|0|0|10.7|0.5\nc|7.0|11.0|0|0|10.6|0.5\nc|11.0|12.0|1\nc|11.0|12.2|1\nc|7.0|12.2|1\nc|4.0|12.2|0|0|10.7|0.5"
+  set macro1 "Density"
+  set macro2 "Reach"
+  set macro3 "Octave"
+  set macro4 "Bright"
+  set macro5 "Space"
+  set macro6 "Size"
+  set macro7 "Echo"
+  set macro8 "Dry"
+  c05_a          0.0000
+  c05_b          0.0000
+  c08_a          0.1000
+  c08_b          0.1000
+  c10_a          0.5000
+  c10_b          0.5000
+  c13_a          0.5000
+  c13_b          0.5000
+  c14_a          0.3000
+  c14_b          0.3000
+  c15_a          0.3000
+  c15_b          0.3000
+  c16_a          0.3000
+  c16_b          0.3000
+  c17_a          0.0000
+  c17_b          0.0000
+  c18_a          0.0000
+  c18_b          0.0000
+  c22_a          0.0000
+  c22_b          0.0000
+  s01_p1         0.0
+  s02_p1         0.0
+  s02_p3         0.58
+  s03_p1         0.661
+  s03_p2         0.714
+  s03_p3         1.0
+  s03_p4         0.714
+  s05_p1         0.3
+  s05_p2         0.725
+  s05_p3         0.771
+  s05_p4         0.6
+  s05_p6         0.5
+  s06_p1         0.5
+  s06_p2         0.842
+  s06_p3         0.626
+  s06_p4         0.5
+  s06_p5         0.75
+  s06_p6         0.5
+  s07_p1         0.12
+  s07_p2         0.812
+  s07_p3         0.05
+  s08_p1         0.7
+  s08_p5         1.0
+  s09_p2         0.278
+  s11_p1         0.784
+  s11_p2         0.4
+  s11_p3         0.4
+  s11_p4         1.0
+  s12_p1         0.2594
+  volume         0.80
+
+patch "Noise String" note=48 range=36..72 family=texture
+  # A string that is never let go: a thin stream of noise keeps it
+  # sounding, so it rings like wire in the wind. Bow leans on it.
+  set nexus "v|2\nm|0|voice\nm|1|noise\nm|2|env\nm|3|vca\nm|4|string\nm|5|filter\nm|6|lfo|mono\nm|7|macro|mono\nm|8|drive|mono\nm|9|delay|mono\nm|10|reverb|mono\nm|11|out|mono\nc|1.0|3.0|1\nc|0.1|2.0|1\nc|2.0|3.1|0.8|0.8|6.1|0.4\nc|3.0|4.0|0.1\nc|4.0|5.0|1\nc|5.0|11.0|1\nc|3.0|4.0|0|0|7.0|0.15\nc|7.1|4.2|0.05\nc|7.2|5.1|-0.3\nc|5.0|8.0|0|0|7.3|0.6\nc|8.0|11.0|1\nc|5.0|9.0|0|0|7.4|0.5\nc|9.0|11.0|1\nc|9.0|11.2|1\nc|5.0|10.0|0|0|7.5|0.6\nc|10.0|11.0|1\nc|10.1|11.2|1\nc|7.6|10.1|0.3\nc|7.7|6.0|0.6\nc|5.0|11.2|1\nc|8.0|11.2|1"
+  set macro1 "Bow"
+  set macro2 "Ring"
+  set macro3 "Dark"
+  set macro4 "Grit"
+  set macro5 "Echo"
+  set macro6 "Space"
+  set macro7 "Size"
+  set macro8 "Flutter"
+  c02_a          0.8000
+  c02_b          0.8000
+  c03_a          0.1000
+  c03_b          0.1000
+  c06_a          0.0000
+  c06_b          0.0000
+  c07_a          0.0500
+  c07_b          0.0500
+  c08_a          -0.3000
+  c08_b          -0.3000
+  c09_a          0.0000
+  c09_b          0.0000
+  c11_a          0.0000
+  c11_b          0.0000
+  c14_a          0.0000
+  c14_b          0.0000
+  c17_a          0.3000
+  c17_b          0.3000
+  c18_a          0.6000
+  c18_b          0.6000
+  s01_p1         0.4
+  s02_p1         0.691
+  s02_p2         0.714
+  s02_p3         1.0
+  s02_p4         0.714
+  s04_p2         0.9
+  s04_p3         0.85
+  s04_p4         0.0
+  s05_p1         0.12
+  s05_p2         0.881
+  s05_p3         0.0
+  s06_p2         0.41
+  s08_p1         0.6
+  s08_p3         1.0
+  s09_p1         0.799
+  s09_p2         0.35
+  s09_p3         0.4
+  s09_p4         1.0
+  s10_p1         0.7
+  s10_p5         1.0
+  volume         1.000
+  insert Eq
+    gain         3.3 dB
 
 patch "Feeding Back" family=texture
   # A delay inside the voice rather than after it, with its output back into
   # the filter - so the repeats are filtered again each time round and the
   # patch settles into a resonance of its own. Kept under the point where it
   # runs away, which is not far from here.
-  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|filter\nm|3|delay|mono\nm|4|env\nm|5|vca\nm|6|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nc|2.0|5.0|1.0\nc|5.0|3.0|0.5\nc|3.0|2.0|0.35\nc|0.1|4.0|1.0\nc|4.0|5.1|1.0\nc|5.0|6.0|1.0"
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|filter\nm|3|delay|mono\nm|4|env\nm|5|vca\nm|6|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nc|2.0|5.0|1.0\nc|5.0|3.0|0.5\nc|3.0|2.0|0.35|0.35|7.7|0.3\nc|0.1|4.0|1.0\nc|4.0|5.1|1.0\nc|5.0|6.0|1.0\nm|7|macro|mono\nm|8|delay|mono\nm|9|reverb|mono\nm|10|drive|mono\nc|5.0|8.0|0.0|0.0|7.0|0.5\nc|8.0|6.0|1.0\nc|7.1|8.1|0.3\nc|5.0|9.0|0.0|0.0|7.2|0.6\nc|9.0|6.0|1.0\nc|7.3|9.1|0.4\nc|5.0|10.0|0.0|0.0|7.4|0.5\nc|10.0|6.0|1.0\nc|7.5|2.1|0.3\nc|7.6|2.2|0.2"
+  set macro1 "Echo"
+  set macro2 "Time"
+  set macro3 "Space"
+  set macro4 "Size"
+  set macro5 "Grit"
+  set macro6 "Bright"
+  set macro7 "Reso"
+  set macro8 "Feed"
   s02_p2         0.4
   s02_p3         0.5
   s03_p1         0.3
@@ -211,90 +4762,300 @@ patch "Feeding Back" family=texture
   s04_p1         0.01
   s04_p4         0.3
   s06_p1         0.75
-  volume         0.44
+  c08_a          0.0000
+  c08_b          0.0000
+  c10_a          0.3000
+  c10_b          0.3000
+  c11_a          0.0000
+  c11_b          0.0000
+  c13_a          0.4000
+  c13_b          0.4000
+  c14_a          0.0000
+  c14_b          0.0000
+  c16_a          0.3000
+  c16_b          0.3000
+  c17_a          0.2000
+  c17_b          0.2000
+  s08_p1         0.739
+  s08_p2         0.35
+  s08_p3         0.4
+  s08_p4         1.0
+  s09_p1         0.55
+  s09_p5         1.0
+  s10_p1         0.6
+  s10_p3         1.0
+  c03_a          0.5000
+  c03_b          0.5000
+  c04_a          0.3500
+  c04_b          0.3500
+  volume         0.548
 
-patch "Horn in a Hall" family=house
-  # Brazen's horn blown by an envelope, into the reverb.
-  set nexus "v|2\nm|0|voice\nm|1|env\nm|2|bore\nm|3|reverb|mono\nm|4|out|mono\nc|0.1|1.0|1.0\nc|1.0|2.0|1.0\nc|0.0|2.1|1.0\nc|2.0|3.0|1.0\nc|3.0|4.0|1.0\nc|3.1|4.2|1.0"
-  s01_p1         0.08
-  s01_p3         0.8
-  s01_p4         0.25
-  s03_p5         0.25
-  volume         1.00
-
-patch "Talking Harp" family=house
-  # Tongue's jaw harp through Diction's throat, an LFO moving the vowel.
-  set nexus "v|2\nm|0|voice\nm|1|jaw\nm|2|lfo|mono\nm|3|throat\nm|4|out|mono\nc|0.1|1.0|1.0\nc|0.0|1.1|1.0\nc|1.0|3.0|1.0\nc|2.1|3.1|0.8\nc|3.0|4.0|1.0"
-  s01_p8         0.9
-  s02_p2         0.25
-  s03_p1         0.1
-  s03_p5         1.0
-  volume         1.00
-
-patch Bytebeat family=generative
-  # A formula as an oscillator at the note's pitch, through the bitcrusher.
-  set nexus "v|2\nm|0|voice\nm|1|formula\nm|2|env\nm|3|vca\nm|4|crush\nm|5|out|mono\nc|0.0|1.1|1.0\nc|1.0|3.0|1.0\nc|0.1|2.0|1.0\nc|2.0|3.1|1.0\nc|3.0|4.0|1.0\nc|4.0|5.0|1.0\ne|01|t * (t >> 5 | t >> 8)"
-  s01_p2         0.3
-  s02_p3         0.6
-  s04_p1         0.6
-  s05_p1         0.4
-  volume         0.80
-
-patch "Sing to the Piano" family=house input=break
-  # Hum into the phone and Hammer's piano follows your pitch.
-  set nexus "v|2\nm|0|audioin|mono\nm|1|follow|mono\nm|2|piano|mono\nm|3|out|mono\nc|0.0|1.0|1.0\nc|1.0|2.0|1.0\nc|1.1|2.1|1.0\nc|2.0|3.0|1.0\nc|2.1|3.2|1.0"
-  s01_p3         1.0
-  volume         1.00
-
-patch "Wall Pad" family=texture
-  # A saw pad with Swell on every voice and a chorus after.
-  set nexus "v|2\nm|0|voice\nm|1|osc\nm|2|env\nm|3|vca\nm|4|swell\nm|5|chorus|mono\nm|6|out|mono\nc|1.0|3.0|1.0\nc|0.1|2.0|1.0\nc|2.0|3.1|1.0\nc|3.0|4.0|1.0\nc|4.0|5.0|1.0\nc|5.0|6.0|1.0\nc|5.1|6.2|1.0"
-  s01_p1         0.66
-  s02_p1         0.4
-  s02_p4         0.6
-  s04_p3         0.8
-  s04_p5         0.4
-  volume         0.80
-
-patch "Free Reeds" family=house
-  # Draw's accordion reed with a slow bellows attack, and a pipe an octave down.
-  set nexus "v|2\nm|0|voice\nm|1|env\nm|2|reed\nm|3|pipe\nm|4|mix\nm|5|out|mono\nc|0.1|1.0|1.0\nc|1.0|2.0|1.0\nc|1.0|3.0|0.9\nc|0.0|2.1|1.0\nc|0.0|3.1|1.0\nc|2.0|4.0|1.0\nc|3.0|4.1|1.0\nc|4.0|5.0|1.0"
-  s01_p1         0.2
-  s01_p3         0.9
-  s02_p1         0.3
-  s03_p2         0.25
-  s03_p8         0.35
-  volume         1.00
-
-patch "Talk Box Guitar" family=house
-  # Fret's guitar, driven, through Diction's throat with an LFO on the vowel.
-  set nexus "v|2\nm|0|voice\nm|1|guitar|mono\nm|2|lfo|mono\nm|3|throat\nm|4|out|mono\nc|0.0|1.0|1.0\nc|0.1|1.1|1.0\nc|0.2|1.2|1.0\nc|1.0|3.0|1.0\nc|2.1|3.1|0.8\nc|3.0|4.0|1.0"
-  s01_p7         0.8
-  s02_p2         0.2
-  s03_p5         1.0
-  s04_p1         1.0
-  volume         1.00
+patch "Rain in the Yard" note=48 range=36..60 family=texture
+  # Fathom's rain as a block, falling while a key is held, with a low
+  # rumble of filtered noise under it and a yard of reverb around it.
+  set nexus "v|2\nm|0|voice\nm|1|water|mono\nm|2|noise|mono\nm|3|filter|mono\nm|4|env\nm|5|vca\nm|6|filter|mono\nm|7|filter|mono\nm|8|macro|mono\nm|9|drive|mono\nm|10|delay|mono\nm|11|reverb|mono\nm|12|out|mono\nc|0.0|1.0|1\nc|0.1|1.1|1\nc|0.2|1.2|1\nc|1.0|6.0|1\nc|6.0|12.0|1\nc|1.1|12.2|1\nc|2.0|3.0|1\nc|3.0|5.0|1\nc|0.1|4.0|1\nc|4.0|5.1|1\nc|5.0|12.0|0|0|8.1|0.6\nc|5.0|12.2|0|0|8.1|0.6\nc|8.0|6.1|-0.3\nc|2.0|7.0|0|0|8.7|0.05\nc|7.0|12.0|1\nc|7.0|12.2|1\nc|6.0|9.0|0|0|8.2|0.6\nc|9.0|12.0|1\nc|6.0|10.0|0|0|8.3|0.5\nc|10.0|12.0|1\nc|10.0|12.2|1\nc|6.0|11.0|0|0|8.4|0.6\nc|11.0|12.0|1\nc|11.1|12.2|1\nc|8.5|11.1|0.35\nc|8.6|10.1|0.3\nc|6.0|12.2|1\nc|9.0|12.2|1"
+  set macro1 "Dark"
+  set macro2 "Rumble"
+  set macro3 "Grit"
+  set macro4 "Echo"
+  set macro5 "Space"
+  set macro6 "Size"
+  set macro7 "Time"
+  set macro8 "Hiss"
+  c10_a          0.0000
+  c10_b          0.0000
+  c11_a          0.0000
+  c11_b          0.0000
+  c12_a          -0.3000
+  c12_b          -0.3000
+  c13_a          0.0000
+  c13_b          0.0000
+  c16_a          0.0000
+  c16_b          0.0000
+  c18_a          0.0000
+  c18_b          0.0000
+  c21_a          0.0000
+  c21_b          0.0000
+  s01_p1         0.1333
+  s01_p2         0.6
+  s02_p1         1.0
+  s03_p1         0.29
+  s03_p2         0.263
+  s03_p3         0.1
+  s04_p1         0.714
+  s04_p2         0.714
+  s04_p3         1.0
+  s04_p4         0.714
+  s06_p1         0.12
+  s06_p2         0.963
+  s06_p3         0.0
+  s07_p1         0.46
+  s07_p2         0.838
+  s09_p1         0.6
+  s09_p3         1.0
+  s10_p1         0.767
+  s10_p2         0.35
+  s10_p3         0.4
+  s10_p4         1.0
+  s11_p1         0.5
+  s11_p5         1.0
+  volume         1.000
+  insert Eq
+    gain         7.9 dB
 
 patch "Birds by the Brook" family=texture
   # Aviary's warbling birds over Fathom's stream, both from the same key.
-  set nexus "v|2\nm|0|voice\nm|1|bird|mono\nm|2|water|mono\nm|3|mix\nm|4|out|mono\nc|0.0|1.0|1.0\nc|0.1|1.1|1.0\nc|0.2|1.2|1.0\nc|0.0|2.0|1.0\nc|0.1|2.1|1.0\nc|1.0|3.0|1.0\nc|2.0|3.1|1.0\nc|3.0|4.0|1.0"
+  # The macros reach it through cables that carry nothing at 0.
+  set nexus "v|2\nm|0|voice\nm|1|bird|mono\nm|2|water|mono\nm|3|mix|mono\nm|4|out|mono\nc|0.0|1.0|1.0\nc|0.1|1.1|1.0\nc|0.2|1.2|1.0\nc|0.0|2.0|1.0\nc|0.1|2.1|1.0\nc|1.0|3.0|1.0\nc|2.0|3.1|1.0\nc|3.0|4.0|1.0\nm|5|macro|mono\nm|6|delay|mono\nm|7|reverb|mono\nm|8|drive|mono\nm|9|chorus|mono\nc|3.0|6.0|0.0|0.0|5.0|0.5\nc|6.0|4.0|1.0\nc|5.1|6.1|0.3\nc|3.0|7.0|0.0|0.0|5.2|0.6\nc|7.0|4.0|1.0\nc|5.3|7.1|0.4\nc|3.0|8.0|0.0|0.0|5.4|0.5\nc|8.0|4.0|1.0\nc|1.0|3.0|0.0|0.0|5.5|0.6\nc|2.0|3.1|0.0|0.0|5.6|0.6\nc|3.0|9.0|0.0|0.0|5.7|0.6\nc|9.0|4.0|1.0"
+  set macro1 "Echo"
+  set macro2 "Time"
+  set macro3 "Space"
+  set macro4 "Size"
+  set macro5 "Grit"
+  set macro6 "Birds"
+  set macro7 "Stream"
+  set macro8 "Chorus"
   s01_p1         0.6
   s01_p7         0.5
   s02_p1         0.5
   s02_p2         0.4
-  volume         0.90
+  c08_a          0.0000
+  c08_b          0.0000
+  c10_a          0.3000
+  c10_b          0.3000
+  c11_a          0.0000
+  c11_b          0.0000
+  c13_a          0.4000
+  c13_b          0.4000
+  c14_a          0.0000
+  c14_b          0.0000
+  c16_a          0.0000
+  c16_b          0.0000
+  c17_a          0.0000
+  c17_b          0.0000
+  c18_a          0.0000
+  c18_b          0.0000
+  s06_p1         0.739
+  s06_p2         0.35
+  s06_p3         0.4
+  s06_p4         1.0
+  s07_p1         0.55
+  s07_p5         1.0
+  s08_p1         0.6
+  s08_p3         1.0
+  s09_p6         1.0
+  volume         1.000
+  insert Eq
+    gain         5.8 dB
 
-patch "Drum Echoes" family=generative
-  # Palm's tabla, struck by each note, into a delay that feeds back.
-  set nexus "v|2\nm|0|voice\nm|1|drum|mono\nm|2|delay|mono\nm|3|out|mono\nc|0.0|1.0|1.0\nc|0.1|1.1|1.0\nc|0.2|1.2|1.0\nc|1.0|2.0|1.0\nc|2.0|3.0|1.0"
+patch "Night Pond" note=48 range=36..60 family=texture
+  # Fathom's bubbles while a key is held, and on the sixteenths a coin
+  # toss drops a water note onto a ringing string, tuned to a random step
+  # of the in sen scale. Drips makes more of them.
+  set nexus "v|2\nm|0|voice\nm|1|water|mono\nm|2|clock|mono\nm|3|prob|mono\nm|4|rand|mono\nm|5|math|mono\nm|6|quant|mono\nm|7|noise|mono\nm|8|env|mono\nm|9|vca|mono\nm|10|string|mono\nm|11|filter|mono\nm|12|macro|mono\nm|13|delay|mono\nm|14|reverb|mono\nm|15|out|mono\nc|0.0|1.0|1\nc|0.1|1.1|1\nc|0.2|1.2|1\nc|1.0|11.0|1\nc|1.1|11.0|1\nc|11.0|15.0|0.7\nc|2.0|3.0|1\nc|5.0|6.0|1\nc|6.0|10.1|1\nc|7.0|9.0|1\nc|3.0|8.0|1\nc|8.0|9.1|1\nc|9.0|10.0|1.5\nc|10.0|15.0|0.5\nc|12.0|3.1|0.4\nc|12.1|11.1|-0.3\nc|12.5|10.2|0.04\nc|11.0|13.0|0|0|12.2|0.5\nc|13.0|15.0|1\nc|13.0|15.2|1\nc|11.0|14.0|0|0|12.3|0.6\nc|14.0|15.0|1\nc|14.1|15.2|1\nc|10.0|13.0|0|0|12.2|0.5\nc|10.0|14.0|0.3|0.3|12.3|0.5\nc|12.4|14.1|0.35\nc|12.6|5.1|-0.09449\nc|12.7|13.1|0.3\nc|3.0|4.0|1\nc|4.0|5.0|0.18898\nc|11.0|15.2|0.7\nc|10.0|15.2|0.5"
+  set macro1 "Drips"
+  set macro2 "Dark"
+  set macro3 "Echo"
+  set macro4 "Space"
+  set macro5 "Size"
+  set macro6 "Ring"
+  set macro7 "Low"
+  set macro8 "Time"
+  c05_a          0.7000
+  c05_b          0.7000
+  c12_a          1.5000
+  c12_b          1.5000
+  c13_a          0.5000
+  c13_b          0.5000
+  c14_a          0.4000
+  c14_b          0.4000
+  c15_a          -0.3000
+  c15_b          -0.3000
+  c16_a          0.0400
+  c16_b          0.0400
+  c17_a          0.0000
+  c17_b          0.0000
+  c20_a          0.0000
+  c20_b          0.0000
+  c23_a          0.0000
+  c23_b          0.0000
   s01_p1         0.0
-  s02_p2         0.55
-  volume         1.00
+  s01_p2         0.4
+  s02_p1         0.6111
+  s02_p2         0.3
+  s03_p1         0.15
+  s05_p2         0.6457
+  s06_p1         0.5606
+  s06_p2         0.2083
+  s07_p1         0.3
+  s08_p1         0.0
+  s08_p2         0.105
+  s08_p3         0.0
+  s08_p4         0.08
+  s10_p2         0.8
+  s10_p3         0.4
+  s11_p1         0.12
+  s11_p2         0.898
+  s11_p3         0.0
+  s13_p1         0.784
+  s13_p2         0.35
+  s13_p3         0.4
+  s13_p4         1.0
+  s14_p1         0.6
+  s14_p5         1.0
+  volume         1.000
+  insert Eq
+    gain         4.1 dB
 
-patch "Sitar Hall" family=texture
-  # Sympath's sitar into a long reverb, the sympathetic strings up.
-  set nexus "v|2\nm|0|voice\nm|1|sitar|mono\nm|2|reverb|mono\nm|3|out|mono\nc|0.0|1.0|1.0\nc|0.1|1.1|1.0\nc|0.2|1.2|1.0\nc|1.0|2.0|1.0\nc|2.0|3.0|1.0\nc|2.1|3.2|1.0"
-  s01_p8         0.9
-  s02_p1         0.8
-  s02_p5         0.45
-  volume         0.90
+patch "Chance Birds" family=texture
+  # Plays itself from the transport: Aviary's birds as a block, called
+  # on a fifth of the eighths, each call a random note high up in G
+  # major pentatonic, out across a wood.
+  set nexus "v|2\nm|0|clock|mono\nm|1|prob|mono\nm|2|rand|mono\nm|3|snh|mono\nm|4|math|mono\nm|5|quant|mono\nm|6|bird|mono\nm|7|filter|mono\nm|8|vca|mono\nm|9|lfo|mono\nm|10|reverb|mono\nm|11|delay|mono\nm|12|macro|mono\nm|13|out|mono\nc|0.0|1.0|1\nc|0.0|2.0|1\nc|2.0|3.0|1\nc|1.0|3.1|1\nc|3.0|4.0|0.11024\nc|4.0|5.0|1\nc|5.0|6.0|1\nc|1.0|6.1|1\nc|6.0|7.0|1\nc|7.0|8.0|1\nc|8.0|13.0|1\nc|8.0|10.0|0.4|0.4|12.2|0.5\nc|10.0|13.0|1\nc|10.1|13.2|1\nc|12.0|1.1|0.4\nc|12.1|7.1|-0.3\nc|12.3|10.1|0.3\nc|8.0|11.0|0|0|12.4|0.5\nc|11.0|13.0|1\nc|11.0|13.2|1\nc|12.5|11.1|0.3\nc|12.6|4.1|-0.09449\nc|9.0|8.1|0|0|12.7|0.5\nc|8.0|13.2|1"
+  set macro1 "More"
+  set macro2 "Far"
+  set macro3 "Wood"
+  set macro4 "Size"
+  set macro5 "Echo"
+  set macro6 "Time"
+  set macro7 "Low"
+  set macro8 "Flutter"
+  c04_a          0.1102
+  c04_b          0.1102
+  c11_a          0.4000
+  c11_b          0.4000
+  c14_a          0.4000
+  c14_b          0.4000
+  c15_a          -0.3000
+  c15_b          -0.3000
+  c16_a          0.3000
+  c16_b          0.3000
+  c17_a          0.0000
+  c17_b          0.0000
+  c20_a          0.3000
+  c20_b          0.3000
+  c21_a          -0.0945
+  c21_b          -0.0945
+  c22_a          0.0000
+  c22_b          0.0000
+  s00_p1         0.3889
+  s00_p2         0.6
+  s01_p1         0.35
+  s04_p2         0.6555
+  s05_p1         0.2879
+  s05_p2         0.625
+  s06_p1         0.4
+  s06_p2         0.5
+  s06_p3         0.5
+  s06_p4         0.6
+  s06_p8         0.1
+  s07_p1         0.12
+  s07_p2         0.963
+  s07_p3         0.0
+  s08_p1         1.0
+  s09_p2         0.82
+  s10_p1         0.6
+  s10_p5         1.0
+  s11_p1         0.767
+  s11_p2         0.35
+  s11_p3         0.4
+  s11_p4         1.0
+  volume         1.000
+  insert Eq
+    gain         12.1 dB
+
+patch "Tuning Dial" note=48 range=36..72 family=texture
+  # A radio between stations: static and a hum through a narrow band
+  # that jumps to a new place on every sixteenth, bitcrushed. Hold a key
+  # for the hum's pitch.
+  set nexus "v|2\nm|0|voice\nm|1|noise\nm|2|osc\nm|3|clock|mono\nm|4|rand|mono\nm|5|snh|mono\nm|6|filter\nm|7|crush\nm|8|env\nm|9|vca\nm|10|macro|mono\nm|11|drive|mono\nm|12|delay|mono\nm|13|reverb|mono\nm|14|out|mono\nc|1.0|6.0|1\nc|2.0|6.0|0.4\nc|3.0|4.0|1\nc|4.0|5.0|1\nc|3.0|5.1|1\nc|5.0|6.1|0.25\nc|6.0|7.0|1\nc|7.0|9.0|1\nc|0.1|8.0|1\nc|8.0|9.1|1\nc|9.0|14.0|1\nc|1.0|6.0|0|0|10.0|0.5\nc|5.0|6.1|0|0|10.1|0.2\nc|10.2|7.1|-0.3\nc|2.0|6.0|0|0|10.3|0.6\nc|10.7|6.1|-0.2\nc|9.0|11.0|0|0|10.4|0.6\nc|11.0|14.0|1\nc|9.0|12.0|0|0|10.5|0.5\nc|12.0|14.0|1\nc|12.0|14.2|1\nc|9.0|13.0|0|0|10.6|0.6\nc|13.0|14.0|1\nc|13.1|14.2|1\nc|9.0|14.2|1\nc|11.0|14.2|1"
+  set macro1 "Static"
+  set macro2 "Scan"
+  set macro3 "Bits"
+  set macro4 "Hum"
+  set macro5 "Grit"
+  set macro6 "Echo"
+  set macro7 "Space"
+  set macro8 "Dark"
+  c01_a          0.4000
+  c01_b          0.4000
+  c05_a          0.2500
+  c05_b          0.2500
+  c11_a          0.0000
+  c11_b          0.0000
+  c12_a          0.0000
+  c12_b          0.0000
+  c13_a          -0.3000
+  c13_b          -0.3000
+  c14_a          0.0000
+  c14_b          0.0000
+  c15_a          -0.2000
+  c15_b          -0.2000
+  c16_a          0.0000
+  c16_b          0.0000
+  c18_a          0.0000
+  c18_b          0.0000
+  c21_a          0.0000
+  c21_b          0.0000
+  s01_p1         0.2
+  s02_p1         0.0
+  s03_p1         0.6111
+  s06_p1         0.79
+  s06_p2         0.473
+  s06_p3         0.7
+  s07_p5         1.0
+  s08_p1         0.476
+  s08_p2         0.609
+  s08_p3         1.0
+  s08_p4         0.609
+  s11_p1         0.6
+  s11_p3         1.0
+  s12_p1         0.725
+  s12_p2         0.35
+  s12_p3         0.4
+  s12_p4         1.0
+  s13_p1         0.5
+  s13_p5         1.0
+  volume         1.000
+  insert Eq
+    gain         3.5 dB

@@ -54,12 +54,14 @@ struct Replay {
     int line = 0;
 
     /** The file's version, from its first line. */
-    int version = 3;
+    int version = 4;
     /**
-     * An older line on today's counts: Trinity's destinations rescaled, and
-     * for version 1 its waves and Nexus's wtosc tables too
-     * (engine/machine/TableCounts.h). Tracks what each rack holds, as
-     * written, to know which parameters those are.
+     * An older line on today's counts and levels: Filament's sympathetic
+     * level (engine/machine/filament/SymLevel.h), for version 2 and older
+     * Trinity's destinations, and for version 1 its waves and Nexus's wtosc
+     * tables too (engine/machine/TableCounts.h). Tracks what each rack
+     * holds, as written, to know which parameters those are. May give back
+     * more than one line, joined by newlines.
      */
     std::string upgradeLine(const std::string &line);
     /** Notes the wtosc slots of a LoadNexusPatch line; run over a version 1 file before replaying it. */
@@ -67,6 +69,13 @@ struct Replay {
     std::map<int, std::string> machineOf;
     /** Per rack, a bit for each Nexus slot holding a wtosc in any of the file's patches. */
     std::map<int, uint32_t> tableSlotsOf;
+    /** A Filament's matrix as written: each slot's depth and whether it's aimed at the bank. */
+    struct FilamentMatrix {
+        float amt[8] = {};
+        bool amtSet[8] = {};
+        bool toBank[8] = {};
+    };
+    std::map<int, FilamentMatrix> filamentOf;
 };
 
 /** Reads one line's arguments, in order. A bad argument sets !ok and reads as zero. */

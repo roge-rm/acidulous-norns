@@ -43,6 +43,12 @@ struct ReedMake {
     float contraction = 0.6f, sweep = 0.4f;
     /** The jet's turbulence: its noise against the jet, in the pressure on the reed and in the flow. */
     float turbulence = 0.0f;
+    /**
+     * Reeds under [closeBelow] Hz are set closer, as the pitch to [closePower],
+     * to no less than [closeMost] of the set, so a low reed speaks as soon as
+     * a high one. 0 leaves every reed at the set.
+     */
+    float closeBelow = 0.0f, closePower = 0.0f, closeMost = 1.0f;
 };
 
 class FreeReed {
@@ -72,7 +78,9 @@ class FreeReed {
         perMass = area / mass;
         loss = w0 / k.q;
         dragPerMass = k.drag * kRho * area / mass;
-        const float rest = k.set * k.nominal * area / K;
+        float set = k.set;
+        if (hz < k.closeBelow) set *= std::fmax(k.closeMost, std::pow(hz / k.closeBelow, k.closePower));
+        const float rest = set * k.nominal * area / K;
         // A reed that's sounding keeps where it is; a new one starts at rest.
         if (std::fabs(x - x0) < 1e-9f) x = rest;
         x0 = rest;

@@ -65,8 +65,30 @@ class Mosaic final : public Machine {
         // raises the level.
         MpeTimbre = MatrixBase + kMatrixSlots * MatrixParams,
         MpePressure,
-        Count
+        // Eight macro knobs, each with four routes: a destination (a
+        // MacroDest) and a depth. A macro's knob times a route's depth is
+        // added to the destination, in its own 0..1 range. Block rate; what
+        // a note reads when it starts takes the knobs' targets. Pitch is 24
+        // semitones per unit.
+        MacroBase,
+        MacroParams = 9, // knob, 4 destinations, 4 depths
+        Count = MacroBase + 8 * MacroParams
     };
+    // Where a macro route goes. The switches, stepped choices, tuning knobs,
+    // pan, the mod envelopes and the LFO shapes are left out. Mod 1..8 are
+    // the matrix rows' depths.
+    enum MacroDest : int32_t {
+        McOff, McScan, McScanAmount, McStart,
+        McGrainPos, McGrainRate, McGrainSize, McGrainDensity, McGrainSpray, McGrainPitch,
+        McAttack, McDecay, McSustain, McRelease,
+        McCutoff, McResonance, McFilterEnv, McFilterDecay,
+        McPitch, McGlide, McLfo1Rate, McLfo2Rate,
+        McVelocity, McVelToFilter, McVolume,
+        McMod1, McMod2, McMod3, McMod4, McMod5, McMod6, McMod7, McMod8,
+        MacroDestCount
+    };
+    static constexpr int kMacros = 8;
+    static_assert(Count <= kMaxParams, "too many parameters");
     enum LfoP { LWave = 0, LRate, LSync, LDelay, LPhase, LKeySync };
     enum EgP { EAttack = 0, EDecay, ESustain, ERelease };
     enum MatP { XSrc = 0, XSrc2, XDest, XDepth };
@@ -173,6 +195,12 @@ class Mosaic final : public Machine {
         Layer layer[kZonesPerVoice];
         int32_t layerCount = 0;
         Grain grain[kGrains];
+        /**
+         * The amp envelope's level when a sounding voice was retaken, or -1.
+         * The old content fades out at this level, since the new note's
+         * attack would otherwise swell it up as it goes.
+         */
+        float tailEnv = -1.0f;
         double grainOffset = 0.0;
         float grainTimer = 0.0f;
         dsp::Adsr amp, filterEg, modEg[kModEgs];
@@ -200,7 +228,13 @@ class Mosaic final : public Machine {
     /** Bit mask of the mod envelopes a matrix row reads, once a block. See Ratio. */
     int32_t egUsed = (1 << kModEgs) - 1;
     void renderVoice(Voice &v, int32_t frames, float *outL, float *outR);
-    float paramOf(int32_t index) const { return params_.get(index); }
+    /** Param [p], smoothed, with the macros' routes to it added. */
+    float paramOf(int32_t p) const { return withMacros(p, params_.get(p), mac_); }
+    /** Param [p]'s target, with the macro knobs' targets added: for what a note reads when it starts. */
+    float goalOf(int32_t p) const { return withMacros(p, params_.target(p), macGoal_); }
+    float withMacros(int32_t p, float v, const float *mac) const;
+    /** Fills [mac_] from the smoothed macro knobs and [macGoal_] from their targets. */
+    void updateMacros();
     int stepOf(int32_t index) const { return static_cast<int>(params_.get(index) + 0.5f); }
     static float readSample(const SampleData &s, double pos);
 
@@ -214,6 +248,7 @@ class Mosaic final : public Machine {
     /** Continuous controllers the file's modulators can name. */
     float cc[128]{};
     float voiceL[64]{}, voiceR[64]{};
+    float mac_[MacroDestCount]{}, macGoal_[MacroDestCount]{};
 };
 
 } // namespace acidulous::machine

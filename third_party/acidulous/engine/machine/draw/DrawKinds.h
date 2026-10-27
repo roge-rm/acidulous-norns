@@ -79,8 +79,9 @@ inline constexpr ReedMake kMakes_[kMakes] = {
     {18.0e-3f, 2.6e-3f, 2.0000e-03f, 5.5000e-05f, 55.0f, 2.4640e+00f, 500.0f, 1.7600e+02f, 3.0000e+00f, 3.1818e-01f, 14e-3f, 40e-6f, 1.0000e+00f, 5.0000e-01f, 0.008f},
     // melodica: harmonica-sized reeds in a body
     {13.5e-3f, 2.2e-3f, 1.9800e-03f, 3.1250e-05f, 50.0f, 1.32f, 650.0f, 90.0f, 1.8750e+00f, 0.45f, 1.9200e-02f, 30e-6f, 9.6000e-01f, 2.5000e-01f, 0.03f},
-    // harmonium: long reeds in cells under the wind chest, set for its steady wind
-    {18.0e-3f, 2.6e-3f, 2.0000e-03f, 5.5000e-05f, 55.0f, 4.5000e+00f, 6.5000e+02f, 1.7600e+02f, 3.0000e+00f, 3.1818e-01f, 14e-3f, 40e-6f, 1.0000e+00f, 5.0000e-01f, 0.008f},
+    // harmonium: long reeds in cells under the wind chest, set for its steady wind,
+    // the low ones closer so they speak with the rest
+    {18.0e-3f, 2.6e-3f, 2.0000e-03f, 5.5000e-05f, 55.0f, 4.5000e+00f, 6.5000e+02f, 1.7600e+02f, 3.0000e+00f, 3.1818e-01f, 14e-3f, 40e-6f, 1.0000e+00f, 5.0000e-01f, 0.008f, 330.0f, 0.9f, 0.3f},
     // concertina: small reeds in a short chamber
     {1.4000e-02f, 2.2000e-03f, 2.0000e-03f, 5.5000e-05f, 55.0f, 2.4640e+00f, 500.0f, 1.7600e+02f, 3.0000e+00f, 2.5000e-01f, 14e-3f, 40e-6f, 1.0000e+00f, 5.0000e-01f, 0.008f},
 };

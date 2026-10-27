@@ -1,4 +1,4 @@
-# Hexbeat - thirty-two kits and an Init, voiced against the debug build.
+# Hexbeat - sixty-three kits and an Init, voiced against the debug build.
 #
 # A drum patch is not a sound, it is thirteen sounds and the balance between
 # them, so these are named for the room they belong in rather than for the
@@ -19,7 +19,16 @@
 # stays straight, a whole kit on one beat bends - and a `volume` knob, which
 # this machine did not have at all, carries the levelling.
 #
-# Families: classic, room, dry, metal, electro, perc.
+# Families in tab order, plainest to strangest within each: classic 10 (Init
+# first), dry 8, room 8, dirty 8, metal 8, electro 8, perc 8, odd 6. Every
+# kit but Init carries eight named macros. The room kits but Parlour send to
+# the song's reverb, Canyon to its delay too, and the dirty kits from Worn on
+# are driven, most through an insert or two. Elsewhere effects are only where
+# the kit needs them: Gleam, Gongs and Timbales send to the reverb, Throb to
+# the delay, Servo and Zapper echo through their own delay, Gleam has a
+# chorus, Zapper a phaser, Molasses a tape and Busted and Glitchy a crusher.
+#
+# Every kit peaks at about -11 dB, like Init.
 #
 # Values are in each parameter's own units; `audition params Hexbeat` lists
 # them.
@@ -29,10 +38,18 @@ role    beat
 
 patch Init family=classic
 
-patch Straight family=classic
+patch Squared family=classic
   # The workhorse: the defaults pulled into focus. A kick with enough sweep
   # to speak on a small speaker, a snare that is half noise, hats short
   # enough to sit under a sixteenth pattern.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Snap"
+  set macro4 "Hats"
+  set macro5 "Weight"
+  set macro6 "Clap"
+  set macro7 "Push"
+  set macro8 "Small"
   kick_tune      54 Hz
   kick_decay     330 ms
   kick_punch     0.58
@@ -46,10 +63,72 @@ patch Straight family=classic
   ride_decay     800 ms
   clap_decay     180 ms
   volume         0.90
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #6
+  mac1_a2  -0.3
+  mac1_d3  #11
+  mac1_a3  -0.3
+  mac1_d4  #14
+  mac1_a4  -0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #7
+  mac3_a1  0.4
+  mac3_d2  #8
+  mac3_a2  0.3
+  mac3_d3  #23
+  mac3_a3  0.2
+  mac3_d4  #3
+  mac3_a4  0.3
+  mac4_d1  #16
+  mac4_a1  0.3
+  mac4_d2  #15
+  mac4_a2  0.3
+  mac4_d3  #19
+  mac4_a3  0.3
+  mac4_d4  #21
+  mac4_a4  0.3
+  mac5_d1  #1
+  mac5_a1  -0.3
+  mac5_d2  #2
+  mac5_a2  0.2
+  mac5_d3  #10
+  mac5_a3  -0.2
+  mac5_d4  #4
+  mac5_a4  0.1
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #33
+  mac7_a1  0.3
+  mac7_d2  #32
+  mac7_a2  0.3
+  mac7_d3  #34
+  mac7_a3  -0.1
+  mac8_d1  #29
+  mac8_a1  0.4
+  mac8_d2  #28
+  mac8_a2  0.2
+  mac8_d3  #31
+  mac8_a3  0.4
+  mac8_d4  #26
+  mac8_a4  0.3
 
-patch Tight family=classic
+patch Snug family=classic
   # Everything short. The kit for a busy pattern, where anything that rings
   # is in the way of the next hit.
+  set macro1 "Looser"
+  set macro2 "Pitch"
+  set macro3 "Punch"
+  set macro4 "Hats"
+  set macro5 "Ring"
+  set macro6 "Clap"
+  set macro7 "Push"
+  set macro8 "Rim"
   kick_tune      58 Hz
   kick_decay     170 ms
   kick_punch     0.72
@@ -64,10 +143,146 @@ patch Tight family=classic
   bell_decay     120 ms
   accent         0.7
   volume         0.90
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #6
+  mac1_a2  0.3
+  mac1_d3  #11
+  mac1_a3  0.3
+  mac1_d4  #14
+  mac1_a4  0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac3_d2  #32
+  mac3_a2  0.2
+  mac3_d3  #2
+  mac3_a3  -0.2
+  mac3_d4  #7
+  mac3_a4  0.2
+  mac4_d1  #16
+  mac4_a1  0.3
+  mac4_d2  #15
+  mac4_a2  0.3
+  mac4_d3  #19
+  mac4_a3  0.3
+  mac4_d4  #21
+  mac4_a4  0.3
+  mac5_d1  #14
+  mac5_a1  0.4
+  mac5_d2  #17
+  mac5_a2  0.3
+  mac5_d3  #20
+  mac5_a3  0.3
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #33
+  mac7_a1  0.3
+  mac7_d2  #32
+  mac7_a2  0.3
+  mac7_d3  #34
+  mac7_a3  -0.1
+  mac8_d1  #26
+  mac8_a1  0.4
+  mac8_d2  #25
+  mac8_a2  0.2
+  mac8_d3  #9
+  mac8_a3  -0.2
+
+patch Shuffle family=classic
+  # Fast hats and a clap where the snare would be, which is most of what
+  # makes a shuffle sound like one. Kick kept mid so the hats have room.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Hats"
+  set macro4 "Clap"
+  set macro5 "Weight"
+  set macro6 "Ride"
+  set macro7 "Push"
+  set macro8 "Small"
+  kick_tune      56 Hz
+  kick_decay     280 ms
+  kick_punch     0.6
+  snare_decay    150 ms
+  snare_snappy   0.65
+  snare_level    0.55
+  clap_decay     220 ms
+  clap_tone      1500 Hz
+  clap_level     0.95
+  hat_closed_decay 24 ms
+  hat_open_decay 340 ms
+  hat_tone       9000 Hz
+  hat_level      0.72
+  tom_decay      240 ms
+  accent         0.75
+  volume         0.89
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #6
+  mac1_a2  -0.3
+  mac1_d3  #11
+  mac1_a3  -0.3
+  mac1_d4  #14
+  mac1_a4  -0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #16
+  mac3_a1  0.3
+  mac3_d2  #15
+  mac3_a2  0.2
+  mac3_d3  #14
+  mac3_a3  -0.2
+  mac4_d1  #24
+  mac4_a1  0.3
+  mac4_d2  #22
+  mac4_a2  0.2
+  mac4_d3  #9
+  mac4_a3  -0.3
+  mac5_d1  #1
+  mac5_a1  -0.3
+  mac5_d2  #2
+  mac5_a2  0.2
+  mac5_d3  #10
+  mac5_a3  -0.2
+  mac5_d4  #4
+  mac5_a4  0.1
+  mac6_d1  #21
+  mac6_a1  0.4
+  mac6_d2  #20
+  mac6_a2  0.3
+  mac6_d3  #16
+  mac6_a3  -0.2
+  mac7_d1  #33
+  mac7_a1  0.3
+  mac7_d2  #32
+  mac7_a2  0.3
+  mac7_d3  #34
+  mac7_a3  -0.1
+  mac8_d1  #29
+  mac8_a1  0.4
+  mac8_d2  #28
+  mac8_a2  0.2
+  mac8_d3  #31
+  mac8_a3  0.4
+  mac8_d4  #26
+  mac8_a4  0.3
 
 patch Punchy family=classic
   # All the sweep the kick has and a short body under it, so the attack is
   # most of the sound. Snare snapped right up to match.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Soft"
+  set macro4 "Hats"
+  set macro5 "Boom"
+  set macro6 "Clap"
+  set macro7 "Push"
+  set macro8 "Small"
   kick_tune      62 Hz
   kick_decay     210 ms
   kick_punch     1
@@ -82,10 +297,321 @@ patch Punchy family=classic
   clap_decay     130 ms
   accent         0.8
   volume         0.82
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #6
+  mac1_a2  -0.3
+  mac1_d3  #11
+  mac1_a3  -0.3
+  mac1_d4  #14
+  mac1_a4  -0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #32
+  mac3_a1  -0.4
+  mac3_d2  #3
+  mac3_a2  -0.3
+  mac3_d3  #7
+  mac3_a3  -0.3
+  mac3_d4  #15
+  mac3_a4  -0.2
+  mac4_d1  #16
+  mac4_a1  0.3
+  mac4_d2  #15
+  mac4_a2  0.3
+  mac4_d3  #19
+  mac4_a3  0.3
+  mac4_d4  #21
+  mac4_a4  0.3
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #1
+  mac5_a2  -0.2
+  mac5_d3  #11
+  mac5_a3  0.3
+  mac5_d4  #12
+  mac5_a4  0.2
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #33
+  mac7_a1  0.3
+  mac7_d2  #32
+  mac7_a2  0.3
+  mac7_d3  #34
+  mac7_a3  -0.1
+  mac8_d1  #29
+  mac8_a1  0.4
+  mac8_d2  #28
+  mac8_a2  0.2
+  mac8_d3  #31
+  mac8_a3  0.4
+  mac8_d4  #26
+  mac8_a4  0.3
+
+patch Backbeat family=classic
+  # The plain kit with the macros on it: a snare you can snap up, hats and
+  # cymbals to bring forward, and the kit's weight and length under a knob.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Snap"
+  set macro4 "Hats"
+  set macro5 "Weight"
+  set macro6 "Clap"
+  set macro7 "Push"
+  set macro8 "Small"
+  kick_tune      52 Hz
+  kick_decay     360 ms
+  kick_punch     0.55
+  snare_tune     200 Hz
+  snare_decay    200 ms
+  snare_snappy   0.5
+  snare_tone     2300 Hz
+  tom_decay      320 ms
+  hat_closed_decay 50 ms
+  hat_open_decay 450 ms
+  cym_decay      1400 ms
+  ride_decay     850 ms
+  clap_decay     190 ms
+  volume         0.90
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #6
+  mac1_a2  -0.3
+  mac1_d3  #11
+  mac1_a3  -0.3
+  mac1_d4  #14
+  mac1_a4  -0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #7
+  mac3_a1  0.4
+  mac3_d2  #8
+  mac3_a2  0.3
+  mac3_d3  #23
+  mac3_a3  0.2
+  mac3_d4  #3
+  mac3_a4  0.3
+  mac4_d1  #16
+  mac4_a1  0.3
+  mac4_d2  #15
+  mac4_a2  0.3
+  mac4_d3  #19
+  mac4_a3  0.3
+  mac4_d4  #21
+  mac4_a4  0.3
+  mac5_d1  #1
+  mac5_a1  -0.3
+  mac5_d2  #2
+  mac5_a2  0.2
+  mac5_d3  #10
+  mac5_a3  -0.2
+  mac5_d4  #4
+  mac5_a4  0.1
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #33
+  mac7_a1  0.3
+  mac7_d2  #32
+  mac7_a2  0.3
+  mac7_d3  #34
+  mac7_a3  -0.1
+  mac8_d1  #29
+  mac8_a1  0.4
+  mac8_d2  #28
+  mac8_a2  0.2
+  mac8_d3  #31
+  mac8_a3  0.4
+  mac8_d4  #26
+  mac8_a4  0.3
+
+patch Laidback family=classic
+  # Soft and warm: a round kick, a snare with more body than snap, dark hats
+  # and the ride brought forward to carry the time.
+  set macro1 "Longer"
+  set macro2 "Pitch"
+  set macro3 "Snap"
+  set macro4 "Ride"
+  set macro5 "Weight"
+  set macro6 "Dark"
+  set macro7 "Push"
+  set macro8 "Rim"
+  kick_tune      50 Hz
+  kick_decay     420 ms
+  kick_punch     0.3
+  snare_tune     175 Hz
+  snare_decay    240 ms
+  snare_snappy   0.35
+  snare_tone     1700 Hz
+  tom_decay      380 ms
+  hat_tone       6800 Hz
+  hat_closed_decay 70 ms
+  hat_open_decay 520 ms
+  cym_tone       3600 Hz
+  ride_decay     1300 ms
+  ride_level     0.7
+  clap_level     0.5
+  accent         0.4
+  volume         0.93
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #6
+  mac1_a2  0.3
+  mac1_d3  #11
+  mac1_a3  0.3
+  mac1_d4  #14
+  mac1_a4  0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #7
+  mac3_a1  0.4
+  mac3_d2  #8
+  mac3_a2  0.3
+  mac3_d3  #23
+  mac3_a3  0.2
+  mac3_d4  #3
+  mac3_a4  0.3
+  mac4_d1  #21
+  mac4_a1  0.4
+  mac4_d2  #20
+  mac4_a2  0.3
+  mac4_d3  #16
+  mac4_a3  -0.2
+  mac5_d1  #1
+  mac5_a1  -0.3
+  mac5_d2  #2
+  mac5_a2  0.2
+  mac5_d3  #10
+  mac5_a3  -0.2
+  mac5_d4  #4
+  mac5_a4  0.1
+  mac6_d1  #15
+  mac6_a1  -0.5
+  mac6_d2  #18
+  mac6_a2  -0.5
+  mac6_d3  #8
+  mac6_a3  -0.3
+  mac6_d4  #23
+  mac6_a4  -0.3
+  mac7_d1  #33
+  mac7_a1  0.3
+  mac7_d2  #32
+  mac7_a2  0.3
+  mac7_d3  #34
+  mac7_a3  -0.1
+  mac8_d1  #26
+  mac8_a1  0.4
+  mac8_d2  #25
+  mac8_a2  0.2
+  mac8_d3  #9
+  mac8_a3  -0.2
+
+patch Crisp family=classic
+  # Tuned up and bright: a higher kick with plenty of click, a snare that
+  # rings, hats with the top on. Cuts through a full mix without drive.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Body"
+  set macro4 "Hats"
+  set macro5 "Weight"
+  set macro6 "Clap"
+  set macro7 "Push"
+  set macro8 "Small"
+  kick_tune      64 Hz
+  kick_decay     260 ms
+  kick_punch     0.7
+  snare_tune     260 Hz
+  snare_decay    160 ms
+  snare_snappy   0.75
+  snare_tone     4200 Hz
+  tom_lo_tune    105 Hz
+  tom_mid_tune   160 Hz
+  tom_hi_tune    230 Hz
+  tom_decay      260 ms
+  hat_tune       1.2 x
+  hat_tone       10500 Hz
+  hat_closed_decay 36 ms
+  hat_open_decay 360 ms
+  cym_tone       6200 Hz
+  cym_decay      1200 ms
+  ride_decay     700 ms
+  clap_tone      1800 Hz
+  clap_decay     160 ms
+  accent         0.7
+  volume         0.90
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #6
+  mac1_a2  -0.3
+  mac1_d3  #11
+  mac1_a3  -0.3
+  mac1_d4  #14
+  mac1_a4  -0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #7
+  mac3_a1  -0.4
+  mac3_d2  #5
+  mac3_a2  -0.2
+  mac3_d3  #6
+  mac3_a3  0.2
+  mac3_d4  #9
+  mac3_a4  0.1
+  mac4_d1  #16
+  mac4_a1  0.3
+  mac4_d2  #15
+  mac4_a2  0.3
+  mac4_d3  #19
+  mac4_a3  0.3
+  mac4_d4  #21
+  mac4_a4  0.3
+  mac5_d1  #1
+  mac5_a1  -0.3
+  mac5_d2  #2
+  mac5_a2  0.2
+  mac5_d3  #10
+  mac5_a3  -0.2
+  mac5_d4  #4
+  mac5_a4  0.1
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #33
+  mac7_a1  0.3
+  mac7_d2  #32
+  mac7_a2  0.3
+  mac7_d3  #34
+  mac7_a3  -0.1
+  mac8_d1  #29
+  mac8_a1  0.4
+  mac8_d2  #28
+  mac8_a2  0.2
+  mac8_d3  #31
+  mac8_a3  0.4
+  mac8_d4  #26
+  mac8_a4  0.3
 
 patch Boomy family=classic
   # The other end: a long low kick and toms that carry. Snare damped a little
   # so it does not fight the kick's tail.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Snap"
+  set macro4 "Hats"
+  set macro5 "Toms"
+  set macro6 "Clap"
+  set macro7 "Push"
+  set macro8 "Thin"
   kick_tune      45 Hz
   kick_decay     950 ms
   kick_punch     0.35
@@ -98,10 +624,70 @@ patch Boomy family=classic
   hat_open_decay 600 ms
   kick_level     0.95
   volume         0.86
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #6
+  mac1_a2  -0.3
+  mac1_d3  #11
+  mac1_a3  -0.3
+  mac1_d4  #14
+  mac1_a4  -0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #7
+  mac3_a1  0.4
+  mac3_d2  #8
+  mac3_a2  0.3
+  mac3_d3  #23
+  mac3_a3  0.2
+  mac3_d4  #3
+  mac3_a4  0.3
+  mac4_d1  #16
+  mac4_a1  0.3
+  mac4_d2  #15
+  mac4_a2  0.3
+  mac4_d3  #19
+  mac4_a3  0.3
+  mac4_d4  #21
+  mac4_a4  0.3
+  mac5_d1  #12
+  mac5_a1  0.3
+  mac5_d2  #11
+  mac5_a2  0.3
+  mac5_d3  #10
+  mac5_a3  -0.15
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #33
+  mac7_a1  0.3
+  mac7_d2  #32
+  mac7_a2  0.3
+  mac7_d3  #34
+  mac7_a3  -0.1
+  mac8_d1  #4
+  mac8_a1  -0.3
+  mac8_d2  #12
+  mac8_a2  -0.3
+  mac8_d3  #1
+  mac8_a3  0.2
+  mac8_d4  #10
+  mac8_a4  0.2
 
-patch Deep family=classic
+patch Sunken family=classic
   # Everything a fourth or so down, and given room. Not longer than Boomy -
   # lower, which is a different thing and the reason both are here.
+  set macro1 "Tighter"
+  set macro2 "Up"
+  set macro3 "Snap"
+  set macro4 "Bright"
+  set macro5 "Boom"
+  set macro6 "Clap"
+  set macro7 "Push"
+  set macro8 "Small"
   kick_tune      38 Hz
   kick_decay     520 ms
   kick_punch     0.5
@@ -118,166 +704,157 @@ patch Deep family=classic
   bell_tune      380 Hz
   clave_tune     1600 Hz
   volume         0.90
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #6
+  mac1_a2  -0.3
+  mac1_d3  #11
+  mac1_a3  -0.3
+  mac1_d4  #14
+  mac1_a4  -0.3
+  mac2_d1  #1
+  mac2_a1  0.25
+  mac2_d2  #5
+  mac2_a2  0.25
+  mac2_d3  #10
+  mac2_a3  0.25
+  mac2_d4  #13
+  mac2_a4  0.2
+  mac3_d1  #7
+  mac3_a1  0.4
+  mac3_d2  #8
+  mac3_a2  0.3
+  mac3_d3  #23
+  mac3_a3  0.2
+  mac3_d4  #3
+  mac3_a4  0.3
+  mac4_d1  #15
+  mac4_a1  0.4
+  mac4_d2  #18
+  mac4_a2  0.4
+  mac4_d3  #8
+  mac4_a3  0.3
+  mac4_d4  #23
+  mac4_a4  0.2
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #1
+  mac5_a2  -0.2
+  mac5_d3  #11
+  mac5_a3  0.3
+  mac5_d4  #12
+  mac5_a4  0.2
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #33
+  mac7_a1  0.3
+  mac7_d2  #32
+  mac7_a2  0.3
+  mac7_d3  #34
+  mac7_a3  -0.1
+  mac8_d1  #29
+  mac8_a1  0.4
+  mac8_d2  #28
+  mac8_a2  0.2
+  mac8_d3  #31
+  mac8_a3  0.4
+  mac8_d4  #26
+  mac8_a4  0.3
 
-patch Garage family=classic
-  # Fast hats and a clap where the snare would be, which is most of what
-  # makes a shuffle sound like one. Kick kept mid so the hats have room.
-  kick_tune      56 Hz
-  kick_decay     280 ms
-  kick_punch     0.6
-  snare_decay    150 ms
-  snare_snappy   0.65
-  snare_level    0.55
-  clap_decay     220 ms
-  clap_tone      1500 Hz
-  clap_level     0.95
-  hat_closed_decay 24 ms
-  hat_open_decay 340 ms
-  hat_tone       9000 Hz
-  hat_level      0.72
-  tom_decay      240 ms
-  accent         0.75
-  volume         0.71
-
-patch Hall family=room
-  # Nothing short anywhere. The metal is what carries a room, so the open hat
-  # and both cymbals are long and the closed hat is kept out of the way.
-  kick_tune      48 Hz
-  kick_decay     620 ms
-  kick_punch     0.45
-  snare_decay    420 ms
-  snare_snappy   0.5
-  snare_tone     2600 Hz
-  tom_decay      760 ms
-  hat_closed_decay 55 ms
-  hat_open_decay 1200 ms
-  cym_decay      3000 ms
-  cym_level      0.6
-  ride_decay     2000 ms
-  ride_level     0.6
-  clap_decay     420 ms
-  bell_decay     360 ms
-  volume         0.90
-
-patch Stadium family=room
-  # Built on the toms: low, long and loud, with a kick underneath rather than
-  # in front. The clap stands in for a room mic on the snare.
-  kick_tune      43 Hz
-  kick_decay     780 ms
-  kick_punch     0.3
-  kick_level     0.85
-  tom_lo_tune    66 Hz
-  tom_mid_tune   100 Hz
-  tom_hi_tune    142 Hz
-  tom_decay      1100 ms
-  tom_level      1
-  snare_decay    380 ms
-  snare_snappy   0.45
-  snare_level    0.7
-  clap_decay     520 ms
-  clap_tone      1100 Hz
-  clap_level     0.9
-  hat_open_decay 900 ms
-  cym_decay      2600 ms
-  volume         0.82
-
-patch Distant family=room
-  # The kit heard from the other end of the building: the attacks down, the
-  # tails long, and the top rolled off so nothing is close.
-  kick_tune      46 Hz
-  kick_decay     700 ms
-  kick_punch     0.28
-  kick_level     0.7
-  snare_decay    460 ms
-  snare_snappy   0.35
-  snare_tone     1500 Hz
-  snare_level    0.6
-  tom_decay      820 ms
-  tom_level      0.65
-  hat_tune       0.78 x
-  hat_tone       5200 Hz
-  hat_closed_decay 70 ms
-  hat_open_decay 1000 ms
-  hat_level      0.4
-  cym_tone       2600 Hz
-  cym_decay      2800 ms
-  cym_level      0.34
-  ride_decay     1900 ms
-  ride_level     0.32
-  clap_tone      900 Hz
-  clap_decay     480 ms
-  rim_level      0.4
-  clave_level    0.35
-  bell_level     0.3
-  volume         1.14
-
-patch Plate family=room
-  # The snare is the patch: long, bright and mostly noise, the way a plate
-  # reverb returns one. Everything else is kept short so it stays the subject.
-  snare_tune     240 Hz
-  snare_decay    720 ms
-  snare_snappy   0.95
-  snare_tone     4200 Hz
-  snare_level    1
-  kick_decay     260 ms
+patch Studio family=dry
+  # The plain dry kit: everything short and close, cymbals pulled back.
+  set macro1 "Looser"
+  set macro2 "Pitch"
+  set macro3 "Snap"
+  set macro4 "Hats"
+  set macro5 "Weight"
+  set macro6 "Clap"
+  set macro7 "Push"
+  set macro8 "Rim"
+  kick_tune      57 Hz
+  kick_decay     240 ms
   kick_punch     0.65
-  tom_decay      260 ms
+  snare_tune     205 Hz
+  snare_decay    150 ms
+  snare_snappy   0.45
+  snare_tone     2100 Hz
+  tom_decay      230 ms
   hat_closed_decay 30 ms
-  hat_open_decay 500 ms
-  cym_decay      2200 ms
-  cym_tone       6000 Hz
-  ride_decay     1400 ms
-  clap_decay     560 ms
-  clap_tone      2400 Hz
-  volume         0.82
-
-patch Enormous family=room
-  # Everything long, everything loud, nothing left for anything else in the
-  # song. One kit in a bank should go too far.
-  kick_tune      42 Hz
-  kick_decay     1600 ms
-  kick_punch     0.25
-  kick_level     1
-  snare_decay    620 ms
-  snare_snappy   0.5
-  snare_level    0.95
-  tom_decay      1200 ms
-  tom_level      0.95
-  hat_open_decay 1600 ms
-  cym_decay      3800 ms
-  cym_level      0.7
-  ride_decay     2600 ms
-  ride_level     0.7
-  clap_decay     700 ms
-  accent         0.5
-  volume         0.82
-
-patch Cardboard family=dry
-  # Nothing metallic left to speak of: hats and cymbals right down and short,
-  # everything tuned into the middle. A kit made of boxes.
-  kick_tune      70 Hz
-  kick_decay     130 ms
-  kick_punch     0.85
-  snare_tune     260 Hz
-  snare_decay    90 ms
-  snare_snappy   0.25
-  snare_tone     1400 Hz
-  tom_decay      120 ms
-  hat_tone       4600 Hz
-  hat_closed_decay 20 ms
-  hat_open_decay 130 ms
-  hat_level      0.42
-  cym_decay      400 ms
-  cym_level      0.3
-  ride_decay     350 ms
-  ride_level     0.35
-  rim_tune       520 Hz
-  clave_tune     1500 Hz
+  hat_open_decay 260 ms
+  cym_decay      800 ms
+  cym_level      0.4
+  ride_decay     500 ms
+  ride_level     0.42
+  clap_decay     140 ms
   volume         0.90
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #6
+  mac1_a2  0.3
+  mac1_d3  #11
+  mac1_a3  0.3
+  mac1_d4  #14
+  mac1_a4  0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #7
+  mac3_a1  0.4
+  mac3_d2  #8
+  mac3_a2  0.3
+  mac3_d3  #23
+  mac3_a3  0.2
+  mac3_d4  #3
+  mac3_a4  0.3
+  mac4_d1  #16
+  mac4_a1  0.3
+  mac4_d2  #15
+  mac4_a2  0.3
+  mac4_d3  #19
+  mac4_a3  0.3
+  mac4_d4  #21
+  mac4_a4  0.3
+  mac5_d1  #1
+  mac5_a1  -0.3
+  mac5_d2  #2
+  mac5_a2  0.2
+  mac5_d3  #10
+  mac5_a3  -0.2
+  mac5_d4  #4
+  mac5_a4  0.1
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #33
+  mac7_a1  0.3
+  mac7_d2  #32
+  mac7_a2  0.3
+  mac7_d3  #34
+  mac7_a3  -0.1
+  mac8_d1  #26
+  mac8_a1  0.4
+  mac8_d2  #25
+  mac8_a2  0.2
+  mac8_d3  #9
+  mac8_a3  -0.2
 
 patch Wooden family=dry
   # The dry kit: no cymbals to speak of, the toms tight, and the clave and rim
   # doing the work up top. Sits under something already busy.
+  set macro1 "Looser"
+  set macro2 "Pitch"
+  set macro3 "Wires"
+  set macro4 "Metal"
+  set macro5 "Wood"
+  set macro6 "Toms"
+  set macro7 "Push"
+  set macro8 "Cowbell"
   kick_tune      64 Hz
   kick_decay     190 ms
   kick_punch     0.8
@@ -297,34 +874,68 @@ patch Wooden family=dry
   clave_level    0.8
   bell_level     0.3
   volume         0.90
-
-patch Clatter family=dry
-  # Short and hard everywhere, and the rim, clave and bell brought up so the
-  # small voices carry the pattern instead of decorating it.
-  kick_decay     140 ms
-  kick_punch     0.9
-  snare_decay    80 ms
-  snare_snappy   0.85
-  tom_decay      110 ms
-  hat_closed_decay 18 ms
-  hat_open_decay 160 ms
-  cym_decay      350 ms
-  cym_level      0.35
-  ride_decay     300 ms
-  clap_decay     90 ms
-  rim_tune       1150 Hz
-  rim_level      0.9
-  clave_tune     3100 Hz
-  clave_level    0.85
-  bell_tune      880 Hz
-  bell_decay     90 ms
-  bell_level     0.8
-  accent         0.85
-  volume         0.84
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #6
+  mac1_a2  0.3
+  mac1_d3  #11
+  mac1_a3  0.3
+  mac1_d4  #14
+  mac1_a4  0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #7
+  mac3_a1  0.5
+  mac3_d2  #8
+  mac3_a2  0.3
+  mac3_d3  #6
+  mac3_a3  0.2
+  mac4_d1  #19
+  mac4_a1  0.3
+  mac4_d2  #21
+  mac4_a2  0.3
+  mac4_d3  #17
+  mac4_a3  0.3
+  mac4_d4  #18
+  mac4_a4  0.2
+  mac5_d1  #31
+  mac5_a1  0.4
+  mac5_d2  #30
+  mac5_a2  -0.2
+  mac5_d3  #26
+  mac5_a3  0.3
+  mac5_d4  #25
+  mac5_a4  -0.2
+  mac6_d1  #12
+  mac6_a1  0.3
+  mac6_d2  #11
+  mac6_a2  0.3
+  mac6_d3  #10
+  mac6_a3  -0.15
+  mac7_d1  #33
+  mac7_a1  0.3
+  mac7_d2  #32
+  mac7_a2  0.3
+  mac7_d3  #34
+  mac7_a3  -0.1
+  mac8_d1  #29
+  mac8_a1  0.4
+  mac8_d2  #28
+  mac8_a2  0.3
+  mac8_d3  #27
+  mac8_a3  -0.15
 
 patch Deadened family=dry
   # Every decay at or near its floor. A kit with a towel on it, which is what
   # a close-miked studio kit of a certain decade actually was.
+  set macro1 "Looser"
+  set macro2 "Pitch"
+  set macro3 "Wires"
+  set macro4 "Hats"
+  set macro5 "Weight"
+  set macro6 "Clap"
+  set macro7 "Push"
+  set macro8 "Small"
   kick_tune      66 Hz
   kick_decay     105 ms
   kick_punch     0.9
@@ -344,10 +955,419 @@ patch Deadened family=dry
   bell_decay     45 ms
   accent         0.9
   volume         0.89
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #6
+  mac1_a2  0.3
+  mac1_d3  #11
+  mac1_a3  0.3
+  mac1_d4  #14
+  mac1_a4  0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #7
+  mac3_a1  0.5
+  mac3_d2  #8
+  mac3_a2  0.3
+  mac3_d3  #6
+  mac3_a3  0.2
+  mac4_d1  #16
+  mac4_a1  0.3
+  mac4_d2  #15
+  mac4_a2  0.3
+  mac4_d3  #19
+  mac4_a3  0.3
+  mac4_d4  #21
+  mac4_a4  0.3
+  mac5_d1  #1
+  mac5_a1  -0.3
+  mac5_d2  #2
+  mac5_a2  0.2
+  mac5_d3  #10
+  mac5_a3  -0.2
+  mac5_d4  #4
+  mac5_a4  0.1
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #33
+  mac7_a1  0.3
+  mac7_d2  #32
+  mac7_a2  0.3
+  mac7_d3  #34
+  mac7_a3  -0.1
+  mac8_d1  #29
+  mac8_a1  0.4
+  mac8_d2  #28
+  mac8_a2  0.2
+  mac8_d3  #31
+  mac8_a3  0.4
+  mac8_d4  #26
+  mac8_a4  0.3
+
+patch Padded family=dry
+  # Played with soft beaters: no click on the kick, a snare with hardly any
+  # wires, dark metal and the toms forward.
+  set macro1 "Looser"
+  set macro2 "Pitch"
+  set macro3 "Sticks"
+  set macro4 "Bright"
+  set macro5 "Toms"
+  set macro6 "Wires"
+  set macro7 "Push"
+  set macro8 "Small"
+  kick_tune      52 Hz
+  kick_decay     260 ms
+  kick_punch     0.05
+  snare_tune     170 Hz
+  snare_decay    140 ms
+  snare_snappy   0.12
+  snare_tone     1100 Hz
+  tom_decay      260 ms
+  tom_level      0.9
+  hat_tone       4400 Hz
+  hat_closed_decay 40 ms
+  hat_open_decay 300 ms
+  cym_tone       2400 Hz
+  cym_decay      700 ms
+  cym_level      0.35
+  ride_decay     500 ms
+  ride_level     0.4
+  clap_tone      800 Hz
+  clap_level     0.55
+  rim_level      0.5
+  bell_level     0.35
+  accent         0.3
+  volume         0.99
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #6
+  mac1_a2  0.3
+  mac1_d3  #11
+  mac1_a3  0.3
+  mac1_d4  #14
+  mac1_a4  0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #7
+  mac3_a2  0.3
+  mac3_d3  #16
+  mac3_a3  0.2
+  mac3_d4  #32
+  mac3_a4  0.2
+  mac4_d1  #15
+  mac4_a1  0.4
+  mac4_d2  #18
+  mac4_a2  0.4
+  mac4_d3  #8
+  mac4_a3  0.3
+  mac4_d4  #23
+  mac4_a4  0.2
+  mac5_d1  #12
+  mac5_a1  0.3
+  mac5_d2  #11
+  mac5_a2  0.3
+  mac5_d3  #10
+  mac5_a3  -0.15
+  mac6_d1  #7
+  mac6_a1  0.5
+  mac6_d2  #8
+  mac6_a2  0.3
+  mac6_d3  #6
+  mac6_a3  0.2
+  mac7_d1  #33
+  mac7_a1  0.3
+  mac7_d2  #32
+  mac7_a2  0.3
+  mac7_d3  #34
+  mac7_a3  -0.1
+  mac8_d1  #29
+  mac8_a1  0.4
+  mac8_d2  #28
+  mac8_a2  0.2
+  mac8_d3  #31
+  mac8_a3  0.4
+  mac8_d4  #26
+  mac8_a4  0.3
+
+patch Ticker family=dry
+  # Built on the hats: a short bright tick up front, a small kick, the rim
+  # standing in for the snare. For sparse patterns.
+  set macro1 "Looser"
+  set macro2 "Pitch"
+  set macro3 "Snare"
+  set macro4 "Hats"
+  set macro5 "Kick"
+  set macro6 "Clap"
+  set macro7 "Push"
+  set macro8 "Clave"
+  kick_tune      60 Hz
+  kick_decay     150 ms
+  kick_punch     0.8
+  kick_level     0.85
+  snare_decay    90 ms
+  snare_snappy   0.6
+  snare_level    0.5
+  tom_decay      120 ms
+  hat_tune       1.15 x
+  hat_tone       11000 Hz
+  hat_closed_decay 22 ms
+  hat_open_decay 150 ms
+  hat_level      1
+  cym_decay      300 ms
+  cym_level      0.3
+  ride_decay     260 ms
+  ride_level     0.5
+  clap_decay     80 ms
+  clap_level     0.55
+  rim_tune       950 Hz
+  rim_level      0.75
+  clave_level    0.75
+  volume         0.94
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #6
+  mac1_a2  0.3
+  mac1_d3  #11
+  mac1_a3  0.3
+  mac1_d4  #14
+  mac1_a4  0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #7
+  mac3_a1  -0.4
+  mac3_d2  #5
+  mac3_a2  -0.2
+  mac3_d3  #6
+  mac3_a3  0.2
+  mac3_d4  #9
+  mac3_a4  0.1
+  mac4_d1  #16
+  mac4_a1  0.3
+  mac4_d2  #15
+  mac4_a2  0.2
+  mac4_d3  #14
+  mac4_a3  -0.2
+  mac5_d1  #4
+  mac5_a1  0.1
+  mac5_d2  #2
+  mac5_a2  0.3
+  mac5_d3  #1
+  mac5_a3  -0.2
+  mac5_d4  #3
+  mac5_a4  0.2
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #33
+  mac7_a1  0.3
+  mac7_d2  #32
+  mac7_a2  0.3
+  mac7_d3  #34
+  mac7_a3  -0.1
+  mac8_d1  #31
+  mac8_a1  0.4
+  mac8_d2  #30
+  mac8_a2  0.2
+  mac8_d3  #26
+  mac8_a3  0.2
+
+patch Cardboard family=dry
+  # Nothing metallic left to speak of: hats and cymbals right down and short,
+  # everything tuned into the middle. A kit made of boxes.
+  set macro1 "Looser"
+  set macro2 "Pitch"
+  set macro3 "Wires"
+  set macro4 "Metal"
+  set macro5 "Weight"
+  set macro6 "Slap"
+  set macro7 "Push"
+  set macro8 "Small"
+  kick_tune      70 Hz
+  kick_decay     130 ms
+  kick_punch     0.85
+  snare_tune     260 Hz
+  snare_decay    90 ms
+  snare_snappy   0.25
+  snare_tone     1400 Hz
+  tom_decay      120 ms
+  hat_tone       4600 Hz
+  hat_closed_decay 20 ms
+  hat_open_decay 130 ms
+  hat_level      0.42
+  cym_decay      400 ms
+  cym_level      0.3
+  ride_decay     350 ms
+  ride_level     0.35
+  rim_tune       520 Hz
+  clave_tune     1500 Hz
+  volume         0.90
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #6
+  mac1_a2  0.3
+  mac1_d3  #11
+  mac1_a3  0.3
+  mac1_d4  #14
+  mac1_a4  0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #7
+  mac3_a1  0.5
+  mac3_d2  #8
+  mac3_a2  0.3
+  mac3_d3  #6
+  mac3_a3  0.2
+  mac4_d1  #19
+  mac4_a1  0.3
+  mac4_d2  #21
+  mac4_a2  0.3
+  mac4_d3  #17
+  mac4_a3  0.3
+  mac4_d4  #18
+  mac4_a4  0.2
+  mac5_d1  #1
+  mac5_a1  -0.3
+  mac5_d2  #2
+  mac5_a2  0.2
+  mac5_d3  #10
+  mac5_a3  -0.2
+  mac5_d4  #4
+  mac5_a4  0.1
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #26
+  mac6_a2  0.3
+  mac6_d3  #22
+  mac6_a3  -0.2
+  mac6_d4  #9
+  mac6_a4  -0.2
+  mac7_d1  #33
+  mac7_a1  0.3
+  mac7_d2  #32
+  mac7_a2  0.3
+  mac7_d3  #34
+  mac7_a3  -0.1
+  mac8_d1  #29
+  mac8_a1  0.4
+  mac8_d2  #28
+  mac8_a2  0.2
+  mac8_d3  #31
+  mac8_a3  0.4
+  mac8_d4  #26
+  mac8_a4  0.3
+
+patch Paper family=dry
+  # Thin and papery: a snare that is all wires, a small high kick, toms that
+  # barely ring. Nothing under 80 Hz.
+  set macro1 "Looser"
+  set macro2 "Down"
+  set macro3 "Body"
+  set macro4 "Dark"
+  set macro5 "Weight"
+  set macro6 "Clap"
+  set macro7 "Push"
+  set macro8 "Small"
+  kick_tune      82 Hz
+  kick_decay     95 ms
+  kick_punch     0.95
+  kick_level     0.8
+  snare_tune     300 Hz
+  snare_decay    100 ms
+  snare_snappy   1
+  snare_tone     5200 Hz
+  tom_lo_tune    150 Hz
+  tom_mid_tune   210 Hz
+  tom_hi_tune    300 Hz
+  tom_decay      70 ms
+  tom_level      0.6
+  hat_tone       11500 Hz
+  hat_closed_decay 15 ms
+  hat_open_decay 110 ms
+  cym_decay      220 ms
+  cym_tone       8000 Hz
+  cym_level      0.32
+  ride_decay     200 ms
+  clap_decay     60 ms
+  clap_tone      2600 Hz
+  rim_tune       1400 Hz
+  clave_tune     3600 Hz
+  bell_decay     35 ms
+  volume         0.99
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #6
+  mac1_a2  0.3
+  mac1_d3  #11
+  mac1_a3  0.3
+  mac1_d4  #14
+  mac1_a4  0.3
+  mac2_d1  #35
+  mac2_a1  -0.25
+  mac3_d1  #7
+  mac3_a1  -0.4
+  mac3_d2  #5
+  mac3_a2  -0.2
+  mac3_d3  #6
+  mac3_a3  0.2
+  mac3_d4  #9
+  mac3_a4  0.1
+  mac4_d1  #15
+  mac4_a1  -0.5
+  mac4_d2  #18
+  mac4_a2  -0.5
+  mac4_d3  #8
+  mac4_a3  -0.3
+  mac4_d4  #23
+  mac4_a4  -0.3
+  mac5_d1  #1
+  mac5_a1  -0.3
+  mac5_d2  #2
+  mac5_a2  0.2
+  mac5_d3  #10
+  mac5_a3  -0.2
+  mac5_d4  #4
+  mac5_a4  0.1
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #33
+  mac7_a1  0.3
+  mac7_d2  #32
+  mac7_a2  0.3
+  mac7_d3  #34
+  mac7_a3  -0.1
+  mac8_d1  #29
+  mac8_a1  0.4
+  mac8_d2  #28
+  mac8_a2  0.2
+  mac8_d3  #31
+  mac8_a3  0.4
+  mac8_d4  #26
+  mac8_a4  0.3
 
 patch Tabletop family=dry
   # Small and high: everything tuned up, nothing with any body. The kit you
   # get tapping on a desk, and a useful top layer over something bigger.
+  set macro1 "Looser"
+  set macro2 "Down"
+  set macro3 "Wires"
+  set macro4 "Hats"
+  set macro5 "Weight"
+  set macro6 "Slap"
+  set macro7 "Push"
+  set macro8 "Clave"
   kick_tune      95 Hz
   kick_decay     120 ms
   kick_punch     0.75
@@ -373,10 +1393,843 @@ patch Tabletop family=dry
   bell_tune      1000 Hz
   bell_decay     60 ms
   volume         0.90
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #6
+  mac1_a2  0.3
+  mac1_d3  #11
+  mac1_a3  0.3
+  mac1_d4  #14
+  mac1_a4  0.3
+  mac2_d1  #35
+  mac2_a1  -0.25
+  mac3_d1  #7
+  mac3_a1  0.5
+  mac3_d2  #8
+  mac3_a2  0.3
+  mac3_d3  #6
+  mac3_a3  0.2
+  mac4_d1  #16
+  mac4_a1  0.3
+  mac4_d2  #15
+  mac4_a2  0.3
+  mac4_d3  #19
+  mac4_a3  0.3
+  mac4_d4  #21
+  mac4_a4  0.3
+  mac5_d1  #1
+  mac5_a1  -0.3
+  mac5_d2  #2
+  mac5_a2  0.2
+  mac5_d3  #10
+  mac5_a3  -0.2
+  mac5_d4  #4
+  mac5_a4  0.1
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #26
+  mac6_a2  0.3
+  mac6_d3  #22
+  mac6_a3  -0.2
+  mac6_d4  #9
+  mac6_a4  -0.2
+  mac7_d1  #33
+  mac7_a1  0.3
+  mac7_d2  #32
+  mac7_a2  0.3
+  mac7_d3  #34
+  mac7_a3  -0.1
+  mac8_d1  #31
+  mac8_a1  0.4
+  mac8_d2  #30
+  mac8_a2  0.2
+  mac8_d3  #26
+  mac8_a3  0.2
 
-patch Trashy family=metal
+patch Ballroom family=room
+  # Nothing short anywhere. The metal is what carries a room, so the open hat
+  # and both cymbals are long and the closed hat is kept out of the way.
+  set macro1 "Dry Up"
+  set macro2 "Pitch"
+  set macro3 "Snap"
+  set macro4 "Wash"
+  set macro5 "Boom"
+  set macro6 "Clap"
+  set macro7 "Dark"
+  set macro8 "Near"
+  kick_tune      48 Hz
+  kick_decay     620 ms
+  kick_punch     0.45
+  snare_decay    420 ms
+  snare_snappy   0.5
+  snare_tone     2600 Hz
+  tom_decay      760 ms
+  hat_closed_decay 55 ms
+  hat_open_decay 1200 ms
+  cym_decay      3000 ms
+  cym_level      0.6
+  ride_decay     2000 ms
+  ride_level     0.6
+  clap_decay     420 ms
+  bell_decay     360 ms
+  volume         0.70
+  mac1_d1  #2
+  mac1_a1  -0.35
+  mac1_d2  #6
+  mac1_a2  -0.35
+  mac1_d3  #11
+  mac1_a3  -0.4
+  mac1_d4  #22
+  mac1_a4  -0.4
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #7
+  mac3_a1  0.4
+  mac3_d2  #8
+  mac3_a2  0.3
+  mac3_d3  #23
+  mac3_a3  0.2
+  mac3_d4  #3
+  mac3_a4  0.3
+  mac4_d1  #17
+  mac4_a1  0.4
+  mac4_d2  #20
+  mac4_a2  0.3
+  mac4_d3  #14
+  mac4_a3  0.3
+  mac4_d4  #19
+  mac4_a4  0.2
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #1
+  mac5_a2  -0.2
+  mac5_d3  #11
+  mac5_a3  0.3
+  mac5_d4  #12
+  mac5_a4  0.2
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #15
+  mac7_a1  -0.5
+  mac7_d2  #18
+  mac7_a2  -0.5
+  mac7_d3  #8
+  mac7_a3  -0.3
+  mac7_d4  #23
+  mac7_a4  -0.3
+  mac8_d1  #3
+  mac8_a1  0.3
+  mac8_d2  #7
+  mac8_a2  0.3
+  mac8_d3  #16
+  mac8_a3  0.2
+  mac8_d4  #32
+  mac8_a4  0.2
+  send reverb    0.3
+
+patch Cloister family=room
+  # The snare is the patch: long, bright and mostly noise, the way a plate
+  # reverb returns one. Everything else is kept short so it stays the subject.
+  set macro1 "Dry Up"
+  set macro2 "Pitch"
+  set macro3 "Body"
+  set macro4 "Hats"
+  set macro5 "Weight"
+  set macro6 "Clap"
+  set macro7 "Dark"
+  set macro8 "Rattle"
+  snare_tune     240 Hz
+  snare_decay    720 ms
+  snare_snappy   0.95
+  snare_tone     4200 Hz
+  snare_level    1
+  kick_decay     260 ms
+  kick_punch     0.65
+  tom_decay      260 ms
+  hat_closed_decay 30 ms
+  hat_open_decay 500 ms
+  cym_decay      2200 ms
+  cym_tone       6000 Hz
+  ride_decay     1400 ms
+  clap_decay     560 ms
+  clap_tone      2400 Hz
+  volume         0.62
+  mac1_d1  #2
+  mac1_a1  -0.35
+  mac1_d2  #6
+  mac1_a2  -0.35
+  mac1_d3  #11
+  mac1_a3  -0.4
+  mac1_d4  #22
+  mac1_a4  -0.4
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #7
+  mac3_a1  -0.4
+  mac3_d2  #5
+  mac3_a2  -0.2
+  mac3_d3  #6
+  mac3_a3  0.2
+  mac3_d4  #9
+  mac3_a4  0.1
+  mac4_d1  #16
+  mac4_a1  0.3
+  mac4_d2  #15
+  mac4_a2  0.3
+  mac4_d3  #19
+  mac4_a3  0.3
+  mac4_d4  #21
+  mac4_a4  0.3
+  mac5_d1  #1
+  mac5_a1  -0.3
+  mac5_d2  #2
+  mac5_a2  0.2
+  mac5_d3  #10
+  mac5_a3  -0.2
+  mac5_d4  #4
+  mac5_a4  0.1
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #15
+  mac7_a1  -0.5
+  mac7_d2  #18
+  mac7_a2  -0.5
+  mac7_d3  #8
+  mac7_a3  -0.3
+  mac7_d4  #23
+  mac7_a4  -0.3
+  mac8_d1  #6
+  mac8_a1  0.3
+  mac8_d2  #7
+  mac8_a2  0.3
+  mac8_d3  #22
+  mac8_a3  0.3
+  send reverb    0.3
+
+patch Faraway family=room
+  # The kit heard from the other end of the building: the attacks down, the
+  # tails long, and the top rolled off so nothing is close.
+  set macro1 "Dry Up"
+  set macro2 "Pitch"
+  set macro3 "Nearer"
+  set macro4 "Wash"
+  set macro5 "Boom"
+  set macro6 "Clap"
+  set macro7 "Air"
+  set macro8 "Small"
+  kick_tune      46 Hz
+  kick_decay     700 ms
+  kick_punch     0.28
+  kick_level     0.7
+  snare_decay    460 ms
+  snare_snappy   0.35
+  snare_tone     1500 Hz
+  snare_level    0.6
+  tom_decay      820 ms
+  tom_level      0.65
+  hat_tune       0.78 x
+  hat_tone       5200 Hz
+  hat_closed_decay 70 ms
+  hat_open_decay 1000 ms
+  hat_level      0.4
+  cym_tone       2600 Hz
+  cym_decay      2800 ms
+  cym_level      0.34
+  ride_decay     1900 ms
+  ride_level     0.32
+  clap_tone      900 Hz
+  clap_decay     480 ms
+  rim_level      0.4
+  clave_level    0.35
+  bell_level     0.3
+  volume         0.83
+  mac1_d1  #2
+  mac1_a1  -0.35
+  mac1_d2  #6
+  mac1_a2  -0.35
+  mac1_d3  #11
+  mac1_a3  -0.4
+  mac1_d4  #22
+  mac1_a4  -0.4
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #3
+  mac3_a1  0.3
+  mac3_d2  #7
+  mac3_a2  0.3
+  mac3_d3  #16
+  mac3_a3  0.2
+  mac3_d4  #32
+  mac3_a4  0.2
+  mac4_d1  #17
+  mac4_a1  0.4
+  mac4_d2  #20
+  mac4_a2  0.3
+  mac4_d3  #14
+  mac4_a3  0.3
+  mac4_d4  #19
+  mac4_a4  0.2
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #1
+  mac5_a2  -0.2
+  mac5_d3  #11
+  mac5_a3  0.3
+  mac5_d4  #12
+  mac5_a4  0.2
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #15
+  mac7_a1  0.3
+  mac7_d2  #18
+  mac7_a2  0.3
+  mac7_d3  #16
+  mac7_a3  0.2
+  mac7_d4  #19
+  mac7_a4  0.2
+  mac8_d1  #29
+  mac8_a1  0.4
+  mac8_d2  #28
+  mac8_a2  0.2
+  mac8_d3  #31
+  mac8_a3  0.4
+  mac8_d4  #26
+  mac8_a4  0.3
+  send reverb    0.4
+
+patch Parlour family=room
+  # A medium room: tails long enough to hear it, short enough to play a
+  # pattern in. The macros move the size, the distance and how dark it is.
+  set macro1 "Size"
+  set macro2 "Distance"
+  set macro3 "Boom"
+  set macro4 "Wash"
+  set macro5 "Dry Up"
+  set macro6 "Clap"
+  set macro7 "Dark"
+  set macro8 "Hit"
+  kick_tune      49 Hz
+  kick_decay     520 ms
+  kick_punch     0.48
+  snare_decay    360 ms
+  snare_snappy   0.5
+  snare_tone     2500 Hz
+  tom_decay      620 ms
+  hat_closed_decay 52 ms
+  hat_open_decay 900 ms
+  cym_decay      2400 ms
+  cym_level      0.55
+  ride_decay     1600 ms
+  ride_level     0.55
+  clap_decay     360 ms
+  bell_decay     300 ms
+  volume         0.90
+  mac1_d1  #2
+  mac1_a1  0.25
+  mac1_d2  #6
+  mac1_a2  0.25
+  mac1_d3  #11
+  mac1_a3  0.3
+  mac1_d4  #17
+  mac1_a4  0.25
+  mac2_d1  #16
+  mac2_a1  -0.3
+  mac2_d2  #19
+  mac2_a2  -0.2
+  mac2_d3  #8
+  mac2_a3  -0.3
+  mac2_d4  #23
+  mac2_a4  -0.3
+  mac3_d1  #1
+  mac3_a1  -0.3
+  mac3_d2  #4
+  mac3_a2  0.1
+  mac3_d3  #10
+  mac3_a3  -0.25
+  mac3_d4  #12
+  mac3_a4  0.2
+  mac4_d1  #17
+  mac4_a1  0.3
+  mac4_d2  #20
+  mac4_a2  0.3
+  mac4_d3  #14
+  mac4_a3  0.3
+  mac4_d4  #19
+  mac4_a4  0.2
+  mac5_d1  #2
+  mac5_a1  -0.35
+  mac5_d2  #6
+  mac5_a2  -0.35
+  mac5_d3  #11
+  mac5_a3  -0.4
+  mac5_d4  #22
+  mac5_a4  -0.4
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac6_d4  #23
+  mac6_a4  0.1
+  mac7_d1  #15
+  mac7_a1  -0.5
+  mac7_d2  #18
+  mac7_a2  -0.5
+  mac7_d3  #8
+  mac7_a3  -0.3
+  mac7_d4  #13
+  mac7_a4  -0.3
+  mac8_d1  #32
+  mac8_a1  0.4
+  mac8_d2  #33
+  mac8_a2  0.2
+  mac8_d3  #3
+  mac8_a3  0.3
+  mac8_d4  #7
+  mac8_a4  0.3
+
+patch Basement family=room
+  # A low ceiling: dark, boomy and close, with a short reverb filling it out.
+  set macro1 "Dry Up"
+  set macro2 "Pitch"
+  set macro3 "Snap"
+  set macro4 "Wash"
+  set macro5 "Boom"
+  set macro6 "Clap"
+  set macro7 "Air"
+  set macro8 "Near"
+  kick_tune      47 Hz
+  kick_decay     480 ms
+  kick_punch     0.4
+  snare_tune     165 Hz
+  snare_decay    280 ms
+  snare_snappy   0.4
+  snare_tone     1500 Hz
+  tom_decay      520 ms
+  hat_tone       5600 Hz
+  hat_closed_decay 60 ms
+  hat_open_decay 700 ms
+  cym_tone       2800 Hz
+  cym_decay      1800 ms
+  cym_level      0.45
+  ride_decay     1200 ms
+  clap_tone      950 Hz
+  clap_decay     380 ms
+  volume         0.70
+  mac1_d1  #2
+  mac1_a1  -0.35
+  mac1_d2  #6
+  mac1_a2  -0.35
+  mac1_d3  #11
+  mac1_a3  -0.4
+  mac1_d4  #22
+  mac1_a4  -0.4
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #7
+  mac3_a1  0.4
+  mac3_d2  #8
+  mac3_a2  0.3
+  mac3_d3  #23
+  mac3_a3  0.2
+  mac3_d4  #3
+  mac3_a4  0.3
+  mac4_d1  #17
+  mac4_a1  0.4
+  mac4_d2  #20
+  mac4_a2  0.3
+  mac4_d3  #14
+  mac4_a3  0.3
+  mac4_d4  #19
+  mac4_a4  0.2
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #1
+  mac5_a2  -0.2
+  mac5_d3  #11
+  mac5_a3  0.3
+  mac5_d4  #12
+  mac5_a4  0.2
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #15
+  mac7_a1  0.3
+  mac7_d2  #18
+  mac7_a2  0.3
+  mac7_d3  #16
+  mac7_a3  0.2
+  mac7_d4  #19
+  mac7_a4  0.2
+  mac8_d1  #3
+  mac8_a1  0.3
+  mac8_d2  #7
+  mac8_a2  0.3
+  mac8_d3  #16
+  mac8_a3  0.2
+  mac8_d4  #32
+  mac8_a4  0.2
+  send reverb    0.3
+
+patch Stadium family=room
+  # Built on the toms: low, long and loud, with a kick underneath rather than
+  # in front. The clap stands in for a room mic on the snare.
+  set macro1 "Dry Up"
+  set macro2 "Pitch"
+  set macro3 "Snap"
+  set macro4 "Wash"
+  set macro5 "Toms"
+  set macro6 "Clap"
+  set macro7 "Dark"
+  set macro8 "Hats"
+  kick_tune      43 Hz
+  kick_decay     780 ms
+  kick_punch     0.3
+  kick_level     0.85
+  tom_lo_tune    66 Hz
+  tom_mid_tune   100 Hz
+  tom_hi_tune    142 Hz
+  tom_decay      1100 ms
+  tom_level      1
+  snare_decay    380 ms
+  snare_snappy   0.45
+  snare_level    0.7
+  clap_decay     520 ms
+  clap_tone      1100 Hz
+  clap_level     0.9
+  hat_open_decay 900 ms
+  cym_decay      2600 ms
+  volume         0.69
+  mac1_d1  #2
+  mac1_a1  -0.35
+  mac1_d2  #6
+  mac1_a2  -0.35
+  mac1_d3  #11
+  mac1_a3  -0.4
+  mac1_d4  #22
+  mac1_a4  -0.4
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #7
+  mac3_a1  0.4
+  mac3_d2  #8
+  mac3_a2  0.3
+  mac3_d3  #23
+  mac3_a3  0.2
+  mac3_d4  #3
+  mac3_a4  0.3
+  mac4_d1  #17
+  mac4_a1  0.4
+  mac4_d2  #20
+  mac4_a2  0.3
+  mac4_d3  #14
+  mac4_a3  0.3
+  mac4_d4  #19
+  mac4_a4  0.2
+  mac5_d1  #4
+  mac5_a1  0.1
+  mac5_d2  #12
+  mac5_a2  0.3
+  mac5_d3  #10
+  mac5_a3  -0.2
+  mac5_d4  #1
+  mac5_a4  -0.15
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #15
+  mac7_a1  -0.5
+  mac7_d2  #18
+  mac7_a2  -0.5
+  mac7_d3  #8
+  mac7_a3  -0.3
+  mac7_d4  #23
+  mac7_a4  -0.3
+  mac8_d1  #16
+  mac8_a1  0.3
+  mac8_d2  #15
+  mac8_a2  0.2
+  mac8_d3  #14
+  mac8_a3  -0.2
+  send reverb    0.3
+
+patch Canyon family=room
+  # The kit comes back off the far wall: a delay send for the echo and some
+  # reverb behind it. Long toms, a snare with snap so the repeats read.
+  set macro1 "Dry Up"
+  set macro2 "Pitch"
+  set macro3 "Snap"
+  set macro4 "Wash"
+  set macro5 "Toms"
+  set macro6 "Clap"
+  set macro7 "Dark"
+  set macro8 "Small"
+  kick_tune      50 Hz
+  kick_decay     400 ms
+  kick_punch     0.55
+  snare_decay    260 ms
+  snare_snappy   0.6
+  snare_tone     2600 Hz
+  tom_decay      700 ms
+  tom_level      0.9
+  hat_closed_decay 40 ms
+  hat_open_decay 500 ms
+  cym_decay      2600 ms
+  clap_decay     260 ms
+  volume         0.57
+  mac1_d1  #2
+  mac1_a1  -0.35
+  mac1_d2  #6
+  mac1_a2  -0.35
+  mac1_d3  #11
+  mac1_a3  -0.4
+  mac1_d4  #22
+  mac1_a4  -0.4
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #7
+  mac3_a1  0.4
+  mac3_d2  #8
+  mac3_a2  0.3
+  mac3_d3  #23
+  mac3_a3  0.2
+  mac3_d4  #3
+  mac3_a4  0.3
+  mac4_d1  #17
+  mac4_a1  0.4
+  mac4_d2  #20
+  mac4_a2  0.3
+  mac4_d3  #14
+  mac4_a3  0.3
+  mac4_d4  #19
+  mac4_a4  0.2
+  mac5_d1  #12
+  mac5_a1  0.3
+  mac5_d2  #11
+  mac5_a2  0.3
+  mac5_d3  #10
+  mac5_a3  -0.15
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #15
+  mac7_a1  -0.5
+  mac7_d2  #18
+  mac7_a2  -0.5
+  mac7_d3  #8
+  mac7_a3  -0.3
+  mac7_d4  #23
+  mac7_a4  -0.3
+  mac8_d1  #29
+  mac8_a1  0.4
+  mac8_d2  #28
+  mac8_a2  0.2
+  mac8_d3  #31
+  mac8_a3  0.4
+  mac8_d4  #26
+  mac8_a4  0.3
+  send reverb    0.2
+  send delay     0.3
+
+patch Enormous family=room
+  # Everything long, everything loud, nothing left for anything else in the
+  # song. One kit in a bank should go too far.
+  set macro1 "Dry Up"
+  set macro2 "Pitch"
+  set macro3 "Snap"
+  set macro4 "Hats"
+  set macro5 "Boom"
+  set macro6 "Clap"
+  set macro7 "Dark"
+  set macro8 "Far"
+  kick_tune      42 Hz
+  kick_decay     1600 ms
+  kick_punch     0.25
+  kick_level     1
+  snare_decay    620 ms
+  snare_snappy   0.5
+  snare_level    0.95
+  tom_decay      1200 ms
+  tom_level      0.95
+  hat_open_decay 1600 ms
+  cym_decay      3800 ms
+  cym_level      0.7
+  ride_decay     2600 ms
+  ride_level     0.7
+  clap_decay     700 ms
+  accent         0.5
+  volume         0.61
+  mac1_d1  #2
+  mac1_a1  -0.35
+  mac1_d2  #6
+  mac1_a2  -0.35
+  mac1_d3  #11
+  mac1_a3  -0.4
+  mac1_d4  #22
+  mac1_a4  -0.4
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #7
+  mac3_a1  0.4
+  mac3_d2  #8
+  mac3_a2  0.3
+  mac3_d3  #23
+  mac3_a3  0.2
+  mac3_d4  #3
+  mac3_a4  0.3
+  mac4_d1  #16
+  mac4_a1  0.3
+  mac4_d2  #15
+  mac4_a2  0.2
+  mac4_d3  #14
+  mac4_a3  -0.2
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #1
+  mac5_a2  -0.2
+  mac5_d3  #11
+  mac5_a3  0.3
+  mac5_d4  #12
+  mac5_a4  0.2
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #15
+  mac7_a1  -0.5
+  mac7_d2  #18
+  mac7_a2  -0.5
+  mac7_d3  #8
+  mac7_a3  -0.3
+  mac7_d4  #23
+  mac7_a4  -0.3
+  mac8_d1  #3
+  mac8_a1  -0.3
+  mac8_d2  #16
+  mac8_a2  -0.2
+  mac8_d3  #7
+  mac8_a3  -0.3
+  mac8_d4  #32
+  mac8_a4  -0.3
+  send reverb    0.35
+
+patch Clatter family=dirty
+  # Short and hard everywhere, and the rim, clave and bell brought up so the
+  # small voices carry the pattern instead of decorating it.
+  set macro1 "Looser"
+  set macro2 "Pitch"
+  set macro3 "Grit"
+  set macro4 "Metal"
+  set macro5 "Weight"
+  set macro6 "Slap"
+  set macro7 "Push"
+  set macro8 "Clave"
+  kick_decay     140 ms
+  kick_punch     0.9
+  snare_decay    80 ms
+  snare_snappy   0.85
+  tom_decay      110 ms
+  hat_closed_decay 18 ms
+  hat_open_decay 160 ms
+  cym_decay      350 ms
+  cym_level      0.35
+  ride_decay     300 ms
+  clap_decay     90 ms
+  rim_tune       1150 Hz
+  rim_level      0.9
+  clave_tune     3100 Hz
+  clave_level    0.85
+  bell_tune      880 Hz
+  bell_decay     90 ms
+  bell_level     0.8
+  accent         0.85
+  volume         0.88
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #6
+  mac1_a2  0.3
+  mac1_d3  #11
+  mac1_a3  0.3
+  mac1_d4  #14
+  mac1_a4  0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #33
+  mac3_a1  0.35
+  mac3_d2  #34
+  mac3_a2  -0.15
+  mac4_d1  #19
+  mac4_a1  0.3
+  mac4_d2  #21
+  mac4_a2  0.3
+  mac4_d3  #17
+  mac4_a3  0.3
+  mac4_d4  #18
+  mac4_a4  0.2
+  mac5_d1  #1
+  mac5_a1  -0.3
+  mac5_d2  #2
+  mac5_a2  0.2
+  mac5_d3  #10
+  mac5_a3  -0.2
+  mac5_d4  #4
+  mac5_a4  0.1
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #26
+  mac6_a2  0.3
+  mac6_d3  #22
+  mac6_a3  -0.2
+  mac6_d4  #9
+  mac6_a4  -0.2
+  mac7_d1  #33
+  mac7_a1  0.3
+  mac7_d2  #32
+  mac7_a2  0.3
+  mac7_d3  #34
+  mac7_a3  -0.1
+  mac8_d1  #31
+  mac8_a1  0.4
+  mac8_d2  #30
+  mac8_a2  0.2
+  mac8_d3  #26
+  mac8_a3  0.2
+
+patch Trashy family=dirty
   # Metal moved up and opened out: hats brighter and detuned, cymbal thinner,
   # snare with the top on. The kit that sits over a loud mix.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Grit"
+  set macro4 "Dark"
+  set macro5 "Weight"
+  set macro6 "Clap"
+  set macro7 "Choke"
+  set macro8 "Crack"
   hat_tune       1.5 x
   hat_tone       10500 Hz
   hat_closed_decay 75 ms
@@ -388,21 +2241,789 @@ patch Trashy family=metal
   clap_tone      1950 Hz
   accent         0.9
   hat_level      0.7
-  volume         0.86
+  volume         0.89
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #6
+  mac1_a2  -0.3
+  mac1_d3  #11
+  mac1_a3  -0.3
+  mac1_d4  #14
+  mac1_a4  -0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #33
+  mac3_a1  0.35
+  mac3_d2  #34
+  mac3_a2  -0.15
+  mac4_d1  #15
+  mac4_a1  -0.5
+  mac4_d2  #18
+  mac4_a2  -0.5
+  mac4_d3  #8
+  mac4_a3  -0.3
+  mac4_d4  #23
+  mac4_a4  -0.3
+  mac5_d1  #1
+  mac5_a1  -0.3
+  mac5_d2  #2
+  mac5_a2  0.2
+  mac5_d3  #10
+  mac5_a3  -0.2
+  mac5_d4  #4
+  mac5_a4  0.1
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #14
+  mac7_a1  -0.4
+  mac7_d2  #17
+  mac7_a2  -0.4
+  mac7_d3  #20
+  mac7_a3  -0.4
+  mac7_d4  #22
+  mac7_a4  -0.3
+  mac8_d1  #8
+  mac8_a1  0.4
+  mac8_d2  #7
+  mac8_a2  0.3
+  mac8_d3  #23
+  mac8_a3  0.3
+  mac8_d4  #25
+  mac8_a4  0.2
+
+patch Worn family=dirty
+  # Through an old tape machine: a little wow, a soft top and the drive
+  # rounding every hit off. A kit that has been played a lot.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Heat"
+  set macro4 "Air"
+  set macro5 "Weight"
+  set macro6 "Clap"
+  set macro7 "Choke"
+  set macro8 "Small"
+  kick_tune      55 Hz
+  kick_decay     300 ms
+  kick_punch     0.6
+  snare_decay    180 ms
+  snare_snappy   0.55
+  snare_tone     2200 Hz
+  tom_decay      300 ms
+  hat_closed_decay 45 ms
+  hat_open_decay 380 ms
+  cym_decay      1200 ms
+  ride_decay     700 ms
+  drive          0.55
+  volume         0.52
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #6
+  mac1_a2  -0.3
+  mac1_d3  #11
+  mac1_a3  -0.3
+  mac1_d4  #14
+  mac1_a4  -0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #33
+  mac3_a1  0.3
+  mac3_d2  #34
+  mac3_a2  -0.12
+  mac3_d3  #32
+  mac3_a3  0.2
+  mac4_d1  #15
+  mac4_a1  0.3
+  mac4_d2  #18
+  mac4_a2  0.3
+  mac4_d3  #16
+  mac4_a3  0.2
+  mac4_d4  #19
+  mac4_a4  0.2
+  mac5_d1  #1
+  mac5_a1  -0.3
+  mac5_d2  #2
+  mac5_a2  0.2
+  mac5_d3  #10
+  mac5_a3  -0.2
+  mac5_d4  #4
+  mac5_a4  0.1
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #14
+  mac7_a1  -0.4
+  mac7_d2  #17
+  mac7_a2  -0.4
+  mac7_d3  #20
+  mac7_a3  -0.4
+  mac7_d4  #22
+  mac7_a4  -0.3
+  mac8_d1  #29
+  mac8_a1  0.4
+  mac8_d2  #28
+  mac8_a2  0.2
+  mac8_d3  #31
+  mac8_a3  0.4
+  mac8_d4  #26
+  mac8_a4  0.3
+  insert Tape
+    wow          0.15
+    flutter      0.15
+    drive        0.5
+    tone         7000 Hz
+    hiss         0
+    age          0.6
+
+patch Grainy family=dirty
+  # Twelve bits at a low rate: the hits keep their shape and gain a gritty
+  # top, the way an early sampler played a kit back.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Grit"
+  set macro4 "Hats"
+  set macro5 "Weight"
+  set macro6 "Clap"
+  set macro7 "Crack"
+  set macro8 "Small"
+  kick_tune      60 Hz
+  kick_decay     280 ms
+  kick_punch     0.75
+  snare_tune     220 Hz
+  snare_decay    170 ms
+  snare_snappy   0.7
+  snare_tone     2800 Hz
+  tom_decay      260 ms
+  hat_closed_decay 40 ms
+  hat_open_decay 340 ms
+  cym_decay      1100 ms
+  ride_decay     650 ms
+  clap_level     0.85
+  drive          0.6
+  volume         0.57
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #6
+  mac1_a2  -0.3
+  mac1_d3  #11
+  mac1_a3  -0.3
+  mac1_d4  #14
+  mac1_a4  -0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #33
+  mac3_a1  0.35
+  mac3_d2  #34
+  mac3_a2  -0.15
+  mac4_d1  #16
+  mac4_a1  0.3
+  mac4_d2  #15
+  mac4_a2  0.3
+  mac4_d3  #19
+  mac4_a3  0.3
+  mac4_d4  #21
+  mac4_a4  0.3
+  mac5_d1  #1
+  mac5_a1  -0.3
+  mac5_d2  #2
+  mac5_a2  0.2
+  mac5_d3  #10
+  mac5_a3  -0.2
+  mac5_d4  #4
+  mac5_a4  0.1
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #8
+  mac7_a1  0.4
+  mac7_d2  #7
+  mac7_a2  0.3
+  mac7_d3  #23
+  mac7_a3  0.3
+  mac7_d4  #25
+  mac7_a4  0.2
+  mac8_d1  #29
+  mac8_a1  0.4
+  mac8_d2  #28
+  mac8_a2  0.2
+  mac8_d3  #31
+  mac8_a3  0.4
+  mac8_d4  #26
+  mac8_a4  0.3
+  insert Bitcrusher
+    bits         12
+    rate         26000 Hz
+    mix          1
+
+patch Gravel family=dirty
+  # Short, hard and pushed into the clipper. Drive is a knob of its own, so
+  # the macros can take it further or cut it back.
+  set macro1 "Grit"
+  set macro2 "Fuzz"
+  set macro3 "Thump"
+  set macro4 "Rust"
+  set macro5 "Choke"
+  set macro6 "Slap"
+  set macro7 "Tilt"
+  set macro8 "Bell"
+  kick_tune      58 Hz
+  kick_decay     220 ms
+  kick_punch     0.8
+  snare_decay    150 ms
+  snare_snappy   0.7
+  snare_tone     3000 Hz
+  tom_decay      220 ms
+  hat_closed_decay 34 ms
+  hat_open_decay 320 ms
+  cym_decay      1000 ms
+  ride_decay     600 ms
+  clap_decay     160 ms
+  drive          0.9
+  volume         0.43
+  mac1_d1  #33
+  mac1_a1  0.35
+  mac1_d2  #34
+  mac1_a2  -0.15
+  mac1_d3  #32
+  mac1_a3  0.2
+  mac2_d1  #7
+  mac2_a1  0.4
+  mac2_d2  #8
+  mac2_a2  0.3
+  mac2_d3  #15
+  mac2_a3  0.3
+  mac2_d4  #33
+  mac2_a4  0.15
+  mac3_d1  #3
+  mac3_a1  0.4
+  mac3_d2  #4
+  mac3_a2  0.1
+  mac3_d3  #2
+  mac3_a3  0.2
+  mac3_d4  #1
+  mac3_a4  -0.2
+  mac4_d1  #13
+  mac4_a1  -0.3
+  mac4_d2  #18
+  mac4_a2  -0.4
+  mac4_d3  #15
+  mac4_a3  -0.3
+  mac5_d1  #14
+  mac5_a1  -0.3
+  mac5_d2  #2
+  mac5_a2  -0.3
+  mac5_d3  #6
+  mac5_a3  -0.3
+  mac5_d4  #11
+  mac5_a4  -0.3
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #26
+  mac6_a2  0.3
+  mac6_d3  #22
+  mac6_a3  -0.2
+  mac6_d4  #9
+  mac6_a4  -0.2
+  mac7_d1  #35
+  mac7_a1  0.25
+  mac7_d2  #33
+  mac7_a2  -0.1
+  mac8_d1  #29
+  mac8_a1  0.4
+  mac8_d2  #27
+  mac8_a2  0.2
+  mac8_d3  #31
+  mac8_a3  0.3
+  mac8_d4  #30
+  mac8_a4  0.2
+
+patch Overloaded family=dirty
+  # The kit through a small guitar amp turned up: the cabinet takes the
+  # lows and the highs off and the middle breaks up.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Squash"
+  set macro4 "Hats"
+  set macro5 "Boom"
+  set macro6 "Slap"
+  set macro7 "Clean"
+  set macro8 "Bell"
+  kick_tune      52 Hz
+  kick_decay     320 ms
+  kick_punch     0.6
+  snare_decay    200 ms
+  snare_snappy   0.6
+  tom_decay      400 ms
+  hat_closed_decay 50 ms
+  hat_open_decay 400 ms
+  cym_decay      1200 ms
+  ride_decay     700 ms
+  drive          0.7
+  volume         0.90
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #6
+  mac1_a2  -0.3
+  mac1_d3  #11
+  mac1_a3  -0.3
+  mac1_d4  #14
+  mac1_a4  -0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #33
+  mac3_a1  0.4
+  mac3_d2  #34
+  mac3_a2  -0.2
+  mac3_d3  #2
+  mac3_a3  0.2
+  mac3_d4  #6
+  mac3_a4  0.2
+  mac4_d1  #16
+  mac4_a1  0.3
+  mac4_d2  #15
+  mac4_a2  0.3
+  mac4_d3  #19
+  mac4_a3  0.3
+  mac4_d4  #21
+  mac4_a4  0.3
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #1
+  mac5_a2  -0.2
+  mac5_d3  #11
+  mac5_a3  0.3
+  mac5_d4  #12
+  mac5_a4  0.2
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #26
+  mac6_a2  0.3
+  mac6_d3  #22
+  mac6_a3  -0.2
+  mac6_d4  #9
+  mac6_a4  -0.2
+  mac7_d1  #33
+  mac7_a1  -0.4
+  mac7_d2  #34
+  mac7_a2  0.1
+  mac8_d1  #29
+  mac8_a1  0.4
+  mac8_d2  #28
+  mac8_a2  0.3
+  mac8_d3  #27
+  mac8_a3  -0.15
+  insert Amp
+    drive        0.6
+    master       0.35
+
+patch Shredded family=dirty
+  # Six bits and a rate low enough to alias: short hits turned to buzz and
+  # the drive pushing the rest into the clipper.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Grit"
+  set macro4 "Hats"
+  set macro5 "Weight"
+  set macro6 "Clap"
+  set macro7 "Clean"
+  set macro8 "Small"
+  kick_tune      58 Hz
+  kick_decay     200 ms
+  kick_punch     0.85
+  snare_decay    130 ms
+  snare_snappy   0.75
+  tom_decay      180 ms
+  hat_closed_decay 30 ms
+  hat_open_decay 260 ms
+  cym_decay      800 ms
+  ride_decay     500 ms
+  clap_decay     120 ms
+  drive          1
+  volume         0.39
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #6
+  mac1_a2  -0.3
+  mac1_d3  #11
+  mac1_a3  -0.3
+  mac1_d4  #14
+  mac1_a4  -0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #33
+  mac3_a1  0.35
+  mac3_d2  #34
+  mac3_a2  -0.15
+  mac4_d1  #16
+  mac4_a1  0.3
+  mac4_d2  #15
+  mac4_a2  0.3
+  mac4_d3  #19
+  mac4_a3  0.3
+  mac4_d4  #21
+  mac4_a4  0.3
+  mac5_d1  #1
+  mac5_a1  -0.3
+  mac5_d2  #2
+  mac5_a2  0.2
+  mac5_d3  #10
+  mac5_a3  -0.2
+  mac5_d4  #4
+  mac5_a4  0.1
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac6_d3  #9
+  mac6_a3  -0.3
+  mac7_d1  #33
+  mac7_a1  -0.4
+  mac7_d2  #34
+  mac7_a2  0.1
+  mac8_d1  #29
+  mac8_a1  0.4
+  mac8_d2  #28
+  mac8_a2  0.2
+  mac8_d3  #31
+  mac8_a3  0.4
+  mac8_d4  #26
+  mac8_a4  0.3
+  insert Bitcrusher
+    bits         6
+    rate         9000 Hz
+    mix          0.7
+
+patch Mangled family=dirty
+  # Everything at once: hard distortion, then a crusher with a jittering
+  # clock. Barely a kit, which is the use of it.
+  set macro1 "Tighter"
+  set macro2 "Pitch"
+  set macro3 "Clean"
+  set macro4 "Hats"
+  set macro5 "Weight"
+  set macro6 "Slap"
+  set macro7 "Ring"
+  set macro8 "Bells"
+  kick_tune      62 Hz
+  kick_decay     180 ms
+  kick_punch     0.9
+  snare_decay    140 ms
+  snare_snappy   0.8
+  snare_tone     3400 Hz
+  tom_decay      200 ms
+  hat_closed_decay 30 ms
+  hat_open_decay 300 ms
+  cym_decay      900 ms
+  ride_decay     500 ms
+  clap_decay     130 ms
+  drive          1.3
+  volume         0.72
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #6
+  mac1_a2  -0.3
+  mac1_d3  #11
+  mac1_a3  -0.3
+  mac1_d4  #14
+  mac1_a4  -0.3
+  mac2_d1  #35
+  mac2_a1  0.25
+  mac3_d1  #33
+  mac3_a1  -0.4
+  mac3_d2  #34
+  mac3_a2  0.1
+  mac4_d1  #16
+  mac4_a1  0.3
+  mac4_d2  #15
+  mac4_a2  0.3
+  mac4_d3  #19
+  mac4_a3  0.3
+  mac4_d4  #21
+  mac4_a4  0.3
+  mac5_d1  #1
+  mac5_a1  -0.3
+  mac5_d2  #2
+  mac5_a2  0.2
+  mac5_d3  #10
+  mac5_a3  -0.2
+  mac5_d4  #4
+  mac5_a4  0.1
+  mac6_d1  #24
+  mac6_a1  0.3
+  mac6_d2  #26
+  mac6_a2  0.3
+  mac6_d3  #22
+  mac6_a3  -0.2
+  mac6_d4  #9
+  mac6_a4  -0.2
+  mac7_d1  #14
+  mac7_a1  0.4
+  mac7_d2  #17
+  mac7_a2  0.3
+  mac7_d3  #20
+  mac7_a3  0.3
+  mac8_d1  #29
+  mac8_a1  0.4
+  mac8_d2  #27
+  mac8_a2  0.2
+  mac8_d3  #28
+  mac8_a3  0.3
+  insert Distortion
+    drive        12
+    tone         5000 Hz
+    mode         1
+    mix          0.8
+  insert Bitcrusher
+    bits         4
+    rate         6000 Hz
+    jitter       0.3
+    mix          0.5
+
+patch Polished family=metal
+  # A plain kit with the metal brought forward: bright, clean cymbals at a
+  # good length and hats that sit on top of the mix rather than under it.
+  set macro1 "Shine"
+  set macro2 "Ring"
+  set macro3 "Choke"
+  set macro4 "Ride"
+  set macro5 "Pitch"
+  set macro6 "Snap"
+  set macro7 "Weight"
+  set macro8 "Push"
+  kick_tune      52 Hz
+  kick_decay     340 ms
+  kick_punch     0.55
+  snare_tune     200 Hz
+  snare_decay    190 ms
+  snare_snappy   0.55
+  snare_tone     2600 Hz
+  tom_decay      320 ms
+  hat_tune       1.15 x
+  hat_closed_decay 48 ms
+  hat_open_decay 520 ms
+  hat_tone       9500 Hz
+  hat_level      0.75
+  cym_decay      2200 ms
+  cym_tone       6000 Hz
+  cym_level      0.65
+  ride_decay     1600 ms
+  ride_level     0.65
+  clap_decay     190 ms
+  volume         0.90
+  mac1_d1  #15
+  mac1_a1  0.3
+  mac1_d2  #18
+  mac1_a2  0.3
+  mac1_d3  #16
+  mac1_a3  0.15
+  mac1_d4  #19
+  mac1_a4  0.15
+  mac2_d1  #17
+  mac2_a1  0.35
+  mac2_d2  #20
+  mac2_a2  0.35
+  mac2_d3  #14
+  mac2_a3  0.25
+  mac3_d1  #17
+  mac3_a1  -0.5
+  mac3_d2  #20
+  mac3_a2  -0.5
+  mac3_d3  #14
+  mac3_a3  -0.4
+  mac4_d1  #21
+  mac4_a1  0.35
+  mac4_d2  #20
+  mac4_a2  0.2
+  mac4_d3  #19
+  mac4_a3  -0.2
+  mac4_d4  #16
+  mac4_a4  -0.15
+  mac5_d1  #35
+  mac5_a1  0.25
+  mac6_d1  #7
+  mac6_a1  0.4
+  mac6_d2  #8
+  mac6_a2  0.3
+  mac6_d3  #3
+  mac6_a3  0.3
+  mac7_d1  #2
+  mac7_a1  0.3
+  mac7_d2  #1
+  mac7_a2  -0.15
+  mac7_d3  #11
+  mac7_a3  0.3
+  mac7_d4  #4
+  mac7_a4  0.15
+  mac8_d1  #33
+  mac8_a1  0.35
+  mac8_d2  #32
+  mac8_a2  0.2
+
+patch Spatter family=metal
+  # Cymbals at their shortest and their brightest: a splash rather than a
+  # crash, and a ride that stops. Everything else stays out of the way.
+  set macro1 "Length"
+  set macro2 "Darker"
+  set macro3 "Crash"
+  set macro4 "Hats"
+  set macro5 "Pitch"
+  set macro6 "Snap"
+  set macro7 "Weight"
+  set macro8 "Push"
+  cym_decay      200 ms
+  cym_tone       9000 Hz
+  cym_level      0.72
+  ride_decay     200 ms
+  ride_level     0.62
+  hat_tune       1.6 x
+  hat_tone       11000 Hz
+  hat_closed_decay 22 ms
+  hat_open_decay 200 ms
+  kick_decay     220 ms
+  kick_punch     0.7
+  snare_decay    130 ms
+  snare_snappy   0.8
+  snare_tone     3600 Hz
+  tom_decay      190 ms
+  accent         0.85
+  volume         0.90
+  mac1_d1  #17
+  mac1_a1  0.4
+  mac1_d2  #20
+  mac1_a2  0.4
+  mac1_d3  #14
+  mac1_a3  0.2
+  mac2_d1  #18
+  mac2_a1  -0.4
+  mac2_d2  #15
+  mac2_a2  -0.3
+  mac3_d1  #19
+  mac3_a1  0.3
+  mac3_d2  #21
+  mac3_a2  -0.2
+  mac4_d1  #16
+  mac4_a1  0.3
+  mac4_d2  #14
+  mac4_a2  0.25
+  mac4_d3  #13
+  mac4_a3  -0.15
+  mac5_d1  #35
+  mac5_a1  0.25
+  mac6_d1  #7
+  mac6_a1  0.2
+  mac6_d2  #6
+  mac6_a2  -0.3
+  mac6_d3  #3
+  mac6_a3  0.25
+  mac7_d1  #2
+  mac7_a1  0.35
+  mac7_d2  #1
+  mac7_a2  -0.15
+  mac7_d3  #11
+  mac7_a3  0.3
+  mac8_d1  #33
+  mac8_a1  0.35
+  mac8_d2  #32
+  mac8_a2  0.15
+
+patch Sizzle family=metal
+  # Open hat and ride held down for as long as they will go, thin and high,
+  # with the closed hat almost absent. A kit for playing the top of the bar.
+  set macro1 "Choke"
+  set macro2 "Darker"
+  set macro3 "Ride"
+  set macro4 "Crash"
+  set macro5 "Pitch"
+  set macro6 "Snap"
+  set macro7 "Weight"
+  set macro8 "Push"
+  hat_tune       1.7 x
+  hat_tone       12000 Hz
+  hat_closed_decay 15 ms
+  hat_open_decay 2000 ms
+  hat_level      0.75
+  ride_decay     3000 ms
+  ride_level     0.68
+  cym_decay      1800 ms
+  cym_tone       8000 Hz
+  cym_level      0.42
+  kick_tune      50 Hz
+  kick_decay     300 ms
+  snare_decay    170 ms
+  snare_snappy   0.8
+  snare_tone     4400 Hz
+  tom_decay      240 ms
+  accent         0.7
+  volume         0.90
+  mac1_d1  #14
+  mac1_a1  -0.5
+  mac1_d2  #20
+  mac1_a2  -0.5
+  mac1_d3  #17
+  mac1_a3  -0.4
+  mac2_d1  #15
+  mac2_a1  -0.4
+  mac2_d2  #18
+  mac2_a2  -0.4
+  mac2_d3  #13
+  mac2_a3  -0.2
+  mac3_d1  #21
+  mac3_a1  0.3
+  mac3_d2  #16
+  mac3_a2  -0.2
+  mac4_d1  #19
+  mac4_a1  0.3
+  mac4_d2  #17
+  mac4_a2  0.2
+  mac5_d1  #35
+  mac5_a1  0.25
+  mac6_d1  #7
+  mac6_a1  0.15
+  mac6_d2  #8
+  mac6_a2  0.25
+  mac6_d3  #3
+  mac6_a3  0.3
+  mac7_d1  #2
+  mac7_a1  0.35
+  mac7_d2  #1
+  mac7_a2  -0.15
+  mac7_d3  #11
+  mac7_a3  0.3
+  mac8_d1  #33
+  mac8_a1  0.35
+  mac8_d2  #32
+  mac8_a2  0.15
 
 patch Glassy family=metal
   # Pitched metal rather than bright metal, which is what separates it from
   # Trashy - the hats and cymbals come *down* and back, and the bell and the
   # clave carry the top of the kit instead.
+  set macro1 "Lower"
+  set macro2 "Ring"
+  set macro3 "Damp"
+  set macro4 "Hats"
+  set macro5 "Cymbals"
+  set macro6 "Pitch"
+  set macro7 "Snap"
+  set macro8 "Weight"
   hat_tune       1.85 x
   hat_tone       9000 Hz
   hat_closed_decay 40 ms
-  hat_level      0.34
+  hat_level      0.45
   cym_tone       6000 Hz
   cym_decay      2400 ms
-  cym_level      0.28
+  cym_level      0.38
   ride_decay     2200 ms
-  ride_level     0.34
+  ride_level     0.42
   bell_tune      1150 Hz
   bell_decay     520 ms
   bell_level     1
@@ -411,12 +3032,238 @@ patch Glassy family=metal
   rim_tune       1400 Hz
   rim_level      0.85
   kick_decay     260 ms
-  volume         0.77
+  volume         0.90
+  mac1_d1  #27
+  mac1_a1  -0.4
+  mac1_d2  #30
+  mac1_a2  -0.3
+  mac1_d3  #25
+  mac1_a3  -0.3
+  mac1_d4  #13
+  mac1_a4  -0.3
+  mac2_d1  #28
+  mac2_a1  0.4
+  mac2_d2  #17
+  mac2_a2  0.3
+  mac2_d3  #20
+  mac2_a3  0.3
+  mac3_d1  #28
+  mac3_a1  -0.5
+  mac3_d2  #17
+  mac3_a2  -0.5
+  mac3_d3  #20
+  mac3_a3  -0.5
+  mac3_d4  #14
+  mac3_a4  -0.3
+  mac4_d1  #16
+  mac4_a1  0.35
+  mac4_d2  #14
+  mac4_a2  0.2
+  mac5_d1  #19
+  mac5_a1  0.35
+  mac5_d2  #21
+  mac5_a2  0.3
+  mac6_d1  #35
+  mac6_a1  0.25
+  mac7_d1  #7
+  mac7_a1  0.35
+  mac7_d2  #8
+  mac7_a2  0.3
+  mac8_d1  #2
+  mac8_a1  0.35
+  mac8_d2  #1
+  mac8_a2  -0.15
+  mac8_d3  #4
+  mac8_a3  0.1
+
+patch Gleam family=metal
+  # Long, bright cymbals with a chorus over the kit and a good share of the
+  # song's reverb, so the top of the kit shimmers as it rings out.
+  set macro1 "Wash"
+  set macro2 "Dry Up"
+  set macro3 "Darker"
+  set macro4 "Bells"
+  set macro5 "Pitch"
+  set macro6 "Snap"
+  set macro7 "Weight"
+  set macro8 "Push"
+  kick_tune      50 Hz
+  kick_decay     420 ms
+  kick_punch     0.45
+  snare_tune     210 Hz
+  snare_decay    260 ms
+  snare_snappy   0.6
+  snare_tone     3400 Hz
+  tom_decay      500 ms
+  hat_tune       1.3 x
+  hat_closed_decay 40 ms
+  hat_open_decay 1100 ms
+  hat_tone       11000 Hz
+  hat_level      0.7
+  cym_decay      3600 ms
+  cym_tone       7500 Hz
+  cym_level      0.7
+  ride_decay     2800 ms
+  ride_level     0.6
+  clap_decay     300 ms
+  bell_tune      900 Hz
+  bell_decay     380 ms
+  bell_level     0.5
+  clave_tune     3200 Hz
+  clave_level    0.5
+  volume         0.64
+  mac1_d1  #17
+  mac1_a1  0.3
+  mac1_d2  #20
+  mac1_a2  0.3
+  mac1_d3  #14
+  mac1_a3  0.3
+  mac1_d4  #19
+  mac1_a4  0.2
+  mac2_d1  #17
+  mac2_a1  -0.5
+  mac2_d2  #20
+  mac2_a2  -0.5
+  mac2_d3  #14
+  mac2_a3  -0.4
+  mac2_d4  #6
+  mac2_a4  -0.3
+  mac3_d1  #15
+  mac3_a1  -0.4
+  mac3_d2  #18
+  mac3_a2  -0.4
+  mac4_d1  #29
+  mac4_a1  0.4
+  mac4_d2  #28
+  mac4_a2  0.3
+  mac4_d3  #31
+  mac4_a3  0.3
+  mac5_d1  #35
+  mac5_a1  0.25
+  mac6_d1  #7
+  mac6_a1  0.35
+  mac6_d2  #8
+  mac6_a2  0.25
+  mac6_d3  #3
+  mac6_a3  0.3
+  mac7_d1  #2
+  mac7_a1  0.3
+  mac7_d2  #1
+  mac7_a2  -0.15
+  mac7_d3  #11
+  mac7_a3  0.3
+  mac7_d4  #4
+  mac7_a4  0.1
+  mac8_d1  #33
+  mac8_a1  0.35
+  mac8_d2  #32
+  mac8_a2  0.2
+  insert Chorus
+    depth        0.35
+    mix          0.3
+  send reverb    0.3
+
+patch Forge family=metal
+  # Clanking rather than ringing: the metal tuned into the middle and cut
+  # short, a low cowbell and rim on top, and a little more drive than usual.
+  set macro1 "Clang"
+  set macro2 "Ring"
+  set macro3 "Choke"
+  set macro4 "Tune"
+  set macro5 "Pitch"
+  set macro6 "Snap"
+  set macro7 "Weight"
+  set macro8 "Hammer"
+  kick_tune      56 Hz
+  kick_decay     250 ms
+  kick_punch     0.85
+  snare_tune     240 Hz
+  snare_decay    160 ms
+  snare_snappy   0.35
+  snare_tone     1800 Hz
+  tom_lo_tune    110 Hz
+  tom_mid_tune   160 Hz
+  tom_hi_tune    230 Hz
+  tom_decay      260 ms
+  hat_tune       0.75 x
+  hat_closed_decay 70 ms
+  hat_open_decay 600 ms
+  hat_tone       6000 Hz
+  hat_level      0.75
+  cym_decay      900 ms
+  cym_tone       3000 Hz
+  cym_level      0.6
+  ride_decay     1200 ms
+  ride_level     0.65
+  rim_tune       520 Hz
+  rim_level      0.9
+  bell_tune      420 Hz
+  bell_decay     260 ms
+  bell_level     0.85
+  clave_tune     1500 Hz
+  drive          0.6
+  volume         0.58
+  mac1_d1  #29
+  mac1_a1  0.3
+  mac1_d2  #28
+  mac1_a2  0.3
+  mac1_d3  #26
+  mac1_a3  0.2
+  mac2_d1  #28
+  mac2_a1  0.4
+  mac2_d2  #17
+  mac2_a2  0.4
+  mac2_d3  #20
+  mac2_a3  0.35
+  mac2_d4  #14
+  mac2_a4  0.3
+  mac3_d1  #14
+  mac3_a1  -0.4
+  mac3_d2  #17
+  mac3_a2  -0.5
+  mac3_d3  #20
+  mac3_a3  -0.5
+  mac3_d4  #28
+  mac3_a4  -0.4
+  mac4_d1  #27
+  mac4_a1  0.3
+  mac4_d2  #25
+  mac4_a2  0.3
+  mac4_d3  #13
+  mac4_a3  0.3
+  mac4_d4  #18
+  mac4_a4  0.3
+  mac5_d1  #35
+  mac5_a1  0.25
+  mac6_d1  #7
+  mac6_a1  0.4
+  mac6_d2  #8
+  mac6_a2  0.35
+  mac7_d1  #2
+  mac7_a1  0.35
+  mac7_d2  #1
+  mac7_a2  -0.15
+  mac7_d3  #11
+  mac7_a3  0.3
+  mac8_d1  #3
+  mac8_a1  0.3
+  mac8_d2  #32
+  mac8_a2  0.3
+  mac8_d3  #33
+  mac8_a3  0.2
 
 patch Ironworks family=metal
   # The metal tuned right down - the hat stack at half its usual base, the
   # cymbals dark - so the top of the kit is heavy rather than bright. The
   # opposite end of the same knob Trashy is at the top of.
+  set macro1 "Lift"
+  set macro2 "Ring"
+  set macro3 "Choke"
+  set macro4 "Clang"
+  set macro5 "Pitch"
+  set macro6 "Snap"
+  set macro7 "Weight"
+  set macro8 "Push"
   hat_tune       0.5 x
   hat_tone       4000 Hz
   hat_closed_decay 90 ms
@@ -437,32 +3284,1425 @@ patch Ironworks family=metal
   snare_tone     1300 Hz
   snare_snappy   0.45
   volume         0.90
+  mac1_d1  #13
+  mac1_a1  0.4
+  mac1_d2  #15
+  mac1_a2  0.4
+  mac1_d3  #18
+  mac1_a3  0.4
+  mac2_d1  #17
+  mac2_a1  0.2
+  mac2_d2  #20
+  mac2_a2  0.3
+  mac2_d3  #14
+  mac2_a3  0.3
+  mac2_d4  #28
+  mac2_a4  0.3
+  mac3_d1  #17
+  mac3_a1  -0.5
+  mac3_d2  #20
+  mac3_a2  -0.5
+  mac3_d3  #14
+  mac3_a3  -0.4
+  mac3_d4  #28
+  mac3_a4  -0.4
+  mac4_d1  #29
+  mac4_a1  0.3
+  mac4_d2  #26
+  mac4_a2  0.3
+  mac5_d1  #35
+  mac5_a1  0.25
+  mac6_d1  #7
+  mac6_a1  0.4
+  mac6_d2  #8
+  mac6_a2  0.35
+  mac7_d1  #2
+  mac7_a1  0.3
+  mac7_d2  #1
+  mac7_a2  -0.15
+  mac7_d3  #11
+  mac7_a3  0.3
+  mac7_d4  #4
+  mac7_a4  0.1
+  mac8_d1  #33
+  mac8_a1  0.4
+  mac8_d2  #32
+  mac8_a2  0.15
 
-patch Splash family=metal
-  # Cymbals at their shortest and their brightest: a splash rather than a
-  # crash, and a ride that stops. Everything else stays out of the way.
-  cym_decay      200 ms
-  cym_tone       9000 Hz
-  cym_level      0.72
-  ride_decay     200 ms
-  ride_level     0.62
-  hat_tune       1.6 x
+patch Gongs family=metal
+  # The crash tuned to the bottom of its range and left to ring, the toms low
+  # and long under it, all into the reverb. Struck, not played.
+  set macro1 "Strike"
+  set macro2 "Swell"
+  set macro3 "Damp"
+  set macro4 "Bronze"
+  set macro5 "Pitch"
+  set macro6 "Sink"
+  set macro7 "Gong"
+  set macro8 "Hats"
+  kick_tune      40 Hz
+  kick_decay     1000 ms
+  kick_punch     0.3
+  snare_tune     130 Hz
+  snare_decay    500 ms
+  snare_snappy   0.25
+  snare_tone     1000 Hz
+  tom_lo_tune    62 Hz
+  tom_mid_tune   90 Hz
+  tom_hi_tune    120 Hz
+  tom_decay      1400 ms
+  hat_tune       0.55 x
+  hat_closed_decay 120 ms
+  hat_open_decay 1800 ms
+  hat_tone       4200 Hz
+  cym_decay      4000 ms
+  cym_tone       2000 Hz
+  cym_level      0.8
+  ride_decay     3000 ms
+  ride_level     0.6
+  clap_decay     600 ms
+  clap_tone      800 Hz
+  rim_tune       330 Hz
+  bell_tune      300 Hz
+  bell_decay     600 ms
+  clave_tune     1300 Hz
+  volume         0.67
+  mac1_d1  #32
+  mac1_a1  0.3
+  mac1_d2  #3
+  mac1_a2  0.3
+  mac1_d3  #33
+  mac1_a3  0.2
+  mac2_d1  #17
+  mac2_a1  0.3
+  mac2_d2  #20
+  mac2_a2  0.3
+  mac2_d3  #11
+  mac2_a3  0.3
+  mac2_d4  #14
+  mac2_a4  0.2
+  mac3_d1  #17
+  mac3_a1  -0.6
+  mac3_d2  #20
+  mac3_a2  -0.6
+  mac3_d3  #11
+  mac3_a3  -0.5
+  mac3_d4  #14
+  mac3_a4  -0.5
+  mac4_d1  #18
+  mac4_a1  0.4
+  mac4_d2  #15
+  mac4_a2  0.4
+  mac4_d3  #13
+  mac4_a3  0.3
+  mac5_d1  #35
+  mac5_a1  0.25
+  mac6_d1  #10
+  mac6_a1  -0.3
+  mac6_d2  #1
+  mac6_a2  -0.2
+  mac6_d3  #5
+  mac6_a3  -0.3
+  mac7_d1  #19
+  mac7_a1  0.2
+  mac7_d2  #21
+  mac7_a2  0.3
+  mac7_d3  #12
+  mac7_a3  0.2
+  mac8_d1  #16
+  mac8_a1  0.4
+  mac8_d2  #13
+  mac8_a2  0.3
+  mac8_d3  #14
+  mac8_a3  -0.3
+  send reverb    0.35
+
+patch Throb family=electro
+  # A plain electronic kit: a long kick with plenty of sweep, the clap up
+  # beside the snare, short hats and a little of the song's delay.
+  set macro1 "Tighter"
+  set macro2 "Boom"
+  set macro3 "Snap"
+  set macro4 "Clap"
+  set macro5 "Hats"
+  set macro6 "Bell"
+  set macro7 "Pitch"
+  set macro8 "Push"
+  kick_tune      50 Hz
+  kick_decay     450 ms
+  kick_punch     0.75
+  snare_tune     210 Hz
+  snare_decay    170 ms
+  snare_snappy   0.55
+  snare_tone     2800 Hz
+  tom_decay      300 ms
+  hat_closed_decay 30 ms
+  hat_open_decay 280 ms
+  hat_tone       9000 Hz
+  hat_level      0.65
+  cym_decay      1200 ms
+  ride_decay     700 ms
+  clap_decay     220 ms
+  clap_tone      1400 Hz
+  clap_level     0.85
+  bell_tune      540 Hz
+  bell_decay     120 ms
+  volume         0.78
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #6
+  mac1_a2  -0.3
+  mac1_d3  #14
+  mac1_a3  -0.3
+  mac1_d4  #22
+  mac1_a4  -0.25
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac2_d2  #1
+  mac2_a2  -0.2
+  mac2_d3  #4
+  mac2_a3  0.15
+  mac3_d1  #7
+  mac3_a1  0.35
+  mac3_d2  #8
+  mac3_a2  0.3
+  mac3_d3  #3
+  mac3_a3  0.3
+  mac4_d1  #24
+  mac4_a1  0.3
+  mac4_d2  #22
+  mac4_a2  0.3
+  mac4_d3  #9
+  mac4_a3  -0.3
+  mac5_d1  #16
+  mac5_a1  0.35
+  mac5_d2  #14
+  mac5_a2  0.25
+  mac5_d3  #15
+  mac5_a3  0.2
+  mac6_d1  #29
+  mac6_a1  0.4
+  mac6_d2  #28
+  mac6_a2  0.3
+  mac7_d1  #35
+  mac7_a1  0.25
+  mac8_d1  #33
+  mac8_a1  0.35
+  mac8_d2  #32
+  mac8_a2  0.2
+  send delay     0.15
+
+patch Circuitry family=electro
+  # Nothing with any noise in it that can be helped: the snare tuned up and
+  # snapped off, the toms short and swept, the small voices high. A kit that
+  # sounds like it was made of oscillators, because it was.
+  set macro1 "Tighter"
+  set macro2 "Weight"
+  set macro3 "Noise"
+  set macro4 "Toms"
+  set macro5 "Hats"
+  set macro6 "Blip"
+  set macro7 "Pitch"
+  set macro8 "Push"
+  kick_tune      72 Hz
+  kick_decay     160 ms
+  kick_punch     0.95
+  snare_tune     380 Hz
+  snare_decay    95 ms
+  snare_snappy   0.15
+  snare_tone     5000 Hz
+  tom_lo_tune    150 Hz
+  tom_mid_tune   225 Hz
+  tom_hi_tune    340 Hz
+  tom_decay      130 ms
+  hat_tune       1.45 x
+  hat_tone       10000 Hz
+  hat_closed_decay 19 ms
+  hat_open_decay 210 ms
+  rim_tune       1350 Hz
+  rim_level      0.85
+  clave_tune     3600 Hz
+  clave_level    0.8
+  bell_tune      1080 Hz
+  bell_decay     70 ms
+  accent         0.9
+  volume         0.89
+  mac1_d1  #2
+  mac1_a1  -0.3
+  mac1_d2  #6
+  mac1_a2  -0.3
+  mac1_d3  #11
+  mac1_a3  -0.3
+  mac1_d4  #14
+  mac1_a4  -0.3
+  mac2_d1  #2
+  mac2_a1  0.4
+  mac2_d2  #1
+  mac2_a2  -0.2
+  mac2_d3  #11
+  mac2_a3  0.2
+  mac3_d1  #7
+  mac3_a1  0.5
+  mac3_d2  #8
+  mac3_a2  -0.2
+  mac4_d1  #12
+  mac4_a1  0.2
+  mac4_d2  #11
+  mac4_a2  0.4
+  mac5_d1  #16
+  mac5_a1  0.3
+  mac5_d2  #14
+  mac5_a2  0.3
+  mac6_d1  #26
+  mac6_a1  0.2
+  mac6_d2  #31
+  mac6_a2  0.3
+  mac6_d3  #29
+  mac6_a3  0.3
+  mac6_d4  #28
+  mac6_a4  0.2
+  mac7_d1  #35
+  mac7_a1  0.25
+  mac8_d1  #33
+  mac8_a1  0.35
+  mac8_d2  #32
+  mac8_a2  0.1
+
+patch Elastic family=electro
+  # A low kick with all its sweep and no click to speak of, toms to match, and
+  # the noise voices pulled well back. Everything bounces rather than hits.
+  set macro1 "Stretch"
+  set macro2 "Tighter"
+  set macro3 "Low"
+  set macro4 "Snare"
+  set macro5 "Hats"
+  set macro6 "Clap"
+  set macro7 "Pitch"
+  set macro8 "Push"
+  kick_tune      40 Hz
+  kick_decay     380 ms
+  kick_punch     1
+  kick_level     1
+  tom_lo_tune    60 Hz
+  tom_mid_tune   90 Hz
+  tom_hi_tune    120 Hz
+  tom_decay      300 ms
+  snare_tune     160 Hz
+  snare_decay    150 ms
+  snare_snappy   0.1
+  snare_tone     1200 Hz
+  snare_level    0.6
+  hat_tune       0.85 x
+  hat_tone       5400 Hz
+  hat_closed_decay 30 ms
+  hat_open_decay 300 ms
+  hat_level      0.45
+  cym_level      0.3
+  ride_level     0.32
+  clap_level     0.4
+  bell_tune      420 Hz
+  clave_tune     1400 Hz
+  volume         0.82
+  mac1_d1  #2
+  mac1_a1  0.3
+  mac1_d2  #11
+  mac1_a2  0.35
+  mac1_d3  #6
+  mac1_a3  0.2
+  mac2_d1  #2
+  mac2_a1  -0.4
+  mac2_d2  #11
+  mac2_a2  -0.4
+  mac2_d3  #6
+  mac2_a3  -0.3
+  mac3_d1  #10
+  mac3_a1  -0.25
+  mac3_d2  #5
+  mac3_a2  -0.2
+  mac3_d3  #1
+  mac3_a3  -0.1
+  mac4_d1  #9
+  mac4_a1  0.3
+  mac4_d2  #7
+  mac4_a2  0.4
+  mac4_d3  #8
+  mac4_a3  0.4
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #15
+  mac5_a2  0.3
+  mac5_d3  #13
+  mac5_a3  0.2
+  mac6_d1  #24
+  mac6_a1  0.5
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac7_d1  #35
+  mac7_a1  0.25
+  mac8_d1  #33
+  mac8_a1  0.35
+  mac8_d2  #32
+  mac8_a2  0.15
+
+patch Lowdown family=electro
+  # A sub kick that hangs on for most of a bar, with a thin snare and a clap
+  # over it to leave the bottom to the kick.
+  set macro1 "Shorter"
+  set macro2 "Sub"
+  set macro3 "Click"
+  set macro4 "Snap"
+  set macro5 "Clap"
+  set macro6 "Hats"
+  set macro7 "Pitch"
+  set macro8 "Push"
+  kick_tune      38 Hz
+  kick_decay     1800 ms
+  kick_punch     0.85
+  kick_level     1
+  snare_tune     260 Hz
+  snare_decay    120 ms
+  snare_snappy   0.75
+  snare_tone     4000 Hz
+  snare_level    0.6
+  tom_lo_tune    70 Hz
+  tom_mid_tune   95 Hz
+  tom_hi_tune    130 Hz
+  tom_decay      900 ms
+  hat_closed_decay 26 ms
+  hat_open_decay 340 ms
+  hat_tone       10000 Hz
+  cym_decay      1600 ms
+  ride_level     0.5
+  clap_decay     240 ms
+  clap_tone      1200 Hz
+  clap_level     0.9
+  rim_tune       900 Hz
+  bell_decay     160 ms
+  volume         0.80
+  mac1_d1  #2
+  mac1_a1  -0.5
+  mac1_d2  #11
+  mac1_a2  -0.4
+  mac2_d1  #1
+  mac2_a1  -0.1
+  mac2_d2  #3
+  mac2_a2  -0.3
+  mac2_d3  #4
+  mac2_a3  0.1
+  mac3_d1  #3
+  mac3_a1  0.15
+  mac3_d2  #32
+  mac3_a2  0.3
+  mac3_d3  #26
+  mac3_a3  0.2
+  mac4_d1  #7
+  mac4_a1  0.25
+  mac4_d2  #6
+  mac4_a2  0.3
+  mac4_d3  #9
+  mac4_a3  0.3
+  mac5_d1  #24
+  mac5_a1  0.2
+  mac5_d2  #22
+  mac5_a2  0.4
+  mac5_d3  #23
+  mac5_a3  -0.3
+  mac6_d1  #16
+  mac6_a1  0.35
+  mac6_d2  #14
+  mac6_a2  0.3
+  mac7_d1  #35
+  mac7_a1  0.25
+  mac8_d1  #33
+  mac8_a1  0.4
+  mac8_d2  #32
+  mac8_a2  0.1
+
+patch Servo family=electro
+  # Everything short and a little high, ticking like a machine, with a quick
+  # echo after each hit.
+  set macro1 "Longer"
+  set macro2 "Weight"
+  set macro3 "Whirr"
+  set macro4 "Click"
+  set macro5 "Noise"
+  set macro6 "Tick"
+  set macro7 "Pitch"
+  set macro8 "Push"
+  kick_tune      66 Hz
+  kick_decay     130 ms
+  kick_punch     0.9
+  snare_tune     300 Hz
+  snare_decay    80 ms
+  snare_snappy   0.3
+  snare_tone     4500 Hz
+  tom_lo_tune    160 Hz
+  tom_mid_tune   240 Hz
+  tom_hi_tune    360 Hz
+  tom_decay      90 ms
+  hat_tune       1.2 x
+  hat_closed_decay 15 ms
+  hat_open_decay 120 ms
   hat_tone       11000 Hz
-  hat_closed_decay 22 ms
-  hat_open_decay 200 ms
-  kick_decay     220 ms
-  kick_punch     0.7
-  snare_decay    130 ms
-  snare_snappy   0.8
-  snare_tone     3600 Hz
-  tom_decay      190 ms
-  accent         0.85
+  hat_level      0.7
+  cym_decay      300 ms
+  cym_tone       7000 Hz
+  ride_decay     300 ms
+  clap_decay     60 ms
+  clap_tone      2400 Hz
+  rim_tune       1200 Hz
+  bell_tune      900 Hz
+  bell_decay     40 ms
+  clave_tune     3000 Hz
   volume         0.90
+  mac1_d1  #2
+  mac1_a1  0.4
+  mac1_d2  #6
+  mac1_a2  0.4
+  mac1_d3  #11
+  mac1_a3  0.4
+  mac1_d4  #14
+  mac1_a4  0.4
+  mac2_d1  #1
+  mac2_a1  -0.3
+  mac2_d2  #2
+  mac2_a2  0.3
+  mac2_d3  #4
+  mac2_a3  0.1
+  mac3_d1  #13
+  mac3_a1  0.3
+  mac3_d2  #15
+  mac3_a2  0.2
+  mac3_d3  #16
+  mac3_a3  0.3
+  mac4_d1  #26
+  mac4_a1  0.3
+  mac4_d2  #31
+  mac4_a2  0.3
+  mac4_d3  #3
+  mac4_a3  0.1
+  mac5_d1  #7
+  mac5_a1  0.5
+  mac5_d2  #24
+  mac5_a2  0.3
+  mac6_d1  #29
+  mac6_a1  0.3
+  mac6_d2  #27
+  mac6_a2  0.3
+  mac6_d3  #28
+  mac6_a3  0.2
+  mac7_d1  #35
+  mac7_a1  0.25
+  mac8_d1  #33
+  mac8_a1  0.4
+  mac8_d2  #32
+  mac8_a2  0.1
+  insert Delay
+    time         #1
+    feedback     0.25
+    pingpong     #1
+    mix          0.2
 
-patch Gamelan family=metal
+patch Falling family=electro
+  # The toms given every bit of sweep the machine has and a long tail to fall
+  # down, tuned wide apart so the three of them are an instrument rather than
+  # three sizes of the same one.
+  set macro1 "Shorter"
+  set macro2 "Tune"
+  set macro3 "Boom"
+  set macro4 "Snare"
+  set macro5 "Hats"
+  set macro6 "Cymbal"
+  set macro7 "Pitch"
+  set macro8 "Push"
+  tom_lo_tune    60 Hz
+  tom_mid_tune   140 Hz
+  tom_hi_tune    330 Hz
+  tom_decay      1500 ms
+  tom_level      1
+  kick_tune      37 Hz
+  kick_decay     900 ms
+  kick_punch     1
+  snare_decay    200 ms
+  snare_snappy   0.5
+  snare_level    0.55
+  hat_closed_decay 35 ms
+  hat_open_decay 700 ms
+  hat_level      0.45
+  cym_decay      2400 ms
+  cym_tone       3400 Hz
+  cym_level      0.42
+  ride_level     0.42
+  accent         0.55
+  volume         0.90
+  mac1_d1  #11
+  mac1_a1  -0.5
+  mac1_d2  #2
+  mac1_a2  -0.4
+  mac1_d3  #17
+  mac1_a3  -0.3
+  mac2_d1  #10
+  mac2_a1  0.35
+  mac2_d2  #1
+  mac2_a2  0.2
+  mac3_d1  #2
+  mac3_a1  0.3
+  mac3_d2  #4
+  mac3_a2  0.1
+  mac3_d3  #1
+  mac3_a3  -0.1
+  mac4_d1  #9
+  mac4_a1  0.4
+  mac4_d2  #7
+  mac4_a2  0.3
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #14
+  mac5_a2  0.2
+  mac6_d1  #19
+  mac6_a1  0.35
+  mac6_d2  #17
+  mac6_a2  0.2
+  mac6_d3  #18
+  mac6_a3  0.2
+  mac7_d1  #35
+  mac7_a1  0.25
+  mac8_d1  #33
+  mac8_a1  0.4
+  mac8_d2  #32
+  mac8_a2  0.2
+
+patch Zapper family=electro
+  # The kick at the top of its tuning with all the sweep it has, so it zaps
+  # rather than thumps, high swept toms to match, a phaser and an echo.
+  set macro1 "Longer"
+  set macro2 "Lower"
+  set macro3 "Noise"
+  set macro4 "Blip"
+  set macro5 "Hats"
+  set macro6 "Clap"
+  set macro7 "Pitch"
+  set macro8 "Push"
+  kick_tune      120 Hz
+  kick_decay     300 ms
+  kick_punch     1
+  snare_tune     400 Hz
+  snare_decay    60 ms
+  snare_snappy   0.05
+  snare_tone     5500 Hz
+  tom_lo_tune    200 Hz
+  tom_mid_tune   300 Hz
+  tom_hi_tune    400 Hz
+  tom_decay      400 ms
+  tom_level      1
+  hat_tune       1.4 x
+  hat_closed_decay 20 ms
+  hat_open_decay 200 ms
+  hat_level      0.5
+  cym_level      0.4
+  ride_level     0.4
+  clap_level     0.5
+  rim_tune       1500 Hz
+  bell_tune      1200 Hz
+  bell_decay     60 ms
+  clave_tune     4000 Hz
+  volume         0.61
+  mac1_d1  #2
+  mac1_a1  0.4
+  mac1_d2  #11
+  mac1_a2  0.4
+  mac2_d1  #1
+  mac2_a1  -0.4
+  mac2_d2  #10
+  mac2_a2  -0.4
+  mac2_d3  #5
+  mac2_a3  -0.3
+  mac3_d1  #7
+  mac3_a1  0.5
+  mac3_d2  #16
+  mac3_a2  0.3
+  mac4_d1  #26
+  mac4_a1  0.3
+  mac4_d2  #31
+  mac4_a2  0.3
+  mac4_d3  #29
+  mac4_a3  0.3
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #14
+  mac5_a2  0.3
+  mac6_d1  #24
+  mac6_a1  0.5
+  mac6_d2  #22
+  mac6_a2  0.2
+  mac7_d1  #35
+  mac7_a1  0.25
+  mac8_d1  #33
+  mac8_a1  0.4
+  mac8_d2  #32
+  mac8_a2  0.1
+  insert Phaser
+    mix          0.4
+  insert Delay
+    time         #2
+    feedback     0.4
+    pingpong     #1
+    mix          0.25
+
+patch Bleep family=electro
+  # Rim and clave at the top of their ranges and everything else out of their
+  # way. Barely a kit: a pattern machine for the small voices.
+  set macro1 "Longer"
+  set macro2 "Lower"
+  set macro3 "Kick"
+  set macro4 "Snare"
+  set macro5 "Hats"
+  set macro6 "Bell"
+  set macro7 "Pitch"
+  set macro8 "Push"
+  rim_tune       1500 Hz
+  rim_level      1
+  clave_tune     4000 Hz
+  clave_level    1
+  bell_tune      1150 Hz
+  bell_decay     40 ms
+  bell_level     0.8
+  kick_tune      80 Hz
+  kick_decay     140 ms
+  kick_punch     0.8
+  kick_level     0.7
+  snare_tune     340 Hz
+  snare_decay    80 ms
+  snare_snappy   0.2
+  snare_tone     4600 Hz
+  snare_level    0.5
+  tom_decay      110 ms
+  tom_level      0.5
+  hat_tune       1.6 x
+  hat_closed_decay 16 ms
+  hat_open_decay 150 ms
+  hat_level      0.4
+  cym_level      0.25
+  ride_level     0.28
+  clap_level     0.3
+  accent         0.95
+  volume         0.79
+  mac1_d1  #28
+  mac1_a1  0.4
+  mac1_d2  #2
+  mac1_a2  0.3
+  mac1_d3  #6
+  mac1_a3  0.3
+  mac1_d4  #11
+  mac1_a4  0.3
+  mac2_d1  #25
+  mac2_a1  -0.4
+  mac2_d2  #30
+  mac2_a2  -0.4
+  mac2_d3  #27
+  mac2_a3  -0.4
+  mac3_d1  #4
+  mac3_a1  0.3
+  mac3_d2  #2
+  mac3_a2  0.3
+  mac4_d1  #9
+  mac4_a1  0.4
+  mac4_d2  #7
+  mac4_a2  0.4
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #14
+  mac5_a2  0.3
+  mac6_d1  #29
+  mac6_a1  0.2
+  mac6_d2  #28
+  mac6_a2  0.4
+  mac7_d1  #35
+  mac7_a1  0.25
+  mac8_d1  #33
+  mac8_a1  0.4
+  mac8_d2  #32
+  mac8_a2  0.05
+
+patch Clappers family=perc
+  # Built around the clap and committed to it: long, dark and at the top, with
+  # the snare most of the way out so the two do not double each other, and the
+  # metal down so there is room.
+  set macro1 "Shorter"
+  set macro2 "Bright"
+  set macro3 "Snare"
+  set macro4 "Hats"
+  set macro5 "Small"
+  set macro6 "Weight"
+  set macro7 "Pitch"
+  set macro8 "Push"
+  clap_decay     760 ms
+  clap_tone      820 Hz
+  clap_level     1
+  snare_level    0.28
+  snare_decay    140 ms
+  snare_snappy   0.3
+  kick_tune      50 Hz
+  kick_decay     320 ms
+  kick_level     1
+  hat_closed_decay 34 ms
+  hat_open_decay 240 ms
+  hat_level      0.38
+  cym_level      0.35
+  ride_level     0.38
+  bell_level     0.5
+  rim_level      0.4
+  volume         0.82
+  mac1_d1  #22
+  mac1_a1  -0.4
+  mac1_d2  #2
+  mac1_a2  -0.3
+  mac2_d1  #23
+  mac2_a1  0.4
+  mac3_d1  #9
+  mac3_a1  0.4
+  mac3_d2  #7
+  mac3_a2  0.3
+  mac4_d1  #16
+  mac4_a1  0.4
+  mac4_d2  #14
+  mac4_a2  0.2
+  mac5_d1  #26
+  mac5_a1  0.4
+  mac5_d2  #31
+  mac5_a2  0.4
+  mac5_d3  #29
+  mac5_a3  0.3
+  mac6_d1  #2
+  mac6_a1  0.3
+  mac6_d2  #1
+  mac6_a2  -0.15
+  mac6_d3  #3
+  mac6_a3  0.2
+  mac7_d1  #35
+  mac7_a1  0.25
+  mac8_d1  #33
+  mac8_a1  0.35
+  mac8_d2  #32
+  mac8_a2  0.2
+
+patch Clapback family=perc
+  # The clap at the other end of its range: short, bright and tight, three
+  # pulses you can hear as three. Snare kept in this time, underneath it.
+  set macro1 "Longer"
+  set macro2 "Darker"
+  set macro3 "Snare"
+  set macro4 "Hats"
+  set macro5 "Toms"
+  set macro6 "Weight"
+  set macro7 "Pitch"
+  set macro8 "Push"
+  clap_decay     50 ms
+  clap_tone      3000 Hz
+  clap_level     1
+  snare_tune     220 Hz
+  snare_decay    120 ms
+  snare_snappy   0.7
+  snare_tone     3400 Hz
+  snare_level    0.75
+  kick_tune      58 Hz
+  kick_decay     230 ms
+  kick_punch     0.7
+  hat_closed_decay 22 ms
+  hat_open_decay 260 ms
+  hat_tone       9600 Hz
+  tom_decay      200 ms
+  accent         0.85
+  volume         0.75
+  mac1_d1  #22
+  mac1_a1  0.5
+  mac1_d2  #6
+  mac1_a2  0.3
+  mac2_d1  #23
+  mac2_a1  -0.5
+  mac2_d2  #8
+  mac2_a2  -0.3
+  mac3_d1  #9
+  mac3_a1  0.2
+  mac3_d2  #7
+  mac3_a2  0.2
+  mac3_d3  #6
+  mac3_a3  0.3
+  mac4_d1  #16
+  mac4_a1  0.35
+  mac4_d2  #14
+  mac4_a2  0.3
+  mac5_d1  #12
+  mac5_a1  0.2
+  mac5_d2  #11
+  mac5_a2  0.4
+  mac6_d1  #2
+  mac6_a1  0.35
+  mac6_d2  #1
+  mac6_a2  -0.15
+  mac6_d3  #3
+  mac6_a3  0.1
+  mac7_d1  #35
+  mac7_a1  0.25
+  mac8_d1  #33
+  mac8_a1  0.35
+  mac8_d2  #32
+  mac8_a2  0.1
+
+patch Sidestick family=perc
+  # The rim doing the snare's job for a whole song, which is what a sidestick
+  # is for. The snare is still there, right down, for the fills.
+  set macro1 "Snare"
+  set macro2 "Wood"
+  set macro3 "Hats"
+  set macro4 "Ride"
+  set macro5 "Tighter"
+  set macro6 "Weight"
+  set macro7 "Pitch"
+  set macro8 "Push"
+  rim_tune       800 Hz
+  rim_level      1
+  snare_level    0.22
+  snare_decay    150 ms
+  snare_snappy   0.6
+  kick_tune      52 Hz
+  kick_decay     340 ms
+  kick_punch     0.5
+  kick_level     0.95
+  hat_closed_decay 36 ms
+  hat_open_decay 440 ms
+  hat_tone       7600 Hz
+  hat_level      0.55
+  cym_decay      1600 ms
+  cym_level      0.42
+  ride_decay     1100 ms
+  ride_level     0.42
+  clap_level     0.45
+  bell_level     0.5
+  clave_level    0.45
+  tom_decay      320 ms
+  volume         0.82
+  mac1_d1  #9
+  mac1_a1  0.5
+  mac1_d2  #7
+  mac1_a2  0.2
+  mac2_d1  #25
+  mac2_a1  -0.4
+  mac2_d2  #30
+  mac2_a2  -0.3
+  mac2_d3  #31
+  mac2_a3  0.3
+  mac3_d1  #16
+  mac3_a1  0.3
+  mac3_d2  #14
+  mac3_a2  0.3
+  mac4_d1  #21
+  mac4_a1  0.4
+  mac4_d2  #20
+  mac4_a2  0.3
+  mac5_d1  #2
+  mac5_a1  -0.3
+  mac5_d2  #14
+  mac5_a2  -0.3
+  mac5_d3  #11
+  mac5_a3  -0.3
+  mac5_d4  #17
+  mac5_a4  -0.4
+  mac6_d1  #2
+  mac6_a1  0.3
+  mac6_d2  #1
+  mac6_a2  -0.15
+  mac6_d3  #4
+  mac6_a3  0.05
+  mac7_d1  #35
+  mac7_a1  0.25
+  mac8_d1  #33
+  mac8_a1  0.35
+  mac8_d2  #32
+  mac8_a2  0.2
+
+patch Shakers family=perc
+  # The hats set loose and grainy so they read as shakers, the snare light
+  # and bright as a tambourine, and a soft kick and wood underneath.
+  set macro1 "Shake"
+  set macro2 "Tighter"
+  set macro3 "Grain"
+  set macro4 "Jingle"
+  set macro5 "Clap"
+  set macro6 "Low"
+  set macro7 "Wood"
+  set macro8 "Pitch"
+  kick_tune      58 Hz
+  kick_decay     220 ms
+  kick_punch     0.4
+  kick_level     0.75
+  snare_tune     230 Hz
+  snare_decay    120 ms
+  snare_snappy   0.8
+  snare_tone     4800 Hz
+  snare_level    0.45
+  tom_lo_tune    140 Hz
+  tom_mid_tune   200 Hz
+  tom_hi_tune    280 Hz
+  tom_decay      220 ms
+  tom_level      0.55
+  hat_tune       0.8 x
+  hat_closed_decay 110 ms
+  hat_open_decay 260 ms
+  hat_tone       6500 Hz
+  hat_level      0.85
+  cym_decay      900 ms
+  cym_tone       8500 Hz
+  cym_level      0.4
+  ride_decay     600 ms
+  ride_level     0.4
+  clap_decay     120 ms
+  clap_tone      2200 Hz
+  clap_level     0.6
+  rim_tune       700 Hz
+  rim_level      0.6
+  bell_tune      820 Hz
+  bell_decay     50 ms
+  bell_level     0.45
+  clave_tune     2600 Hz
+  clave_level    0.75
+  volume         1.08
+  mac1_d1  #14
+  mac1_a1  0.3
+  mac1_d2  #16
+  mac1_a2  0.15
+  mac2_d1  #14
+  mac2_a1  -0.4
+  mac2_d2  #22
+  mac2_a2  -0.3
+  mac2_d3  #6
+  mac2_a3  -0.3
+  mac3_d1  #15
+  mac3_a1  0.4
+  mac3_d2  #13
+  mac3_a2  0.3
+  mac3_d3  #8
+  mac3_a3  0.3
+  mac4_d1  #7
+  mac4_a1  0.2
+  mac4_d2  #9
+  mac4_a2  0.4
+  mac4_d3  #6
+  mac4_a3  0.3
+  mac5_d1  #24
+  mac5_a1  0.4
+  mac5_d2  #22
+  mac5_a2  0.2
+  mac6_d1  #4
+  mac6_a1  0.25
+  mac6_d2  #12
+  mac6_a2  0.3
+  mac6_d3  #11
+  mac6_a3  0.2
+  mac7_d1  #26
+  mac7_a1  0.3
+  mac7_d2  #31
+  mac7_a2  0.25
+  mac7_d3  #29
+  mac7_a3  0.2
+  mac8_d1  #35
+  mac8_a1  0.25
+
+patch Congas family=perc
+  # The toms tuned up and spread as a set of hand drums, the rim as the slap,
+  # the kick as the big drum under them.
+  set macro1 "Skins"
+  set macro2 "Muted"
+  set macro3 "Tune"
+  set macro4 "Lower"
+  set macro5 "Slap"
+  set macro6 "Shaker"
+  set macro7 "Bell"
+  set macro8 "Push"
+  kick_tune      62 Hz
+  kick_decay     260 ms
+  kick_punch     0.25
+  kick_level     0.8
+  snare_tune     260 Hz
+  snare_decay    140 ms
+  snare_snappy   0.15
+  snare_tone     1500 Hz
+  snare_level    0.55
+  tom_lo_tune    150 Hz
+  tom_mid_tune   205 Hz
+  tom_hi_tune    290 Hz
+  tom_decay      380 ms
+  tom_level      1
+  hat_tune       0.9 x
+  hat_closed_decay 40 ms
+  hat_open_decay 300 ms
+  hat_tone       7000 Hz
+  hat_level      0.5
+  cym_level      0.38
+  ride_level     0.4
+  clap_decay     90 ms
+  clap_tone      1000 Hz
+  clap_level     0.6
+  rim_tune       640 Hz
+  rim_level      0.9
+  bell_tune      660 Hz
+  bell_decay     90 ms
+  bell_level     0.55
+  clave_tune     2300 Hz
+  clave_level    0.75
+  volume         0.88
+  mac1_d1  #11
+  mac1_a1  0.3
+  mac1_d2  #2
+  mac1_a2  0.2
+  mac1_d3  #6
+  mac1_a3  0.2
+  mac2_d1  #11
+  mac2_a1  -0.5
+  mac2_d2  #2
+  mac2_a2  -0.4
+  mac2_d3  #6
+  mac2_a3  -0.3
+  mac3_d1  #10
+  mac3_a1  0.3
+  mac3_d2  #25
+  mac3_a2  0.2
+  mac3_d3  #1
+  mac3_a3  0.2
+  mac4_d1  #10
+  mac4_a1  -0.35
+  mac4_d2  #1
+  mac4_a2  -0.2
+  mac4_d3  #5
+  mac4_a3  -0.2
+  mac5_d1  #26
+  mac5_a1  0.1
+  mac5_d2  #25
+  mac5_a2  0.25
+  mac5_d3  #7
+  mac5_a3  0.3
+  mac6_d1  #16
+  mac6_a1  0.4
+  mac6_d2  #14
+  mac6_a2  0.4
+  mac7_d1  #29
+  mac7_a1  0.4
+  mac7_d2  #28
+  mac7_a2  0.3
+  mac8_d1  #33
+  mac8_a1  0.35
+  mac8_d2  #32
+  mac8_a2  0.2
+
+patch Blocks family=perc
+  # Rim and clave carrying, both tuned into the wood range, with the toms up
+  # under them as the low blocks. The cowbell is the odd one out and is kept
+  # short so it reads as a block too.
+  set macro1 "Ring"
+  set macro2 "Lower"
+  set macro3 "Snare"
+  set macro4 "Hats"
+  set macro5 "Kick"
+  set macro6 "Cymbals"
+  set macro7 "Pitch"
+  set macro8 "Push"
+  rim_tune       620 Hz
+  rim_level      1
+  clave_tune     1900 Hz
+  clave_level    0.95
+  bell_tune      760 Hz
+  bell_decay     55 ms
+  bell_level     0.8
+  tom_lo_tune    118 Hz
+  tom_mid_tune   172 Hz
+  tom_hi_tune    252 Hz
+  tom_decay      160 ms
+  tom_level      0.9
+  kick_tune      74 Hz
+  kick_decay     150 ms
+  kick_punch     0.8
+  snare_snappy   0.25
+  snare_tune     290 Hz
+  snare_decay    100 ms
+  snare_level    0.6
+  hat_tone       5800 Hz
+  hat_closed_decay 21 ms
+  hat_open_decay 170 ms
+  hat_level      0.45
+  cym_level      0.42
+  ride_level     0.42
+  volume         0.82
+  mac1_d1  #11
+  mac1_a1  0.4
+  mac1_d2  #28
+  mac1_a2  0.4
+  mac2_d1  #25
+  mac2_a1  -0.3
+  mac2_d2  #30
+  mac2_a2  -0.3
+  mac2_d3  #10
+  mac2_a3  -0.3
+  mac3_d1  #9
+  mac3_a1  0.4
+  mac3_d2  #7
+  mac3_a2  0.4
+  mac4_d1  #16
+  mac4_a1  0.4
+  mac4_d2  #14
+  mac4_a2  0.3
+  mac5_d1  #4
+  mac5_a1  0.15
+  mac5_d2  #2
+  mac5_a2  0.4
+  mac5_d3  #1
+  mac5_a3  -0.2
+  mac6_d1  #19
+  mac6_a1  0.4
+  mac6_d2  #21
+  mac6_a2  0.4
+  mac7_d1  #35
+  mac7_a1  0.25
+  mac8_d1  #33
+  mac8_a1  0.35
+  mac8_d2  #32
+  mac8_a2  0.15
+
+patch Timbales family=perc
+  # High, ringing shell drums: the toms tuned up with a long tail, the rim
+  # and cowbell carrying the pattern over them, a touch of reverb.
+  set macro1 "Ring"
+  set macro2 "Muted"
+  set macro3 "Lower"
+  set macro4 "Bell"
+  set macro5 "Shell"
+  set macro6 "Hats"
+  set macro7 "Pitch"
+  set macro8 "Push"
+  kick_tune      60 Hz
+  kick_decay     280 ms
+  kick_punch     0.5
+  kick_level     0.85
+  snare_tune     330 Hz
+  snare_decay    180 ms
+  snare_snappy   0.35
+  snare_tone     3000 Hz
+  snare_level    0.7
+  tom_lo_tune    200 Hz
+  tom_mid_tune   280 Hz
+  tom_hi_tune    380 Hz
+  tom_decay      500 ms
+  tom_level      0.9
+  hat_closed_decay 32 ms
+  hat_open_decay 340 ms
+  hat_tone       9000 Hz
+  hat_level      0.5
+  cym_decay      1600 ms
+  cym_level      0.45
+  ride_decay     1400 ms
+  ride_level     0.45
+  clap_level     0.55
+  rim_tune       1000 Hz
+  rim_level      1
+  bell_tune      700 Hz
+  bell_decay     260 ms
+  bell_level     0.85
+  clave_tune     2800 Hz
+  clave_level    0.7
+  volume         0.69
+  mac1_d1  #11
+  mac1_a1  0.3
+  mac1_d2  #28
+  mac1_a2  0.3
+  mac1_d3  #6
+  mac1_a3  0.2
+  mac2_d1  #11
+  mac2_a1  -0.5
+  mac2_d2  #28
+  mac2_a2  -0.4
+  mac2_d3  #6
+  mac2_a3  -0.3
+  mac3_d1  #10
+  mac3_a1  -0.3
+  mac3_d2  #25
+  mac3_a2  -0.3
+  mac3_d3  #27
+  mac3_a3  -0.3
+  mac4_d1  #29
+  mac4_a1  0.15
+  mac4_d2  #27
+  mac4_a2  0.3
+  mac5_d1  #7
+  mac5_a1  -0.3
+  mac5_d2  #8
+  mac5_a2  0.3
+  mac5_d3  #9
+  mac5_a3  0.3
+  mac6_d1  #16
+  mac6_a1  0.4
+  mac6_d2  #21
+  mac6_a2  0.3
+  mac7_d1  #35
+  mac7_a1  0.25
+  mac8_d1  #33
+  mac8_a1  0.35
+  mac8_d2  #32
+  mac8_a2  0.2
+  send reverb    0.15
+
+patch Cowbells family=perc
+  # The bell at four tunings' worth of prominence, long enough to ring into
+  # the next one. Everything else is accompaniment and is levelled as such.
+  set macro1 "Shorter"
+  set macro2 "Higher"
+  set macro3 "Lower"
+  set macro4 "Snare"
+  set macro5 "Hats"
+  set macro6 "Weight"
+  set macro7 "Pitch"
+  set macro8 "Push"
+  bell_tune      560 Hz
+  bell_decay     420 ms
+  bell_level     1
+  clave_tune     2200 Hz
+  clave_level    0.7
+  rim_tune       740 Hz
+  rim_level      0.6
+  kick_tune      54 Hz
+  kick_decay     300 ms
+  kick_level     0.8
+  snare_decay    180 ms
+  snare_snappy   0.5
+  snare_level    0.6
+  tom_decay      280 ms
+  tom_level      0.65
+  hat_closed_decay 30 ms
+  hat_open_decay 380 ms
+  hat_level      0.45
+  cym_level      0.36
+  ride_level     0.38
+  clap_level     0.4
+  volume         1.01
+  mac1_d1  #28
+  mac1_a1  -0.6
+  mac1_d2  #2
+  mac1_a2  -0.3
+  mac1_d3  #11
+  mac1_a3  -0.3
+  mac2_d1  #27
+  mac2_a1  0.4
+  mac2_d2  #30
+  mac2_a2  0.3
+  mac2_d3  #25
+  mac2_a3  0.3
+  mac3_d1  #27
+  mac3_a1  -0.4
+  mac3_d2  #30
+  mac3_a2  -0.3
+  mac3_d3  #25
+  mac3_a3  -0.3
+  mac4_d1  #9
+  mac4_a1  0.4
+  mac4_d2  #7
+  mac4_a2  0.3
+  mac5_d1  #16
+  mac5_a1  0.4
+  mac5_d2  #14
+  mac5_a2  0.3
+  mac6_d1  #2
+  mac6_a1  0.3
+  mac6_d2  #1
+  mac6_a2  -0.15
+  mac6_d3  #4
+  mac6_a3  0.15
+  mac7_d1  #35
+  mac7_a1  0.25
+  mac8_d1  #33
+  mac8_a1  0.35
+  mac8_d2  #32
+  mac8_a2  0.2
+
+patch Chordal family=odd
+  # The three toms and the cowbell tuned to a minor seventh, so playing the
+  # pads plays a chord. The kick sits a fifth under the low tom rather than
+  # wherever it landed.
+  set macro1 "Ring"
+  set macro2 "Muted"
+  set macro3 "Fifth"
+  set macro4 "Down"
+  set macro5 "Bell"
+  set macro6 "Snare"
+  set macro7 "Hats"
+  set macro8 "Push"
+  tom_lo_tune    98 Hz
+  tom_mid_tune   117 Hz
+  tom_hi_tune    147 Hz
+  tom_decay      900 ms
+  tom_level      0.95
+  bell_tune      392 Hz
+  bell_decay     560 ms
+  bell_level     0.75
+  kick_tune      65 Hz
+  kick_decay     420 ms
+  kick_punch     0.4
+  snare_tune     196 Hz
+  snare_decay    260 ms
+  snare_snappy   0.3
+  snare_tone     1800 Hz
+  snare_level    0.6
+  clave_tune     1568 Hz
+  rim_tune       784 Hz
+  hat_tune       0.9 x
+  hat_closed_decay 40 ms
+  hat_open_decay 520 ms
+  hat_level      0.5
+  cym_level      0.36
+  ride_level     0.38
+  volume         0.90
+  mac1_d1  #11
+  mac1_a1  0.3
+  mac1_d2  #28
+  mac1_a2  0.3
+  mac1_d3  #2
+  mac1_a3  0.2
+  mac2_d1  #11
+  mac2_a1  -0.5
+  mac2_d2  #28
+  mac2_a2  -0.5
+  mac2_d3  #2
+  mac2_a3  -0.3
+  mac3_d1  #35
+  mac3_a1  0.2917
+  mac4_d1  #35
+  mac4_a1  -0.5
+  mac5_d1  #29
+  mac5_a1  0.25
+  mac5_d2  #28
+  mac5_a2  0.3
+  mac6_d1  #9
+  mac6_a1  0.3
+  mac6_d2  #7
+  mac6_a2  0.3
+  mac7_d1  #16
+  mac7_a1  0.4
+  mac7_d2  #14
+  mac7_a2  0.3
+  mac8_d1  #33
+  mac8_a1  0.4
+  mac8_d2  #32
+  mac8_a2  0.1
+
+patch Bronzework family=odd
   # The cowbell is the instrument: two squares, tuned high and rung long, with
   # the clave above it and everything percussive underneath kept dark and
   # short. Nothing here is trying to be a drum kit.
+  set macro1 "Muted"
+  set macro2 "Lower"
+  set macro3 "Shimmer"
+  set macro4 "Deep"
+  set macro5 "Strike"
+  set macro6 "Skins"
+  set macro7 "Pitch"
+  set macro8 "Push"
   bell_tune      1200 Hz
   bell_decay     600 ms
   bell_level     1
@@ -489,294 +4729,388 @@ patch Gamelan family=metal
   tom_mid_tune   165 Hz
   tom_hi_tune    248 Hz
   tom_decay      600 ms
-  volume         0.76
-
-patch Sizzle family=metal
-  # Open hat and ride held down for as long as they will go, thin and high,
-  # with the closed hat almost absent. A kit for playing the top of the bar.
-  hat_tune       1.7 x
-  hat_tone       12000 Hz
-  hat_closed_decay 15 ms
-  hat_open_decay 2000 ms
-  hat_level      0.75
-  ride_decay     3000 ms
-  ride_level     0.68
-  cym_decay      1800 ms
-  cym_tone       8000 Hz
-  cym_level      0.42
-  kick_tune      50 Hz
-  kick_decay     300 ms
-  snare_decay    170 ms
-  snare_snappy   0.8
-  snare_tone     4400 Hz
-  tom_decay      240 ms
-  accent         0.7
   volume         0.90
+  mac1_d1  #28
+  mac1_a1  -0.6
+  mac1_d2  #17
+  mac1_a2  -0.5
+  mac1_d3  #20
+  mac1_a3  -0.5
+  mac1_d4  #11
+  mac1_a4  -0.4
+  mac2_d1  #27
+  mac2_a1  -0.4
+  mac2_d2  #30
+  mac2_a2  -0.3
+  mac2_d3  #25
+  mac2_a3  -0.3
+  mac3_d1  #19
+  mac3_a1  0.2
+  mac3_d2  #21
+  mac3_a2  0.3
+  mac3_d3  #16
+  mac3_a3  0.3
+  mac4_d1  #1
+  mac4_a1  -0.2
+  mac4_d2  #2
+  mac4_a2  0.3
+  mac4_d3  #11
+  mac4_a3  0.4
+  mac4_d4  #12
+  mac4_a4  0.2
+  mac5_d1  #32
+  mac5_a1  0.3
+  mac5_d2  #3
+  mac5_a2  0.3
+  mac6_d1  #9
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  0.3
+  mac6_d3  #7
+  mac6_a3  0.3
+  mac7_d1  #35
+  mac7_a1  0.25
+  mac8_d1  #33
+  mac8_a1  0.4
+  mac8_d2  #32
+  mac8_a2  0.1
 
-patch Circuitry family=electro
-  # Nothing with any noise in it that can be helped: the snare tuned up and
-  # snapped off, the toms short and swept, the small voices high. A kit that
-  # sounds like it was made of oscillators, because it was.
-  kick_tune      72 Hz
-  kick_decay     160 ms
-  kick_punch     0.95
+patch Windup family=odd
+  # A toy: everything tuned up and cut short, the hat a high rattle and the
+  # bell a ping. The macros wind the pitch and let the toy fall apart.
+  set macro1 "Wind"
+  set macro2 "Wobble"
+  set macro3 "Rattle"
+  set macro4 "Squeak"
+  set macro5 "Mush"
+  set macro6 "Clank"
+  set macro7 "Crumple"
+  set macro8 "Hush"
+  kick_tune      90 Hz
+  kick_decay     120 ms
+  kick_punch     0.7
   snare_tune     380 Hz
-  snare_decay    95 ms
-  snare_snappy   0.15
-  snare_tone     5000 Hz
-  tom_lo_tune    150 Hz
-  tom_mid_tune   225 Hz
-  tom_hi_tune    340 Hz
-  tom_decay      130 ms
-  hat_tune       1.45 x
-  hat_tone       10000 Hz
-  hat_closed_decay 19 ms
-  hat_open_decay 210 ms
-  rim_tune       1350 Hz
-  rim_level      0.85
-  clave_tune     3600 Hz
-  clave_level    0.8
-  bell_tune      1080 Hz
-  bell_decay     70 ms
-  accent         0.9
-  volume         0.87
+  snare_decay    90 ms
+  snare_snappy   0.9
+  snare_tone     5400 Hz
+  tom_lo_tune    190 Hz
+  tom_mid_tune   280 Hz
+  tom_hi_tune    380 Hz
+  tom_decay      140 ms
+  hat_tune       1.6 x
+  hat_tone       11000 Hz
+  hat_closed_decay 20 ms
+  hat_open_decay 160 ms
+  cym_decay      400 ms
+  cym_tone       8500 Hz
+  ride_decay     500 ms
+  clap_decay     90 ms
+  clap_tone      2800 Hz
+  rim_tune       1400 Hz
+  bell_tune      1100 Hz
+  bell_decay     90 ms
+  clave_tune     3800 Hz
+  volume         0.90
+  mac1_d1  #35
+  mac1_a1  0.3
+  mac2_d1  #10
+  mac2_a1  0.4
+  mac2_d2  #1
+  mac2_a2  0.3
+  mac2_d3  #27
+  mac2_a3  -0.3
+  mac2_d4  #30
+  mac2_a4  0.2
+  mac3_d1  #14
+  mac3_a1  0.4
+  mac3_d2  #13
+  mac3_a2  -0.3
+  mac3_d3  #7
+  mac3_a3  -0.4
+  mac3_d4  #22
+  mac3_a4  0.3
+  mac4_d1  #25
+  mac4_a1  0.4
+  mac4_d2  #30
+  mac4_a2  0.3
+  mac4_d3  #27
+  mac4_a3  0.3
+  mac4_d4  #5
+  mac4_a4  0.2
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac5_d2  #11
+  mac5_a2  0.3
+  mac5_d3  #6
+  mac5_a3  0.3
+  mac5_d4  #28
+  mac5_a4  0.3
+  mac6_d1  #17
+  mac6_a1  0.3
+  mac6_d2  #18
+  mac6_a2  -0.4
+  mac6_d3  #20
+  mac6_a3  0.3
+  mac6_d4  #19
+  mac6_a4  0.2
+  mac7_d1  #33
+  mac7_a1  0.4
+  mac7_d2  #35
+  mac7_a2  -0.2
+  mac7_d3  #3
+  mac7_a3  0.3
+  mac8_d1  #34
+  mac8_a1  -0.2
+  mac8_d2  #15
+  mac8_a2  -0.4
+  mac8_d3  #8
+  mac8_a3  -0.4
+  mac8_d4  #23
+  mac8_a4  -0.4
 
-patch Rubber family=electro
-  # A low kick with all its sweep and no click to speak of, toms to match, and
-  # the noise voices pulled well back. Everything bounces rather than hits.
-  kick_tune      40 Hz
-  kick_decay     380 ms
-  kick_punch     1
-  kick_level     1
+patch Molasses family=odd
+  # Everything tuned low and let ring, through a slow, wobbling tape. A kit
+  # played back at the wrong speed.
+  set macro1 "Wake"
+  set macro2 "Sink"
+  set macro3 "Shorter"
+  set macro4 "Snap"
+  set macro5 "Hats"
+  set macro6 "Thick"
+  set macro7 "Clap"
+  set macro8 "Bell"
+  kick_tune      35 Hz
+  kick_decay     1600 ms
+  kick_punch     0.2
+  snare_tune     120 Hz
+  snare_decay    700 ms
+  snare_snappy   0.4
+  snare_tone     900 Hz
   tom_lo_tune    60 Hz
   tom_mid_tune   90 Hz
   tom_hi_tune    120 Hz
-  tom_decay      300 ms
-  snare_tune     160 Hz
-  snare_decay    150 ms
-  snare_snappy   0.1
-  snare_tone     1200 Hz
-  snare_level    0.6
-  hat_tune       0.85 x
-  hat_tone       5400 Hz
-  hat_closed_decay 30 ms
-  hat_open_decay 300 ms
-  hat_level      0.45
-  cym_level      0.2
-  ride_level     0.24
-  clap_level     0.3
-  bell_tune      420 Hz
-  clave_tune     1400 Hz
-  volume         0.82
-
-patch Falling family=electro
-  # The toms given every bit of sweep the machine has and a long tail to fall
-  # down, tuned wide apart so the three of them are an instrument rather than
-  # three sizes of the same one.
-  tom_lo_tune    60 Hz
-  tom_mid_tune   140 Hz
-  tom_hi_tune    330 Hz
-  tom_decay      1500 ms
-  tom_level      1
-  kick_tune      37 Hz
-  kick_decay     900 ms
-  kick_punch     1
-  snare_decay    200 ms
-  snare_snappy   0.5
-  snare_level    0.55
-  hat_closed_decay 35 ms
-  hat_open_decay 700 ms
-  hat_level      0.45
-  cym_decay      2400 ms
-  cym_tone       3400 Hz
-  cym_level      0.35
-  ride_level     0.42
-  accent         0.55
-  volume         0.81
-
-patch Chordal family=electro
-  # The three toms and the cowbell tuned to a minor seventh, so playing the
-  # pads plays a chord. The kick sits a fifth under the low tom rather than
-  # wherever it landed.
-  tom_lo_tune    98 Hz
-  tom_mid_tune   117 Hz
-  tom_hi_tune    147 Hz
-  tom_decay      900 ms
-  tom_level      0.95
-  bell_tune      392 Hz
-  bell_decay     560 ms
-  bell_level     0.75
-  kick_tune      65 Hz
-  kick_decay     420 ms
-  kick_punch     0.4
-  snare_tune     196 Hz
-  snare_decay    260 ms
-  snare_snappy   0.3
-  snare_tone     1800 Hz
-  snare_level    0.6
-  clave_tune     1568 Hz
-  rim_tune       784 Hz
-  hat_tune       0.9 x
-  hat_closed_decay 40 ms
-  hat_open_decay 520 ms
-  hat_level      0.42
-  cym_level      0.26
-  ride_level     0.28
-  volume         0.86
-
-patch Bleep family=electro
-  # Rim and clave at the top of their ranges and everything else out of their
-  # way. Barely a kit: a pattern machine for the small voices.
-  rim_tune       1500 Hz
-  rim_level      1
-  clave_tune     4000 Hz
-  clave_level    1
-  bell_tune      1150 Hz
-  bell_decay     40 ms
-  bell_level     0.8
-  kick_tune      80 Hz
-  kick_decay     140 ms
-  kick_punch     0.8
-  kick_level     0.7
-  snare_tune     340 Hz
-  snare_decay    80 ms
-  snare_snappy   0.2
-  snare_tone     4600 Hz
-  snare_level    0.5
-  tom_decay      110 ms
-  tom_level      0.5
-  hat_tune       1.6 x
-  hat_closed_decay 16 ms
-  hat_open_decay 150 ms
-  hat_level      0.4
-  cym_level      0.16
-  ride_level     0.2
-  clap_level     0.3
-  accent         0.95
+  tom_decay      1200 ms
+  hat_tune       0.5 x
+  hat_closed_decay 220 ms
+  hat_open_decay 2000 ms
+  hat_tone       4000 Hz
+  hat_level      0.7
+  cym_decay      4000 ms
+  cym_tone       2000 Hz
+  cym_level      0.55
+  ride_decay     3000 ms
+  clap_decay     700 ms
+  clap_tone      700 Hz
+  rim_tune       300 Hz
+  bell_tune      300 Hz
+  bell_decay     600 ms
+  clave_tune     1200 Hz
   volume         0.69
+  mac1_d1  #35
+  mac1_a1  0.5
+  mac2_d1  #35
+  mac2_a1  -0.4
+  mac3_d1  #2
+  mac3_a1  -0.5
+  mac3_d2  #6
+  mac3_a2  -0.5
+  mac3_d3  #11
+  mac3_a3  -0.5
+  mac3_d4  #14
+  mac3_a4  -0.5
+  mac4_d1  #7
+  mac4_a1  0.4
+  mac4_d2  #8
+  mac4_a2  0.4
+  mac4_d3  #3
+  mac4_a3  0.3
+  mac5_d1  #16
+  mac5_a1  0.3
+  mac5_d2  #13
+  mac5_a2  0.3
+  mac5_d3  #15
+  mac5_a3  0.3
+  mac6_d1  #33
+  mac6_a1  0.4
+  mac7_d1  #24
+  mac7_a1  0.4
+  mac7_d2  #23
+  mac7_a2  0.3
+  mac8_d1  #29
+  mac8_a1  0.4
+  mac8_d2  #27
+  mac8_a2  0.3
+  insert Tape
+    wow          0.6
+    flutter      0.2
+    drive        0.3
+    tone         6000 Hz
+    hiss         0
+    age          0.4
 
-patch Handclap family=perc
-  # Built around the clap and committed to it: long, dark and at the top, with
-  # the snare most of the way out so the two do not double each other, and the
-  # metal down so there is room.
-  clap_decay     760 ms
-  clap_tone      820 Hz
-  clap_level     1
-  snare_level    0.28
-  snare_decay    140 ms
-  snare_snappy   0.3
-  kick_tune      50 Hz
-  kick_decay     320 ms
+patch Busted family=odd
+  # Wired up wrong: the closed hat never closes and the open one stops short,
+  # the toms out of order, the snare all rattle, through a crusher that slips.
+  set macro1 "Fix"
+  set macro2 "Rattle"
+  set macro3 "Crack"
+  set macro4 "Sag"
+  set macro5 "Clank"
+  set macro6 "Hiss"
+  set macro7 "Pitch"
+  set macro8 "Hush"
+  kick_tune      46 Hz
+  kick_decay     700 ms
+  kick_punch     1
   kick_level     1
-  hat_closed_decay 34 ms
-  hat_open_decay 240 ms
-  hat_level      0.38
-  cym_level      0.25
-  ride_level     0.3
-  bell_level     0.35
-  rim_level      0.4
-  volume         0.82
-
-patch Clapback family=perc
-  # The clap at the other end of its range: short, bright and tight, three
-  # pulses you can hear as three. Snare kept in this time, underneath it.
+  snare_tune     150 Hz
+  snare_decay    400 ms
+  snare_snappy   0.95
+  snare_tone     1000 Hz
+  tom_lo_tune    180 Hz
+  tom_mid_tune   95 Hz
+  tom_hi_tune    260 Hz
+  hat_tune       0.6 x
+  hat_closed_decay 300 ms
+  hat_open_decay 120 ms
+  hat_tone       12000 Hz
+  cym_decay      200 ms
+  cym_tone       9000 Hz
+  ride_decay     3000 ms
   clap_decay     50 ms
   clap_tone      3000 Hz
-  clap_level     1
-  snare_tune     220 Hz
-  snare_decay    120 ms
-  snare_snappy   0.7
-  snare_tone     3400 Hz
-  snare_level    0.75
-  kick_tune      58 Hz
-  kick_decay     230 ms
-  kick_punch     0.7
-  hat_closed_decay 22 ms
-  hat_open_decay 260 ms
-  hat_tone       9600 Hz
-  tom_decay      200 ms
-  accent         0.85
-  volume         0.51
+  rim_tune       1500 Hz
+  bell_tune      340 Hz
+  bell_decay     600 ms
+  clave_tune     1200 Hz
+  drive          1.2
+  volume         0.33
+  mac1_d1  #14
+  mac1_a1  -0.6
+  mac1_d2  #6
+  mac1_a2  -0.4
+  mac1_d3  #2
+  mac1_a3  -0.3
+  mac1_d4  #33
+  mac1_a4  -0.3
+  mac2_d1  #7
+  mac2_a1  0.3
+  mac2_d2  #14
+  mac2_a2  0.3
+  mac2_d3  #6
+  mac2_a3  0.3
+  mac3_d1  #33
+  mac3_a1  0.5
+  mac3_d2  #32
+  mac3_a2  0.3
+  mac4_d1  #35
+  mac4_a1  -0.3
+  mac4_d2  #1
+  mac4_a2  -0.2
+  mac5_d1  #29
+  mac5_a1  0.3
+  mac5_d2  #26
+  mac5_a2  0.2
+  mac5_d3  #28
+  mac5_a3  0.3
+  mac6_d1  #16
+  mac6_a1  0.3
+  mac6_d2  #15
+  mac6_a2  0.3
+  mac6_d3  #19
+  mac6_a3  0.3
+  mac7_d1  #35
+  mac7_a1  0.25
+  mac8_d1  #34
+  mac8_a1  -0.3
+  mac8_d2  #33
+  mac8_a2  -0.2
+  insert Bitcrusher
+    bits         7
+    rate         7000 Hz
+    jitter       0.6
+    mix          0.5
 
-patch Blocks family=perc
-  # Rim and clave carrying, both tuned into the wood range, with the toms up
-  # under them as the low blocks. The cowbell is the odd one out and is kept
-  # short so it reads as a block too.
-  rim_tune       620 Hz
-  rim_level      1
-  clave_tune     1900 Hz
-  clave_level    0.95
-  bell_tune      760 Hz
-  bell_decay     55 ms
-  bell_level     0.8
-  tom_lo_tune    118 Hz
-  tom_mid_tune   172 Hz
-  tom_hi_tune    252 Hz
-  tom_decay      160 ms
-  tom_level      0.9
-  kick_tune      74 Hz
-  kick_decay     150 ms
-  kick_punch     0.8
-  snare_snappy   0.25
-  snare_tune     290 Hz
-  snare_decay    100 ms
-  snare_level    0.6
-  hat_tone       5800 Hz
-  hat_closed_decay 21 ms
-  hat_open_decay 170 ms
-  hat_level      0.45
-  cym_level      0.34
-  ride_level     0.34
-  volume         0.82
-
-patch Cowbells family=perc
-  # The bell at four tunings' worth of prominence, long enough to ring into
-  # the next one. Everything else is accompaniment and is levelled as such.
-  bell_tune      560 Hz
-  bell_decay     420 ms
-  bell_level     1
-  clave_tune     2200 Hz
-  clave_level    0.7
-  rim_tune       740 Hz
-  rim_level      0.6
-  kick_tune      54 Hz
-  kick_decay     300 ms
-  kick_level     0.8
-  snare_decay    180 ms
+patch Glitchy family=odd
+  # Every voice cut down to a click or a blip, high and short, crushed and
+  # thrown into a quick echo that stutters.
+  set macro1 "Longer"
+  set macro2 "Drop"
+  set macro3 "Noise"
+  set macro4 "Clicks"
+  set macro5 "Thump"
+  set macro6 "Crunch"
+  set macro7 "Pitch"
+  set macro8 "Hush"
+  kick_tune      120 Hz
+  kick_decay     50 ms
+  kick_punch     1
+  snare_tune     400 Hz
+  snare_decay    50 ms
   snare_snappy   0.5
-  snare_level    0.6
-  tom_decay      280 ms
-  tom_level      0.65
-  hat_closed_decay 30 ms
-  hat_open_decay 380 ms
-  hat_level      0.45
-  cym_level      0.26
-  ride_level     0.3
-  clap_level     0.4
-  volume         0.80
-
-patch Sidestick family=perc
-  # The rim doing the snare's job for a whole song, which is what a sidestick
-  # is for. The snare is still there, right down, for the fills.
-  rim_tune       800 Hz
-  rim_level      1
-  snare_level    0.22
-  snare_decay    150 ms
-  snare_snappy   0.6
-  kick_tune      52 Hz
-  kick_decay     340 ms
-  kick_punch     0.5
-  kick_level     0.95
-  hat_closed_decay 36 ms
-  hat_open_decay 440 ms
-  hat_tone       7600 Hz
-  hat_level      0.55
-  cym_decay      1600 ms
-  cym_level      0.34
-  ride_decay     1100 ms
-  ride_level     0.42
-  clap_level     0.35
-  bell_level     0.35
-  clave_level    0.45
-  tom_decay      320 ms
-  volume         0.82
+  snare_tone     6000 Hz
+  tom_lo_tune    200 Hz
+  tom_mid_tune   300 Hz
+  tom_hi_tune    400 Hz
+  tom_decay      50 ms
+  hat_tune       2 x
+  hat_closed_decay 15 ms
+  hat_open_decay 100 ms
+  hat_tone       12000 Hz
+  cym_decay      200 ms
+  cym_tone       9000 Hz
+  ride_decay     200 ms
+  clap_decay     50 ms
+  clap_tone      3000 Hz
+  rim_tune       1500 Hz
+  bell_tune      1200 Hz
+  bell_decay     30 ms
+  clave_tune     4000 Hz
+  volume         0.85
+  hat_level      0.75
+  mac1_d1  #2
+  mac1_a1  0.5
+  mac1_d2  #6
+  mac1_a2  0.4
+  mac1_d3  #11
+  mac1_a3  0.5
+  mac1_d4  #14
+  mac1_a4  0.4
+  mac2_d1  #35
+  mac2_a1  -0.6
+  mac3_d1  #7
+  mac3_a1  0.4
+  mac3_d2  #16
+  mac3_a2  0.3
+  mac3_d3  #24
+  mac3_a3  0.3
+  mac4_d1  #26
+  mac4_a1  0.2
+  mac4_d2  #31
+  mac4_a2  0.2
+  mac4_d3  #29
+  mac4_a3  0.3
+  mac5_d1  #1
+  mac5_a1  -0.6
+  mac5_d2  #2
+  mac5_a2  0.4
+  mac5_d3  #4
+  mac5_a3  0.1
+  mac6_d1  #33
+  mac6_a1  0.5
+  mac7_d1  #35
+  mac7_a1  0.3
+  mac8_d1  #34
+  mac8_a1  -0.3
+  mac8_d2  #32
+  mac8_a2  -0.3
+  insert Bitcrusher
+    bits         10
+    rate         4000 Hz
+    jitter       0.8
+    mix          0.6
+  insert Delay
+    time         #0
+    feedback     0.6
+    pingpong     #1
+    mix          0.3

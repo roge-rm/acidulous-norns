@@ -1,4 +1,4 @@
-# Mosaic - thirty-six patches and an Init, voiced against the debug build.
+# Mosaic - fifty-five patches and an Init, voiced against the debug build.
 #
 # Mosaic plays a *map*: samples laid out across the keyboard in zones, with
 # crossfades between them by key and by velocity, and a layer scan that moves
@@ -41,7 +41,20 @@
 #             #10 filter freq #11 filter res #12 amp #13 pan
 #             #14 lfo1 rate #15 lfo2 rate
 #
-# Families: keys, pad, grain, motion, lead, texture.
+# Families: keys, pad, lead, bass, grain, motion, texture.
+#
+# Every patch but Init carries eight named macros. Destinations are numbered
+# as in Mosaic.h's MacroDest: #1 scan, #2 scan amount, #3 start,
+# #4 grain position, #5 grain rate, #6 grain size, #7 grain density,
+# #8 grain spray, #9 grain pitch, #10 attack, #11 decay, #12 sustain,
+# #13 release, #14 cutoff, #15 resonance, #16 filter env, #17 filter decay,
+# #18 pitch (24 semitones a unit), #19 glide, #20 lfo 1 rate, #21 lfo 2 rate,
+# #22 velocity, #23 velocity to filter, #24 volume, #25..#32 the depths of
+# matrix rows 1..8. Each family has its own set of eight; Deeper and Faster
+# act on the patch's first matrix row and its LFO. A macro whose knob has no
+# room left goes the other way under the opposite name (Bright, Struck,
+# Shorter, Softer...). Where a macro at full moves the level by more than
+# 1 dB, a volume route takes it back out.
 #
 # Values are in each parameter's own units; `audition params Mosaic` lists
 # them. A patch names only what it changes.
@@ -85,6 +98,52 @@ patch Felt family=keys
   keyfade        6 st
   velfade        24
   volume         1.00
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.125
+  mac1_d2  #24
+  mac1_a2  0.165
+  set macro2 "Harder"
+  mac2_d1  #16
+  mac2_a1  0.3
+  mac2_d2  #23
+  mac2_a2  0.4
+  mac2_d3  #24
+  mac2_a3  -0.086
+  set macro3 "Longer"
+  mac3_d1  #11
+  mac3_a1  0.15
+  mac3_d2  #13
+  mac3_a2  0.15
+  set macro4 "Bowed"
+  mac4_d1  #3
+  mac4_a1  0.08
+  mac4_d2  #10
+  mac4_a2  0.08
+  mac4_d3  #24
+  mac4_a3  0.333
+  set macro5 "Hard Layer"
+  mac5_d1  #2
+  mac5_a1  0.7
+  mac5_d2  #1
+  mac5_a2  0.35
+  mac5_d3  #24
+  mac5_a3  0.09
+  set macro6 "Ring"
+  mac6_d1  #15
+  mac6_a1  0.45
+  mac6_d2  #14
+  mac6_a2  -0.1
+  set macro7 "Even"
+  mac7_d1  #22
+  mac7_a1  -0.6
+  mac7_d2  #24
+  mac7_a2  -0.167
+  set macro8 "Octave Up"
+  mac8_d1  #18
+  mac8_a1  0.5
+  mac8_d2  #24
+  mac8_a2  0.117
 
 patch Mallets family=keys
   # No sustain at all, so every note is the strike and the first part of the
@@ -101,6 +160,46 @@ patch Mallets family=keys
   loop           #1
   keyfade        3 st
   volume         0.55
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.248
+  set macro2 "Harder"
+  mac2_d1  #16
+  mac2_a1  0.3
+  mac2_d2  #23
+  mac2_a2  0.4
+  set macro3 "Longer"
+  mac3_d1  #11
+  mac3_a1  0.15
+  mac3_d2  #13
+  mac3_a2  0.15
+  mac3_d3  #24
+  mac3_a3  -0.116
+  set macro4 "Bowed"
+  mac4_d1  #3
+  mac4_a1  0.08
+  mac4_d2  #10
+  mac4_a2  0.08
+  mac4_d3  #24
+  mac4_a3  0.1
+  set macro5 "Hard Layer"
+  mac5_d1  #2
+  mac5_a1  0.7
+  mac5_d2  #1
+  mac5_a2  0.35
+  set macro6 "Ring"
+  mac6_d1  #15
+  mac6_a1  0.45
+  mac6_d2  #14
+  mac6_a2  -0.1
+  set macro7 "Even"
+  mac7_d1  #22
+  mac7_a1  -0.6
+  mac7_d2  #24
+  mac7_a2  -0.092
+  set macro8 "Octave Up"
+  mac8_d1  #18
+  mac8_a1  0.5
 
 patch Electric family=keys
   # A tine: the attack kept, the body shortened, and a slow tremolo put on the
@@ -123,6 +222,46 @@ patch Electric family=keys
   velamt         1
   veltofilter    0.45
   volume         1.03
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.222
+  set macro2 "Harder"
+  mac2_d1  #16
+  mac2_a1  0.3
+  mac2_d2  #23
+  mac2_a2  0.4
+  set macro3 "Longer"
+  mac3_d1  #11
+  mac3_a1  0.15
+  mac3_d2  #13
+  mac3_a2  0.15
+  mac3_d3  #24
+  mac3_a3  -0.082
+  set macro4 "Bowed"
+  mac4_d1  #3
+  mac4_a1  0.08
+  mac4_d2  #10
+  mac4_a2  0.08
+  mac4_d3  #24
+  mac4_a3  0.111
+  set macro5 "Hard Layer"
+  mac5_d1  #2
+  mac5_a1  0.7
+  mac5_d2  #1
+  mac5_a2  0.35
+  set macro6 "Ring"
+  mac6_d1  #15
+  mac6_a1  0.45
+  mac6_d2  #14
+  mac6_a2  -0.1
+  set macro7 "Even"
+  mac7_d1  #22
+  mac7_a1  -0.6
+  mac7_d2  #24
+  mac7_a2  -0.166
+  set macro8 "Octave Up"
+  mac8_d1  #18
+  mac8_a1  0.5
 
 patch Clav family=keys
   # Short, hard and band-passed, with velocity opening the filter a long way.
@@ -142,6 +281,48 @@ patch Clav family=keys
   veltofilter    0.45
   loop           #1
   volume         0.99
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.0983
+  set macro2 "Harder"
+  mac2_d1  #16
+  mac2_a1  0.25
+  mac2_d2  #23
+  mac2_a2  0.4
+  set macro3 "Longer"
+  mac3_d1  #11
+  mac3_a1  0.15
+  mac3_d2  #13
+  mac3_a2  0.15
+  mac3_d3  #24
+  mac3_a3  -0.239
+  set macro4 "Bowed"
+  mac4_d1  #3
+  mac4_a1  0.08
+  mac4_d2  #10
+  mac4_a2  0.08
+  mac4_d3  #24
+  mac4_a3  0.098
+  set macro5 "Hard Layer"
+  mac5_d1  #2
+  mac5_a1  0.7
+  mac5_d2  #1
+  mac5_a2  0.35
+  set macro6 "Ring"
+  mac6_d1  #15
+  mac6_a1  0.45
+  mac6_d2  #14
+  mac6_a2  -0.0983
+  mac6_d3  #24
+  mac6_a3  -0.198
+  set macro7 "Even"
+  mac7_d1  #22
+  mac7_a1  -0.6
+  mac7_d2  #24
+  mac7_a2  -0.165
+  set macro8 "Octave Up"
+  mac8_d1  #18
+  mac8_a1  0.5
 
 patch "Bell Keys" family=keys
   # Up an octave with the body left to ring, so the upper partials - the ones
@@ -155,6 +336,52 @@ patch "Bell Keys" family=keys
   keyfade        8 st
   velfade        30
   volume         0.89
+  set macro1 "Body"
+  mac1_d1  #14
+  mac1_a1  -0.25
+  mac1_d2  #24
+  mac1_a2  -0.306
+  set macro2 "Swell"
+  mac2_d1  #10
+  mac2_a1  0.15
+  mac2_d2  #13
+  mac2_a2  0.1
+  set macro3 "Longer"
+  mac3_d1  #11
+  mac3_a1  0.148
+  mac3_d2  #13
+  mac3_a2  0.15
+  set macro4 "Bowed"
+  mac4_d1  #3
+  mac4_a1  0.08
+  mac4_d2  #10
+  mac4_a2  0.08
+  mac4_d3  #24
+  mac4_a3  0.407
+  set macro5 "Hard Layer"
+  mac5_d1  #2
+  mac5_a1  0.7
+  mac5_d2  #1
+  mac5_a2  0.35
+  mac5_d3  #24
+  mac5_a3  0.12
+  set macro6 "Ring"
+  mac6_d1  #15
+  mac6_a1  0.45
+  mac6_d2  #14
+  mac6_a2  -0.1
+  mac6_d3  #24
+  mac6_a3  -0.293
+  set macro7 "Even"
+  mac7_d1  #22
+  mac7_a1  -0.6
+  mac7_d2  #24
+  mac7_a2  -0.148
+  set macro8 "Octave Up"
+  mac8_d1  #18
+  mac8_a1  0.5
+  mac8_d2  #24
+  mac8_a2  -0.168
 
 patch Undertow family=keys
   # Down two octaves and low-passed hard: the map's bottom zone stretched
@@ -171,6 +398,206 @@ patch Undertow family=keys
   f_key          0.4
   keyfade        10 st
   volume         0.76
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.111
+  mac1_d2  #24
+  mac1_a2  0.043
+  set macro2 "Harder"
+  mac2_d1  #16
+  mac2_a1  0.3
+  mac2_d2  #23
+  mac2_a2  0.4
+  set macro3 "Longer"
+  mac3_d1  #11
+  mac3_a1  0.123
+  mac3_d2  #13
+  mac3_a2  0.15
+  set macro4 "Bowed"
+  mac4_d1  #3
+  mac4_a1  0.08
+  mac4_d2  #10
+  mac4_a2  0.08
+  mac4_d3  #24
+  mac4_a3  0.217
+  set macro5 "Hard Layer"
+  mac5_d1  #2
+  mac5_a1  0.7
+  mac5_d2  #1
+  mac5_a2  0.35
+  set macro6 "Ring"
+  mac6_d1  #15
+  mac6_a1  0.45
+  mac6_d2  #14
+  mac6_a2  -0.1
+  set macro7 "Even"
+  mac7_d1  #22
+  mac7_a1  -0.6
+  mac7_d2  #24
+  mac7_a2  -0.127
+  set macro8 "Octave Up"
+  mac8_d1  #18
+  mac8_a1  0.5
+  mac8_d2  #24
+  mac8_a2  -0.127
+
+patch "Plain Keys" family=keys
+  # The map as it is, with the velocity layers left to the hands and a
+  # short release: what a sampled instrument sounds like before anything
+  # is done to it.
+  a_decay        6 s
+  a_sustain      0.6
+  a_release      0.25 s
+  volume         0.828
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.25
+  set macro2 "Harder"
+  mac2_d1  #16
+  mac2_a1  0.3
+  mac2_d2  #23
+  mac2_a2  0.4
+  set macro3 "Longer"
+  mac3_d1  #11
+  mac3_a1  0.103
+  mac3_d2  #13
+  mac3_a2  0.15
+  set macro4 "Bowed"
+  mac4_d1  #3
+  mac4_a1  0.08
+  mac4_d2  #10
+  mac4_a2  0.08
+  mac4_d3  #24
+  mac4_a3  0.089
+  set macro5 "Hard Layer"
+  mac5_d1  #2
+  mac5_a1  0.7
+  mac5_d2  #1
+  mac5_a2  0.35
+  set macro6 "Ring"
+  mac6_d1  #15
+  mac6_a1  0.45
+  mac6_d2  #14
+  mac6_a2  -0.1
+  set macro7 "Even"
+  mac7_d1  #22
+  mac7_a1  -0.6
+  mac7_d2  #24
+  mac7_a2  -0.133
+  set macro8 "Octave Up"
+  mac8_d1  #18
+  mac8_a1  0.5
+
+patch "Hard Hammer" family=keys
+  # Velocity opens the filter as well as the level, and the filter closes
+  # behind the hammer, so a hard note is bright for a moment and a soft one
+  # stays dark.
+  a_decay        5 s
+  a_sustain      0.5
+  a_release      0.35 s
+  f_type         #3
+  f_freq         1400 Hz
+  f_env          0.5
+  f_decay        0.4 s
+  f_sustain      0.2
+  veltofilter    0.8
+  volume         0.847
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.143
+  set macro2 "Harder"
+  mac2_d1  #16
+  mac2_a1  0.25
+  mac2_d2  #23
+  mac2_a2  0.2
+  set macro3 "Longer"
+  mac3_d1  #11
+  mac3_a1  0.123
+  mac3_d2  #13
+  mac3_a2  0.15
+  set macro4 "Bowed"
+  mac4_d1  #3
+  mac4_a1  0.08
+  mac4_d2  #10
+  mac4_a2  0.08
+  mac4_d3  #24
+  mac4_a3  0.084
+  set macro5 "Hard Layer"
+  mac5_d1  #2
+  mac5_a1  0.7
+  mac5_d2  #1
+  mac5_a2  0.35
+  set macro6 "Ring"
+  mac6_d1  #15
+  mac6_a1  0.45
+  mac6_d2  #14
+  mac6_a2  -0.1
+  set macro7 "Even"
+  mac7_d1  #22
+  mac7_a1  -0.6
+  mac7_d2  #24
+  mac7_a2  -0.141
+  set macro8 "Octave Up"
+  mac8_d1  #18
+  mac8_a1  0.5
+
+patch "Music Box" family=keys
+  # Up two octaves, short and thinned out underneath, with no loop, so each
+  # note is a small plucked tine that rings off by itself.
+  octave         2
+  loop           #1
+  a_decay        1.4 s
+  a_sustain      0
+  a_release      0.8 s
+  f_type         #5
+  f_freq         500 Hz
+  volume         1.07
+  set macro1 "Body"
+  mac1_d1  #14
+  mac1_a1  -0.25
+  mac1_d2  #24
+  mac1_a2  -0.214
+  set macro2 "Swell"
+  mac2_d1  #10
+  mac2_a1  0.15
+  mac2_d2  #13
+  mac2_a2  0.1
+  set macro3 "Longer"
+  mac3_d1  #11
+  mac3_a1  0.15
+  mac3_d2  #13
+  mac3_a2  0.15
+  mac3_d3  #24
+  mac3_a3  -0.14
+  set macro4 "Bowed"
+  mac4_d1  #3
+  mac4_a1  0.08
+  mac4_d2  #10
+  mac4_a2  0.08
+  mac4_d3  #24
+  mac4_a3  0.106
+  set macro5 "Hard Layer"
+  mac5_d1  #2
+  mac5_a1  0.7
+  mac5_d2  #1
+  mac5_a2  0.35
+  set macro6 "Ring"
+  mac6_d1  #15
+  mac6_a1  0.45
+  mac6_d2  #14
+  mac6_a2  -0.1
+  mac6_d3  #24
+  mac6_a3  -0.242
+  set macro7 "Even"
+  mac7_d1  #22
+  mac7_a1  -0.6
+  mac7_d2  #24
+  mac7_a2  -0.178
+  set macro8 "Octave Up"
+  mac8_d1  #18
+  mac8_a1  0.5
+  mac8_d2  #24
+  mac8_a2  -0.153
 
 patch "Soft Pad" family=pad
   # The start moved past the transient entirely, so there is no strike left -
@@ -189,6 +616,44 @@ patch "Soft Pad" family=pad
   velfade        20
   loop           #2
   volume         0.99
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.209
+  set macro2 "Slower"
+  mac2_d1  #10
+  mac2_a1  0.08
+  mac2_d2  #13
+  mac2_a2  0.12
+  set macro3 "Bowed"
+  mac3_d1  #3
+  mac3_a1  0.12
+  mac3_d2  #24
+  mac3_a2  -0.193
+  set macro4 "Fade"
+  mac4_d1  #12
+  mac4_a1  -0.5
+  mac4_d2  #11
+  mac4_a2  0.1
+  set macro5 "Hard Layer"
+  mac5_d1  #2
+  mac5_a1  0.7
+  mac5_d2  #1
+  mac5_a2  0.35
+  set macro6 "Ring"
+  mac6_d1  #15
+  mac6_a1  0.45
+  mac6_d2  #14
+  mac6_a2  -0.1
+  set macro7 "Octave Up"
+  mac7_d1  #18
+  mac7_a1  0.5
+  mac7_d2  #24
+  mac7_a2  -0.124
+  set macro8 "Even"
+  mac8_d1  #22
+  mac8_a1  -0.6
+  mac8_d2  #24
+  mac8_a2  -0.165
 
 patch "Warm Wash" family=pad
   # Two slow LFOs on the filter at rates that do not divide into each other,
@@ -216,6 +681,40 @@ patch "Warm Wash" family=pad
   keyfade        8 st
   loop           #2
   volume         0.72
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.182
+  set macro2 "Slower"
+  mac2_d1  #10
+  mac2_a1  0.08
+  mac2_d2  #13
+  mac2_a2  0.12
+  set macro3 "Bowed"
+  mac3_d1  #3
+  mac3_a1  0.12
+  mac3_d2  #24
+  mac3_a2  0.23
+  set macro4 "Fade"
+  mac4_d1  #12
+  mac4_a1  -0.5
+  mac4_d2  #11
+  mac4_a2  0.1
+  set macro5 "Hard Layer"
+  mac5_d1  #2
+  mac5_a1  0.7
+  mac5_d2  #1
+  mac5_a2  0.35
+  set macro6 "Ring"
+  mac6_d1  #15
+  mac6_a1  0.45
+  mac6_d2  #14
+  mac6_a2  -0.1
+  set macro7 "Octave Up"
+  mac7_d1  #18
+  mac7_a1  0.5
+  set macro8 "Deeper"
+  mac8_d1  #25
+  mac8_a1  0.25
 
 patch "Glass Pad" family=pad
   # High-passed gently, so the fundamental is thinned rather than removed.
@@ -238,6 +737,46 @@ patch "Glass Pad" family=pad
   velfade        40
   loop           #2
   volume         0.85
+  set macro1 "Body"
+  mac1_d1  #14
+  mac1_a1  -0.25
+  mac1_d2  #24
+  mac1_a2  -0.201
+  set macro2 "Slower"
+  mac2_d1  #10
+  mac2_a1  0.08
+  mac2_d2  #13
+  mac2_a2  0.12
+  set macro3 "Bowed"
+  mac3_d1  #3
+  mac3_a1  0.12
+  set macro4 "Fade"
+  mac4_d1  #12
+  mac4_a1  -0.5
+  mac4_d2  #11
+  mac4_a2  0.1
+  set macro5 "Hard Layer"
+  mac5_d1  #2
+  mac5_a1  0.7
+  mac5_d2  #1
+  mac5_a2  0.35
+  set macro6 "Ring"
+  mac6_d1  #15
+  mac6_a1  0.45
+  mac6_d2  #14
+  mac6_a2  -0.1
+  mac6_d3  #24
+  mac6_a3  -0.132
+  set macro7 "Octave Up"
+  mac7_d1  #18
+  mac7_a1  0.5
+  mac7_d2  #24
+  mac7_a2  -0.165
+  set macro8 "Even"
+  mac8_d1  #22
+  mac8_a1  -0.6
+  mac8_d2  #24
+  mac8_a2  -0.142
 
 patch "Slow Swell" family=pad
   # The amp envelope doing all of it: four seconds up, four back down, and an
@@ -259,6 +798,40 @@ patch "Slow Swell" family=pad
   loop           #2
   keyfade        6 st
   volume         0.82
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.125
+  set macro2 "Slower"
+  mac2_d1  #10
+  mac2_a1  0.08
+  mac2_d2  #13
+  mac2_a2  0.12
+  set macro3 "Bowed"
+  mac3_d1  #3
+  mac3_a1  0.12
+  mac3_d2  #24
+  mac3_a2  0.111
+  set macro4 "Fade"
+  mac4_d1  #12
+  mac4_a1  -0.5
+  mac4_d2  #11
+  mac4_a2  0.0705
+  set macro5 "Hard Layer"
+  mac5_d1  #2
+  mac5_a1  0.7
+  mac5_d2  #1
+  mac5_a2  0.35
+  set macro6 "Ring"
+  mac6_d1  #15
+  mac6_a1  0.45
+  mac6_d2  #14
+  mac6_a2  -0.1
+  set macro7 "Octave Up"
+  mac7_d1  #18
+  mac7_a1  0.5
+  set macro8 "Deeper"
+  mac8_d1  #25
+  mac8_a1  0.225
 
 patch "Dark Pad" family=pad
   # Everything above two kilohertz gone and the grains taken from deep in the
@@ -277,6 +850,44 @@ patch "Dark Pad" family=pad
   f_res          0.15
   keyfade        6 st
   volume         1.07
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.152
+  mac1_d2  #24
+  mac1_a2  0.1
+  set macro2 "Slower"
+  mac2_d1  #10
+  mac2_a1  0.08
+  mac2_d2  #13
+  mac2_a2  0.12
+  set macro3 "Bowed"
+  mac3_d1  #3
+  mac3_a1  0.12
+  set macro4 "Fade"
+  mac4_d1  #12
+  mac4_a1  -0.5
+  mac4_d2  #11
+  mac4_a2  0.1
+  mac4_d3  #24
+  mac4_a3  0.195
+  set macro5 "Hard Layer"
+  mac5_d1  #2
+  mac5_a1  0.7
+  mac5_d2  #1
+  mac5_a2  0.35
+  set macro6 "Ring"
+  mac6_d1  #15
+  mac6_a1  0.45
+  mac6_d2  #14
+  mac6_a2  -0.1
+  set macro7 "Octave Up"
+  mac7_d1  #18
+  mac7_a1  0.5
+  set macro8 "Even"
+  mac8_d1  #22
+  mac8_a1  -0.6
+  mac8_d2  #24
+  mac8_a2  -0.178
 
 patch "Choir Fade" family=pad
   # Velocity crossfading across the whole range the map has, so how hard you
@@ -294,6 +905,991 @@ patch "Choir Fade" family=pad
   veltofilter    0.2
   loop           #2
   volume         0.46
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.222
+  set macro2 "Slower"
+  mac2_d1  #10
+  mac2_a1  0.08
+  mac2_d2  #13
+  mac2_a2  0.12
+  mac2_d3  #24
+  mac2_a3  0.102
+  set macro3 "Bowed"
+  mac3_d1  #3
+  mac3_a1  0.12
+  mac3_d2  #24
+  mac3_a2  0.349
+  set macro4 "Fade"
+  mac4_d1  #12
+  mac4_a1  -0.5
+  mac4_d2  #11
+  mac4_a2  0.0854
+  set macro5 "Hard Layer"
+  mac5_d1  #2
+  mac5_a1  0.7
+  mac5_d2  #1
+  mac5_a2  0.35
+  mac5_d3  #24
+  mac5_a3  0.066
+  set macro6 "Ring"
+  mac6_d1  #15
+  mac6_a1  0.45
+  mac6_d2  #14
+  mac6_a2  -0.1
+  set macro7 "Octave Up"
+  mac7_d1  #18
+  mac7_a1  0.5
+  mac7_d2  #24
+  mac7_a2  0.075
+  set macro8 "Even"
+  mac8_d1  #22
+  mac8_a1  -0.5
+  mac8_d2  #24
+  mac8_a2  -0.066
+
+patch "Bowed Swell" family=pad
+  # Started past the hammer and faded in slowly, with a little delayed
+  # vibrato, so a struck sample is played like a bowed one.
+  start          0.12
+  a_attack       0.9 s
+  a_sustain      1
+  a_release      1.6 s
+  l1_wave        #0
+  l1_rate        5 Hz
+  l1_delay       0.8 s
+  m01_src        #11
+  m01_dest       #1
+  m01_depth      0.006
+  f_freq         6000 Hz
+  volume         1.1
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.248
+  set macro2 "Slower"
+  mac2_d1  #10
+  mac2_a1  0.08
+  mac2_d2  #13
+  mac2_a2  0.12
+  set macro3 "Bowed"
+  mac3_d1  #3
+  mac3_a1  0.12
+  set macro4 "Fade"
+  mac4_d1  #12
+  mac4_a1  -0.5
+  mac4_d2  #11
+  mac4_a2  0.1
+  set macro5 "Hard Layer"
+  mac5_d1  #2
+  mac5_a1  0.7
+  mac5_d2  #1
+  mac5_a2  0.35
+  set macro6 "Ring"
+  mac6_d1  #15
+  mac6_a1  0.45
+  mac6_d2  #14
+  mac6_a2  -0.1
+  set macro7 "Octave Up"
+  mac7_d1  #18
+  mac7_a1  0.5
+  set macro8 "Deeper"
+  mac8_d1  #25
+  mac8_a1  0.25
+
+patch Velvet family=pad
+  # A soft, dark pad: a gentle low-pass that lets velocity through only a
+  # little, a slow attack and a long release.
+  start          0.03
+  a_attack       0.35 s
+  a_release      2 s
+  f_type         #1
+  f_freq         1600 Hz
+  veltofilter    0.3
+  volume         0.919
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.152
+  mac1_d2  #24
+  mac1_a2  0.083
+  set macro2 "Slower"
+  mac2_d1  #10
+  mac2_a1  0.08
+  mac2_d2  #13
+  mac2_a2  0.12
+  set macro3 "Bowed"
+  mac3_d1  #3
+  mac3_a1  0.12
+  mac3_d2  #24
+  mac3_a2  0.107
+  set macro4 "Fade"
+  mac4_d1  #12
+  mac4_a1  -0.5
+  mac4_d2  #11
+  mac4_a2  0.1
+  set macro5 "Hard Layer"
+  mac5_d1  #2
+  mac5_a1  0.7
+  mac5_d2  #1
+  mac5_a2  0.35
+  set macro6 "Ring"
+  mac6_d1  #15
+  mac6_a1  0.45
+  mac6_d2  #14
+  mac6_a2  -0.1
+  set macro7 "Octave Up"
+  mac7_d1  #18
+  mac7_a1  0.5
+  set macro8 "Even"
+  mac8_d1  #22
+  mac8_a1  -0.6
+  mac8_d2  #24
+  mac8_a2  -0.153
+
+patch "Far Away" family=pad
+  # Muffled and slowly faded in and out, as if it were coming from the
+  # next room.
+  start          0.05
+  a_attack       0.6 s
+  a_release      2.5 s
+  f_type         #1
+  f_freq         700 Hz
+  volume         1.08
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.0923
+  mac1_d2  #24
+  mac1_a2  0.093
+  set macro2 "Slower"
+  mac2_d1  #10
+  mac2_a1  0.08
+  mac2_d2  #13
+  mac2_a2  0.12
+  set macro3 "Bowed"
+  mac3_d1  #3
+  mac3_a1  0.12
+  mac3_d2  #24
+  mac3_a2  0.107
+  set macro4 "Fade"
+  mac4_d1  #12
+  mac4_a1  -0.5
+  mac4_d2  #11
+  mac4_a2  0.1
+  set macro5 "Hard Layer"
+  mac5_d1  #2
+  mac5_a1  0.7
+  mac5_d2  #1
+  mac5_a2  0.35
+  set macro6 "Ring"
+  mac6_d1  #15
+  mac6_a1  0.45
+  mac6_d2  #14
+  mac6_a2  -0.0923
+  set macro7 "Octave Up"
+  mac7_d1  #18
+  mac7_a1  0.5
+  mac7_d2  #24
+  mac7_a2  0.146
+  set macro8 "Even"
+  mac8_d1  #22
+  mac8_a1  -0.6
+  mac8_d2  #24
+  mac8_a2  -0.174
+
+patch "Mono Lead" family=lead
+  # One voice, retriggered, with the filter envelope doing the work. Nothing
+  # exotic - a bank needs something you can play a line on.
+  start          0.008
+  voicemode      #1
+  a_attack       0.004 s
+  a_decay        1.2 s
+  a_sustain      0.7
+  a_release      0.2 s
+  f_type         #3
+  f_freq         1800 Hz
+  f_res          0.4
+  f_env          0.6
+  f_attack       0.002 s
+  f_decay        0.5 s
+  f_sustain      0.35
+  velamt         1
+  veltofilter    0.6
+  loop           #2
+  volume         1.02
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.161
+  set macro2 "Glide"
+  mac2_d1  #19
+  mac2_a1  0.1
+  set macro3 "Harder"
+  mac3_d1  #16
+  mac3_a1  0.2
+  mac3_d2  #23
+  mac3_a2  0.4
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.45
+  mac4_d2  #14
+  mac4_a2  -0.1
+  set macro5 "Octave Up"
+  mac5_d1  #18
+  mac5_a1  0.5
+  set macro6 "Shorter"
+  mac6_d1  #11
+  mac6_a1  -0.15
+  mac6_d2  #13
+  mac6_a2  -0.1
+  mac6_d3  #24
+  mac6_a3  0.101
+  set macro7 "Bowed"
+  mac7_d1  #3
+  mac7_a1  0.08
+  mac7_d2  #10
+  mac7_a2  0.08
+  mac7_d3  #24
+  mac7_a3  0.101
+  set macro8 "Swell"
+  mac8_d1  #10
+  mac8_a1  0.15
+  mac8_d2  #13
+  mac8_a2  0.1
+
+patch "Glide Lead" family=lead
+  # Legato, so a line played without gaps slides rather than retriggers, and
+  # the glide is long enough to hear on a step of a tone.
+  start          0.008
+  voicemode      #2
+  glide          0.16 s
+  glidemode      #1
+  a_attack       0.02 s
+  a_decay        2 s
+  a_sustain      0.8
+  a_release      0.3 s
+  f_type         #2
+  f_freq         2600 Hz
+  f_res          0.3
+  f_env          0.35
+  f_decay        0.8 s
+  f_sustain      0.5
+  loop           #2
+  volume         0.86
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.187
+  set macro2 "Glide"
+  mac2_d1  #19
+  mac2_a1  0.1
+  set macro3 "Harder"
+  mac3_d1  #16
+  mac3_a1  0.3
+  mac3_d2  #23
+  mac3_a2  0.4
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.45
+  mac4_d2  #14
+  mac4_a2  -0.1
+  set macro5 "Octave Up"
+  mac5_d1  #18
+  mac5_a1  0.5
+  set macro6 "Shorter"
+  mac6_d1  #11
+  mac6_a1  -0.15
+  mac6_d2  #13
+  mac6_a2  -0.1
+  set macro7 "Bowed"
+  mac7_d1  #3
+  mac7_a1  0.08
+  mac7_d2  #10
+  mac7_a2  0.08
+  mac7_d3  #24
+  mac7_a3  0.093
+  set macro8 "Swell"
+  mac8_d1  #10
+  mac8_a1  0.15
+  mac8_d2  #13
+  mac8_a2  0.1
+
+patch "Bright Lead" family=lead
+  # Started past the transient and pushed up an octave, with resonance high
+  # enough to sing. The peak filter rather than a low-pass, so what it does
+  # is add rather than take away.
+  octave         1
+  start          0.02
+  voicemode      #1
+  a_attack       0.008 s
+  a_decay        1.5 s
+  a_sustain      0.75
+  a_release      0.25 s
+  f_type         #11
+  f_freq         3400 Hz
+  f_res          0.6
+  f_env          0.4
+  f_decay        0.6 s
+  loop           #2
+  velamt         1
+  volume         0.92
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.207
+  mac1_d2  #24
+  mac1_a2  -0.115
+  set macro2 "Glide"
+  mac2_d1  #19
+  mac2_a1  0.1
+  set macro3 "Harder"
+  mac3_d1  #16
+  mac3_a1  0.3
+  mac3_d2  #23
+  mac3_a2  0.4
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.4
+  mac4_d2  #14
+  mac4_a2  -0.1
+  mac4_d3  #24
+  mac4_a3  -0.398
+  set macro5 "Octave Up"
+  mac5_d1  #18
+  mac5_a1  0.5
+  set macro6 "Shorter"
+  mac6_d1  #11
+  mac6_a1  -0.15
+  mac6_d2  #13
+  mac6_a2  -0.1
+  set macro7 "Bowed"
+  mac7_d1  #3
+  mac7_a1  0.08
+  mac7_d2  #10
+  mac7_a2  0.08
+  mac7_d3  #24
+  mac7_a3  0.083
+  set macro8 "Swell"
+  mac8_d1  #10
+  mac8_a1  0.15
+  mac8_d2  #13
+  mac8_a2  0.1
+
+patch Reed family=lead
+  # A slow vibrato that arrives late, which is how a player does it, on top
+  # of a band-pass that keeps only the middle of the map.
+  start          0.008
+  voicemode      #2
+  glide          0.05 s
+  l1_wave        #0
+  l1_rate        4.4 Hz
+  l1_delay       0.45 s
+  m01_src        #11
+  m01_dest       #1
+  m01_depth      0.05
+  a_attack       0.08 s
+  a_decay        3 s
+  a_sustain      0.85
+  a_release      0.3 s
+  f_type         #11
+  f_freq         900 Hz
+  f_res          0.3
+  loop           #2
+  volume         0.78
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.111
+  mac1_d2  #24
+  mac1_a2  -0.082
+  set macro2 "Glide"
+  mac2_d1  #19
+  mac2_a1  0.1
+  set macro3 "Harder"
+  mac3_d1  #16
+  mac3_a1  0.3
+  mac3_d2  #23
+  mac3_a2  0.4
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.45
+  mac4_d2  #14
+  mac4_a2  -0.1
+  mac4_d3  #24
+  mac4_a3  -0.172
+  set macro5 "Octave Up"
+  mac5_d1  #18
+  mac5_a1  0.5
+  set macro6 "Shorter"
+  mac6_d1  #11
+  mac6_a1  -0.15
+  mac6_d2  #13
+  mac6_a2  -0.1
+  set macro7 "Bowed"
+  mac7_d1  #3
+  mac7_a1  0.08
+  mac7_d2  #10
+  mac7_a2  0.08
+  mac7_d3  #24
+  mac7_a3  0.091
+  set macro8 "Deeper"
+  mac8_d1  #25
+  mac8_a1  0.25
+
+patch Grind family=lead
+  # Mono, high resonance, and the filter envelope inverted so the note opens
+  # downward into the body instead of upward out of the attack.
+  start          0.008
+  voicemode      #1
+  a_attack       0.003 s
+  a_decay        1 s
+  a_sustain      0.6
+  a_release      0.18 s
+  f_type         #3
+  f_freq         4800 Hz
+  f_res          0.7
+  f_env          -0.7
+  f_attack       0.004 s
+  f_decay        0.7 s
+  f_sustain      0.2
+  velamt         1
+  veltofilter    0.7
+  coarse         -12
+  loop           #2
+  volume         1.32
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.232
+  set macro2 "Glide"
+  mac2_d1  #19
+  mac2_a1  0.1
+  set macro3 "Harder"
+  mac3_d1  #16
+  mac3_a1  0.3
+  mac3_d2  #23
+  mac3_a2  0.3
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.3
+  mac4_d2  #14
+  mac4_a2  -0.1
+  set macro5 "Octave Up"
+  mac5_d1  #18
+  mac5_a1  0.5
+  mac5_d2  #24
+  mac5_a2  -0.105
+  set macro6 "Shorter"
+  mac6_d1  #11
+  mac6_a1  -0.15
+  mac6_d2  #13
+  mac6_a2  -0.1
+  mac6_d3  #24
+  mac6_a3  0.12
+  set macro7 "Bowed"
+  mac7_d1  #3
+  mac7_a1  0.08
+  mac7_d2  #10
+  mac7_a2  0.08
+  mac7_d3  #24
+  mac7_a3  0.12
+  set macro8 "Swell"
+  mac8_d1  #10
+  mac8_a1  0.15
+  mac8_d2  #13
+  mac8_a2  0.1
+
+patch "Legato Lead" family=lead
+  # One voice that slides between held notes and retriggers on a gap, with
+  # a short glide: a line played the way a mono synth plays it.
+  start          0.008
+  voicemode      #2
+  glide          0.08 s
+  glidemode      #1
+  a_sustain      0.85
+  a_release      0.2 s
+  f_type         #3
+  f_freq         3000 Hz
+  f_res          0.2
+  loop           #2
+  volume         0.898
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.198
+  mac1_d2  #24
+  mac1_a2  0.113
+  set macro2 "Glide"
+  mac2_d1  #19
+  mac2_a1  0.1
+  set macro3 "Harder"
+  mac3_d1  #16
+  mac3_a1  0.3
+  mac3_d2  #23
+  mac3_a2  0.4
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.45
+  mac4_d2  #14
+  mac4_a2  -0.1
+  set macro5 "Octave Up"
+  mac5_d1  #18
+  mac5_a1  0.5
+  set macro6 "Shorter"
+  mac6_d1  #11
+  mac6_a1  -0.15
+  mac6_d2  #13
+  mac6_a2  -0.1
+  set macro7 "Bowed"
+  mac7_d1  #3
+  mac7_a1  0.08
+  mac7_d2  #10
+  mac7_a2  0.08
+  mac7_d3  #24
+  mac7_a3  0.081
+  set macro8 "Swell"
+  mac8_d1  #10
+  mac8_a1  0.15
+  mac8_d2  #13
+  mac8_a2  0.1
+
+patch "Wheel Vibrato" family=lead
+  # A mono lead with vibrato on the mod wheel: LFO 1 times the wheel on
+  # pitch, so it's plain until you push the wheel.
+  start          0.008
+  voicemode      #1
+  a_sustain      0.8
+  a_release      0.2 s
+  f_type         #3
+  f_freq         2400 Hz
+  l1_wave        #0
+  l1_rate        5.5 Hz
+  l1_keysync     #0
+  m01_src        #11
+  m01_src2       #2
+  m01_dest       #1
+  m01_depth      0.02
+  loop           #2
+  volume         0.929
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.182
+  mac1_d2  #24
+  mac1_a2  0.092
+  set macro2 "Glide"
+  mac2_d1  #19
+  mac2_a1  0.1
+  set macro3 "Harder"
+  mac3_d1  #16
+  mac3_a1  0.3
+  mac3_d2  #23
+  mac3_a2  0.4
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.45
+  mac4_d2  #14
+  mac4_a2  -0.1
+  set macro5 "Octave Up"
+  mac5_d1  #18
+  mac5_a1  0.5
+  set macro6 "Shorter"
+  mac6_d1  #11
+  mac6_a1  -0.15
+  mac6_d2  #13
+  mac6_a2  -0.1
+  set macro7 "Bowed"
+  mac7_d1  #3
+  mac7_a1  0.08
+  mac7_d2  #10
+  mac7_a2  0.08
+  mac7_d3  #24
+  mac7_a3  0.084
+  set macro8 "Deeper"
+  mac8_d1  #25
+  mac8_a1  0.25
+
+patch Staccato family=lead
+  # Short notes with no sustain and a fast filter blip, for quick lines
+  # where every note should stop on its own.
+  start          0.008
+  voicemode      #1
+  a_decay        0.3 s
+  a_sustain      0.1
+  a_release      0.08 s
+  f_type         #3
+  f_freq         1200 Hz
+  f_env          0.5
+  f_decay        0.12 s
+  f_sustain      0
+  volume         1.41
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.131
+  mac1_d2  #24
+  mac1_a2  0.06
+  set macro2 "Glide"
+  mac2_d1  #19
+  mac2_a1  0.1
+  set macro3 "Harder"
+  mac3_d1  #16
+  mac3_a1  0.25
+  mac3_d2  #23
+  mac3_a2  0.4
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.45
+  mac4_d2  #14
+  mac4_a2  -0.1
+  set macro5 "Octave Up"
+  mac5_d1  #18
+  mac5_a1  0.5
+  set macro6 "Longer"
+  mac6_d1  #11
+  mac6_a1  0.15
+  mac6_d2  #13
+  mac6_a2  0.1
+  mac6_d3  #24
+  mac6_a3  -0.378
+  set macro7 "Bowed"
+  mac7_d1  #3
+  mac7_a1  0.08
+  mac7_d2  #10
+  mac7_a2  0.08
+  set macro8 "Swell"
+  mac8_d1  #10
+  mac8_a1  0.15
+  mac8_d2  #13
+  mac8_a2  0.1
+
+patch "Round Bass" family=bass
+  # Down an octave, low-passed and held: a plain bass from the bottom of
+  # whatever is loaded.
+  octave         -1
+  voicemode      #1
+  a_sustain      0.8
+  a_release      0.12 s
+  f_type         #3
+  f_freq         900 Hz
+  volume         0.867
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.111
+  mac1_d2  #24
+  mac1_a2  0.063
+  set macro2 "Punch"
+  mac2_d1  #16
+  mac2_a1  0.3
+  mac2_d2  #17
+  mac2_a2  -0.1
+  set macro3 "Shorter"
+  mac3_d1  #11
+  mac3_a1  -0.15
+  mac3_d2  #13
+  mac3_a2  -0.1
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.45
+  mac4_d2  #14
+  mac4_a2  -0.1
+  set macro5 "Glide"
+  mac5_d1  #19
+  mac5_a1  0.1
+  set macro6 "Octave Down"
+  mac6_d1  #18
+  mac6_a1  -0.5
+  mac6_d2  #24
+  mac6_a2  0.211
+  set macro7 "Even"
+  mac7_d1  #22
+  mac7_a1  -0.6
+  mac7_d2  #24
+  mac7_a2  -0.145
+  set macro8 "Bowed"
+  mac8_d1  #3
+  mac8_a1  0.08
+  mac8_d2  #10
+  mac8_a2  0.08
+  mac8_d3  #24
+  mac8_a3  0.078
+
+patch "Pluck Bass" family=bass
+  # The filter snaps open on the hammer and closes behind it, and the note
+  # dies to a low hold: a picked string.
+  octave         -1
+  voicemode      #1
+  a_decay        0.7 s
+  a_sustain      0.25
+  a_release      0.1 s
+  f_type         #3
+  f_freq         350 Hz
+  f_env          0.6
+  f_decay        0.25 s
+  f_sustain      0
+  veltofilter    0.4
+  volume         1.23
+  set macro1 "Bright"
+  mac1_d1  #14
+  mac1_a1  0.125
+  set macro2 "Punch"
+  mac2_d1  #16
+  mac2_a1  0.2
+  mac2_d2  #17
+  mac2_a2  -0.1
+  set macro3 "Longer"
+  mac3_d1  #11
+  mac3_a1  0.15
+  mac3_d2  #13
+  mac3_a2  0.1
+  mac3_d3  #24
+  mac3_a3  -0.21
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.45
+  mac4_d2  #14
+  mac4_a2  -0.0422
+  set macro5 "Glide"
+  mac5_d1  #19
+  mac5_a1  0.1
+  set macro6 "Octave Down"
+  mac6_d1  #18
+  mac6_a1  -0.5
+  mac6_d2  #24
+  mac6_a2  0.18
+  set macro7 "Even"
+  mac7_d1  #22
+  mac7_a1  -0.6
+  mac7_d2  #24
+  mac7_a2  -0.205
+  set macro8 "Bowed"
+  mac8_d1  #3
+  mac8_a1  0.08
+  mac8_d2  #10
+  mac8_a2  0.08
+
+patch Sub family=bass
+  # Two octaves down with nearly everything above the fundamental taken
+  # off, for under a kick.
+  octave         -2
+  voicemode      #1
+  start          0.03
+  a_attack       0.006 s
+  a_sustain      1
+  a_release      0.1 s
+  f_type         #3
+  f_freq         280 Hz
+  loop           #2
+  volume         1.33
+  set macro1 "Bright"
+  mac1_d1  #14
+  mac1_a1  0.125
+  mac1_d2  #24
+  mac1_a2  -0.105
+  set macro2 "Punch"
+  mac2_d1  #16
+  mac2_a1  0.3
+  mac2_d2  #17
+  mac2_a2  -0.1
+  mac2_d3  #24
+  mac2_a3  -0.114
+  set macro3 "Shorter"
+  mac3_d1  #11
+  mac3_a1  -0.15
+  mac3_d2  #13
+  mac3_a2  -0.1
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.45
+  mac4_d2  #14
+  mac4_a2  -0.026
+  set macro5 "Glide"
+  mac5_d1  #19
+  mac5_a1  0.1
+  set macro6 "Octave Up"
+  mac6_d1  #18
+  mac6_a1  0.5
+  mac6_d2  #24
+  mac6_a2  -0.219
+  set macro7 "Even"
+  mac7_d1  #22
+  mac7_a1  -0.6
+  mac7_d2  #24
+  mac7_a2  -0.222
+  set macro8 "Bowed"
+  mac8_d1  #3
+  mac8_a1  0.08
+  mac8_d2  #10
+  mac8_a2  0.08
+  mac8_d3  #24
+  mac8_a3  0.113
+
+patch "Slide Bass" family=bass
+  # Legato with a glide, so tied notes slide and a gap plays a fresh note.
+  octave         -1
+  voicemode      #2
+  glide          0.07 s
+  glidemode      #1
+  a_sustain      0.8
+  a_release      0.1 s
+  f_type         #3
+  f_freq         700 Hz
+  f_res          0.35
+  f_env          0.3
+  f_decay        0.3 s
+  f_sustain      0.3
+  loop           #2
+  volume         0.838
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.0923
+  mac1_d2  #24
+  mac1_a2  0.083
+  set macro2 "Punch"
+  mac2_d1  #16
+  mac2_a1  0.3
+  mac2_d2  #17
+  mac2_a2  -0.1
+  set macro3 "Shorter"
+  mac3_d1  #11
+  mac3_a1  -0.15
+  mac3_d2  #13
+  mac3_a2  -0.1
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.45
+  mac4_d2  #14
+  mac4_a2  -0.0923
+  set macro5 "Glide"
+  mac5_d1  #19
+  mac5_a1  0.1
+  set macro6 "Octave Down"
+  mac6_d1  #18
+  mac6_a1  -0.5
+  mac6_d2  #24
+  mac6_a2  0.204
+  set macro7 "Even"
+  mac7_d1  #22
+  mac7_a1  -0.6
+  mac7_d2  #24
+  mac7_a2  -0.14
+  set macro8 "Bowed"
+  mac8_d1  #3
+  mac8_a1  0.08
+  mac8_d2  #10
+  mac8_a2  0.08
+  mac8_d3  #24
+  mac8_a3  0.083
+
+patch "Wobble Bass" family=bass
+  # LFO 1 on the filter, eighth notes in time with the song, and a little
+  # resonance so the sweep speaks.
+  octave         -1
+  voicemode      #1
+  a_sustain      1
+  a_release      0.1 s
+  f_type         #3
+  f_freq         500 Hz
+  f_res          0.45
+  l1_wave        #0
+  l1_sync        #6
+  l1_keysync     #1
+  m01_src        #11
+  m01_dest       #10
+  m01_depth      0.4
+  loop           #2
+  volume         0.819
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.068
+  mac1_d2  #24
+  mac1_a2  0.081
+  set macro2 "Punch"
+  mac2_d1  #16
+  mac2_a1  0.3
+  mac2_d2  #17
+  mac2_a2  -0.1
+  set macro3 "Shorter"
+  mac3_d1  #11
+  mac3_a1  -0.15
+  mac3_d2  #13
+  mac3_a2  -0.1
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.45
+  mac4_d2  #14
+  mac4_a2  -0.068
+  mac4_d3  #24
+  mac4_a3  -0.117
+  set macro5 "Glide"
+  mac5_d1  #19
+  mac5_a1  0.1
+  set macro6 "Octave Down"
+  mac6_d1  #18
+  mac6_a1  -0.5
+  mac6_d2  #24
+  mac6_a2  0.199
+  set macro7 "Even"
+  mac7_d1  #22
+  mac7_a1  -0.6
+  mac7_d2  #24
+  mac7_a2  -0.137
+  set macro8 "Bowed"
+  mac8_d1  #3
+  mac8_a1  0.08
+  mac8_d2  #10
+  mac8_a2  0.08
+  mac8_d3  #24
+  mac8_a3  0.074
+
+patch "Reso Bass" family=bass
+  # A resonant filter swept down by its envelope on every note, harder with
+  # velocity.
+  octave         -1
+  voicemode      #1
+  a_decay        1 s
+  a_sustain      0.5
+  a_release      0.1 s
+  f_type         #3
+  f_freq         300 Hz
+  f_res          0.65
+  f_env          0.55
+  f_decay        0.3 s
+  f_sustain      0.1
+  veltofilter    0.5
+  volume         0.929
+  set macro1 "Bright"
+  mac1_d1  #14
+  mac1_a1  0.125
+  set macro2 "Punch"
+  mac2_d1  #16
+  mac2_a1  0.225
+  mac2_d2  #17
+  mac2_a2  -0.1
+  set macro3 "Shorter"
+  mac3_d1  #11
+  mac3_a1  -0.15
+  mac3_d2  #13
+  mac3_a2  -0.1
+  mac3_d3  #24
+  mac3_a3  0.188
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.35
+  mac4_d2  #14
+  mac4_a2  -0.031
+  mac4_d3  #24
+  mac4_a3  -0.11
+  set macro5 "Glide"
+  mac5_d1  #19
+  mac5_a1  0.1
+  set macro6 "Octave Down"
+  mac6_d1  #18
+  mac6_a1  -0.5
+  mac6_d2  #24
+  mac6_a2  0.245
+  set macro7 "Even"
+  mac7_d1  #22
+  mac7_a1  -0.6
+  mac7_d2  #24
+  mac7_a2  -0.155
+  set macro8 "Bowed"
+  mac8_d1  #3
+  mac8_a1  0.08
+  mac8_d2  #10
+  mac8_a2  0.08
+  mac8_d3  #24
+  mac8_a3  0.092
 
 patch Cloud family=grain
   # The first grain patch and the plainest: grains taken from across the
@@ -312,6 +1908,44 @@ patch Cloud family=grain
   m01_dest       #4
   m01_depth      0.6
   volume         0.68
+  set macro1 "Thicker"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac1_d2  #24
+  mac1_a2  -0.121
+  set macro2 "Longer"
+  mac2_d1  #6
+  mac2_a1  0.2
+  mac2_d2  #7
+  mac2_a2  -0.1
+  set macro3 "Spray"
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac3_d2  #24
+  mac3_a2  0.124
+  set macro4 "Further In"
+  mac4_d1  #4
+  mac4_a1  0.3
+  mac4_d2  #24
+  mac4_a2  0.165
+  set macro5 "Faster"
+  mac5_d1  #5
+  mac5_a1  0.15
+  mac5_d2  #24
+  mac5_a2  0.067
+  set macro6 "Scatter"
+  mac6_d1  #9
+  mac6_a1  0.3
+  mac6_d2  #24
+  mac6_a2  0.073
+  set macro7 "Dark"
+  mac7_d1  #14
+  mac7_a1  -0.25
+  set macro8 "Swell"
+  mac8_d1  #10
+  mac8_a1  0.15
+  mac8_d2  #13
+  mac8_a2  0.1
 
 patch Shimmer family=grain
   # Dense, small and *in tune*: grains taken from the bright front of the
@@ -341,6 +1975,40 @@ patch Shimmer family=grain
   m02_dest       #9
   m02_depth      0.5
   volume         1.21
+  set macro1 "Thinner"
+  mac1_d1  #7
+  mac1_a1  -0.25
+  mac1_d2  #24
+  mac1_a2  0.193
+  set macro2 "Longer"
+  mac2_d1  #6
+  mac2_a1  0.2
+  mac2_d2  #7
+  mac2_a2  -0.1
+  mac2_d3  #24
+  mac2_a3  -0.202
+  set macro3 "Spray"
+  mac3_d1  #8
+  mac3_a1  0.3
+  set macro4 "Further In"
+  mac4_d1  #4
+  mac4_a1  0.3
+  mac4_d2  #24
+  mac4_a2  0.193
+  set macro5 "Faster"
+  mac5_d1  #5
+  mac5_a1  0.15
+  set macro6 "Scatter"
+  mac6_d1  #9
+  mac6_a1  0.3
+  set macro7 "Dark"
+  mac7_d1  #14
+  mac7_a1  -0.25
+  set macro8 "Swell"
+  mac8_d1  #10
+  mac8_a1  0.15
+  mac8_d2  #13
+  mac8_a2  0.1
 
 patch Freeze family=grain
   # Rate at zero, so the grains never move on: one slice of the body held
@@ -360,6 +2028,40 @@ patch Freeze family=grain
   f_type         #1
   f_freq         7000 Hz
   volume         0.80
+  set macro1 "Thicker"
+  mac1_d1  #7
+  mac1_a1  0.229
+  mac1_d2  #24
+  mac1_a2  -0.085
+  set macro2 "Longer"
+  mac2_d1  #6
+  mac2_a1  0.2
+  mac2_d2  #7
+  mac2_a2  -0.1
+  mac2_d3  #24
+  mac2_a3  -0.169
+  set macro3 "Spray"
+  mac3_d1  #8
+  mac3_a1  0.3
+  set macro4 "Further In"
+  mac4_d1  #4
+  mac4_a1  0.3
+  set macro5 "Faster"
+  mac5_d1  #5
+  mac5_a1  0.15
+  set macro6 "Scatter"
+  mac6_d1  #9
+  mac6_a1  0.3
+  mac6_d2  #24
+  mac6_a2  0.072
+  set macro7 "Dark"
+  mac7_d1  #14
+  mac7_a1  -0.25
+  set macro8 "Swell"
+  mac8_d1  #10
+  mac8_a1  0.15
+  mac8_d2  #13
+  mac8_a2  0.1
 
 patch Stutter family=grain
   # Few grains, big ones, and a stepped LFO throwing the read position about.
@@ -381,6 +2083,40 @@ patch Stutter family=grain
   f_freq         900 Hz
   f_res          0.4
   volume         1.01
+  set macro1 "Thicker"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac1_d2  #24
+  mac1_a2  -0.376
+  set macro2 "Longer"
+  mac2_d1  #6
+  mac2_a1  0.2
+  mac2_d2  #7
+  mac2_a2  -0.1
+  mac2_d3  #24
+  mac2_a3  -0.138
+  set macro3 "Spray"
+  mac3_d1  #8
+  mac3_a1  0.3
+  set macro4 "Further In"
+  mac4_d1  #4
+  mac4_a1  0.3
+  set macro5 "Faster"
+  mac5_d1  #5
+  mac5_a1  0.15
+  set macro6 "Scatter"
+  mac6_d1  #9
+  mac6_a1  0.3
+  set macro7 "Dark"
+  mac7_d1  #14
+  mac7_a1  -0.111
+  mac7_d2  #24
+  mac7_a2  -0.053
+  set macro8 "Swell"
+  mac8_d1  #10
+  mac8_a1  0.15
+  mac8_d2  #13
+  mac8_a2  0.1
 
 patch Dust family=grain
   # Dan: "is this a helicopter sound?" - it was: evenly spaced grains at twelve a
@@ -410,6 +2146,40 @@ patch Dust family=grain
   m01_dest       #7
   m01_depth      0.75
   volume         0.83
+  set macro1 "Thicker"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac1_d2  #24
+  mac1_a2  -0.26
+  set macro2 "Longer"
+  mac2_d1  #6
+  mac2_a1  0.2
+  mac2_d2  #7
+  mac2_a2  -0.1
+  mac2_d3  #24
+  mac2_a3  -0.077
+  set macro3 "Spray"
+  mac3_d1  #8
+  mac3_a1  0.15
+  set macro4 "Further In"
+  mac4_d1  #4
+  mac4_a1  0.3
+  set macro5 "Faster"
+  mac5_d1  #5
+  mac5_a1  0.15
+  mac5_d2  #24
+  mac5_a2  0.075
+  set macro6 "Scatter"
+  mac6_d1  #9
+  mac6_a1  0.3
+  set macro7 "Dark"
+  mac7_d1  #14
+  mac7_a1  -0.25
+  set macro8 "Swell"
+  mac8_d1  #10
+  mac8_a1  0.15
+  mac8_d2  #13
+  mac8_a2  0.1
 
 patch Smear family=grain
   # The other extreme: grains half a second long overlapping heavily, which
@@ -428,6 +2198,44 @@ patch Smear family=grain
   f_type         #3
   f_freq         5000 Hz
   volume         0.57
+  set macro1 "Thicker"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac1_d2  #24
+  mac1_a2  -0.049
+  set macro2 "Shorter"
+  mac2_d1  #6
+  mac2_a1  -0.2
+  mac2_d2  #7
+  mac2_a2  0.1
+  set macro3 "Spray"
+  mac3_d1  #8
+  mac3_a1  0.3
+  set macro4 "Further In"
+  mac4_d1  #4
+  mac4_a1  0.3
+  mac4_d2  #24
+  mac4_a2  0.104
+  set macro5 "Faster"
+  mac5_d1  #5
+  mac5_a1  0.15
+  mac5_d2  #24
+  mac5_a2  -0.148
+  set macro6 "Scatter"
+  mac6_d1  #9
+  mac6_a1  0.3
+  mac6_d2  #24
+  mac6_a2  -0.049
+  set macro7 "Dark"
+  mac7_d1  #14
+  mac7_a1  -0.235
+  mac7_d2  #24
+  mac7_a2  0.056
+  set macro8 "Swell"
+  mac8_d1  #10
+  mac8_a1  0.15
+  mac8_d2  #13
+  mac8_a2  0.1
 
 patch Scatter family=grain
   # Random as a modulation source, on the read position, so the cloud
@@ -447,6 +2255,138 @@ patch Scatter family=grain
   a_attack       0.15 s
   a_release      1.8 s
   volume         0.80
+  set macro1 "Thicker"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac1_d2  #24
+  mac1_a2  -0.247
+  set macro2 "Longer"
+  mac2_d1  #6
+  mac2_a1  0.2
+  mac2_d2  #7
+  mac2_a2  -0.1
+  mac2_d3  #24
+  mac2_a3  -0.119
+  set macro3 "Spray"
+  mac3_d1  #8
+  mac3_a1  0.3
+  set macro4 "Further In"
+  mac4_d1  #4
+  mac4_a1  0.3
+  set macro5 "Faster"
+  mac5_d1  #5
+  mac5_a1  0.15
+  set macro6 "Scatter"
+  mac6_d1  #9
+  mac6_a1  0.3
+  set macro7 "Dark"
+  mac7_d1  #14
+  mac7_a1  -0.25
+  set macro8 "Swell"
+  mac8_d1  #10
+  mac8_a1  0.15
+  mac8_d2  #13
+  mac8_a2  0.1
+
+patch "Hold Point" family=grain
+  # Grains from one place in the sustain, not moving: a held note that
+  # stays the same for as long as the key is down.
+  grain          #1
+  gpos           0.75
+  grate          0
+  gsize          120 ms
+  gdensity       30
+  gspray         0.02
+  a_attack       0.08 s
+  a_release      1 s
+  volume         1.04
+  set macro1 "Thicker"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac1_d2  #24
+  mac1_a2  -0.235
+  set macro2 "Longer"
+  mac2_d1  #6
+  mac2_a1  0.2
+  mac2_d2  #7
+  mac2_a2  -0.1
+  set macro3 "Spray"
+  mac3_d1  #8
+  mac3_a1  0.3
+  set macro4 "Further In"
+  mac4_d1  #4
+  mac4_a1  0.25
+  mac4_d2  #24
+  mac4_a2  -0.23
+  set macro5 "Faster"
+  mac5_d1  #5
+  mac5_a1  0.15
+  set macro6 "Scatter"
+  mac6_d1  #9
+  mac6_a1  0.3
+  set macro7 "Dark"
+  mac7_d1  #14
+  mac7_a1  -0.25
+  set macro8 "Swell"
+  mac8_d1  #10
+  mac8_a1  0.15
+  mac8_d2  #13
+  mac8_a2  0.1
+
+patch "Rising Grains" family=grain
+  # Env 1 lifts the grains' pitch spread as the note is held, so the cloud
+  # starts as one note and opens up.
+  grain          #1
+  gpos           0.2
+  grate          0.3
+  gsize          90 ms
+  gdensity       28
+  gspray         0.1
+  e1_attack      2.5 s
+  e1_sustain     1
+  e1_release     1 s
+  m01_src        #9
+  m01_dest       #9
+  m01_depth      0.4
+  a_attack       0.1 s
+  a_release      1.5 s
+  volume         1.02
+  set macro1 "Thicker"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac1_d2  #24
+  mac1_a2  -0.298
+  set macro2 "Longer"
+  mac2_d1  #6
+  mac2_a1  0.2
+  mac2_d2  #7
+  mac2_a2  -0.1
+  mac2_d3  #24
+  mac2_a3  -0.101
+  set macro3 "Spray"
+  mac3_d1  #8
+  mac3_a1  0.3
+  mac3_d2  #24
+  mac3_a2  -0.081
+  set macro4 "Further In"
+  mac4_d1  #4
+  mac4_a1  0.3
+  mac4_d2  #24
+  mac4_a2  0.176
+  set macro5 "Faster"
+  mac5_d1  #5
+  mac5_a1  0.15
+  set macro6 "Scatter"
+  mac6_d1  #9
+  mac6_a1  0.3
+  set macro7 "Dark"
+  mac7_d1  #14
+  mac7_a1  -0.25
+  set macro8 "Swell"
+  mac8_d1  #10
+  mac8_a1  0.15
+  mac8_d2  #13
+  mac8_a2  0.1
 
 patch Tremolo family=motion
   # A square LFO on the amp, fast enough to be an effect rather than a
@@ -463,6 +2403,38 @@ patch Tremolo family=motion
   a_release      0.6 s
   f_freq         9000 Hz
   volume         0.63
+  set macro1 "Deeper"
+  mac1_d1  #25
+  mac1_a1  0.25
+  mac1_d2  #24
+  mac1_a2  -0.249
+  set macro2 "Faster"
+  mac2_d1  #20
+  mac2_a1  0.15
+  set macro3 "Dark"
+  mac3_d1  #14
+  mac3_a1  -0.25
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.45
+  mac4_d2  #14
+  mac4_a2  -0.1
+  set macro5 "Swell"
+  mac5_d1  #10
+  mac5_a1  0.15
+  mac5_d2  #13
+  mac5_a2  0.1
+  set macro6 "Hard Layer"
+  mac6_d1  #2
+  mac6_a1  0.7
+  mac6_d2  #1
+  mac6_a2  0.35
+  set macro7 "Octave Up"
+  mac7_d1  #18
+  mac7_a1  0.5
+  set macro8 "Longer"
+  mac8_d1  #13
+  mac8_a1  0.2
 
 patch Wah family=motion
   # A triangle on a resonant low-pass, delayed half a second so the note
@@ -480,6 +2452,40 @@ patch Wah family=motion
   a_sustain      0.85
   a_release      0.8 s
   volume         0.86
+  set macro1 "Deeper"
+  mac1_d1  #25
+  mac1_a1  0.125
+  set macro2 "Faster"
+  mac2_d1  #20
+  mac2_a1  0.15
+  set macro3 "Dark"
+  mac3_d1  #14
+  mac3_a1  -0.131
+  mac3_d2  #24
+  mac3_a2  0.048
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.45
+  mac4_d2  #14
+  mac4_a2  -0.1
+  mac4_d3  #24
+  mac4_a3  -0.123
+  set macro5 "Swell"
+  mac5_d1  #10
+  mac5_a1  0.15
+  mac5_d2  #13
+  mac5_a2  0.1
+  set macro6 "Hard Layer"
+  mac6_d1  #2
+  mac6_a1  0.7
+  mac6_d2  #1
+  mac6_a2  0.35
+  set macro7 "Octave Up"
+  mac7_d1  #18
+  mac7_a1  0.5
+  set macro8 "Longer"
+  mac8_d1  #13
+  mac8_a1  0.2
 
 patch Autopan family=motion
   # Slow sine on pan, free-running so a chord's notes are not all in the same
@@ -504,6 +2510,38 @@ patch Autopan family=motion
   a_release      1.4 s
   loop           #2
   volume         0.93
+  set macro1 "Shallower"
+  mac1_d1  #25
+  mac1_a1  -0.25
+  set macro2 "Faster"
+  mac2_d1  #20
+  mac2_a1  0.15
+  set macro3 "Dark"
+  mac3_d1  #14
+  mac3_a1  -0.25
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.45
+  mac4_d2  #14
+  mac4_a2  -0.1
+  set macro5 "Swell"
+  mac5_d1  #10
+  mac5_a1  0.15
+  mac5_d2  #13
+  mac5_a2  0.1
+  mac5_d3  #24
+  mac5_a3  0.143
+  set macro6 "Hard Layer"
+  mac6_d1  #2
+  mac6_a1  0.7
+  mac6_d2  #1
+  mac6_a2  0.35
+  set macro7 "Octave Up"
+  mac7_d1  #18
+  mac7_a1  0.5
+  set macro8 "Longer"
+  mac8_d1  #13
+  mac8_a1  0.2
 
 patch "Scan Sweep" family=motion
   # The layer scan on an envelope: the note starts in one layer and arrives
@@ -533,6 +2571,38 @@ patch "Scan Sweep" family=motion
   keyfade        6 st
   velfade        64
   volume         0.74
+  set macro1 "Shallower"
+  mac1_d1  #25
+  mac1_a1  -0.25
+  set macro2 "Bowed"
+  mac2_d1  #3
+  mac2_a1  0.08
+  mac2_d2  #10
+  mac2_a2  0.08
+  set macro3 "Dark"
+  mac3_d1  #14
+  mac3_a1  -0.25
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.45
+  mac4_d2  #14
+  mac4_a2  -0.1
+  set macro5 "Swell"
+  mac5_d1  #10
+  mac5_a1  0.15
+  mac5_d2  #13
+  mac5_a2  0.1
+  set macro6 "Soft Layer"
+  mac6_d1  #2
+  mac6_a1  -0.7
+  mac6_d2  #24
+  mac6_a2  -0.219
+  set macro7 "Octave Up"
+  mac7_d1  #18
+  mac7_a1  0.5
+  set macro8 "Longer"
+  mac8_d1  #13
+  mac8_a1  0.2
 
 patch Pulse family=motion
   # An eight-step LFO on the grain density, so the cloud thickens and thins
@@ -553,6 +2623,44 @@ patch Pulse family=motion
   f_freq         1000 Hz
   f_res          0.35
   volume         0.49
+  set macro1 "Deeper"
+  mac1_d1  #25
+  mac1_a1  0.25
+  mac1_d2  #24
+  mac1_a2  -0.049
+  set macro2 "Faster"
+  mac2_d1  #20
+  mac2_a1  0.15
+  set macro3 "Dark"
+  mac3_d1  #14
+  mac3_a1  -0.118
+  mac3_d2  #24
+  mac3_a2  -0.022
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.45
+  mac4_d2  #14
+  mac4_a2  -0.1
+  mac4_d3  #24
+  mac4_a3  -0.108
+  set macro5 "Swell"
+  mac5_d1  #10
+  mac5_a1  0.15
+  mac5_d2  #13
+  mac5_a2  0.1
+  set macro6 "Hard Layer"
+  mac6_d1  #2
+  mac6_a1  0.7
+  mac6_d2  #1
+  mac6_a2  0.35
+  set macro7 "Octave Up"
+  mac7_d1  #18
+  mac7_a1  0.5
+  mac7_d2  #24
+  mac7_a2  -0.055
+  set macro8 "Longer"
+  mac8_d1  #13
+  mac8_a1  0.2
 
 patch Wobble family=motion
   # Smooth random on pitch, shallow, plus the same source on the start point.
@@ -572,111 +2680,135 @@ patch Wobble family=motion
   a_release      0.9 s
   f_freq         8000 Hz
   volume         0.88
+  set macro1 "Deeper"
+  mac1_d1  #25
+  mac1_a1  0.25
+  set macro2 "Faster"
+  mac2_d1  #20
+  mac2_a1  0.15
+  set macro3 "Dark"
+  mac3_d1  #14
+  mac3_a1  -0.25
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.45
+  mac4_d2  #14
+  mac4_a2  -0.1
+  set macro5 "Swell"
+  mac5_d1  #10
+  mac5_a1  0.15
+  mac5_d2  #13
+  mac5_a2  0.1
+  set macro6 "Hard Layer"
+  mac6_d1  #2
+  mac6_a1  0.7
+  mac6_d2  #1
+  mac6_a2  0.35
+  set macro7 "Octave Up"
+  mac7_d1  #18
+  mac7_a1  0.5
+  set macro8 "Longer"
+  mac8_d1  #13
+  mac8_a1  0.2
 
-patch "Mono Lead" family=lead
-  # One voice, retriggered, with the filter envelope doing the work. Nothing
-  # exotic - a bank needs something you can play a line on.
-  start          0.008
-  voicemode      #1
-  a_attack       0.004 s
-  a_decay        1.2 s
+patch "Pan Scatter" family=motion
+  # Every note lands in its own place across the stereo field, picked at
+  # random when it starts.
+  start          0.01
+  m01_src        #6
+  m01_dest       #13
+  m01_depth      0.8
+  a_decay        4 s
   a_sustain      0.7
-  a_release      0.2 s
-  f_type         #3
-  f_freq         1800 Hz
-  f_res          0.4
-  f_env          0.6
-  f_attack       0.002 s
-  f_decay        0.5 s
-  f_sustain      0.35
-  velamt         1
-  veltofilter    0.6
-  loop           #2
-  volume         1.02
+  a_release      0.6 s
+  volume         0.929
+  set macro1 "Shallower"
+  mac1_d1  #25
+  mac1_a1  -0.25
+  set macro2 "Bowed"
+  mac2_d1  #3
+  mac2_a1  0.08
+  mac2_d2  #10
+  mac2_a2  0.08
+  mac2_d3  #24
+  mac2_a3  0.092
+  set macro3 "Dark"
+  mac3_d1  #14
+  mac3_a1  -0.25
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.45
+  mac4_d2  #14
+  mac4_a2  -0.1
+  set macro5 "Swell"
+  mac5_d1  #10
+  mac5_a1  0.15
+  mac5_d2  #13
+  mac5_a2  0.1
+  set macro6 "Hard Layer"
+  mac6_d1  #2
+  mac6_a1  0.7
+  mac6_d2  #1
+  mac6_a2  0.35
+  set macro7 "Octave Up"
+  mac7_d1  #18
+  mac7_a1  0.5
+  set macro8 "Longer"
+  mac8_d1  #13
+  mac8_a1  0.2
 
-patch "Glide Lead" family=lead
-  # Legato, so a line played without gaps slides rather than retriggers, and
-  # the glide is long enough to hear on a step of a tone.
-  start          0.008
-  voicemode      #2
-  glide          0.16 s
-  glidemode      #1
-  a_attack       0.02 s
-  a_decay        2 s
-  a_sustain      0.8
-  a_release      0.3 s
-  f_type         #2
-  f_freq         2600 Hz
-  f_res          0.3
-  f_env          0.35
-  f_decay        0.8 s
-  f_sustain      0.5
-  loop           #2
-  volume         0.86
-
-patch "Bright Lead" family=lead
-  # Started past the transient and pushed up an octave, with resonance high
-  # enough to sing. The peak filter rather than a low-pass, so what it does
-  # is add rather than take away.
-  octave         1
+patch "Slow Filter" family=motion
+  # LFO 2 opens and closes the filter over two bars, so a held chord
+  # breathes in time with the song.
   start          0.02
-  voicemode      #1
-  a_attack       0.008 s
-  a_decay        1.5 s
-  a_sustain      0.75
-  a_release      0.25 s
-  f_type         #11
-  f_freq         3400 Hz
-  f_res          0.6
-  f_env          0.4
-  f_decay        0.6 s
-  loop           #2
-  velamt         1
-  volume         0.92
-
-patch Reed family=lead
-  # A slow vibrato that arrives late, which is how a player does it, on top
-  # of a band-pass that keeps only the middle of the map.
-  start          0.008
-  voicemode      #2
-  glide          0.05 s
-  l1_wave        #0
-  l1_rate        4.4 Hz
-  l1_delay       0.45 s
-  m01_src        #11
-  m01_dest       #1
-  m01_depth      0.05
-  a_attack       0.08 s
-  a_decay        3 s
-  a_sustain      0.85
-  a_release      0.3 s
-  f_type         #11
-  f_freq         900 Hz
-  f_res          0.3
-  loop           #2
-  volume         0.78
-
-patch Grind family=lead
-  # Mono, high resonance, and the filter envelope inverted so the note opens
-  # downward into the body instead of upward out of the attack.
-  start          0.008
-  voicemode      #1
-  a_attack       0.003 s
-  a_decay        1 s
-  a_sustain      0.6
-  a_release      0.18 s
+  a_sustain      1
+  a_release      1 s
   f_type         #3
-  f_freq         4800 Hz
-  f_res          0.7
-  f_env          -0.7
-  f_attack       0.004 s
-  f_decay        0.7 s
-  f_sustain      0.2
-  velamt         1
-  veltofilter    0.7
-  coarse         -12
-  loop           #2
-  volume         1.32
+  f_freq         1500 Hz
+  f_res          0.25
+  l2_wave        #0
+  l2_sync        #15
+  l2_keysync     #0
+  m01_src        #12
+  m01_dest       #10
+  m01_depth      0.35
+  volume         0.867
+  set macro1 "Deeper"
+  mac1_d1  #25
+  mac1_a1  0.25
+  set macro2 "Bowed"
+  mac2_d1  #3
+  mac2_a1  0.08
+  mac2_d2  #10
+  mac2_a2  0.08
+  mac2_d3  #24
+  mac2_a3  0.078
+  set macro3 "Dark"
+  mac3_d1  #14
+  mac3_a1  -0.148
+  mac3_d2  #24
+  mac3_a2  0.101
+  set macro4 "Ring"
+  mac4_d1  #15
+  mac4_a1  0.45
+  mac4_d2  #14
+  mac4_a2  -0.1
+  set macro5 "Swell"
+  mac5_d1  #10
+  mac5_a1  0.15
+  mac5_d2  #13
+  mac5_a2  0.1
+  set macro6 "Hard Layer"
+  mac6_d1  #2
+  mac6_a1  0.7
+  mac6_d2  #1
+  mac6_a2  0.35
+  set macro7 "Octave Up"
+  mac7_d1  #18
+  mac7_a1  0.5
+  set macro8 "Longer"
+  mac8_d1  #13
+  mac8_a1  0.2
 
 patch Backwards family=texture
   # Played from the end, so the body arrives first and the transient is the
@@ -690,6 +2822,44 @@ patch Backwards family=texture
   a_release      0.5 s
   f_freq         11000 Hz
   volume         1.38
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.25
+  set macro2 "Ring"
+  mac2_d1  #15
+  mac2_a1  0.45
+  mac2_d2  #14
+  mac2_a2  -0.1
+  set macro3 "Bowed"
+  mac3_d1  #3
+  mac3_a1  0.08
+  mac3_d2  #10
+  mac3_a2  0.08
+  set macro4 "Hard Layer"
+  mac4_d1  #2
+  mac4_a1  0.7
+  mac4_d2  #1
+  mac4_a2  0.35
+  set macro5 "Swell"
+  mac5_d1  #10
+  mac5_a1  0.15
+  mac5_d2  #13
+  mac5_a2  0.1
+  set macro6 "Octave Down"
+  mac6_d1  #18
+  mac6_a1  -0.5
+  mac6_d2  #24
+  mac6_a2  0.08
+  set macro7 "Longer"
+  mac7_d1  #11
+  mac7_a1  0.103
+  mac7_d2  #13
+  mac7_a2  0.15
+  set macro8 "Even"
+  mac8_d1  #22
+  mac8_a1  -0.6
+  mac8_d2  #24
+  mac8_a2  -0.23
 
 patch "Scan Layers" family=texture
   # The mod wheel moving the scan by hand, which is what the control is for
@@ -704,6 +2874,42 @@ patch "Scan Layers" family=texture
   keyfade        4 st
   velfade        16
   volume         0.73
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.25
+  set macro2 "Ring"
+  mac2_d1  #15
+  mac2_a1  0.45
+  mac2_d2  #14
+  mac2_a2  -0.1
+  set macro3 "Bowed"
+  mac3_d1  #3
+  mac3_a1  0.08
+  mac3_d2  #10
+  mac3_a2  0.08
+  set macro4 "Soft Layer"
+  mac4_d1  #2
+  mac4_a1  -0.7
+  mac4_d2  #1
+  mac4_a2  -0.2
+  mac4_d3  #24
+  mac4_a3  -0.126
+  set macro5 "Swell"
+  mac5_d1  #10
+  mac5_a1  0.15
+  mac5_d2  #13
+  mac5_a2  0.1
+  set macro6 "Octave Down"
+  mac6_d1  #18
+  mac6_a1  -0.5
+  set macro7 "Longer"
+  mac7_d1  #11
+  mac7_a1  0.15
+  mac7_d2  #13
+  mac7_a2  0.15
+  set macro8 "Shallower"
+  mac8_d1  #25
+  mac8_a1  -0.25
 
 patch "Late Start" family=texture
   # Started nine tenths of the way in, where the sample is nearly done. With
@@ -719,6 +2925,48 @@ patch "Late Start" family=texture
   f_freq         5000 Hz
   keyfade        6 st
   volume         1.02
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.235
+  set macro2 "Ring"
+  mac2_d1  #15
+  mac2_a1  0.45
+  mac2_d2  #14
+  mac2_a2  -0.1
+  set macro3 "Bowed"
+  mac3_d1  #3
+  mac3_a1  0.08
+  mac3_d2  #10
+  mac3_a2  0.08
+  mac3_d3  #24
+  mac3_a3  0.157
+  set macro4 "Hard Layer"
+  mac4_d1  #2
+  mac4_a1  0.7
+  mac4_d2  #1
+  mac4_a2  0.35
+  set macro5 "Swell"
+  mac5_d1  #10
+  mac5_a1  0.15
+  mac5_d2  #13
+  mac5_a2  0.1
+  mac5_d3  #24
+  mac5_a3  0.11
+  set macro6 "Octave Down"
+  mac6_d1  #18
+  mac6_a1  -0.5
+  mac6_d2  #24
+  mac6_a2  0.092
+  set macro7 "Shorter"
+  mac7_d1  #11
+  mac7_a1  -0.15
+  mac7_d2  #13
+  mac7_a2  -0.15
+  set macro8 "Even"
+  mac8_d1  #22
+  mac8_a1  -0.6
+  mac8_d2  #24
+  mac8_a2  -0.17
 
 patch "Broken Loop" family=texture
   # Loop off and the start late, so every note simply runs out. How long it
@@ -732,6 +2980,44 @@ patch "Broken Loop" family=texture
   f_freq         9000 Hz
   velamt         1
   volume         1.43
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.25
+  set macro2 "Ring"
+  mac2_d1  #15
+  mac2_a1  0.45
+  mac2_d2  #14
+  mac2_a2  -0.1
+  set macro3 "Bowed"
+  mac3_d1  #3
+  mac3_a1  0.08
+  mac3_d2  #10
+  mac3_a2  0.08
+  set macro4 "Hard Layer"
+  mac4_d1  #2
+  mac4_a1  0.7
+  mac4_d2  #1
+  mac4_a2  0.35
+  set macro5 "Swell"
+  mac5_d1  #10
+  mac5_a1  0.15
+  mac5_d2  #13
+  mac5_a2  0.1
+  set macro6 "Octave Down"
+  mac6_d1  #18
+  mac6_a1  -0.5
+  mac6_d2  #24
+  mac6_a2  0.047
+  set macro7 "Longer"
+  mac7_d1  #11
+  mac7_a1  0.15
+  mac7_d2  #13
+  mac7_a2  0.15
+  set macro8 "Even"
+  mac8_d1  #22
+  mac8_a1  -0.6
+  mac8_d2  #24
+  mac8_a2  -0.238
 
 patch "Metal Sheet" family=texture
   # Pitched up two octaves, notched, and granulated from one point with the
@@ -766,6 +3052,44 @@ patch "Metal Sheet" family=texture
   a_sustain      0.85
   a_release      2.2 s
   volume         1.50
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.198
+  mac1_d2  #24
+  mac1_a2  0
+  set macro2 "Ring"
+  mac2_d1  #15
+  mac2_a1  0.45
+  mac2_d2  #14
+  mac2_a2  -0.1
+  set macro3 "Bowed"
+  mac3_d1  #3
+  mac3_a1  0.08
+  mac3_d2  #10
+  mac3_a2  0.08
+  set macro4 "Hard Layer"
+  mac4_d1  #2
+  mac4_a1  0.7
+  mac4_d2  #1
+  mac4_a2  0.35
+  set macro5 "Swell"
+  mac5_d1  #10
+  mac5_a1  0.15
+  mac5_d2  #13
+  mac5_a2  0.1
+  set macro6 "Octave Down"
+  mac6_d1  #18
+  mac6_a1  -0.5
+  set macro7 "Longer"
+  mac7_d1  #11
+  mac7_a1  0.0854
+  mac7_d2  #13
+  mac7_a2  0.15
+  set macro8 "Even"
+  mac8_d1  #22
+  mac8_a1  -0.6
+  mac8_d2  #24
+  mac8_a2  -0.25
 
 patch Detuned family=texture
   # Fine tuning pushed most of a semitone, so the zones beat against each
@@ -782,3 +3106,43 @@ patch Detuned family=texture
   f_freq         4000 Hz
   loop           #2
   volume         0.31
+  set macro1 "Dark"
+  mac1_d1  #14
+  mac1_a1  -0.219
+  set macro2 "Ring"
+  mac2_d1  #15
+  mac2_a1  0.45
+  mac2_d2  #14
+  mac2_a2  -0.1
+  set macro3 "Bowed"
+  mac3_d1  #3
+  mac3_a1  0.08
+  mac3_d2  #10
+  mac3_a2  0.08
+  mac3_d3  #24
+  mac3_a3  0.069
+  set macro4 "Hard Layer"
+  mac4_d1  #2
+  mac4_a1  0.7
+  mac4_d2  #1
+  mac4_a2  0.35
+  set macro5 "Swell"
+  mac5_d1  #10
+  mac5_a1  0.15
+  mac5_d2  #13
+  mac5_a2  0.1
+  mac5_d3  #24
+  mac5_a3  0.042
+  set macro6 "Octave Down"
+  mac6_d1  #18
+  mac6_a1  -0.5
+  set macro7 "Longer"
+  mac7_d1  #11
+  mac7_a1  0.103
+  mac7_d2  #13
+  mac7_a2  0.15
+  set macro8 "Even"
+  mac8_d1  #22
+  mac8_a1  -0.6
+  mac8_d2  #24
+  mac8_a2  -0.052

@@ -14,10 +14,24 @@
 # wheel on the beat to set the dog buzzing in time; pressure or the mod
 # wheel pushes it too.
 #
-# Families: isles, europe, double, gurdy, drones.
+# 80 patches in seven families: isles (highland, smallpipes, uilleann),
+# west (gaita, cornemuse, musette), east (gaida, sackpipa, dudy), double
+# (zampogna, tulum, launeddas), gurdy, drones and odd.
+#
+# Every patch but Init carries eight named macros. Destinations are
+# numbered as in Chanter.h's MacroDest: #1 drones, #2 bag, #3 reed,
+# #4 grace, #5 drift, #6 air, #7 crank, #8 rosin, #9 dog, #10 threshold,
+# #11 velocity, #12 volume, #13 pitch (24 semitones a unit). A pipe gets
+# Drones, Hard Reed, Grace, Squeeze, Breath, Long Bag, Wild and Steady;
+# a hurdy-gurdy Crank, Dog, Easy Buzz, Rosin, Drones, Long Run, Wander and
+# Low. A macro whose knob has no room left goes the other way under the
+# opposite name (Drones Back, Soft Reed, Fewer Graces, Short Bag, Slower, Quiet Dog,
+# Smooth, Short Run). Where a macro at full moves the level by more than
+# 1 dB, a volume route takes it back out.
 
 machine Chanter
 role lead
+
 
 patch Init family=isles note=69 range=67..81
 
@@ -25,11 +39,72 @@ patch "Highland Pipes" family=isles note=69 range=67..81
   # The great pipes: three drones and a loud chanter, every note graced.
   grace          25 ms
   drones         0.8
+  volume         0.624
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Fewer Graces"
+  mac3_d1  #4
+  mac3_a1  -0.333
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
 patch "Pipes Ungraced" family=isles note=69 range=67..81
   # The same, with the notes running together and the bag less steady.
   grace          0 ms
   drift          0.35
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.35
+  mac8_d2  #6
+  mac8_a2  -0.15
 
 patch "Pipe Band" family=isles note=69 range=67..81
   # Drones up, the bag squeezed unevenly, more air.
@@ -37,22 +112,144 @@ patch "Pipe Band" family=isles note=69 range=67..81
   drones         0.9
   drift          0.5
   air            0.3
+  volume         0.617
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.5
+  mac8_d2  #6
+  mac8_a2  -0.3
 
 patch "Practice Chanter" family=isles note=69 range=67..81
   # The chanter on its own, softer reed, no drones.
   drones         0
   reed           0.3
   grace          20 ms
+  set macro1 "Drones In"
+  mac1_d1  #1
+  mac1_a1  0.6
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
 patch "Bright Chanter" family=isles note=69 range=67..81
   # A hard reed, loud and piercing.
   reed           0.9
   grace          15 ms
+  volume         0.624
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Soft Reed"
+  mac2_d1  #3
+  mac2_a1  -0.4
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.1
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
 patch Smallpipes family=isles note=67 range=65..79
   # A quiet, closed chanter that stops between notes, soft drones.
   model          #1
   key            #7
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
 patch "Smallpipes Graced" family=isles note=67 range=65..79
   # Closed and graced, a little breathier.
@@ -60,6 +257,36 @@ patch "Smallpipes Graced" family=isles note=67 range=65..79
   key            #7
   grace          20 ms
   air            0.25
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.25
 
 patch "Soft Smallpipes" family=isles note=67 range=65..79
   # A soft reed and the drones low.
@@ -67,16 +294,107 @@ patch "Soft Smallpipes" family=isles note=67 range=65..79
   key            #7
   reed           0.25
   drones         0.4
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
 patch "Smallpipes in D" family=isles note=62 range=60..74
   # Drones on D.
   model          #1
   key            #2
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
 patch "Uilleann Pipes" family=isles note=62 range=62..86
   # Sweet and quiet, played closed, drones on D an octave and two below.
   model          #4
   key            #2
+  volume         0.973
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
 patch "Uilleann Slow Air" family=isles note=62 range=62..86
   # Low drones under a slow air.
@@ -84,137 +402,1079 @@ patch "Uilleann Slow Air" family=isles note=62 range=62..86
   key            #2
   drones         0.5
   drift          0.3
+  volume         0.983
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.3
+  mac8_d2  #6
+  mac8_a2  -0.15
 
 patch "Uilleann Regulators" family=isles note=62 range=50..86
   # Hold a key under the melody and the regulators play it, quieter.
   model          #4
   key            #2
   drones         0.5
+  volume         0.984
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
-patch Gaita family=europe note=72 range=70..86
+patch "Border Pipes" family=isles note=69 range=67..81
+  # Bellows-blown lowland pipes: the highland chanter softer and sweeter, the drones down.
+  reed           0.3
+  drones         0.55
+  grace          12 ms
+  drift          0.1
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.1
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "Uilleann Reel" family=isles note=62 range=62..86 role=lead
+  # The uilleann chanter cut with quick graces for a reel, the drones low.
+  model          #4
+  key            #2
+  grace          14 ms
+  reed           0.6
+  drones         0.45
+  volume         0.982
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch Gaita family=west note=72 range=70..86
   # One bass drone under a sweet, conical chanter.
   model          #2
   key            #0
+  volume         0.418
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
-patch "Gaita Bright" family=europe note=72 range=70..86
+patch "Gaita Bright" family=west note=72 range=70..86
   # A harder reed.
   model          #2
   key            #0
   reed           0.85
+  volume         0.414
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Soft Reed"
+  mac2_d1  #3
+  mac2_a1  -0.4
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.15
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
-patch "Gaita Breath" family=europe note=72 range=70..86
+patch "Gaita Breath" family=west note=72 range=70..86
   # Breathy, the bag wandering.
   model          #2
   key            #0
   air            0.45
   drift          0.5
+  volume         0.417
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.5
+  mac8_d2  #6
+  mac8_a2  -0.45
 
-patch "Gaita Graced" family=europe note=72 range=70..86
+patch "Gaita Graced" family=west note=72 range=70..86
   # Grace notes before each, the drone up.
   model          #2
   key            #0
   grace          18 ms
   drones         0.75
+  volume         0.417
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
-patch "Gaida" family=europe note=67 range=67..79
-  # Bright and reedy over one deep drone, quick ornaments.
-  model          #5
-  key            #7
-  grace          15 ms
-
-patch "Gaida Trill" family=europe note=67 range=67..79
-  # Heavier ornaments, more breath.
-  model          #5
-  key            #7
-  grace          30 ms
-  air            0.25
-
-patch "Cornemuse" family=europe note=67 range=67..81
+patch Cornemuse family=west note=67 range=67..81
   # The French bagpipe in G, half closed, two drones.
   model          #6
   key            #7
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
-patch "Cornemuse Bourrée" family=europe note=67 range=67..81
+patch "Cornemuse Bourrée" family=west note=67 range=67..81
   # A harder reed for dancing.
   model          #6
   key            #7
   grace          12 ms
   reed           0.7
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Soft Reed"
+  mac2_d1  #3
+  mac2_a1  -0.4
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
-patch "Musette de Cour" family=europe note=67 range=67..81
+patch "Musette de Cour" family=west note=67 range=67..81
   # Small, soft and courtly.
   model          #7
   key            #7
+  volume         0.817
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
-patch "Musette Pastorale" family=europe note=67 range=67..81
+patch "Musette Pastorale" family=west note=67 range=67..81
   # Softer still, the drones far back.
   model          #7
   key            #7
   drones         0.5
   reed           0.3
+  volume         0.83
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
-patch "Sackpipa" family=europe note=69 range=69..81
-  # The Swedish pipe: one drone, a narrow, closed chanter.
-  model          #8
-  key            #9
-
-patch "Sackpipa Polska" family=europe note=69 range=69..81
-  # Graced, for the dance.
-  model          #8
-  key            #9
-  grace          18 ms
-
-patch "Dudy" family=europe note=63 range=63..75
-  # The Czech pipe: a loud, long drone two octaves down.
-  model          #9
-  key            #3
-
-patch "Dudy Village" family=europe note=63 range=63..75
-  # Rougher, the bag wandering.
-  model          #9
-  key            #3
-  drift          0.4
-  air            0.25
-
-patch "Gaida Kaba" family=europe note=67 range=67..79
-  # The deep Rhodope gaida, loud and wild.
-  model          #5
-  key            #7
-  reed           0.85
-  drift          0.35
-
-patch "Cornemuse Douce" family=europe note=67 range=67..81
+patch "Cornemuse Douce" family=west note=67 range=67..81
   # Soft reed, the drones held back.
   model          #6
   key            #7
   reed           0.35
   drones         0.5
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
-patch "Musette Bal" family=europe note=67 range=67..81
+patch "Musette Bal" family=west note=67 range=67..81
   # Graced and a little brighter, for a court dance.
   model          #7
   key            #7
   grace          10 ms
   reed           0.6
+  volume         0.814
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
-patch "Sackpipa Drone" family=europe note=69 range=69..81
+patch "Gaita Muiñeira" family=west note=72 range=70..86 role=lead
+  # A bright, graced gaita for a quick dance in six, the drone up.
+  model          #2
+  key            #0
+  grace          16 ms
+  reed           0.7
+  drones         0.8
+  volume         0.416
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Soft Reed"
+  mac2_d1  #3
+  mac2_a1  -0.4
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "Cornemuse du Centre" family=west note=67 range=67..81
+  # The big French pipe in C, both drones loud and a firm reed.
+  model          #6
+  key            #0
+  reed           0.65
+  drones         0.85
+  grace          8 ms
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Soft Reed"
+  mac2_d1  #3
+  mac2_a1  -0.4
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch Gaida family=east note=67 range=67..79
+  # Bright and reedy over one deep drone, quick ornaments.
+  model          #5
+  key            #7
+  grace          15 ms
+  volume         0.917
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "Gaida Trill" family=east note=67 range=67..79
+  # Heavier ornaments, more breath.
+  model          #5
+  key            #7
+  grace          30 ms
+  air            0.25
+  volume         0.919
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Fewer Graces"
+  mac3_d1  #4
+  mac3_a1  -0.4
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.25
+
+patch Sackpipa family=east note=69 range=69..81
+  # The Swedish pipe: one drone, a narrow, closed chanter.
+  model          #8
+  key            #9
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "Sackpipa Polska" family=east note=69 range=69..81
+  # Graced, for the dance.
+  model          #8
+  key            #9
+  grace          18 ms
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch Dudy family=east note=63 range=63..75
+  # The Czech pipe: a loud, long drone two octaves down.
+  model          #9
+  key            #3
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "Dudy Village" family=east note=63 range=63..75
+  # Rougher, the bag wandering.
+  model          #9
+  key            #3
+  drift          0.4
+  air            0.25
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.4
+  mac8_d2  #6
+  mac8_a2  -0.25
+
+patch "Gaida Kaba" family=east note=67 range=67..79
+  # The deep Rhodope gaida, loud and wild.
+  model          #5
+  key            #7
+  reed           0.85
+  drift          0.35
+  volume         0.913
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Soft Reed"
+  mac2_d1  #3
+  mac2_a1  -0.4
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.15
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.35
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "Sackpipa Drone" family=east note=69 range=69..81
   # The drone up front, ringing on after the tune.
   model          #8
   key            #9
   bag            4 s
   drones         1
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
-patch "Dudy Polka" family=europe note=63 range=63..75
+patch "Dudy Polka" family=east note=63 range=63..75
   # Bright and quick, for dancing.
   model          #9
   key            #3
   grace          14 ms
   reed           0.75
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Soft Reed"
+  mac2_d1  #3
+  mac2_a1  -0.4
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.25
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
-patch "Zampogna" family=double note=67 range=55..79
+patch "Gaida Horo" family=east note=67 range=67..79 role=lead
+  # A gaida for a fast line dance: hard reed, thick ornaments.
+  model          #5
+  key            #7
+  grace          22 ms
+  reed           0.75
+  air            0.2
+  volume         0.917
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Soft Reed"
+  mac2_d1  #3
+  mac2_a1  -0.4
+  set macro3 "Fewer Graces"
+  mac3_d1  #4
+  mac3_a1  -0.293
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.25
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.2
+
+patch "Sackpipa Walking Tune" family=east note=69 range=69..81
+  # The sackpipa at a walking pace in E, soft and steady.
+  model          #8
+  key            #4
+  reed           0.35
+  drift          0.1
+  grace          10 ms
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.1
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "Dudy Lament" family=east note=63 range=63..75
+  # The dudy slow and soft over its long low drone.
+  model          #9
+  key            #3
+  reed           0.3
+  drones         0.6
+  drift          0.25
+  bag            3 s
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.25
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch Zampogna family=double note=67 range=55..79
   # Two chanters: hold a second key and the other hand plays it.
   model          #10
   key            #7
+  volume         0.81
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
 patch "Zampogna Natale" family=double note=67 range=55..79
   # Graced, as at Christmas in the hills.
@@ -222,12 +1482,74 @@ patch "Zampogna Natale" family=double note=67 range=55..79
   key            #7
   grace          10 ms
   drift          0.3
+  volume         0.809
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.3
+  mac8_d2  #6
+  mac8_a2  -0.15
 
-patch "Tulum" family=double note=62 range=57..74
+patch Tulum family=double note=62 range=57..74
   # No drone, two chanters side by side: hold two keys.
   model          #11
   key            #2
   grace          12 ms
+  volume         1
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
 patch "Tulum Horon" family=double note=62 range=57..74
   # A hard reed and quick ornaments for dancing.
@@ -235,11 +1557,73 @@ patch "Tulum Horon" family=double note=62 range=57..74
   key            #2
   grace          25 ms
   reed           0.8
+  volume         1
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Soft Reed"
+  mac2_d1  #3
+  mac2_a1  -0.4
+  set macro3 "Fewer Graces"
+  mac3_d1  #4
+  mac3_a1  -0.333
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.2
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
-patch "Launeddas" family=double note=60 range=55..76
+patch Launeddas family=double note=60 range=55..76
   # Three cane pipes: the drone, and two melody pipes for two keys.
   model          #12
   key            #0
+  volume         1
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
 patch "Launeddas Ballo" family=double note=60 range=55..76
   # Breathier, for the dance.
@@ -247,6 +1631,37 @@ patch "Launeddas Ballo" family=double note=60 range=55..76
   key            #0
   grace          8 ms
   air            0.25
+  volume         1
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.25
 
 patch "Zampogna Pastorale" family=double note=67 range=55..79
   # Soft and slow: hold two keys for both hands.
@@ -254,12 +1669,74 @@ patch "Zampogna Pastorale" family=double note=67 range=55..79
   key            #7
   reed           0.45
   drones         0.6
+  volume         0.815
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
 patch "Tulum Soft" family=double note=62 range=57..74
   # Gentler reeds, two chanters side by side.
   model          #11
   key            #2
   reed           0.45
+  volume         1
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
 patch "Launeddas Drone" family=double note=60 range=55..76
   # The cane drone loud under two melody pipes.
@@ -267,23 +1744,226 @@ patch "Launeddas Drone" family=double note=60 range=55..76
   key            #0
   drones         1
   bag            3 s
+  volume         1
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "Zampogna Lullaby" family=double note=67 range=55..79 role=drone
+  # Both chanters soft and slow, a held third or fifth over the drones.
+  model          #10
+  key            #7
+  reed           0.3
+  drones         0.5
+  drift          0.15
+  bag            3 s
+  volume         0.824
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.15
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "Tulum Wedding" family=double note=62 range=57..74 role=lead
+  # Two loud, bright chanters with heavy ornaments.
+  model          #11
+  key            #2
+  reed           0.85
+  grace          20 ms
+  air            0.25
+  volume         1
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Soft Reed"
+  mac2_d1  #3
+  mac2_a1  -0.4
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.15
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.25
 
 patch Hurdy-Gurdy family=gurdy note=67 range=60..84
   # The wheel turning steadily, the dog quiet.
   model          #3
   key            #7
+  volume         0.576
+  set macro1 "Crank"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac1_d2  #12
+  mac1_a2  -0.121
+  set macro2 "Dog"
+  mac2_d1  #9
+  mac2_a1  0.4
+  set macro3 "Easy Buzz"
+  mac3_d1  #10
+  mac3_a1  -0.3
+  set macro4 "Rosin"
+  mac4_d1  #8
+  mac4_a1  0.35
+  mac4_d2  #12
+  mac4_a2  0.306
+  set macro5 "Drones"
+  mac5_d1  #1
+  mac5_a1  0.25
+  set macro6 "Long Run"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wander"
+  mac7_d1  #5
+  mac7_a1  0.5
+  set macro8 "Low"
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.079
 
 patch "Gurdy Coups" family=gurdy note=67 range=60..84
   # The wheel pushed on every beat: the dog buzzes in time.
   model          #3
   key            #7
   coup           #1
+  volume         0.551
+  set macro1 "Crank"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac1_d2  #12
+  mac1_a2  -0.116
+  set macro2 "Dog"
+  mac2_d1  #9
+  mac2_a1  0.4
+  set macro3 "Easy Buzz"
+  mac3_d1  #10
+  mac3_a1  -0.3
+  set macro4 "Rosin"
+  mac4_d1  #8
+  mac4_a1  0.35
+  mac4_d2  #12
+  mac4_a2  0.345
+  set macro5 "Drones"
+  mac5_d1  #1
+  mac5_a1  0.25
+  set macro6 "Long Run"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wander"
+  mac7_d1  #5
+  mac7_a1  0.5
+  set macro8 "Low"
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.096
 
 patch "Gurdy Eighths" family=gurdy note=67 range=60..84
   # Two coups a beat.
   model          #3
   key            #7
   coup           #2
+  volume         0.526
+  set macro1 "Crank"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac1_d2  #12
+  mac1_a2  -0.108
+  set macro2 "Dog"
+  mac2_d1  #9
+  mac2_a1  0.4
+  set macro3 "Easy Buzz"
+  mac3_d1  #10
+  mac3_a1  -0.3
+  set macro4 "Rosin"
+  mac4_d1  #8
+  mac4_a1  0.35
+  mac4_d2  #12
+  mac4_a2  0.322
+  set macro5 "Drones"
+  mac5_d1  #1
+  mac5_a1  0.25
+  set macro6 "Long Run"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wander"
+  mac7_d1  #5
+  mac7_a1  0.5
+  set macro8 "Low"
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.096
 
 patch "Gurdy Sixteenths" family=gurdy note=67 range=60..84
   # Four coups a beat, a dance.
@@ -291,6 +1971,37 @@ patch "Gurdy Sixteenths" family=gurdy note=67 range=60..84
   key            #7
   coup           #3
   wheel          0.45
+  volume         0.529
+  set macro1 "Crank"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac1_d2  #12
+  mac1_a2  -0.115
+  set macro2 "Dog"
+  mac2_d1  #9
+  mac2_a1  0.4
+  set macro3 "Easy Buzz"
+  mac3_d1  #10
+  mac3_a1  -0.3
+  set macro4 "Rosin"
+  mac4_d1  #8
+  mac4_a1  0.35
+  mac4_d2  #12
+  mac4_a2  0.287
+  set macro5 "Drones"
+  mac5_d1  #1
+  mac5_a1  0.25
+  set macro6 "Long Run"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wander"
+  mac7_d1  #5
+  mac7_a1  0.5
+  set macro8 "Low"
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.093
 
 patch "Gurdy Buzzing" family=gurdy note=67 range=60..84
   # The wheel fast enough that the dog never stops.
@@ -298,6 +2009,37 @@ patch "Gurdy Buzzing" family=gurdy note=67 range=60..84
   key            #7
   wheel          0.85
   threshold      0.5
+  volume         0.425
+  set macro1 "Slower"
+  mac1_d1  #7
+  mac1_a1  -0.3
+  mac1_d2  #12
+  mac1_a2  0.123
+  set macro2 "Dog"
+  mac2_d1  #9
+  mac2_a1  0.4
+  set macro3 "Easy Buzz"
+  mac3_d1  #10
+  mac3_a1  -0.3
+  set macro4 "Rosin"
+  mac4_d1  #8
+  mac4_a1  0.35
+  mac4_d2  #12
+  mac4_a2  0.135
+  set macro5 "Drones"
+  mac5_d1  #1
+  mac5_a1  0.25
+  set macro6 "Long Run"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wander"
+  mac7_d1  #5
+  mac7_a1  0.5
+  set macro8 "Low"
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.078
 
 patch "Gurdy Gentle" family=gurdy note=67 range=60..84
   # A slow wheel and the dog lifted off: soft and reedy.
@@ -305,17 +2047,303 @@ patch "Gurdy Gentle" family=gurdy note=67 range=60..84
   key            #7
   wheel          0.25
   dog            0
+  set macro1 "Crank"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac1_d2  #12
+  mac1_a2  -0.179
+  set macro2 "Dog"
+  mac2_d1  #9
+  mac2_a1  0.4
+  set macro3 "Easy Buzz"
+  mac3_d1  #10
+  mac3_a1  -0.3
+  set macro4 "Rosin"
+  mac4_d1  #8
+  mac4_a1  0.35
+  mac4_d2  #12
+  mac4_a2  0.252
+  set macro5 "Drones"
+  mac5_d1  #1
+  mac5_a1  0.25
+  set macro6 "Long Run"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wander"
+  mac7_d1  #5
+  mac7_a1  0.5
+  set macro8 "Low"
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.128
 
 patch "Gurdy in D" family=gurdy note=62 range=55..79
   # Drones on D, coups on the beat.
   model          #3
   key            #2
   coup           #1
+  volume         0.564
+  set macro1 "Crank"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac1_d2  #12
+  mac1_a2  -0.117
+  set macro2 "Dog"
+  mac2_d1  #9
+  mac2_a1  0.4
+  set macro3 "Easy Buzz"
+  mac3_d1  #10
+  mac3_a1  -0.3
+  set macro4 "Rosin"
+  mac4_d1  #8
+  mac4_a1  0.35
+  set macro5 "Drones"
+  mac5_d1  #1
+  mac5_a1  0.25
+  set macro6 "Long Run"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wander"
+  mac7_d1  #5
+  mac7_a1  0.5
+  set macro8 "Low"
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.192
+
+patch "Gurdy Slow Air" family=gurdy note=67 range=60..84 role=tune
+  # The dog lifted off and a slow wheel, for a slow air.
+  model          #3
+  key            #7
+  wheel          0.4
+  rosin          0.45
+  dog            0
+  drones         0.5
+  bag            2 s
+  volume         0.612
+  set macro1 "Crank"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac1_d2  #12
+  mac1_a2  -0.145
+  set macro2 "Dog"
+  mac2_d1  #9
+  mac2_a1  0.4
+  set macro3 "Easy Buzz"
+  mac3_d1  #10
+  mac3_a1  -0.3
+  set macro4 "Rosin"
+  mac4_d1  #8
+  mac4_a1  0.35
+  set macro5 "Drones"
+  mac5_d1  #1
+  mac5_a1  0.25
+  set macro6 "Long Run"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wander"
+  mac7_d1  #5
+  mac7_a1  0.5
+  set macro8 "Low"
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.117
+
+patch "Gurdy Bourrée" family=gurdy note=67 range=60..84 role=tune
+  # A dance: the wheel pushed on 2 and 4, the dog buzzing on each.
+  model          #3
+  key            #7
+  coup           #1
+  coupbeats      #1
+  wheel          0.55
+  dog            0.65
+  threshold      0.55
+  volume         0.52
+  set macro1 "Crank"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac1_d2  #12
+  mac1_a2  -0.106
+  set macro2 "Quiet Dog"
+  mac2_d1  #9
+  mac2_a1  -0.6
+  set macro3 "Easy Buzz"
+  mac3_d1  #10
+  mac3_a1  -0.3
+  set macro4 "Rosin"
+  mac4_d1  #8
+  mac4_a1  0.35
+  mac4_d2  #12
+  mac4_a2  0.246
+  set macro5 "Drones"
+  mac5_d1  #1
+  mac5_a1  0.25
+  set macro6 "Long Run"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wander"
+  mac7_d1  #5
+  mac7_a1  0.5
+  set macro8 "Low"
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.097
+
+patch "Trompette Alone" family=gurdy note=67 range=60..84 role=tap
+  # Tap a key and let go: the wheel turns on, the trompette buzzing over the drones.
+  model          #3
+  key            #7
+  bag            6 s
+  wheel          0.7
+  dog            0.8
+  threshold      0.45
+  coup           #2
+  drones         0.6
+  volume         0.42
+  set macro1 "Crank"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac1_d2  #12
+  mac1_a2  -0.056
+  set macro2 "Quiet Dog"
+  mac2_d1  #9
+  mac2_a1  -0.6
+  set macro3 "Easy Buzz"
+  mac3_d1  #10
+  mac3_a1  -0.3
+  set macro4 "Rosin"
+  mac4_d1  #8
+  mac4_a1  0.35
+  mac4_d2  #12
+  mac4_a2  0.086
+  set macro5 "Drones"
+  mac5_d1  #1
+  mac5_a1  0.25
+  set macro6 "Short Run"
+  mac6_d1  #2
+  mac6_a1  -0.6
+  set macro7 "Wander"
+  mac7_d1  #5
+  mac7_a1  0.5
+  set macro8 "Low"
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.101
+
+patch "Gurdy in C" family=gurdy note=72 range=60..84
+  # Drones on C, coups on the beat.
+  model          #3
+  key            #0
+  coup           #1
+  volume         0.612
+  set macro1 "Crank"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac1_d2  #12
+  mac1_a2  -0.108
+  set macro2 "Dog"
+  mac2_d1  #9
+  mac2_a1  0.4
+  set macro3 "Easy Buzz"
+  mac3_d1  #10
+  mac3_a1  -0.3
+  set macro4 "Rosin"
+  mac4_d1  #8
+  mac4_a1  0.35
+  mac4_d2  #12
+  mac4_a2  0.278
+  set macro5 "Drones"
+  mac5_d1  #1
+  mac5_a1  0.25
+  set macro6 "Long Run"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wander"
+  mac7_d1  #5
+  mac7_a1  0.5
+  set macro8 "Low"
+  mac8_d1  #13
+  mac8_a1  -0.5
+
+patch "Gurdy Rosin" family=gurdy note=67 range=60..84
+  # Lots of rosin and a fast wheel: gritty, scratchy, bright.
+  model          #3
+  key            #7
+  rosin          0.7
+  wheel          0.7
+  dog            0.3
+  volume         0.518
+  set macro1 "Crank"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac1_d2  #12
+  mac1_a2  -0.061
+  set macro2 "Dog"
+  mac2_d1  #9
+  mac2_a1  0.4
+  set macro3 "Easy Buzz"
+  mac3_d1  #10
+  mac3_a1  -0.3
+  set macro4 "Smooth"
+  mac4_d1  #8
+  mac4_a1  -0.4
+  mac4_d2  #12
+  mac4_a2  -0.085
+  set macro5 "Drones"
+  mac5_d1  #1
+  mac5_a1  0.25
+  set macro6 "Long Run"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wander"
+  mac7_d1  #5
+  mac7_a1  0.5
+  set macro8 "Low"
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.082
 
 patch "Pipe Drones" family=drones note=69 range=67..81 role=drone
   # Hold a note for the drones; they go on for eight seconds after.
   bag            8 s
   drones         1
+  volume         0.603
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Short Bag"
+  mac6_d1  #2
+  mac6_a1  -0.8
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
 patch "Gurdy Drones" family=drones note=67 range=60..84 role=drone
   # The wheel keeps the drones turning long after the note.
@@ -324,6 +2352,35 @@ patch "Gurdy Drones" family=drones note=67 range=60..84 role=drone
   bag            8 s
   drones         1
   dog            0
+  volume         0.566
+  set macro1 "Crank"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac1_d2  #12
+  mac1_a2  -0.103
+  set macro2 "Dog"
+  mac2_d1  #9
+  mac2_a1  0.4
+  set macro3 "Easy Buzz"
+  mac3_d1  #10
+  mac3_a1  -0.3
+  set macro4 "Rosin"
+  mac4_d1  #8
+  mac4_a1  0.35
+  mac4_d2  #12
+  mac4_a2  0.264
+  set macro5 "Drones Back"
+  mac5_d1  #1
+  mac5_a1  -0.45
+  set macro6 "Short Run"
+  mac6_d1  #2
+  mac6_a1  -0.8
+  set macro7 "Wander"
+  mac7_d1  #5
+  mac7_a1  0.5
+  set macro8 "Low"
+  mac8_d1  #13
+  mac8_a1  -0.5
 
 patch "Smallpipe Drones" family=drones note=67 range=65..79 role=drone
   # The smallpipes' soft drones, long.
@@ -331,6 +2388,37 @@ patch "Smallpipe Drones" family=drones note=67 range=65..79 role=drone
   key            #7
   bag            8 s
   drones         1
+  volume         0.62
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Short Bag"
+  mac6_d1  #2
+  mac6_a1  -0.8
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
 patch "Gaita Drone" family=drones note=72 range=70..86 role=drone
   # One deep drone, long.
@@ -338,6 +2426,37 @@ patch "Gaita Drone" family=drones note=72 range=70..86 role=drone
   key            #0
   bag            8 s
   drones         1
+  volume         0.417
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Short Bag"
+  mac6_d1  #2
+  mac6_a1  -0.8
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
 
 patch "Uilleann Drones" family=drones note=62 range=62..86 role=drone
   # Hold a note for the three drones; they go on after.
@@ -345,3 +2464,536 @@ patch "Uilleann Drones" family=drones note=62 range=62..86 role=drone
   key            #2
   bag            8 s
   drones         1
+  volume         0.95
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Short Bag"
+  mac6_d1  #2
+  mac6_a1  -0.8
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "Pipe Drones in C" family=drones note=60 range=60..74 role=drone
+  # The highland drones down in C, long.
+  key            #0
+  bag            8 s
+  drones         1
+  volume         0.793
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Short Bag"
+  mac6_d1  #2
+  mac6_a1  -0.8
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "Pipe Drones in B" family=drones note=71 range=71..83 role=drone
+  # The highland drones up in B, long.
+  key            #11
+  bag            8 s
+  drones         1
+  volume         0.572
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Short Bag"
+  mac6_d1  #2
+  mac6_a1  -0.8
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "Fifth Over Drones" family=drones note=67 range=55..79 role=drone
+  # Zampogna: hold two keys a fifth apart for both chanters over the drones.
+  model          #10
+  key            #7
+  bag            8 s
+  drones         0.9
+  reed           0.4
+  volume         0.802
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Short Bag"
+  mac6_d1  #2
+  mac6_a1  -0.8
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "Deep Gaida Drone" family=drones note=67 range=67..79 role=drone
+  # The gaida's one deep drone two octaves down, long.
+  model          #5
+  key            #7
+  bag            8 s
+  drones         1
+  volume         0.914
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Short Bag"
+  mac6_d1  #2
+  mac6_a1  -0.8
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "No Bag" family=odd note=69 range=67..81 role=lead
+  # The chanter blown by mouth with no bag: breathy, and the notes stop when let go.
+  drones         0
+  bag            0 s
+  air            0.45
+  drift          0.45
+  reed           0.4
+  set macro1 "Drones In"
+  mac1_d1  #1
+  mac1_a1  0.6
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.45
+  mac8_d2  #6
+  mac8_a2  -0.45
+
+patch "Wild Reed" family=odd note=67 range=67..79 role=lead
+  # A gaida reed pushed as hard as it goes, rough and wandering.
+  model          #5
+  key            #7
+  reed           1
+  air            0.35
+  drift          0.5
+  volume         0.907
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Soft Reed"
+  mac2_d1  #3
+  mac2_a1  -0.4
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.5
+  mac8_d2  #6
+  mac8_a2  -0.35
+
+patch "Shrill Reed" family=odd note=67 range=67..81 role=lead
+  # The little musette with a hard reed: thin and piercing.
+  model          #7
+  key            #7
+  reed           1
+  drones         0.4
+  grace          6 ms
+  volume         0.819
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Soft Reed"
+  mac2_d1  #3
+  mac2_a1  -0.4
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "Seasick Pipes" family=odd note=69 range=67..81
+  # The bag squeezed unevenly the whole time: the pitch rolls.
+  drift          1
+  air            0.25
+  drones         0.8
+  volume         0.622
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -1
+  mac8_d2  #6
+  mac8_a2  -0.25
+
+patch "Dog on a Drone" family=odd note=67 range=60..84 role=drone
+  # The hurdy-gurdy's drones turning fast, the dog buzzing over them all the time.
+  model          #3
+  key            #7
+  wheel          0.8
+  threshold      0.35
+  dog            0.8
+  drones         1
+  bag            8 s
+  volume         0.419
+  set macro1 "Slower"
+  mac1_d1  #7
+  mac1_a1  -0.3
+  mac1_d2  #12
+  mac1_a2  0.116
+  set macro2 "Quiet Dog"
+  mac2_d1  #9
+  mac2_a1  -0.6
+  set macro3 "Easy Buzz"
+  mac3_d1  #10
+  mac3_a1  -0.3
+  set macro4 "Rosin"
+  mac4_d1  #8
+  mac4_a1  0.35
+  mac4_d2  #12
+  mac4_a2  0.083
+  set macro5 "Drones Back"
+  mac5_d1  #1
+  mac5_a1  -0.45
+  set macro6 "Short Run"
+  mac6_d1  #2
+  mac6_a1  -0.8
+  set macro7 "Wander"
+  mac7_d1  #5
+  mac7_a1  0.5
+  set macro8 "Low"
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.064
+
+patch "Coup Drone" family=odd note=67 range=60..84 role=tap
+  # Tap a key: the drones turn on with the dog pushed four times a beat.
+  model          #3
+  key            #7
+  coup           #3
+  wheel          0.5
+  dog            0.9
+  threshold      0.6
+  bag            6 s
+  drones         0.8
+  volume         0.487
+  set macro1 "Crank"
+  mac1_d1  #7
+  mac1_a1  0.25
+  mac1_d2  #12
+  mac1_a2  -0.105
+  set macro2 "Quiet Dog"
+  mac2_d1  #9
+  mac2_a1  -0.6
+  set macro3 "Easy Buzz"
+  mac3_d1  #10
+  mac3_a1  -0.3
+  set macro4 "Rosin"
+  mac4_d1  #8
+  mac4_a1  0.35
+  mac4_d2  #12
+  mac4_a2  0.21
+  set macro5 "Drones Back"
+  mac5_d1  #1
+  mac5_a1  -0.45
+  set macro6 "Short Run"
+  mac6_d1  #2
+  mac6_a1  -0.6
+  set macro7 "Wander"
+  mac7_d1  #5
+  mac7_a1  0.5
+  set macro8 "Low"
+  mac8_d1  #13
+  mac8_a1  -0.5
+  mac8_d2  #12
+  mac8_a2  0.09
+
+patch "Twin Squeal" family=odd note=62 range=57..74 role=lead
+  # Two tulum chanters pushed to a squeal, heavy graces.
+  model          #11
+  key            #2
+  reed           1
+  grace          40 ms
+  drift          0.4
+  volume         1
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Soft Reed"
+  mac2_d1  #3
+  mac2_a1  -0.4
+  set macro3 "Fewer Graces"
+  mac3_d1  #4
+  mac3_a1  -0.533
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.4
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "Breath Ghost" family=odd note=62 range=62..86
+  # Uilleann pipes with more breath than reed, the drones far off.
+  model          #4
+  key            #2
+  air            1
+  reed           0.1
+  drones         0.3
+  volume         0.967
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Grace"
+  mac3_d1  #4
+  mac3_a1  0.35
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -1
+
+patch "Hiccup Pipes" family=odd note=69 range=67..81 role=lead
+  # Every note starts on a long, high grace note, a hiccup before it settles.
+  grace          60 ms
+  reed           0.65
+  drones         0.6
+  volume         0.569
+  set macro1 "Drones"
+  mac1_d1  #1
+  mac1_a1  0.25
+  set macro2 "Soft Reed"
+  mac2_d1  #3
+  mac2_a1  -0.4
+  set macro3 "Fewer Graces"
+  mac3_d1  #4
+  mac3_a1  -0.8
+  set macro4 "Squeeze"
+  mac4_d1  #5
+  mac4_a1  0.5
+  set macro5 "Breath"
+  mac5_d1  #6
+  mac5_a1  0.35
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Wild"
+  mac7_d1  #3
+  mac7_a1  0.3
+  mac7_d2  #5
+  mac7_a2  0.3
+  mac7_d3  #6
+  mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15

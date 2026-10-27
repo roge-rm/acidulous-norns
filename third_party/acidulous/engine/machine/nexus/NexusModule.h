@@ -31,6 +31,10 @@ struct Context {
     float bpm = 120.0f;
     double tick = 0.0;         // interpolated within the block, so clocks are sample-accurate
     double tickInc = 0.0;
+    // The clock module's time: the song's ticks from where play started, or
+    // from the first key held while stopped. It doesn't run otherwise.
+    double clockTick = 0.0;
+    bool clockRunning = true;
     float modWheel = 0.0f;
     float pressure = 0.0f;
     float bend = 0.0f;
@@ -75,6 +79,8 @@ class Module {
     virtual void prepare(float sampleRate, int32_t voices) = 0;
     /** Audio thread. Forget everything that was sounding. */
     virtual void reset() = 0;
+    /** Audio thread. The clock starts again: a sequencer goes back to its first step. */
+    virtual void restart() {}
 
     /** Once a block: the eight knob values, already smoothed. */
     virtual void setKnobs(const float *knobs) = 0;

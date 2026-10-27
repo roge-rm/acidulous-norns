@@ -1,4 +1,4 @@
-# Cipher - twenty-five patches, voiced against the debug build.
+# Cipher - forty patches, voiced against the debug build.
 #
 # A vocoder listens to one sound through a bank of filters, measures how loud
 # each band is, and imposes that shape on another. Everything interesting is
@@ -25,6 +25,15 @@
 #   freeze, track, slope  #0 off  #1 on
 #
 # Families: classic, remap, formant, hold, carrier, extreme.
+#
+# Every patch but Init has eight macros, named for its family. Their
+# destinations by step:
+#   #1 low  #2 high  #3 width  #4 attack  #5 release  #6 smear  #7 gate
+#   #8 shift  #9 stretch  #10 remap amount  #11 morph  #12 sibilance
+#   #13 track amount  #14 feedback  #15 fb tone  #16 mix  #17 detune  #18 pw
+#   #19 sub  #20 noise  #21 carrier drive  #22 dry  #23 wet  #24 drive
+#   #25 volume  #26 pan  #27 amp attack  #28 amp release  #29 pitch
+# The volume routes keep each macro within about a decibel of the patch.
 
 machine Cipher
 # Held chords over the whole recording. A vocoder is only audible while its
@@ -47,6 +56,103 @@ patch Classic family=classic
   mix            0.25
   detune         8 c
   volume         1.19
+  set macro1 "Higher"
+  mac1_d1  #8
+  mac1_a1  0.2
+  mac1_d2  #25
+  mac1_a2  -0.211
+  set macro2 "Smoother"
+  mac2_d1  #5
+  mac2_a1  0.3
+  mac2_d2  #25
+  mac2_a2  -0.188
+  set macro3 "Sharper"
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #25
+  mac3_a2  0.12
+  set macro4 "Thicker"
+  mac4_d1  #17
+  mac4_a1  0.5
+  mac4_d2  #19
+  mac4_a2  0.3
+  mac4_d3  #25
+  mac4_a3  -0.052
+  set macro5 "Hiss"
+  mac5_d1  #12
+  mac5_a1  0.4
+  set macro6 "Grit"
+  mac6_d1  #24
+  mac6_a1  0.6
+  mac6_d2  #21
+  mac6_a2  0.5
+  mac6_d3  #25
+  mac6_a3  -0.29
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  -0.106
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.096
+
+patch "Fine Grain" family=classic
+  # Forty bands, the most the bank has, with steep four-pole slopes and a
+  # narrow width: every formant gets a band of its own, so the words come
+  # through with the least robot in them.
+  bands          #36
+  q              0.7
+  attack         0.0015 s
+  release        0.035 s
+  sibilance      0.5
+  mix            0.3
+  detune         10 c
+  volume         1.35
+  set macro1 "Higher"
+  mac1_d1  #8
+  mac1_a1  0.2
+  set macro2 "Smoother"
+  mac2_d1  #5
+  mac2_a1  0.3
+  mac2_d2  #25
+  mac2_a2  -0.239
+  set macro3 "Sharper"
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #25
+  mac3_a2  0.065
+  set macro4 "Thicker"
+  mac4_d1  #17
+  mac4_a1  0.5
+  mac4_d2  #19
+  mac4_a2  0.3
+  mac4_d3  #25
+  mac4_a3  0.195
+  set macro5 "Hiss"
+  mac5_d1  #12
+  mac5_a1  0.4
+  set macro6 "Grit"
+  mac6_d1  #24
+  mac6_a1  0.6
+  mac6_d2  #21
+  mac6_a2  0.5
+  mac6_d3  #25
+  mac6_a3  -0.304
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  0.091
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #3
+  mac8_a2  -0.25
+  mac8_d3  #25
+  mac8_a3  0.325
 
 patch Choir family=classic
   # The same machine made to sound like people rather than a machine: more
@@ -62,6 +168,44 @@ patch Choir family=classic
   ampatk         0.08 s
   amprel         0.6 s
   volume         1.66
+  set macro1 "Higher"
+  mac1_d1  #8
+  mac1_a1  0.2
+  mac1_d2  #25
+  mac1_a2  -0.306
+  set macro2 "Smoother"
+  mac2_d1  #5
+  mac2_a1  0.3
+  mac2_d2  #25
+  mac2_a2  -0.229
+  set macro3 "Sharper"
+  mac3_d1  #3
+  mac3_a1  0.35
+  set macro4 "Thicker"
+  mac4_d1  #17
+  mac4_a1  0.5
+  mac4_d2  #19
+  mac4_a2  0.3
+  mac4_d3  #25
+  mac4_a3  -0.222
+  set macro5 "Hiss"
+  mac5_d1  #12
+  mac5_a1  0.4
+  set macro6 "Grit"
+  mac6_d1  #24
+  mac6_a1  0.6
+  mac6_d2  #21
+  mac6_a2  0.5
+  mac6_d3  #25
+  mac6_a3  -0.484
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  -0.073
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
 
 patch Ensemble family=classic
   # Thick: the detune at its widest with a sub under it, which is what stops a
@@ -73,6 +217,48 @@ patch Ensemble family=classic
   sub            0.45
   "wave b"         #2
   volume         1.09
+  set macro1 "Higher"
+  mac1_d1  #8
+  mac1_a1  0.2
+  mac1_d2  #25
+  mac1_a2  -0.042
+  set macro2 "Smoother"
+  mac2_d1  #5
+  mac2_a1  0.3
+  mac2_d2  #25
+  mac2_a2  -0.185
+  set macro3 "Sharper"
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #25
+  mac3_a2  0.182
+  set macro4 "Thicker"
+  mac4_d1  #17
+  mac4_a1  0.5
+  mac4_d2  #19
+  mac4_a2  0.3
+  mac4_d3  #25
+  mac4_a3  -0.127
+  set macro5 "Hiss"
+  mac5_d1  #12
+  mac5_a1  0.4
+  set macro6 "Grit"
+  mac6_d1  #24
+  mac6_a1  0.6
+  mac6_d2  #21
+  mac6_a2  0.5
+  mac6_d3  #25
+  mac6_a3  -0.224
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  0.141
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.053
 
 patch Narrow family=classic
   # Few bands over a narrow range. Cheap, gritty - and *more* intelligible
@@ -87,6 +273,141 @@ patch Narrow family=classic
   release        0.05 s
   sibilance      0.6
   volume         1.91
+  set macro1 "Higher"
+  mac1_d1  #8
+  mac1_a1  0.2
+  set macro2 "Smoother"
+  mac2_d1  #5
+  mac2_a1  0.3
+  mac2_d2  #25
+  mac2_a2  -0.471
+  set macro3 "Sharper"
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #25
+  mac3_a2  0.045
+  set macro4 "Thicker"
+  mac4_d1  #17
+  mac4_a1  0.5
+  mac4_d2  #19
+  mac4_a2  0.3
+  set macro5 "Hiss"
+  mac5_d1  #12
+  mac5_a1  0.4
+  set macro6 "Grit"
+  mac6_d1  #24
+  mac6_a1  0.6
+  mac6_d2  #21
+  mac6_a2  0.5
+  mac6_d3  #25
+  mac6_a3  -0.412
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.171
+  mac7_d2  #25
+  mac7_a2  0.045
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+
+patch Pocket family=classic
+  # Six wide bands on gentle two-pole slopes, the smallest vocoder there is.
+  # The words are still there, just barely, in a buzz.
+  bands          #2
+  slope          #0
+  low            150 Hz
+  high           5000 Hz
+  attack         0.003 s
+  release        0.05 s
+  sibilance      0.5
+  volume         0.29
+  set macro1 "Higher"
+  mac1_d1  #8
+  mac1_a1  0.2
+  mac1_d2  #25
+  mac1_a2  0.027
+  set macro2 "Smoother"
+  mac2_d1  #5
+  mac2_a1  0.3
+  mac2_d2  #25
+  mac2_a2  -0.038
+  set macro3 "Sharper"
+  mac3_d1  #3
+  mac3_a1  0.35
+  mac3_d2  #25
+  mac3_a2  0.02
+  set macro4 "Thicker"
+  mac4_d1  #17
+  mac4_a1  0.5
+  mac4_d2  #19
+  mac4_a2  0.3
+  mac4_d3  #25
+  mac4_a3  0.04
+  set macro5 "Hiss"
+  mac5_d1  #12
+  mac5_a1  0.4
+  set macro6 "Grit"
+  mac6_d1  #24
+  mac6_a1  0.6
+  mac6_d2  #21
+  mac6_a2  0.5
+  mac6_d3  #25
+  mac6_a3  0.014
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.077
+
+patch "Half Turn" family=remap
+  # The reversed bank at half: each band hears itself and its opposite, so
+  # the words stay but every vowel sounds through a second one.
+  bands          #20
+  remap          #1
+  remapamt       0.5
+  release        0.07 s
+  volume         1.7
+  set macro1 "Untangle"
+  mac1_d1  #10
+  mac1_a1  -1
+  mac1_d2  #25
+  mac1_a2  -0.262
+  set macro2 "Smear"
+  mac2_d1  #6
+  mac2_a1  0.6
+  set macro3 "Smoother"
+  mac3_d1  #5
+  mac3_a1  0.3
+  mac3_d2  #25
+  mac3_a2  -0.269
+  set macro4 "Higher"
+  mac4_d1  #8
+  mac4_a1  0.2
+  mac4_d2  #25
+  mac4_a2  -0.159
+  set macro5 "Sharper"
+  mac5_d1  #3
+  mac5_a1  0.35
+  mac5_d2  #25
+  mac5_a2  0.15
+  set macro6 "Grit"
+  mac6_d1  #24
+  mac6_a1  0.6
+  mac6_d2  #21
+  mac6_a2  0.5
+  mac6_d3  #25
+  mac6_a3  -0.443
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.15
 
 patch Backwards family=remap
   # The bank reversed: the lowest band of the analysis drives the highest of
@@ -99,6 +420,48 @@ patch Backwards family=remap
   mix            0.5
   sub            0.25
   volume         1.80
+  set macro1 "Untangle"
+  mac1_d1  #10
+  mac1_a1  -1
+  mac1_d2  #25
+  mac1_a2  -0.217
+  set macro2 "Smear"
+  mac2_d1  #6
+  mac2_a1  0.6
+  set macro3 "Smoother"
+  mac3_d1  #5
+  mac3_a1  0.3
+  mac3_d2  #25
+  mac3_a2  -0.248
+  set macro4 "Higher"
+  mac4_d1  #8
+  mac4_a1  0.2
+  mac4_d2  #25
+  mac4_a2  0.087
+  set macro5 "Sharper"
+  mac5_d1  #3
+  mac5_a1  0.35
+  mac5_d2  #25
+  mac5_a2  0.1
+  set macro6 "Grit"
+  mac6_d1  #24
+  mac6_a1  0.6
+  mac6_d2  #21
+  mac6_a2  0.5
+  mac6_d3  #25
+  mac6_a3  -0.484
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  -0.125
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #3
+  mac8_a2  -0.25
+  mac8_d3  #25
+  mac8_a3  0.087
 
 patch Mirror family=remap
   # Mirrored about the middle of the bank rather than end-swapped, so the
@@ -108,6 +471,48 @@ patch Mirror family=remap
   remap          #2
   release        0.08 s
   volume         0.98
+  set macro1 "Untangle"
+  mac1_d1  #10
+  mac1_a1  -1
+  mac1_d2  #25
+  mac1_a2  0.086
+  set macro2 "Smear"
+  mac2_d1  #6
+  mac2_a1  0.6
+  mac2_d2  #25
+  mac2_a2  0.106
+  set macro3 "Smoother"
+  mac3_d1  #5
+  mac3_a1  0.3
+  mac3_d2  #25
+  mac3_a2  -0.155
+  set macro4 "Higher"
+  mac4_d1  #8
+  mac4_a1  0.2
+  mac4_d2  #25
+  mac4_a2  -0.139
+  set macro5 "Sharper"
+  mac5_d1  #3
+  mac5_a1  0.35
+  mac5_d2  #25
+  mac5_a2  0.218
+  set macro6 "Grit"
+  mac6_d1  #24
+  mac6_a1  0.6
+  mac6_d2  #21
+  mac6_a2  0.5
+  mac6_d3  #25
+  mac6_a3  -0.211
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  0.422
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.171
 
 patch Folded family=remap
   # Folded, so the top and the bottom of the bank share bands. Congested on
@@ -118,6 +523,46 @@ patch Folded family=remap
   release        0.1 s
   q              0.5
   volume         1.00
+  set macro1 "Untangle"
+  mac1_d1  #10
+  mac1_a1  -1
+  mac1_d2  #25
+  mac1_a2  0.055
+  set macro2 "Smear"
+  mac2_d1  #6
+  mac2_a1  0.6
+  mac2_d2  #25
+  mac2_a2  0.068
+  set macro3 "Smoother"
+  mac3_d1  #5
+  mac3_a1  0.3
+  mac3_d2  #25
+  mac3_a2  -0.15
+  set macro4 "Higher"
+  mac4_d1  #8
+  mac4_a1  0.2
+  mac4_d2  #25
+  mac4_a2  -0.154
+  set macro5 "Sharper"
+  mac5_d1  #3
+  mac5_a1  0.35
+  mac5_d2  #25
+  mac5_a2  0.108
+  set macro6 "Grit"
+  mac6_d1  #24
+  mac6_a1  0.6
+  mac6_d2  #21
+  mac6_a2  0.5
+  mac6_d3  #25
+  mac6_a3  -0.228
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  -0.039
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
 
 patch Comb family=remap
   # Odd bands against even. Hollow and phasey - speech through a grille - and
@@ -128,6 +573,44 @@ patch Comb family=remap
   release        0.07 s
   q              0.5
   volume         1.76
+  set macro1 "Untangle"
+  mac1_d1  #10
+  mac1_a1  -1
+  mac1_d2  #25
+  mac1_a2  -0.197
+  set macro2 "Smear"
+  mac2_d1  #6
+  mac2_a1  0.6
+  set macro3 "Smoother"
+  mac3_d1  #5
+  mac3_a1  0.3
+  mac3_d2  #25
+  mac3_a2  -0.257
+  set macro4 "Higher"
+  mac4_d1  #8
+  mac4_a1  0.2
+  mac4_d2  #25
+  mac4_a2  -0.122
+  set macro5 "Sharper"
+  mac5_d1  #3
+  mac5_a1  0.35
+  mac5_d2  #25
+  mac5_a2  0.12
+  set macro6 "Grit"
+  mac6_d1  #24
+  mac6_a1  0.6
+  mac6_d2  #21
+  mac6_a2  0.5
+  mac6_d3  #25
+  mac6_a3  -0.444
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.12
 
 patch Shuffled family=remap
   # A seeded scramble: arbitrary, but the *same* arbitrary every time, so it
@@ -138,6 +621,144 @@ patch Shuffled family=remap
   seed           #7
   release        0.08 s
   volume         0.98
+  set macro1 "Untangle"
+  mac1_d1  #10
+  mac1_a1  -1
+  mac1_d2  #25
+  mac1_a2  0.092
+  set macro2 "Smear"
+  mac2_d1  #6
+  mac2_a1  0.6
+  mac2_d2  #25
+  mac2_a2  0.086
+  set macro3 "Smoother"
+  mac3_d1  #5
+  mac3_a1  0.3
+  mac3_d2  #25
+  mac3_a2  -0.181
+  set macro4 "Higher"
+  mac4_d1  #8
+  mac4_a1  0.2
+  mac4_d2  #25
+  mac4_a2  -0.139
+  set macro5 "Sharper"
+  mac5_d1  #3
+  mac5_a1  0.35
+  mac5_d2  #25
+  mac5_a2  0.202
+  set macro6 "Grit"
+  mac6_d1  #24
+  mac6_a1  0.6
+  mac6_d2  #21
+  mac6_a2  0.5
+  mac6_d3  #25
+  mac6_a3  -0.218
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.235
+
+patch "Crossed Wires" family=remap
+  # Forty bands shuffled, so neighbours in the voice land octaves apart.
+  # Speech becomes a twittering rhythm with a different seed than Shuffled.
+  bands          #36
+  remap          #4
+  seed           #19
+  q              0.45
+  release        0.06 s
+  volume         1.88
+  set macro1 "Untangle"
+  mac1_d1  #10
+  mac1_a1  -1
+  mac1_d2  #25
+  mac1_a2  -0.251
+  set macro2 "Smear"
+  mac2_d1  #6
+  mac2_a1  0.6
+  set macro3 "Smoother"
+  mac3_d1  #5
+  mac3_a1  0.3
+  mac3_d2  #25
+  mac3_a2  -0.29
+  set macro4 "Higher"
+  mac4_d1  #8
+  mac4_a1  0.2
+  mac4_d2  #25
+  mac4_a2  -0.093
+  set macro5 "Sharper"
+  mac5_d1  #3
+  mac5_a1  0.171
+  mac5_d2  #25
+  mac5_a2  0.06
+  set macro6 "Grit"
+  mac6_d1  #24
+  mac6_a1  0.6
+  mac6_d2  #21
+  mac6_a2  0.5
+  mac6_d3  #25
+  mac6_a3  -0.469
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  -0.36
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #3
+  mac8_a2  -0.25
+  mac8_d3  #25
+  mac8_a3  -0.102
+
+patch Lifted family=formant
+  # Three semitones up: a younger, lighter voice that still sounds like a
+  # person rather than an effect.
+  bands          #24
+  shift          3
+  release        0.07 s
+  volume         0.93
+  set macro1 "Further"
+  mac1_d1  #8
+  mac1_a1  0.2
+  mac1_d2  #25
+  mac1_a2  -0.229
+  set macro2 "Natural"
+  mac2_d1  #8
+  mac2_a1  -0.125
+  mac2_d2  #25
+  mac2_a2  0.088
+  set macro3 "Stretch"
+  mac3_d1  #9
+  mac3_a1  0.4
+  set macro4 "Smoother"
+  mac4_d1  #5
+  mac4_a1  0.3
+  mac4_d2  #25
+  mac4_a2  -0.194
+  set macro5 "Sharper"
+  mac5_d1  #3
+  mac5_a1  0.35
+  set macro6 "Thicker"
+  mac6_d1  #17
+  mac6_a1  0.5
+  mac6_d2  #19
+  mac6_a2  0.3
+  mac6_d3  #25
+  mac6_a3  0.107
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  0.325
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.177
 
 patch Chipmunk family=formant
   # The synthesis bank read an octave up while the carrier stays where it is:
@@ -147,6 +768,48 @@ patch Chipmunk family=formant
   shift          7
   release        0.07 s
   volume         0.65
+  set macro1 "Further"
+  mac1_d1  #8
+  mac1_a1  0.2
+  mac1_d2  #25
+  mac1_a2  0.208
+  set macro2 "Natural"
+  mac2_d1  #8
+  mac2_a1  -0.292
+  mac2_d2  #25
+  mac2_a2  0.273
+  set macro3 "Stretch"
+  mac3_d1  #9
+  mac3_a1  0.4
+  mac3_d2  #25
+  mac3_a2  0.273
+  set macro4 "Smoother"
+  mac4_d1  #5
+  mac4_a1  0.3
+  mac4_d2  #25
+  mac4_a2  -0.084
+  set macro5 "Sharper"
+  mac5_d1  #3
+  mac5_a1  0.35
+  mac5_d2  #25
+  mac5_a2  0.057
+  set macro6 "Thicker"
+  mac6_d1  #17
+  mac6_a1  0.5
+  mac6_d2  #19
+  mac6_a2  0.3
+  mac6_d3  #25
+  mac6_a3  0.103
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  0.156
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.309
 
 patch Giant family=formant
   # The same idea downward: a large throat, the same note. Below about a fifth
@@ -157,6 +820,44 @@ patch Giant family=formant
   release        0.09 s
   sub            0.3
   volume         0.83
+  set macro1 "Further"
+  mac1_d1  #8
+  mac1_a1  -0.2
+  mac1_d2  #25
+  mac1_a2  0.274
+  set macro2 "Natural"
+  mac2_d1  #8
+  mac2_a1  0.292
+  mac2_d2  #25
+  mac2_a2  0.158
+  set macro3 "Stretch"
+  mac3_d1  #9
+  mac3_a1  0.4
+  set macro4 "Smoother"
+  mac4_d1  #5
+  mac4_a1  0.3
+  mac4_d2  #25
+  mac4_a2  -0.128
+  set macro5 "Sharper"
+  mac5_d1  #3
+  mac5_a1  0.35
+  mac5_d2  #25
+  mac5_a2  0.107
+  set macro6 "Thicker"
+  mac6_d1  #17
+  mac6_a1  0.5
+  mac6_d2  #19
+  mac6_a2  0.3
+  mac6_d3  #25
+  mac6_a3  -0.082
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.114
 
 patch Stretched family=formant
   # The bank's spacing warped wider, so the bands are read further apart than
@@ -166,6 +867,46 @@ patch Stretched family=formant
   stretch        0.5
   release        0.08 s
   volume         1.35
+  set macro1 "Further"
+  mac1_d1  #9
+  mac1_a1  0.4
+  mac1_d2  #25
+  mac1_a2  -0.175
+  set macro2 "Natural"
+  mac2_d1  #9
+  mac2_a1  -0.25
+  mac2_d2  #25
+  mac2_a2  -0.157
+  set macro3 "Shift"
+  mac3_d1  #8
+  mac3_a1  0.2
+  mac3_d2  #25
+  mac3_a2  -0.329
+  set macro4 "Smoother"
+  mac4_d1  #5
+  mac4_a1  0.3
+  mac4_d2  #25
+  mac4_a2  -0.295
+  set macro5 "Sharper"
+  mac5_d1  #3
+  mac5_a1  0.35
+  mac5_d2  #25
+  mac5_a2  0.091
+  set macro6 "Thicker"
+  mac6_d1  #17
+  mac6_a1  0.5
+  mac6_d2  #19
+  mac6_a2  0.3
+  mac6_d3  #25
+  mac6_a3  -0.192
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  -0.151
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
 
 patch Squashed family=formant
   # Spacing narrowed instead: everything crowded into the middle of the
@@ -176,6 +917,138 @@ patch Squashed family=formant
   release        0.08 s
   sibilance      0.55
   volume         0.74
+  set macro1 "Further"
+  mac1_d1  #9
+  mac1_a1  -0.4
+  mac1_d2  #25
+  mac1_a2  -0.069
+  set macro2 "Natural"
+  mac2_d1  #9
+  mac2_a1  0.25
+  mac2_d2  #25
+  mac2_a2  0.165
+  set macro3 "Shift"
+  mac3_d1  #8
+  mac3_a1  0.2
+  mac3_d2  #25
+  mac3_a2  -0.036
+  set macro4 "Smoother"
+  mac4_d1  #5
+  mac4_a1  0.3
+  mac4_d2  #25
+  mac4_a2  -0.105
+  set macro5 "Sharper"
+  mac5_d1  #3
+  mac5_a1  0.35
+  mac5_d2  #25
+  mac5_a2  0.085
+  set macro6 "Thicker"
+  mac6_d1  #17
+  mac6_a1  0.5
+  mac6_d2  #19
+  mac6_a2  0.3
+  mac6_d3  #25
+  mac6_a3  0.075
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.159
+
+patch "Low Throat" family=formant
+  # Down four and stretched apart, so the low formants sink and the top
+  # ones open: a large throat with a bright edge.
+  bands          #24
+  shift          -4
+  stretch        0.6
+  release        0.09 s
+  sub            0.3
+  volume         1.035
+  set macro1 "Further"
+  mac1_d1  #8
+  mac1_a1  -0.2
+  mac1_d2  #25
+  mac1_a2  -0.155
+  set macro2 "Natural"
+  mac2_d1  #8
+  mac2_a1  0.167
+  mac2_d2  #9
+  mac2_a2  -0.3
+  set macro3 "Stretch"
+  mac3_d1  #9
+  mac3_a1  0.4
+  mac3_d2  #25
+  mac3_a2  0.119
+  set macro4 "Smoother"
+  mac4_d1  #5
+  mac4_a1  0.3
+  mac4_d2  #25
+  mac4_a2  -0.216
+  set macro5 "Sharper"
+  mac5_d1  #3
+  mac5_a1  0.35
+  set macro6 "Thicker"
+  mac6_d1  #17
+  mac6_a1  0.5
+  mac6_d2  #19
+  mac6_a2  0.3
+  mac6_d3  #25
+  mac6_a3  -0.159
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  0.197
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  -0.12
+
+patch "Long Tail" family=hold
+  # No freeze, just a long release on every band, so each word hangs on
+  # under the next one and the chords stay voiced between syllables.
+  bands          #24
+  attack         0.01 s
+  release        1.2 s
+  q              0.5
+  amprel         0.8 s
+  volume         0.66
+  set macro1 "Longer"
+  mac1_d1  #5
+  mac1_a1  0.25
+  set macro2 "Smear"
+  mac2_d1  #6
+  mac2_a1  0.5
+  mac2_d2  #25
+  mac2_a2  0.049
+  set macro3 "Swell"
+  mac3_d1  #27
+  mac3_a1  0.35
+  set macro4 "Tail"
+  mac4_d1  #28
+  mac4_a1  0.3
+  set macro5 "Thicker"
+  mac5_d1  #17
+  mac5_a1  0.5
+  mac5_d2  #19
+  mac5_a2  0.3
+  set macro6 "Sharper"
+  mac6_d1  #3
+  mac6_a1  0.35
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  0.169
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.115
 
 patch "Held Vowel" family=hold
   # Freeze on: the measured shape is held, so one vowel sustains for as long
@@ -188,6 +1061,44 @@ patch "Held Vowel" family=hold
   ampatk         0.15 s
   amprel         1.5 s
   volume         0.66
+  set macro1 "Longer"
+  mac1_d1  #5
+  mac1_a1  0.25
+  mac1_d2  #25
+  mac1_a2  -0.065
+  set macro2 "Smear"
+  mac2_d1  #6
+  mac2_a1  0.5
+  mac2_d2  #25
+  mac2_a2  0.105
+  set macro3 "Swell"
+  mac3_d1  #27
+  mac3_a1  0.35
+  mac3_d2  #25
+  mac3_a2  0.067
+  set macro4 "Tail"
+  mac4_d1  #28
+  mac4_a1  0.3
+  set macro5 "Thicker"
+  mac5_d1  #17
+  mac5_a1  0.5
+  mac5_d2  #19
+  mac5_a2  0.3
+  mac5_d3  #25
+  mac5_a3  0.053
+  set macro6 "Sharper"
+  mac6_d1  #3
+  mac6_a1  0.35
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  0.23
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.181
 
 patch Morph family=hold
   # Frozen, but morphing against the live input rather than ignoring it: half
@@ -200,6 +1111,88 @@ patch Morph family=hold
   frzdecay       6 s
   release        0.2 s
   volume         0.82
+  set macro1 "Longer"
+  mac1_d1  #5
+  mac1_a1  0.25
+  mac1_d2  #25
+  mac1_a2  -0.065
+  set macro2 "Smear"
+  mac2_d1  #6
+  mac2_a1  0.5
+  mac2_d2  #25
+  mac2_a2  0.066
+  set macro3 "Swell"
+  mac3_d1  #27
+  mac3_a1  0.35
+  set macro4 "Tail"
+  mac4_d1  #28
+  mac4_a1  0.3
+  set macro5 "Thicker"
+  mac5_d1  #17
+  mac5_a1  0.5
+  mac5_d2  #19
+  mac5_a2  0.3
+  mac5_d3  #25
+  mac5_a3  0.04
+  set macro6 "Sharper"
+  mac6_d1  #3
+  mac6_a1  0.35
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  0.255
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.196
+
+patch "Fading Hold" family=hold
+  # Frozen, but the hold lets go over a second and a half, so a vowel
+  # lingers and then the live voice comes back through.
+  bands          #24
+  freeze         #1
+  frzmorph       0.0
+  frzdecay       1.5 s
+  release        0.2 s
+  volume         0.82
+  set macro1 "Longer"
+  mac1_d1  #5
+  mac1_a1  0.25
+  mac1_d2  #25
+  mac1_a2  -0.126
+  set macro2 "Smear"
+  mac2_d1  #6
+  mac2_a1  0.5
+  mac2_d2  #25
+  mac2_a2  0.112
+  set macro3 "Swell"
+  mac3_d1  #27
+  mac3_a1  0.35
+  set macro4 "Tail"
+  mac4_d1  #28
+  mac4_a1  0.3
+  set macro5 "Thicker"
+  mac5_d1  #17
+  mac5_a1  0.5
+  mac5_d2  #19
+  mac5_a2  0.3
+  mac5_d3  #25
+  mac5_a3  0.055
+  set macro6 "Sharper"
+  mac6_d1  #3
+  mac6_a1  0.35
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  0.211
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.196
 
 patch "Trail Up" family=hold
   # Smear positive: the release is scaled across the bank so the top lets go
@@ -210,6 +1203,40 @@ patch "Trail Up" family=hold
   release        0.5 s
   q              0.5
   volume         0.99
+  set macro1 "Longer"
+  mac1_d1  #5
+  mac1_a1  0.25
+  mac1_d2  #25
+  mac1_a2  -0.132
+  set macro2 "Smear"
+  mac2_d1  #6
+  mac2_a1  0.1
+  set macro3 "Swell"
+  mac3_d1  #27
+  mac3_a1  0.35
+  set macro4 "Tail"
+  mac4_d1  #28
+  mac4_a1  0.3
+  set macro5 "Thicker"
+  mac5_d1  #17
+  mac5_a1  0.5
+  mac5_d2  #19
+  mac5_a2  0.3
+  mac5_d3  #25
+  mac5_a3  0.06
+  set macro6 "Sharper"
+  mac6_d1  #3
+  mac6_a1  0.35
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  -0.054
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.229
 
 patch "Trail Down" family=hold
   # Smear the other way: the bottom decays first and a bright ghost is left
@@ -218,6 +1245,40 @@ patch "Trail Down" family=hold
   smear          -0.8
   release        0.5 s
   volume         0.70
+  set macro1 "Longer"
+  mac1_d1  #5
+  mac1_a1  0.25
+  mac1_d2  #25
+  mac1_a2  -0.034
+  set macro2 "Smear"
+  mac2_d1  #6
+  mac2_a1  -0.1
+  set macro3 "Swell"
+  mac3_d1  #27
+  mac3_a1  0.35
+  set macro4 "Tail"
+  mac4_d1  #28
+  mac4_a1  0.3
+  set macro5 "Thicker"
+  mac5_d1  #17
+  mac5_a1  0.5
+  mac5_d2  #19
+  mac5_a2  0.3
+  mac5_d3  #25
+  mac5_a3  0.029
+  set macro6 "Sharper"
+  mac6_d1  #3
+  mac6_a1  0.35
+  mac6_d2  #25
+  mac6_a2  0.034
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.162
 
 patch Pulse family=carrier
   # A narrow pulse carrier. Nasal and reedy, with the odd harmonics a pulse
@@ -230,6 +1291,86 @@ patch Pulse family=carrier
   mix            0.0
   release        0.06 s
   volume         1.55
+  set macro1 "Blend"
+  mac1_d1  #16
+  mac1_a1  0.4
+  mac1_d2  #25
+  mac1_a2  0.225
+  set macro2 "Detune"
+  mac2_d1  #17
+  mac2_a1  0.5
+  set macro3 "Sub"
+  mac3_d1  #19
+  mac3_a1  0.5
+  set macro4 "Noise"
+  mac4_d1  #20
+  mac4_a1  0.4
+  set macro5 "Drive"
+  mac5_d1  #21
+  mac5_a1  0.7
+  set macro6 "Smoother"
+  mac6_d1  #5
+  mac6_a1  0.3
+  mac6_d2  #25
+  mac6_a2  -0.344
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  -0.06
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  -0.173
+
+patch "Thick Stack" family=carrier
+  # Supersaws on both oscillators, detuned against each other, with a square
+  # sub an octave down: the widest, heaviest carrier the machine has.
+  bands          #24
+  "wave a"       #2
+  "wave b"       #2
+  mix            0.5
+  detune         12 c
+  sub            0.45
+  release        0.1 s
+  volume         1.19
+  set macro1 "Blend"
+  mac1_d1  #16
+  mac1_a1  0.4
+  set macro2 "Detune"
+  mac2_d1  #17
+  mac2_a1  0.5
+  set macro3 "Sub"
+  mac3_d1  #19
+  mac3_a1  0.5
+  mac3_d2  #25
+  mac3_a2  -0.188
+  set macro4 "Noise"
+  mac4_d1  #20
+  mac4_a1  0.4
+  mac4_d2  #25
+  mac4_a2  0.12
+  set macro5 "Drive"
+  mac5_d1  #21
+  mac5_a1  0.7
+  mac5_d2  #25
+  mac5_a2  -0.128
+  set macro6 "Smoother"
+  mac6_d1  #5
+  mac6_a1  0.3
+  mac6_d2  #25
+  mac6_a2  -0.179
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  0.172
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  -0.052
 
 patch "Sub Heavy" family=carrier
   # Weighted low, with the bank's bottom brought down to meet it: chest rather
@@ -241,6 +1382,38 @@ patch "Sub Heavy" family=carrier
   mix            0.3
   release        0.1 s
   volume         0.58
+  set macro1 "Blend"
+  mac1_d1  #16
+  mac1_a1  0.4
+  set macro2 "Detune"
+  mac2_d1  #17
+  mac2_a1  0.5
+  set macro3 "Sub"
+  mac3_d1  #19
+  mac3_a1  0.5
+  set macro4 "Noise"
+  mac4_d1  #20
+  mac4_a1  0.4
+  mac4_d2  #25
+  mac4_a2  0.035
+  set macro5 "Drive"
+  mac5_d1  #21
+  mac5_a1  0.7
+  set macro6 "Smoother"
+  mac6_d1  #5
+  mac6_a1  0.3
+  mac6_d2  #25
+  mac6_a2  -0.094
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  0.055
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.309
 
 patch Breath family=carrier
   # A noise carrier with the unvoiced path open: whispered, with no pitch at
@@ -255,6 +1428,82 @@ patch Breath family=carrier
   sibilance      0.7
   release        0.12 s
   volume         2.00
+  set macro1 "Blend"
+  mac1_d1  #16
+  mac1_a1  -0.4
+  set macro2 "Detune"
+  mac2_d1  #17
+  mac2_a1  0.5
+  set macro3 "Sub"
+  mac3_d1  #19
+  mac3_a1  0.5
+  mac3_d2  #25
+  mac3_a2  -0.241
+  set macro4 "Noise"
+  mac4_d1  #20
+  mac4_a1  0.4
+  set macro5 "Drive"
+  mac5_d1  #21
+  mac5_a1  0.7
+  set macro6 "Smoother"
+  mac6_d1  #5
+  mac6_a1  0.3
+  mac6_d2  #25
+  mac6_a2  -0.316
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.245
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+
+patch Murmur family=carrier
+  # A whisper: noise carriers only, no pitch at all, and fine bands so the
+  # words come through as breath. The notes you play don't change it.
+  bands          #16
+  "wave a"       #3
+  "wave b"       #3
+  q              0.3
+  sub            0.0
+  noise          0.5
+  sibilance      0.6
+  attack         0.002 s
+  release        0.06 s
+  volume         1.59
+  set macro1 "Blend"
+  mac1_d1  #16
+  mac1_a1  0.4
+  set macro2 "Detune"
+  mac2_d1  #17
+  mac2_a1  0.5
+  set macro3 "Sub"
+  mac3_d1  #19
+  mac3_a1  0.5
+  mac3_d2  #25
+  mac3_a2  -0.452
+  set macro4 "Noise"
+  mac4_d1  #20
+  mac4_a1  0.4
+  mac4_d2  #25
+  mac4_a2  -0.111
+  set macro5 "Drive"
+  mac5_d1  #21
+  mac5_a1  0.7
+  mac5_d2  #25
+  mac5_a2  -0.095
+  set macro6 "Smoother"
+  mac6_d1  #5
+  mac6_a1  0.3
+  mac6_d2  #25
+  mac6_a2  -0.219
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  0.107
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
 
 patch Ring family=carrier
   # The ring-modulated carrier: inharmonic, metallic, and the least natural of
@@ -268,6 +1517,84 @@ patch Ring family=carrier
   detune         25 c
   release        0.07 s
   volume         1.47
+  set macro1 "Blend"
+  mac1_d1  #16
+  mac1_a1  0.4
+  set macro2 "Detune"
+  mac2_d1  #17
+  mac2_a1  0.5
+  set macro3 "Sub"
+  mac3_d1  #19
+  mac3_a1  0.5
+  mac3_d2  #25
+  mac3_a2  -0.322
+  set macro4 "Noise"
+  mac4_d1  #20
+  mac4_a1  0.4
+  mac4_d2  #25
+  mac4_a2  0.119
+  set macro5 "Drive"
+  mac5_d1  #21
+  mac5_a1  0.7
+  mac5_d2  #25
+  mac5_a2  -0.19
+  set macro6 "Smoother"
+  mac6_d1  #5
+  mac6_a1  0.3
+  mac6_d2  #25
+  mac6_a2  -0.26
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  0.119
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+
+patch "Steel Throat" family=carrier
+  # A ring carrier against a narrow pulse, driven hard before the bank: a
+  # metal voice with a clang under every word.
+  bands          #20
+  "wave a"       #4
+  "wave b"       #1
+  pw             0.25
+  mix            0.4
+  cardrive       0.7
+  release        0.06 s
+  volume         1.05
+  set macro1 "Blend"
+  mac1_d1  #16
+  mac1_a1  0.4
+  mac1_d2  #25
+  mac1_a2  -0.088
+  set macro2 "Detune"
+  mac2_d1  #17
+  mac2_a1  0.5
+  set macro3 "Sub"
+  mac3_d1  #19
+  mac3_a1  0.5
+  mac3_d2  #25
+  mac3_a2  -0.062
+  set macro4 "Noise"
+  mac4_d1  #20
+  mac4_a1  0.4
+  mac4_d2  #25
+  mac4_a2  0.121
+  set macro5 "Drive"
+  mac5_d1  #21
+  mac5_a1  0.7
+  set macro6 "Smoother"
+  mac6_d1  #5
+  mac6_a1  0.3
+  mac6_d2  #25
+  mac6_a2  -0.162
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
 
 patch Talkbox family=extreme
   # Narrow, resonant bands and the carrier following the speaker's own pitch:
@@ -282,6 +1609,44 @@ patch Talkbox family=extreme
   release        0.05 s
   sibilance      0.55
   volume         0.80
+  set macro1 "Feedback"
+  mac1_d1  #14
+  mac1_a1  0.3
+  set macro2 "Gate"
+  mac2_d1  #7
+  mac2_a1  0.35
+  mac2_d2  #25
+  mac2_a2  0.039
+  set macro3 "Smear"
+  mac3_d1  #6
+  mac3_a1  0.6
+  mac3_d2  #25
+  mac3_a2  0.039
+  set macro4 "Higher"
+  mac4_d1  #8
+  mac4_a1  0.2
+  set macro5 "Smoother"
+  mac5_d1  #5
+  mac5_a1  0.3
+  mac5_d2  #25
+  mac5_a2  -0.11
+  set macro6 "Grit"
+  mac6_d1  #24
+  mac6_a1  0.6
+  mac6_d2  #21
+  mac6_a2  0.5
+  mac6_d3  #25
+  mac6_a3  -0.142
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  0.127
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  -0.082
 
 patch Tracked family=extreme
   # Tracking without the resonance: a clean vocoder whose carrier is tuned by
@@ -294,6 +1659,42 @@ patch Tracked family=extreme
   release        0.08 s
   mix            0.45
   volume         1.09
+  set macro1 "Feedback"
+  mac1_d1  #14
+  mac1_a1  0.3
+  set macro2 "Gate"
+  mac2_d1  #7
+  mac2_a1  0.35
+  set macro3 "Smear"
+  mac3_d1  #6
+  mac3_a1  0.6
+  mac3_d2  #25
+  mac3_a2  0.088
+  set macro4 "Higher"
+  mac4_d1  #8
+  mac4_a1  0.2
+  mac4_d2  #25
+  mac4_a2  -0.059
+  set macro5 "Smoother"
+  mac5_d1  #5
+  mac5_a1  0.3
+  mac5_d2  #25
+  mac5_a2  -0.155
+  set macro6 "Grit"
+  mac6_d1  #24
+  mac6_a1  0.6
+  mac6_d2  #21
+  mac6_a2  0.5
+  mac6_d3  #25
+  mac6_a3  -0.242
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  -0.122
 
 patch Runaway family=extreme
   # A vocoder listening to itself. The output goes back into the analysis, so
@@ -305,6 +1706,94 @@ patch Runaway family=extreme
   release        0.25 s
   q              0.6
   volume         0.97
+  set macro1 "Feedback"
+  mac1_d1  #14
+  mac1_a1  0.3
+  set macro2 "Gate"
+  mac2_d1  #7
+  mac2_a1  0.35
+  set macro3 "Smear"
+  mac3_d1  #6
+  mac3_a1  0.6
+  mac3_d2  #25
+  mac3_a2  0.085
+  set macro4 "Higher"
+  mac4_d1  #8
+  mac4_a1  0.2
+  mac4_d2  #25
+  mac4_a2  -0.172
+  set macro5 "Smoother"
+  mac5_d1  #5
+  mac5_a1  0.3
+  mac5_d2  #25
+  mac5_a2  -0.157
+  set macro6 "Grit"
+  mac6_d1  #24
+  mac6_a1  0.6
+  mac6_d2  #21
+  mac6_a2  0.5
+  mac6_d3  #25
+  mac6_a3  -0.212
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  -0.172
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.053
+
+patch Howl family=extreme
+  # Much more feedback than Runaway, bright and slow to let go, so every word
+  # sets the bank ringing on its own vowel.
+  bands          #24
+  feedback       0.6
+  fbtone         0.8
+  release        0.4 s
+  q              0.65
+  volume         0.245
+  set macro1 "Feedback"
+  mac1_d1  #14
+  mac1_a1  0.15
+  mac1_d2  #25
+  mac1_a2  -0.019
+  set macro2 "Gate"
+  mac2_d1  #7
+  mac2_a1  0.35
+  mac2_d2  #25
+  mac2_a2  -0.011
+  set macro3 "Smear"
+  mac3_d1  #6
+  mac3_a1  0.6
+  set macro4 "Higher"
+  mac4_d1  #8
+  mac4_a1  0.2
+  mac4_d2  #25
+  mac4_a2  0.189
+  set macro5 "Smoother"
+  mac5_d1  #5
+  mac5_a1  0.3
+  mac5_d2  #25
+  mac5_a2  0.023
+  set macro6 "Grit"
+  mac6_d1  #24
+  mac6_a1  0.6
+  mac6_d2  #21
+  mac6_a2  0.5
+  mac6_d3  #25
+  mac6_a3  0.023
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  0.431
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.437
 
 patch Swapped family=extreme
   # The roles reversed: what is plugged in becomes the carrier and the
@@ -317,6 +1806,42 @@ patch Swapped family=extreme
   attack         0.003 s
   mix            0.5
   volume         1.21
+  set macro1 "Feedback"
+  mac1_d1  #14
+  mac1_a1  0.3
+  set macro2 "Gate"
+  mac2_d1  #7
+  mac2_a1  0.245
+  mac2_d2  #25
+  mac2_a2  0.395
+  set macro3 "Smear"
+  mac3_d1  #6
+  mac3_a1  0.6
+  set macro4 "Higher"
+  mac4_d1  #8
+  mac4_a1  0.2
+  mac4_d2  #25
+  mac4_a2  -0.119
+  set macro5 "Smoother"
+  mac5_d1  #5
+  mac5_a1  0.3
+  set macro6 "Grit"
+  mac6_d1  #24
+  mac6_a1  0.6
+  mac6_d2  #21
+  mac6_a2  0.5
+  mac6_d3  #25
+  mac6_a3  -0.319
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  -0.084
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.23
 
 patch Gated family=extreme
   # The band gate hard: a band quieter than the threshold is shut entirely
@@ -330,3 +1855,91 @@ patch Gated family=extreme
   release        0.03 s
   sibilance      0.6
   volume         1.33
+  set macro1 "Feedback"
+  mac1_d1  #14
+  mac1_a1  0.3
+  set macro2 "Gate"
+  mac2_d1  #7
+  mac2_a1  0.2
+  mac2_d2  #25
+  mac2_a2  0.192
+  set macro3 "Smear"
+  mac3_d1  #6
+  mac3_a1  0.6
+  set macro4 "Higher"
+  mac4_d1  #8
+  mac4_a1  0.2
+  mac4_d2  #25
+  mac4_a2  -0.124
+  set macro5 "Smoother"
+  mac5_d1  #5
+  mac5_a1  0.3
+  mac5_d2  #25
+  mac5_a2  -0.241
+  set macro6 "Grit"
+  mac6_d1  #24
+  mac6_a1  0.6
+  mac6_d2  #21
+  mac6_a2  0.5
+  mac6_d3  #25
+  mac6_a3  -0.215
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.245
+  mac7_d2  #25
+  mac7_a2  0.129
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.253
+
+patch "Wobble Mouth" family=extreme
+  # An eighth-note LFO on the formant shift through the matrix, so the voice
+  # opens and closes its mouth in time with the song.
+  bands          #24
+  release        0.06 s
+  lfo1wave       #0
+  lfo1sync       #4
+  m1_src         #8
+  m1_dst         #1
+  m1_amt         0.5
+  volume         0.84
+  set macro1 "Feedback"
+  mac1_d1  #14
+  mac1_a1  0.3
+  set macro2 "Gate"
+  mac2_d1  #7
+  mac2_a1  0.35
+  set macro3 "Smear"
+  mac3_d1  #6
+  mac3_a1  0.6
+  mac3_d2  #25
+  mac3_a2  0.046
+  set macro4 "Higher"
+  mac4_d1  #8
+  mac4_a1  0.2
+  mac4_d2  #25
+  mac4_a2  -0.071
+  set macro5 "Smoother"
+  mac5_d1  #5
+  mac5_a1  0.3
+  mac5_d2  #25
+  mac5_a2  -0.109
+  set macro6 "Grit"
+  mac6_d1  #24
+  mac6_a1  0.6
+  mac6_d2  #21
+  mac6_a2  0.5
+  mac6_d3  #25
+  mac6_a3  -0.158
+  set macro7 "Darker"
+  mac7_d1  #2
+  mac7_a1  -0.35
+  mac7_d2  #25
+  mac7_a2  0.057
+  set macro8 "Octave Down"
+  mac8_d1  #29
+  mac8_a1  -0.5
+  mac8_d2  #25
+  mac8_a2  0.079

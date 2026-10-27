@@ -175,8 +175,13 @@ class Rack {
      * (the UI tells people frozen clips are tempo-bound in two places).
      */
     void updateFrozen(int64_t sceneId, float bpm, bool playing, bool ramping = false);
-    /** Pass the rack's place in the arrangement to a machine that wants it. */
-    void updateScene(int64_t sceneId, int64_t cycleTick, bool playing);
+    /**
+     * Pass the rack's place in the arrangement to a machine that wants it,
+     * whether the song is moving (see Machine::onTransport) and where it is
+     * in the bar (see Machine::onBar).
+     */
+    void updateScene(int64_t sceneId, int64_t cycleTick, bool playing, bool rolling, int64_t tickStart,
+                     int64_t tickInBar, int32_t ticksPerBar, int64_t swingPair);
     bool frozenActive() const { return frozenNow != nullptr; }
     /** Where in the frozen clip this block starts. Called before render(). */
     void syncFrozen(int64_t tickInIteration, float bpm);

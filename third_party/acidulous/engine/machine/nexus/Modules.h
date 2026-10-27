@@ -601,6 +601,9 @@ class FxMod final : public Module {
         const ModuleInfo &info = infoFor(type);
         for (int i = 0; i < kKnobs; ++i) param[i] = info.knob[i] != nullptr ? fx->params().indexOf(info.knob[i]) : -1;
         cvParam = info.in[1] != nullptr ? fx->params().indexOf(info.in[1]) : -1;
+        // Drive and crush have one output: a second write would land in the
+        // next module's ports, or past the end of the port table.
+        stereoOut = info.out[1] != nullptr;
         reset();
     }
     void reset() override {
@@ -615,7 +618,7 @@ class FxMod final : public Module {
     }
     void step(const float *in, float *out, const Context &c) override {
         out[0] = outL[pos];
-        out[1] = outR[pos];
+        if (stereoOut) out[1] = outR[pos];
         inBuf[pos] = in[0];
         if (pos == 0) {
             // What the block's first sample saw, which is when the effect
@@ -642,6 +645,7 @@ class FxMod final : public Module {
     Effect *fx = nullptr;
     int32_t param[kKnobs]{};
     int32_t cvParam = -1;
+    bool stereoOut = true;
     float knob[kKnobs]{};
     float cv = 0.0f;
     double blockTick = 0.0;
@@ -819,12 +823,18 @@ class ClockMod final : public Module {
   public:
     void prepare(float, int32_t) override {}
     void reset() override { last = -1.0; }
+    void restart() override { last = -1.0; }
     void setKnobs(const float *k) override { division = stepOf(k[0], 9); pulseWidth = clampf(k[1], 0.05f, 0.95f); }
     void step(const float *, float *out, const Context &c) override {
+        if (!c.clockRunning) {
+            out[0] = out[1] = out[2] = 0.0f;
+            last = -1.0;
+            return;
+        }
         // 240 ticks to the quarter note; the divisions are note values.
         static const double ticks[9] = {960, 480, 240, 120, 80, 60, 40, 30, 15};
         const double period = ticks[division];
-        const double pos = std::fmod(c.tick, period) / period;
+        const double pos = std::fmod(c.clockTick, period) / period;
         out[0] = pos < pulseWidth ? 1.0f : 0.0f;
         out[1] = static_cast<float>(pos);
         out[2] = (last >= 0.0 && pos < last) ? 1.0f : 0.0f; // one-sample restart
@@ -841,6 +851,7 @@ class EuclidMod final : public Module {
   public:
     void prepare(float, int32_t) override {}
     void reset() override { step_ = 0; wasHigh = false; }
+    void restart() override { reset(); }
     void setKnobs(const float *k) override {
         steps = 1 + stepOf(k[0], 16);
         pulses = stepOf(k[1], 17);
@@ -931,6 +942,10 @@ class QuantMod final : public Module {
             const float d = std::fabs(within - static_cast<float>(def.intervals[i]));
             if (d < bestD) { bestD = d; best = static_cast<float>(def.intervals[i]); }
         }
+        // The root an octave up is a candidate too, so a value just under the
+        // root goes to the root and not the degree below it.
+        const float up = static_cast<float>(def.intervals[0]) + 12.0f;
+        if (std::fabs(within - up) < bestD) best = up;
         const float snapped = static_cast<float>(root) + static_cast<float>(octave) * 12.0f + best;
         out[0] = snapped / 127.0f;
         out[1] = std::fabs(snapped - last) > 0.01f ? 1.0f : 0.0f;

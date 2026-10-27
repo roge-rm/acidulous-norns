@@ -60,9 +60,20 @@ struct Take {
      * and 180 bpm.
      */
     float bars = 0.0f;
+    /**
+     * Where those bars start and how many frames they run: the take less any
+     * room before the first hit and any ringing past the last bar. The tempo
+     * is worked out from these. 0 frames before detect() means the whole take.
+     */
+    int32_t barsStart = 0, barsFrames = 0;
 
     void detect(float sampleRate);
-    float guessBars(float sampleRate) const;
+    /** Sets bars, barsStart and barsFrames from the take and its onsets. */
+    void guessShape(float sampleRate);
+    /** The first frame that rises clear of the room tone. */
+    int32_t musicStart(float sampleRate) const;
+    /** Where the hit reported at [at] starts, for fitting a grid to the hits. */
+    int32_t attackNear(int32_t at) const;
 };
 
 /** The audio a reader reads. Resolved once per block. */
