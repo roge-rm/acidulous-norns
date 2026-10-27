@@ -107,7 +107,8 @@ def statement_end(toks, i, end):
                 # a block ends the statement unless an else or a call follows
                 k = j + 1
                 while k < end and toks[k].k == "nl": k += 1
-                if not (k < end and (toks[k].v in ("else", ".") )): return j + 1
+                # a list joined to more on the same line, `map { } + ...`, carries on too
+                if not (k < end and (toks[k].v in ("else", ".") or toks[k].v == "+" and k == j + 1)): return j + 1
         elif depth == 0 and (t.k == "nl" or t.v == ";") and j > i:
             # a line ending in an operator carries on
             prev = toks[j - 1]
