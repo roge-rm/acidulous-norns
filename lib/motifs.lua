@@ -864,65 +864,30 @@ function M.Filament(x, y, w, h, t, e, held)
   end
 end
 
--- Manual: an organ's drawbars and a rotary speaker, its horn and drum
--- turning slowly, speeding up while a note is held.
+-- Manual: an organ's drawbars over its keys, still when idle; a chord goes
+-- down and lights while held and the drawbars light with the level.
 local DRAWBARS = {8, 8, 6, 0, 3, 0, 2, 0, 4}
 local DRAWBAR_LV = {9, 9, 14, 14, 5, 14, 5, 5, 14}
-local spin = {at = nil, speed = 0.4, phase = 0}
+local ORGAN_BLACK = {0, 1, 3, 4, 5, 7, 8}
+local CHORD = {3, 5, 7}
 function M.Manual(x, y, w, h, t, e, held)
-  e = max(e, held > 0 and 0.6 or 0)
   -- the drawbars out of their slot, pulled by their registration
-  fill_rect(x, y, 19, 1, 8)
+  fill_rect(x + 1, y, 37, 1, 6)
   for k, n in ipairs(DRAWBARS) do
-    local bx = x + 1 + (k - 1) * 2
-    local len = 1 + rnd(n * 1.2)
-    fill_rect(bx, y + 1, 1, len, 3)
-    fill_rect(bx, y + 1 + len, 1, 2, DRAWBAR_LV[k] * (0.7 + 0.3 * e))
+    local bx = x + 2 + (k - 1) * 4
+    fill_rect(bx + 1, y + 1, 1, n, 2 + 6 * e)
+    fill_rect(bx, y + 1 + n, 3, 2, DRAWBAR_LV[k] * (0.45 + 0.55 * e))
   end
-  -- the manual under them, a key down while held
-  local key = held > 0 and 3 or -1
-  for k = 0, 5 do
-    fill_rect(x + k * 3, y + 16 + (k == key and 1 or 0), 2, 6 - (k == key and 1 or 0), k == key and 7 or 11)
+  -- the keys, up to three of a chord down and lit while held
+  local down = {}
+  for k = 1, min(held, 3) do down[CHORD[k]] = true end
+  for k = 0, 9 do
+    local d = down[k] and 1 or 0
+    fill_rect(x + k * 4, y + 14 + d, 3, 8 - d, down[k] and 15 or 6)
   end
-  for _, b in ipairs({1, 2, 4, 5}) do fill_rect(x + b * 3 - 2, y + 16, 3, 3, 2) end
-  -- the speaker's speed eases to fast while held
-  local dt = spin.at and t - spin.at or 0
-  if dt < 0 or dt > 1 then dt = 0 end
-  spin.at = t
-  local want = held > 0 and 6 or 0.7
-  spin.speed = spin.speed + (want - spin.speed) * min(1, dt * 1.5)
-  spin.phase = (spin.phase + spin.speed * dt) % 1
-  local a = 2 * pi * spin.phase
-  -- the cabinet
-  local cx0, cw = x + 21, 19
-  lit(7)
-  rect(cx0, y, cw, 1)
-  rect(cx0, y + h - 1, cw, 1)
-  rect(cx0, y, 1, h)
-  rect(cx0 + cw - 1, y, 1, h)
-  rect(cx0, y + 10, cw, 1)
+  lit(1)
+  for _, b in ipairs(ORGAN_BLACK) do rect(x + b * 4 + 2, y + 14, 3, 4) end
   screen.fill()
-  -- the horn, a bar foreshortened as it turns, the mouth bright towards you
-  local mid = cx0 + 9
-  local reach = rnd(7 * cos(a))
-  fill_rect(mid - 1, y + 3, 3, 4, 6)
-  if reach ~= 0 then
-    local x0 = min(mid, mid + reach)
-    fill_rect(x0, y + 4, abs(reach) + 1, 2, 9)
-    local tip = mid + reach
-    fill_rect(tip - (reach > 0 and 0 or 1), y + 3, 2, 4, sin(a) > 0 and 15 or 6)
-  else
-    fill_rect(mid, y + 2, 1, 6, 15)
-  end
-  -- the drum's slots going round
-  for k = 0, 3 do
-    local ang = a + k * pi / 2
-    local c = cos(ang)
-    if sin(ang) > 0 then
-      local sx = mid + rnd(7 * c)
-      fill_rect(sx, y + 12, 2, h - 14, 4 + 9 * sin(ang) * (0.5 + 0.5 * e))
-    end
-  end
 end
 
 -- Hammer: piano keys and the hammer over them striking a string on a
@@ -1029,37 +994,31 @@ function M.Cumulus(x, y, w, h, t, e, held)
   fill_rect(cx - 13, cy + 4, 26, 1, 8)
 end
 
--- Nexus: a patch panel of jacks with cables hanging between them, swaying
--- more while played; plugged jacks light with the level.
-local JACKS = {}
-for r = 0, 2 do for c = 0, 4 do JACKS[#JACKS + 1] = {4 + c * 8, 3 + r * 7} end end
-local CABLES = {{1, 8, 15, 4, 0.0}, {3, 12, 10, 4, 1.3}, {6, 5, 6, 5, 2.1}, {11, 15, 12, 3, 0.7}}
+-- Nexus: a row of jacks with two patch cables hanging from them, one
+-- inside the other; the plugs and cables light while played.
+local NEXUS_JACKS = {4, 12, 20, 28, 36}
+local NEXUS_CABLES = {{1, 4, 13, 0.0}, {2, 3, 6, 1.9}}
 function M.Nexus(x, y, w, h, t, e, held)
   e = max(e, held > 0 and 0.6 or 0)
-  local plugged = {}
-  for _, c in ipairs(CABLES) do plugged[c[1]], plugged[c[2]] = true, true end
-  lit(7)
-  for _, j in ipairs(JACKS) do ring(x + j[1], y + j[2], 2) end
+  local jy = y + 3
+  fill_rect(x, y, w, 1, 2)
+  lit(6)
+  for _, jx in ipairs(NEXUS_JACKS) do ring(x + jx, jy, 2) end
   screen.fill()
-  lit(9 + 6 * e)
-  for k, j in ipairs(JACKS) do
-    if plugged[k] then rect(x + j[1], y + j[2], 1, 1) end
-  end
-  screen.fill()
-  -- the cables, sagging between their plugs
-  for _, c in ipairs(CABLES) do
-    local a, b = JACKS[c[1]], JACKS[c[2]]
-    if a[1] > b[1] then a, b = b, a end
-    local ax, ay, bx, by = x + a[1], y + a[2], x + b[1], y + b[2]
-    local sag = c[4] + (0.8 + 2 * e) * sin(t * (0.9 + 2 * e) + c[5])
-    lit(c[3])
+  -- the cables, sagging between their plugs, swaying a little with the level
+  for _, c in ipairs(NEXUS_CABLES) do
+    local ax, bx = x + NEXUS_JACKS[c[1]], x + NEXUS_JACKS[c[2]]
+    local sag = c[3] + 1.2 * e * sin(t * 2.5 + c[4])
+    lit(5 + 8 * e)
     curve(ax, bx, function(cx)
-      local f = (cx - ax) / max(1, bx - ax)
-      return min(y + h - 1, ay + (by - ay) * f + sag * 4 * f * (1 - f))
+      local f = (cx - ax) / (bx - ax)
+      return jy + 2 + sag * 4 * f * (1 - f)
     end)
     screen.fill()
-    fill_rect(ax - 1, ay - 1, 3, 3, c[3])
-    fill_rect(bx - 1, by - 1, 3, 3, c[3])
+    for _, px in ipairs({ax, bx}) do
+      fill_rect(px - 1, jy - 1, 3, 3, 8 + 4 * e)
+      fill_rect(px, jy, 1, 1, 3 + 12 * e)
+    end
   end
 end
 
