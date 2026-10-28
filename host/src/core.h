@@ -102,6 +102,9 @@ class Core
     float load_percent() const;
     // The part's patch macro names, joined by newlines, "" for none. For tests.
     std::string macro_names(int part) const;
+    // The part's Mosaic zones as Part::zones holds them. For tests, with
+    // the worker idle.
+    std::string zones(int part) const { return part >= 0 && part < kParts ? parts[part].zones : std::string(); }
     // Each part's output peak since the last call, linear. Any thread.
     void levels(float* out);
     // A loaded song's transport, as /song_position sends it: playing, scene,
@@ -236,7 +239,11 @@ class Core
     void set_scope(int part, int slot);
     bool push_param(int part, const char* unit, const std::string& name, float v01);
     // Songs (song.cpp). Worker thread.
-    void load_song(const std::string& path, const std::string& songs_dir);
+    // reloading: putting the old song back after a failed load, which
+    // replies nothing but /error when it fails. False when it failed.
+    bool load_song(const std::string& path, const std::string& songs_dir, bool reloading = false);
+    bool any_stray() const;
+    void resync_teardown();
     void unload_song();
     // quiet: no /inserts, as a read_back or unmount sends them after.
     void clear_song(bool quiet);
@@ -330,6 +337,17 @@ class Core
         int         repeat    = 1;
     };
     std::vector<SongScene> song_scenes;
+    // Worker only: Mosaic zones per rack from the song's LoadZoneMap lines,
+    // as Part::zones holds them, and the master volume its lines set, 0-1.
+    std::map<int, std::string> song_zones;
+    float                      song_master = 1.f;
+    // Worker only: a teardown ran without blocks, so the engine may still
+    // hold some of the song; resync_teardown finishes it, with the master
+    // and group inserts and whether sends were mounted that it had.
+    bool                             teardown_dirty = false;
+    std::vector<int>                 stray_master_fx;
+    std::vector<std::pair<int, int>> stray_group_fx;
+    bool                             stray_sends = false;
     // Set while a song is loaded or loading: its own tempo rules, so /tempo
     // and /beat are ignored. beat_lock is held around a /beat's check and
     // alignBeat, and around setting this and releasing the beat, so no /beat

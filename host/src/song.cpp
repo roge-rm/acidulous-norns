@@ -690,10 +690,40 @@ bool write_file(const std::string& path, const std::vector<uint8_t>& bytes, std:
 // line for a slot wins.
 void Core::note_song_mount(const std::string& line)
 {
-    if(line.compare(0, 5, "Mount") != 0)
+    const bool mount = line.compare(0, 5, "Mount") == 0;
+    if(!mount && line.compare(0, 4, "Load") != 0 && line.compare(0, 9, "SetParam ") != 0)
         return;
     const auto w = words(line);
     const auto n = [&](size_t k) { return k < w.size() ? std::atoi(w[k].c_str()) : -1; };
+    if(w.size() >= 5 && w[0] == "SetParam" && n(1) == 0 && w[2] == "master" && w[3] == "volume")
+    {
+        song_master = float(std::atof(w[4].c_str()));
+        return;
+    }
+    // Mosaic's zones as Part::zones holds them: the spec with zip: paths
+    // made absolute. A machine or SoundFont after them replaces them.
+    if(w.size() >= 3 && w[0] == "LoadZoneMap" && n(1) >= 0 && n(1) < kParts)
+    {
+        std::string spec, row;
+        for(size_t k = 0; k <= w[2].size(); ++k)
+        {
+            const char c = k == w[2].size() ? '\n' : w[2][k];
+            if(c != '\n')
+            {
+                row += c;
+                continue;
+            }
+            if(!row.empty())
+                spec += (row.compare(0, 4, "zip:") == 0 ? song_folder + "/" + row.substr(4) : row) + "\n";
+            row.clear();
+        }
+        song_zones[n(1)] = spec;
+        return;
+    }
+    if(w.size() >= 2 && (w[0] == "MountMachine" || w[0] == "LoadSoundFont"))
+        song_zones.erase(n(1));
+    if(!mount)
+        return;
     if(w[0] == "MountInputMod" && w.size() >= 4 && n(1) >= 0 && n(1) < kParts && n(2) >= 0 && n(2) < kModSlots)
         song_mods[size_t(n(1)) * kModSlots + size_t(n(2))] = w[3];
     else if(w[0] == "MountSend" && w.size() >= 3)
@@ -736,6 +766,17 @@ bool Core::next_block()
 void Core::clear_song(bool quiet)
 {
     const bool had_song = !song_folder.empty();
+    // The teardown's mounts only land while blocks run: wait up to 2 s for
+    // them. If they don't come, or stop part way, what the engine kept is
+    // emptied by resync_teardown once they're back.
+    bool moving = next_block();
+    for(int k = 0; k < 3 && !moving; ++k)
+        moving = next_block();
+    if(!moving)
+        std::fprintf(stderr, "acidulous: song: no audio for the teardown; finishing it when the audio is back\n");
+    stray_master_fx.insert(stray_master_fx.end(), song_master_fx.begin(), song_master_fx.end());
+    stray_group_fx.insert(stray_group_fx.end(), song_group_fx.begin(), song_group_fx.end());
+    stray_sends = stray_sends || !song_sends.empty();
     host.transportStop();
     host.panic();
     const int64_t empty = host.snapshotBegin();
@@ -770,8 +811,90 @@ void Core::clear_song(bool quiet)
     song_sends.clear();
     song_folder.clear();
     song_scenes.clear();
+    song_zones.clear();
     song_on.store(false);
     wait_applied();
+    teardown_dirty = !moving || !next_block() || any_stray();
+    if(!teardown_dirty)
+    {
+        stray_master_fx.clear();
+        stray_group_fx.clear();
+        stray_sends = false;
+    }
+}
+
+// Whether the engine holds a machine or insert on a part the core has as
+// empty, which a teardown without blocks leaves. Worker thread.
+bool Core::any_stray() const
+{
+    for(int p = 0; p < kParts; ++p)
+        if(parts[p].machine.empty() && (*host.mountedMachine(p) || *host.mountedEffect(p, 0) || *host.mountedEffect(p, 1)))
+            return true;
+    return false;
+}
+
+// Finishes a teardown that ran without blocks, once they're back: the
+// arrangement, frozen clips, and every machine, insert and modifier on a
+// part the core has as empty, the song's master and group inserts and sends,
+// and the master params, tempo and loop settings. Worker thread, between
+// jobs.
+void Core::resync_teardown()
+{
+    if(!next_block())
+        return;
+    std::fprintf(stderr, "acidulous: song: the audio is back, finishing the teardown\n");
+    host.transportStop();
+    host.panic();
+    const int64_t empty = host.snapshotBegin();
+    if(empty)
+        host.snapshotCommit(empty);
+    host.clearFrozen();
+    for(int p = 0; p < kParts; ++p)
+    {
+        if(!parts[p].machine.empty())
+            continue;
+        for(int s = 0; s < kEffectSlots; ++s)
+            if(*host.mountedEffect(p, s))
+                host.mountEffect(p, s, "");
+        for(int s = 0; s < kModSlots; ++s)
+            if(mod_types[p][s].empty())
+                host.mountInputMod(p, s, "");
+        if(*host.mountedMachine(p))
+            host.unmountMachine(p);
+        next_block();
+    }
+    if(song_folder.empty())
+    {
+        // Parts the script has filled since keep their strips, and the
+        // master's params are left as the script last sent them.
+        for(int slot : stray_master_fx)
+            host.mountMasterInsert(slot, "");
+        for(const auto& g : stray_group_fx)
+            host.mountGroupInsert(g.first, g.second, "");
+        for(int p = 0; p < kParts; ++p)
+            if(parts[p].machine.empty())
+            {
+                host.setTuning(p, nullptr);
+                for(const auto& kv : kChannelDefaults)
+                    push_param(p, "channel", kv.first, kv.second);
+            }
+        host.setTempo(pre_song_tempo);
+        host.setSwingUnit(0);
+        host.setLoopSong(true);
+        if(stray_sends)
+            for(int s = 0; s < kSends; ++s)
+            {
+                host.mountSend(s, "");
+                send_mounted[s] = false;
+                if(pre_song_send[s])
+                    ensure_send(s);
+            }
+    }
+    stray_master_fx.clear();
+    stray_group_fx.clear();
+    stray_sends = false;
+    wait_applied();
+    teardown_dirty = !next_block() || any_stray();
 }
 
 // The sends back to the plugin's own: a song's lines may have mounted others
@@ -848,14 +971,16 @@ void Core::drop_song()
     song_defaults(true);
     song_folder.clear();
     song_scenes.clear();
+    song_zones.clear();
     song_on.store(false);
 }
 
 void Core::unload_song()
 {
-    if(!song_folder.empty())
+    const bool had = !song_folder.empty();
+    if(had)
         clear_song(false);
-    reply("/song_unloaded", {});
+    reply("/song_unloaded", {Value::i(had ? 1 : 0)});
 }
 
 namespace
@@ -872,15 +997,34 @@ struct Stalled
 // rack back. Replies /song_loaded. Worker thread, with every part pending.
 // Anything refused before the replay leaves what's loaded, and the song's
 // old folder, as they were.
-void Core::load_song(const std::string& path, const std::string& songs_dir_in)
+bool Core::load_song(const std::string& path, const std::string& songs_dir_in, bool reloading)
 {
     std::string folder, staged;
     std::string why;
-    const auto  fail = [&](const std::string& what) {
+    // The song loaded before, loaded again if this one fails after the parts
+    // were emptied, unless its folder was replaced. touched: the parts were
+    // emptied.
+    const std::string old_folder = song_folder;
+    bool              old_intact = true, touched = false;
+    const auto        fail       = [&](const std::string& what) {
         if(!staged.empty())
             remove_tree(staged);
         error("song: " + what);
+        if(reloading)
+            return false;
+        if(touched && song_folder.empty())
+        {
+            bool back = false;
+            if(!old_folder.empty() && old_intact && is_dir(old_folder))
+            {
+                std::fprintf(stderr, "acidulous: song: loading %s again\n", old_folder.c_str());
+                back = load_song(old_folder, "", true);
+            }
+            if(!back)
+                reply("/song_unloaded", {Value::i(1)});
+        }
         reply("/song_loaded", {Value::s(path), Value::s(folder), Value::s(what), Value::i(0), Value::i(0)});
+        return false;
     };
 
     // The songs folder: the default, or one under dust/data.
@@ -902,7 +1046,10 @@ void Core::load_song(const std::string& path, const std::string& songs_dir_in)
     // song's, renamed into place once the song is known to fit.
     std::string from;
     if(is_dir(path))
+    {
         folder = from = path;
+        old_intact    = folder != old_folder;
+    }
     else
     {
         folder                 = root + "/" + song_name(path);
@@ -928,6 +1075,7 @@ void Core::load_song(const std::string& path, const std::string& songs_dir_in)
             {
                 std::fprintf(stderr, "acidulous: song: unloading the parts first to unpack %s\n", path.c_str());
                 clear_song(false);
+                touched = true;
             }
             if(!presetfile::unzip(zip.data, zip.size, entries, why, kMaxSongBytes))
                 return fail(why == "too big to be a preset file" ? std::string("too big to be a song") : why);
@@ -1002,6 +1150,8 @@ void Core::load_song(const std::string& path, const std::string& songs_dir_in)
                 std::rename(old.c_str(), folder.c_str());
             return fail(what);
         }
+        if(folder == old_folder)
+            old_intact = false;
         staged.clear();
         remove_tree(old);
     }
@@ -1021,6 +1171,8 @@ void Core::load_song(const std::string& path, const std::string& songs_dir_in)
     }
 
     clear_song(true);
+    touched        = true;
+    song_master    = 1.f;
     pre_song_tempo = host.tempo();
     // The song's tempo rules from here: the script's /tempo and /beat are
     // ignored until it goes, and a beat being followed is let go.
@@ -1084,7 +1236,7 @@ void Core::load_song(const std::string& path, const std::string& songs_dir_in)
     if(stalled)
     {
         clear_song(false);
-        return fail("the audio stopped at line " + std::to_string(stalled) + " of engine.txt; nothing is loaded");
+        return fail("the audio stopped at line " + std::to_string(stalled) + " of engine.txt");
     }
     wait_applied();
     if(!read)
@@ -1128,7 +1280,9 @@ void Core::load_song(const std::string& path, const std::string& songs_dir_in)
     send_scenes();
     Args out{Value::s(path), Value::s(folder), Value::s(""), Value::i(replay.skipped), Value::i(count)};
     out.insert(out.end(), list.begin(), list.end());
+    reply("/song_master", {Value::f(song_master)});
     reply("/song_loaded", out);
+    return true;
 }
 
 // The scenes of the last committed snapshot in [text], in order, which is
@@ -1251,6 +1405,12 @@ void Core::read_back(int r, const void* track_ptr)
         mod_bypass[r][s]   = !mod_types[r][s].empty() && host.paramNormalized(r, kModUnitNames[s], "bypass") >= 0.5f;
     }
     const std::string& machine = parts[r].machine;
+    if(machine == "Mosaic")
+    {
+        const auto z = song_zones.find(r);
+        if(z != song_zones.end())
+            parts[r].zones = z->second;
+    }
     if(!machine.empty())
     {
         int32_t         count = 0;

@@ -17,6 +17,9 @@
 //   getter for a send's params)
 // - /song_scenes, /song_play, /song_queue, /song_stop and /song_position,
 //   and that /tempo and /beat leave a loaded song's tempo alone
+// - a failed load after the parts were emptied loads the old song again,
+//   or says /song_unloaded 1; a teardown without audio finishes once it's
+//   back; Mosaic zones and the master volume are read back
 // - deleting the core with a song loaded
 // Usage: acidulous-song-test BANK_DIR SCRATCH_DIR SONG_ZIP
 #include "core.h"
@@ -112,6 +115,21 @@ struct Log : core::Replier
             if(r.path == path && !r.args.empty() && r.args[0].type == 'i' && int(r.args[0].num) == part)
                 ++n;
         return n;
+    }
+    // Waits for the [n]th reply to [path], 1 the first.
+    bool wait_nth(const char* path, int n, Reply& out, std::chrono::seconds limit = 120s)
+    {
+        std::unique_lock<std::mutex> l(lock);
+        return cv.wait_for(l, limit, [&] {
+            int seen = 0;
+            for(const auto& r : got)
+                if(r.path == path && ++seen == n)
+                {
+                    out = r;
+                    return true;
+                }
+            return false;
+        });
     }
     // Where the first reply to [path] is in the log, or -1.
     int index(const char* path)
@@ -412,6 +430,12 @@ int main(int argc, char** argv)
     check(load(songs + "/squelch", again) && str(again, 2).empty() && int(again.args[4].num) == 9,
           "loads again from the unpacked folder");
     {
+        Reply m;
+        check(log.wait("/song_master", m, 1s) && m.args.size() == 1 && std::fabs(m.args[0].num - 0.42666665) < 1e-5 &&
+                  log.index("/song_master") < log.index("/song_loaded"),
+              "/song_master gives the song's master volume before /song_loaded");
+    }
+    {
         Reply ins;
         const bool ok = log.last("/inserts", 2, ins);
         bool       dist = false, delay = false;
@@ -644,25 +668,62 @@ int main(int argc, char** argv)
         check(st.args.size() > 1 && st.args[1].str == "Forage" && !exists(songs + "/frozen"),
               "a song over the budget is refused before anything goes");
         // This one's files beside the song's sample would go over, so the
-        // parts are emptied before it's unpacked.
-        ok = load(scratch + "/forage2.zip", r);
-        check(ok && str(r, 2).find("over the 1.0 MB") != std::string::npos && !exists(songs + "/forage2"),
-              "samples over the budget: " + str(r, 2));
+        // parts are emptied before it's unpacked; when it's refused the
+        // Forage song is loaded again from its folder, before the refusal.
+        log.clear();
+        cmd("/song_load", {Value::s(scratch + "/forage2.zip"), Value::s(songs)});
+        Reply again, refused;
+        ok = log.wait_nth("/song_loaded", 2, refused) && refused.args.size() >= 5;
+        check(ok && str(refused, 2).find("over the 1.0 MB") != std::string::npos && !exists(songs + "/forage2"),
+              "samples over the budget: " + str(refused, 2));
+        check(log.wait_nth("/song_loaded", 1, again) && str(again, 0) == songs + "/forage" && str(again, 2).empty() &&
+                  log.index("/song_unloaded") < 0,
+              "the Forage song is loaded again first: " + str(again, 0) + " " + str(again, 2));
+        state(0, st);
+        check(st.args.size() > 1 && st.args[1].str == "Forage", "part 0 has Forage again");
         unsetenv("ACIDULOUS_SAMPLE_LIMIT_MB");
     }
 
+    // A song's Mosaic zones are the part's, with absolute paths.
+    {
+        write_zip(scratch + "/zones.zip",
+                  {{"engine.txt", "acidulous-engine 4\nMountMachine 0 \"Mosaic\"\n"
+                                  "LoadZoneMap 0 \"zip:z/a.wav|0|63|48|0|127|0|1|0|0\\nzip:z/b.wav|64|127|72|0|127|0|1|0|0\\n\" \"keys\"\n"},
+                   {"z/a.wav", wav(4800)},
+                   {"z/b.wav", wav(4800)}});
+        Reply r;
+        const bool ok = load(scratch + "/zones.zip", r);
+        const std::string want = songs + "/zones/z/a.wav|0|63|48|0|127|0|1|0|0\n" + songs +
+                                 "/zones/z/b.wav|64|127|72|0|127|0|1|0|0\n";
+        check(ok && str(r, 2).empty() && c->zones(0) == want, "Mosaic's zones are read back: " + c->zones(0));
+    }
+
     // Audio stops part way through the replay: once the parts are emptied,
-    // the fake audio thread pauses.
+    // the fake audio thread pauses until the load has answered. The zones
+    // song can't be loaded again without audio, so /song_unloaded 1 comes
+    // first, and the teardown is finished once the audio is back.
     {
         log.clear();
         cmd("/song_load", {Value::s(zip), Value::s(songs)});
         check(log.wait_part("/mounted", core::kParts - 1), "the parts are emptied for the song");
         std::this_thread::sleep_for(20ms);
         paused = true;
-        Reply r;
+        Reply r, gone;
         const bool ok = log.wait("/song_loaded", r) && r.args.size() >= 5;
         paused = false;
         check(ok && str(r, 2).find("audio stopped at line") != std::string::npos, "audio stopping: " + str(r, 2));
+        check(log.wait("/song_unloaded", gone, 1s) && gone.args.size() == 1 && gone.args[0].num == 1 &&
+                  log.index("/song_unloaded") < log.index("/song_loaded"),
+              "/song_unloaded 1 comes before it");
+        bool empty = false;
+        for(int k = 0; k < 100 && !empty; ++k)
+        {
+            std::this_thread::sleep_for(50ms);
+            empty = true;
+            for(int p = 0; p < core::kParts; ++p)
+                empty = empty && !*host.mountedMachine(p) && !*host.mountedEffect(p, 0) && !*host.mountedEffect(p, 1);
+        }
+        check(empty, "once the audio is back every rack and insert is empty");
         Reply st;
         state(0, st);
         check(st.args.size() > 1 && st.args[1].str.empty(), "leaves the parts empty");
@@ -674,7 +735,7 @@ int main(int argc, char** argv)
     cmd("/song_unload", {});
     {
         Reply r;
-        check(log.wait("/song_unloaded", r, 60s), "/song_unloaded came");
+        check(log.wait("/song_unloaded", r, 60s) && r.args.size() == 1 && r.args[0].num == 1, "/song_unloaded 1 came");
         check(log.count("/inserts", 2) == 1 && log.count("/inserts", 12) == 1, "one /inserts per part for the unload");
         bool empty = true;
         for(int p = 0; p < core::kParts; ++p)

@@ -669,9 +669,27 @@ void Core::worker_loop()
     std::unique_lock<std::mutex> l(jobs_lock);
     for(;;)
     {
-        jobs_cv.wait(l, [this] { return quitting || !jobs.empty(); });
+        // A teardown left unfinished is tried again every 250 ms, and
+        // before each job.
+        if(teardown_dirty)
+            jobs_cv.wait_for(l, std::chrono::milliseconds(250), [this] { return quitting || !jobs.empty(); });
+        else
+            jobs_cv.wait(l, [this] { return quitting || !jobs.empty(); });
         if(quitting)
             return;
+        if(teardown_dirty)
+        {
+            busy = true;
+            l.unlock();
+            resync_teardown();
+            l.lock();
+            busy = false;
+        }
+        if(jobs.empty())
+        {
+            idle_cv.notify_all();
+            continue;
+        }
         auto job = std::move(jobs.front());
         jobs.pop_front();
         busy = true;

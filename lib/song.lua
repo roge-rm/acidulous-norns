@@ -26,6 +26,7 @@ local list = nil    -- the songs list while it's open: {rows, cursor}
 local problem = nil -- {text, at}
 local old_tempo = nil -- norns' clock tempo before the song took it
 local quiet_unload = false -- an unload for a PSET, whose parts are already on their way
+local old_master = nil -- the script's master level in dB while a song has its own
 
 function S.init(p) parts = p end
 
@@ -91,13 +92,20 @@ function S.osc(path, args)
     pos = {playing = false, scene = 0, pass = 0, queued = -1, bpm = nil}
     cursor = 1
     parts.send("/song_position", {})
+  elseif path == "/song_master" then
+    -- the out strip shows the song's master; moving it moves the song's
+    if not old_master then old_master = params:get("master_level") end
+    local v = args[1] or 1
+    params:set("master_level", v > 0 and math.max(-60, 20 * math.log(v, 10)) or -60, true)
   elseif path == "/song_unloaded" then
-    local was = loaded
     loaded, folder, scenes = nil, nil, {}
     pos = {playing = false, scene = 0, pass = 0, queued = -1, bpm = nil}
     give_back_tempo()
     if params.lookup["song"] then params:set("song", "", true) end
-    if was and not quiet_unload then parts.apply_all() end
+    -- a PSET's master and parts are on their way already
+    if old_master and not quiet_unload then params:set("master_level", old_master, true) end
+    old_master = nil
+    if args[1] == 1 and not quiet_unload then parts.apply_all() end
     quiet_unload = false
   elseif path == "/song_position" then
     pos = {playing = args[1] == 1, scene = args[2] or 0, pass = args[3] or 0, queued = args[5] or -1, bpm = args[6]}

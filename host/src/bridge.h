@@ -91,8 +91,12 @@
 //        the sample budget are refused, and what's loaded and the old folder
 //        stay. Its audio counts in the budget after. If unpacking beside
 //        what's loaded would go over the budget, the parts are emptied
-//        first. If the audio stops during the replay it fails with nothing
-//        loaded. The transport is left stopped
+//        first. A song that fails after the parts were emptied (that, or the
+//        audio stopping during the replay) loads the song before it again
+//        from its folder, unless the new one replaced it; if that can't be
+//        done, /song_unloaded 1 comes before its /song_loaded. A teardown
+//        while the audio is stopped is finished once it's back. The
+//        transport is left stopped
 //   /song_unload                       empties every part and what the song
 //        put around them (arrangement, frozen clips, master and group
 //        inserts, tunings, channel strips, master and perform params) and
@@ -177,7 +181,10 @@
 //        times a second while a song plays and once a second stopped: the
 //        scene's index, its pass (0 first), the tick in that pass, the
 //        queued scene (-1 none) and the tempo it plays at
-//   /song_unloaded                     after the parts' /mounted "" and /inserts
+//   /song_master f:volume01            the master volume the song set, as
+//        /master takes it, just before /song_loaded
+//   /song_unloaded i:emptied           after the parts' /mounted "" and
+//        /inserts; emptied is 1 when a song or a failed load emptied them
 //   /preset_saved i:part s:path s:result   "ok" or what went wrong
 //   /preset_loaded i:part s:tag s:name s:error i:index   after its /values and /patch
 //        and the /loaded for its files; error "" when it loaded. A missing
