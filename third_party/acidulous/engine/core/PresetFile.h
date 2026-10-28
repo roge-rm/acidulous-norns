@@ -61,9 +61,9 @@ std::vector<uint8_t> write(const Preset &preset);
  */
 bool read(const uint8_t *data, size_t size, Preset &out, std::string &error);
 
-/** A zip's entries by name, inflated. For tests; [error] says what went wrong. */
+/** A zip's entries by name, inflated. [maxTotal] caps the inflated bytes in all (8 MB by default). */
 bool unzip(const uint8_t *data, size_t size, std::vector<std::pair<std::string, std::vector<uint8_t>>> &out,
-           std::string &error);
+           std::string &error, size_t maxTotal = 8u << 20);
 
 } // namespace presetfile
 } // namespace acidulous

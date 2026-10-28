@@ -797,7 +797,10 @@ bool Cipher::render(float *L, float *R, int32_t frames) {
             // the level.
             x = std::tanh(x * driveK) * driveNorm;
         }
-        feedbackSample = x;
+        // The loop's gain grows with its own level, since a louder output
+        // opens the bands that pass it, so what goes round is always
+        // saturated. With the drive off that's the drive's own curve at 0.
+        feedbackSample = drive > 0.0f ? x : std::tanh(x) * driveNorm;
         x *= volume * kHouse;
         L[n] = x * panL;
         R[n] = x * panR;

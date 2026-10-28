@@ -279,6 +279,16 @@ class Transport {
                (static_cast<int64_t>(repeat & 0xff) << 48) |
                (tickInIteration & 0xffffffffffffLL);
     }
+    /** What [pack] put together. */
+    struct Unpacked {
+        int32_t scene;
+        int32_t repeat;
+        int64_t tickInIteration;
+    };
+    static Unpacked unpack(int64_t packed) {
+        return {static_cast<int32_t>((packed >> 56) & 0xff), static_cast<int32_t>((packed >> 48) & 0xff),
+                packed & 0xffffffffffffLL};
+    }
     void publishPosition(int64_t packed) { positionForUi.store(packed, std::memory_order_relaxed); }
     /** Milliseconds played since play, not counting a count-in. Held after a stop. */
     void publishElapsed(int64_t ms) { elapsedForUi.store(ms, std::memory_order_relaxed); }

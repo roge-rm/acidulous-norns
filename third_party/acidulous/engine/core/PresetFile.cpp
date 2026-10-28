@@ -278,7 +278,7 @@ struct ZipWriter {
 /** Calls [want] for each entry's name; the ones it says yes to are inflated into [out]. */
 template <typename Want>
 bool readZip(const uint8_t *p, size_t n, Want want, std::vector<std::pair<std::string, std::vector<uint8_t>>> &out,
-             std::string &error) {
+             std::string &error, size_t maxTotal) {
     // The end record, from the back: it may be followed by a comment.
     if (n < 22) { error = "not a zip"; return false; }
     size_t end = n - 22;
@@ -315,7 +315,7 @@ bool readZip(const uint8_t *p, size_t n, Want want, std::vector<std::pair<std::s
         if (local + 30 > n || u32(p + local) != 0x04034b50u) { error = name + ": a broken zip"; return false; }
         const size_t data = local + 30 + u16(p + local + 26) + u16(p + local + 28);
         if (data + packed > n) { error = name + ": a broken zip"; return false; }
-        if (size > kMaxTotal - total) { error = "too big to be a preset file"; return false; }
+        if (size > maxTotal - total) { error = "too big to be a preset file"; return false; }
         total += size;
         std::vector<uint8_t> bytes;
         if (method == 0) {
@@ -753,8 +753,8 @@ std::vector<uint8_t> write(const Preset &preset) {
 }
 
 bool unzip(const uint8_t *data, size_t size, std::vector<std::pair<std::string, std::vector<uint8_t>>> &out,
-           std::string &error) {
-    return readZip(data, size, [](const std::string &) { return true; }, out, error);
+           std::string &error, size_t maxTotal) {
+    return readZip(data, size, [](const std::string &) { return true; }, out, error, maxTotal);
 }
 
 bool read(const uint8_t *data, size_t size, Preset &out, std::string &error) {
@@ -764,7 +764,7 @@ bool read(const uint8_t *data, size_t size, Preset &out, std::string &error) {
         return name == kManifest ||
                (name.compare(0, 8, "patches/") == 0 && name.size() > 13 && name.compare(name.size() - 5, 5, ".json") == 0);
     };
-    if (!readZip(data, size, wanted, entries, error)) return false;
+    if (!readZip(data, size, wanted, entries, error, kMaxTotal)) return false;
     const std::vector<uint8_t> *manifestBytes = nullptr;
     for (const auto &e : entries) if (e.first == kManifest) manifestBytes = &e.second;
     Json manifest;
