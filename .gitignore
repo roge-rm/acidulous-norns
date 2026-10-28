@@ -1,3 +1,6 @@
 host/build/
 *.o
 __pycache__/
+handoff.md
+acidulous-community.md
+acidulous-lines-post.md
