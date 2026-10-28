@@ -1,12 +1,16 @@
 -- A song from the app: loading one, its scenes and the transport.
 -- The plugin unpacks a zip into dust/data/acidulous/songs/<name>/ and
--- replays it into the parts. While a song is loaded its tempo rules: the
--- plugin ignores the script's /tempo and /beat, and norns' clock follows the
--- song when its source is internal. Unloading puts the clock back and sends
--- the script's parts again.
+-- replays it into the racks. While a song holds them, the script's own parts,
+-- master level and tempo stay in their params and aren't sent (see
+-- P.song_holds), and the out strip moves the song's master. Its tempo rules:
+-- the plugin ignores the script's /tempo and /beat, and norns' clock runs at
+-- the song's tempo when its source is internal, without touching the
+-- clock_tempo param. Unloading puts the clock back and sends the script's
+-- parts again.
 --   S.add_params()          the hidden "song" param, saved in PSETs
 --   S.osc(path, args)       the plugin's /song_ replies
---   S.read()                after a PSET is read, before the parts are sent
+--   S.read()                after a PSET is read; false when its parts
+--                           shouldn't be sent
 --   S.key(n, z, k1), S.enc(n, d), S.screen()   the song page
 --   S.cleanup()             on the script's cleanup
 
@@ -25,32 +29,60 @@ local pos = {playing = false, scene = 0, pass = 0, queued = -1, bpm = nil}
 local cursor = 1    -- the scene E2 is on
 local list = nil    -- the songs list while it's open: {rows, cursor}
 local problem = nil -- {text, at}
-local old_tempo = nil -- norns' clock tempo before the song took it
+local took_tempo = false -- norns' clock runs at the song's tempo
 local quiet_unload = false -- an unload for a PSET, whose parts are already on their way
-local old_master = nil -- the script's master level in dB while a song has its own
+-- The racks hold neither the script's parts nor a song: a PSET's song is on
+-- its way in place of its parts, and they're sent if it fails.
+local parts_owed = false
 
-function S.init(p) parts = p end
+-- What the parts module needs to know: song_holds, messages sent now would
+-- land on a song's racks; song_racks, replies about the racks are the
+-- song's.
+local function hold(holds, racks)
+  parts.song_holds = holds
+  if racks ~= nil then parts.song_racks = racks end
+end
+
+local reset
+function S.init(p)
+  parts = p
+  parts.on_plugin_reset = function() reset() end
+end
 
 function S.loaded() return loaded ~= nil end
 
 local function internal_clock() return params:string("clock_source") == "internal" end
 
--- norns' clock follows the song's tempo, when it's norns' own clock.
+-- norns' clock follows the song's tempo, when it's norns' own clock. The
+-- clock_tempo param keeps the script's own, so norns' saved tempo is left
+-- alone.
 local function follow(bpm)
   if not bpm or not internal_clock() then return end
+  took_tempo = true
   if math.abs(clock.get_tempo() - bpm) < 0.05 then return end
-  if not old_tempo then old_tempo = params:get("clock_tempo") end
-  params:set("clock_tempo", bpm)
+  clock.internal.set_tempo(bpm)
 end
 
 local function give_back_tempo()
-  if old_tempo and internal_clock() then params:set("clock_tempo", old_tempo) end
-  old_tempo = nil
+  if took_tempo and internal_clock() then clock.internal.set_tempo(params:get("clock_tempo")) end
+  took_tempo = false
 end
 
 -- When the script stops: norns' clock gets its tempo back. The plugin and
 -- the song go with the engine.
 function S.cleanup() give_back_tempo() end
+
+-- The plugin started again with nothing loaded: the parts go to it, then the
+-- song that was loaded goes again.
+reset = function()
+  local was = loaded or loading
+  loaded, folder, loading, scenes = nil, nil, nil, {}
+  pos = {playing = false, scene = 0, pass = 0, queued = -1, bpm = nil}
+  parts.song_master = nil
+  quiet_unload, parts_owed = false, false
+  hold(false, false)
+  if was then timer.after(0.5, function() S.load(was) end) end
+end
 
 function S.add_params()
   params:add_text("song", "song", "")
@@ -60,20 +92,40 @@ end
 function S.load(path)
   loading = path
   parts.send("/song_load", {path})
+  hold(true, true)
 end
 
 function S.unload(quiet)
   quiet_unload = quiet or false
   parts.send("/song_unload", {})
+  -- what's sent after it lands on the emptied racks; the unload's own
+  -- replies come before /song_unloaded
+  hold(false)
 end
 
--- After a PSET is read: its song, or none. An unload goes now, before the
--- parts; a load goes after them, as it replaces them.
+-- After a PSET is read: its parts are the script's own, kept in the params.
+-- With the song already loaded it keeps playing on its racks. With another
+-- song, that song replaces what's loaded, and the parts are sent only if it
+-- fails. With no song, a loaded one is unloaded and the parts are sent.
 function S.read()
   local want = params:get("song") or ""
-  if want == (loaded or "") then return end
+  -- the PSET's master level is the script's; the out strip keeps the song's
+  if want ~= "" and want == loaded then return false end
+  if want == "" then
+    if loaded or loading then S.unload(true) end
+    return true
+  end
   if loaded then S.unload(true) end
-  if want ~= "" then timer.after(0.2, function() S.load(want) end) end
+  parts_owed = true
+  hold(true)
+  timer.after(0.2, function() S.load(want) end)
+  return false
+end
+
+-- The parts go to the racks again, when they're the script's again.
+local function send_parts()
+  parts_owed = false
+  parts.apply_all()
 end
 
 function S.osc(path, args)
@@ -90,28 +142,44 @@ function S.osc(path, args)
     if err ~= "" then
       problem = {text = err, at = util.time()}
       print("acidulous: song: " .. err)
+      -- nothing loaded: the racks have the script's parts, or none if
+      -- they're owed
+      if not loaded and not loading then
+        hold(false, false)
+        params:set("song", "", true)
+        if parts_owed then send_parts() end
+      end
       return
     end
     loaded, folder = args[1], args[2]
+    parts_owed = false
+    hold(true, true)
     params:set("song", loaded, true)
     pos = {playing = false, scene = 0, pass = 0, queued = -1, bpm = nil}
     cursor = 1
     parts.send("/song_position", {})
   elseif path == "/song_master" then
     -- the out strip shows the song's master; moving it moves the song's
-    if not old_master then old_master = params:get("master_level") end
     local v = args[1] or 1
-    params:set("master_level", v > 0 and math.max(-60, 20 * math.log(v, 10)) or -60, true)
+    parts.song_master = v > 0 and math.max(-60, 20 * math.log(v, 10)) or -60
   elseif path == "/song_unloaded" then
     loaded, folder, scenes = nil, nil, {}
     pos = {playing = false, scene = 0, pass = 0, queued = -1, bpm = nil}
+    parts.song_master = nil
     give_back_tempo()
     if params.lookup["song"] then params:set("song", "", true) end
-    -- a PSET's master and parts are on their way already
-    if old_master and not quiet_unload then params:set("master_level", old_master, true) end
-    old_master = nil
-    if args[1] == 1 and not quiet_unload then parts.apply_all() end
+    -- After a quiet unload a PSET's parts are on their way already. A load
+    -- on its way (a failed one that emptied the racks, or a PSET's song)
+    -- keeps the racks, and the parts go if it fails. The plugin puts the
+    -- script's master back itself.
+    local emptied = args[1] == 1 and not quiet_unload
     quiet_unload = false
+    if loading or parts_owed then
+      if emptied then parts_owed = true end
+    else
+      hold(false, false)
+      if emptied then send_parts() end
+    end
   elseif path == "/song_position" then
     pos = {playing = args[1] == 1, scene = args[2] or 0, pass = args[3] or 0, queued = args[5] or -1, bpm = args[6]}
     follow(pos.bpm)

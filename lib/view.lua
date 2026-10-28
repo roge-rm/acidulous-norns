@@ -388,7 +388,7 @@ function view.mixer(parts, state, note)
   local w = 123 - screen.text_extents(lufs)
   local left
   if state.out then
-    left = strip_title(parts, state, db_text(params:get("master_level")), w)
+    left = strip_title(parts, state, db_text(parts.master_db()), w)
   else
     left = strip_title(parts, state, db_text(params:get(parts.id(i, "volume"))) .. "  " ..
       parts.pan_text(params:get(parts.id(i, "pan"))), w)
@@ -424,7 +424,7 @@ function view.mixer(parts, state, note)
   local m = math.floor(meter(parts.master_level or 0) * h + 0.5)
   if m > 0 then fill_rect(x + 1, bot - m, 7, m, 12) end
   fill_rect(x + 14, top, 1, h, 4)
-  local fy = bot - math.floor(fader(params:get("master_level")) * h + 0.5)
+  local fy = bot - math.floor(fader(parts.master_db()) * h + 0.5)
   fill_rect(x + 12, fy - 1, 5, 3, state.out and 15 or 12)
   screen.level((parts.master_peak or 0) >= 0.93 and 15 or 4)
   text(116, 62, "lim", "center")

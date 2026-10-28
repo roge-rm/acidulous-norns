@@ -131,12 +131,28 @@ for i = 1, P.COUNT do
   }
 end
 
-local function send(path, args) osc.send(PLUGIN, path, args) end
+-- While a song holds the racks (lib/song.lua sets P.song_holds), the
+-- script's parts stay in their params for when it goes, and what would set
+-- a rack, a send or the master isn't sent. Notes and the rest still go.
+P.song_holds = false
+local HELD_BY_SONG = {
+  ["/patch"] = true, ["/unmount"] = true, ["/preset_load"] = true, ["/mount"] = true, ["/param"] = true,
+  ["/load"] = true, ["/channel"] = true, ["/fx"] = true, ["/mod"] = true, ["/mod_bypass"] = true,
+  ["/mod_param"] = true, ["/send"] = true, ["/master"] = true,
+}
+
+local function send(path, args)
+  if P.song_holds and HELD_BY_SONG[path] then return end
+  osc.send(PLUGIN, path, args)
+end
 P.send = send
+-- Sends past the song's hold, for the song's own master.
+function P.send_to_song(path, args) osc.send(PLUGIN, path, args) end
 
 -- Sends /patch or /unmount, which the plugin answers with one /inserts each.
 -- A count left over for more than 2 s is a lost reply, so it starts again.
 local function send_patch(i, path, args)
+  if P.song_holds then return end
   local part, now = P.list[i], util.time()
   part.fx_wait = (now - part.fx_asked > 2) and 1 or part.fx_wait + 1
   part.fx_asked = now
@@ -357,6 +373,20 @@ end
 
 function P.release_beat()
   send("/beat_release", {})
+end
+
+-- The master level the out strip shows and moves, in dB: the song's while
+-- one is loaded (P.song_master, set by lib/song.lua), else the script's.
+P.song_master = nil
+function P.master_db() return P.song_master or params:get("master_level") end
+
+function P.delta_master(d)
+  if not P.song_master then
+    params:delta("master_level", d)
+    return
+  end
+  P.song_master = util.clamp(util.round(P.song_master + d * 0.6, 0.5), -60, 0)
+  P.send_to_song("/master", {"volume", db_to_gain(P.song_master)})
 end
 
 function P.send_master()
@@ -1552,9 +1582,12 @@ function P.after_read(filename)
   params:set("param_layout", LAYOUT.NOW, true)
   -- a PSET from before songs has none
   if filename and params.lookup["song"] and not saved_has(filename, "song") then params:set("song", "", true) end
-  if P.on_read then P.on_read() end
+  -- the song module keeps a loaded song's racks; false when the parts
+  -- shouldn't be sent
+  local apply = true
+  if P.on_read then apply = P.on_read() ~= false end
   P.loading = false
-  P.apply_all()
+  if apply then P.apply_all() end
 end
 
 -- Every half second once started: sends everything again if the plugin was
@@ -1595,6 +1628,8 @@ end
 function P.resend()
   P.lost = false
   print("acidulous: plugin started again, sending the parts")
+  -- it has no song either
+  if P.on_plugin_reset then P.on_plugin_reset() end
   P.send_master()
   if P.on_resend then P.on_resend() end
   for i, part in ipairs(P.list) do
@@ -1792,6 +1827,9 @@ function P.osc(path, args)
     part.edits = {}
     part.dim = false
     remember(i)
+  elseif P.song_racks and (path == "/sends" or path == "/inserts" or path == "/macro_names" or path == "/values") then
+    -- the song's racks, not the script's parts
+    return
   elseif path == "/sends" then
     -- a patch set the part's sends, or gave the player's back
     local i = (args[1] or -1) + 1

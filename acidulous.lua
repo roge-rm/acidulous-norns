@@ -1055,7 +1055,7 @@ local function handle_enc(n, d)
       step_strip(d)
     elseif state.out then
       if mixer then
-        if n == 3 then params:delta("master_level", d) end
+        if n == 3 then parts.delta_master(d) end
       else
         params:delta(n == 2 and "rev_size" or "dly_feedback", d)
       end

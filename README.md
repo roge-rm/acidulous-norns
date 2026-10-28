@@ -120,7 +120,7 @@ Reverb and delay start when first used. Other settings are under PARAMETERS > ED
 
 ### Songs
 
-The song page plays a song exported from the app as a zip. Put zips in `dust/data/acidulous/songs` or anywhere in `dust/audio`. Loading one unpacks it into `dust/data/acidulous/songs/<name>/` and replaces the parts. The page shows the scene playing, its pass and the tempo, and a row per scene: the bar on the left lights on the one playing and next marks the queued one.
+The song page plays a song exported from the app as a zip. Put zips in `dust/data/acidulous/songs`, or in `dust/audio` up to three folders down. Loading one unpacks it into `dust/data/acidulous/songs/<name>/` and replaces the parts. The page shows the scene playing, its pass and the tempo, and a row per scene: the bar on the left lights on the one playing and next marks the queued one.
 
 | Song | |
 |---|---|
@@ -129,7 +129,7 @@ The song page plays a song exported from the app as a zip. Put zips in `dust/dat
 | **E2** | pick a scene |
 | **K3** | play from that scene, or queue it to follow the one playing |
 
-A song plays at its own tempo, and norns' clock follows it while its source is internal. Unloading puts the clock back and the parts as they were. PSETs keep the loaded song.
+A song plays at its own tempo, and norns' clock follows it while its source is internal. While a song is loaded, the out strip on the mixer moves the song's master, and your own parts, master level and tempo are kept for when it's unloaded. Unloading puts them back. PSETs keep the loaded song: one saved with the same song leaves it playing, one with another song loads that one, and one without a song unloads it and loads its parts.
 
 ### Scope and settings
 
