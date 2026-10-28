@@ -388,9 +388,9 @@ function surf.pot(n, pos)
   else
     local mac = a.macros()[n + 1]
     if not mac or not mac.slot then return end
-    local sid = a.slot_id(mac.slot)
-    key, cur, def = sid, params:get(sid), mac.def
-    set = function(v) params:set(sid, v); return params:get(sid) end
+    local P, i, sid = a.parts, a.selected(), a.slot_id(mac.slot)
+    key, cur, def = i .. ":" .. sid, P.get(i, sid), mac.def
+    set = function(v) P.set(i, sid, v); return P.get(i, sid) end
   end
   local holding = p.key == key and p.set and math.abs(cur - p.set) < 1e-4
   if not holding then

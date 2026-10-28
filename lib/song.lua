@@ -2,11 +2,12 @@
 -- The plugin unpacks a zip into dust/data/acidulous/songs/<name>/ and
 -- replays it into the racks. While a song holds them, the script's own parts,
 -- master level and tempo stay in their params and aren't sent (see
--- P.song_holds), and the out strip moves the song's master. Its tempo rules:
--- the plugin ignores the script's /tempo and /beat, and norns' clock runs at
--- the song's tempo when its source is internal, without touching the
--- clock_tempo param. Unloading puts the clock back and sends the script's
--- parts again.
+-- P.song_holds), the pages show the song's tracks as the parts (P.song in
+-- lib/parts.lua, edits kept for the session only) and the out strip moves
+-- the song's master. Its tempo rules: the plugin ignores the script's /tempo
+-- and /beat, and norns' clock runs at the song's tempo when its source is
+-- internal, without touching the clock_tempo param. Unloading puts the clock
+-- back and sends the script's parts again.
 --   S.add_params()          the hidden "song" param, saved in PSETs
 --   S.osc(path, args)       the plugin's /song_ replies
 --   S.read()                after a PSET is read; false when its parts
@@ -34,6 +35,7 @@ local quiet_unload = false -- an unload for a PSET, whose parts are already on t
 -- The racks hold neither the script's parts nor a song: a PSET's song is on
 -- its way in place of its parts, and they're sent if it fails.
 local parts_owed = false
+local pending_load = nil -- the timer of a load still to be sent
 
 -- What the parts module needs to know: song_holds, messages sent now would
 -- land on a song's racks; song_racks, replies about the racks are the
@@ -80,8 +82,19 @@ reset = function()
   pos = {playing = false, scene = 0, pass = 0, queued = -1, bpm = nil}
   parts.song_master = nil
   quiet_unload, parts_owed = false, false
+  timer.cancel(pending_load)
+  pending_load = nil
   hold(false, false)
-  if was then timer.after(0.5, function() S.load(was) end) end
+  parts.song_gone()
+  -- norns' clock goes back to the script's tempo; the song takes it again
+  -- if it loads
+  give_back_tempo()
+  if was then
+    pending_load = timer.after(0.5, function()
+      pending_load = nil
+      S.load(was)
+    end)
+  end
 end
 
 function S.add_params()
@@ -90,17 +103,23 @@ function S.add_params()
 end
 
 function S.load(path)
+  timer.cancel(pending_load)
+  pending_load = nil
   loading = path
+  parts.song_load_started()
   parts.send("/song_load", {path})
   hold(true, true)
 end
 
 function S.unload(quiet)
+  timer.cancel(pending_load)
+  pending_load = nil
   quiet_unload = quiet or false
   parts.send("/song_unload", {})
   -- what's sent after it lands on the emptied racks; the unload's own
-  -- replies come before /song_unloaded
+  -- replies come before /song_unloaded. The pages show the script's parts.
   hold(false)
+  parts.song_gone(loading ~= nil)
 end
 
 -- After a PSET is read: its parts are the script's own, kept in the params.
@@ -110,15 +129,23 @@ end
 function S.read()
   local want = params:get("song") or ""
   -- the PSET's master level is the script's; the out strip keeps the song's
-  if want ~= "" and want == loaded then return false end
+  if want ~= "" and want == loaded then
+    timer.cancel(pending_load)
+    pending_load = nil
+    return false
+  end
   if want == "" then
-    if loaded or loading then S.unload(true) end
+    if loaded or loading or pending_load then S.unload(true) end
     return true
   end
   if loaded then S.unload(true) end
+  timer.cancel(pending_load)
   parts_owed = true
   hold(true)
-  timer.after(0.2, function() S.load(want) end)
+  pending_load = timer.after(0.2, function()
+    pending_load = nil
+    S.load(want)
+  end)
   return false
 end
 
@@ -142,12 +169,13 @@ function S.osc(path, args)
     if err ~= "" then
       problem = {text = err, at = util.time()}
       print("acidulous: song: " .. err)
+      if not loading then parts.song_load_failed() end
       -- nothing loaded: the racks have the script's parts, or none if
-      -- they're owed
+      -- they're owed. Parts changed while the load was on its way are sent.
       if not loaded and not loading then
         hold(false, false)
         params:set("song", "", true)
-        if parts_owed then send_parts() end
+        if parts_owed then send_parts() else parts.pay_owed() end
       end
       return
     end
@@ -155,6 +183,13 @@ function S.osc(path, args)
     parts_owed = false
     hold(true, true)
     params:set("song", loaded, true)
+    -- the tracks: (part, machine, patch, name) per rack with a machine
+    local tracks, k = {}, 6
+    for _ = 1, args[5] or 0 do
+      tracks[#tracks + 1] = {part = args[k], machine = args[k + 1], patch = args[k + 2], name = args[k + 3] or ""}
+      k = k + 4
+    end
+    parts.song_loaded(tracks)
     pos = {playing = false, scene = 0, pass = 0, queued = -1, bpm = nil}
     cursor = 1
     parts.send("/song_position", {})
@@ -166,7 +201,9 @@ function S.osc(path, args)
     loaded, folder, scenes = nil, nil, {}
     pos = {playing = false, scene = 0, pass = 0, queued = -1, bpm = nil}
     parts.song_master = nil
+    parts.song_gone(loading ~= nil)
     give_back_tempo()
+
     if params.lookup["song"] then params:set("song", "", true) end
     -- After a quiet unload a PSET's parts are on their way already. A load
     -- on its way (a failed one that emptied the racks, or a PSET's song)
@@ -178,11 +215,12 @@ function S.osc(path, args)
       if emptied then parts_owed = true end
     else
       hold(false, false)
-      if emptied then send_parts() end
+      if emptied then send_parts() else parts.pay_owed() end
     end
   elseif path == "/song_position" then
     pos = {playing = args[1] == 1, scene = args[2] or 0, pass = args[3] or 0, queued = args[5] or -1, bpm = args[6]}
-    follow(pos.bpm)
+    -- one still on its way after the song went doesn't take the clock
+    if loaded then follow(pos.bpm) end
   end
 end
 

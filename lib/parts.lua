@@ -10,7 +10,9 @@ local LAYOUT = include("lib/layout")
 local P = {}
 
 -- The script has 16 parts. The "parts" param shows 8 or all 16: parts past
--- P.active are parked, their params kept and their machines unmounted.
+-- it are parked, their params kept and their machines unmounted. P.active
+-- is how many the pages show: the param's count, or 16 for a loaded song
+-- with more than 8 tracks.
 P.COUNT = 16
 P.active = 8
 function P.on(i) return i <= P.active end
@@ -94,10 +96,14 @@ P.MOD_TYPES = {"Scale", "Chord", "Arp"} -- the modifiers, in menu order
 P.MOD_SLOTS = 3 -- modifier slots a part has, 0 to 2
 P.mod_defs = {}   -- modifier -> list of defs as P.defs, with by = name -> def; from /mod_defs
 P.mod_defs_asked = 0
-P.list = {}
-for i = 1, P.COUNT do
-  P.list[i] = {
+-- A part's state. The script's own parts (own) keep their values in the
+-- params. While a song is loaded the pages show its tracks instead (P.song),
+-- the same shape with their values in vals, filled from the plugin's
+-- replies and never saved: get and put below read and write either.
+local function new_part(i, song)
+  return {
     n = i, channel = i, machine = nil, patch = nil,
+    song = song, -- a song's track: its values are in vals, not the params
     level = 0, held = 0, last_note = 0,
     want_values = false, pending = nil,
     sent = nil,     -- the patch last sent to the plugin
@@ -132,17 +138,49 @@ for i = 1, P.COUNT do
     -- or nil. They belong to the part, so a machine or patch change keeps
     -- them. Saved in the part's "mods" param.
     mods = {},
+    vals = song and {} or nil,
+    name = nil,     -- a song track's name from song.json
   }
 end
 
+local own = {}
+for i = 1, P.COUNT do own[i] = new_part(i) end
+P.own = own
+P.song = {}
+P.song_view = false -- the pages show the song's tracks
+-- P.song_reading: a song load is on its way, so replies about the racks
+-- are its read-back
+P.song_reading = false
+
+-- The part the pages and play show as part i.
+function P.part(i)
+  if P.song_view then return P.song[i] end
+  return own[i]
+end
+
+-- P.list[i] is P.part(i), so pages read whichever is shown.
+P.list = setmetatable({}, {
+  __index = function(_, i)
+    if type(i) == "number" and i >= 1 and i <= P.COUNT then return P.part(i) end
+  end,
+  __len = function() return P.COUNT end,
+})
+
 -- While a song holds the racks (lib/song.lua sets P.song_holds), the
--- script's parts stay in their params for when it goes, and what would set
--- a rack, a send or the master isn't sent. Notes and the rest still go.
+-- script's parts stay in their params for when it goes: nothing of theirs
+-- is sent, and what changes is marked owed and sent when the racks are
+-- theirs again. Edits to the song's tracks go to its racks. P.song_racks:
+-- replies about the racks are the song's.
 P.song_holds = false
+P.song_racks = false
+P.owed_master = false
+
+-- What the script's own sends may not do while a song holds the racks, as a
+-- net under the part-by-part rules.
 local HELD_BY_SONG = {
   ["/patch"] = true, ["/unmount"] = true, ["/preset_load"] = true, ["/mount"] = true, ["/param"] = true,
   ["/load"] = true, ["/channel"] = true, ["/fx"] = true, ["/mod"] = true, ["/mod_bypass"] = true,
-  ["/mod_param"] = true, ["/send"] = true, ["/master"] = true,
+  ["/mod_param"] = true, ["/send"] = true, ["/master"] = true, ["/mods_off"] = true, ["/preset_save"] = true,
 }
 
 local function send(path, args)
@@ -153,18 +191,95 @@ P.send = send
 -- Sends past the song's hold, for the song's own master.
 function P.send_to_song(path, args) osc.send(PLUGIN, path, args) end
 
+-- Sends something for a part: a song track's to its rack while the song
+-- holds the racks, the script's own only when no song holds them.
+local function psend(part, path, args)
+  if part.song then
+    if P.song_holds then osc.send(PLUGIN, path, args) end
+  elseif not P.song_holds then
+    osc.send(PLUGIN, path, args)
+  end
+end
+
+local song_track -- below, with the song's tracks
+
+-- The part replies about rack i are for.
+local function rpart(i)
+  if P.song_racks then return P.song[i] end
+  return own[i]
+end
+
+-- True when a script part's change can't be sent now. A parked part's is
+-- sent when it's shown again; while a song holds the racks it's marked owed.
+-- fresh: a new machine or patch, which then loads with its own values.
+local function held(part, fresh)
+  if part.song then return false end
+  if part.parked then
+    if fresh then part.park_fresh = true end
+    return true
+  end
+  if not P.song_holds then return false end
+  part.owed = true
+  if fresh then part.fresh = true end
+  return true
+end
+
 -- Sends /patch or /unmount, which the plugin answers with one /inserts each.
 -- A count left over for more than 2 s is a lost reply, so it starts again.
-local function send_patch(i, path, args)
-  if P.song_holds then return end
-  local part, now = P.list[i], util.time()
+local function send_patch(part, path, args)
+  if not part.song and P.song_holds then
+    part.owed = true
+    return
+  end
+  local now = util.time()
   part.fx_wait = (now - part.fx_asked > 2) and 1 or part.fx_wait + 1
   part.fx_asked = now
-  send(path, args)
+  psend(part, path, args)
 end
 
 local function id(i, what) return "p" .. i .. "_" .. what end
 P.id = id
+
+-- The machine option's index for a machine name, 1 for none.
+local function machine_index(machine)
+  for k, m in ipairs(P.machines) do
+    if m.name == machine then return k + 1 end
+  end
+  return 1
+end
+
+-- A bank patch's index, 0 when it isn't one of the machine's.
+local function patch_index(machine, name)
+  for k, n in ipairs(machine and P.patches[machine] or {}) do
+    if n == name then return k end
+  end
+  return 0
+end
+
+-- What a song track has before the plugin says, as the params start.
+local SONG_DEFAULTS = {volume = 0, pan = 0, mute = 1, solo = 1, rev = 0, dly = 0, patch = 0}
+
+-- A part's value by its param name: the script's from its param, a song
+-- track's from vals.
+local function get(part, key)
+  if not part.song then return params:get(id(part.n, key)) end
+  local v = part.vals[key]
+  if v ~= nil then return v end
+  if key == "machine" then return machine_index(part.machine) end
+  if key == "channel" then return part.channel + 1 end
+  if key == "mpe_bend" then return params:get(id(part.n, key)) end
+  local j = key:match("^s(%d+)$")
+  if j then
+    local d = part.machine and (P.defs[part.machine] or {})[tonumber(j)]
+    return d and P.unmap(d, d.default) or 0
+  end
+  return SONG_DEFAULTS[key] or ""
+end
+
+-- Sets it without running anything: a param silently, or vals.
+local function put(part, key, v)
+  if part.song then part.vals[key] = v else params:set(id(part.n, key), v, true) end
+end
 
 function P.machine_info(name)
   for _, m in ipairs(P.machines) do
@@ -291,31 +406,31 @@ end
 
 P.db_to_gain = db_to_gain
 
-function P.send_volume(i)
+local function send_volume(part)
   -- the strip's gain is 0-1.5 linear
-  send("/channel", {i - 1, "gain", math.min(1, db_to_gain(params:get(id(i, "volume"))) / 1.5)})
+  psend(part, "/channel", {part.n - 1, "gain", math.min(1, db_to_gain(get(part, "volume")) / 1.5)})
 end
 
 -- The part's channel strip: pan, mute, solo and sends. A send above 0
 -- mounts its effect in the plugin.
 local STRIP = {pan = "pan", mute = "mute", solo = "solo", rev = "sendreverb", dly = "senddelay"}
 
-local function strip_value(i, what)
-  local v = params:get(id(i, what))
+local function strip_value(part, what)
+  local v = get(part, what)
   if what == "pan" then return (v + 1) / 2 end
   if what == "mute" or what == "solo" then return v - 1 end
   return v
 end
 
-function P.send_strip_param(i, what)
+local function send_strip_param(part, what)
   -- a send moved after a /patch keeps its level when the patch's /sends comes back
-  if what == "rev" or what == "dly" then P.list[i].sends_moved[what] = true end
-  send("/channel", {i - 1, STRIP[what], strip_value(i, what)})
+  if what == "rev" or what == "dly" then part.sends_moved[what] = true end
+  psend(part, "/channel", {part.n - 1, STRIP[what], strip_value(part, what)})
 end
 
-function P.send_strip(i)
-  P.send_volume(i)
-  for _, what in ipairs({"pan", "mute", "solo", "rev", "dly"}) do P.send_strip_param(i, what) end
+local function send_strip(part)
+  send_volume(part)
+  for _, what in ipairs({"pan", "mute", "solo", "rev", "dly"}) do send_strip_param(part, what) end
 end
 
 -- ---- the sends and the master ----------------------------------------------------
@@ -394,6 +509,8 @@ function P.delta_master(d)
 end
 
 function P.send_master()
+  if P.song_holds then P.owed_master = true return end
+  P.owed_master = false
   -- the master fader is 0-1.5 linear; 0 dB here is its top, as the plugin starts
   send("/master", {"volume", db_to_gain(params:get("master_level"))})
   for _, sp in ipairs(P.SEND_PARAMS) do send_send_param(sp) end
@@ -406,7 +523,9 @@ function P.add_master_params()
   params:add_group("mixer", "sends and master", 1 + #P.SEND_PARAMS)
   params:add_control("master_level", "master level", controlspec.new(-60, 0, "lin", 0.5, 0, "dB"))
   params:set_action("master_level", function()
-    if not P.loading then send("/master", {"volume", db_to_gain(params:get("master_level"))}) end
+    if P.loading then return end
+    if P.song_holds then P.owed_master = true return end
+    send("/master", {"volume", db_to_gain(params:get("master_level"))})
   end)
   for _, sp in ipairs(P.SEND_PARAMS) do
     if sp.options then
@@ -418,7 +537,9 @@ function P.add_master_params()
         unit == "" and percent or nil)
     end
     params:set_action(sp.id, function()
-      if not P.loading then send_send_param(sp) end
+      if P.loading then return end
+      if P.song_holds then P.owed_master = true return end
+      send_send_param(sp)
     end)
   end
   -- the wavetable count a PSET was saved with, for P.after_read; never shown
@@ -452,15 +573,17 @@ function P.send_mpe()
   end
 end
 
-function P.notes_off(i)
-  local part = P.list[i]
+local function notes_off(part)
   -- with an MPE zone active every part plays on channel 1
-  send("/cc", {i - 1, P.mpe and 1 or math.max(part.channel, 1), 123, 0})
+  psend(part, "/cc", {part.n - 1, P.mpe and 1 or math.max(part.channel, 1), 123, 0})
   part.held = 0
-  if P.on_notes_off then P.on_notes_off(i) end
+  -- the notes play remembers went to the part shown
+  if P.on_notes_off and P.part(part.n) == part then P.on_notes_off(part.n) end
   -- and what the modifiers hold or latched, keeping their params
-  if next(part.mods) then send("/mods_off", {i - 1}) end
+  if next(part.mods) then psend(part, "/mods_off", {part.n - 1}) end
 end
+
+function P.notes_off(i) notes_off(P.part(i)) end
 
 -- The machine's params live in pre-made slots, renamed and given the new
 -- machine's steps when the machine changes, with the unused slots hidden.
@@ -495,18 +618,25 @@ local function set_patch_options(i, machine)
 end
 
 -- Updates the menu for the part's machine. `defaults` resets the slots.
-local function show_machine(i, machine, defaults)
-  if P.list[i].machine ~= machine then P.list[i].macro_names = nil end
-  P.list[i].machine = machine
-  set_patch_options(i, machine)
-  set_slots(i, machine, defaults)
+-- A song track has no menu: its vals take the machine's defaults.
+local function show_machine(part, machine, defaults)
+  if part.machine ~= machine then part.macro_names, part.macros = nil, nil end
+  part.machine = machine
+  if part.song then
+    part.vals.machine = machine_index(machine)
+    if defaults then
+      for j, d in ipairs(machine and P.defs[machine] or {}) do part.vals["s" .. j] = P.unmap(d, d.default) end
+    end
+    return
+  end
+  set_patch_options(part.n, machine)
+  set_slots(part.n, machine, defaults)
   rebuild_menu()
 end
 
-local function patch_name(i)
-  local part = P.list[i]
+local function patch_name(part)
   local names = part.machine and P.patches[part.machine] or {}
-  return names[params:get(id(i, "patch"))]
+  return names[get(part, "patch")]
 end
 
 -- ---- saved presets -----------------------------------------------------------------
@@ -532,9 +662,18 @@ end
 local function preset_tag(pr) return "@" .. pr.index .. "|" .. pr.path end
 
 -- The part's patch as /values and /macros name it.
-function P.patch_key(i)
-  local part = P.list[i]
+local function patch_key(part)
   return part.preset and preset_tag(part.preset) or part.patch
+end
+function P.patch_key(i) return patch_key(P.part(i)) end
+
+-- The macros of part i's Nexus patch, or nil: a song track's own, as its
+-- patch may differ from the bank's.
+function P.part_macros(i)
+  local part = P.part(i)
+  if part.song then return part.macros end
+  local m = part.machine and P.patch_macros[part.machine]
+  return m and m[patch_key(part)]
 end
 
 local function saved_name(path, index)
@@ -549,9 +688,10 @@ end
 
 -- "index|path|name". want is the name it's found by when the file has
 -- changed; older PSETs have only "index|path".
-local function save_preset_param(i)
-  local pr = P.list[i].preset
-  params:set(id(i, "preset"), pr and (pr.index .. "|" .. pr.path .. "|" .. (pr.name or "")) or "", true)
+local function save_preset_param(part)
+  if part.song then return end
+  local pr = part.preset
+  params:set(id(part.n, "preset"), pr and (pr.index .. "|" .. pr.path .. "|" .. (pr.name or "")) or "", true)
 end
 
 local function decode_preset(s)
@@ -563,46 +703,46 @@ local function decode_preset(s)
   return {path = path, index = index, name = name or saved_name(path, index), want = name}
 end
 
-local function forget_preset(i)
-  P.list[i].preset = nil
-  save_preset_param(i)
+local function forget_preset(part)
+  part.preset = nil
+  save_preset_param(part)
 end
 
 -- The slot values each machine and patch last had, for the run: key ->
--- {slot -> 0-1 value}. Shown at once when the part switches back.
+-- {slot -> 0-1 value}. Shown at once when the part switches back. A song's
+-- tracks have their own, emptied when it goes.
 local memory = {}
+local song_memory = {}
+local function mems(part) return part.song and song_memory or memory end
 
-local function mem_key(i)
-  local part = P.list[i]
-  return part.machine and (part.machine .. "/" .. (P.patch_key(i) or ""))
+local function mem_key(part)
+  return part.machine and (part.machine .. "/" .. (patch_key(part) or ""))
 end
 
-local function remember(i)
-  local part = P.list[i]
-  local key = mem_key(i)
+local function remember(part)
+  local key = mem_key(part)
   if not key then return end
   local t = {}
-  for j = 1, #P.defs[part.machine] do t[j] = params:get(id(i, "s" .. j)) end
-  memory[key] = t
+  for j = 1, #P.defs[part.machine] do t[j] = get(part, "s" .. j) end
+  mems(part)[key] = t
 end
 
 -- After a machine or patch switch: the slots take what the patch last had,
 -- or its machine's defaults, dimmed until the plugin's values come.
-local function recall(i)
-  local part = P.list[i]
+local function recall(part)
   part.dim = false
-  local key = mem_key(i)
+  local key = mem_key(part)
   if not key then return end
-  local t = memory[key]
+  local t = mems(part)[key]
   if t then
     -- also put on top of the patch's values when they arrive, so they stay
     for j, v in pairs(t) do
-      params:set(id(i, "s" .. j), v, true)
+      put(part, "s" .. j, v)
       part.edits[j] = v
     end
-  elseif patch_name(i) or part.preset then
+  elseif patch_name(part) or part.preset then
     for j, d in ipairs(P.defs[part.machine]) do
-      params:set(id(i, "s" .. j), P.unmap(d, d.default), true)
+      put(part, "s" .. j, P.unmap(d, d.default))
     end
     part.dim = true
   end
@@ -640,8 +780,9 @@ local function decode(s)
   return files
 end
 
-local function save_files(i)
-  params:set(id(i, "files"), encode(P.list[i].files), true)
+local function save_files(part)
+  if part.song then return end
+  params:set(id(part.n, "files"), encode(part.files), true)
 end
 
 -- ---- insert effects --------------------------------------------------------------
@@ -669,43 +810,45 @@ local function decode_fx(s)
   return edits
 end
 
-local function save_fx(i)
-  params:set(id(i, "fx"), encode_fx(P.list[i].fx_edits), true)
+local function save_fx(part)
+  if part.song then return end
+  params:set(id(part.n, "fx"), encode_fx(part.fx_edits), true)
 end
 
 -- Drops the part's insert edits, for a newly picked patch.
-local function clear_fx(i)
-  P.list[i].fx_edits = {}
-  save_fx(i)
+local function clear_fx(part)
+  part.fx_edits = {}
+  save_fx(part)
 end
 
 -- An insert control's 0-1 value (ctl from panel.fx_cards).
 function P.fx_value(i, ctl)
-  local e = P.list[i].fx[ctl.fx]
+  local e = P.part(i).fx[ctl.fx]
   local d = e and e.params[ctl.index]
   return d and d.value or 0
 end
 
 function P.set_fx(i, ctl, v)
-  local part = P.list[i]
+  local part = P.part(i)
   local e = part.fx[ctl.fx]
   local d = e and e.params[ctl.index]
   -- a patch on its way brings its own inserts
   if not d or part.pending then return end
   d.value = v
   part.fx_edits[ctl.fx .. ":" .. d.name] = v
-  save_fx(i)
-  send("/fx", {i - 1, ctl.fx, d.name, v})
+  save_fx(part)
+  psend(part, "/fx", {i - 1, ctl.fx, d.name, v})
 end
 
 -- Sends the part's insert edits, after its /patch. The plugin runs them after
 -- the patch, so they go on top of its inserts.
-local function send_fx_edits(i)
-  for k, v in pairs(P.list[i].fx_edits) do
+local function send_fx_edits(part)
+  for k, v in pairs(part.fx_edits) do
     local slot, name = k:match("^(%d):(.+)$")
-    send("/fx", {i - 1, tonumber(slot), name, v})
+    psend(part, "/fx", {part.n - 1, tonumber(slot), name, v})
   end
 end
+
 
 -- ---- modifiers ---------------------------------------------------------------------
 
@@ -742,30 +885,30 @@ local function decode_mods(s)
   return mods
 end
 
-local function save_mods(i)
-  params:set(id(i, "mods"), encode_mods(P.list[i].mods), true)
+local function save_mods(part)
+  if part.song then return end
+  params:set(id(part.n, "mods"), encode_mods(part.mods), true)
 end
 
 -- Sends a slot's modifier with its bypass and params, or empties the slot.
-local function send_mod(i, slot)
-  local m = P.list[i].mods[slot]
-  send("/mod", {i - 1, slot, m and m.type or ""})
+local function send_mod(part, slot)
+  local m, r = part.mods[slot], part.n - 1
+  psend(part, "/mod", {r, slot, m and m.type or ""})
   if m then
-    if m.bypass then send("/mod_bypass", {i - 1, slot, 1}) end
-    for name, v in pairs(m.values) do send("/mod_param", {i - 1, slot, name, v}) end
+    if m.bypass then psend(part, "/mod_bypass", {r, slot, 1}) end
+    for name, v in pairs(m.values) do psend(part, "/mod_param", {r, slot, name, v}) end
   end
 end
 
 -- Sends the part's modifiers, all slots, emptying the ones it has none in.
 -- A type change still waiting to be sent goes with them.
-local function send_mods(i)
-  local part = P.list[i]
+local function send_mods(part)
   for slot = 0, P.MOD_SLOTS - 1 do
     if part.mod_pending then
       timer.cancel(part.mod_pending[slot])
       part.mod_pending[slot] = nil
     end
-    send_mod(i, slot)
+    send_mod(part, slot)
   end
 end
 
@@ -792,12 +935,11 @@ local function shared_with(part, slot)
   end
 end
 
-local function set_mod_param(i, slot, name, v)
-  local part = P.list[i]
+local function set_mod_param(part, slot, name, v)
   part.mods[slot].values[name] = v
   -- a type on its way is sent with its values
   if part.mod_pending and part.mod_pending[slot] then return end
-  send("/mod_param", {i - 1, slot, name, v})
+  psend(part, "/mod_param", {part.n - 1, slot, name, v})
 end
 
 -- Puts a modifier type (or nil) in the part's slot, on and with its
@@ -805,8 +947,7 @@ end
 -- With wait it's sent once no other type has come for 0.3 s, so turning
 -- through the types mounts only the one it stops on. Held notes are let go
 -- first, as their note offs would go to the new modifier.
-function P.set_mod_type(i, slot, type, wait)
-  local part = P.list[i]
+local function set_mod_type(part, slot, type, wait)
   local old = part.mods[slot]
   if (old and old.type) == type then return end
   local m = type and {type = type, bypass = false, values = {}} or nil
@@ -815,22 +956,23 @@ function P.set_mod_type(i, slot, type, wait)
   if shares(m) and other then
     for name in pairs(SHARED) do m.values[name] = mod_param_value(other, name) end
   end
-  save_mods(i)
+  save_mods(part)
   part.mod_pending = part.mod_pending or {}
   timer.cancel(part.mod_pending[slot])
   part.mod_pending[slot] = nil
   local function go()
     part.mod_pending[slot] = nil
-    P.notes_off(i)
-    send_mod(i, slot)
+    notes_off(part)
+    send_mod(part, slot)
   end
   if wait then part.mod_pending[slot] = timer.after(0.3, go) else go() end
 end
+function P.set_mod_type(i, slot, type, wait) set_mod_type(P.part(i), slot, type, wait) end
 
 -- A modifier control's 0-1 value (ctl from panel.mod_cards): the slot's
 -- type, on, or a param.
 function P.mod_value(i, ctl)
-  local m = P.list[i].mods[ctl.mod]
+  local m = P.part(i).mods[ctl.mod]
   if ctl.what == "type" then
     local at = m and tab.key(P.MOD_TYPES, m.type) or 0
     return at / #P.MOD_TYPES
@@ -840,12 +982,11 @@ function P.mod_value(i, ctl)
   return m and mod_param_value(m, ctl.p) or 0
 end
 
-function P.set_mod(i, ctl, v)
-  local part = P.list[i]
+local function set_mod(part, ctl, v)
   local m = part.mods[ctl.mod]
   if ctl.what == "type" then
     local at = math.floor(v * #P.MOD_TYPES + 0.5)
-    P.set_mod_type(i, ctl.mod, P.MOD_TYPES[at], true)
+    set_mod_type(part, ctl.mod, P.MOD_TYPES[at], true)
     return
   end
   if not m then return end
@@ -854,37 +995,39 @@ function P.set_mod(i, ctl, v)
     if bypass == m.bypass then return end
     m.bypass = bypass
     -- a type on its way brings its bypass
-    if part.mod_pending and part.mod_pending[ctl.mod] then save_mods(i) return end
+    if part.mod_pending and part.mod_pending[ctl.mod] then save_mods(part) return end
     -- held notes are let go, as their note offs would miss the notes
-    P.notes_off(i)
-    send("/mod_bypass", {i - 1, ctl.mod, bypass and 1 or 0})
+    notes_off(part)
+    psend(part, "/mod_bypass", {part.n - 1, ctl.mod, bypass and 1 or 0})
   else
     local was = mod_param_value(m, ctl.p)
-    set_mod_param(i, ctl.mod, ctl.p, v)
+    set_mod_param(part, ctl.mod, ctl.p, v)
     -- the engine only lets latched notes go on the next note on, so latch
     -- off lets them go now; this also ends notes on keys still held
-    if ctl.p == "latch" and was >= 0.5 and v < 0.5 and not m.bypass then P.notes_off(i) end
+    if ctl.p == "latch" and was >= 0.5 and v < 0.5 and not m.bypass then notes_off(part) end
     if SHARED[ctl.p] and shares(m) then
       for s = 0, P.MOD_SLOTS - 1 do
-        if s ~= ctl.mod and shares(part.mods[s]) then set_mod_param(i, s, ctl.p, v) end
+        if s ~= ctl.mod and shares(part.mods[s]) then set_mod_param(part, s, ctl.p, v) end
       end
     end
   end
-  save_mods(i)
+  save_mods(part)
 end
+function P.set_mod(i, ctl, v) set_mod(P.part(i), ctl, v) end
 
--- The slot holding a modifier type on part i, or nil.
-function P.mod_slot(i, type)
-  local mods = P.list[i].mods
+-- The slot holding a modifier type on the part, or nil.
+local function mod_slot(part, type)
+  local mods = part.mods
   for slot = 0, P.MOD_SLOTS - 1 do
     if mods[slot] and mods[slot].type == type then return slot end
   end
 end
+function P.mod_slot(i, type) return mod_slot(P.part(i), type) end
 
 -- True while part i has the type mounted and on.
 function P.mod_on(i, type)
   local s = P.mod_slot(i, type)
-  return s ~= nil and not P.list[i].mods[s].bypass
+  return s ~= nil and not P.part(i).mods[s].bypass
 end
 
 -- A control for a param of the type on part i, as panel.mod_cards makes
@@ -897,8 +1040,7 @@ end
 
 -- Puts the part's modifiers in the slots layout names (slot -> old slot),
 -- with their bypass and params, and sends every slot that changed.
-local function rearrange(i, layout)
-  local part = P.list[i]
+local function rearrange(part, layout)
   local waiting = {}
   if part.mod_pending then
     for slot = 0, P.MOD_SLOTS - 1 do
@@ -910,10 +1052,10 @@ local function rearrange(i, layout)
   local old, new = part.mods, {}
   for slot, from in pairs(layout) do new[slot] = old[from] end
   part.mods = new
-  save_mods(i)
-  P.notes_off(i)
+  save_mods(part)
+  notes_off(part)
   for slot = 0, P.MOD_SLOTS - 1 do
-    if new[slot] ~= old[slot] or waiting[slot] then send_mod(i, slot) end
+    if new[slot] ~= old[slot] or waiting[slot] then send_mod(part, slot) end
   end
 end
 
@@ -925,11 +1067,11 @@ local MOD_RANK = {Scale = 1, Chord = 2, Arp = 3}
 -- only if the chain would be out of order. Returns "on", "off", or "full"
 -- when every slot holds other modifiers.
 function P.toggle_mod(i, type)
-  local part = P.list[i]
-  local s = P.mod_slot(i, type)
+  local part = P.part(i)
+  local s = mod_slot(part, type)
   if s then
     local on = part.mods[s].bypass
-    P.set_mod(i, {mod = s, what = "on"}, on and 1 or 0)
+    set_mod(part, {mod = s, what = "on"}, on and 1 or 0)
     return on and "on" or "off"
   end
   -- the first free slot that keeps the ranks rising along the slots
@@ -963,9 +1105,9 @@ function P.toggle_mod(i, type)
     for k, e in ipairs(list) do
       if e.from then layout[k - 1] = e.from else want = k - 1 end
     end
-    rearrange(i, layout)
+    rearrange(part, layout)
   end
-  P.set_mod_type(i, want, type)
+  set_mod_type(part, want, type)
   return "on"
 end
 
@@ -975,7 +1117,8 @@ P.SCALE_SHORT = {"maj", "dor", "phr", "lyd", "mix", "min", "loc", "hmin", "mmin"
   "majbl", "minbl", "egy", "hunm", "byz", "pers", "hira", "insen", "iwato", "enig", "phrdom",
   "neapm", "neapM", "alt", "lyddom", "lydaug", "loc2", "bebd", "bebM", "whole", "dimwh", "dimhw"}
 function P.scale_text(i)
-  local mods = P.list[i].mods
+  local mods = P.part(i).mods
+
   for slot = 0, P.MOD_SLOTS - 1 do
     local m = mods[slot]
     if m and m.type == "Scale" then
@@ -996,24 +1139,26 @@ P.SAMPLE_MACHINES = {Forage = true, Mosaic = true, Dice = true, Pollen = true, M
 
 -- Sends /load. kind and arg as host/src/bridge.h has them. A path with | in
 -- it is refused, as | separates the files in the saved list.
-function P.load_file(i, kind, path, arg)
-  local part = P.list[i]
+local function load_file(part, kind, path, arg)
   if path:find("|", 1, true) then
     part.problem = {text = base(path) .. ": names with | can't be loaded", at = util.time()}
     return
   end
+  if held(part) then return end
   part.loading = {kind = kind, name = kind == "sf2" and base(path) or stem(path)}
   part.problem = nil
-  send("/load", {i - 1, kind, path, arg or 0, table.unpack(P.ROOTS)})
+  psend(part, "/load", {part.n - 1, kind, path, arg or 0, table.unpack(P.ROOTS)})
 end
+function P.load_file(i, kind, path, arg) load_file(P.part(i), kind, path, arg) end
 
 -- Empties the part's files and the machine's samples. Pollen then plays the
 -- norns input.
 function P.clear_files(i)
-  local part = P.list[i]
+  local part = P.part(i)
   part.files, part.loading, part.problem, part.last_path = {}, nil, nil, nil
-  send("/load", {i - 1, "clear", "", 0})
-  save_files(i)
+  part.song_files = false
+  psend(part, "/load", {i - 1, "clear", "", 0})
+  save_files(part)
 end
 
 -- What a sample machine loads when a part switches to it with no files:
@@ -1027,31 +1172,29 @@ P.DEFAULTS = {
 }
 
 -- Loads the machine's default if the part has no files and it's there.
-local function load_default(i)
-  local part = P.list[i]
+local function load_default(part)
   part.want_default = false
   local d = part.machine and P.DEFAULTS[part.machine]
   if not d or next(part.files) ~= nil or part.loading then return end
-  if util.file_exists(d.path) then P.load_file(i, d.kind, d.path, 0) end
+  if util.file_exists(d.path) then load_file(part, d.kind, d.path, 0) end
 end
 
 -- Sends the part's saved files again, after its machine is mounted.
-local function send_files(i)
-  local part = P.list[i]
+local function send_files(part)
   part.resend_files = false
   if not part.machine then return end
   local list = {}
-  for k, f in pairs(part.files) do list[#list + 1] = f end
+  for _, f in pairs(part.files) do list[#list + 1] = f end
   table.sort(list, function(a, b) return a.arg < b.arg end)
-  send("/load", {i - 1, "clear", "", 0})
-  for _, f in ipairs(list) do P.load_file(i, f.kind, f.path, f.arg) end
+  psend(part, "/load", {part.n - 1, "clear", "", 0})
+  for _, f in ipairs(list) do load_file(part, f.kind, f.path, f.arg) end
 end
 
 -- Forage's pads, 1-13: the name of what each has, or nil.
 function P.pad_names(i)
   local names = {}
   for pad = 0, 12 do
-    local f = P.list[i].files["pad" .. pad]
+    local f = P.part(i).files["pad" .. pad]
     if f then names[pad + 1] = f.name or stem(f.path) end
   end
   return names
@@ -1059,7 +1202,7 @@ end
 
 -- The last file or folder loaded, or one the part has.
 function P.loaded_path(i)
-  local part = P.list[i]
+  local part = P.part(i)
   if part.last_path then return part.last_path end
   for _, f in pairs(part.files) do return f.path end
 end
@@ -1068,10 +1211,12 @@ end
 -- last load that failed for 5 seconds, or the files' names. nil for a
 -- machine that takes no files.
 function P.material(i)
-  local part = P.list[i]
+  local part = P.part(i)
   if part.loading then return "loading " .. part.loading.name end
   if part.problem and util.time() - part.problem.at < 5 then return part.problem.text end
   local m = part.machine
+  -- a song track plays the song's samples until something is loaded
+  if part.song_files and P.SAMPLE_MACHINES[m] and next(part.files) == nil then return "the song's" end
   if m == "Forage" then
     local n, first = 0, nil
     for pad = 0, 12 do
@@ -1093,22 +1238,24 @@ end
 -- Mounts the part's machine with its patch, or empties it.
 -- Sends /preset_load for the part's saved preset. Its files come with it
 -- unless the part's own files are sent after.
-local function send_preset(i)
-  local part, pr = P.list[i], P.list[i].preset
-  send_patch(i, "/preset_load", {i - 1, pr.path, pr.index, preset_tag(pr), pr.files and 1 or 0,
+local function send_preset(part)
+  local pr = part.preset
+  send_patch(part, "/preset_load", {part.n - 1, pr.path, pr.index, preset_tag(pr), pr.files and 1 or 0,
     part.machine, pr.want or pr.name or "", table.unpack(P.ROOTS)})
 end
 
-local function load_machine(i, with_values)
-  local part = P.list[i]
+local function load_machine(part, with_values)
+  local r = part.n - 1
   part.pending = nil
-  local name = patch_name(i)
+  local name = patch_name(part)
   local pr = part.machine and part.preset
   part.want_values = false
+  part.song_files = false
+  if part.song then part.macros = nil end
   if not with_values then part.edits = {} end
   if not part.machine then
     part.fx = {}
-    send_patch(i, "/unmount", {i - 1})
+    send_patch(part, "/unmount", {r})
     name = nil
   elseif pr then
     part.want_values = with_values
@@ -1116,29 +1263,28 @@ local function load_machine(i, with_values)
     part.sends_moved = {}
     part.fx = {}
     pr.files = with_values and not part.resend_files
-    send_preset(i)
-    send_fx_edits(i)
+    send_preset(part)
+    send_fx_edits(part)
   elseif name then
     part.want_values = with_values
     part.values_at, part.values_retried = util.time(), false
     part.sends_moved = {}
     part.fx = {} -- until /inserts lists the patch's
-    send_patch(i, "/patch", {i - 1, part.machine, name})
-    send_fx_edits(i)
+    send_patch(part, "/patch", {r, part.machine, name})
+    send_fx_edits(part)
   else
-    send("/mount", {i - 1, part.machine})
+    psend(part, "/mount", {r, part.machine})
   end
   part.patch = pr and pr.name or name
   part.sent = pr and preset_tag(pr) or name
   if not part.want_values then part.dim = false end
-  if part.resend_files then send_files(i) end
-  if part.want_default then load_default(i) end
+  if part.resend_files then send_files(part) end
+  if part.want_default then load_default(part) end
 end
 
 -- Runs fn after `wait` seconds unless called again first, so turning an
 -- encoder through patches only loads the one it stops on.
-local function later(i, wait, fn)
-  local part = P.list[i]
+local function later(part, wait, fn)
   timer.cancel(part.pending)
   part.pending = timer.after(wait, function()
     part.pending = nil
@@ -1146,83 +1292,166 @@ local function later(i, wait, fn)
   end)
 end
 
--- Sends a part's whole state, after a PSET is read. The patch goes first,
--- which mounts the machine, then the saved params and sends on top of it,
--- then its files.
-function P.apply(i)
-  local part = P.list[i]
+-- What a part does when its machine, patch or a slot changes: the script's
+-- from its param actions, a song track's from P.set. A script part's change
+-- while a song holds the racks is kept and sent when they're its again.
+local function machine_changed(part, machine)
+  if machine == part.machine and not part.pending then return end -- a bang
+  notes_off(part)
+  part.edits = {}
+  clear_fx(part)
+  forget_preset(part)
+  -- the new machine starts empty
+  part.files, part.loading, part.problem, part.last_path = {}, nil, nil, nil
+  part.want_default = P.SAMPLE_MACHINES[machine] or false
+  save_files(part)
+  put(part, "patch", 1)
+  show_machine(part, machine, true)
+  part.patch = patch_name(part)
+  put(part, "patch_name", part.patch or "")
+  recall(part)
+  if held(part, true) then return end
+  later(part, 0.3, function() load_machine(part, true) end)
+end
+
+local function patch_changed(part)
+  if not part.machine then return end
+  local name = patch_name(part)
+  if name == part.sent and not part.pending and not part.fresh then return end -- a bang
+  part.patch = name
+  part.edits = {}
+  clear_fx(part)
+  forget_preset(part)
+  recall(part)
+  if held(part, true) then return end
+  later(part, 0.2, function() load_machine(part, true) end)
+end
+
+local function slot_changed(part, j, v)
+  if not part.machine or j > #P.defs[part.machine] then return end
+  -- An edit made while a patch is on its way goes on top of the patch
+  -- once its values arrive.
+  local mem = mems(part)[mem_key(part) or ""]
+  if mem then
+    mem[j] = v
+  elseif not (part.pending or part.want_values) then
+    remember(part)
+  end
+  if part.pending then
+    part.edits[j] = v
+    return
+  end
+  if held(part) then
+    -- a new patch still to load takes it on top of its values
+    if part.fresh or part.park_fresh then part.edits[j] = v end
+    return
+  end
+  psend(part, "/param", {part.n - 1, j - 1, v})
+  if part.want_values then part.edits[j] = v end
+end
+
+-- Loads a part's machine and patch with the patch's values (and the edits
+-- made since on top), with its strip, files and modifiers.
+local function load_fresh(part)
+  send_strip(part)
+  part.resend_files = next(part.files) ~= nil
+  load_machine(part, true)
+  send_mods(part)
+end
+
+-- Sends a script part's whole state, after a PSET is read. The patch goes
+-- first, which mounts the machine, then the saved params and sends on top
+-- of it, then its files. A machine or patch picked while a song held the
+-- racks loads fresh instead, as the slots don't hold its values.
+local function apply(part)
+  local i = part.n
   timer.cancel(part.pending)
   part.pending = nil
-  P.notes_off(i)
-  P.send_strip(i)
+  notes_off(part)
+  part.owed = false
+  if part.fresh then
+    part.fresh = false
+    load_fresh(part)
+    return
+  end
+  send_strip(part)
   part.fx_edits = decode_fx(params:get(id(i, "fx")))
   part.preset = decode_preset(params:get(id(i, "preset")))
   part.want_default = false -- a PSET's files stay as saved
-  load_machine(i, false)
+  load_machine(part, false)
   -- the PSET's sends go on top of the ones the patch carries
-  P.send_strip_param(i, "rev")
-  P.send_strip_param(i, "dly")
+  send_strip_param(part, "rev")
+  send_strip_param(part, "dly")
   -- C++ waits for room in the engine's param queue, so none of these is lost
   if part.machine then
     for j, d in ipairs(P.defs[part.machine]) do
       if not (part.macs_from_patch and d.name:match("^mac%d")) then
-        send("/param", {i - 1, j - 1, params:get(id(i, "s" .. j))})
+        psend(part, "/param", {i - 1, j - 1, params:get(id(i, "s" .. j))})
       end
     end
   end
   part.files = decode(params:get(id(i, "files")))
   part.loading, part.last_path = nil, nil
   -- with no files this still clears what the machine had before
-  if P.SAMPLE_MACHINES[part.machine] then send_files(i) end
+  if P.SAMPLE_MACHINES[part.machine] then send_files(part) end
   part.mods = decode_mods(params:get(id(i, "mods")))
-  send_mods(i)
+  send_mods(part)
 end
 
--- Parks part i: silences it and unmounts its machine, keeping its params
--- and what the script knows of it, for when it's shown again.
-function P.park(i)
-  local part = P.list[i]
+-- The script's own parts on: the "parts" param's 8 or 16, which a song
+-- with more tracks doesn't change.
+P.own_active = 8
+local function own_on(i) return i <= P.own_active end
+
+-- Parks script part i: silences it and unmounts its machine, keeping its
+-- params and what the script knows of it, for when it's shown again.
+-- While a song holds the racks nothing is sent, and it's parked again
+-- when they're the script's.
+local function park(part)
   if not part.parked then
     -- a patch still on its way, or its values not in yet: load it fresh
     -- when it comes back, as the slots don't hold its values
-    part.park_fresh = part.pending ~= nil or part.want_values
+    part.park_fresh = part.pending ~= nil or part.want_values or part.fresh or false
   end
   timer.cancel(part.pending)
   part.pending = nil
-  P.notes_off(i)
   part.parked = true
+  part.fresh = false
   part.want_values, part.dim = false, false
   part.loading = nil
   part.level, part.held = 0, 0
+  if P.song_holds then
+    part.owed = true
+    return
+  end
+  part.owed = false
+  notes_off(part)
   part.fx = {}
-  send_patch(i, "/unmount", {i - 1})
+  send_patch(part, "/unmount", {part.n - 1})
   -- a parked part's solo would keep the others quiet
-  send("/channel", {i - 1, "solo", 0})
+  psend(part, "/channel", {part.n - 1, "solo", 0})
 end
 
 -- Brings a parked part back as it was.
-local function unpark(i)
-  local part = P.list[i]
+local function unpark(part)
   part.parked = false
   if part.park_fresh and part.machine then
-    P.send_strip(i)
-    part.resend_files = next(part.files) ~= nil
-    load_machine(i, true)
-    send_mods(i)
-  else
-    P.apply(i)
+    if not held(part, true) then load_fresh(part) end
+  elseif not held(part) then
+    apply(part)
   end
   part.park_fresh = false
 end
 
--- Parks the parts past P.active and brings back the ones shown again.
+-- Parks the script parts past P.own_active and brings back the ones shown
+-- again.
 local function sync_parked()
   for i = 1, P.COUNT do
-    local part = P.list[i]
-    if P.on(i) and part.parked then
-      unpark(i)
-    elseif not P.on(i) and not part.parked then
-      P.park(i)
+    local part = own[i]
+    if own_on(i) and part.parked then
+      unpark(part)
+    elseif not own_on(i) and not part.parked then
+      park(part)
     end
   end
   P.send_mpe()
@@ -1231,27 +1460,57 @@ end
 function P.apply_all()
   P.send_master()
   for i = 1, P.COUNT do
-    if P.on(i) then
-      P.list[i].parked = false
-      P.apply(i)
+    local part = own[i]
+    if own_on(i) then
+      part.parked = false
+      apply(part)
     else
       -- its params are the PSET's now, so they're sent as they are
-      P.park(i)
-      P.list[i].park_fresh = false
+      part.fresh = false
+      park(part)
+      part.park_fresh = false
     end
   end
   P.send_mpe()
 end
 
--- Shows parts 1 to n (8 or 16) in the params menu and on the pages.
-local function show_parts(n)
+-- After a song held the racks and gave them back as they were (a load
+-- refused before it touched them): sends what changed meanwhile.
+function P.pay_owed()
+  if P.owed_master then P.send_master() end
+  for i = 1, P.COUNT do
+    local part = own[i]
+    if part.owed then
+      if own_on(i) then
+        part.parked = false
+        apply(part)
+      else
+        park(part)
+      end
+    end
+  end
+  P.send_mpe()
+end
+
+-- The parts the pages show: the script's own count, or 16 for a song with
+-- more than 8 tracks. Hidden parts' groups are hidden in the params menu,
+-- and the "mpe part" options stop at the last part shown.
+local function show_view()
+  local n = P.own_active
+  if P.song_view and P.song_wide then n = 16 end
   P.active = n
   for i = 9, P.COUNT do
-    if P.on(i) then params:show("part_" .. i) else params:hide("part_" .. i) end
+    if own_on(i) then params:show("part_" .. i) else params:hide("part_" .. i) end
   end
   rebuild_menu()
   if P.on_active then P.on_active(n) end
 end
+
+local function show_parts(n)
+  P.own_active = n
+  show_view()
+end
+
 
 -- The "parts" param, 8 or 16. While a PSET is read its parts are sent once
 -- the read is done, so the switch waits a moment for P.after_read to take
@@ -1270,14 +1529,14 @@ function P.add_count_param()
 end
 
 local function add_part(i)
-  local part = P.list[i]
+  local part = own[i]
   params:add_group("part_" .. i, "part " .. i, 17 + P.slots)
 
   local chans = {"off"}
   for c = 1, 16 do chans[c + 1] = tostring(c) end
   params:add_option(id(i, "channel"), "channel", chans, i + 1)
   params:set_action(id(i, "channel"), function(v)
-    if not P.loading then P.notes_off(i) end
+    if not P.loading then notes_off(part) end
     part.channel = v - 1
   end)
 
@@ -1304,39 +1563,18 @@ local function add_part(i)
     local machine = v > 1 and P.machines[v - 1].name or nil
     params:set(id(i, "machine_name"), machine or "", true)
     if P.loading then
-      show_machine(i, machine, false)
+      show_machine(part, machine, false)
       part.dim = false
       return
     end
-    if machine == part.machine and not part.pending then return end -- a bang
-    P.notes_off(i)
-    part.edits = {}
-    clear_fx(i)
-    forget_preset(i)
-    -- the new machine starts empty
-    part.files, part.loading, part.problem, part.last_path = {}, nil, nil, nil
-    part.want_default = P.SAMPLE_MACHINES[machine] or false
-    save_files(i)
-    params:set(id(i, "patch"), 1, true)
-    show_machine(i, machine, true)
-    part.patch = patch_name(i)
-    params:set(id(i, "patch_name"), part.patch or "", true)
-    recall(i)
-    later(i, 0.3, function() load_machine(i, true) end)
+    machine_changed(part, machine)
   end)
 
   params:add_option(id(i, "patch"), "patch", {"-"}, 1)
   params:set_action(id(i, "patch"), function()
-    params:set(id(i, "patch_name"), patch_name(i) or "", true)
-    if P.loading or not part.machine then return end
-    local name = patch_name(i)
-    if name == part.sent and not part.pending then return end -- a bang
-    part.patch = name
-    part.edits = {}
-    clear_fx(i)
-    forget_preset(i)
-    recall(i)
-    later(i, 0.2, function() load_machine(i, true) end)
+    params:set(id(i, "patch_name"), patch_name(part) or "", true)
+    if P.loading then return end
+    patch_changed(part)
   end)
 
   -- the files loaded into the machine, for PSETs; never shown
@@ -1356,7 +1594,8 @@ local function add_part(i)
 
   params:add_control(id(i, "volume"), "volume", controlspec.new(-60, 3, "lin", 0.5, 0, "dB"))
   params:set_action(id(i, "volume"), function()
-    if not P.loading then P.send_volume(i) end
+    if P.loading or held(part) then return end
+    send_volume(part)
   end)
   params:add_control(id(i, "pan"), "pan", controlspec.new(-1, 1, "lin", 0.01, 0, "", 0.01),
     function(param) return P.pan_text(param:get()) end)
@@ -1366,7 +1605,8 @@ local function add_part(i)
   params:add_control(id(i, "dly"), "dly send", controlspec.new(0, 1, "lin", 0.01, 0, "", 0.01), percent)
   for _, what in ipairs({"pan", "mute", "solo", "rev", "dly"}) do
     params:set_action(id(i, what), function()
-      if not P.loading then P.send_strip_param(i, what) end
+      if P.loading or held(part) then return end
+      send_strip_param(part, what)
     end)
   end
 
@@ -1379,22 +1619,10 @@ local function add_part(i)
       return P.readout(param.def, param:get())
     end
     params:set_action(sid, function(v)
-      if P.loading or not part.machine or j > #P.defs[part.machine] then return end
-      -- An edit made while a patch is on its way goes on top of the patch
-      -- once its values arrive.
-      local mem = memory[mem_key(i) or ""]
-      if mem then
-        mem[j] = v
-      elseif not (part.pending or part.want_values) then
-        remember(i)
-      end
-      if part.pending then
-        part.edits[j] = v
-        return
-      end
-      send("/param", {i - 1, j - 1, v})
-      if part.want_values then part.edits[j] = v end
+      if P.loading then return end
+      slot_changed(part, j, v)
     end)
+
   end
 end
 
@@ -1403,7 +1631,7 @@ function P.add_params()
   P.add_master_params()
   for i = 1, P.COUNT do
     params:hide(id(i, "mpe"))
-    show_machine(i, nil, true)
+    show_machine(own[i], nil, true)
     params:hide(id(i, "files"))
     params:hide(id(i, "fx"))
     params:hide(id(i, "preset"))
@@ -1457,9 +1685,9 @@ end
 -- with the patch's own routes. Without one they go to their defaults (knobs
 -- at 0, no destinations).
 local function reset_macros(i)
-  if P.list[i].machine ~= "Trinity" then return end
-  if patch_name(i) then
-    P.list[i].macs_from_patch = true
+  if own[i].machine ~= "Trinity" then return end
+  if patch_name(own[i]) then
+    own[i].macs_from_patch = true
     return
   end
   for j, d in ipairs(P.defs.Trinity or {}) do
@@ -1505,9 +1733,9 @@ end
 -- table knob (its slot's first knob) from 8 tables to 32, the middle of the
 -- same table.
 local function migrate_waves(i)
-  local machine = P.list[i].machine
+  local machine = own[i].machine
   if machine ~= "Trinity" and machine ~= "Nexus" then return end
-  local wt = machine == "Nexus" and wtosc_slots(patch_name(i)) or {}
+  local wt = machine == "Nexus" and wtosc_slots(patch_name(own[i])) or {}
   for j, d in ipairs(P.defs[machine] or {}) do
     local sid = id(i, "s" .. j)
     local v = util.clamp(params:get(sid), 0, 1)
@@ -1528,7 +1756,7 @@ end
 -- the 37 there are now, the same destination, as the engine's
 -- tables::trinityDest does.
 local function migrate_dests(i)
-  if P.list[i].machine ~= "Trinity" then return end
+  if own[i].machine ~= "Trinity" then return end
   for j, d in ipairs(P.defs.Trinity or {}) do
     if d.name:match("^m%d%d_dest$") or d.name:match("^mac[1-8]_d[1-4]$") then
       local sid = id(i, "s" .. j)
@@ -1542,12 +1770,12 @@ end
 -- layout (lib/layout.lua). The new params take their defaults, and new
 -- macros come from the part's patch when it has one, as reset_macros does.
 local function migrate_layout(i)
-  local part = P.list[i]
+  local part = own[i]
   local defs = part.machine and P.defs[part.machine]
   if not defs then return end
   local values = {}
   for j = 1, #defs do values[j] = params:get(id(i, "s" .. j)) end
-  if LAYOUT.migrate(part.machine, values, defs, P.unmap) and patch_name(i) then
+  if LAYOUT.migrate(part.machine, values, defs, P.unmap) and patch_name(own[i]) then
     part.macs_from_patch = true
   end
   for j = 1, #defs do params:set(id(i, "s" .. j), values[j], true) end
@@ -1586,7 +1814,7 @@ end
 -- the name was saved, by the name its index had in OLD_PATCHES, else the
 -- saved index as it is.
 local function set_saved_patch(filename, i)
-  local machine = P.list[i].machine
+  local machine = own[i].machine
   local names = machine and P.patches[machine] or {}
   local want
   if saved_has(filename, id(i, "patch_name")) then
@@ -1600,7 +1828,7 @@ local function set_saved_patch(filename, i)
       break
     end
   end
-  params:set(id(i, "patch_name"), patch_name(i) or "", true)
+  params:set(id(i, "patch_name"), patch_name(own[i]) or "", true)
 end
 
 -- Sets the machine option to the machine's place in the menu, without
@@ -1645,16 +1873,19 @@ function P.after_read(filename)
   show_parts(params:get("parts") == 2 and 16 or 8)
   local changed = false
   local saved = {}
-  for i, part in ipairs(P.list) do
+  for i, part in ipairs(own) do
+    -- the PSET's params replace whatever was owed
+    part.owed, part.fresh = false, false
     local machine = saved_machine(filename, i, params:get(id(i, "machine")))
     saved[i] = machine or false
     set_machine_option(i, machine)
     if machine ~= part.machine then
-      show_machine(i, machine, false)
+      show_machine(part, machine, false)
       changed = true
     end
     part.channel = params:get(id(i, "channel")) - 1
   end
+  P.owed_master = false
   -- the first part saved as MPE, in case a file has more than one; files
   -- with none keep the "mpe part" they saved
   local first
@@ -1730,13 +1961,19 @@ watch = function()
     P.mod_defs_asked = now
     send("/mod_defs", {})
   end
-  for i, part in ipairs(P.list) do
-    if P.on(i) and part.want_values and not part.values_retried and now - part.values_at > 2 then
+  local function retry(part)
+    if part.want_values and not part.values_retried and now - part.values_at > 2 then
       part.values_retried = true
       part.values_at = now
       part.dim = false
-      if part.preset then send_preset(i) else send_patch(i, "/patch", {i - 1, part.machine, part.sent}) end
+      if part.preset then send_preset(part) else send_patch(part, "/patch", {part.n - 1, part.machine, part.sent}) end
     end
+  end
+  for i, part in ipairs(own) do
+    if own_on(i) and not P.song_holds then retry(part) end
+  end
+  if P.song_racks then
+    for _, part in ipairs(P.song) do retry(part) end
   end
 end
 
@@ -1748,22 +1985,20 @@ function P.resend()
   if P.on_plugin_reset then P.on_plugin_reset() end
   P.send_master()
   if P.on_resend then P.on_resend() end
-  for i, part in ipairs(P.list) do
+  for i, part in ipairs(own) do
     part.fx_wait = 0 -- the old plugin's replies won't come
-    if not P.on(i) then
-      P.park(i) -- the new plugin has nothing there
+    if not own_on(i) then
+      park(part) -- the new plugin has nothing there
     elseif part.pending then
-      P.send_strip(i) -- the pending patch mounts the machine
+      send_strip(part) -- the pending patch mounts the machine
       part.resend_files = next(part.files) ~= nil
-      send_mods(i)
-    elseif part.want_values then
+      send_mods(part)
+    elseif part.want_values or part.fresh then
       -- the slots don't hold this patch's values yet, so ask for them again
-      P.send_strip(i)
-      part.resend_files = next(part.files) ~= nil
-      load_machine(i, true)
-      send_mods(i)
+      part.fresh, part.owed = false, false
+      load_fresh(part)
     else
-      P.apply(i)
+      apply(part)
     end
   end
   P.send_mpe()
@@ -1775,17 +2010,17 @@ function P.set_part(i, machine, patch)
   for k, m in ipairs(P.machines) do
     if m.name == machine then index = k + 1 end
   end
-  local part = P.list[i]
+  local part = own[i]
   if part.machine ~= machine then
     part.files, part.loading, part.problem, part.last_path = {}, nil, nil, nil
     part.want_default = P.SAMPLE_MACHINES[machine] or false
-    save_files(i)
+    save_files(part)
   end
-  clear_fx(i)
-  forget_preset(i)
+  clear_fx(part)
+  forget_preset(part)
   P.loading = true
   params:set(id(i, "machine"), index)
-  show_machine(i, P.list[i].machine, true)
+  show_machine(part, part.machine, true)
   local names = P.patches[machine] or {}
   local which = 1
   for k, name in ipairs(names) do
@@ -1793,36 +2028,38 @@ function P.set_part(i, machine, patch)
   end
   params:set(id(i, "patch"), which)
   P.loading = false
-  P.list[i].patch = patch_name(i)
+  part.patch = patch_name(part)
 end
 
 -- Loads the part's current patch again with its own values: forgets what the
 -- run remembered for it and drops the edits.
 function P.reset_patch(i)
-  local part = P.list[i]
+  local part = P.part(i)
   if not part.machine then return end
-  P.notes_off(i)
-  memory[mem_key(i) or ""] = nil
+  notes_off(part)
+  mems(part)[mem_key(part) or ""] = nil
   part.edits = {}
-  clear_fx(i)
-  recall(i)
-  later(i, 0.2, function() load_machine(i, true) end)
+  clear_fx(part)
+  recall(part)
+  if held(part, true) then return end
+  later(part, 0.2, function() load_machine(part, true) end)
 end
 
 -- Puts saved preset s (from P.saved) on the part, its files too.
 function P.load_preset(i, s)
-  local part = P.list[i]
+  local part = P.part(i)
   if not part.machine then return end
-  P.notes_off(i)
+  notes_off(part)
   timer.cancel(part.pending)
   part.pending = nil
   part.preset = {path = s.path, index = s.index, name = s.name, want = s.name}
-  save_preset_param(i)
+  save_preset_param(part)
   part.patch = s.name
   part.edits = {}
-  clear_fx(i)
-  recall(i)
-  load_machine(i, true)
+  clear_fx(part)
+  recall(part)
+  if held(part, true) then return end
+  load_machine(part, true)
 end
 
 -- A file name for a preset called name, as the app makes them.
@@ -1834,8 +2071,14 @@ end
 -- Saves the part's sound as the preset at path, called name. /preset_saved
 -- answers, and the part then plays it.
 function P.save_preset(i, path, name)
-  local part = P.list[i]
+  local part = P.part(i)
   if not part.machine then return end
+  -- a song's track has what the song set, its samples and all, which the
+  -- script can't name; the plugin refuses too
+  if part.song or P.song_holds then
+    if P.on_preset_note then P.on_preset_note("not in a song") end
+    return
+  end
   local args = {i - 1, path, name, #P.ROOTS}
   for _, r in ipairs(P.ROOTS) do args[#args + 1] = r end
   local function set(k, v)
@@ -1858,7 +2101,7 @@ function P.save_preset(i, path, name)
     -- a folder's or preset's zones are the plugin's to add
   end
   part.saving = {path = path, name = name}
-  send("/preset_save", args)
+  psend(part, "/preset_save", args)
 end
 
 -- Takes saved preset s out of its file; /preset_deleted answers.
@@ -1869,13 +2112,13 @@ end
 -- Sends a part's volume and machine with its patch, which fills the slots
 -- with the patch's values when it's applied.
 function P.start_part(i)
-  P.send_strip(i)
-  load_machine(i, true)
+  send_strip(own[i])
+  load_machine(own[i], true)
 end
 
 -- For K3.
 function P.audition(i, z)
-  local part = P.list[i]
+  local part = P.part(i)
   if not part.machine then return end
   local m = P.machine_info(part.machine)
   local note = m and m.note or 48
@@ -1888,7 +2131,7 @@ end
 
 -- Activity for the screen.
 function P.note(i, on)
-  local part = P.list[i]
+  local part = P.part(i)
   if on then
     part.held = part.held + 1
     part.last_note = util.time()
@@ -1903,9 +2146,167 @@ end
 function P.overload_at()
   local n = 0
   for i = 1, P.active do
-    if P.list[i].machine then n = n + 1 end
+    if P.part(i).machine then n = n + 1 end
   end
+
   return n > 8 and 70 or 80
+end
+
+-- ---- values the pages read and set -------------------------------------------
+
+-- Part i's value by its param name ("volume", "pan", "patch", "s3", ...):
+-- the shown part's, a param for the script's own, vals for a song track.
+function P.get(i, key) return get(P.part(i), key) end
+
+-- Sets it as turning its param would, running what the param's action
+-- runs. A song track's goes to its rack and never touches the params.
+function P.set(i, key, v)
+  local part = P.part(i)
+  if not part.song then
+    params:set(id(i, key), v)
+    return
+  end
+  local j = tonumber(key:match("^s(%d+)$") or "")
+  if key == "machine" then
+    v = util.clamp(v, 1, #P.machines + 1)
+    part.vals.machine = v
+    machine_changed(part, v > 1 and P.machines[v - 1].name or nil)
+  elseif key == "patch" then
+    if not part.machine then return end
+    part.vals.patch = util.clamp(v, 1, math.max(1, #(P.patches[part.machine] or {})))
+    patch_changed(part)
+  elseif key == "volume" then
+    put(part, key, util.clamp(v, -60, 3))
+    send_volume(part)
+  elseif STRIP[key] then
+    put(part, key, v)
+    send_strip_param(part, key)
+  elseif j then
+    put(part, key, util.clamp(v, 0, 1))
+    slot_changed(part, j, get(part, key))
+  elseif key == "channel" then
+    notes_off(part)
+    put(part, key, v)
+    part.channel = v - 1
+  else
+    params:set(id(i, key), v)
+  end
+end
+
+-- Steps it as an encoder steps its param.
+function P.delta(i, key, d)
+  local part = P.part(i)
+  if not part.song then
+    params:delta(id(i, key), d)
+    return
+  end
+  local v = get(part, key)
+  local j = tonumber(key:match("^s(%d+)$") or "")
+  local p = params:lookup_param(id(i, key))
+  if j then
+    local def = part.machine and (P.defs[part.machine] or {})[j]
+    if not def then return end
+    local q = (def.curve == "step" and def.steps > 1) and 1 / (def.steps - 1) or 0.005
+    P.set(i, key, util.clamp(v + d * q, 0, 1))
+  elseif key == "machine" or key == "patch" or key == "mute" or key == "solo" or key == "channel" then
+    P.set(i, key, math.max(1, v + d))
+  elseif p and p.controlspec then
+    -- the same controlspec as the script's param, as norns steps it
+    local cs = p.controlspec
+    P.set(i, key, cs:map(util.clamp(cs:unmap(v) + d * cs.quantum, 0, 1)))
+  end
+end
+
+-- ---- a song's tracks -------------------------------------------------------------
+
+-- The song's tracks as P.song: lib/song.lua calls these as a load starts,
+-- lands or fails and when the song goes. The plugin's read-back replies
+-- (/mounted, /values, /strip, /sends, /inserts, /mods ...) fill them.
+P.song_wide = false -- the song has tracks past 8
+
+local function clear_song_parts()
+  for i = 1, P.COUNT do P.song[i] = new_part(i, true) end
+  song_memory = {}
+end
+clear_song_parts()
+
+-- A track's machine and patch as the read-back has them; nil machine for
+-- an empty rack.
+song_track = function(part, machine, patch)
+  timer.cancel(part.pending)
+  part.pending = nil
+  if machine ~= part.machine then part.macro_names, part.macros = nil, nil end
+  part.machine = machine
+  part.vals.machine = machine_index(machine)
+  part.want_values, part.dim, part.edits = false, false, {}
+  part.preset, part.files, part.loading, part.problem, part.last_path = nil, {}, nil, nil, nil
+  part.fx_edits, part.sends_moved = {}, {}
+  -- a sample machine has the song's samples, which the script can't name
+  part.song_files = machine ~= nil and P.SAMPLE_MACHINES[machine] or false
+  if patch ~= nil or not machine then
+    part.patch = patch ~= "" and patch or nil
+    part.sent = patch or nil
+    part.vals.patch = patch_index(machine, part.patch)
+  end
+  if not machine then
+    for k in pairs(part.vals) do
+      if k:match("^s%d+$") then part.vals[k] = nil end
+    end
+  end
+end
+
+-- A load is on its way. With no song shown the tracks start empty; with one
+-- shown they're replaced by what the replies say.
+function P.song_load_started()
+  if not P.song_view then clear_song_parts() end
+  P.song_reading = true
+end
+
+-- A load ended without a song: nothing more to read.
+function P.song_load_failed()
+  P.song_reading = false
+end
+
+-- The song loaded: tracks is {part, machine, patch, name} per rack with a
+-- machine. The rest are empty. Each track plays from MIDI channel n.
+function P.song_loaded(tracks)
+  P.song_reading = false
+  local named, wide = {}, false
+  for _, t in ipairs(tracks) do
+    local part = P.song[t.part + 1]
+    if part then
+      named[part.n] = true
+      if part.machine ~= t.machine then song_track(part, t.machine, t.patch) end
+      part.name = t.name ~= "" and t.name or nil
+      if part.n > 8 then wide = true end
+    end
+  end
+  for i, part in ipairs(P.song) do
+    if not named[i] then
+      if part.machine then song_track(part, nil, nil) end
+      part.name = nil
+    end
+    part.channel = get(part, "channel") - 1
+  end
+  P.song_wide = wide
+  P.song_view = true
+  show_view()
+end
+
+-- The song went: the script's own parts are shown again. reading: another
+-- load is on its way.
+function P.song_gone(reading)
+  P.song_reading = reading or false
+  P.song_wide = false
+  P.song_view = false
+  clear_song_parts()
+  show_view()
+end
+
+-- A song track's name, or nil.
+function P.track_name(i)
+  local part = P.part(i)
+  return part.song and part.name or nil
 end
 
 -- ---- replies from the plugin --------------------------------------------------
@@ -1915,8 +2316,9 @@ function P.osc(path, args)
     if P.on_song then P.on_song(path, args) end
   elseif path == "/levels" then
     for i = 1, P.COUNT do
-      local part = P.list[i]
+      local part = rpart(i)
       part.level = math.max(args[i] or 0, part.level * 0.7)
+      if P.song_racks then own[i].level = 0 end
     end
   elseif path == "/meters" then
     P.master_level = math.max(args[1] or 0, (P.master_level or 0) * 0.7)
@@ -1933,44 +2335,83 @@ function P.osc(path, args)
     end
   elseif path == "/values" then
     local i = (args[1] or -1) + 1
-    local part = P.list[i]
-    if not part or part.pending then return end
+    local part = P.song_racks and P.song[i] or own[i]
+    if not part then return end
+    if part.song and P.song_reading then
+      -- a song's read-back: what the track has
+      song_track(part, args[2], args[3])
+      for j = 4, #args do part.vals["s" .. (j - 3)] = args[j] end
+      return
+    end
+    if part.pending then return end
     if part.machine ~= args[2] or part.sent ~= args[3] then return end
     if part.macs_from_patch then
       -- an old PSET: only the macro slots take the patch's values
       part.macs_from_patch = false
       for j, d in ipairs(P.defs[part.machine] or {}) do
-        if d.name:match("^mac%d") and args[j + 3] then params:set(id(i, "s" .. j), args[j + 3], true) end
+        if d.name:match("^mac%d") and args[j + 3] then put(part, "s" .. j, args[j + 3]) end
       end
     end
     if not part.want_values then return end
     part.want_values = false
     for j = 4, #args do
-      local sid = id(i, "s" .. (j - 3))
-      if params.lookup[sid] then params:set(sid, args[j], true) end
+      if part.song or params.lookup[id(i, "s" .. (j - 3))] then put(part, "s" .. (j - 3), args[j]) end
     end
     for j, v in pairs(part.edits) do
-      params:set(id(i, "s" .. j), v, true)
-      send("/param", {i - 1, j - 1, v})
+      put(part, "s" .. j, v)
+      psend(part, "/param", {i - 1, j - 1, v})
     end
     part.edits = {}
     part.dim = false
-    remember(i)
-  elseif P.song_racks and (path == "/sends" or path == "/inserts" or path == "/macro_names" or path == "/values") then
-    -- the song's racks, not the script's parts
-    return
+    remember(part)
+  elseif path == "/mounted" then
+    -- only a song's racks: the script knows what it mounted
+    local part = P.song_racks and P.song[(args[1] or -1) + 1]
+    if not part then return end
+    if args[2] == "" then
+      song_track(part, nil, nil)
+    elseif P.song_reading then
+      song_track(part, args[2], nil)
+    end
+  elseif path == "/strip" then
+    -- a song track's strip, read back after it loads
+    local part = P.song[(args[1] or -1) + 1]
+    if not part then return end
+    local gain = args[2] or 1
+    part.vals.volume = gain > 0 and util.clamp(20 * math.log(gain, 10), -60, 3) or -60
+    part.vals.pan = util.clamp((args[3] or 0.5) * 2 - 1, -1, 1)
+    part.vals.mute = (args[4] or 0) == 1 and 2 or 1
+    part.vals.solo = (args[5] or 0) == 1 and 2 or 1
+  elseif path == "/mods" then
+    -- a song track's modifiers, read back after it loads
+    local part = P.song_racks and P.song[(args[1] or -1) + 1]
+    if not part then return end
+    local mods, k = {}, 2
+    while k + 3 <= #args do
+      local slot, type, bypass, count = args[k], args[k + 1], args[k + 2], args[k + 3]
+      k = k + 4
+      local values = {}
+      for _ = 1, count do
+        if args[k] and args[k + 1] then values[args[k]] = args[k + 1] end
+        k = k + 2
+      end
+      if type ~= "" and tab.contains(P.MOD_TYPES, type) then
+        mods[slot] = {type = type, bypass = bypass == 1, values = values}
+      end
+    end
+    part.mods = mods
   elseif path == "/sends" then
     -- a patch set the part's sends, or gave the player's back
     local i = (args[1] or -1) + 1
-    local part = P.list[i]
+    local part = rpart(i)
     -- a reply to an earlier script's resend can come before the params exist
-    if not part or not params.lookup[id(i, "rev")] then return end
-    if not part.sends_moved.rev then params:set(id(i, "rev"), args[2], true) end
-    if not part.sends_moved.dly then params:set(id(i, "dly"), args[3], true) end
+    if not part or not (part.song or params.lookup[id(i, "rev")]) then return end
+    if not part.sends_moved.rev then put(part, "rev", args[2]) end
+    if not part.sends_moved.dly then put(part, "dly", args[3]) end
   elseif path == "/inserts" then
     -- the part's inserts after a patch or unmount, with the edits on top
     local i = (args[1] or -1) + 1
-    local part = P.list[i]
+    local part = rpart(i)
     if not part then return end
     -- an earlier /patch's, with a later one on its way
     part.fx_wait = math.max(part.fx_wait - 1, 0)
@@ -1995,7 +2436,7 @@ function P.osc(path, args)
     end
     part.fx = fx
   elseif path == "/macro_names" then
-    local part = P.list[(args[1] or -1) + 1]
+    local part = rpart((args[1] or -1) + 1)
     if not part then return end
     local names, any = {}, false
     for n = 1, 8 do
@@ -2006,8 +2447,15 @@ function P.osc(path, args)
   elseif path == "/macros" then
     local list = {}
     for j = 4, #args - 1, 2 do list[#list + 1] = {param = args[j], label = args[j + 1]} end
+    if P.song_racks then
+      -- the song's track's own, which may not be the bank patch's
+      local part = P.song[(args[1] or -1) + 1]
+      if part then part.macros = list end
+      return
+    end
     P.patch_macros[args[2]] = P.patch_macros[args[2]] or {}
     P.patch_macros[args[2]][args[3]] = list
+
   elseif path == "/preset_scan" then
     local folder = args[1] or ""
     local machine = folder:match("([^/]+)/*$")
@@ -2024,7 +2472,7 @@ function P.osc(path, args)
     if P.on_saved then P.on_saved(machine) end
   elseif path == "/preset_saved" then
     local i = (args[1] or -1) + 1
-    local part = P.list[i]
+    local part = rpart(i)
     if not part then return end
     local saving = part.saving
     part.saving = nil
@@ -2033,12 +2481,12 @@ function P.osc(path, args)
     if ok and saving and saving.path == args[2] and part.machine then
       -- the part plays what it saved, with the values it has
       local values = {}
-      for j = 1, #(P.defs[part.machine] or {}) do values[j] = params:get(id(i, "s" .. j)) end
+      for j = 1, #(P.defs[part.machine] or {}) do values[j] = get(part, "s" .. j) end
       part.preset = {path = saving.path, index = 0, name = saving.name, want = saving.name}
-      save_preset_param(i)
+      save_preset_param(part)
       part.patch = saving.name
       if not part.pending and not part.want_values then part.sent = preset_tag(part.preset) end
-      memory[mem_key(i)] = values
+      mems(part)[mem_key(part)] = values
     end
     if P.on_preset_note then P.on_preset_note(ok and "saved" or args[3]) end
     P.scan_presets(part.machine)
@@ -2049,18 +2497,22 @@ function P.osc(path, args)
     if ok then
       -- the run's memory of the file's patches, which may have moved
       local tail = "|" .. file
-      for k in pairs(memory) do
-        if k:sub(-#tail) == tail then memory[k] = nil end
+      for _, m in ipairs({memory, song_memory}) do
+        for k in pairs(m) do
+          if k:sub(-#tail) == tail then m[k] = nil end
+        end
       end
     end
-    for i, part in ipairs(P.list) do
+    local all = {}
+    for i = 1, P.COUNT do all[#all + 1] = own[i]; all[#all + 1] = P.song[i] end
+    for _, part in ipairs(all) do
       -- a part playing it keeps its sound, but no longer as that preset
       if ok and part.preset and part.preset.path == file then
         if gone < 0 or part.preset.index == gone then
-          forget_preset(i)
+          forget_preset(part)
         elseif part.preset.index > gone then
           part.preset.index = part.preset.index - 1
-          save_preset_param(i)
+          save_preset_param(part)
           if not part.pending and not part.want_values then part.sent = preset_tag(part.preset) end
         end
       end
@@ -2068,7 +2520,7 @@ function P.osc(path, args)
       local f = part.files.main
       if ok and f and f.kind == "zones" and f.path == file and gone >= 0 and f.arg > gone then
         f.arg = f.arg - 1
-        save_files(i)
+        save_files(part)
       end
     end
     if P.on_preset_note then P.on_preset_note(ok and "deleted" or args[3]) end
@@ -2076,7 +2528,7 @@ function P.osc(path, args)
     P.scan_presets(machine)
   elseif path == "/preset_loaded" then
     local i = (args[1] or -1) + 1
-    local part = P.list[i]
+    local part = rpart(i)
     if not part then return end
     local tag, name, err, index = args[2], args[3], args[4] or "", args[5]
     local mine = part.preset and preset_tag(part.preset) == tag
@@ -2086,7 +2538,7 @@ function P.osc(path, args)
       if mine then
         -- the part has its machine at its defaults, not the preset
         if P.on_preset_note then P.on_preset_note(err) end
-        forget_preset(i)
+        forget_preset(part)
         part.patch = nil
       end
     elseif mine and name ~= "" then
@@ -2094,13 +2546,14 @@ function P.osc(path, args)
       part.patch = name
       -- found by name at another index, after a delete
       if index and index ~= part.preset.index then
-        local old = mem_key(i)
+        local m = mems(part)
+        local old = mem_key(part)
         part.preset.index = index
-        local new = mem_key(i)
-        memory[new], memory[old] = memory[old], nil
+        local new = mem_key(part)
+        m[new], m[old] = m[old], nil
         if part.sent == tag then part.sent = preset_tag(part.preset) end
       end
-      save_preset_param(i)
+      save_preset_param(part)
     end
   elseif path == "/hello" then
     if P.ready then P.resend() end
@@ -2157,7 +2610,7 @@ function P.osc(path, args)
     P.patches[machine] = args
     if waiting and waiting.kind == "patches" and waiting.machine == machine then ask_next() end
   elseif path == "/loaded" then
-    local part = P.list[(args[1] or -1) + 1]
+    local part = rpart((args[1] or -1) + 1)
     if not part then return end
     local kind, fpath, arg, name = args[2], args[3], args[4], args[5]
     -- loaded into the machine the part had before a change, and gone with it
@@ -2170,7 +2623,7 @@ function P.osc(path, args)
     end
     if fpath ~= "" and kind ~= "pad" then part.last_path = fpath
     elseif kind == "pad" and fpath ~= "" and not part.loading then part.last_path = fpath end
-    save_files(part.n)
+    save_files(part)
   elseif path == "/shape" then
     local file, seconds, rate, cut = args[1], args[2], args[3], args[4]
     local cols = {}
@@ -2183,7 +2636,8 @@ function P.osc(path, args)
     if P.on_presets then P.on_presets(file, args) end
   elseif path == "/error" then
     print("acidulous: " .. tostring(args[1]))
-    local part = args[2] and P.list[args[2] + 1]
+    local part = args[2] and rpart(args[2] + 1)
+
     -- the plugin sends "" for no machine
     local machine = args[6] ~= "" and args[6] or nil
     if part and machine == part.machine then

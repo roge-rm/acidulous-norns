@@ -324,14 +324,17 @@ local function status(parts, state, keys, note)
   local y = 62
   local n = state.sel
   pips(parts)
-  local shown = header(parts, tostring(n), note, "", y)
+  -- a song track's name after its number
+  local track = parts.track_name(n)
+  local left = track and (n .. " " .. fit(track:lower(), 50)) or tostring(n)
+  local shown = header(parts, left, note, "", y)
   if not shown then return end
   local scale = parts.scale_text(n)
   if scale then
     screen.level(8)
     text(113, y, scale, "right")
   end
-  local x = 8
+  local x = track and screen.text_extents(left) + 4 or 8
   screen.level(8)
   if parts.mpe == n and state.mpe_missing then
     text(x, y, "mpe: no device")
@@ -377,7 +380,7 @@ function play.draw(parts, state, macs, ps, note, keys)
   screen.font_face(1)
   screen.font_size(8)
   local total = #(parts.patches[part.machine] or {})
-  local at = total > 0 and params:get(parts.id(i, "patch")) or 0
+  local at = total > 0 and parts.get(i, "patch") or 0
   local count = part.preset and "saved" or string.format("%d/%d", at, total)
   local cw = screen.text_extents(count)
   local on = ps.focus == 0
@@ -390,7 +393,7 @@ function play.draw(parts, state, macs, ps, note, keys)
   local xs, vs = {}, {}
   for k, mac in ipairs(macs) do
     xs[k] = math.floor((k - 0.5) * COL_W + 0.5)
-    vs[k] = mac.slot and params:get(parts.id(i, "s" .. mac.slot)) or nil
+    vs[k] = mac.slot and parts.get(i, "s" .. mac.slot) or nil
   end
   local labels = columns(xs, LABEL_W, function(k, w)
     return squeeze((macs[k].label:gsub(" ", "")), w)

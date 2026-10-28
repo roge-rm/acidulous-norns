@@ -239,6 +239,11 @@ local function save_or_delete(parts, row)
     end
     return
   end
+  -- a song's track can't be saved; save_preset says so
+  if parts.list[i].song then
+    parts.save_preset(i, "", "")
+    return
+  end
   if L.before_text then L.before_text() end
   local machine = open.machine
   textentry.enter(function(name)
@@ -269,7 +274,7 @@ function L.key(parts, n, z, k1)
     if not row then return end
     if open.kind == "machines" then
       for k, m in ipairs(parts.machines) do
-        if m.name == row.name then params:set(parts.id(i, "machine"), k + 1) end
+        if m.name == row.name then parts.set(i, "machine", k + 1) end
       end
       open = nil
     elseif parts.list[i].machine == open.machine then
@@ -278,7 +283,7 @@ function L.key(parts, n, z, k1)
       elseif row.saved then
         parts.load_preset(i, row.saved)
       else
-        params:set(parts.id(i, "patch"), row.index)
+        parts.set(i, "patch", row.index)
       end
     else
       open = nil -- the machine changed under the list

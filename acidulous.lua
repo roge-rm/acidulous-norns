@@ -536,12 +536,11 @@ local part_macros -- below
 -- Steps part i's machine; turning stops at the first machine, as "none"
 -- is only for parts left empty.
 local function turn_machine(i, d)
-  local pid = parts.id(i, "machine")
   -- an encoder can turn before the params exist, while the script loads
-  if not params.lookup[pid] then return end
-  local v = params:get(pid)
-  local new = util.clamp(v + d, 2, #params:lookup_param(pid).options)
-  if new ~= v then params:set(pid, new) end
+  if not params.lookup[parts.id(i, "machine")] then return end
+  local v = parts.get(i, "machine")
+  local new = util.clamp(v + d, 2, #parts.machines + 1)
+  if new ~= v then parts.set(i, "machine", new) end
 end
 
 local function start_surfaces()
@@ -552,7 +551,7 @@ local function start_surfaces()
   a.select = function(i) state.sel = i end
   a.has_machine = function(i) return parts.list[i].machine ~= nil end
   a.patch = function(d)
-    if parts.list[state.sel].machine then params:delta(parts.id(state.sel, "patch"), d) end
+    if parts.list[state.sel].machine then parts.delta(state.sel, "patch", d) end
   end
   a.machine = function(d) turn_machine(state.sel, d) end
   -- the encoder's tap closes a list, or swaps the play and card pages
@@ -562,7 +561,7 @@ local function start_surfaces()
   end
   a.macros = function() return part_macros() end
   a.parts = parts
-  a.slot_id = function(slot) return parts.id(state.sel, "s" .. slot) end
+  a.slot_id = function(slot) return "s" .. slot end
   a.midi = midi_event
   -- the OMX-27's port is a regular MIDI port again
   a.port_freed = function(port) if port then listen(port) end end
@@ -647,7 +646,7 @@ local function ready()
   parts.set_part(1, "Reflux", "Classic")
   parts.set_part(2, "Hexbeat", "Straight")
   for i = 1, parts.COUNT do
-    if parts.on(i) then parts.start_part(i) else parts.list[i].parked = true end
+    if parts.on(i) then parts.start_part(i) else parts.own[i].parked = true end
   end
   parts.on_presets = picker.presets
   parts.on_shape = picker.shape
@@ -676,6 +675,14 @@ function init()
   -- "parts" set to 8 or 16: a selected part that's hidden moves to its row
   -- in 1-8, closing a list, the file picker or the scope open on it
   parts.on_active = function(n)
+    -- "mpe part" offers the parts shown; one past them goes to off
+    local mp = params.lookup["mpe_part"] and params:lookup_param("mpe_part")
+    if mp then
+      if mp.selected > n + 2 then params:set("mpe_part", 2) end
+      local names = {"follow", "off"}
+      for k = 1, n do names[k + 2] = tostring(k) end
+      mp.options, mp.count = names, #names
+    end
     if state.sel > n then
       state.sel = state.sel - 8
       lists.close()
@@ -718,8 +725,7 @@ end
 part_macros = function()
   local part = parts.list[state.sel]
   if not part.machine then return {} end
-  local own = parts.patch_macros[part.machine]
-  return macros.resolve(part.machine, parts.defs[part.machine], own and own[parts.patch_key(state.sel)])
+  return macros.resolve(part.machine, parts.defs[part.machine], parts.part_macros(state.sel))
 end
 
 -- The selected part's card page state, its cards and pads.
@@ -937,12 +943,12 @@ local function turn_control(d)
   end
   -- an insert's param, or the machine's slot
   local sid = ctl.fx and ("fx" .. ctl.fx .. ":" .. ctl.index) or parts.id(state.sel, "s" .. ctl.slot)
-  local old = ctl.fx and parts.fx_value(state.sel, ctl) or params:get(sid)
+  local old = ctl.fx and parts.fx_value(state.sel, ctl) or parts.get(state.sel, "s" .. ctl.slot)
   local v = turned(sid, ctl.def, n, old, d, ctl.fx and n > 1)
   if ctl.fx then
     if v ~= old then parts.set_fx(state.sel, ctl, v) end
   else
-    params:set(sid, v)
+    parts.set(state.sel, "s" .. ctl.slot, v)
   end
 end
 
@@ -977,7 +983,7 @@ local function step_strip(d)
   end
 end
 
-local function toggle(pid) params:set(pid, params:get(pid) == 2 and 1 or 2) end
+local function toggle(i, key) parts.set(i, key, parts.get(i, key) == 2 and 1 or 2) end
 
 -- Encoder ticks a step takes. Picking from a list, a part, a card or a
 -- stepped control goes one step at a time; turning a value speeds up when
@@ -1033,7 +1039,7 @@ local function handle_key(n, z)
     -- the Nexus scope or the sample picker, by machine
     if z == 1 and not scope.open(parts, state.sel) then picker.open(parts, state.sel) end
   elseif state.page == "mixer" and not scope.active() and (n == 2 or n == 3) then
-    if z == 1 and not state.out then toggle(parts.id(state.sel, n == 2 and "mute" or "solo")) end
+    if z == 1 and not state.out then toggle(state.sel, n == 2 and "mute" or "solo") end
   elseif n == 2 and z == 1 and (state.page == "parts" or state.page == "play") then
     -- the patch list, or the machine picker with K1 or on an empty part
     if state.k1 or not lists.open_patches(parts, state.sel) then lists.open_machines(parts, state.sel) end
@@ -1076,13 +1082,14 @@ local function handle_enc(n, d)
       end
     elseif mixer and n == 2 then
       local pid = parts.id(i, "pan")
-      local old = params:get(pid)
-      params:delta(pid, d)
-      params:set(pid, sticky(pid, old, params:get(pid), 0, d))
+      local old = parts.get(i, "pan")
+      parts.delta(i, "pan", d)
+      local stuck = sticky(pid, old, parts.get(i, "pan"), 0, d)
+      if stuck ~= parts.get(i, "pan") then parts.set(i, "pan", stuck) end
     elseif mixer then
-      params:delta(parts.id(i, "volume"), d)
+      parts.delta(i, "volume", d)
     else
-      params:delta(parts.id(i, n == 2 and "rev" or "dly"), d)
+      parts.delta(i, n == 2 and "rev" or "dly", d)
     end
   elseif state.page == "play" then
     local ps = play_state()
@@ -1091,13 +1098,13 @@ local function handle_enc(n, d)
     elseif n == 2 then
       ps.focus = util.clamp(ps.focus + d, 0, macros.COUNT)
     elseif ps.focus == 0 then
-      if parts.list[i].machine then params:delta(parts.id(i, "patch"), d) end
+      if parts.list[i].machine then parts.delta(i, "patch", d) end
     else
       local mac = part_macros()[ps.focus]
       if mac and mac.slot then
         local sid = parts.id(i, "s" .. mac.slot)
-        local old = params:get(sid)
-        params:set(sid, turned(sid, mac.def, panel.positions({def = mac.def}), old, d))
+        local old = parts.get(i, "s" .. mac.slot)
+        parts.set(i, "s" .. mac.slot, turned(sid, mac.def, panel.positions({def = mac.def}), old, d))
       end
     end
   elseif state.page == "card" then
@@ -1135,11 +1142,12 @@ local function handle_enc(n, d)
     if state.k1 then
       turn_machine(i, d)
     elseif parts.list[i].machine then
-      params:delta(parts.id(i, "patch"), d)
+      parts.delta(i, "patch", d)
     end
   elseif n == 3 then
-    params:delta(parts.id(i, "volume"), d)
+    parts.delta(i, "volume", d)
   end
+
 end
 
 -- A norns key or encoder only wakes the screensaver; a key pressed to wake

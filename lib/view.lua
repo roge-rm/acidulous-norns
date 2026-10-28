@@ -15,9 +15,11 @@ local function machine_name(parts, part, w)
   return (m and m.short or name):lower()
 end
 
+-- A song track has its name first, then its machine.
 local function title(parts, i)
   local part = parts.list[i]
-  if not part.machine then return nil end
+  if not part.machine then return part.name and (part.n .. " " .. part.name:lower()) or nil end
+  if part.name then return part.n .. " " .. part.name:lower() .. "  " .. part.machine:lower() end
   local files = parts.material(i)
   return part.n .. " " .. part.machine:lower() .. "  " .. (files or part.patch or ""):lower()
 end
@@ -60,7 +62,8 @@ function view.main(parts, state, note)
     text(first > 1 and 3 or 4, y, tostring(i))
     if part.machine then
       if on and state.k1 then screen.level(15) end
-      text(mx, y, machine_name(parts, part, mw))
+      -- a song track's name stands where the machine's would
+      text(mx, y, part.name and fit(part.name:lower(), mw) or machine_name(parts, part, mw))
       screen.level(on and state.k1 and 6 or math.max(1, b - 3))
       if parts.mpe == i and state.mpe_missing then
         text(44, y, "mpe: no device")
@@ -69,10 +72,12 @@ function view.main(parts, state, note)
         -- the mpe mark: three bars of different heights, one per finger
         for k, h in ipairs({2, 4, 3}) do fill_rect(105 + 2 * k, y - h, 1, h, b) end
       else
-        text(44, y, fit((part.patch or ""):lower(), 68))
+        -- a song track with no patch name shows its machine
+        local patch = part.patch or (part.name and part.machine) or ""
+        text(44, y, fit(patch:lower(), 68))
       end
     else
-      text(mx, y, "-")
+      text(mx, y, part.name and fit(part.name:lower(), mw) or "-")
     end
     fill_rect(114, y - 4, 12, 3, 1)
     local w = math.floor(meter(part.level) * 12 + 0.5)
@@ -194,8 +199,7 @@ function view.card(parts, state, cards, ps, pads, panel, note)
       elseif ctl.fx then
         v = parts.fx_value(state.sel, ctl)
       else
-        local p = params:lookup_param(parts.id(state.sel, "s" .. ctl.slot))
-        v = p and p:get() or 0
+        v = parts.get(state.sel, "s" .. ctl.slot) or 0
       end
       if w ~= KNOB_W then
         draw_switch(parts, ctl, x, w, v, sel)
@@ -387,7 +391,8 @@ local function strip_title(parts, state, what, w)
   if state.out then return "out" .. tail end
   local part = parts.list[state.sel]
   if not part.machine then return part.n .. " -" .. tail end
-  local t = part.n .. " " .. part.machine:lower() .. tail
+  -- a song track goes by its name
+  local t = part.n .. " " .. (part.name or part.machine):lower() .. tail
   if not w or screen.text_extents(t) <= w then return t end
   local m = parts.machine_info(part.machine)
   t = part.n .. " " .. (m and m.short or part.machine):lower() .. tail
@@ -413,8 +418,8 @@ function view.mixer(parts, state, note)
   if state.out then
     left = strip_title(parts, state, db_text(parts.master_db()), w)
   else
-    left = strip_title(parts, state, db_text(params:get(parts.id(i, "volume"))) .. "  " ..
-      parts.pan_text(params:get(parts.id(i, "pan"))), w)
+    left = strip_title(parts, state, db_text(parts.get(i, "volume")) .. "  " ..
+      parts.pan_text(parts.get(i, "pan")), w)
   end
   header(parts, left, note, right)
   strip_frame(parts, state, state.out)
@@ -429,15 +434,15 @@ function view.mixer(parts, state, note)
     local m = math.floor(meter(part.level) * h + 0.5)
     if m > 0 then fill_rect(x + 1, bot - m, 2, m, sel and 15 or 9) end
     fill_rect(x + 7, top, 1, h, 4)
-    local fy = bot - math.floor(fader(params:get(parts.id(k, "volume"))) * h + 0.5)
+    local fy = bot - math.floor(fader(parts.get(k, "volume")) * h + 0.5)
     fill_rect(x + 5, fy - 1, 5, 3, sel and 15 or 9)
     fill_rect(x + 2, 57, 9, 1, 2)
-    local pan = x + 6 + math.floor(params:get(parts.id(k, "pan")) * 4 + 0.5)
+    local pan = x + 6 + math.floor(parts.get(k, "pan") * 4 + 0.5)
     fill_rect(pan, 56, 1, 2, sel and 15 or 9)
     screen.level(15)
     -- s reaches the baseline, so 63 keeps it on screen. Placed on a whole
     -- pixel, as centring an even width blurs it.
-    local mark = params:get(parts.id(k, "mute")) == 2 and "m" or (params:get(parts.id(k, "solo")) == 2 and "s")
+    local mark = parts.get(k, "mute") == 2 and "m" or (parts.get(k, "solo") == 2 and "s")
     if mark then text(x + 6 - screen.text_extents(mark) // 2, 63, mark) end
   end
   -- out
@@ -467,8 +472,8 @@ function view.sends(parts, state, note)
     right = string.format("size %d  fdbk %d", math.floor(params:get("rev_size") * 100 + 0.5),
       math.floor(params:get("dly_feedback") * 100 + 0.5))
   else
-    right = string.format("rev %d  dly %d", math.floor(params:get(parts.id(i, "rev")) * 100 + 0.5),
-      math.floor(params:get(parts.id(i, "dly")) * 100 + 0.5))
+    right = string.format("rev %d  dly %d", math.floor(parts.get(i, "rev") * 100 + 0.5),
+      math.floor(parts.get(i, "dly") * 100 + 0.5))
   end
   local first, bank = shown(parts, state)
   right = with_bank(parts, bank, right)
@@ -478,8 +483,8 @@ function view.sends(parts, state, note)
     local k = first + c - 1
     local x = 1 + (c - 1) * 13
     local sel = not state.out and k == i
-    knob(x + 5, 28, 5, params:get(parts.id(k, "rev")), 3, sel and 15 or 8)
-    knob(x + 5, 50, 5, params:get(parts.id(k, "dly")), 3, sel and 15 or 8)
+    knob(x + 5, 28, 5, parts.get(k, "rev"), 3, sel and 15 or 8)
+    knob(x + 5, 50, 5, parts.get(k, "dly"), 3, sel and 15 or 8)
   end
   screen.level(state.out and 15 or 6)
   text(116, 21, "rev", "center")
@@ -575,8 +580,8 @@ function view.omx(parts, state, list, omx)
     label, v, readout = omx.mod_readout(f)
   else
     local mac = f and list[f.k]
-    local p = mac and mac.slot and params:lookup_param(parts.id(state.sel, "s" .. mac.slot))
-    if p then label, v, readout = mac.label, p:get(), parts.readout(mac.def, p:get()) end
+    local v1 = mac and mac.slot and parts.get(state.sel, "s" .. mac.slot)
+    if v1 then label, v, readout = mac.label, v1, parts.readout(mac.def, v1) end
   end
   if label then
     text(0, 7, label)
