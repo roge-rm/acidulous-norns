@@ -4,7 +4,18 @@ acidulous puts the machines from my [Acidulous](https://github.com/roge-rm/Acidu
 
 There are 8 parts. Each one plays a machine and patch on its own MIDI channel, so you can play a bassline, a beat and a pad from one keyboard or sequencer. One part at a time can take MPE.
 
-![The parts page](docs/images/parts.png) ![A Reflux card](docs/images/card.png) ![The patch list](docs/images/patches.png) ![The mixer](docs/images/mixer.png)
+![The play page with Reflux, Hexbeat, Tine, Fret, Brazen, Aviary, Mosaic and Diction playing in turn](docs/images/play.gif)
+
+<p>
+<img src="docs/images/parts.png" alt="The parts page with 8 parts playing" width="400">
+<img src="docs/images/mixer.png" alt="The mixer" width="400">
+<img src="docs/images/card.png" alt="Reflux's filter card" width="400">
+<img src="docs/images/env.png" alt="Mosaic's amp envelope card" width="400">
+<img src="docs/images/mods.png" alt="The mods card with Scale, Chord and Arp" width="400">
+<img src="docs/images/patches.png" alt="Tine's patch list with its family tabs" width="400">
+<img src="docs/images/machines.png" alt="The machine picker" width="400">
+<img src="docs/images/splash.png" alt="The splash screen" width="400">
+</p>
 
 This has been tested on my [shieldXL](https://github.com/okyeron/shieldXL) with a Pi 4 inside. It should run on a Pi 3 norns too, with fewer of the heavy machines at once. If you try it on one please let me know how it goes, or open an issue here.
 
@@ -36,7 +47,7 @@ Dan
 
 1. In maiden, open the project list, find acidulous and press **install**. Or over ssh, `git clone https://github.com/roge-rm/acidulous-norns ~/dust/code/acidulous`. The folder needs to be called acidulous for it to show as acidulous in **SELECT**.
 2. Load acidulous from **SELECT**.
-3. The first time, it installs its SuperCollider plugin and restarts SuperCollider, then loads by itself. This takes about 20 seconds.
+3. The first time, it installs its SuperCollider plugin and restarts SuperCollider, then loads by itself. This takes about 20 seconds. The acidulous icon shows while it starts.
 
 If SuperCollider won't start after you've been logged in over ssh, restart the norns.
 
@@ -49,7 +60,7 @@ If SuperCollider won't start after you've been logged in over ssh, restart the n
 
 ### Play
 
-The play page shows the selected part's machine, patch and five macros. The bottom shows the part number, MPE status, keys connection and load. The macros match the OMX-27's pots.
+The play page shows the selected part's machine, patch and five macros, with a little picture of the machine that moves as it plays. Each machine group has its own look. The bottom line shows the part number, the MPE mark or keys, the part's key and scale when it has a Scale, and the load when it's busy. The macros match the OMX-27's pots.
 
 - E1 changes machine, E2 picks the patch or a macro and E3 changes it. Hold K1 for fine steps.
 - K2 opens patches, K1 + K2 opens machines and K3 plays a note.
@@ -136,7 +147,7 @@ Plug it in by USB and acidulous puts it in REMOTE mode.
 - The keys play the selected part.
 - **AUX** + the two top left keys: octave down and up.
 - **AUX** + the first 8 bottom keys: pick parts 1 to 8.
-- **AUX** + the top keys 3 to 6 turn the part's scale, chord, arp and latch on and off, lit while on. Latch is the arp's, or the chord's when there's no arp. A part has 2 modifier slots; with both taken the screen says **slots full**. Off keeps the modifier's settings.
+- **AUX** + the top keys 3 to 6 turn the part's scale, chord, arp and latch on and off, lit while on. Latch is the arp's, or the chord's when there's no arp. A part has 3 modifier slots; with all of them taken the screen says **slots full**. Off keeps the modifier's settings.
 - **AUX** + key 3 held: a key picks the root and the encoder the scale, and tapping the encoder swaps snap and degree. In degree mode the white keys play the scale, starting from the root.
 - **AUX** + key 4 held: the encoder picks the chord type.
 - With **AUX** held the pots are the arp's rate, gate, mode and octaves and the chord type, picked up the same way as the macros.
