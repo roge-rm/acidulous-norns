@@ -1,4 +1,5 @@
 #include "Dice.h"
+#include <engine/core/HeldBytes.h>
 #include <engine/machine/Voices.h>
 #include <algorithm>
 #include <cmath>
@@ -189,6 +190,8 @@ void Dice::reset() {
 void Dice::allNotesOff() {
     for (auto &v : voices) v.used = false;
 }
+
+int64_t Dice::heldBytes() const { return held::bytes(take); }
 
 void *Dice::swapObject(int32_t slot, void *object) {
     if (slot != 0) return object;

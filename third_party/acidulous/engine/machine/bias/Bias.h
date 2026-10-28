@@ -76,6 +76,7 @@ class Bias final : public Machine {
 
     /** Slot 0 is the reel. Nothing else is mounted here. */
     void *swapObject(int32_t slot, void *object) override;
+    int64_t heldBytes() const override;
     // Frees what was mounted and not swapped back out (on the retire worker).
     ~Bias() override;
 

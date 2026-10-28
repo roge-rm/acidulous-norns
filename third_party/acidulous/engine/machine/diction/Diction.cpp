@@ -1,4 +1,5 @@
 #include "Diction.h"
+#include <engine/core/HeldBytes.h>
 #include <engine/machine/Voices.h>
 #include <algorithm>
 #include <cmath>
@@ -433,6 +434,23 @@ void Diction::reset() {
     nextNote = 0;
     updateMacros();
 }
+
+namespace {
+int64_t voiceBytes(const diction::RecordedVoice *v) {
+    if (v == nullptr) return 0;
+    auto tract = [](const diction::RecordedVoice::Tract &t) {
+        return held::bytes(t.source) + held::bytes(t.k) + held::bytes(t.gain) + held::bytes(t.lsf);
+    };
+    int64_t n = 0;
+    for (const auto *units : {&v->vowels, &v->diphthongs}) {
+        for (const auto &u : *units) n += held::bytes(u.sound) + tract(u.tract);
+    }
+    for (const auto &j : v->joins) n += held::bytes(j.sound) + tract(j.tract);
+    return n;
+}
+} // namespace
+
+int64_t Diction::heldBytes() const { return voiceBytes(voice) + voiceBytes(voiceB); }
 
 void *Diction::swapObject(int32_t slot, void *object) {
     if (slot == 1) {

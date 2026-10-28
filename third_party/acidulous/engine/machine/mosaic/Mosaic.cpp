@@ -1,4 +1,5 @@
 #include "Mosaic.h"
+#include <engine/core/HeldBytes.h>
 #include <array>
 #include <algorithm>
 #include <engine/machine/Voices.h>
@@ -228,6 +229,8 @@ void Mosaic::reset() {
     cc[10] = 64.0f / 127.0f;
     updateMacros();
 }
+
+int64_t Mosaic::heldBytes() const { return held::bytes(map); }
 
 void *Mosaic::swapObject(int32_t slot, void *object) {
     if (slot != 0) return object;

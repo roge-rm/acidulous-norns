@@ -1,4 +1,5 @@
 #include "EngineHost.h"
+#include <engine/core/HeldBytes.h>
 
 #include <engine/dsp/Denormals.h>
 #include <engine/machine/diction/Cutter.h>
@@ -2682,6 +2683,45 @@ float EngineHost::paramNormalized(int rack, const std::string &unit, const std::
     }
     if (u == Unit::Channel) return sEngine.racks[rack].channelNormalized(index);
     return -1.0f;
+}
+
+const char *EngineHost::mountedModifier(int rack, int slot) const {
+    return (rack >= 0 && rack < kRackCount && slot >= 0 && slot < kInputModSlots) ? mountedModifierType[rack][slot].c_str() : "";
+}
+const char *EngineHost::mountedSend(int slot) const {
+    return (slot >= 0 && slot < kSendSlots) ? mountedSendType[slot].c_str() : "";
+}
+const char *EngineHost::mountedMasterInsert(int slot) const {
+    return (slot >= 0 && slot < kMasterInsertSlots) ? mountedMasterInsertType[slot].c_str() : "";
+}
+const char *EngineHost::mountedGroupInsert(int group, int slot) const {
+    return (group >= 0 && group < kGroupSlots && slot >= 0 && slot < kGroupInsertSlots)
+               ? mountedGroupInsertType[group][slot].c_str()
+               : "";
+}
+
+float EngineHost::sendParamNormalized(int slot, const std::string &name) const {
+    if (slot < 0 || slot >= kSendSlots) return -1.0f;
+    const auto live = sEngine.readLive(); // it may be being replaced (see Retirer::ReadGuard)
+    const int index = paramIndex(mountedSendType[slot], slot == 0 ? "send1" : "send2", name);
+    if (index == -1) return -1.0f;
+    Effect *fx = sEngine.master.send(slot);
+    if (fx == nullptr) return -1.0f;
+    return index == kEffectBypassIndex ? (fx->bypassed() ? 1.0f : 0.0f) : fx->params().normalized(index);
+}
+
+bool EngineHost::loopSong() const { return sEngine.transport.loopSong(); }
+
+int32_t EngineHost::swingUnit() const {
+    return sEngine.swingPair.load(std::memory_order_relaxed) == seq::Swing::kEighths ? 1 : 0;
+}
+
+int64_t EngineHost::bytesHeld(int rack) const {
+    if (rack < 0 || rack >= kRackCount) return 0;
+    const auto live = sEngine.readLive(); // it may be being replaced (see Retirer::ReadGuard)
+    const Rack &r = sEngine.racks[rack];
+    const Machine *m = r.currentMachine();
+    return (m != nullptr ? m->heldBytes() : 0) + held::bytes(r.currentFrozen());
 }
 
 uint32_t EngineHost::notesOff(int rack) const {

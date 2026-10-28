@@ -1,4 +1,5 @@
 #include "Bias.h"
+#include <engine/core/HeldBytes.h>
 #include <cmath>
 #include <engine/core/Constants.h>
 #include <engine/core/InputBus.h>
@@ -104,6 +105,8 @@ void Bias::reset() {
     muted = false;
     params_.jumpAll();
 }
+
+int64_t Bias::heldBytes() const { return held::bytes(reel); }
 
 void *Bias::swapObject(int32_t slot, void *object) {
     if (slot != 0) return object; // nothing else is mounted here, so hand it back

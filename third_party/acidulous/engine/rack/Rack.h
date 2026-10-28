@@ -183,6 +183,8 @@ class Rack {
     void updateScene(int64_t sceneId, int64_t cycleTick, bool playing, bool rolling, int64_t tickStart,
                      int64_t tickInBar, int32_t ticksPerBar, int64_t swingPair);
     bool frozenActive() const { return frozenNow != nullptr; }
+    /** The mounted frozen set, or null. Read off the audio thread under Engine::readLive. */
+    const FrozenSet *currentFrozen() const { return frozenSet; }
     /** Where in the frozen clip this block starts. Called before render(). */
     void syncFrozen(int64_t tickInIteration, float bpm);
     /** Returns the old set for the caller to retire. */

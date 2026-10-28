@@ -1,4 +1,5 @@
 #include "Molt.h"
+#include <engine/core/HeldBytes.h>
 #include <engine/machine/Voices.h>
 #include <algorithm>
 #include <cmath>
@@ -294,6 +295,8 @@ void Molt::notePressure(uint8_t note, uint8_t value) {
         if (v.used && v.gate && v.note == note) v.pressure = static_cast<float>(value) / 127.0f;
     }
 }
+
+int64_t Molt::heldBytes() const { return held::bytes(source); }
 
 void *Molt::swapObject(int32_t slot, void *object) {
     if (slot != 0) return object;

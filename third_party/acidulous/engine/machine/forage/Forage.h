@@ -61,6 +61,7 @@ class Forage final : public Machine {
     void allNotesOff() override;
     bool render(float *L, float *R, int32_t frames) override;
     void *swapObject(int32_t slot, void *object) override;
+    int64_t heldBytes() const override;
     // Frees what was mounted and not swapped back out (on the retire worker).
     ~Forage() override;
 

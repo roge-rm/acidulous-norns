@@ -1,4 +1,5 @@
 #include "Pollen.h"
+#include <engine/core/HeldBytes.h>
 #include <engine/core/Settings.h>
 #include <engine/machine/Voices.h>
 #include <algorithm>
@@ -226,6 +227,8 @@ void Pollen::reset() {
     finder.reset(sampleRate);
     updateMacros();
 }
+
+int64_t Pollen::heldBytes() const { return held::bytes(source); }
 
 void *Pollen::swapObject(int32_t slot, void *object) {
     if (slot != 0) return object;

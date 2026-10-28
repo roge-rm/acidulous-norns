@@ -621,6 +621,23 @@ class EngineHost {
     // The normalised 0..1 value of a rack unit's parameter, or -1. UI thread.
     float paramNormalized(int rack, const std::string &unit, const std::string &name) const;
 
+    // What each slot was last mounted with, by the name the mount took; "" when empty. Any thread but audio.
+    const char *mountedModifier(int rack, int slot) const;
+    const char *mountedSend(int slot) const;
+    const char *mountedMasterInsert(int slot) const;
+    const char *mountedGroupInsert(int group, int slot) const;
+    /** Like paramNormalized, for send [slot]'s effect: 0..1, bypass 0 or 1, or -1. UI thread. */
+    float sendParamNormalized(int slot, const std::string &name) const;
+    bool loopSong() const;
+    /** 1 for eighths, 0 for sixteenths, as setSwingUnit takes it. */
+    int32_t swingUnit() const;
+    /**
+     * Bytes of decoded audio [rack] holds: its machine's samples, takes,
+     * SoundFont, voice or reel (resident sources only) and its frozen clips.
+     * UI thread; allocates a little.
+     */
+    int64_t bytesHeld(int rack) const;
+
   private:
     EngineHost() = default;
     ~EngineHost();

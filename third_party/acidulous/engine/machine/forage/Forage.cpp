@@ -1,4 +1,5 @@
 #include "Forage.h"
+#include <engine/core/HeldBytes.h>
 #include <engine/machine/Voices.h>
 #include <algorithm>
 #include <cmath>
@@ -187,6 +188,12 @@ void Forage::reset() {
 }
 
 void Forage::allNotesOff() {}
+
+int64_t Forage::heldBytes() const {
+    int64_t n = held::bytes(shared);
+    for (const auto &p : pads) n += held::bytes(p.sample);
+    return n;
+}
 
 void *Forage::swapObject(int32_t slot, void *object) {
     if (slot == kSharedSlot) {

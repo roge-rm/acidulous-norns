@@ -130,6 +130,12 @@ class Machine {
     virtual void *swapObject(int32_t /*slot*/, void *object) { return object; }
 
     /**
+     * Bytes of decoded audio the mounted objects hold (see core/HeldBytes.h).
+     * Read off the audio thread under Engine::readLive.
+     */
+    virtual int64_t heldBytes() const { return 0; }
+
+    /**
      * The rack this machine listens to, as an effect's detector does (see
      * Effect::sidechainRack): a stepped parameter named `sidechain`, 0 for
      * none and 1..16 for a rack. -1 for none, or a machine without one.
