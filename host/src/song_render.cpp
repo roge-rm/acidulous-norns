@@ -164,6 +164,8 @@ int main(int argc, char** argv)
     replay.afterLine = [](int) { pull_blocks(1); };
     if(!acidulous::lines::replay(text.str(), replay))
     {
+        jniweb::arena().clear();
+        Java_com_rm_acidulous_engine_EngineNative_nativeStop(&env, nullptr);
         cleanup();
         return 1;
     }

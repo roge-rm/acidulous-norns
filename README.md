@@ -47,7 +47,7 @@ Dan
 
 1. In maiden, open the project list, find acidulous and press **install**. Or over ssh, `git clone https://github.com/roge-rm/acidulous-norns ~/dust/code/acidulous`. The folder needs to be called acidulous for it to show as acidulous in **SELECT**.
 2. Load acidulous from **SELECT**.
-3. The first time, it installs its SuperCollider plugin and restarts SuperCollider, then loads by itself. This takes about 20 seconds. The acidulous icon shows while it starts.
+3. The first time, it installs its SuperCollider plugin and restarts SuperCollider, then loads by itself. This takes about 20 seconds. After that, the acidulous icon shows while it starts.
 
 If SuperCollider won't start after you've been logged in over ssh, restart the norns.
 
@@ -60,7 +60,7 @@ If SuperCollider won't start after you've been logged in over ssh, restart the n
 
 ### Play
 
-The play page shows the selected part's machine, patch and five macros, with a little picture of the machine that moves as it plays. Each machine group has its own look. The bottom line shows the part number, the MPE mark or keys, the part's key and scale when it has a Scale, and the load when it's busy. The macros match the OMX-27's pots.
+The play page shows the selected part's machine, patch and five macros, with a little picture of the machine that moves as it plays. Each machine group has its own look. The bottom line shows the part number, the MPE mark and keys, the part's key and scale when it has a Scale, and the load when it's busy. The macros match the OMX-27's pots.
 
 - E1 changes machine, E2 picks the patch or a macro and E3 changes it. Hold K1 for fine steps.
 - K2 opens patches, K1 + K2 opens machines and K3 plays a note.
