@@ -628,6 +628,13 @@ class EngineHost {
     const char *mountedGroupInsert(int group, int slot) const;
     /** Like paramNormalized, for send [slot]'s effect: 0..1, bypass 0 or 1, or -1. UI thread. */
     float sendParamNormalized(int slot, const std::string &name) const;
+    /**
+     * The master section's parameter [name] ("volume", "limiteron", "limiterdrive", the click, the
+     * group strips...) as setParam's unit "master" takes it: 0..1, or -1. UI thread.
+     */
+    float masterParamNormalized(const std::string &name) const;
+    /** Like sendParamNormalized, for master insert [slot]'s effect: 0..1, bypass 0 or 1, or -1. UI thread. */
+    float masterInsertParamNormalized(int slot, const std::string &name) const;
     bool loopSong() const;
     /** 1 for eighths, 0 for sixteenths, as setSwingUnit takes it. */
     int32_t swingUnit() const;

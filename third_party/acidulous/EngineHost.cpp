@@ -2710,6 +2710,22 @@ float EngineHost::sendParamNormalized(int slot, const std::string &name) const {
     return index == kEffectBypassIndex ? (fx->bypassed() ? 1.0f : 0.0f) : fx->params().normalized(index);
 }
 
+float EngineHost::masterParamNormalized(const std::string &name) const {
+    const auto live = sEngine.readLive(); // it may be being replaced (see Retirer::ReadGuard)
+    const int index = sEngine.master.params().indexOf(name.c_str());
+    return index < 0 ? -1.0f : sEngine.master.params().normalized(index);
+}
+
+float EngineHost::masterInsertParamNormalized(int slot, const std::string &name) const {
+    if (slot < 0 || slot >= kMasterInsertSlots) return -1.0f;
+    const auto live = sEngine.readLive(); // it may be being replaced (see Retirer::ReadGuard)
+    const int index = paramIndex(mountedMasterInsertType[slot], slot == 0 ? "master1" : "master2", name);
+    if (index == -1) return -1.0f;
+    Effect *fx = sEngine.master.insert(slot);
+    if (fx == nullptr) return -1.0f;
+    return index == kEffectBypassIndex ? (fx->bypassed() ? 1.0f : 0.0f) : fx->params().normalized(index);
+}
+
 bool EngineHost::loopSong() const { return sEngine.transport.loopSong(); }
 
 int32_t EngineHost::swingUnit() const {
