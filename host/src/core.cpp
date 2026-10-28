@@ -411,6 +411,7 @@ Core::~Core()
     // unmounts apply at the top of a block, at most kMaxMountsPerBlock (8) a
     // block, so a few blocks are pulled here since the UGen no longer runs
     // this core. A retired machine frees what was mounted into it.
+    drop_song();
     for(int p = 0; p < kParts; ++p)
     {
         host.unmountMachine(p);
@@ -427,10 +428,12 @@ Core::~Core()
             host.mountSend(s, "");
     host.setMpeZone(0, 15, 48);
     // The UGen has stopped calling process(), but a pull may still be
-    // finishing, so a pull that fails is tried again, for up to 50 ms. 8
-    // machines, 16 inserts and 2 sends take 4 blocks; 6 leaves room.
+    // finishing, so a pull that fails is tried again, for up to 100 ms. 16
+    // machines, 32 inserts, 48 modifiers, 2 sends and a song's arrangement,
+    // frozen clips and master and group inserts take about 16 blocks at 8
+    // mounts a block; 24 leaves room.
     float in[kBlockFrames * 2] = {}, out[kBlockFrames * 2];
-    for(int tries = 0, pulled = 0; tries < 50 && pulled < 6; ++tries)
+    for(int tries = 0, pulled = 0; tries < 100 && pulled < 24; ++tries)
     {
         if(AudioDriver::pull(in, out))
             ++pulled;
@@ -580,6 +583,25 @@ void Core::post_part(int part, std::function<void()> job)
     });
 }
 
+// A job for every part: messages for any part wait behind it.
+void Core::post_all(std::function<void()> job)
+{
+    for(auto& n : pending)
+        n.fetch_add(1, std::memory_order_acq_rel);
+    post([this, job = std::move(job)] {
+        struct Done
+        {
+            std::atomic<int>* n;
+            ~Done()
+            {
+                for(int p = 0; p < kParts; ++p)
+                    n[p].fetch_sub(1, std::memory_order_acq_rel);
+            }
+        } done{pending};
+        job();
+    });
+}
+
 // A queued mount is applied at the start of the next block that starts after
 // it, so two finished blocks are enough. If nothing is rendering this gives up
 // after half a second. The render tool runs jobs inline between blocks, where
@@ -617,6 +639,10 @@ void Core::reset()
     mpe_kind.store(0);
     mpe_members.store(15);
     host.setMpeZone(0, 15, mpe_bend.load());
+    post_all([this] {
+        if(!song_folder.empty())
+            clear_song();
+    });
     for(int p = 0; p < kParts; ++p)
         post_part(p, [this, p] {
             unmount(p);
@@ -804,6 +830,23 @@ bool Core::command(const std::string& path, const Args& a)
         const int part = to_int(a[0]);
         if(part_ok(part))
             post_part(part, [this, part, m = to_str(a[1]), n = to_str(a[2])] { load_patch(part, m, n); });
+        return true;
+    }
+    if(path == "/song_load" && a.size() >= 1)
+    {
+        // s:path [s:songs_dir]. Every part waits behind it.
+        std::string dir = a.size() > 1 ? to_str(a[1]) : std::string();
+        if(dir.empty())
+        {
+            const char* home = std::getenv("HOME");
+            dir              = std::string(home && *home ? home : "/home/we") + "/dust/data/acidulous/songs";
+        }
+        post_all([this, p = to_str(a[0]), dir] { load_song(p, dir); });
+        return true;
+    }
+    if(path == "/song_unload")
+    {
+        post_all([this] { unload_song(); });
         return true;
     }
     if(path == "/state" && a.size() >= 1)
@@ -1407,8 +1450,9 @@ void Core::apply_chain(int part, const acidulous::PatchChain& chain, const std::
 // "/inserts i:part" and per mounted insert slot "i:slot s:type i:count" and
 // count params of "s:name f:min f:max f:default s:unit i:steps s:curve
 // f:value01", as /def has them. The values are the ones the patch set, or the
-// defaults. [at] is the insert the patch put in each slot, or null.
-void Core::send_inserts(int part, const acidulous::PatchInsert* const at[kEffectSlots])
+// defaults (with [live], what the engine holds). [at] is the insert the patch
+// put in each slot, or null.
+void Core::send_inserts(int part, const acidulous::PatchInsert* const at[kEffectSlots], bool live)
 {
     Args out{Value::i(part)};
     for(int slot = 0; slot < kEffectSlots; ++slot)
@@ -1428,6 +1472,12 @@ void Core::send_inserts(int part, const acidulous::PatchInsert* const at[kEffect
         {
             const ParamDef& d = defs[i];
             float           v = d.unmap(d.def);
+            if(live && !fx)
+            {
+                const float now = host.paramNormalized(part, slot == 0 ? "effect1" : "effect2", d.name);
+                if(now >= 0.f)
+                    v = now;
+            }
             if(fx)
                 for(const auto& kv : fx->params)
                     if(kv.first == d.name)

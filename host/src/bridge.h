@@ -1,6 +1,7 @@
 // OSC link between the core and the norns script, over liblo.
 //
-// In (UDP, `port`, default 57150). Parts are 0-7, channels 1-16, values 0-1:
+// In (UDP, `port`, default 57150). Parts are 0-15 (the script uses 0-7
+// outside songs), channels 1-16, values 0-1:
 //   /mount i:part s:machine        /unmount i:part
 //   /note i:part i:ch i:note i:vel  velocity 0 is note off
 //   /cc i:part i:ch i:num i:val    /bend i:part i:ch i:value14 (8192 centre)
@@ -78,6 +79,18 @@
 //   /shape s:path                      a file's length and shape, for the picker
 //   /hear [s:path]                     plays a file once over everything, up
 //        to 30 seconds of it; no path stops it
+//   /song_load s:path [s:songs_dir]    a song zip from the app, unpacked
+//        into songs_dir/<zip name>/ (default ~/dust/data/acidulous/songs),
+//        or a folder holding one already unpacked. Every part is emptied, then
+//        its engine.txt replayed (machines, patches, inserts, sends, modifiers,
+//        the arrangement, frozen clips) and each part takes what its rack has.
+//        Messages for any part wait for it. A zip over 128 MB unpacked, one
+//        without engine.txt or with a name outside its folder is refused and
+//        what's loaded stays. The transport is left stopped
+//   /song_unload                       empties every part and what the song
+//        put around them (arrangement, frozen clips, master and group
+//        inserts, tunings, channel strips, master and perform params); does
+//        nothing but reply when no song is loaded
 //   /state i:part                      for tests
 //   /mpe_state                         for tests
 // Out (to `reply` on localhost, matron's 10111):
@@ -133,6 +146,13 @@
 //   /hear s:path f:seconds             once it starts, "" when stopped
 //   /error s:text [i:part s:kind s:path i:arg s:machine]   a failed /load has
 //        the rest
+//   /song_loaded s:path s:folder s:error i:skipped i:count (i:part s:machine
+//        s:patch s:track)*count   after each part's /mounted, /macro_names,
+//        /macros and /graph (Nexus), /values, /patch, /sends, /inserts (with the
+//        song's values) and /mods. error "" when it loaded; skipped is the
+//        engine lines that failed, each also an /error "song: line N: ...".
+//        patch and track are the names in song.json, "" if it has none
+//   /song_unloaded                     after the parts' /mounted "" and /inserts
 //   /preset_saved i:part s:path s:result   "ok" or what went wrong
 //   /preset_loaded i:part s:tag s:name s:error i:index   after its /values and /patch
 //        and the /loaded for its files; error "" when it loaded. A missing

@@ -52,9 +52,9 @@ target_link_libraries(acidulous-engine PUBLIC Threads::Threads)
 # Also linked into the SuperCollider plugin.
 set_property(TARGET acidulous-engine PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-add_library(acidulous-core STATIC src/core.cpp)
+add_library(acidulous-core STATIC src/core.cpp src/song.cpp)
 target_compile_options(acidulous-core PRIVATE -Wall)
-target_link_libraries(acidulous-core PUBLIC acidulous-engine)
+target_link_libraries(acidulous-core PUBLIC acidulous-lines acidulous-engine)
 set_property(TARGET acidulous-core PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 add_executable(acidulous-render src/render.cpp)
@@ -95,6 +95,12 @@ target_link_libraries(acidulous-limit-test acidulous-core)
 add_executable(acidulous-preset-test tests/preset_test.cpp)
 target_include_directories(acidulous-preset-test PRIVATE src)
 target_link_libraries(acidulous-preset-test acidulous-core)
+
+# Loads a song zip through the core and checks every rack.
+add_executable(acidulous-song-test tests/song_test.cpp)
+target_include_directories(acidulous-song-test PRIVATE src)
+target_compile_options(acidulous-song-test PRIVATE -Wall)
+target_link_libraries(acidulous-song-test acidulous-core)
 
 # Scale, Chord and Arp on a part, and the notes that reach the machine.
 add_executable(acidulous-mod-test tests/mod_test.cpp)

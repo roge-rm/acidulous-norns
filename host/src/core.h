@@ -68,7 +68,8 @@ struct Replier
     virtual void reply(const char* path, const Args& args) = 0;
 };
 
-constexpr int kParts = 8;
+// A part is a rack. The script shows 8; a song can fill all 16.
+constexpr int kParts = acidulous::kRackCount;
 // Send buses: 0 reverb, 1 delay.
 constexpr int kSends = 2;
 // Modifier slots a part has.
@@ -158,6 +159,7 @@ class Core
 
     void post(std::function<void()> job);
     void post_part(int part, std::function<void()> job);
+    void post_all(std::function<void()> job);
     void wait_applied();
     void worker_loop();
     void reply(const char* path, const Args& args);
@@ -214,7 +216,8 @@ class Core
     void set_channel(int part, const Value& which, float v01);
     void ensure_send(int slot);
     void apply_chain(int part, const acidulous::PatchChain& chain, const std::string& what);
-    void send_inserts(int part, const acidulous::PatchInsert* const at[acidulous::kEffectSlots]);
+    // live: values from the engine for slots no patch filled, else defaults.
+    void send_inserts(int part, const acidulous::PatchInsert* const at[acidulous::kEffectSlots], bool live = false);
     void set_fx(int part, int slot, const std::string& name, float v01);
     void set_send(int slot, const std::string& name, float v01);
     void set_mod(int part, int slot, const std::string& type);
@@ -226,6 +229,15 @@ class Core
     void send_graph(int part);
     void set_scope(int part, int slot);
     bool push_param(int part, const char* unit, const std::string& name, float v01);
+    // Songs (song.cpp). Worker thread.
+    void load_song(const std::string& path, const std::string& songs_dir);
+    void unload_song();
+    void clear_song();
+    void drop_song();
+    void song_defaults(bool now);
+    void scan_song_mounts(const std::string& text);
+    void read_back(int part, const void* track);
+    bool next_block();
     struct BankCache;
     std::shared_ptr<BankCache> bank(const std::string& machine); // null if it can't be read
 
@@ -280,6 +292,14 @@ class Core
     acidulous::PatchTrackState  patch_fx[kParts];
     std::string                 mod_types[kParts][kModSlots]; // on the worker: what each modifier slot has
     bool                        mod_bypass[kParts][kModSlots] = {}; // on the worker
+    // Worker only: the loaded song's folder, "" for none, and what its lines
+    // mounted that EngineHost doesn't report: modifier types per part and
+    // slot, sends (slot, type), master insert slots, group inserts (group, slot).
+    std::string                      song_folder;
+    std::vector<std::string>         song_mods;
+    std::vector<std::pair<int, std::string>> song_sends;
+    std::vector<int>                 song_master_fx;
+    std::vector<std::pair<int, int>> song_group_fx;
     std::atomic<bool>            metering{false};
     // The part whose scope is open, or -1, and the module slot it's cabled
     // from. Written by the worker.
