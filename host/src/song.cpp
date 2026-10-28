@@ -685,21 +685,14 @@ bool write_file(const std::string& path, const std::vector<uint8_t>& bytes, std:
 
 } // namespace
 
-// Notes what a mount line the engine took put in place, for what EngineHost
-// doesn't say back: modifiers, sends, master and group inserts. The last
-// line for a slot wins.
+// Notes what a line the engine took put in place that EngineHost doesn't
+// say back: Mosaic's zones. The last line for a rack wins.
 void Core::note_song_mount(const std::string& line)
 {
-    if(line.compare(0, 12, "MountMachine") != 0 && line.compare(0, 4, "Load") != 0 &&
-       line.compare(0, 9, "SetParam ") != 0)
+    if(line.compare(0, 12, "MountMachine") != 0 && line.compare(0, 4, "Load") != 0)
         return;
     const auto w = words(line);
     const auto n = [&](size_t k) { return k < w.size() ? std::atoi(w[k].c_str()) : -1; };
-    if(w.size() >= 5 && w[0] == "SetParam" && n(1) == 0 && w[2] == "master" && w[3] == "volume")
-    {
-        song_master = float(std::atof(w[4].c_str()));
-        return;
-    }
     // Mosaic's zones as Part::zones holds them: the spec with zip: paths
     // made absolute. A machine or SoundFont after them replaces them.
     if(w.size() >= 3 && w[0] == "LoadZoneMap" && n(1) >= 0 && n(1) < kParts)
@@ -788,7 +781,9 @@ void Core::clear_song(bool quiet)
         host.setTuning(p, nullptr);
     }
     quiet_inserts = false;
-    song_defaults(false);
+    // Without blocks the param queue doesn't drain, so the defaults go in
+    // without waiting and resync_teardown sets them again.
+    song_defaults(!moving);
     if(had_song)
         restore_sends();
     {
@@ -796,6 +791,7 @@ void Core::clear_song(bool quiet)
         song_held = 0;
     }
     song_folder.clear();
+    song_from.clear();
     song_scenes.clear();
     song_zones.clear();
     song_on.store(false);
@@ -803,6 +799,11 @@ void Core::clear_song(bool quiet)
     teardown_dirty = !moving || !next_block() || any_stray();
     if(!teardown_dirty)
         stray_sends = false;
+    else
+    {
+        resync_song = resync_song || had_song;
+        teardowns_stalled.fetch_add(1);
+    }
 }
 
 // Whether the engine holds a machine or insert on a part the core has as
@@ -825,10 +826,17 @@ bool Core::any_stray() const
 // Finishes a teardown that ran without blocks, once they're back: the
 // arrangement, frozen clips, and every machine, insert and modifier on a
 // part the core has as empty, the song's master and group inserts and sends,
-// and the master params, tempo and loop settings. Worker thread, between
-// jobs.
+// the channel strips of empty parts, the master params (the script's own
+// on top of the defaults), tempo and loop settings. A song loaded since was
+// replayed on blocks and read back, so it's left alone. Worker thread,
+// between jobs.
 void Core::resync_teardown()
 {
+    if(!song_folder.empty())
+    {
+        teardown_dirty = stray_sends = resync_song = false;
+        return;
+    }
     if(!next_block())
         return;
     std::fprintf(stderr, "acidulous: song: the audio is back, finishing the teardown\n");
@@ -852,10 +860,8 @@ void Core::resync_teardown()
             host.unmountMachine(p);
         next_block();
     }
-    if(song_folder.empty())
     {
-        // Parts the script has filled since keep their strips, and the
-        // master's params are left as the script last sent them.
+        // Parts the script has filled since keep their strips.
         clear_master_inserts();
         for(int p = 0; p < kParts; ++p)
             if(parts[p].machine.empty())
@@ -864,9 +870,13 @@ void Core::resync_teardown()
                 for(const auto& kv : kChannelDefaults)
                     push_param(p, "channel", kv.first, kv.second);
             }
-        host.setTempo(pre_song_tempo);
-        host.setSwingUnit(pre_song_swing);
-        host.setLoopSong(pre_song_loop);
+        master_defaults(false);
+        if(resync_song)
+        {
+            host.setTempo(pre_song_tempo);
+            host.setSwingUnit(pre_song_swing);
+            host.setLoopSong(pre_song_loop);
+        }
         if(stray_sends)
             for(int s = 0; s < kSends; ++s)
             {
@@ -879,6 +889,8 @@ void Core::resync_teardown()
     stray_sends = false;
     wait_applied();
     teardown_dirty = !next_block() || any_stray();
+    if(!teardown_dirty)
+        resync_song = false;
 }
 
 // The sends back to the plugin's own: a song's lines may have mounted others
@@ -908,39 +920,51 @@ void Core::clear_master_inserts()
                 host.mountGroupInsert(g, slot, "");
 }
 
+// The master's and perform's params back to their defaults (the master
+// volume to the core's 1.0), then, with [own], the script's own master
+// params on top. [now] sets them without waiting on a full queue.
+void Core::master_defaults(bool now, bool own)
+{
+    const auto set = [&](const char* unit, const std::string& name, float v) {
+        if(now)
+            host.setParam(0, unit, name, v, false);
+        else
+            push_param(0, unit, name, v);
+    };
+    // Defaults read from a fresh copy, so new params come back too.
+    auto bus = std::make_unique<MasterBus>();
+    for(int32_t i = 0; i < bus->params().size(); ++i)
+    {
+        const ParamDef& d  = bus->params().def(i);
+        const auto      it = own ? own_master.find(d.name) : own_master.end();
+        set("master", d.name,
+            it != own_master.end() ? it->second : std::strcmp(d.name, "volume") == 0 ? 1.f : d.unmap(d.def));
+    }
+    for(int32_t i = 0; i < bus->perform.params().size(); ++i)
+    {
+        const ParamDef& d = bus->perform.params().def(i);
+        set("perform", d.name, d.unmap(d.def));
+    }
+}
+
 // Back to an empty engine's: the master and group inserts the song mounted
-// go, and every track's tuning, channel strip and the master's and perform's
-// params return to their defaults (the master volume to the core's 1.0). With
-// a song loaded, the tempo, swing unit and loop-song go back to what the
-// plugin had before it. [now] sets params without waiting on a full queue,
-// for the destructor.
+// go, every track's tuning and channel strip return to their defaults, and
+// the master as master_defaults has it. With a song loaded, the tempo, swing
+// unit and loop-song go back to what the plugin had before it. [now] sets
+// params without waiting on a full queue.
 void Core::song_defaults(bool now)
 {
-    const auto set = [&](int rack, const char* unit, const std::string& name, float v) {
-        if(now)
-            host.setParam(rack, unit, name, v, false);
-        else
-            push_param(rack, unit, name, v);
-    };
     clear_master_inserts();
     for(int p = 0; p < kParts; ++p)
     {
         host.setTuning(p, nullptr);
         for(const auto& kv : kChannelDefaults)
-            set(p, "channel", kv.first, kv.second);
+            if(now)
+                host.setParam(p, "channel", kv.first, kv.second, false);
+            else
+                push_param(p, "channel", kv.first, kv.second);
     }
-    // Defaults read from a fresh copy, so new params come back too.
-    auto bus = std::make_unique<MasterBus>();
-    for(int32_t i = 0; i < bus->params().size(); ++i)
-    {
-        const ParamDef& d = bus->params().def(i);
-        set(0, "master", d.name, std::strcmp(d.name, "volume") == 0 ? 1.f : d.unmap(d.def));
-    }
-    for(int32_t i = 0; i < bus->perform.params().size(); ++i)
-    {
-        const ParamDef& d = bus->perform.params().def(i);
-        set(0, "perform", d.name, d.unmap(d.def));
-    }
+    master_defaults(now);
     if(!song_folder.empty())
     {
         host.setTempo(pre_song_tempo);
@@ -962,6 +986,7 @@ void Core::drop_song()
     host.clearFrozen();
     song_defaults(true);
     song_folder.clear();
+    song_from.clear();
     song_scenes.clear();
     song_zones.clear();
     song_on.store(false);
@@ -989,14 +1014,15 @@ struct Stalled
 // rack back. Replies /song_loaded. Worker thread, with every part pending.
 // Anything refused before the replay leaves what's loaded, and the song's
 // old folder, as they were.
-bool Core::load_song(const std::string& path, const std::string& songs_dir_in, bool reloading)
+bool Core::load_song(const std::string& path, const std::string& songs_dir_in, const std::string& reloading_as)
 {
+    const bool reloading = !reloading_as.empty();
     std::string folder, staged;
     std::string why;
     // The song loaded before, loaded again if this one fails after the parts
     // were emptied, unless its folder was replaced. touched: the parts were
     // emptied.
-    const std::string old_folder = song_folder;
+    const std::string old_folder = song_folder, old_from = song_from;
     bool              old_intact = true, touched = false;
     const auto        fail       = [&](const std::string& what) {
         if(!staged.empty())
@@ -1010,7 +1036,7 @@ bool Core::load_song(const std::string& path, const std::string& songs_dir_in, b
             if(!old_folder.empty() && old_intact && is_dir(old_folder))
             {
                 std::fprintf(stderr, "acidulous: song: loading %s again\n", old_folder.c_str());
-                back = load_song(old_folder, "", true);
+                back = load_song(old_folder, "", old_from.empty() ? old_folder : old_from);
             }
             if(!back)
                 reply("/song_unloaded", {Value::i(1)});
@@ -1163,8 +1189,13 @@ bool Core::load_song(const std::string& path, const std::string& songs_dir_in, b
     }
 
     clear_song(true);
-    touched        = true;
-    song_master    = 1.f;
+    touched = true;
+    // A teardown that stalled is finished before the song goes in, so what
+    // it couldn't set is set and the tempo read below is the plugin's.
+    if(teardown_dirty)
+        resync_teardown();
+    // The song starts from the engine's master, not the script's.
+    master_defaults(false, false);
     pre_song_tempo = host.tempo();
     // The song's tempo rules from here: the script's /tempo and /beat are
     // ignored until it goes, and a beat being followed is let go.
@@ -1178,6 +1209,7 @@ bool Core::load_song(const std::string& path, const std::string& songs_dir_in, b
     for(int s = 0; s < kSends; ++s)
         pre_song_send[s] = send_mounted[s];
     song_folder = folder;
+    song_from   = reloading ? reloading_as : path;
 
     // Each line's text by number, for noting the mounts that landed.
     std::vector<std::pair<size_t, size_t>> line_at;
@@ -1294,11 +1326,15 @@ bool Core::load_song(const std::string& path, const std::string& songs_dir_in, b
     }
     for(int s = 0; s < kSends; ++s)
         send_mounted[s] = *host.mountedSend(s) != 0;
+    // The replay ran on blocks, so what a stalled teardown before it left is
+    // gone and the racks are read back: nothing for resync_teardown to do.
+    teardown_dirty = stray_sends = resync_song = false;
+    const float master = host.masterParamNormalized("volume");
     read_scenes(text, &song);
     send_scenes();
-    Args out{Value::s(path), Value::s(folder), Value::s(""), Value::i(replay.skipped), Value::i(count)};
+    Args out{Value::s(song_from), Value::s(folder), Value::s(""), Value::i(replay.skipped), Value::i(count)};
     out.insert(out.end(), list.begin(), list.end());
-    reply("/song_master", {Value::f(song_master)});
+    reply("/song_master", {Value::f(master < 0.f ? 1.f : master)});
     reply("/song_loaded", out);
     return true;
 }

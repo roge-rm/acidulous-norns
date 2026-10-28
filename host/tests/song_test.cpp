@@ -17,9 +17,12 @@
 //   getter for a send's params)
 // - /song_scenes, /song_play, /song_queue, /song_stop and /song_position,
 //   and that /tempo and /beat leave a loaded song's tempo alone
-// - a failed load after the parts were emptied loads the old song again,
-//   or says /song_unloaded 1; a teardown without audio finishes once it's
-//   back; Mosaic zones and the master volume are read back
+// - a failed load after the parts were emptied loads the old song again
+//   (its /song_loaded with the zip it came from), or says /song_unloaded 1;
+//   a teardown without audio finishes once it's back, with the script's
+//   master volume; Mosaic zones and the master volume are read back
+// - a teardown that stalls before a replay that runs leaves the new song
+//   playing, and a /master while it's loaded moves only the song's master
 // - deleting the core with a song loaded
 // Usage: acidulous-song-test BANK_DIR SCRATCH_DIR SONG_ZIP
 #include "core.h"
@@ -311,6 +314,8 @@ int main(int argc, char** argv)
     host.setSwingUnit(1);
     host.setLoopSong(false);
     cmd("/channel", {Value::i(1), Value::s("sendreverb"), Value::f(0.5f)});
+    // The script's own master volume, which comes back when a song goes.
+    cmd("/master", {Value::s("volume"), Value::f(0.6f)});
     // Something on part 0 for the song to replace, with a modifier.
     cmd("/patch", {Value::i(0), Value::s("Trinity"), Value::s("Saw Lead")});
     cmd("/mod", {Value::i(0), Value::i(0), Value::s("Scale")});
@@ -679,7 +684,7 @@ int main(int argc, char** argv)
         ok = log.wait_nth("/song_loaded", 2, refused) && refused.args.size() >= 5;
         check(ok && str(refused, 2).find("over the 1.0 MB") != std::string::npos && !exists(songs + "/forage2"),
               "samples over the budget: " + str(refused, 2));
-        check(log.wait_nth("/song_loaded", 1, again) && str(again, 0) == songs + "/forage" && str(again, 2).empty() &&
+        check(log.wait_nth("/song_loaded", 1, again) && str(again, 0) == scratch + "/forage.zip" && str(again, 2).empty() &&
                   log.index("/song_unloaded") < 0,
               "the Forage song is loaded again first: " + str(again, 0) + " " + str(again, 2));
         state(0, st);
@@ -727,9 +732,56 @@ int main(int argc, char** argv)
                 empty = empty && !*host.mountedMachine(p) && !*host.mountedEffect(p, 0) && !*host.mountedEffect(p, 1);
         }
         check(empty, "once the audio is back every rack and insert is empty");
+        check(std::fabs(host.masterParamNormalized("volume") - 0.6f) < 1e-4,
+              "and the master volume is the script's 0.6 (" + std::to_string(host.masterParamNormalized("volume")) + ")");
         Reply st;
         state(0, st);
         check(st.args.size() > 1 && st.args[1].str.empty(), "leaves the parts empty");
+    }
+
+    // The teardown before a replay stalls and the audio comes back for the
+    // replay: the song that loads keeps its arrangement and transport. The
+    // pause is tried at a few lengths until one stalls the teardown and still
+    // lets the replay run.
+    check(load(zip, loaded) && str(loaded, 2).empty(), "loads the zip for the stalled teardown");
+    {
+        bool stalled = false;
+        for(int ms : {1100, 1300, 900, 1600, 700, 2000})
+        {
+            const int before = c->stalled_teardowns();
+            log.clear();
+            cmd("/song_load", {Value::s(zip), Value::s(songs)});
+            log.wait_part("/mounted", core::kParts - 1);
+            paused = true;
+            std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+            paused = false;
+            Reply r;
+            const bool ok = log.wait("/song_loaded", r) && r.args.size() >= 5 && str(r, 2).empty();
+            if(!ok)
+                load(zip, r);
+            if(ok && c->stalled_teardowns() > before)
+            {
+                stalled = true;
+                break;
+            }
+        }
+        check(stalled, "a teardown stalled and the song still loaded");
+        // The worker would finish a teardown left dirty within 250 ms.
+        std::this_thread::sleep_for(800ms);
+        log.clear();
+        peak.store(0.f);
+        cmd("/song_play", {});
+        std::this_thread::sleep_for(1500ms);
+        cmd("/song_position", {});
+        Reply pos;
+        check(log.wait("/song_position", pos, 5s) && !pos.args.empty() && pos.args[0].num == 1,
+              "the song still plays after the stalled teardown");
+        check(peak.load() > 0.01f, "and it's heard (peak " + std::to_string(peak.load()) + ")");
+        cmd("/song_stop", {});
+        // A /master with the song loaded moves the song's master only.
+        cmd("/master", {Value::s("volume"), Value::f(0.3f)});
+        std::this_thread::sleep_for(100ms);
+        check(std::fabs(host.masterParamNormalized("volume") - 0.3f) < 1e-4, "/master moves the song's master");
     }
 
     // Unload back to empty.
@@ -751,6 +803,8 @@ int main(int argc, char** argv)
         state(0, st);
         check(st.args.size() >= 4 && std::fabs(st.args[3].num - 1.0 / 1.5) < 1e-4, "part 0's gain is back to unity");
         check(std::fabs(host.tempo() - 100.f) < 1e-3, "the tempo is back to 100 (" + std::to_string(host.tempo()) + ")");
+        check(std::fabs(host.masterParamNormalized("volume") - 0.6f) < 1e-4,
+              "the master volume is the script's 0.6 again (" + std::to_string(host.masterParamNormalized("volume")) + ")");
         check(host.swingUnit() == 1 && !host.loopSong(), "swing in eighths and loop-song off again");
         check(std::string(host.mountedSend(0)) == "Reverb" && std::fabs(host.sendParamNormalized(0, "size") - 0.7f) < 1e-4,
               "the Reverb is back with the plugin's size 0.7 (" + std::to_string(host.sendParamNormalized(0, "size")) + ")");

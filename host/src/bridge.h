@@ -26,7 +26,9 @@
 //        their held and latched notes, keeping their params
 //   /mods i:part   /mod_defs
 //   /master s:name f:value01           the master's params, e.g. "volume"
-//        (0-1.5 linear)
+//        (0-1.5 linear). With a song loaded it moves the song's master;
+//        the script's own, from /master sent with no song, come back when
+//        the song goes
 //   /meters i:on                       sends /meters while on
 //   /tempo f:bpm                       the engine's tempo (20-999); with
 //        no args it replies /tempo with the tempo the engine runs at
@@ -94,14 +96,15 @@
 //        first. A song that fails after the parts were emptied (that, or the
 //        audio stopping during the replay) loads the song before it again
 //        from its folder, unless the new one replaced it; if that can't be
-//        done, /song_unloaded 1 comes before its /song_loaded. A teardown
+//        done, /song_unloaded 1 comes before its /song_loaded; the old song's
+//        /song_loaded has the path it was first loaded from. A teardown
 //        while the audio is stopped is finished once it's back. The
 //        transport is left stopped
 //   /song_unload                       empties every part and what the song
 //        put around them (arrangement, frozen clips, master and group
 //        inserts, tunings, channel strips, master and perform params) and
-//        puts the sends, tempo, swing unit and loop-song back to the
-//        plugin's; does nothing but reply when no song is loaded
+//        puts the sends, tempo, swing unit, loop-song and the script's
+//        master back to the plugin's; does nothing but reply when no song is loaded
 //   /song_play [i:scene]               plays the loaded song from the top of
 //        the scene (0 is the first), or from the scene it's on
 //   /song_stop                         stops it and drops a queued scene
@@ -181,7 +184,7 @@
 //        times a second while a song plays and once a second stopped: the
 //        scene's index, its pass (0 first), the tick in that pass, the
 //        queued scene (-1 none) and the tempo it plays at
-//   /song_master f:volume01            the master volume the song set, as
+//   /song_master f:volume01            the song's master volume, as
 //        /master takes it, just before /song_loaded
 //   /song_unloaded i:emptied           after the parts' /mounted "" and
 //        /inserts; emptied is 1 when a song or a failed load emptied them

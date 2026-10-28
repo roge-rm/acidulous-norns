@@ -105,6 +105,8 @@ class Core
     // The part's Mosaic zones as Part::zones holds them. For tests, with
     // the worker idle.
     std::string zones(int part) const { return part >= 0 && part < kParts ? parts[part].zones : std::string(); }
+    // How many teardowns were left for resync_teardown. For tests, any thread.
+    int stalled_teardowns() const { return teardowns_stalled.load(); }
     // Each part's output peak since the last call, linear. Any thread.
     void levels(float* out);
     // A loaded song's transport, as /song_position sends it: playing, scene,
@@ -239,9 +241,11 @@ class Core
     void set_scope(int part, int slot);
     bool push_param(int part, const char* unit, const std::string& name, float v01);
     // Songs (song.cpp). Worker thread.
-    // reloading: putting the old song back after a failed load, which
-    // replies nothing but /error when it fails. False when it failed.
-    bool load_song(const std::string& path, const std::string& songs_dir, bool reloading = false);
+    // reloading_as: putting the old song back after a failed load, which
+    // replies nothing but /error when it fails, and replies /song_loaded
+    // with this path (the one the old song came from) when it loads. False
+    // when it failed.
+    bool load_song(const std::string& path, const std::string& songs_dir, const std::string& reloading_as = "");
     bool any_stray() const;
     void clear_master_inserts();
     void resync_teardown();
@@ -250,6 +254,7 @@ class Core
     void clear_song(bool quiet);
     void drop_song();
     void song_defaults(bool now);
+    void master_defaults(bool now, bool own = true);
     void restore_sends();
     void note_song_mount(const std::string& line);
     void read_back(int part, const void* track);
@@ -313,8 +318,12 @@ class Core
     acidulous::PatchTrackState  patch_fx[kParts];
     std::string                 mod_types[kParts][kModSlots]; // on the worker: what each modifier slot has
     bool                        mod_bypass[kParts][kModSlots] = {}; // on the worker
-    // Worker only: the loaded song's folder, "" for none.
-    std::string                      song_folder;
+    // Worker only: the loaded song's folder, "" for none, and the path it
+    // was loaded from (a zip, or the folder).
+    std::string                      song_folder, song_from;
+    // Worker only: the script's own master params, as its /master sent them
+    // while no song was loaded, put back when a song goes.
+    std::map<std::string, float>     own_master;
     // Worker only: what the plugin had before the song, put back when it goes:
     // the tempo, which sends were mounted, the swing unit and loop-song.
     float                            pre_song_tempo = 120.f;
@@ -334,14 +343,16 @@ class Core
     };
     std::vector<SongScene> song_scenes;
     // Worker only: Mosaic zones per rack from the song's LoadZoneMap lines,
-    // as Part::zones holds them, and the master volume its lines set, 0-1.
+    // as Part::zones holds them.
     std::map<int, std::string> song_zones;
-    float                      song_master = 1.f;
     // Worker only: a teardown ran without blocks, so the engine may still
     // hold some of the song; resync_teardown finishes it, and puts the
     // sends back if the song had any mounted.
     bool teardown_dirty = false;
     bool stray_sends    = false;
+    // and a song was loaded, so its tempo, swing unit and loop-song go back
+    bool             resync_song = false;
+    std::atomic<int> teardowns_stalled{0};
     // Set while a song is loaded or loading: its own tempo rules, so /tempo
     // and /beat are ignored. beat_lock is held around a /beat's check and
     // alignBeat, and around setting this and releasing the beat, so no /beat

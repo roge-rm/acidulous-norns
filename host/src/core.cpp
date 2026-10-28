@@ -1099,7 +1099,12 @@ bool Core::command(const std::string& path, const Args& a)
             if(host.paramIndex("", "master", n) < 0)
                 error("no master param " + n);
             else
+            {
+                // With a song loaded it moves the song's master.
+                if(song_folder.empty())
+                    own_master[n] = v;
                 push_param(0, "master", n, v);
+            }
         });
         return true;
     }
