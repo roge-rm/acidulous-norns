@@ -80,7 +80,7 @@ static long long max_soundfont_bytes()
 // ACIDULOUS_SAMPLE_LIMIT_MB in the environment overrides it, for tests.
 constexpr long long kSampleBudgetMB = 320;
 
-static long long sample_budget_bytes()
+long long sample_budget_bytes()
 {
     const char* env = std::getenv("ACIDULOUS_SAMPLE_LIMIT_MB");
     const long long mb = env && *env ? std::atoll(env) : kSampleBudgetMB;
@@ -407,11 +407,26 @@ Core::~Core()
         jobs_cv.notify_all();
         worker.join();
     }
-    // Empties the racks and sends so the next Core starts clean: the
-    // unmounts apply at the top of a block, at most kMaxMountsPerBlock (8) a
-    // block, so a few blocks are pulled here since the UGen no longer runs
-    // this core. A retired machine frees what was mounted into it.
+    // Empties the racks and sends so the next Core starts clean. Mounts
+    // apply at the top of a block, at most kMaxMountsPerBlock (8) a block,
+    // and the engine's queue holds 64, so blocks are pulled as they're
+    // queued since the UGen no longer runs this core. A part queues at most
+    // 6 (machine, 3 modifiers, 2 inserts), so a block after each keeps the
+    // queue from filling. A retired machine frees what was mounted into it.
+    // The UGen has stopped calling process(), but a pull may still be
+    // finishing, so a pull that fails is tried again, for up to 100 ms.
+    float      in[kBlockFrames * 2] = {}, out[kBlockFrames * 2];
+    const auto pull                 = [&](int blocks_wanted) {
+        for(int tries = 0, pulled = 0; tries < 100 && pulled < blocks_wanted; ++tries)
+        {
+            if(AudioDriver::pull(in, out))
+                ++pulled;
+            else
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+    };
     drop_song();
+    pull(2);
     for(int p = 0; p < kParts; ++p)
     {
         host.unmountMachine(p);
@@ -422,24 +437,14 @@ Core::~Core()
             if(fx && *fx)
                 host.mountEffect(p, s, "");
         }
+        pull(1);
     }
     for(int s = 0; s < kSends; ++s)
         if(send_mounted[s])
             host.mountSend(s, "");
     host.setMpeZone(0, 15, 48);
-    // The UGen has stopped calling process(), but a pull may still be
-    // finishing, so a pull that fails is tried again, for up to 100 ms. 16
-    // machines, 32 inserts, 48 modifiers, 2 sends and a song's arrangement,
-    // frozen clips and master and group inserts take about 16 blocks at 8
-    // mounts a block; 24 leaves room.
-    float in[kBlockFrames * 2] = {}, out[kBlockFrames * 2];
-    for(int tries = 0, pulled = 0; tries < 100 && pulled < 24; ++tries)
-    {
-        if(AudioDriver::pull(in, out))
-            ++pulled;
-        else
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
+    // What's left in the queue: 64 entries at most, 8 a block.
+    pull(10);
     host.stop();
     delete hear_buf.exchange(nullptr);
 }
@@ -641,7 +646,7 @@ void Core::reset()
     host.setMpeZone(0, 15, mpe_bend.load());
     post_all([this] {
         if(!song_folder.empty())
-            clear_song();
+            clear_song(true);
     });
     for(int p = 0; p < kParts; ++p)
         post_part(p, [this, p] {
@@ -835,12 +840,8 @@ bool Core::command(const std::string& path, const Args& a)
     if(path == "/song_load" && a.size() >= 1)
     {
         // s:path [s:songs_dir]. Every part waits behind it.
+        // load_song checks the folder and fills in the default.
         std::string dir = a.size() > 1 ? to_str(a[1]) : std::string();
-        if(dir.empty())
-        {
-            const char* home = std::getenv("HOME");
-            dir              = std::string(home && *home ? home : "/home/we") + "/dust/data/acidulous/songs";
-        }
         post_all([this, p = to_str(a[0]), dir] { load_song(p, dir); });
         return true;
     }
@@ -1454,6 +1455,8 @@ void Core::apply_chain(int part, const acidulous::PatchChain& chain, const std::
 // put in each slot, or null.
 void Core::send_inserts(int part, const acidulous::PatchInsert* const at[kEffectSlots], bool live)
 {
+    if(quiet_inserts)
+        return;
     Args out{Value::i(part)};
     for(int slot = 0; slot < kEffectSlots; ++slot)
     {
@@ -2252,7 +2255,7 @@ void Core::load_error(int part, const std::string& kind, const std::string& path
 int64_t Core::held_total()
 {
     std::lock_guard<std::mutex> l(held_lock);
-    int64_t                     sum = 0;
+    int64_t                     sum = song_held;
     for(const auto& p : held)
         for(int64_t b : p)
             sum += b;

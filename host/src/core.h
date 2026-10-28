@@ -79,6 +79,8 @@ constexpr int kModSlots = acidulous::kInputModSlots;
 // the first `max_seconds` (0 all of it), mono as one channel unless `both`.
 // From the header for WAV, AIFF and FLAC, otherwise eight times the file's size.
 int64_t decoded_bytes(const std::string& path, int to_rate, int max_seconds, bool both);
+// The most every part's decoded samples and a song's audio may take together.
+long long sample_budget_bytes();
 
 class Core
 {
@@ -232,10 +234,12 @@ class Core
     // Songs (song.cpp). Worker thread.
     void load_song(const std::string& path, const std::string& songs_dir);
     void unload_song();
-    void clear_song();
+    // quiet: no /inserts, as a read_back or unmount sends them after.
+    void clear_song(bool quiet);
     void drop_song();
     void song_defaults(bool now);
-    void scan_song_mounts(const std::string& text);
+    void restore_sends();
+    void note_song_mount(const std::string& line);
     void read_back(int part, const void* track);
     bool next_block();
     struct BankCache;
@@ -267,9 +271,11 @@ class Core
     // Held across a cloud build, across a /load and around queuing a part's
     // mount or unmount. Taken before cloud_lock.
     std::mutex              mount_locks[kParts];
-    // Decoded bytes of samples each part's slots hold, for the sample budget.
+    // Decoded bytes of samples each part's slots hold, for the sample budget,
+    // and a loaded song's that belong to no part (frozen clips).
     std::mutex              held_lock;
     int64_t                 held[kParts][kHeldSlots] = {};
+    int64_t                 song_held = 0;
     bool                    cloud_quit = false;
 
     std::thread                       worker;
@@ -293,9 +299,16 @@ class Core
     std::string                 mod_types[kParts][kModSlots]; // on the worker: what each modifier slot has
     bool                        mod_bypass[kParts][kModSlots] = {}; // on the worker
     // Worker only: the loaded song's folder, "" for none, and what its lines
-    // mounted that EngineHost doesn't report: modifier types per part and
-    // slot, sends (slot, type), master insert slots, group inserts (group, slot).
+    // mounted that EngineHost doesn't report, leaving out mounts the engine
+    // refused: modifier types per part and slot, sends (slot, type), master
+    // insert slots, group inserts (group, slot).
     std::string                      song_folder;
+    // Worker only: what the plugin had before the song, put back when it goes:
+    // the tempo and which sends were mounted.
+    float                            pre_song_tempo = 120.f;
+    bool                             pre_song_send[kSends] = {};
+    // Worker only: send_inserts sends nothing while set.
+    bool                             quiet_inserts = false;
     std::vector<std::string>         song_mods;
     std::vector<std::pair<int, std::string>> song_sends;
     std::vector<int>                 song_master_fx;

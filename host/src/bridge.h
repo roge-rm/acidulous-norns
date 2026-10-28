@@ -80,17 +80,24 @@
 //   /hear [s:path]                     plays a file once over everything, up
 //        to 30 seconds of it; no path stops it
 //   /song_load s:path [s:songs_dir]    a song zip from the app, unpacked
-//        into songs_dir/<zip name>/ (default ~/dust/data/acidulous/songs),
-//        or a folder holding one already unpacked. Every part is emptied, then
-//        its engine.txt replayed (machines, patches, inserts, sends, modifiers,
-//        the arrangement, frozen clips) and each part takes what its rack has.
-//        Messages for any part wait for it. A zip over 128 MB unpacked, one
-//        without engine.txt or with a name outside its folder is refused and
-//        what's loaded stays. The transport is left stopped
+//        into songs_dir/<zip name>/ (default ~/dust/data/acidulous/songs,
+//        else a folder under ~/dust/data), or a folder holding one already
+//        unpacked. Every part is emptied, then its engine.txt replayed
+//        (machines, patches, inserts, sends, modifiers, the arrangement,
+//        frozen clips) and each part takes what its rack has. Messages for
+//        any part wait for it. A zip over 128 MB unpacked, one without
+//        engine.txt, with a name outside its folder or inside the folder it
+//        would unpack into, and a song whose samples and frozen clips go over
+//        the sample budget are refused, and what's loaded and the old folder
+//        stay. Its audio counts in the budget after. If unpacking beside
+//        what's loaded would go over the budget, the parts are emptied
+//        first. If the audio stops during the replay it fails with nothing
+//        loaded. The transport is left stopped
 //   /song_unload                       empties every part and what the song
 //        put around them (arrangement, frozen clips, master and group
-//        inserts, tunings, channel strips, master and perform params); does
-//        nothing but reply when no song is loaded
+//        inserts, tunings, channel strips, master and perform params) and
+//        puts the sends, tempo, swing unit and loop-song back to the
+//        plugin's; does nothing but reply when no song is loaded
 //   /state i:part                      for tests
 //   /mpe_state                         for tests
 // Out (to `reply` on localhost, matron's 10111):

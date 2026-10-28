@@ -8,6 +8,13 @@
 // - it plays when the transport runs
 // - loading the unpacked folder again, /song_unload back to empty, a missing
 //   file, a zip without engine.txt and a zip with a "../" entry
+// - a songs folder outside dust/data, a zip inside its own folder and a
+//   failed unpack are refused and leave the old folder and song
+// - a song's samples and frozen clips count in the sample budget: one over it
+//   is refused, and a /load after one sees what it holds
+// - audio stopping mid-replay stops it with an error
+// - /song_unload puts the tempo back to the plugin's (EngineHost has no
+//   getter for a send's params)
 // - deleting the core with a song loaded
 // Usage: acidulous-song-test BANK_DIR SCRATCH_DIR SONG_ZIP
 #include "core.h"
@@ -81,6 +88,27 @@ struct Log : core::Replier
             if(r.path == path && !r.args.empty() && r.args[0].type == 'i' && int(r.args[0].num) == part)
                 out = r, found = true;
         return found;
+    }
+    // Waits for a reply to [path] for [part].
+    bool wait_part(const char* path, int part, std::chrono::seconds limit = 60s)
+    {
+        std::unique_lock<std::mutex> l(lock);
+        return cv.wait_for(l, limit, [&] {
+            for(const auto& r : got)
+                if(r.path == path && !r.args.empty() && r.args[0].type == 'i' && int(r.args[0].num) == part)
+                    return true;
+            return false;
+        });
+    }
+    // How many replies to [path] there are for [part].
+    int count(const char* path, int part)
+    {
+        std::lock_guard<std::mutex> l(lock);
+        int n = 0;
+        for(const auto& r : got)
+            if(r.path == path && !r.args.empty() && r.args[0].type == 'i' && int(r.args[0].num) == part)
+                ++n;
+        return n;
     }
     // Where the first reply to [path] is in the log, or -1.
     int index(const char* path)
@@ -159,6 +187,20 @@ void write_zip(const std::string& path, const std::vector<std::pair<std::string,
     std::ofstream(path, std::ios::binary) << out;
 }
 
+// A 16-bit mono WAV at 48 kHz of [frames] frames of a quiet tone.
+std::string wav(int frames)
+{
+    std::string o = "RIFF";
+    put(o, uint32_t(36 + frames * 2), 4);
+    o += "WAVEfmt ";
+    put(o, 16, 4), put(o, 1, 2), put(o, 1, 2), put(o, 48000, 4), put(o, 96000, 4), put(o, 2, 2), put(o, 16, 2);
+    o += "data";
+    put(o, uint32_t(frames * 2), 4);
+    for(int i = 0; i < frames; ++i)
+        put(o, uint32_t(uint16_t(int16_t(std::lround(1000.0 * std::sin(i * 0.05))))), 2);
+    return o;
+}
+
 struct Line
 {
     int         rack;
@@ -201,18 +243,25 @@ int main(int argc, char** argv)
         return 2;
     }
     const std::string banks = argv[1], scratch = std::string(argv[2]) + "/songs-test", zip = argv[3];
-    const std::string songs = scratch + "/songs";
-    std::system(("rm -rf '" + scratch + "' && mkdir -p '" + scratch + "'").c_str());
+    // Songs folders from OSC must be under $HOME/dust/data.
+    const std::string songs = scratch + "/dust/data/acidulous/songs";
+    std::system(("rm -rf '" + scratch + "' && mkdir -p '" + scratch + "/dust/data'").c_str());
+    setenv("HOME", scratch.c_str(), 1);
     auto& host = acidulous::EngineHost::instance();
     Log   log;
     auto* c = new core::Core(banks, &log, false);
 
-    std::atomic<bool>  go{true};
+    std::atomic<bool>  go{true}, paused{false};
     std::atomic<float> peak{0.f};
     std::thread        audio([&] {
         float l[64], r[64];
         while(go)
         {
+            if(paused)
+            {
+                std::this_thread::sleep_for(1ms);
+                continue;
+            }
             c->process(nullptr, nullptr, l, r, 64);
             float p = peak.load();
             for(int i = 0; i < 64; ++i)
@@ -233,6 +282,11 @@ int main(int argc, char** argv)
         return log.wait("/state", r, 10s) && r.args.size() >= 4;
     };
 
+    // The plugin's own tempo and Reverb, for the song to change and the
+    // unload to put back.
+    cmd("/tempo", {Value::f(100.f)});
+    cmd("/send", {Value::i(0), Value::s("size"), Value::f(0.7f)});
+    cmd("/channel", {Value::i(1), Value::s("sendreverb"), Value::f(0.5f)});
     // Something on part 0 for the song to replace, with a modifier.
     cmd("/patch", {Value::i(0), Value::s("Trinity"), Value::s("Saw Lead")});
     cmd("/mod", {Value::i(0), Value::i(0), Value::s("Scale")});
@@ -369,6 +423,7 @@ int main(int argc, char** argv)
                 drive = float(ins.args[k + 7].num);
         }
         check(dist && delay, "part 2's inserts are Distortion and Delay");
+        check(log.count("/inserts", 2) == 1 && log.count("/inserts", 12) == 1, "one /inserts per part for the load");
         for(const auto& l : lines)
             if(l.rack == 2 && l.unit == "effect1" && l.name == "drive")
             {
@@ -418,6 +473,97 @@ int main(int argc, char** argv)
         state(0, st);
         check(st.args.size() > 1 && st.args[1].str == "Genesis", "a refused song leaves the loaded one");
         check(!exists(songs + "/notlines"), "and writes no folder");
+
+        // A songs folder outside dust/data.
+        log.clear();
+        cmd("/song_load", {Value::s(zip), Value::s(scratch + "/elsewhere")});
+        ok = log.wait("/song_loaded", r) && r.args.size() >= 5;
+        check(ok && str(r, 2).find("must be in") != std::string::npos && !exists(scratch + "/elsewhere"),
+              "a songs folder outside dust/data: " + str(r, 2));
+        log.clear();
+        cmd("/song_load", {Value::s(zip), Value::s(scratch + "/dust/data/../../elsewhere")});
+        ok = log.wait("/song_loaded", r) && r.args.size() >= 5;
+        check(ok && str(r, 2).find("must be in") != std::string::npos, "and one with ..: " + str(r, 2));
+
+        // The zip inside the folder it would unpack into.
+        const std::string original = read_text(songs + "/squelch/engine.txt");
+        std::system(("cp '" + zip + "' '" + songs + "/squelch/squelch.zip'").c_str());
+        ok = load(songs + "/squelch/squelch.zip", r);
+        check(ok && str(r, 2).find("inside the folder") != std::string::npos &&
+                  exists(songs + "/squelch/squelch.zip"),
+              "a zip inside its own folder: " + str(r, 2));
+        std::remove((songs + "/squelch/squelch.zip").c_str());
+
+        // An unpack that fails part way: engine.txt is a file, then wanted
+        // as a folder.
+        std::system(("mkdir -p '" + scratch + "/other'").c_str());
+        write_zip(scratch + "/other/squelch.zip",
+                  {{"engine.txt", "acidulous-engine 4\n"}, {"engine.txt/x", "y"}});
+        ok = load(scratch + "/other/squelch.zip", r);
+        check(ok && !str(r, 2).empty(), "an unpack that fails: " + str(r, 2));
+        check(read_text(songs + "/squelch/engine.txt") == original && !exists(songs + "/.squelch.unpacking"),
+              "leaves the old folder as it was and no staging folder");
+        state(0, st);
+        check(st.args.size() > 1 && st.args[1].str == "Genesis", "and the loaded song");
+    }
+
+    // The sample budget, at 1 MB: a.wav and b.wav each decode to 640000
+    // bytes, a frozen clip of a.wav (two channels) to 1280000.
+    {
+        setenv("ACIDULOUS_SAMPLE_LIMIT_MB", "1", 1);
+        const std::string a = wav(160000), b = wav(160000);
+        std::ofstream(scratch + "/b.wav", std::ios::binary) << b;
+        write_zip(scratch + "/forage.zip",
+                  {{"engine.txt", "acidulous-engine 4\nMountMachine 0 \"Forage\"\nLoadSample 0 0 \"zip:a.wav\" 0\n"},
+                   {"a.wav", a}});
+        write_zip(scratch + "/forage2.zip",
+                  {{"engine.txt", "acidulous-engine 4\nMountMachine 0 \"Forage\"\nLoadSample 0 0 \"zip:a.wav\" 0\n"
+                                  "LoadSample 0 1 \"zip:b.wav\" 0\n"},
+                   {"a.wav", a},
+                   {"b.wav", b}});
+        write_zip(scratch + "/frozen.zip",
+                  {{"engine.txt", "acidulous-engine 4\nMountMachine 0 \"Trinity\"\n"
+                                  "MountFrozen 0 1 \"zip:a.wav\" 120.0 1536 160000 0 0.1\n"},
+                   {"a.wav", a}});
+        Reply r;
+        bool  ok = load(scratch + "/forage.zip", r);
+        check(ok && str(r, 2).empty() && int(r.args[4].num) == 1, "a Forage song with one sample loads: " + str(r, 2));
+        log.clear();
+        cmd("/load", {Value::i(0), Value::s("pad"), Value::s(scratch + "/b.wav"), Value::i(1)});
+        Reply e;
+        ok = log.wait("/error", e, 20s);
+        check(ok && str(e, 0).find("in use") != std::string::npos, "a /load after it sees the song's sample: " + str(e, 0));
+        // The frozen clip's zip unpacks beside the song's sample within the
+        // budget, so the song stays until the budget check refuses it.
+        ok = load(scratch + "/frozen.zip", r);
+        check(ok && str(r, 2).find("over the 1.0 MB") != std::string::npos, "frozen clips count: " + str(r, 2));
+        Reply st;
+        state(0, st);
+        check(st.args.size() > 1 && st.args[1].str == "Forage" && !exists(songs + "/frozen"),
+              "a song over the budget is refused before anything goes");
+        // This one's files beside the song's sample would go over, so the
+        // parts are emptied before it's unpacked.
+        ok = load(scratch + "/forage2.zip", r);
+        check(ok && str(r, 2).find("over the 1.0 MB") != std::string::npos && !exists(songs + "/forage2"),
+              "samples over the budget: " + str(r, 2));
+        unsetenv("ACIDULOUS_SAMPLE_LIMIT_MB");
+    }
+
+    // Audio stops part way through the replay: once the parts are emptied,
+    // the fake audio thread pauses.
+    {
+        log.clear();
+        cmd("/song_load", {Value::s(zip), Value::s(songs)});
+        check(log.wait_part("/mounted", core::kParts - 1), "the parts are emptied for the song");
+        std::this_thread::sleep_for(20ms);
+        paused = true;
+        Reply r;
+        const bool ok = log.wait("/song_loaded", r) && r.args.size() >= 5;
+        paused = false;
+        check(ok && str(r, 2).find("audio stopped at line") != std::string::npos, "audio stopping: " + str(r, 2));
+        Reply st;
+        state(0, st);
+        check(st.args.size() > 1 && st.args[1].str.empty(), "leaves the parts empty");
     }
 
     // Unload back to empty.
@@ -427,6 +573,7 @@ int main(int argc, char** argv)
     {
         Reply r;
         check(log.wait("/song_unloaded", r, 60s), "/song_unloaded came");
+        check(log.count("/inserts", 2) == 1 && log.count("/inserts", 12) == 1, "one /inserts per part for the unload");
         bool empty = true;
         for(int p = 0; p < core::kParts; ++p)
             empty = empty && std::string(host.mountedMachine(p)).empty() && std::string(host.mountedEffect(p, 0)).empty() &&
@@ -435,6 +582,7 @@ int main(int argc, char** argv)
         Reply st;
         state(0, st);
         check(st.args.size() >= 4 && std::fabs(st.args[3].num - 1.0 / 1.5) < 1e-4, "part 0's gain is back to unity");
+        check(std::fabs(host.tempo() - 100.f) < 1e-3, "the tempo is back to 100 (" + std::to_string(host.tempo()) + ")");
         log.clear();
         cmd("/mods", {Value::i(5)});
         Reply m5;

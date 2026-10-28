@@ -18,9 +18,13 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fcntl.h>
 #include <ftw.h>
+#include <map>
 #include <memory>
+#include <sys/mman.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 namespace core
 {
@@ -31,9 +35,10 @@ namespace
 {
 
 // The most a song zip may hold, unpacked, and the most the zip itself may
-// be. unzip holds every entry in memory at once beside the zip, and a norns
-// has 1 GB, so 128 MB leaves room for scsynth and matron. That's about five
-// and a half minutes of frozen clips (float32 stereo at 48 kHz).
+// be. The zip is mapped from disk, not read into memory, but unzip holds
+// every entry inflated at once until each is written out, so 128 MB leaves
+// room for scsynth and matron on a 1 GB norns. That's about five and a half
+// minutes of frozen clips (float32 stereo at 48 kHz).
 constexpr size_t kMaxSongBytes = size_t(128) << 20;
 
 // A track's channel strip defaults, normalised, as in Rack.cpp's kChannelDefs.
@@ -380,9 +385,23 @@ std::vector<std::string> words(const std::string& line)
             ++i;
             while(i < line.size() && line[i] != '"')
             {
-                if(line[i] == '\\' && i + 1 < line.size())
-                    ++i;
-                w += line[i++];
+                char c = line[i++];
+                if(c == '\\' && i < line.size())
+                {
+                    c = line[i++];
+                    if(c == 'n')
+                        c = '\n';
+                    else if(c == 'r')
+                        c = '\r';
+                    else if(c == 't')
+                        c = '\t';
+                    else if(c == 'x' && i + 2 <= line.size())
+                    {
+                        c = char(std::strtol(line.substr(i, 2).c_str(), nullptr, 16));
+                        i += 2;
+                    }
+                }
+                w += c;
             }
             ++i;
         }
@@ -394,16 +413,205 @@ std::vector<std::string> words(const std::string& line)
     return out;
 }
 
-} // namespace
-
-// What a song's lines mount that EngineHost doesn't say back: modifiers,
-// sends, master and group inserts. The last line for a slot wins.
-void Core::scan_song_mounts(const std::string& text)
+std::string mb(int64_t bytes)
 {
-    song_mods.assign(size_t(kParts) * kModSlots, std::string());
-    song_master_fx.clear();
-    song_group_fx.clear();
-    song_sends.clear();
+    char text[32];
+    const double m = double(bytes) / (1 << 20);
+    std::snprintf(text, sizeof text, m < 10 ? "%.1f MB" : "%.0f MB", m);
+    return text;
+}
+
+// [path], from the current folder if it's relative, with links resolved as
+// far as it exists and the rest as written. "" if it has a "." or ".." in it.
+std::string canonical(const std::string& given)
+{
+    if(given.empty())
+        return "";
+    std::string path = given;
+    if(path[0] != '/')
+    {
+        char cwd[4096];
+        if(!getcwd(cwd, sizeof cwd))
+            return "";
+        path = std::string(cwd) + "/" + path;
+    }
+    for(size_t at = 0; at < path.size();)
+    {
+        size_t end = path.find('/', at + 1);
+        if(end == std::string::npos)
+            end = path.size();
+        const std::string part = path.substr(at + 1, end - at - 1);
+        if(part == "." || part == "..")
+            return "";
+        at = end;
+    }
+    std::string head = path, tail;
+    while(head.size() > 1 && head.back() == '/')
+        head.pop_back();
+    for(;;)
+    {
+        if(char* real = realpath(head.c_str(), nullptr))
+        {
+            std::string out = real;
+            std::free(real);
+            return out == "/" ? (tail.empty() ? out : tail) : out + tail;
+        }
+        const size_t slash = head.rfind('/');
+        if(slash == std::string::npos || head == "/")
+            return path;
+        tail = head.substr(slash) + tail;
+        head = slash == 0 ? std::string("/") : head.substr(0, slash);
+    }
+}
+
+// Whether [path] is [dir] or inside it, both canonical.
+bool inside(const std::string& path, const std::string& dir)
+{
+    return !dir.empty() && (path == dir || (path.size() > dir.size() && path.compare(0, dir.size(), dir) == 0 &&
+                                            (dir.back() == '/' || path[dir.size()] == '/')));
+}
+
+// A file mapped read-only, so its pages come from the disk cache and can be
+// dropped under memory pressure, where a copy couldn't.
+struct Mapped
+{
+    const uint8_t* data = nullptr;
+    size_t         size = 0;
+    ~Mapped()
+    {
+        if(data)
+            munmap(const_cast<uint8_t*>(data), size);
+    }
+    bool open(const std::string& path, size_t max, std::string& why)
+    {
+        const int fd = ::open(path.c_str(), O_RDONLY | O_CLOEXEC);
+        if(fd < 0)
+        {
+            why = std::string("can't read ") + path + ": " + std::strerror(errno);
+            return false;
+        }
+        struct stat st{};
+        if(fstat(fd, &st) != 0 || !S_ISREG(st.st_mode) || st.st_size <= 0)
+        {
+            ::close(fd);
+            why = "can't read " + path;
+            return false;
+        }
+        if(size_t(st.st_size) > max)
+        {
+            ::close(fd);
+            why = "too big to be a song";
+            return false;
+        }
+        void* p = mmap(nullptr, size_t(st.st_size), PROT_READ, MAP_PRIVATE, fd, 0);
+        ::close(fd);
+        if(p == MAP_FAILED)
+        {
+            why = std::string("can't read ") + path + ": " + std::strerror(errno);
+            return false;
+        }
+        data = static_cast<const uint8_t*>(p);
+        size = size_t(st.st_size);
+        return true;
+    }
+};
+
+uint32_t le16(const uint8_t* p) { return uint32_t(p[0]) | uint32_t(p[1]) << 8; }
+uint32_t le32(const uint8_t* p) { return le16(p) | le16(p + 2) << 16; }
+
+// What a zip's entries add up to inflated, from its central directory, or -1
+// if it can't be read. unzip checks it again as it goes.
+int64_t inflated_size(const uint8_t* p, size_t n)
+{
+    if(n < 22)
+        return -1;
+    size_t       end  = n - 22;
+    const size_t stop = n > 22 + 0xffff ? n - 22 - 0xffff : 0;
+    while(le32(p + end) != 0x06054b50u)
+    {
+        if(end == stop)
+            return -1;
+        --end;
+    }
+    const uint32_t count = le16(p + end + 10);
+    size_t         at    = le32(p + end + 16);
+    int64_t        total = 0;
+    for(uint32_t k = 0; k < count; ++k)
+    {
+        if(at + 46 > end || le32(p + at) != 0x02014b50u)
+            return -1;
+        total += le32(p + at + 24);
+        at += 46 + le16(p + at + 28) + le16(p + at + 30) + le16(p + at + 32);
+    }
+    return total;
+}
+
+// The audio a song's lines load, decoded, as the core's /load counts it:
+// per rack and held slot (a Forage pad's own slot, slot 0 for the one
+// sample, SoundFont or map a machine holds), and frozen clips, which belong
+// to no part, by rack and scene. A machine mounted on a rack frees what
+// the rack held. Paths are resolved as the replay does.
+struct SongAudio
+{
+    std::map<int, std::map<int, int64_t>>     racks;
+    std::map<std::pair<int, std::string>, int64_t> frozen;
+
+    int64_t rack_total(int r) const
+    {
+        int64_t sum = 0;
+        auto    it  = racks.find(r);
+        if(it != racks.end())
+            for(const auto& kv : it->second)
+                sum += kv.second;
+        return sum;
+    }
+    int64_t frozen_total() const
+    {
+        int64_t sum = 0;
+        for(const auto& kv : frozen)
+            sum += kv.second;
+        return sum;
+    }
+    int64_t total() const
+    {
+        int64_t sum = frozen_total();
+        for(const auto& kv : racks)
+            sum += rack_total(kv.first);
+        return sum;
+    }
+};
+
+SongAudio song_audio(const std::string& text, const std::string& root, int held_slots)
+{
+    SongAudio  out;
+    const auto resolve = [&](const std::string& p) {
+        return p.compare(0, 4, "zip:") == 0 ? root + "/" + p.substr(4) : p;
+    };
+    const auto file_size = [](const std::string& p) {
+        struct stat st{};
+        return stat(p.c_str(), &st) == 0 ? int64_t(st.st_size) : int64_t(0);
+    };
+    // The paths in a spec's fields numbered [fields], resolved.
+    const auto spec_paths = [&](const std::string& spec, std::initializer_list<int> fields) {
+        std::vector<std::string> paths;
+        std::string              field;
+        int                      index = 0;
+        for(size_t k = 0; k <= spec.size(); ++k)
+        {
+            const char c = k == spec.size() ? '\n' : spec[k];
+            if(c != '|' && c != '\n')
+            {
+                field += c;
+                continue;
+            }
+            for(int f : fields)
+                if(f == index && !field.empty())
+                    paths.push_back(resolve(field));
+            index = c == '|' ? index + 1 : 0;
+            field.clear();
+        }
+        return paths;
+    };
     size_t at = 0;
     while(at < text.size())
     {
@@ -412,19 +620,85 @@ void Core::scan_song_mounts(const std::string& text)
             end = text.size();
         const std::string line = text.substr(at, end - at);
         at                     = end + 1;
-        if(line.compare(0, 5, "Mount") != 0)
+        if(line.compare(0, 4, "Load") != 0 && line.compare(0, 5, "Mount") != 0 && line.compare(0, 11, "ClearFrozen") != 0)
             continue;
         const auto w = words(line);
-        const auto n = [&](size_t k) { return k < w.size() ? std::atoi(w[k].c_str()) : -1; };
-        if(w[0] == "MountInputMod" && w.size() >= 4 && n(1) >= 0 && n(1) < kParts && n(2) >= 0 && n(2) < kModSlots)
-            song_mods[size_t(n(1)) * kModSlots + size_t(n(2))] = w[3];
-        else if(w[0] == "MountSend" && w.size() >= 3)
-            song_sends.emplace_back(n(1), w[2]);
-        else if(w[0] == "MountMasterInsert" && w.size() >= 3)
-            song_master_fx.push_back(n(1));
-        else if(w[0] == "MountGroupInsert" && w.size() >= 4)
-            song_group_fx.emplace_back(n(1), n(2));
+        if(w.empty())
+            continue;
+        const auto n    = [&](size_t k) { return k < w.size() ? std::atoi(w[k].c_str()) : -1; };
+        const auto slot = [&](int s) { return s < 0 ? 0 : s >= held_slots ? held_slots - 1 : s; };
+        const int  rack = n(1);
+        const std::string& call = w[0];
+        if(call == "ClearFrozen")
+            out.frozen.clear();
+        else if(call == "MountMachine" && w.size() >= 3)
+            out.racks.erase(rack);
+        else if(call == "MountFrozen" && w.size() >= 4)
+            out.frozen[{rack, w[2]}] = decoded_bytes(resolve(w[3]), 0, 0, true);
+        else if(call == "LoadSample" && w.size() >= 5)
+            out.racks[rack][slot(n(2))] = decoded_bytes(resolve(w[3]), kSampleRate, n(4) > 0 ? n(4) : 0, false);
+        else if(call == "LoadSoundFont" && w.size() >= 3)
+            out.racks[rack][0] = file_size(resolve(w[2])) * 2;
+        else if(call == "LoadZoneMap" && w.size() >= 3)
+        {
+            int64_t sum = 0;
+            for(const auto& p : spec_paths(w[2], {0}))
+                sum += decoded_bytes(p, 0, 0, false);
+            out.racks[rack][0] = sum;
+        }
+        else if((call == "LoadTake" || call == "LoadUtterance") && w.size() >= 3)
+            out.racks[rack][0] = decoded_bytes(resolve(w[2]), kSampleRate, 0, true);
+        else if(call == "LoadReel" && w.size() >= 3)
+        {
+            int64_t sum = 0;
+            for(const auto& p : spec_paths(w[2], {2}))
+                sum += decoded_bytes(p, kSampleRate, 0, true);
+            out.racks[rack][1] = sum;
+        }
+        else if(call == "LoadVoice" && w.size() >= 4)
+        {
+            int64_t sum = 0;
+            for(const auto& p : spec_paths(w[3], {2, 3}))
+                sum += decoded_bytes(p, 0, 0, false);
+            out.racks[rack][slot(n(2))] = sum;
+        }
     }
+    for(auto it = out.racks.begin(); it != out.racks.end();)
+        it = it->first < 0 || it->first >= kParts ? out.racks.erase(it) : std::next(it);
+    return out;
+}
+
+// Writes [bytes] to [path], false with [why] set if it couldn't.
+bool write_file(const std::string& path, const std::vector<uint8_t>& bytes, std::string& why)
+{
+    FILE* f  = std::fopen(path.c_str(), "wb");
+    bool  ok = f && std::fwrite(bytes.data(), 1, bytes.size(), f) == bytes.size();
+    if(f)
+        ok = std::fclose(f) == 0 && ok;
+    if(!ok)
+        why = "can't write " + path + ": " + std::strerror(errno);
+    return ok;
+}
+
+} // namespace
+
+// Notes what a mount line the engine took put in place, for what EngineHost
+// doesn't say back: modifiers, sends, master and group inserts. The last
+// line for a slot wins.
+void Core::note_song_mount(const std::string& line)
+{
+    if(line.compare(0, 5, "Mount") != 0)
+        return;
+    const auto w = words(line);
+    const auto n = [&](size_t k) { return k < w.size() ? std::atoi(w[k].c_str()) : -1; };
+    if(w[0] == "MountInputMod" && w.size() >= 4 && n(1) >= 0 && n(1) < kParts && n(2) >= 0 && n(2) < kModSlots)
+        song_mods[size_t(n(1)) * kModSlots + size_t(n(2))] = w[3];
+    else if(w[0] == "MountSend" && w.size() >= 3)
+        song_sends.emplace_back(n(1), w[2]);
+    else if(w[0] == "MountMasterInsert" && w.size() >= 3)
+        song_master_fx.push_back(n(1));
+    else if(w[0] == "MountGroupInsert" && w.size() >= 4)
+        song_group_fx.emplace_back(n(1), n(2));
 }
 
 // Waits for the audio thread to finish a block, or renders one inline. False
@@ -452,35 +726,41 @@ bool Core::next_block()
 // Empties every rack and what a song put around them: the arrangement,
 // frozen clips, modifiers, inserts, master and group inserts, tunings and the
 // channel strips, the master's and perform's params (the master volume back
-// to the core's 1.0). Replies /mounted "" and /inserts for each part, as an
-// unmount does. Worker thread.
-void Core::clear_song()
+// to the core's 1.0). With a song loaded, the sends, tempo, swing unit and
+// loop-song go back to what the plugin had before it. Replies /mounted ""
+// and, unless [quiet], one /inserts for each part, as an unmount does.
+// Worker thread.
+void Core::clear_song(bool quiet)
 {
+    const bool had_song = !song_folder.empty();
     host.transportStop();
     host.panic();
     const int64_t empty = host.snapshotBegin();
     if(empty)
         host.snapshotCommit(empty);
     host.clearFrozen();
+    quiet_inserts = quiet;
     for(int p = 0; p < kParts; ++p)
     {
-        unmount(p);
-        clear_mods(p);
+        // The song's inserts go first, so the unmount's /inserts shows the
+        // slots empty.
         for(int s = 0; s < kEffectSlots; ++s)
             if(*host.mountedEffect(p, s))
                 host.mountEffect(p, s, "");
-        patch_fx[p] = PatchTrackState{};
+        patch_fx[p]      = PatchTrackState{};
         part_sends[p][0] = part_sends[p][1] = 0.f;
-        const PatchInsert* none[kEffectSlots] = {};
-        send_inserts(p, none);
+        clear_mods(p);
+        unmount(p);
         host.setTuning(p, nullptr);
-        }
+    }
+    quiet_inserts = false;
     song_defaults(false);
-    // The sends stay mounted, with the params the script set.
-    for(int s = 0; s < kSends; ++s)
-        if(send_mounted[s])
-            for(const auto& kv : send_values[s])
-                push_param(0, s == 0 ? "send1" : "send2", kv.first, kv.second);
+    if(had_song)
+        restore_sends();
+    {
+        std::lock_guard<std::mutex> l(held_lock);
+        song_held = 0;
+    }
     song_master_fx.clear();
     song_group_fx.clear();
     song_mods.clear();
@@ -489,10 +769,28 @@ void Core::clear_song()
     wait_applied();
 }
 
+// The sends back to the plugin's own: a song's lines may have mounted others
+// or set their params, so each comes off and the ones the plugin had go back
+// on fresh, with the values the script set.
+void Core::restore_sends()
+{
+    for(int s = 0; s < kSends; ++s)
+    {
+        if(send_mounted[s] || !song_sends.empty())
+            host.mountSend(s, "");
+        send_mounted[s] = false;
+        if(pre_song_send[s])
+            ensure_send(s);
+    }
+}
+
 // Back to an empty engine's: the master and group inserts the song mounted
 // go, and every track's tuning, channel strip and the master's and perform's
-// params return to their defaults (the master volume to the core's 1.0).
-// [now] sets them without waiting on a full queue, for the destructor.
+// params return to their defaults (the master volume to the core's 1.0), as
+// do the tempo (to the plugin's before the song), the swing unit and
+// loop-song (the plugin never sets them, so the engine's defaults:
+// sixteenths and on). [now] sets params without waiting on a full queue,
+// for the destructor.
 void Core::song_defaults(bool now)
 {
     const auto set = [&](int rack, const char* unit, const std::string& name, float v) {
@@ -523,6 +821,12 @@ void Core::song_defaults(bool now)
         const ParamDef& d = bus->perform.params().def(i);
         set(0, "perform", d.name, d.unmap(d.def));
     }
+    if(!song_folder.empty())
+    {
+        host.setTempo(pre_song_tempo);
+        host.setSwingUnit(0);
+        host.setLoopSong(true);
+    }
 }
 
 // The destructor's part of clear_song: no replies, no waiting. The racks
@@ -543,33 +847,84 @@ void Core::drop_song()
 void Core::unload_song()
 {
     if(!song_folder.empty())
-        clear_song();
+        clear_song(false);
     reply("/song_unloaded", {});
 }
+
+namespace
+{
+// Thrown out of the replay when blocks stop coming.
+struct Stalled
+{
+    int line;
+};
+} // namespace
 
 // Unpacks [path] (a song zip, or a folder holding an unpacked one) into
 // songs_dir/<name>/, empties the engine, replays engine.txt and reads every
 // rack back. Replies /song_loaded. Worker thread, with every part pending.
-void Core::load_song(const std::string& path, const std::string& songs_dir)
+// Anything refused before the replay leaves what's loaded, and the song's
+// old folder, as they were.
+void Core::load_song(const std::string& path, const std::string& songs_dir_in)
 {
-    std::string folder;
+    std::string folder, staged;
     std::string why;
     const auto  fail = [&](const std::string& what) {
+        if(!staged.empty())
+            remove_tree(staged);
         error("song: " + what);
         reply("/song_loaded", {Value::s(path), Value::s(folder), Value::s(what), Value::i(0), Value::i(0)});
     };
 
+    // The songs folder: the default, or one under dust/data.
+    const char*       home_env = std::getenv("HOME");
+    const std::string home     = home_env && *home_env ? home_env : "/home/we";
+    std::string       root     = songs_dir_in.empty() ? home + "/dust/data/acidulous/songs" : songs_dir_in;
+    while(root.size() > 1 && root.back() == '/')
+        root.pop_back();
+    if(!songs_dir_in.empty())
+    {
+        const std::string real = canonical(root), data = canonical(home + "/dust/data");
+        if(real.empty() || !inside(real, data) || real == data)
+            return fail("the songs folder must be in " + home + "/dust/data: " + songs_dir_in);
+        root = real;
+    }
+
+    // Where the files are read from for the budget and the replay: the
+    // folder given, or the zip unpacked into a staging folder beside the
+    // song's, renamed into place once the song is known to fit.
+    std::string from;
     if(is_dir(path))
-        folder = path;
+        folder = from = path;
     else
     {
-        std::vector<uint8_t> zip;
-        if(!read_all(path, zip, kMaxSongBytes, why))
-            return fail(why);
+        folder                 = root + "/" + song_name(path);
+        const std::string real = canonical(path);
+        if(real.empty())
+            return fail("can't read " + path);
+        if(inside(real, canonical(folder)))
+            return fail("the zip is inside the folder it would unpack into");
         std::vector<std::pair<std::string, std::vector<uint8_t>>> entries;
-        if(!presetfile::unzip(zip.data(), zip.size(), entries, why, kMaxSongBytes))
-            return fail(why == "too big to be a preset file" ? std::string("too big to be a song") : why);
-        zip = {};
+        {
+            Mapped zip;
+            if(!zip.open(path, kMaxSongBytes, why))
+                return fail(why);
+            // Unpacking holds every entry at once; if that beside what's
+            // loaded would go over the sample budget, the old song goes
+            // first.
+            const int64_t inflated = inflated_size(zip.data, zip.size);
+            if(inflated < 0)
+                return fail("not a zip");
+            if(inflated > int64_t(kMaxSongBytes))
+                return fail("too big to be a song");
+            if(held_total() + inflated > sample_budget_bytes())
+            {
+                std::fprintf(stderr, "acidulous: song: unloading the parts first to unpack %s\n", path.c_str());
+                clear_song(false);
+            }
+            if(!presetfile::unzip(zip.data, zip.size, entries, why, kMaxSongBytes))
+                return fail(why == "too big to be a preset file" ? std::string("too big to be a song") : why);
+        }
         const std::vector<uint8_t>* lines_entry = nullptr;
         for(const auto& e : entries)
         {
@@ -582,39 +937,68 @@ void Core::load_song(const std::string& path, const std::string& songs_dir)
             return fail("no engine.txt in it");
         if(!engine_lines(std::string(lines_entry->begin(), lines_entry->end())))
             return fail("not engine lines");
-        std::string root = songs_dir;
-        while(root.size() > 1 && root.back() == '/')
-            root.pop_back();
-        if(root.empty())
-            return fail("no songs folder");
-        folder = root + "/" + song_name(path);
-        if(!remove_tree(folder) || !make_dirs(folder))
-            return fail("can't make " + folder + ": " + std::strerror(errno));
+        if(!make_dirs(root))
+            return fail("can't make " + root + ": " + std::strerror(errno));
+        staged = root + "/." + song_name(path) + ".unpacking";
+        if(!remove_tree(staged) || mkdir(staged.c_str(), 0755) != 0)
+        {
+            const std::string what = "can't make " + staged + ": " + std::strerror(errno);
+            staged.clear();
+            return fail(what);
+        }
+        from = staged;
         for(auto& e : entries)
         {
             if(e.first.empty() || e.first.back() == '/')
                 continue;
-            const std::string out = folder + "/" + e.first;
-            const size_t      cut = out.rfind('/');
-            if(!make_dirs(out.substr(0, cut)))
+            const std::string out = staged + "/" + e.first;
+            if(!make_dirs(out.substr(0, out.rfind('/'))))
                 return fail("can't make a folder for " + e.first);
-            FILE* f  = std::fopen(out.c_str(), "wb");
-            bool  ok = f && std::fwrite(e.second.data(), 1, e.second.size(), f) == e.second.size();
-            if(f)
-                ok = std::fclose(f) == 0 && ok;
-            if(!ok)
-                return fail("can't write " + out + ": " + std::strerror(errno));
+            if(!write_file(out, e.second, why))
+                return fail(why);
             e.second = {};
+            e.second.shrink_to_fit();
         }
     }
 
     std::vector<uint8_t> bytes;
-    if(!read_all(folder + "/engine.txt", bytes, kMaxSongBytes, why))
+    if(!read_all(from + "/engine.txt", bytes, kMaxSongBytes, why))
         return fail("no engine.txt in " + folder);
     const std::string text(bytes.begin(), bytes.end());
     bytes = {};
     if(!engine_lines(text))
         return fail("not engine lines");
+
+    // The song's audio against the sample budget, before anything goes.
+    const SongAudio audio = song_audio(text, from, kHeldSlots);
+    if(audio.total() > sample_budget_bytes())
+        return fail("its samples and frozen clips need " + mb(audio.total()) + ", over the " +
+                    mb(sample_budget_bytes()) + " for samples");
+
+    // Nothing plays during the load, and blocks must be running for the
+    // mounts to land.
+    if(!next_block())
+        return fail("the engine isn't running");
+
+    if(!staged.empty())
+    {
+        // The old folder goes only once the new one is in place.
+        const std::string old = root + "/." + song_name(path) + ".old";
+        remove_tree(old);
+        const bool had = is_dir(folder);
+        if(had && std::rename(folder.c_str(), old.c_str()) != 0)
+            return fail("can't replace " + folder + ": " + std::strerror(errno));
+        if(std::rename(staged.c_str(), folder.c_str()) != 0)
+        {
+            const std::string what = "can't make " + folder + ": " + std::strerror(errno);
+            if(had)
+                std::rename(old.c_str(), folder.c_str());
+            return fail(what);
+        }
+        staged.clear();
+        remove_tree(old);
+    }
+
     Json song;
     {
         std::vector<uint8_t> js;
@@ -629,40 +1013,69 @@ void Core::load_song(const std::string& path, const std::string& songs_dir)
         }
     }
 
-    // Nothing plays during the load, and blocks must be running for the
-    // mounts to land.
-    if(!next_block())
-        return fail("the engine isn't running");
-    clear_song();
-    scan_song_mounts(text);
+    clear_song(true);
+    pre_song_tempo = host.tempo();
+    for(int s = 0; s < kSends; ++s)
+        pre_song_send[s] = send_mounted[s];
+    song_mods.assign(size_t(kParts) * kModSlots, std::string());
     song_folder = folder;
 
-    static JNIEnv          env;
-    lines::Replay          replay;
+    // Each line's text by number, for noting the mounts that landed.
+    std::vector<std::pair<size_t, size_t>> line_at;
+    for(size_t at = 0; at <= text.size();)
+    {
+        size_t end = text.find('\n', at);
+        if(end == std::string::npos)
+            end = text.size();
+        line_at.emplace_back(at, end - at);
+        at = end + 1;
+    }
+
+    static JNIEnv            env;
+    lines::Replay            replay;
     std::vector<std::string> problems;
-    bool                     stalled = false;
-    replay.env       = &env;
-    replay.root      = folder;
-    replay.log       = [&](const std::string& p) {
+    replay.env  = &env;
+    replay.root = folder;
+    replay.log  = [&](const std::string& p) {
         std::fprintf(stderr, "acidulous: song: %s\n", p.c_str());
         if(problems.size() < 8)
             problems.push_back(p);
     };
     // A block after every line, as acidulous-song does: mounts apply at the
     // top of a block, LoadNexusPatch and BuildCloud want their machine in
-    // place, and the 512-entry param queue never fills.
-    replay.afterLine = [&](int) {
-        if(!stalled && !next_block())
-            stalled = true;
+    // place, and the 512-entry param queue never fills. If blocks stop, the
+    // replay stops there.
+    int refused = 0, skipped = 0;
+    replay.afterLine = [&](int n) {
+        if(replay.refused == refused && replay.skipped == skipped && n >= 1 && size_t(n) <= line_at.size())
+            note_song_mount(text.substr(line_at[size_t(n) - 1].first, line_at[size_t(n) - 1].second));
+        refused = replay.refused;
+        skipped = replay.skipped;
+        if(!next_block())
+            throw Stalled{n};
     };
-    const bool read = lines::replay(text, replay);
+    bool read    = false;
+    int  stalled = 0;
+    try
+    {
+        read = lines::replay(text, replay);
+    }
+    catch(const Stalled& s)
+    {
+        stalled = s.line;
+    }
     jniweb::arena().clear();
-    wait_applied();
     for(const auto& p : problems)
         error("song: " + p);
+    if(stalled)
+    {
+        clear_song(false);
+        return fail("the audio stopped at line " + std::to_string(stalled) + " of engine.txt; nothing is loaded");
+    }
+    wait_applied();
     if(!read)
     {
-        clear_song();
+        clear_song(false);
         return fail(problems.empty() ? std::string("not engine lines") : problems.front());
     }
 
@@ -684,11 +1097,20 @@ void Core::load_song(const std::string& path, const std::string& songs_dir)
         list.push_back(Value::s(parts[r].patch));
         list.push_back(Value::s(track ? track->text("name") : std::string()));
     }
+    // What the song's audio holds, so a later /load sees it: a rack's own
+    // while it keeps its machine, frozen clips until the song goes.
+    {
+        std::lock_guard<std::mutex> l(held_lock);
+        for(const auto& kv : audio.racks)
+            if(!parts[kv.first].machine.empty())
+                for(const auto& slot : kv.second)
+                    held[kv.first][slot.first] = slot.second;
+        song_held = audio.frozen_total();
+    }
     for(const auto& s : song_sends)
         if(s.first >= 0 && s.first < kSends)
             send_mounted[s.first] = !s.second.empty();
-    Args out{Value::s(path), Value::s(folder), Value::s(stalled ? "audio stopped during the load" : ""),
-             Value::i(replay.skipped), Value::i(count)};
+    Args out{Value::s(path), Value::s(folder), Value::s(""), Value::i(replay.skipped), Value::i(count)};
     out.insert(out.end(), list.begin(), list.end());
     reply("/song_loaded", out);
 }
