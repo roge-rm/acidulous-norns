@@ -1521,6 +1521,15 @@ void Core::read_back(int r, const void* track_ptr)
             send_graph(r);
     }
     reply("/sends", {Value::i(r), Value::f(part_sends[r][0]), Value::f(part_sends[r][1])});
+    {
+        // The channel strip as /channel takes it: gain 0-1.5 linear, pan 0-1.
+        const auto norm = [&](const char* name, float fallback) {
+            const float v = host.paramNormalized(r, "channel", name);
+            return v < 0.f ? fallback : v;
+        };
+        reply("/strip", {Value::i(r), Value::f(norm("gain", 1.f / 1.5f) * 1.5f), Value::f(norm("pan", 0.5f)),
+                         Value::i(norm("mute", 0.f) >= 0.5f ? 1 : 0), Value::i(norm("solo", 0.f) >= 0.5f ? 1 : 0)});
+    }
     const PatchInsert* none[kEffectSlots] = {};
     send_inserts(r, none, true);
     send_mods(r);

@@ -63,7 +63,8 @@
 //        every file path relative to the first root it's under: a root
 //        "/dir/" as "path", one "label=/dir/" as "label:path". Waits for a
 //        queued mount; "busy" if it never lands. Won't replace a file of
-//        more than one patch or with the app's samples in it
+//        more than one patch or with the app's samples in it, or while a song
+//        is loaded
 //   /preset_load i:part s:path i:index s:tag i:files s:machine s:name s:root...
 //        puts the patch called name (or at index, if none is) on the part as
 //        /patch does, mounting its machine, with tag as the patch name in its
@@ -173,9 +174,12 @@
 //   /song_loaded s:path s:folder s:error i:skipped i:count (i:part s:machine
 //        s:patch s:track)*count   after each part's /mounted, /macro_names,
 //        /macros and /graph (Nexus), /values, /patch, /sends, /inserts (with the
-//        song's values) and /mods. error "" when it loaded; skipped is the
+//        song's values), /strip and /mods. error "" when it loaded; skipped is the
 //        engine lines that failed, each also an /error "song: line N: ...".
 //        patch and track are the names in song.json, "" if it has none
+//   /strip i:part f:gain f:pan i:mute i:solo   a song part's channel strip
+//        as /channel takes it (gain 0-1.5 linear, pan 0.5 centre), read back
+//        after a song loads
 //   /song_scenes i:count (s:name s:id s:engine_id i:repeat)*count   the
 //        song's scenes in play order, just before /song_loaded: names and
 //        ids from song.json ("scene N" for one without a name), the engine

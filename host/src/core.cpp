@@ -2992,6 +2992,9 @@ void Core::save_preset(int part, const std::string& path, const std::string& nam
             std::fprintf(stderr, "acidulous: saving %s: %s\n", path.c_str(), why.c_str());
         reply("/preset_saved", {Value::i(part), Value::s(path), Value::s(why.empty() ? "ok" : why)});
     };
+    // A song's track holds what the song set, which the script can't name.
+    if(song_on.load())
+        return done("not while a song is loaded");
     const Part& p = parts[part];
     if(p.machine.empty())
         return done("no machine");

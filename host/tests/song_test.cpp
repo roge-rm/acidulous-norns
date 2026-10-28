@@ -23,6 +23,8 @@
 //   master volume; Mosaic zones and the master volume are read back
 // - a teardown that stalls before a replay that runs leaves the new song
 //   playing, and a /master while it's loaded moves only the song's master
+// - /strip gives a song part's gain and pan, and /preset_save is refused
+//   while a song is loaded
 // - deleting the core with a song loaded
 // Usage: acidulous-song-test BANK_DIR SCRATCH_DIR SONG_ZIP
 #include "core.h"
@@ -471,6 +473,16 @@ int main(int argc, char** argv)
         check(log.last("/sends", 1, sends) && sends.args.size() >= 3 && std::fabs(sends.args[1].num - 0.18) < 1e-4 &&
                   std::fabs(sends.args[2].num - 0.1) < 1e-4,
               "part 1's sends are 0.18 and 0.1");
+        Reply strip;
+        check(log.last("/strip", 1, strip) && strip.args.size() == 5 &&
+                  std::fabs(strip.args[1].num - 0.30666667 * 1.5) < 1e-4 && std::fabs(strip.args[2].num - 0.4) < 1e-4 &&
+                  int(strip.args[3].num) == 0 && int(strip.args[4].num) == 0,
+              "part 1's strip is the song's gain and pan");
+        cmd("/preset_save", {Value::i(1), Value::s(scratch + "/refused.acpreset"), Value::s("x"), Value::i(0)});
+        Reply saved;
+        check(log.wait("/preset_saved", saved, 10s) && saved.args.size() >= 3 &&
+                  saved.args[2].str == "not while a song is loaded" && !exists(scratch + "/refused.acpreset"),
+              "/preset_save is refused while a song is loaded");
         Reply names;
         check(log.last("/macro_names", 0, names) && names.args.size() == 9 && names.args[1].str == "Tighter" &&
                   names.args[8].str == "Room",
