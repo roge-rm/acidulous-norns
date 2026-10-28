@@ -12,7 +12,8 @@
 //        "solo", "sendreverb", "senddelay". A send above 0 mounts its effect
 //   /send i:slot s:name f:value01      a send effect's param: slot 0 the
 //        Reverb (size, damp, tone, predelay), 1 the Delay (time, feedback,
-//        tone, pingpong). Kept until the effect is mounted
+//        tone, pingpong). Kept until the effect is mounted. With a song
+//        loaded it moves the song's send and the script's values stay
 //   /fx i:part i:slot s:name f:value01  a param of the part's insert in slot
 //        0 or 1, by name, as /inserts lists them
 //   /mod i:part i:slot s:type          mounts a modifier ("Scale", "Chord",
@@ -190,6 +191,9 @@
 //        queued scene (-1 none) and the tempo it plays at
 //   /song_master f:volume01            the song's master volume, as
 //        /master takes it, just before /song_loaded
+//   /song_sends f:size01 f:feedback01   the song's Reverb size and Delay
+//        feedback as /send takes them, -1 for a send it doesn't have, just
+//        before /song_loaded
 //   /song_unloaded i:emptied           after the parts' /mounted "" and
 //        /inserts; emptied is 1 when a song or a failed load emptied them
 //   /preset_saved i:part s:path s:result   "ok" or what went wrong

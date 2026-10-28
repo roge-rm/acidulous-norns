@@ -800,6 +800,18 @@ int main(int argc, char** argv)
     check(load(zip, loaded) && str(loaded, 2).empty(), "loads the zip again");
     check(std::fabs(host.sendParamNormalized(0, "size") - 0.38f) < 1e-4,
           "the song's Reverb size 0.38 while it's loaded (" + std::to_string(host.sendParamNormalized(0, "size")) + ")");
+    {
+        Reply sends;
+        check(log.wait("/song_sends", sends, 1s) && sends.args.size() == 2 && std::fabs(sends.args[0].num - 0.38) < 1e-4 &&
+                  std::fabs(sends.args[1].num - host.sendParamNormalized(1, "feedback")) < 1e-5 &&
+                  log.index("/song_sends") < log.index("/song_loaded"),
+              "/song_sends gives the song's Reverb size and Delay feedback before /song_loaded");
+        // /send with the song loaded moves the song's Reverb only
+        cmd("/send", {Value::i(0), Value::s("size"), Value::f(0.25f)});
+        std::this_thread::sleep_for(100ms);
+        check(std::fabs(host.sendParamNormalized(0, "size") - 0.25f) < 1e-4,
+              "/send moves the song's Reverb size (" + std::to_string(host.sendParamNormalized(0, "size")) + ")");
+    }
     log.clear();
     cmd("/song_unload", {});
     {

@@ -1714,6 +1714,14 @@ void Core::set_send(int slot, const std::string& name, float v01)
         error("no send param " + name);
         return;
     }
+    // With a song loaded it moves the song's send, and the script's values
+    // stay for when the song goes.
+    if(!song_folder.empty())
+    {
+        if(send_mounted[slot] && std::string(host.mountedSend(slot)) == kSendTypes[slot])
+            push_param(0, kSendUnits[slot], name, v01);
+        return;
+    }
     send_values[slot][name] = v01;
     if(send_mounted[slot])
         push_param(0, kSendUnits[slot], name, v01);

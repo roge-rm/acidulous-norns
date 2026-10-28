@@ -1335,6 +1335,9 @@ bool Core::load_song(const std::string& path, const std::string& songs_dir_in, c
     Args out{Value::s(song_from), Value::s(folder), Value::s(""), Value::i(replay.skipped), Value::i(count)};
     out.insert(out.end(), list.begin(), list.end());
     reply("/song_master", {Value::f(master < 0.f ? 1.f : master)});
+    // The song's Reverb size and Delay feedback, 0-1, or -1 for a send it
+    // doesn't have.
+    reply("/song_sends", {Value::f(host.sendParamNormalized(0, "size")), Value::f(host.sendParamNormalized(1, "feedback"))});
     reply("/song_loaded", out);
     return true;
 }
