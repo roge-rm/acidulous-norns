@@ -21,7 +21,7 @@ cp "$cpp/platform/android/jni_bridge.cpp" "$dst/platform/android/"
 cp "$cpp/platform/web/jni.h" "$cpp/platform/web/LinkOff.cpp" "$dst/platform/web/"
 cp "$cpp/platform/desktop/android/log.h" "$dst/platform/desktop/android/"
 cp "$cpp/platform/link/LinkTimebase.h" "$dst/platform/link/"
-# The engine lines recorder and dispatcher, for replaying songs (not built yet).
+# The engine lines replayer and its dispatch table, for replaying songs.
 mkdir -p "$dst/platform/lines"
 cp "$cpp/platform/lines/EngineLines.h" "$cpp/platform/lines/EngineLines.cpp" "$cpp/platform/lines/lines_dispatch.cpp" "$dst/platform/lines/"
 # The patch bank reader and what it includes.

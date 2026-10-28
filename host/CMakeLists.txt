@@ -63,6 +63,19 @@ target_compile_definitions(acidulous-render PRIVATE
     ACIDULOUS_DEFAULT_BANKS="${CMAKE_CURRENT_SOURCE_DIR}/../data/banks")
 target_link_libraries(acidulous-render acidulous-core)
 
+# The engine lines replayer (song zips' engine.txt), and a tool that replays
+# a song into EngineHost and renders it to WAV.
+add_library(acidulous-lines STATIC
+    ${ACID}/platform/lines/EngineLines.cpp
+    ${ACID}/platform/lines/lines_dispatch.cpp)
+target_compile_options(acidulous-lines PRIVATE -w)
+target_link_libraries(acidulous-lines PUBLIC acidulous-engine)
+set_property(TARGET acidulous-lines PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+add_executable(acidulous-song src/song_render.cpp)
+target_compile_options(acidulous-song PRIVATE -Wall)
+target_link_libraries(acidulous-song acidulous-lines)
+
 # Remounts a part while its Cumulus cloud builds.
 add_executable(acidulous-cloud-test tests/cloud_race.cpp)
 target_include_directories(acidulous-cloud-test PRIVATE src)

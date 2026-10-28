@@ -19,6 +19,7 @@ This gives:
 
 - `Acidulous.so`: the SuperCollider plugin
 - `acidulous-render`: the offline render tool
+- `acidulous-song`: renders a song zip from the app
 
 On ARM the build targets the Cortex-A53, which covers the Pi 3 and Pi 4. The engine builds at `-O3 -ffast-math -fno-finite-math-only`, as in the app.
 
@@ -41,7 +42,7 @@ cmake -S host -B host/build
 cmake --build host/build -j8
 ```
 
-Without SuperCollider's headers or liblo only `acidulous-render` is built. To build the plugin too, point cmake at them:
+Without SuperCollider's headers or liblo only `acidulous-render` and `acidulous-song` are built. To build the plugin too, point cmake at them:
 
 ```
 cmake -S host -B host/build -DSC_INC=PATH/include/plugin_interface \
@@ -54,7 +55,7 @@ cmake -S host -B host/build -DSC_INC=PATH/include/plugin_interface \
 tools/vendor-acidulous.sh [PATH_TO_ACIDULOUS]
 ```
 
-copies the engine, the sequencer, the app's `EngineHost` and JNI bridge (with the shims its desktop and web builds use), its engine lines replayer (`platform/lines`, not built yet) and the patch bank reader from the app into `third_party/acidulous`, and the factory banks into `data/banks`. It defaults to `~/Projects/AndroidStudioProjects/Acidulous`, and copies the working tree, so point it at a clean clone to copy only committed code. The app's commit goes in `third_party/acidulous/VERSION`. Don't edit the copied files.
+copies the engine, the sequencer, the app's `EngineHost` and JNI bridge (with the shims its desktop and web builds use), its engine lines replayer (`platform/lines`) and the patch bank reader from the app into `third_party/acidulous`, and the factory banks into `data/banks`. It defaults to `~/Projects/AndroidStudioProjects/Acidulous`, and copies the working tree, so point it at a clean clone to copy only committed code. The app's commit goes in `third_party/acidulous/VERSION`. Don't edit the copied files.
 
 ## OSC access
 
@@ -77,6 +78,15 @@ A script has a line per event, `seconds command args...`, with the same commands
 See the top of `host/src/render.cpp` for the options. `tools/render-tests.sh` renders two patches each of Reflux, Hexbeat, Trinity, Ratio and Formulate into `host/build/renders` and prints their peak, RMS and load.
 
 `tools/sample-tests.sh` does the same for Forage, Mosaic, Dice, Pollen and Molt with files loaded (`load PART KIND PATH ARG` in the script). It makes its test files first with `host/tests/make_material.py` into `host/build/material`: a kit with WAV, AIFF and FLAC pads, a folder of WAVs named by note, a SoundFont with two presets and a few longer sounds. `make_material.py DIR --big 60` adds a 60 MB SoundFont for memory tests.
+
+`acidulous-song` replays a song zip's `engine.txt` (exported from the app) into EngineHost and writes a WAV:
+
+```
+host/build/acidulous-song song.zip out.wav [seconds] [tail] [bits]
+host/build/acidulous-song --live 20 song.zip out.wav
+```
+
+By default it renders like the app's export, from the top to the end of the song plus 2 s of tail, as 32-bit float. It should match the app's own render of the same song (`tools/engine_replay.sh` in the app) byte for byte. `--live S` plays the song from the first scene through the plugin's audio driver for S seconds instead, which comes out close but not identical.
 
 `tools/make-keys-sf2.py` makes Mosaic's default, `data/samples/acidulous-soft-horn.sf2`: Trinity's Soft Horn rendered every 6 semitones from C1 to C7, mono at 24 kHz, each with a crossfaded sustain loop.
 
