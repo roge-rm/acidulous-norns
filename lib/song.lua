@@ -8,6 +8,7 @@
 --   S.osc(path, args)       the plugin's /song_ replies
 --   S.read()                after a PSET is read, before the parts are sent
 --   S.key(n, z, k1), S.enc(n, d), S.screen()   the song page
+--   S.cleanup()             on the script's cleanup
 
 local timer = include("lib/timer")
 
@@ -46,6 +47,10 @@ local function give_back_tempo()
   if old_tempo and internal_clock() then params:set("clock_tempo", old_tempo) end
   old_tempo = nil
 end
+
+-- When the script stops: norns' clock gets its tempo back. The plugin and
+-- the song go with the engine.
+function S.cleanup() give_back_tempo() end
 
 function S.add_params()
   params:add_text("song", "song", "")

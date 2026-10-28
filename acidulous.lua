@@ -686,6 +686,7 @@ function cleanup()
   scope.close(parts)
   timer.cancel_all()
   parts.release_beat()
+  song.cleanup()
   surfaces.disconnect()
   for i = 1, parts.COUNT do
     if parts.list[i].machine then parts.notes_off(i) end
