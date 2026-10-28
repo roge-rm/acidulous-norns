@@ -104,6 +104,10 @@ class Core
     std::string macro_names(int part) const;
     // Each part's output peak since the last call, linear. Any thread.
     void levels(float* out);
+    // A loaded song's transport, as /song_position sends it: playing, scene,
+    // repeat, tick in the scene's pass, queued scene (-1 none) and tempo.
+    // False with no song loaded. Any thread.
+    bool song_position(Args& out) const;
     // The worst block since the last call, as a percentage of a block's length.
     float worst_percent();
     // Whether /meters asked for the master's meters. Any thread.
@@ -241,6 +245,9 @@ class Core
     void restore_sends();
     void note_song_mount(const std::string& line);
     void read_back(int part, const void* track);
+    void read_scenes(const std::string& text, const void* song);
+    void send_scenes();
+    void queue_scene(const Value& which);
     bool next_block();
     struct BankCache;
     std::shared_ptr<BankCache> bank(const std::string& machine); // null if it can't be read
@@ -313,6 +320,22 @@ class Core
     std::vector<std::pair<int, std::string>> song_sends;
     std::vector<int>                 song_master_fx;
     std::vector<std::pair<int, int>> song_group_fx;
+    // Worker only: the loaded song's scenes in engine.txt's SnapshotAddScene
+    // order, which is the transport's scene index, with song.json's names and
+    // ids.
+    struct SongScene
+    {
+        std::string name, id;
+        int64_t     engine_id = 0;
+        int         repeat    = 1;
+    };
+    std::vector<SongScene> song_scenes;
+    // Set while a song is loaded or loading: its own tempo rules, so /tempo
+    // and /beat are ignored. beat_lock is held around a /beat's check and
+    // alignBeat, and around setting this and releasing the beat, so no /beat
+    // takes the tempo back after the load has released it.
+    std::atomic<bool> song_on{false};
+    std::mutex        beat_lock;
     std::atomic<bool>            metering{false};
     // The part whose scope is open, or -1, and the module slot it's cabled
     // from. Written by the worker.

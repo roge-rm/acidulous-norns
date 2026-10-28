@@ -90,7 +90,8 @@ int on_any(const char* path, const char* types, lo_arg** a, int argc, lo_message
 
 void pump_main()
 {
-    int ticks = 0, scope_ticks = 0;
+    int ticks = 0, scope_ticks = 0, song_ticks = 0;
+    int song_was = -1; // playing (1) or not (0) in the last /song_position, -1 none
     while(running)
     {
         // Short sleeps so stop() doesn't wait a quarter of a second.
@@ -127,6 +128,23 @@ void pump_main()
                     args.push_back(core::Value::f(trace[i]));
                 replier.reply("/scope", args);
             }
+        }
+        // A loaded song's position 5 times a second while it plays, and once
+        // a second while it's stopped.
+        if(++song_ticks % 20 == 0)
+        {
+            core::Args pos;
+            if(!target->song_position(pos))
+                song_was = -1;
+            else
+            {
+                const int playing = int(pos[0].num);
+                if(playing || song_was != 0 || song_ticks >= 100)
+                    replier.reply("/song_position", pos);
+                song_was = playing;
+            }
+            if(song_ticks >= 100)
+                song_ticks = 0;
         }
         if(ticks < 25)
             continue;

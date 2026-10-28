@@ -98,6 +98,16 @@
 //        inserts, tunings, channel strips, master and perform params) and
 //        puts the sends, tempo, swing unit and loop-song back to the
 //        plugin's; does nothing but reply when no song is loaded
+//   /song_play [i:scene]               plays the loaded song from the top of
+//        the scene (0 is the first), or from the scene it's on
+//   /song_stop                         stops it and drops a queued scene
+//   /song_queue i:scene|s:id           the scene to play when the current
+//        one has finished its repeats, by index, or by song.json id or
+//        engine id (as /song_scenes lists them); -1 cancels
+//   /song_position                     replies /song_position now
+//        While a song is loaded or loading, its own tempo rules: /tempo with
+//        a tempo and /beat are ignored, and a followed beat is let go. After
+//        /song_unload they work again
 //   /state i:part                      for tests
 //   /mpe_state                         for tests
 // Out (to `reply` on localhost, matron's 10111):
@@ -159,6 +169,14 @@
 //        song's values) and /mods. error "" when it loaded; skipped is the
 //        engine lines that failed, each also an /error "song: line N: ...".
 //        patch and track are the names in song.json, "" if it has none
+//   /song_scenes i:count (s:name s:id s:engine_id i:repeat)*count   the
+//        song's scenes in play order, just before /song_loaded: names and
+//        ids from song.json ("scene N" for one without a name), the engine
+//        id as a decimal string
+//   /song_position i:playing i:scene i:repeat i:tick i:queued f:bpm   5
+//        times a second while a song plays and once a second stopped: the
+//        scene's index, its pass (0 first), the tick in that pass, the
+//        queued scene (-1 none) and the tempo it plays at
 //   /song_unloaded                     after the parts' /mounted "" and /inserts
 //   /preset_saved i:part s:path s:result   "ok" or what went wrong
 //   /preset_loaded i:part s:tag s:name s:error i:index   after its /values and /patch

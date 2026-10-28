@@ -1550,6 +1550,9 @@ function P.after_read(filename)
     for i = 1, P.COUNT do migrate_layout(i) end
   end
   params:set("param_layout", LAYOUT.NOW, true)
+  -- a PSET from before songs has none
+  if filename and params.lookup["song"] and not saved_has(filename, "song") then params:set("song", "", true) end
+  if P.on_read then P.on_read() end
   P.loading = false
   P.apply_all()
 end
@@ -1744,7 +1747,9 @@ end
 -- ---- replies from the plugin --------------------------------------------------
 
 function P.osc(path, args)
-  if path == "/levels" then
+  if path:sub(1, 6) == "/song_" then
+    if P.on_song then P.on_song(path, args) end
+  elseif path == "/levels" then
     for i = 1, P.COUNT do
       local part = P.list[i]
       part.level = math.max(args[i] or 0, part.level * 0.7)

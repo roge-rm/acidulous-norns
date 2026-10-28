@@ -30,6 +30,9 @@
 -- mixer: E1 part, E2 pan,
 -- E3 level, K2 mute, K3 solo
 -- sends: E1 part, E2 rev, E3 dly
+-- song: E2 scene, K3 plays it
+-- or queues it next, K2 play
+-- or stop, K1 held + K2 songs
 --
 -- an MPE controller plays the
 -- selected part, or the one
@@ -61,10 +64,11 @@ local lists = include("lib/lists")
 local scope = include("lib/scope")
 local draw = include("lib/draw")
 local saver = include("lib/saver")
+local song = include("lib/song")
 -- the picker's own copy, so it sees the stick the watcher mounts
 local library = picker.lib
 
-local PAGES = {"play", "parts", "card", "mixer", "sends"}
+local PAGES = {"play", "parts", "card", "mixer", "sends", "song"}
 -- cards: part -> its card page {machine, card, knob, first, tab_first, pad}
 -- play: part -> its play page {focus}, 0 the patch, 1-5 a macro
 -- out: the out strip is selected on the mixer and sends pages
@@ -76,7 +80,7 @@ local omx_problem = nil  -- {text, at}: the OMX-27 can't do REMOTE mode
 -- acid.omx is the OMX-27 surface (call its key, pot, enc and enc_btn),
 -- acid.saver the screensaver (set its delay in seconds).
 acid = {parts = parts, state = state, macros = macros, panel = panel, surfaces = surfaces, omx = surfaces.kinds[1],
-  picker = picker, scope = scope, saver = saver}
+  picker = picker, scope = scope, saver = saver, song = song}
 
 -- ---- MIDI in ----------------------------------------------------------------
 
@@ -633,6 +637,7 @@ local function ready()
   params:set_save("saver", false)
   load_settings()
   parts.add_params()
+  song.add_params()
   local names = {}
   for _, m in ipairs(parts.machines) do names[#names + 1] = m.name end
   for _, problem in ipairs(macros.check(names, parts.defs)) do print("acidulous: macros: " .. problem) end
@@ -664,6 +669,9 @@ function init()
   timer.every(1 / 15, function() redraw() end)
   if not install.check() then return end
   osc.event = function(path, args) parts.osc(path, args) end
+  song.init(parts)
+  parts.on_song = song.osc
+  parts.on_read = song.read
   parts.on_saved = function(machine) lists.refresh(parts, machine) end
   parts.on_preset_note = function(text) lists.note(text) end
   -- text entry takes the keys, so K1's release never comes here
@@ -844,6 +852,8 @@ function redraw()
     view.mixer(parts, state, note)
   elseif state.page == "sends" then
     view.sends(parts, state, note)
+  elseif state.page == "song" then
+    view.song(parts, song.screen(), note)
   else
     view.main(parts, state, note)
   end
@@ -999,6 +1009,8 @@ local function handle_key(n, z)
     picker.key(n, z, state.k1)
   elseif lists.active(parts) then
     lists.key(parts, n, z, state.k1)
+  elseif state.page == "song" then
+    song.key(n, z, state.k1)
   elseif scope.active() and n == 2 then
     if z == 1 then scope.close(parts) end
   elseif n == 3 and state.k1 and not scope.active() then
@@ -1032,8 +1044,10 @@ local function handle_enc(n, d)
     lists.enc(parts, n, d)
   elseif scope.active() then
     scope.enc(parts, n, d)
-  elseif n == 1 and state.k1 then
+  elseif n == 1 and state.k1 and not song.list_open() then
     step_page(d)
+  elseif state.page == "song" then
+    song.enc(n, d)
   elseif state.page == "mixer" or state.page == "sends" then
     local mixer = state.page == "mixer"
     if n == 1 then

@@ -668,6 +668,65 @@ function view.picker(pick)
   screen.update()
 end
 
+-- The song page. s: from song.screen(). The song's name, playing or
+-- stopped with the scene, its pass and the tempo, then a row per scene: a
+-- bar lit on the one playing, "next" on the queued one, the cursor's row
+-- highlighted.
+function view.song(parts, s, note)
+  if s.kind == "list" then
+    view.picker(s.pick)
+    return
+  end
+  screen.clear()
+  screen.font_face(1)
+  screen.font_size(8)
+  header(parts, s.name or "song", s.note or note)
+  if not s.name then
+    screen.level(s.loading and 15 or 6)
+    text(64, 34, s.loading and fit("loading " .. s.loading:lower(), 124) or "no song", "center")
+    screen.level(4)
+    if not s.loading then text(64, 48, "k2 songs", "center") end
+    screen.update()
+    return
+  end
+  local pos, scenes = s.pos, s.scenes
+  local cur = scenes[pos.scene + 1]
+  -- a triangle while playing, a square stopped
+  if pos.playing then
+    for k, h in ipairs({7, 5, 3, 1}) do fill_rect(k - 1, 14 - (7 - h) // 2 - h, 1, h, 15) end
+  else
+    fill_rect(0, 8, 5, 5, 8)
+  end
+  screen.level(pos.playing and 15 or 8)
+  local line = cur and cur.name:lower() or ""
+  if cur and pos.playing and cur.repeats > 1 then line = line .. "  " .. (pos.pass + 1) .. "/" .. cur.repeats end
+  local bpm = pos.bpm and string.format("%d bpm", math.floor(pos.bpm + 0.5)) or ""
+  text(8, 13, fit(line, 116 - screen.text_extents(bpm)))
+  screen.level(6)
+  text(127, 13, bpm, "right")
+  fill_rect(0, 16, 128, 1, 2)
+  local shown = 6
+  local top = util.clamp(s.cursor - shown + 1, 1, math.max(1, #scenes - shown + 1))
+  if s.cursor < top then top = s.cursor end
+  local scrolls = #scenes > shown
+  local right = scrolls and 123 or 128
+  for k = top, math.min(#scenes, top + shown - 1) do
+    local sc = scenes[k]
+    local y = 24 + (k - top) * 7
+    local on = k == s.cursor
+    if on then fill_rect(0, y - 6, right, 7, 3) end
+    local playing = k == pos.scene + 1
+    fill_rect(0, y - 5, 2, 5, playing and (pos.playing and 15 or 8) or 1)
+    screen.level(on and 15 or (playing and 12 or 6))
+    local tail = k == pos.queued + 1 and "next" or (sc.repeats > 1 and "x" .. sc.repeats or "")
+    text(5, y, fit(sc.name:lower(), right - 8 - screen.text_extents(tail)))
+    screen.level(k == pos.queued + 1 and 15 or 3)
+    text(right - 2, y, tail, "right")
+  end
+  if scrolls then scrollbar(124, 18, 45, top, shown, #scenes) end
+  screen.update()
+end
+
 -- msg is wrapped over two lines if it's too wide.
 -- The app's icon, 47 px wide, one grey level (hex) a pixel.
 local SPLASH = {

@@ -15,6 +15,8 @@
 // - audio stopping mid-replay stops it with an error
 // - /song_unload puts the tempo back to the plugin's (EngineHost has no
 //   getter for a send's params)
+// - /song_scenes, /song_play, /song_queue, /song_stop and /song_position,
+//   and that /tempo and /beat leave a loaded song's tempo alone
 // - deleting the core with a song loaded
 // Usage: acidulous-song-test BANK_DIR SCRATCH_DIR SONG_ZIP
 #include "core.h"
@@ -23,6 +25,7 @@
 #include <engine/machine/MachineRegistry.h>
 
 #include <atomic>
+#include <cctype>
 #include <chrono>
 #include <cmath>
 #include <condition_variable>
@@ -453,6 +456,105 @@ int main(int argc, char** argv)
     host.transportStop();
     check(peak.load() > 0.01f, "plays with the transport running (peak " + std::to_string(peak.load()) + ")");
 
+    // Transport over OSC: the scene list, play, queue, stop and the position.
+    {
+        // The scene list came just before /song_loaded, from the last load.
+        Reply sc;
+        const bool got_scenes = log.wait("/song_scenes", sc, 1s);
+        check(got_scenes && log.index("/song_scenes") < log.index("/song_loaded"),
+              "/song_scenes comes before /song_loaded");
+        const char* names[] = {"Intro", "Groove", "Break", "Build", "Drop", "Outro"};
+        const int   repeats[] = {1, 2, 1, 1, 2, 1};
+        bool        right     = got_scenes && sc.args.size() == 1 + 6 * 4 && int(sc.args[0].num) == 6;
+        for(int k = 0; right && k < 6; ++k)
+            right = sc.args[size_t(1 + k * 4)].str == names[k] &&
+                    sc.args[size_t(2 + k * 4)].str == std::string("s-") + [&] {
+                        std::string n = names[k];
+                        for(auto& ch : n)
+                            ch = char(std::tolower(ch));
+                        return n;
+                    }() &&
+                    int(sc.args[size_t(4 + k * 4)].num) == repeats[k];
+        check(right, "six scenes with song.json's names, ids and repeats");
+        check(got_scenes && sc.args.size() > 3 && sc.args[3].str == "-41773852288867351",
+              "the first scene's engine id is engine.txt's");
+        const std::string drop_engine_id = got_scenes && sc.args.size() > 19 ? sc.args[19].str : "";
+
+        const auto position = [&](Reply& r) {
+            log.clear();
+            cmd("/song_position", {});
+            return log.wait("/song_position", r, 5s) && r.args.size() == 6;
+        };
+        // The stop above lands on the next block.
+        Reply pos;
+        bool  stopped = false;
+        for(int k = 0; k < 40 && !stopped; ++k)
+        {
+            stopped = position(pos) && pos.args[0].num == 0;
+            if(!stopped)
+                std::this_thread::sleep_for(50ms);
+        }
+        check(stopped, "stopped: /song_position says not playing");
+
+        // The script's tempo and beat don't move the song's.
+        cmd("/tempo", {Value::f(90.f)});
+        for(int k = 0; k < 4; ++k)
+        {
+            cmd("/beat", {Value::f(float(k)), Value::f(90.f)});
+            std::this_thread::sleep_for(50ms);
+        }
+        cmd("/song_play", {Value::i(1)});
+        std::this_thread::sleep_for(500ms);
+        check(position(pos) && pos.args[0].num == 1 && pos.args[1].num == 1 && pos.args[2].num == 0 &&
+                  pos.args[3].num > 0 && pos.args[4].num == -1,
+              "/song_play 1 plays Groove, first pass, tick " + std::to_string(pos.args.size() > 3 ? pos.args[3].num : -1));
+        check(pos.args.size() == 6 && std::fabs(pos.args[5].num - 126.0) < 0.01,
+              "it plays at the song's 126, not the script's 90 (" +
+                  std::to_string(pos.args.size() == 6 ? pos.args[5].num : 0) + ")");
+
+        cmd("/song_queue", {Value::i(3)});
+        check(position(pos) && pos.args[4].num == 3, "/song_queue 3 queues Build");
+        cmd("/song_queue", {Value::s("s-drop")});
+        check(position(pos) && pos.args[4].num == 4, "/song_queue s-drop queues Drop");
+        cmd("/song_queue", {Value::s("-41773852288867351")});
+        check(position(pos) && pos.args[4].num == 0, "/song_queue by engine id queues Intro");
+        log.clear();
+        cmd("/song_queue", {Value::i(6)});
+        Reply err;
+        check(log.wait("/error", err, 5s) && str(err, 0) == "song: no scene 6", "/song_queue 6 is refused");
+        log.clear();
+        cmd("/song_queue", {Value::s("nope")});
+        check(log.wait("/error", err, 5s), "/song_queue nope is refused");
+        check(position(pos) && pos.args[4].num == 0, "and Intro stays queued");
+        cmd("/song_queue", {Value::i(-1)});
+        check(position(pos) && pos.args[4].num == -1, "/song_queue -1 cancels");
+
+        // Queue Drop and let Groove's two passes run out, fast.
+        cmd("/song_queue", {Value::s(drop_engine_id)});
+        host.setTempo(999.f);
+        bool second = false, dropped = false;
+        for(int k = 0; k < 400 && !dropped; ++k)
+        {
+            std::this_thread::sleep_for(50ms);
+            if(!position(pos))
+                break;
+            second  = second || (pos.args[1].num == 1 && pos.args[2].num == 1);
+            dropped = pos.args[1].num == 4;
+        }
+        check(second, "Groove plays its second pass");
+        check(dropped && pos.args[4].num == -1, "then the queued Drop plays and nothing is queued");
+
+        cmd("/song_stop", {});
+        stopped = false;
+        for(int k = 0; k < 40 && !stopped; ++k)
+        {
+            std::this_thread::sleep_for(50ms);
+            stopped = position(pos) && pos.args[0].num == 0;
+        }
+        check(stopped, "/song_stop stops it");
+        host.setTempo(126.f);
+    }
+
     // Refusals. None of them may touch what's loaded.
     {
         Reply r;
@@ -583,6 +685,16 @@ int main(int argc, char** argv)
         state(0, st);
         check(st.args.size() >= 4 && std::fabs(st.args[3].num - 1.0 / 1.5) < 1e-4, "part 0's gain is back to unity");
         check(std::fabs(host.tempo() - 100.f) < 1e-3, "the tempo is back to 100 (" + std::to_string(host.tempo()) + ")");
+        log.clear();
+        cmd("/song_position", {});
+        cmd("/tempo", {});
+        Reply t;
+        check(log.wait("/tempo", t, 5s) && log.index("/song_position") < 0, "no /song_position without a song");
+        cmd("/tempo", {Value::f(110.f)});
+        std::this_thread::sleep_for(100ms);
+        check(std::fabs(host.tempo() - 110.f) < 1e-3, "/tempo works again (" + std::to_string(host.tempo()) + ")");
+        cmd("/tempo", {Value::f(100.f)});
+        std::this_thread::sleep_for(100ms);
         log.clear();
         cmd("/mods", {Value::i(5)});
         Reply m5;

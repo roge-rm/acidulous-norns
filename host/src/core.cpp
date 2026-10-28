@@ -850,6 +850,41 @@ bool Core::command(const std::string& path, const Args& a)
         post_all([this] { unload_song(); });
         return true;
     }
+    if(path == "/song_play")
+    {
+        // [i:scene], else from the scene the transport is on. On the worker,
+        // so it waits for a /song_load sent before it.
+        const int scene = a.empty() ? -1 : to_int(a[0]);
+        post([this, scene] {
+            if(song_folder.empty())
+                return error("song: no song loaded");
+            host.transportPlay(scene < 0 || size_t(scene) >= song_scenes.size() ? -1 : scene);
+        });
+        return true;
+    }
+    if(path == "/song_stop")
+    {
+        post([this] {
+            host.queueScene(-1);
+            host.transportStop();
+        });
+        return true;
+    }
+    if(path == "/song_queue" && a.size() >= 1)
+    {
+        post([this, which = a[0]] { queue_scene(which); });
+        return true;
+    }
+    if(path == "/song_position")
+    {
+        // On the worker, after what was sent before it.
+        post([this] {
+            Args out;
+            if(song_position(out))
+                reply("/song_position", out);
+        });
+        return true;
+    }
     if(path == "/state" && a.size() >= 1)
     {
         const int part = to_int(a[0]);
@@ -1054,8 +1089,12 @@ bool Core::command(const std::string& path, const Args& a)
     {
         // The engine's tempo, which its clock runs at with the transport
         // stopped too (arps, synced delays and LFOs). Any thread may set it.
+        // A loaded song keeps its own tempo.
         if(!a.empty())
-            host.setTempo(to_float(a[0]));
+        {
+            if(!song_on.load())
+                host.setTempo(to_float(a[0]));
+        }
         else
             post([this] {
                 wait_applied();
@@ -1069,7 +1108,11 @@ bool Core::command(const std::string& path, const Args& a)
         // which is a few ms after the script read the beat; alignBeat can't
         // be called on the audio thread, so this is as close as it gets.
         // One thread only: the OSC thread.
-        host.alignBeat(to_float(a[0]), to_float(a[1]), host.framesRendered());
+        // Not while a song is loaded: it keeps its own tempo and scene
+        // tempos, which following a beat would override.
+        std::lock_guard<std::mutex> l(beat_lock);
+        if(!song_on.load())
+            host.alignBeat(to_float(a[0]), to_float(a[1]), host.framesRendered());
         return true;
     }
     if(path == "/beat_release")

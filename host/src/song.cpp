@@ -12,8 +12,11 @@
 #include <engine/rack/MasterBus.h>
 #include <jni.h>
 #include <platform/lines/EngineLines.h>
+#include <sequencer/Transport.h>
 
+#include <algorithm>
 #include <cctype>
+#include <climits>
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
@@ -766,6 +769,8 @@ void Core::clear_song(bool quiet)
     song_mods.clear();
     song_sends.clear();
     song_folder.clear();
+    song_scenes.clear();
+    song_on.store(false);
     wait_applied();
 }
 
@@ -842,6 +847,8 @@ void Core::drop_song()
     host.clearFrozen();
     song_defaults(true);
     song_folder.clear();
+    song_scenes.clear();
+    song_on.store(false);
 }
 
 void Core::unload_song()
@@ -1015,6 +1022,13 @@ void Core::load_song(const std::string& path, const std::string& songs_dir_in)
 
     clear_song(true);
     pre_song_tempo = host.tempo();
+    // The song's tempo rules from here: the script's /tempo and /beat are
+    // ignored until it goes, and a beat being followed is let go.
+    {
+        std::lock_guard<std::mutex> l(beat_lock);
+        song_on.store(true);
+        host.releaseBeat();
+    }
     for(int s = 0; s < kSends; ++s)
         pre_song_send[s] = send_mounted[s];
     song_mods.assign(size_t(kParts) * kModSlots, std::string());
@@ -1110,9 +1124,107 @@ void Core::load_song(const std::string& path, const std::string& songs_dir_in)
     for(const auto& s : song_sends)
         if(s.first >= 0 && s.first < kSends)
             send_mounted[s.first] = !s.second.empty();
+    read_scenes(text, &song);
+    send_scenes();
     Args out{Value::s(path), Value::s(folder), Value::s(""), Value::i(replay.skipped), Value::i(count)};
     out.insert(out.end(), list.begin(), list.end());
     reply("/song_loaded", out);
+}
+
+// The scenes of the last committed snapshot in [text], in order, which is
+// the transport's scene index, named from song.json's scenes in the same
+// order (the app pushes them in that order). Worker thread.
+void Core::read_scenes(const std::string& text, const void* song_ptr)
+{
+    const Json*            song = static_cast<const Json*>(song_ptr);
+    std::vector<SongScene> building, done;
+    for(size_t at = 0; at < text.size();)
+    {
+        size_t end = text.find('\n', at);
+        if(end == std::string::npos)
+            end = text.size();
+        const std::string line = text.substr(at, end - at);
+        at                     = end + 1;
+        if(line.compare(0, 8, "Snapshot") != 0)
+            continue;
+        const auto w = words(line);
+        if(w.empty())
+            continue;
+        if(w[0] == "SnapshotBegin")
+            building.clear();
+        else if(w[0] == "SnapshotAddScene" && w.size() >= 5)
+        {
+            SongScene sc;
+            sc.engine_id = std::strtoll(w[2].c_str(), nullptr, 10);
+            sc.repeat    = std::max(1, std::atoi(w[4].c_str()));
+            building.push_back(sc);
+        }
+        else if(w[0] == "SnapshotCommit")
+            done = building;
+    }
+    const Json* scenes = song ? song->get("scenes") : nullptr;
+    for(size_t k = 0; k < done.size(); ++k)
+    {
+        const Json* sc = scenes && scenes->kind == Json::Array && k < scenes->items.size() ? &scenes->items[k] : nullptr;
+        if(sc)
+        {
+            done[k].name = sc->text("name");
+            done[k].id   = sc->text("id");
+        }
+        if(done[k].name.empty())
+            done[k].name = "scene " + std::to_string(k + 1);
+    }
+    song_scenes = std::move(done);
+}
+
+void Core::send_scenes()
+{
+    Args out{Value::i(int(song_scenes.size()))};
+    for(const auto& sc : song_scenes)
+    {
+        out.push_back(Value::s(sc.name));
+        out.push_back(Value::s(sc.id));
+        out.push_back(Value::s(std::to_string(sc.engine_id)));
+        out.push_back(Value::i(sc.repeat));
+    }
+    reply("/song_scenes", out);
+}
+
+// Queues a scene to follow the current one's repeats: by index, or by
+// song.json id or engine id as a string. -1 cancels. Worker thread.
+void Core::queue_scene(const Value& which)
+{
+    if(song_folder.empty())
+        return error("song: no song loaded");
+    int idx = -1;
+    if(which.type == 's')
+    {
+        for(size_t k = 0; k < song_scenes.size() && idx < 0; ++k)
+            if(which.str == song_scenes[k].id || which.str == std::to_string(song_scenes[k].engine_id))
+                idx = int(k);
+        if(idx < 0)
+            return error("song: no scene " + which.str);
+    }
+    else
+    {
+        idx = int(which.num);
+        if(idx >= int(song_scenes.size()))
+            return error("song: no scene " + std::to_string(idx));
+        if(idx < 0)
+            idx = -1;
+    }
+    host.queueScene(idx);
+}
+
+bool Core::song_position(Args& out) const
+{
+    if(!song_on.load())
+        return false;
+    const auto    p    = seq::Transport::unpack(host.positionPacked());
+    const int64_t tick = std::min<int64_t>(p.tickInIteration, INT32_MAX);
+    out = {Value::i(host.isPlaying() ? 1 : 0), Value::i(p.scene), Value::i(p.repeat), Value::i(int(tick)),
+           Value::i(host.queuedScene()), Value::f(host.tempo())};
+    return true;
 }
 
 // Sets part [r]'s state from what the rack holds after a song, and sends what

@@ -64,7 +64,7 @@ The play page shows the selected part's machine, patch and five macros, with a l
 
 - E1 changes machine, E2 picks the patch or a macro and E3 changes it. Hold K1 for fine steps.
 - K2 opens patches, K1 + K2 opens machines and K3 plays a note.
-- Hold K1 and turn E1 to change pages: play, parts, card, mixer and sends.
+- Hold K1 and turn E1 to change pages: play, parts, card, mixer, sends and song.
 
 ### Parts and patches
 
@@ -72,7 +72,7 @@ The parts page shows each machine, patch and level meter. The bar on the left li
 
 | | |
 |---|---|
-| **K1** held + **E1** | page: play, parts, card, mixer, sends, a few detents a page |
+| **K1** held + **E1** | page: play, parts, card, mixer, sends, song, a few detents a page |
 | **E1** | pick a part |
 | **E2** | patch |
 | **K1** held + **E2** | machine |
@@ -117,6 +117,19 @@ The sends page has reverb and delay sends for each part. On out, the knobs chang
 | **E3** | delay send |
 
 Reverb and delay start when first used. Other settings are under PARAMETERS > EDIT > sends and master. Delay time is in notes at the norns tempo.
+
+### Songs
+
+The song page plays a song exported from the app as a zip. Put zips in `dust/data/acidulous/songs` or anywhere in `dust/audio`. Loading one unpacks it into `dust/data/acidulous/songs/<name>/` and replaces the parts. The page shows the scene playing, its pass and the tempo, and a row per scene: the bar on the left lights on the one playing and next marks the queued one.
+
+| Song | |
+|---|---|
+| **K1** held + **K2** | songs, or **K2** when none is loaded. K3 loads, none unloads, K2 closes |
+| **K2** | play or stop |
+| **E2** | pick a scene |
+| **K3** | play from that scene, or queue it to follow the one playing |
+
+A song plays at its own tempo, and norns' clock follows it while its source is internal. Unloading puts the clock back and the parts as they were. PSETs keep the loaded song.
 
 ### Scope and settings
 
