@@ -469,8 +469,12 @@ function view.sends(parts, state, note)
   local i = state.sel
   local right
   if state.out then
-    right = string.format("size %d  fdbk %d", math.floor(params:get("rev_size") * 100 + 0.5),
-      math.floor(params:get("dly_feedback") * 100 + 0.5))
+    -- the song's while one is loaded, "-" for a send it doesn't have
+    local function pc(pid)
+      local v = parts.out_send(pid)
+      return v and tostring(math.floor(v * 100 + 0.5)) or "-"
+    end
+    right = "size " .. pc("rev_size") .. "  fdbk " .. pc("dly_feedback")
   else
     right = string.format("rev %d  dly %d", math.floor(parts.get(i, "rev") * 100 + 0.5),
       math.floor(parts.get(i, "dly") * 100 + 0.5))
@@ -488,10 +492,10 @@ function view.sends(parts, state, note)
   end
   screen.level(state.out and 15 or 6)
   text(116, 21, "rev", "center")
-  knob(116, 30, 6, parts.send_param_01("rev_size"), 3, state.out and 15 or 10)
+  knob(116, 30, 6, parts.out_send_01("rev_size"), 3, state.out and 15 or 10)
   screen.level(state.out and 15 or 6)
   text(116, 46, "dly", "center")
-  knob(116, 55, 6, parts.send_param_01("dly_feedback"), 3, state.out and 15 or 10)
+  knob(116, 55, 6, parts.out_send_01("dly_feedback"), 3, state.out and 15 or 10)
   screen.update()
 end
 

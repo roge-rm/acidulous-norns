@@ -195,9 +195,14 @@ function P.send_to_song(path, args) osc.send(PLUGIN, path, args) end
 -- holds the racks, the script's own only when no song holds them.
 local function psend(part, path, args)
   if part.song then
-    if P.song_holds then osc.send(PLUGIN, path, args) end
+    -- not while a load replaces the song, whose racks these aren't
+    if P.song_holds and not P.song_reading then osc.send(PLUGIN, path, args) end
   elseif not P.song_holds then
     osc.send(PLUGIN, path, args)
+  elseif path ~= "/cc" and path ~= "/mods_off" then
+    -- a change to a script part's racks: sent with the rest of the part
+    -- when they're its again
+    part.owed = true
   end
 end
 
@@ -227,7 +232,10 @@ end
 -- Sends /patch or /unmount, which the plugin answers with one /inserts each.
 -- A count left over for more than 2 s is a lost reply, so it starts again.
 local function send_patch(part, path, args)
-  if not part.song and P.song_holds then
+  if part.song then
+    -- dropped by psend, so no /inserts comes for it
+    if not P.song_holds or P.song_reading then return end
+  elseif P.song_holds then
     part.owed = true
     return
   end
@@ -467,6 +475,45 @@ end
 
 local function send_send_param(sp)
   send("/send", {sp.slot, sp.param, send_param_value(sp)})
+end
+
+-- The sends page's out strip: the reverb's size and the delay's feedback,
+-- the song's while one is loaded (P.song_sends, {size, feedback} 0-1 from
+-- lib/song.lua, nil for a send the song doesn't have), else the script's.
+-- The script's params stay as they are during a song.
+P.song_sends = nil
+local OUT_SENDS = {rev_size = "size", dly_feedback = "feedback"}
+local function send_spec(pid)
+  for _, sp in ipairs(P.SEND_PARAMS) do
+    if sp.id == pid then return sp end
+  end
+end
+
+-- pid's value in its param's units, or nil for the song's missing send.
+function P.out_send(pid)
+  if not P.song_sends then return params:get(pid) end
+  local v, sp = P.song_sends[OUT_SENDS[pid]], send_spec(pid)
+  return v and sp.min + v * (sp.max - sp.min)
+end
+
+function P.out_send_01(pid)
+  if not P.song_sends then return P.send_param_01(pid) end
+  return P.song_sends[OUT_SENDS[pid]] or 0
+end
+
+function P.delta_out_send(pid, d)
+  if not P.song_sends then
+    params:delta(pid, d)
+    return
+  end
+  local sp, key = send_spec(pid), OUT_SENDS[pid]
+  local v = P.song_sends[key]
+  if not v then return end
+  -- steps of 0.01 in the param's units, as its controlspec has them
+  local real = util.clamp(sp.min + v * (sp.max - sp.min) + d * 0.01, sp.min, sp.max)
+  v = (real - sp.min) / (sp.max - sp.min)
+  P.song_sends[key] = v
+  P.send_to_song("/send", {sp.slot, sp.param, v})
 end
 
 -- The engine's clock runs at norns' tempo, whatever the clock source. norns
@@ -1247,6 +1294,9 @@ end
 local function load_machine(part, with_values)
   local r = part.n - 1
   part.pending = nil
+  -- a script part's machine or patch whose timer fired after a song took
+  -- the racks: it loads fresh with its own values when they're its again
+  if held(part, true) then return end
   local name = patch_name(part)
   local pr = part.machine and part.preset
   part.want_values = false
@@ -2166,6 +2216,8 @@ function P.set(i, key, v)
     params:set(id(i, key), v)
     return
   end
+  -- the song is being loaded again, and the read-back replaces the tracks
+  if P.song_reading then return end
   local j = tonumber(key:match("^s(%d+)$") or "")
   if key == "machine" then
     v = util.clamp(v, 1, #P.machines + 1)
@@ -2208,6 +2260,10 @@ function P.delta(i, key, d)
     if not def then return end
     local q = (def.curve == "step" and def.steps > 1) and 1 / (def.steps - 1) or 0.005
     P.set(i, key, util.clamp(v + d * q, 0, 1))
+  elseif key == "patch" and v < 1 then
+    -- a song's own patch, not in the bank: the first turn goes to the
+    -- bank's first patch, or its last turning left
+    P.set(i, key, d > 0 and 1 or #(P.patches[part.machine or ""] or {}))
   elseif key == "machine" or key == "patch" or key == "mute" or key == "solo" or key == "channel" then
     P.set(i, key, math.max(1, v + d))
   elseif p and p.controlspec then
@@ -2224,11 +2280,28 @@ end
 -- (/mounted, /values, /strip, /sends, /inserts, /mods ...) fill them.
 P.song_wide = false -- the song has tracks past 8
 
+-- Stops what the tracks still have on its way to their racks.
+local function quiet_song_parts()
+  for _, part in ipairs(P.song) do
+    timer.cancel(part.pending)
+    part.pending = nil
+    for slot, t in pairs(part.mod_pending or {}) do
+      timer.cancel(t)
+      part.mod_pending[slot] = nil
+    end
+  end
+end
+
 local function clear_song_parts()
+  quiet_song_parts()
   for i = 1, P.COUNT do P.song[i] = new_part(i, true) end
   song_memory = {}
 end
 clear_song_parts()
+
+-- The shown song's tracks while another song loads, put back if that load
+-- is refused with the racks untouched: {parts, memory, wide}.
+local stashed = nil
 
 -- A track's machine and patch as the read-back has them; nil machine for
 -- an empty rack.
@@ -2241,6 +2314,8 @@ song_track = function(part, machine, patch)
   part.want_values, part.dim, part.edits = false, false, {}
   part.preset, part.files, part.loading, part.problem, part.last_path = nil, {}, nil, nil, nil
   part.fx_edits, part.sends_moved = {}, {}
+  -- the read-back's /inserts is the one to show
+  part.fx_wait = 0
   -- a sample machine has the song's samples, which the script can't name
   part.song_files = machine ~= nil and P.SAMPLE_MACHINES[machine] or false
   if patch ~= nil or not machine then
@@ -2255,22 +2330,48 @@ song_track = function(part, machine, patch)
   end
 end
 
--- A load is on its way. With no song shown the tracks start empty; with one
--- shown they're replaced by what the replies say.
-function P.song_load_started()
-  if not P.song_view then clear_song_parts() end
+-- A load is on its way. Another song's tracks go from the pages until its
+-- read-back comes, and the shown song loaded again keeps its tracks until
+-- the replies replace them. Either way edits to the tracks aren't sent
+-- meanwhile and what the run remembered of their patches goes.
+function P.song_load_started(same)
+  stashed = nil
+  if P.song_view and not same then
+    quiet_song_parts()
+    stashed = {parts = {}, memory = song_memory, wide = P.song_wide}
+    for i = 1, P.COUNT do stashed.parts[i] = P.song[i] end
+    clear_song_parts()
+    P.song_wide = false
+    P.song_view = false
+    show_view()
+  elseif not P.song_view then
+    clear_song_parts()
+  else
+    quiet_song_parts()
+    song_memory = {}
+  end
   P.song_reading = true
 end
 
--- A load ended without a song: nothing more to read.
-function P.song_load_failed()
+-- A load ended without a song: nothing more to read. still_loaded: the song
+-- shown before it is still on the racks, so its tracks come back.
+function P.song_load_failed(still_loaded)
   P.song_reading = false
+  if stashed and still_loaded and not P.song_view then
+    for i = 1, P.COUNT do P.song[i] = stashed.parts[i] end
+    song_memory = stashed.memory
+    P.song_wide = stashed.wide
+    P.song_view = true
+    show_view()
+  end
+  stashed = nil
 end
 
 -- The song loaded: tracks is {part, machine, patch, name} per rack with a
 -- machine. The rest are empty. Each track plays from MIDI channel n.
 function P.song_loaded(tracks)
   P.song_reading = false
+  stashed = nil
   local named, wide = {}, false
   for _, t in ipairs(tracks) do
     local part = P.song[t.part + 1]
@@ -2296,6 +2397,7 @@ end
 -- The song went: the script's own parts are shown again. reading: another
 -- load is on its way.
 function P.song_gone(reading)
+  stashed = nil
   P.song_reading = reading or false
   P.song_wide = false
   P.song_view = false

@@ -381,7 +381,8 @@ function play.draw(parts, state, macs, ps, note, keys)
   screen.font_size(8)
   local total = #(parts.patches[part.machine] or {})
   local at = total > 0 and parts.get(i, "patch") or 0
-  local count = part.preset and "saved" or string.format("%d/%d", at, total)
+  -- a song's own patch, not in the bank, shows its name alone
+  local count = part.preset and "saved" or (at > 0 and string.format("%d/%d", at, total) or "")
   local cw = screen.text_extents(count)
   local on = ps.focus == 0
   if on then fill_rect(0, 17, MOTIF.x - 2, 9, 15) end

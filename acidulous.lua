@@ -644,7 +644,7 @@ local function ready()
   for _, problem in ipairs(macros.check(names, parts.defs)) do print("acidulous: macros: " .. problem) end
   for _, problem in ipairs(panel.check(names, parts.defs)) do print("acidulous: cards: " .. problem) end
   parts.set_part(1, "Reflux", "Classic")
-  parts.set_part(2, "Hexbeat", "Straight")
+  parts.set_part(2, "Hexbeat", "Squared")
   for i = 1, parts.COUNT do
     if parts.on(i) then parts.start_part(i) else parts.own[i].parked = true end
   end
@@ -1078,7 +1078,7 @@ local function handle_enc(n, d)
       if mixer then
         if n == 3 then parts.delta_master(d) end
       else
-        params:delta(n == 2 and "rev_size" or "dly_feedback", d)
+        parts.delta_out_send(n == 2 and "rev_size" or "dly_feedback", d)
       end
     elseif mixer and n == 2 then
       local pid = parts.id(i, "pan")
