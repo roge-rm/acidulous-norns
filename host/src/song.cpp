@@ -690,8 +690,8 @@ bool write_file(const std::string& path, const std::vector<uint8_t>& bytes, std:
 // line for a slot wins.
 void Core::note_song_mount(const std::string& line)
 {
-    const bool mount = line.compare(0, 5, "Mount") == 0;
-    if(!mount && line.compare(0, 4, "Load") != 0 && line.compare(0, 9, "SetParam ") != 0)
+    if(line.compare(0, 12, "MountMachine") != 0 && line.compare(0, 4, "Load") != 0 &&
+       line.compare(0, 9, "SetParam ") != 0)
         return;
     const auto w = words(line);
     const auto n = [&](size_t k) { return k < w.size() ? std::atoi(w[k].c_str()) : -1; };
@@ -722,16 +722,6 @@ void Core::note_song_mount(const std::string& line)
     }
     if(w.size() >= 2 && (w[0] == "MountMachine" || w[0] == "LoadSoundFont"))
         song_zones.erase(n(1));
-    if(!mount)
-        return;
-    if(w[0] == "MountInputMod" && w.size() >= 4 && n(1) >= 0 && n(1) < kParts && n(2) >= 0 && n(2) < kModSlots)
-        song_mods[size_t(n(1)) * kModSlots + size_t(n(2))] = w[3];
-    else if(w[0] == "MountSend" && w.size() >= 3)
-        song_sends.emplace_back(n(1), w[2]);
-    else if(w[0] == "MountMasterInsert" && w.size() >= 3)
-        song_master_fx.push_back(n(1));
-    else if(w[0] == "MountGroupInsert" && w.size() >= 4)
-        song_group_fx.emplace_back(n(1), n(2));
 }
 
 // Waits for the audio thread to finish a block, or renders one inline. False
@@ -774,9 +764,9 @@ void Core::clear_song(bool quiet)
         moving = next_block();
     if(!moving)
         std::fprintf(stderr, "acidulous: song: no audio for the teardown; finishing it when the audio is back\n");
-    stray_master_fx.insert(stray_master_fx.end(), song_master_fx.begin(), song_master_fx.end());
-    stray_group_fx.insert(stray_group_fx.end(), song_group_fx.begin(), song_group_fx.end());
-    stray_sends = stray_sends || !song_sends.empty();
+    if(had_song)
+        for(int s = 0; s < kSends; ++s)
+            stray_sends = stray_sends || *host.mountedSend(s);
     host.transportStop();
     host.panic();
     const int64_t empty = host.snapshotBegin();
@@ -805,10 +795,6 @@ void Core::clear_song(bool quiet)
         std::lock_guard<std::mutex> l(held_lock);
         song_held = 0;
     }
-    song_master_fx.clear();
-    song_group_fx.clear();
-    song_mods.clear();
-    song_sends.clear();
     song_folder.clear();
     song_scenes.clear();
     song_zones.clear();
@@ -816,11 +802,7 @@ void Core::clear_song(bool quiet)
     wait_applied();
     teardown_dirty = !moving || !next_block() || any_stray();
     if(!teardown_dirty)
-    {
-        stray_master_fx.clear();
-        stray_group_fx.clear();
         stray_sends = false;
-    }
 }
 
 // Whether the engine holds a machine or insert on a part the core has as
@@ -828,8 +810,15 @@ void Core::clear_song(bool quiet)
 bool Core::any_stray() const
 {
     for(int p = 0; p < kParts; ++p)
-        if(parts[p].machine.empty() && (*host.mountedMachine(p) || *host.mountedEffect(p, 0) || *host.mountedEffect(p, 1)))
+    {
+        if(!parts[p].machine.empty())
+            continue;
+        if(*host.mountedMachine(p) || *host.mountedEffect(p, 0) || *host.mountedEffect(p, 1))
             return true;
+        for(int s = 0; s < kModSlots; ++s)
+            if(mod_types[p][s].empty() && *host.mountedModifier(p, s))
+                return true;
+    }
     return false;
 }
 
@@ -857,7 +846,7 @@ void Core::resync_teardown()
             if(*host.mountedEffect(p, s))
                 host.mountEffect(p, s, "");
         for(int s = 0; s < kModSlots; ++s)
-            if(mod_types[p][s].empty())
+            if(mod_types[p][s].empty() && *host.mountedModifier(p, s))
                 host.mountInputMod(p, s, "");
         if(*host.mountedMachine(p))
             host.unmountMachine(p);
@@ -867,10 +856,7 @@ void Core::resync_teardown()
     {
         // Parts the script has filled since keep their strips, and the
         // master's params are left as the script last sent them.
-        for(int slot : stray_master_fx)
-            host.mountMasterInsert(slot, "");
-        for(const auto& g : stray_group_fx)
-            host.mountGroupInsert(g.first, g.second, "");
+        clear_master_inserts();
         for(int p = 0; p < kParts; ++p)
             if(parts[p].machine.empty())
             {
@@ -879,8 +865,8 @@ void Core::resync_teardown()
                     push_param(p, "channel", kv.first, kv.second);
             }
         host.setTempo(pre_song_tempo);
-        host.setSwingUnit(0);
-        host.setLoopSong(true);
+        host.setSwingUnit(pre_song_swing);
+        host.setLoopSong(pre_song_loop);
         if(stray_sends)
             for(int s = 0; s < kSends; ++s)
             {
@@ -890,8 +876,6 @@ void Core::resync_teardown()
                     ensure_send(s);
             }
     }
-    stray_master_fx.clear();
-    stray_group_fx.clear();
     stray_sends = false;
     wait_applied();
     teardown_dirty = !next_block() || any_stray();
@@ -904,7 +888,7 @@ void Core::restore_sends()
 {
     for(int s = 0; s < kSends; ++s)
     {
-        if(send_mounted[s] || !song_sends.empty())
+        if(send_mounted[s] || *host.mountedSend(s))
             host.mountSend(s, "");
         send_mounted[s] = false;
         if(pre_song_send[s])
@@ -912,12 +896,23 @@ void Core::restore_sends()
     }
 }
 
+// Every master and group insert comes off; the plugin mounts none itself.
+void Core::clear_master_inserts()
+{
+    for(int slot = 0; slot < kMasterInsertSlots; ++slot)
+        if(*host.mountedMasterInsert(slot))
+            host.mountMasterInsert(slot, "");
+    for(int g = 0; g < kGroupSlots; ++g)
+        for(int slot = 0; slot < kGroupInsertSlots; ++slot)
+            if(*host.mountedGroupInsert(g, slot))
+                host.mountGroupInsert(g, slot, "");
+}
+
 // Back to an empty engine's: the master and group inserts the song mounted
 // go, and every track's tuning, channel strip and the master's and perform's
-// params return to their defaults (the master volume to the core's 1.0), as
-// do the tempo (to the plugin's before the song), the swing unit and
-// loop-song (the plugin never sets them, so the engine's defaults:
-// sixteenths and on). [now] sets params without waiting on a full queue,
+// params return to their defaults (the master volume to the core's 1.0). With
+// a song loaded, the tempo, swing unit and loop-song go back to what the
+// plugin had before it. [now] sets params without waiting on a full queue,
 // for the destructor.
 void Core::song_defaults(bool now)
 {
@@ -927,10 +922,7 @@ void Core::song_defaults(bool now)
         else
             push_param(rack, unit, name, v);
     };
-    for(int slot : song_master_fx)
-        host.mountMasterInsert(slot, "");
-    for(const auto& g : song_group_fx)
-        host.mountGroupInsert(g.first, g.second, "");
+    clear_master_inserts();
     for(int p = 0; p < kParts; ++p)
     {
         host.setTuning(p, nullptr);
@@ -952,8 +944,8 @@ void Core::song_defaults(bool now)
     if(!song_folder.empty())
     {
         host.setTempo(pre_song_tempo);
-        host.setSwingUnit(0);
-        host.setLoopSong(true);
+        host.setSwingUnit(pre_song_swing);
+        host.setLoopSong(pre_song_loop);
     }
 }
 
@@ -1181,9 +1173,10 @@ bool Core::load_song(const std::string& path, const std::string& songs_dir_in, b
         song_on.store(true);
         host.releaseBeat();
     }
+    pre_song_swing = host.swingUnit();
+    pre_song_loop  = host.loopSong();
     for(int s = 0; s < kSends; ++s)
         pre_song_send[s] = send_mounted[s];
-    song_mods.assign(size_t(kParts) * kModSlots, std::string());
     song_folder = folder;
 
     // Each line's text by number, for noting the mounts that landed.
@@ -1263,19 +1256,44 @@ bool Core::load_song(const std::string& path, const std::string& songs_dir_in, b
         list.push_back(Value::s(parts[r].patch));
         list.push_back(Value::s(track ? track->text("name") : std::string()));
     }
-    // What the song's audio holds, so a later /load sees it: a rack's own
-    // while it keeps its machine, frozen clips until the song goes.
+    // What the song's audio holds as the engine counts it, so a later /load
+    // sees it. A rack keeps its own while it keeps its machine, spread over
+    // its slots as the estimate has them so a /load into one slot replaces
+    // that slot's share; frozen clips (their WAVs' sizes) and racks without
+    // a machine count for the song until it goes.
     {
+        int64_t frozen_of[kParts] = {};
+        for(const auto& kv : audio.frozen)
+            if(kv.first.first >= 0 && kv.first.first < kParts)
+                frozen_of[kv.first.first] += kv.second;
         std::lock_guard<std::mutex> l(held_lock);
-        for(const auto& kv : audio.racks)
-            if(!parts[kv.first].machine.empty())
-                for(const auto& slot : kv.second)
-                    held[kv.first][slot.first] = slot.second;
-        song_held = audio.frozen_total();
+        song_held = 0;
+        for(int r = 0; r < kParts; ++r)
+        {
+            const int64_t real = host.bytesHeld(r);
+            if(parts[r].machine.empty())
+            {
+                song_held += real;
+                continue;
+            }
+            const int64_t own = std::max<int64_t>(0, real - frozen_of[r]);
+            song_held += real - own;
+            const int64_t est = audio.rack_total(r);
+            const auto    it  = audio.racks.find(r);
+            int64_t       given = 0;
+            if(est > 0 && it != audio.racks.end())
+                for(const auto& slot : it->second)
+                {
+                    const int64_t share = int64_t(double(own) * double(slot.second) / double(est));
+                    held[r][slot.first] = share;
+                    given += share;
+                }
+            const int first = est > 0 && it != audio.racks.end() && !it->second.empty() ? it->second.begin()->first : 0;
+            held[r][first] += own - given;
+        }
     }
-    for(const auto& s : song_sends)
-        if(s.first >= 0 && s.first < kSends)
-            send_mounted[s.first] = !s.second.empty();
+    for(int s = 0; s < kSends; ++s)
+        send_mounted[s] = *host.mountedSend(s) != 0;
     read_scenes(text, &song);
     send_scenes();
     Args out{Value::s(path), Value::s(folder), Value::s(""), Value::i(replay.skipped), Value::i(count)};
@@ -1400,8 +1418,7 @@ void Core::read_back(int r, const void* track_ptr)
     }
     for(int s = 0; s < kModSlots; ++s)
     {
-        const size_t k     = size_t(r) * kModSlots + size_t(s);
-        mod_types[r][s]    = k < song_mods.size() ? song_mods[k] : std::string();
+        mod_types[r][s]    = host.mountedModifier(r, s);
         mod_bypass[r][s]   = !mod_types[r][s].empty() && host.paramNormalized(r, kModUnitNames[s], "bypass") >= 0.5f;
     }
     const std::string& machine = parts[r].machine;

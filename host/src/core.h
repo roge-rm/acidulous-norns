@@ -243,6 +243,7 @@ class Core
     // replies nothing but /error when it fails. False when it failed.
     bool load_song(const std::string& path, const std::string& songs_dir, bool reloading = false);
     bool any_stray() const;
+    void clear_master_inserts();
     void resync_teardown();
     void unload_song();
     // quiet: no /inserts, as a read_back or unmount sends them after.
@@ -312,21 +313,16 @@ class Core
     acidulous::PatchTrackState  patch_fx[kParts];
     std::string                 mod_types[kParts][kModSlots]; // on the worker: what each modifier slot has
     bool                        mod_bypass[kParts][kModSlots] = {}; // on the worker
-    // Worker only: the loaded song's folder, "" for none, and what its lines
-    // mounted that EngineHost doesn't report, leaving out mounts the engine
-    // refused: modifier types per part and slot, sends (slot, type), master
-    // insert slots, group inserts (group, slot).
+    // Worker only: the loaded song's folder, "" for none.
     std::string                      song_folder;
     // Worker only: what the plugin had before the song, put back when it goes:
-    // the tempo and which sends were mounted.
+    // the tempo, which sends were mounted, the swing unit and loop-song.
     float                            pre_song_tempo = 120.f;
     bool                             pre_song_send[kSends] = {};
+    int                              pre_song_swing = 0;
+    bool                             pre_song_loop  = true;
     // Worker only: send_inserts sends nothing while set.
     bool                             quiet_inserts = false;
-    std::vector<std::string>         song_mods;
-    std::vector<std::pair<int, std::string>> song_sends;
-    std::vector<int>                 song_master_fx;
-    std::vector<std::pair<int, int>> song_group_fx;
     // Worker only: the loaded song's scenes in engine.txt's SnapshotAddScene
     // order, which is the transport's scene index, with song.json's names and
     // ids.
@@ -342,12 +338,10 @@ class Core
     std::map<int, std::string> song_zones;
     float                      song_master = 1.f;
     // Worker only: a teardown ran without blocks, so the engine may still
-    // hold some of the song; resync_teardown finishes it, with the master
-    // and group inserts and whether sends were mounted that it had.
-    bool                             teardown_dirty = false;
-    std::vector<int>                 stray_master_fx;
-    std::vector<std::pair<int, int>> stray_group_fx;
-    bool                             stray_sends = false;
+    // hold some of the song; resync_teardown finishes it, and puts the
+    // sends back if the song had any mounted.
+    bool teardown_dirty = false;
+    bool stray_sends    = false;
     // Set while a song is loaded or loading: its own tempo rules, so /tempo
     // and /beat are ignored. beat_lock is held around a /beat's check and
     // alignBeat, and around setting this and releasing the beat, so no /beat

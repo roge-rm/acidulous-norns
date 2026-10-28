@@ -307,6 +307,9 @@ int main(int argc, char** argv)
     // unload to put back.
     cmd("/tempo", {Value::f(100.f)});
     cmd("/send", {Value::i(0), Value::s("size"), Value::f(0.7f)});
+    // And swing in eighths with loop-song off, which the song changes.
+    host.setSwingUnit(1);
+    host.setLoopSong(false);
     cmd("/channel", {Value::i(1), Value::s("sendreverb"), Value::f(0.5f)});
     // Something on part 0 for the song to replace, with a modifier.
     cmd("/patch", {Value::i(0), Value::s("Trinity"), Value::s("Saw Lead")});
@@ -731,6 +734,8 @@ int main(int argc, char** argv)
 
     // Unload back to empty.
     check(load(zip, loaded) && str(loaded, 2).empty(), "loads the zip again");
+    check(std::fabs(host.sendParamNormalized(0, "size") - 0.38f) < 1e-4,
+          "the song's Reverb size 0.38 while it's loaded (" + std::to_string(host.sendParamNormalized(0, "size")) + ")");
     log.clear();
     cmd("/song_unload", {});
     {
@@ -746,6 +751,16 @@ int main(int argc, char** argv)
         state(0, st);
         check(st.args.size() >= 4 && std::fabs(st.args[3].num - 1.0 / 1.5) < 1e-4, "part 0's gain is back to unity");
         check(std::fabs(host.tempo() - 100.f) < 1e-3, "the tempo is back to 100 (" + std::to_string(host.tempo()) + ")");
+        check(host.swingUnit() == 1 && !host.loopSong(), "swing in eighths and loop-song off again");
+        check(std::string(host.mountedSend(0)) == "Reverb" && std::fabs(host.sendParamNormalized(0, "size") - 0.7f) < 1e-4,
+              "the Reverb is back with the plugin's size 0.7 (" + std::to_string(host.sendParamNormalized(0, "size")) + ")");
+        bool fx_gone = true;
+        for(int slot = 0; slot < 2; ++slot)
+            fx_gone = fx_gone && !*host.mountedMasterInsert(slot);
+        for(int g = 0; g < 4; ++g)
+            for(int slot = 0; slot < 2; ++slot)
+                fx_gone = fx_gone && !*host.mountedGroupInsert(g, slot);
+        check(fx_gone, "no master or group inserts");
         log.clear();
         cmd("/song_position", {});
         cmd("/tempo", {});
