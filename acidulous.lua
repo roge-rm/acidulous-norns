@@ -1,8 +1,8 @@
 -- acidulous
 -- a multitimbral patch player
 --
--- 8 parts, each on its own
--- MIDI channel
+-- 8 or 16 parts, each on its
+-- own MIDI channel
 -- K1 held + E1 page: play,
 -- parts, card, mixer, sends
 -- play: E1 machine, E2 patch or
@@ -46,6 +46,7 @@
 -- OMX-27: keys play the part,
 -- AUX + top keys 1 2 octave,
 -- AUX + bottom keys 1-8 part,
+-- AUX + bottom key 9 parts 9-16,
 -- pots macros, encoder patch,
 -- tap swaps play and card
 
@@ -336,7 +337,7 @@ end
 local function mpe_wanted()
   local v = params:get("mpe_part")
   if v == 1 then return state.sel end
-  if v == 2 then return nil end
+  if v == 2 or not parts.on(v - 2) then return nil end
   return v - 2
 end
 
@@ -375,7 +376,7 @@ local function play(data, src, kch)
     return
   end
   for i, part in ipairs(parts.list) do
-    if part.channel == ch and part.machine then
+    if part.channel == ch and part.machine and parts.on(i) then
       local ech = parts.mpe and 1 or ch
       send_to(i, kind, ech, d1, d2)
       if kind == 0x90 then remember(src, kch or ch, d1, i, ech) end
@@ -599,6 +600,7 @@ end
 
 local function ready()
   params:add_separator("acidulous", "acidulous")
+  parts.add_count_param()
   params:add_option("midi_device", "midi from", device_names(), 1)
   -- notes held on the old device would never get their note offs
   params:set_action("midi_device", function()
@@ -644,7 +646,9 @@ local function ready()
   for _, problem in ipairs(panel.check(names, parts.defs)) do print("acidulous: cards: " .. problem) end
   parts.set_part(1, "Reflux", "Classic")
   parts.set_part(2, "Hexbeat", "Straight")
-  for i = 1, parts.COUNT do parts.start_part(i) end
+  for i = 1, parts.COUNT do
+    if parts.on(i) then parts.start_part(i) else parts.list[i].parked = true end
+  end
   parts.on_presets = picker.presets
   parts.on_shape = picker.shape
   parts.on_hear = picker.heard
@@ -669,6 +673,17 @@ function init()
   timer.every(1 / 15, function() redraw() end)
   if not install.check() then return end
   osc.event = function(path, args) parts.osc(path, args) end
+  -- "parts" set to 8 or 16: a selected part that's hidden moves to its row
+  -- in 1-8, closing a list, the file picker or the scope open on it
+  parts.on_active = function(n)
+    if state.sel > n then
+      state.sel = state.sel - 8
+      lists.close()
+      picker.close()
+      if scope.active() then scope.close(parts) end
+    end
+    sync_mpe()
+  end
   song.init(parts)
   parts.on_song = song.osc
   parts.on_read = song.read
@@ -955,10 +970,10 @@ end
 local function step_strip(d)
   if state.out then
     if d < 0 then state.out = false end
-  elseif state.sel + d > parts.COUNT then
-    state.sel, state.out = parts.COUNT, true
+  elseif state.sel + d > parts.active then
+    state.sel, state.out = parts.active, true
   else
-    state.sel = util.clamp(state.sel + d, 1, parts.COUNT)
+    state.sel = util.clamp(state.sel + d, 1, parts.active)
   end
 end
 
@@ -1113,7 +1128,7 @@ local function handle_enc(n, d)
       turn_control(d)
     end
   elseif n == 1 then
-    state.sel = util.clamp(i + d, 1, parts.COUNT)
+    state.sel = util.clamp(i + d, 1, parts.active)
   elseif state.page ~= "parts" then
     return
   elseif n == 2 then

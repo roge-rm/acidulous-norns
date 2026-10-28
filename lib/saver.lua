@@ -173,7 +173,7 @@ local NORNS = layout(64, 12, 6, 3, 3, 7, 12, 6, true)
 local OMX = layout(32, 6, 2, 1.5, 1.5, 4, 6, 5, false)
 
 -- each part's hump across the screen, spread out for the first few parts
-local HUMP_X = {40, 90, 64, 16, 112, 28, 78, 102}
+local HUMP_X = {40, 90, 64, 16, 112, 28, 78, 102, 52, 8, 120, 34, 70, 96, 22, 58}
 
 local ys, low, lift = {}, {}, {}
 local hx, he = {}, {} -- this frame's humps: x and energy, by part
@@ -183,7 +183,7 @@ local humps = 0
 local function find_humps(parts, t)
   humps = 0
   for i, part in ipairs(parts.list) do
-    if part.machine and HUMP_X[i] then
+    if part.machine and HUMP_X[i] and parts.on(i) then
       humps = humps + 1
       hx[humps] = HUMP_X[i] + 3 * sin(t * 0.21 + i * 2.3)
       he[humps] = part.energy or 0

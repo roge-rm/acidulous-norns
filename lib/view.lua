@@ -22,6 +22,20 @@ local function title(parts, i)
   return part.n .. " " .. part.machine:lower() .. "  " .. (files or part.patch or ""):lower()
 end
 
+-- The 8 parts a page shows: the first, 1 or 9, and "1-8" or "9-16" for
+-- the header, or nil with 8 parts.
+local function shown(parts, state)
+  local first = state.sel > 8 and 9 or 1
+  if parts.active <= 8 then return first, nil end
+  return first, first == 1 and "1-8" or "9-16"
+end
+
+-- The header's right side: the 8 shown, then `right` or the load.
+local function with_bank(parts, bank, right)
+  if not bank then return right end
+  return bank .. "  " .. (right or string.format("%d%%", math.floor(parts.load + 0.5)))
+end
+
 -- state: sel (part), k1 (held). note: a line for the header, or nil
 -- A row per part: a 2 px bar, bright while the part sounds, its number,
 -- machine and patch, and its level on a dim track.
@@ -29,19 +43,24 @@ function view.main(parts, state, note)
   screen.clear()
   screen.font_face(1)
   screen.font_size(8)
-  header(parts, title(parts, state.sel), note)
-  for i, part in ipairs(parts.list) do
-    local y = 13 + 7 * (i - 1)
+  local first, bank = shown(parts, state)
+  header(parts, title(parts, state.sel), note, with_bank(parts, bank))
+  -- two-digit numbers push the machine right
+  local mx, mw = first > 1 and 13 or 10, first > 1 and 28 or 31
+  for k = 1, 8 do
+    local i = first + k - 1
+    local part = parts.list[i]
+    local y = 13 + 7 * (k - 1)
     local on = i == state.sel
     if on then fill_rect(0, y - 6, 128, 7, 3) end
     local b = part.machine and (on and 15 or 7) or (on and 8 or 2)
     local sounding = part.machine and (part.held > 0 or meter(part.level) > 0.1)
     fill_rect(0, y - 5, 2, 5, sounding and 15 or (part.machine and 6 or 1))
     screen.level(b)
-    text(4, y, tostring(i))
+    text(first > 1 and 3 or 4, y, tostring(i))
     if part.machine then
       if on and state.k1 then screen.level(15) end
-      text(10, y, machine_name(parts, part, 31))
+      text(mx, y, machine_name(parts, part, mw))
       screen.level(on and state.k1 and 6 or math.max(1, b - 3))
       if parts.mpe == i and state.mpe_missing then
         text(44, y, "mpe: no device")
@@ -53,7 +72,7 @@ function view.main(parts, state, note)
         text(44, y, fit((part.patch or ""):lower(), 68))
       end
     else
-      text(10, y, "-")
+      text(mx, y, "-")
     end
     fill_rect(114, y - 4, 12, 3, 1)
     local w = math.floor(meter(part.level) * 12 + 0.5)
@@ -348,8 +367,10 @@ local function fader(db) return util.clamp((db + 60) / 63, 0, 1) end
 -- The strips' columns: 8 parts and the out strip, the selected one lit.
 -- out: the out strip is selected.
 local function strip_frame(parts, state, out)
-  for i = 1, 8 do
-    local x = 1 + (i - 1) * 13
+  local first = shown(parts, state)
+  for k = 1, 8 do
+    local i = first + k - 1
+    local x = 1 + (k - 1) * 13
     local sel = not out and i == state.sel
     if sel then fill_rect(x - 1, 7, 13, 57, 3) end
     screen.level(sel and 15 or (parts.list[i].machine and 7 or 2))
@@ -384,8 +405,10 @@ function view.mixer(parts, state, note)
   screen.font_face(1)
   screen.font_size(8)
   local i = state.sel
+  local first, bank = shown(parts, state)
   local lufs = parts.lufs and parts.lufs > -60 and string.format("%d lufs", math.floor(parts.lufs + 0.5)) or ""
-  local w = 123 - screen.text_extents(lufs)
+  local right = bank and lufs ~= "" and (bank .. "  " .. lufs) or bank or lufs
+  local w = 123 - screen.text_extents(right)
   local left
   if state.out then
     left = strip_title(parts, state, db_text(parts.master_db()), w)
@@ -393,12 +416,13 @@ function view.mixer(parts, state, note)
     left = strip_title(parts, state, db_text(params:get(parts.id(i, "volume"))) .. "  " ..
       parts.pan_text(params:get(parts.id(i, "pan"))), w)
   end
-  header(parts, left, note, lufs)
+  header(parts, left, note, right)
   strip_frame(parts, state, state.out)
   local top, bot = 15, 54
   local h = bot - top
-  for k = 1, 8 do
-    local x = 1 + (k - 1) * 13
+  for c = 1, 8 do
+    local k = first + c - 1
+    local x = 1 + (c - 1) * 13
     local sel = not state.out and k == i
     local part = parts.list[k]
     fill_rect(x + 1, top, 2, h, 1)
@@ -446,10 +470,13 @@ function view.sends(parts, state, note)
     right = string.format("rev %d  dly %d", math.floor(params:get(parts.id(i, "rev")) * 100 + 0.5),
       math.floor(params:get(parts.id(i, "dly")) * 100 + 0.5))
   end
+  local first, bank = shown(parts, state)
+  right = with_bank(parts, bank, right)
   header(parts, strip_title(parts, state, nil, 123 - screen.text_extents(right)), note, right)
   strip_frame(parts, state, state.out)
-  for k = 1, 8 do
-    local x = 1 + (k - 1) * 13
+  for c = 1, 8 do
+    local k = first + c - 1
+    local x = 1 + (c - 1) * 13
     local sel = not state.out and k == i
     knob(x + 5, 28, 5, params:get(parts.id(k, "rev")), 3, sel and 15 or 8)
     knob(x + 5, 50, 5, params:get(parts.id(k, "dly")), 3, sel and 15 or 8)

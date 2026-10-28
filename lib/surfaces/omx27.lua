@@ -1,7 +1,8 @@
 -- The OMX-27 in REMOTE mode (lib/omx.lua), as a surface for Acidulous.
 --   bottom keys 11-26    white keys, B and then two octaves C to C
 --   top keys 1-10        black keys
---   AUX (0) held:        keys 1 and 2 octave down and up, keys 11-18 pick part 1-8,
+--   AUX (0) held:        keys 1 and 2 octave down and up, keys 11-18 pick a part
+--                        in the 8 shown, key 19 flips to the other 8 with 16 parts,
 --                        key 5 arp on/off, key 6 latch, pots arp rate, gate,
 --                        mode, octaves and chord type
 --   AUX + key 3          tapped, scale on/off; held, a note key sets the root,
@@ -18,7 +19,8 @@ local surf = {name = "OMX-27"}
 surf.actions = nil -- set by lib/surfaces.lua
 
 local OCT_DOWN, OCT_UP = 1, 2
-local PART_KEY = 11 -- AUX + keys 11-18 pick parts 1-8
+local PART_KEY = 11 -- AUX + keys 11-18 pick parts 1-8, or 9-16
+local KEY_FLIP = 19 -- AUX + key 19 flips between parts 1-8 and 9-16
 local KEY_SCALE, KEY_CHORD, KEY_ARP, KEY_LATCH = 3, 4, 5, 6 -- with AUX
 local MSG_TIME = 1.5 -- seconds a modifier change shows on the screen
 -- the pots' modifier params while AUX is held
@@ -56,6 +58,12 @@ surf.COLOURS = {
   {255, 0, 0}, {255, 110, 0}, {255, 230, 0}, {0, 255, 40},
   {0, 220, 255}, {0, 40, 255}, {160, 0, 255}, {255, 0, 140},
 }
+
+-- parts 9-16 take the colours of 1-8
+local function part_colour(i) return surf.COLOURS[(i - 1) % 8 + 1] end
+
+-- The part before the 8 shown: 0 for parts 1-8, 8 for 9-16.
+local function bank(a) return a.selected() > 8 and 8 or 0 end
 
 surf.octave = 0
 local aux = false
@@ -274,7 +282,12 @@ function surf.key(n, ev)
       say(n == KEY_SCALE and "scale" or "chord")
     elseif n == KEY_ARP then toggle("Arp")
     elseif n == KEY_LATCH then toggle_latch()
-    elseif n >= PART_KEY and n < PART_KEY + 8 then a.select(n - PART_KEY + 1) end
+    elseif n >= PART_KEY and n < PART_KEY + 8 then
+      a.select(bank(a) + n - PART_KEY + 1)
+    elseif n == KEY_FLIP and a.parts.active > 8 then
+      local sel = a.selected()
+      a.select(sel > 8 and sel - 8 or sel + 8)
+    end
     return
   end
   if SEMI[n] and not held[n] then
@@ -437,7 +450,7 @@ end
 function surf.frame()
   local a = surf.actions
   local sel = a.selected()
-  local colour = surf.COLOURS[sel]
+  local colour = part_colour(sel)
   if a.saving() then
     a.saver_leds(omx.led, colour)
     omx.led_show()
@@ -454,9 +467,14 @@ function surf.frame()
       omx.led(n, scaled(MOD_COLOURS[KEY_SCALE], f))
     end
   elseif aux then
-    for i = 1, 8 do
+    local first = bank(a)
+    for k = 1, 8 do
+      local i = first + k
       local f = i == sel and 1 or (a.has_machine(i) and 0.12 or 0.03)
-      omx.led(PART_KEY + i - 1, scaled(surf.COLOURS[i], f))
+      omx.led(PART_KEY + k - 1, scaled(part_colour(i), f))
+    end
+    if P.active > 8 then
+      omx.led(KEY_FLIP, scaled({255, 255, 255}, first > 0 and 0.8 or 0.12))
     end
   else
     local degree = degree_notes(P, sel)

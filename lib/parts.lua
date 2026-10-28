@@ -1,4 +1,4 @@
--- The 8 parts: their params, and what they send to the plugin.
+-- The parts: their params, and what they send to the plugin.
 -- A part n is the plugin's part n - 1 (an engine track).
 
 local timer = include("lib/timer")
@@ -9,7 +9,11 @@ local LAYOUT = include("lib/layout")
 
 local P = {}
 
-P.COUNT = 8
+-- The script has 16 parts. The "parts" param shows 8 or all 16: parts past
+-- P.active are parked, their params kept and their machines unmounted.
+P.COUNT = 16
+P.active = 8
+function P.on(i) return i <= P.active end
 local PLUGIN = {"127.0.0.1", 57150}
 
 -- The machines offered, with short for the main page and note for K3's
@@ -1174,10 +1178,95 @@ function P.apply(i)
   send_mods(i)
 end
 
+-- Parks part i: silences it and unmounts its machine, keeping its params
+-- and what the script knows of it, for when it's shown again.
+function P.park(i)
+  local part = P.list[i]
+  if not part.parked then
+    -- a patch still on its way, or its values not in yet: load it fresh
+    -- when it comes back, as the slots don't hold its values
+    part.park_fresh = part.pending ~= nil or part.want_values
+  end
+  timer.cancel(part.pending)
+  part.pending = nil
+  P.notes_off(i)
+  part.parked = true
+  part.want_values, part.dim = false, false
+  part.loading = nil
+  part.level, part.held = 0, 0
+  part.fx = {}
+  send_patch(i, "/unmount", {i - 1})
+  -- a parked part's solo would keep the others quiet
+  send("/channel", {i - 1, "solo", 0})
+end
+
+-- Brings a parked part back as it was.
+local function unpark(i)
+  local part = P.list[i]
+  part.parked = false
+  if part.park_fresh and part.machine then
+    P.send_strip(i)
+    part.resend_files = next(part.files) ~= nil
+    load_machine(i, true)
+    send_mods(i)
+  else
+    P.apply(i)
+  end
+  part.park_fresh = false
+end
+
+-- Parks the parts past P.active and brings back the ones shown again.
+local function sync_parked()
+  for i = 1, P.COUNT do
+    local part = P.list[i]
+    if P.on(i) and part.parked then
+      unpark(i)
+    elseif not P.on(i) and not part.parked then
+      P.park(i)
+    end
+  end
+  P.send_mpe()
+end
+
 function P.apply_all()
   P.send_master()
-  for i = 1, P.COUNT do P.apply(i) end
+  for i = 1, P.COUNT do
+    if P.on(i) then
+      P.list[i].parked = false
+      P.apply(i)
+    else
+      -- its params are the PSET's now, so they're sent as they are
+      P.park(i)
+      P.list[i].park_fresh = false
+    end
+  end
   P.send_mpe()
+end
+
+-- Shows parts 1 to n (8 or 16) in the params menu and on the pages.
+local function show_parts(n)
+  P.active = n
+  for i = 9, P.COUNT do
+    if P.on(i) then params:show("part_" .. i) else params:hide("part_" .. i) end
+  end
+  rebuild_menu()
+  if P.on_active then P.on_active(n) end
+end
+
+-- The "parts" param, 8 or 16. While a PSET is read its parts are sent once
+-- the read is done, so the switch waits a moment for P.after_read to take
+-- it over.
+function P.add_count_param()
+  params:add_option("parts", "parts", {"8", "16"}, 1)
+  params:set_action("parts", function(v)
+    show_parts(v == 2 and 16 or 8)
+    if P.loading then return end
+    timer.cancel(P.parts_timer)
+    P.parts_timer = timer.after(0.05, function()
+      P.parts_timer = nil
+      sync_parked()
+    end)
+  end)
 end
 
 local function add_part(i)
@@ -1322,6 +1411,7 @@ function P.add_params()
     params:hide(id(i, "machine_name"))
     params:hide(id(i, "patch_name"))
   end
+  show_parts(params:get("parts") == 2 and 16 or 8)
   -- params:clear() removes this when the script ends.
   params.action_read = function(filename) P.after_read(filename) end
 end
@@ -1524,9 +1614,35 @@ local function set_machine_option(i, machine)
   params:set(id(i, "machine_name"), machine or "", true)
 end
 
+-- Puts part i's params back to their defaults, without their actions.
+local function reset_part(i)
+  local at = params.lookup["part_" .. i]
+  for k = at + 1, at + params:get(at) do
+    local p = params.params[k]
+    if p.t == params.tTEXT then
+      p:set("", true)
+    elseif p.t == params.tCONTROL then
+      p:set(p.controlspec.default or p.controlspec.minval, true)
+    elseif p.default then
+      p:set(p.default, true)
+    end
+  end
+end
+
 function P.after_read(filename)
   if rereading then return end
   P.loading = true
+  -- apply_all below parks or sends every part
+  timer.cancel(P.parts_timer)
+  P.parts_timer = nil
+  if filename and not saved_has(filename, "parts") then
+    -- a PSET from before 16 parts: 8, and parts 9-16 empty
+    params:set("parts", 1, true)
+    if not saved_has(filename, id(9, "machine")) then
+      for i = 9, P.COUNT do reset_part(i) end
+    end
+  end
+  show_parts(params:get("parts") == 2 and 16 or 8)
   local changed = false
   local saved = {}
   for i, part in ipairs(P.list) do
@@ -1615,7 +1731,7 @@ watch = function()
     send("/mod_defs", {})
   end
   for i, part in ipairs(P.list) do
-    if part.want_values and not part.values_retried and now - part.values_at > 2 then
+    if P.on(i) and part.want_values and not part.values_retried and now - part.values_at > 2 then
       part.values_retried = true
       part.values_at = now
       part.dim = false
@@ -1634,7 +1750,9 @@ function P.resend()
   if P.on_resend then P.on_resend() end
   for i, part in ipairs(P.list) do
     part.fx_wait = 0 -- the old plugin's replies won't come
-    if part.pending then
+    if not P.on(i) then
+      P.park(i) -- the new plugin has nothing there
+    elseif part.pending then
       P.send_strip(i) -- the pending patch mounts the machine
       part.resend_files = next(part.files) ~= nil
       send_mods(i)
@@ -1779,6 +1897,17 @@ function P.note(i, on)
   end
 end
 
+-- The worst block's load, in %, over which the screen says overload. With
+-- more than 8 machines playing it comes at 70: the more parts, the more
+-- their busy blocks pile up at once, so there's less room above.
+function P.overload_at()
+  local n = 0
+  for i = 1, P.active do
+    if P.list[i].machine then n = n + 1 end
+  end
+  return n > 8 and 70 or 80
+end
+
 -- ---- replies from the plugin --------------------------------------------------
 
 function P.osc(path, args)
@@ -1799,7 +1928,7 @@ function P.osc(path, args)
     P.seen = util.time()
     if P.lost and P.ready then P.resend() end
     P.load = args[1] or 0
-    if (args[2] or 0) > 80 then
+    if (args[2] or 0) > P.overload_at() then
       P.worst, P.worst_at = args[2], util.time()
     end
   elseif path == "/values" then

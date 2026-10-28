@@ -2,7 +2,7 @@
 
 acidulous puts the machines from my [Acidulous](https://github.com/roge-rm/Acidulous) app on [norns](https://monome.org/docs/norns/) as a multitimbral patch player. It runs the app's own engine, so the patches sound the same as they do there. The app is on [my F-Droid repo](https://hunke.ws/fdroid/repo).
 
-There are 8 parts. Each one plays a machine and patch on its own MIDI channel, so you can play a bassline, a beat and a pad from one keyboard or sequencer. One part at a time can take MPE.
+There are 8 parts, or 16 if you set **parts** to 16. Each one plays a machine and patch on its own MIDI channel, so you can play a bassline, a beat and a pad from one keyboard or sequencer. One part at a time can take MPE.
 
 ![The play page with Reflux, Hexbeat, Tine, Fret, Brazen, Aviary, Mosaic and Diction playing in turn](docs/images/play.gif)
 
@@ -102,7 +102,7 @@ The mixer has a meter, fader and pan for each part, with m for mute and s for so
 
 | Mixer | |
 |---|---|
-| **E1** | pick a part, or out after part 8 |
+| **E1** | pick a part, or out after the last part |
 | **E2** | pan |
 | **E3** | level, or the master level on out |
 | **K2** | mute |
@@ -112,7 +112,7 @@ The sends page has reverb and delay sends for each part. On out, the knobs chang
 
 | Sends | |
 |---|---|
-| **E1** | pick a part, or out after part 8 |
+| **E1** | pick a part, or out after the last part |
 | **E2** | reverb send |
 | **E3** | delay send |
 
@@ -141,6 +141,8 @@ PARAMETERS > EDIT has every part's settings. After three minutes without input, 
 
 Part 1 listens on channel 1, part 2 on channel 2 and so on. To change it, set **channel** in the part's group. Two parts on the same channel play together, and **off** leaves a part silent.
 
+**parts** in PARAMETERS > EDIT is 8 or 16. With 16, parts 9 to 16 listen on channels 9 to 16, and the parts, mixer and sends pages show 8 at a time: turn E1 past part 8 to get to 9-16, and the header shows which 8. Setting it back to 8 stops parts 9-16 and frees their CPU, and setting 16 again brings them back as they were. PSETs save it, and older ones load as 8. More parts use more CPU, so the overload warning comes sooner with more than 8 machines.
+
 **midi from** picks the MIDI device, or **all** to listen to every one.
 
 ## MPE
@@ -159,7 +161,8 @@ Plug it in by USB and acidulous puts it in REMOTE mode.
 
 - The keys play the selected part.
 - **AUX** + the two top left keys: octave down and up.
-- **AUX** + the first 8 bottom keys: pick parts 1 to 8.
+- **AUX** + the first 8 bottom keys: pick parts 1 to 8, or 9 to 16 when those are showing.
+- **AUX** + the 9th bottom key: with 16 parts, switch between parts 1-8 and 9-16. It's lit while 9-16 show.
 - **AUX** + the top keys 3 to 6 turn the part's scale, chord, arp and latch on and off, lit while on. Latch is the arp's, or the chord's when there's no arp. A part has 3 modifier slots; with all of them taken the screen says **slots full**. Off keeps the modifier's settings.
 - **AUX** + key 3 held: a key picks the root and the encoder the scale, and tapping the encoder swaps snap and degree. In degree mode the white keys play the scale, starting from the root.
 - **AUX** + key 4 held: the encoder picks the chord type.

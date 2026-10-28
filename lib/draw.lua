@@ -24,9 +24,9 @@ local function meter(peak)
 end
 
 -- Load in the top right, or `right` if given, and a warning on the left
--- while the worst block has been over 80% in the last 2 seconds, or `note`
--- if there is one. y is the baseline, 5 at the top. Returns true if it
--- drew `left`.
+-- while the worst block has been over parts.overload_at() in the last 2
+-- seconds, or `note` if there is one. y is the baseline, 5 at the top.
+-- Returns true if it drew `left`.
 local function header(parts, left, note, right, y)
   y = y or 5
   screen.level(4)
