@@ -82,7 +82,9 @@ local function machine_tabs(parts)
   for _, g in ipairs(machines.groups) do
     local list = {}
     for _, m in ipairs(g.machines) do
-      if parts.machine_info(m) then list[#list + 1] = {name = m, about = machines.about[m] or ""} end
+      local info = parts.machine_info(m)
+      -- song-only machines (Bias) can't be picked
+      if info and not info.song_only then list[#list + 1] = {name = m, about = machines.about[m] or ""} end
     end
     if #list > 0 then tabs[#tabs + 1] = {name = g.name, icon = g.icon, machines = list} end
   end

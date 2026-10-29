@@ -538,6 +538,9 @@ local part_macros -- below
 local function turn_machine(i, d)
   -- an encoder can turn before the params exist, while the script loads
   if not params.lookup[parts.id(i, "machine")] then return end
+  -- a song's Bias track keeps its machine, as nothing else can take its takes
+  local info = parts.machine_info(parts.list[i].machine)
+  if info and info.song_only then return end
   local v = parts.get(i, "machine")
   local new = util.clamp(v + d, 2, #parts.machines + 1)
   if new ~= v then parts.set(i, "machine", new) end
