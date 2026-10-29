@@ -54,6 +54,7 @@ P.MACHINES = {
   {name = "Dice", short = "Dice", note = 36},
   {name = "Pollen", short = "Polln", note = 60},
   {name = "Molt", short = "Molt", note = 57},
+  {name = "Bias", short = "Bias", song_only = true},
 }
 
 -- The machine order before it followed the picker. Old PSETs saved the
@@ -84,6 +85,7 @@ do
 end
 
 P.machines = {}  -- the ones the plugin has, from /machines: {name, short, note}
+P.song_machines = {} -- the song-only ones the plugin has (Bias): out of the picker
 P.defs = {}      -- machine -> list of {name, min, max, default, unit, steps, curve}
 P.patch_macros = {} -- machine -> patch -> list of {param, label}, from /macros
 P.patches = {}   -- machine -> list of patch names
@@ -302,6 +304,9 @@ function P.machine_info(name)
   for _, m in ipairs(P.machines) do
     if m.name == name then return m end
   end
+  for _, m in ipairs(P.song_machines) do
+    if m.name == name then return m end
+  end
 end
 
 -- ---- real units ---------------------------------------------------------------
@@ -361,6 +366,7 @@ local function ask_next()
     if P.ready then return end
     P.slots = 0
     for _, m in ipairs(P.machines) do P.slots = math.max(P.slots, #(P.defs[m.name] or {})) end
+    for _, m in ipairs(P.song_machines) do P.slots = math.max(P.slots, #(P.defs[m.name] or {})) end
     P.ready = true
     if on_ready then on_ready() end
     return
@@ -2921,7 +2927,8 @@ function P.osc(path, args)
     for _, name in ipairs(args) do have[name] = true end
     for _, m in ipairs(P.MACHINES) do
       if have[m.name] then
-        P.machines[#P.machines + 1] = m
+        local list = m.song_only and P.song_machines or P.machines
+        list[#list + 1] = m
         queue[#queue + 1] = {kind = "defs", machine = m.name}
         queue[#queue + 1] = {kind = "patches", machine = m.name}
       end

@@ -88,7 +88,7 @@ Nexus is the heavy one: two parts of most patches, one of Wall Pad. Cumulus's cl
 
 ## The sample machines
 
-Played on the norns the same way, with the test files from `host/tests/make_material.py` loaded (a 13-pad kit, test.sf2, short WAV and FLAC files). Bias isn't offered yet, as it follows song scenes and plays nothing from notes.
+Played on the norns the same way, with the test files from `host/tests/make_material.py` loaded (a 13-pad kit, test.sf2, short WAV and FLAC files). Bias plays in songs only (its takes come from the song's folder), so it isn't in the machine picker.
 
 | Machine | Patch | Loaded | Load % | Highest % | Worst % | scsynth CPU % |
 |---|---|---|---|---|---|---|
