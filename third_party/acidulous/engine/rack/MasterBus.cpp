@@ -110,7 +110,7 @@ void MasterBus::process(Rack *racks, int32_t rackCount, float *out, int32_t fram
         for (int32_t s = 0; s < kGroupInsertSlots; ++s) {
             Effect *fx = groupInserts[g][s];
             if (fx == nullptr) continue;
-            fx->onBlock(tickStart, tickEnd, bpm);
+            fx->block(tickStart, tickEnd, bpm);
             fx->run(groupL[g], groupR[g], frames, true);
         }
         if (g == performOn) perform.process(groupL[g], groupR[g], frames, bpm);
@@ -138,7 +138,7 @@ void MasterBus::process(Rack *racks, int32_t rackCount, float *out, int32_t fram
     for (int32_t s = 0; s < kSendSlots; ++s) {
         Effect *fx = sends[s];
         if (fx == nullptr) continue;
-        fx->onBlock(tickStart, tickEnd, bpm);
+        fx->block(tickStart, tickEnd, bpm);
         for (int32_t i = 0; i < frames; ++i) wetL[i] = wetR[i] = sendSum[s][i];
         // Mono in, so the effect is told and can make its own width.
         fx->run(wetL, wetR, frames, false);
@@ -154,7 +154,7 @@ void MasterBus::process(Rack *racks, int32_t rackCount, float *out, int32_t fram
     for (int32_t s = 0; s < kMasterInsertSlots; ++s) {
         Effect *fx = inserts[s];
         if (fx == nullptr) continue;
-        fx->onBlock(tickStart, tickEnd, bpm);
+        fx->block(tickStart, tickEnd, bpm);
         fx->run(sumL, sumR, frames, true);
     }
 
@@ -255,13 +255,13 @@ void MasterBus::panic() {
     // forever) the start of a render would depend on what played before, and
     // two exports of one song would differ.
     for (Effect *fx : sends) {
-        if (fx != nullptr) { fx->reset(); fx->params().jumpAll(); }
+        if (fx != nullptr) { fx->reset(); fx->params().jumpAll(); fx->resetMod(); }
     }
     for (Effect *fx : inserts) {
-        if (fx != nullptr) { fx->reset(); fx->params().jumpAll(); }
+        if (fx != nullptr) { fx->reset(); fx->params().jumpAll(); fx->resetMod(); }
     }
     for (auto &group : groupInserts) {
-        for (Effect *fx : group) if (fx != nullptr) { fx->reset(); fx->params().jumpAll(); }
+        for (Effect *fx : group) if (fx != nullptr) { fx->reset(); fx->params().jumpAll(); fx->resetMod(); }
     }
     params_.jumpAll();
     // The scene fade starts at whatever the first block asks for rather than

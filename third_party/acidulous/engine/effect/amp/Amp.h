@@ -34,6 +34,8 @@ class Amp final : public Effect {
     void prepare(int32_t sampleRate) override;
     void reset() override;
     bool process(float *L, float *R, int32_t frames, bool stereoIn) override;
+    /** The cabinet rebuilds its filters and measures its trim, so a mod moves it once a block. */
+    bool glides(int32_t index) const override { return index < Size || index > Room; }
 
   private:
     /** Room for the latency plus a block, a power of two so the wrap is cheap. */

@@ -1096,7 +1096,7 @@ patch "Repeat Lead" family=lead note=64 range=48..96 role=lead
     time         #3
     feedback     0.35
     tone         4000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.3
   send reverb    0.1
 
@@ -3157,6 +3157,6 @@ patch "Ambient Swells" family=odd note=60 range=45..84 role=pad
     time         #5
     feedback     0.5
     tone         3500 Hz
-    pingpong     #1
+    mode         #1
     mix          0.35
   send reverb    0.3

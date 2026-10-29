@@ -1,0 +1,78 @@
+# Transient - the start of each hit and the ring after it, up or down,
+# whatever the level.
+#
+# `attack` brings each onset up (snap, crack) or down (soft, far away).
+# `sustain` brings the ring after it up (room, body) or down (tight, dry).
+# `time` scales how long counts as the onset and the ring. The extra is
+# `split`: only what is above it is shaped, so a loop's hats and snare
+# snap while its kick stays as it was. At its bottom the whole sound is.
+#
+# Families: punch, tighten, soften, room, split.
+
+machine fx.Transient
+
+patch Init family=punch
+
+patch Punch family=punch
+  attack         0.5
+  gain           -1.2 dB
+patch Snap family=punch
+  # Short onsets pushed hard: a drum that cuts through.
+  attack         0.8
+  time           0.5
+  gain           -1.8 dB
+patch Smack family=punch
+  attack         1
+  sustain        -0.3
+  gain           -3 dB
+patch Tight family=tighten
+  # The ring after each hit down, the hit as it was.
+  sustain        -0.6
+
+patch "Dry Room" family=tighten
+  # A drum recorded in a room, the room taken back out.
+  sustain        -1
+  time           1.5
+  gain           +1 dB
+patch Gated family=tighten
+  attack         0.3
+  sustain        -1
+  time           0.5
+
+patch Soften family=soften
+  attack         -0.6
+  gain           +1.5 dB
+patch Blunt family=soften
+  attack         -1
+  sustain        0.3
+  gain           +2 dB
+patch Pillow family=soften
+  # Slow onsets and a little more ring: further away.
+  attack         -0.4
+  sustain        0.3
+  time           2
+  gain           +0.6 dB
+patch "Ring On" family=room
+  sustain        0.7
+  gain           -0.8 dB
+patch "Big Room" family=room
+  sustain        1
+  time           2
+  gain           -1.5 dB
+patch "Long Tail" family=room
+  sustain        0.5
+  time           3
+
+patch "Hat Snap" family=split
+  # Only the top: hats and snare crack, the kick and bass stay put.
+  attack         0.8
+  split          3000 Hz
+
+patch "Top Crack" family=split
+  attack         1
+  sustain        -0.5
+  split          1500 Hz
+
+patch "Bloom Above" family=split
+  sustain        0.8
+  split          800 Hz

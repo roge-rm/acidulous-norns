@@ -2268,7 +2268,7 @@ patch "Breath Lead" family=lead  note=67 range=48..91 role=lead
     time         #2
     feedback     0.3
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
   send reverb    0.1
 
@@ -2475,7 +2475,7 @@ patch "Saw Lead" family=lead  note=67 range=48..91 role=lead
     time         #2
     feedback     0.3
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
   send reverb    0.1
 
@@ -2652,7 +2652,7 @@ patch "Sync Lead" family=lead  note=67 range=48..91 role=lead
     time         #2
     feedback     0.3
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
 
 patch "Fold Lead" family=lead  note=67 range=48..91 role=lead
@@ -2886,7 +2886,7 @@ patch "Morph Lead" family=lead  note=67 range=48..91 role=lead
     time         #2
     feedback     0.3
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
 
 patch "Phase Lead" family=lead  note=67 range=48..91 role=lead
@@ -2954,7 +2954,7 @@ patch "Phase Lead" family=lead  note=67 range=48..91 role=lead
     time         #2
     feedback     0.3
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
 
 patch "Sync Stab" family=lead  note=60 range=36..84 role=keys
@@ -3119,7 +3119,7 @@ patch "Ring Lead" family=lead  note=67 range=48..91 role=lead
     time         #2
     feedback     0.3
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
 
 patch "Stretch Lead" family=lead  note=67 range=48..91 role=lead
@@ -3183,7 +3183,7 @@ patch "Stretch Lead" family=lead  note=67 range=48..91 role=lead
     time         #2
     feedback     0.3
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
   send reverb    0.12
 
@@ -3849,7 +3849,7 @@ patch "Echo Pluck" family=pluck  note=60 range=40..84 role=arp
     time         #2
     feedback     0.35
     tone         4500 Hz
-    pingpong     #1
+    mode         #1
     mix          0.25
   send reverb    0.1
 
@@ -4446,7 +4446,7 @@ patch "Music Box" family=bell  note=79 range=60..96 role=bell
     time         #2
     feedback     0.35
     tone         4500 Hz
-    pingpong     #1
+    mode         #1
     mix          0.25
   send reverb    0.2
 
@@ -6889,7 +6889,7 @@ patch "Ring Pad" family=pad  note=55 range=36..79 role=pad
     time         #3
     feedback     0.35
     tone         4000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
   send reverb    0.18
 
@@ -7507,7 +7507,7 @@ patch Dive family=texture  note=60 range=36..84 role=bell
     time         #3
     feedback     0.35
     tone         4000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
 
 patch Zap family=texture  note=60 range=36..84 role=bell
@@ -7575,7 +7575,7 @@ patch Zap family=texture  note=60 range=36..84 role=bell
     time         #2
     feedback     0.3
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
 
 patch Crush family=texture  note=67 range=48..91 role=lead

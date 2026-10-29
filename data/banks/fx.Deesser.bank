@@ -1,0 +1,70 @@
+# Deesser - a band turned down when it gets too loud: an s, a cymbal.
+#
+# `freq` is the middle of the band, `threshold` where it starts to come down
+# and `range` the most it comes down. `mode` #0 split turns down only the
+# band, #1 wide the whole sound. `listen` plays the band, to find the
+# frequency. The extra is `relative`: the band is measured against the rest
+# of the sound, so a quiet line and a loud one are treated the same; its
+# threshold is then how far under the rest the band may come up to, with
+# -36 dB meaning 10 dB under.
+#
+# Families: voice, gentle, steady, tame.
+
+machine fx.Deesser
+
+patch Init family=voice
+
+patch Vocal family=voice
+  freq           6500 Hz
+  range          10 dB
+
+patch "Low Voice" family=voice
+  freq           4500 Hz
+
+patch "High Voice" family=voice
+  freq           8000 Hz
+
+patch "Soft S" family=gentle
+  threshold      -30 dB
+  range          6 dB
+
+patch "Gentle Wide" family=gentle
+  mode           #1
+  threshold      -28 dB
+  range          6 dB
+
+patch Airy family=gentle
+  freq           9000 Hz
+  range          4 dB
+
+patch Steady family=steady
+  # Measured against the voice, so it acts the same as the singer moves
+  # off the microphone.
+  relative       #1
+
+patch "Steady Wide" family=steady
+  relative       #1
+  mode           #1
+
+patch "Steady Hard" family=steady
+  relative       #1
+  threshold      -40 dB
+  range          18 dB
+
+patch Hard family=tame
+  threshold      -44 dB
+  range          18 dB
+
+patch "Cymbal Tamer" family=tame
+  freq           9500 Hz
+  threshold      -42 dB
+
+patch "Hat Tamer" family=tame
+  freq           8000 Hz
+  threshold      -46 dB
+  range          10 dB
+
+patch "Bright Cymbals" family=tame
+  freq           11000 Hz
+  threshold      -46 dB
+  range          12 dB

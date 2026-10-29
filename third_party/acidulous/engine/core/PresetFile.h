@@ -24,13 +24,15 @@ namespace acidulous {
 
 /**
  * RateMigration.PATCH_VERSION in the app. A patch below it has LFO rates,
- * wavetable numbers, Trinity destinations or a Filament sympathetic level
+ * wavetable numbers, Trinity destinations, a Filament sympathetic level or
+ * a Delay mode
  * the app moves on load and this doesn't, so check [PresetPatch::version]
  * before using one. A Trinity patch at 3 needs only its destinations moved
  * (tables::trinityDest), and a Filament patch at 4 only its level
- * (engine/machine/filament/SymLevel.h).
+ * (engine/machine/filament/SymLevel.h), and a Delay patch below 6 has the
+ * old pingpong switch.
  */
-constexpr int32_t kPatchVersion = 5;
+constexpr int32_t kPatchVersion = 6;
 
 struct PresetPatch {
     std::string machine;                                         // the machine's type, or the effect's

@@ -1859,7 +1859,7 @@ patch Hurdy-Gurdy family=gurdy note=67 range=60..84
   # The wheel turning steadily, the dog quiet.
   model          #3
   key            #7
-  volume         0.576
+  volume         0.603
   set macro1 "Crank"
   mac1_d1  #7
   mac1_a1  0.25
@@ -1896,7 +1896,7 @@ patch "Gurdy Coups" family=gurdy note=67 range=60..84
   model          #3
   key            #7
   coup           #1
-  volume         0.551
+  volume         0.577
   set macro1 "Crank"
   mac1_d1  #7
   mac1_a1  0.25
@@ -1933,7 +1933,7 @@ patch "Gurdy Eighths" family=gurdy note=67 range=60..84
   model          #3
   key            #7
   coup           #2
-  volume         0.526
+  volume         0.551
   set macro1 "Crank"
   mac1_d1  #7
   mac1_a1  0.25
@@ -1971,7 +1971,7 @@ patch "Gurdy Sixteenths" family=gurdy note=67 range=60..84
   key            #7
   coup           #3
   wheel          0.45
-  volume         0.529
+  volume         0.554
   set macro1 "Crank"
   mac1_d1  #7
   mac1_a1  0.25
@@ -2009,7 +2009,7 @@ patch "Gurdy Buzzing" family=gurdy note=67 range=60..84
   key            #7
   wheel          0.85
   threshold      0.5
-  volume         0.425
+  volume         0.445
   set macro1 "Slower"
   mac1_d1  #7
   mac1_a1  -0.3
@@ -2047,6 +2047,7 @@ patch "Gurdy Gentle" family=gurdy note=67 range=60..84
   key            #7
   wheel          0.25
   dog            0
+  volume         0.733
   set macro1 "Crank"
   mac1_d1  #7
   mac1_a1  0.25
@@ -2083,7 +2084,7 @@ patch "Gurdy in D" family=gurdy note=62 range=55..79
   model          #3
   key            #2
   coup           #1
-  volume         0.564
+  volume         0.591
   set macro1 "Crank"
   mac1_d1  #7
   mac1_a1  0.25
@@ -2122,7 +2123,7 @@ patch "Gurdy Slow Air" family=gurdy note=67 range=60..84 role=tune
   dog            0
   drones         0.5
   bag            2 s
-  volume         0.612
+  volume         0.641
   set macro1 "Crank"
   mac1_d1  #7
   mac1_a1  0.25
@@ -2161,7 +2162,7 @@ patch "Gurdy Bourrée" family=gurdy note=67 range=60..84 role=tune
   wheel          0.55
   dog            0.65
   threshold      0.55
-  volume         0.52
+  volume         0.545
   set macro1 "Crank"
   mac1_d1  #7
   mac1_a1  0.25
@@ -2203,7 +2204,7 @@ patch "Trompette Alone" family=gurdy note=67 range=60..84 role=tap
   threshold      0.45
   coup           #2
   drones         0.6
-  volume         0.42
+  volume         0.44
   set macro1 "Crank"
   mac1_d1  #7
   mac1_a1  0.25
@@ -2240,7 +2241,7 @@ patch "Gurdy in C" family=gurdy note=72 range=60..84
   model          #3
   key            #0
   coup           #1
-  volume         0.612
+  volume         0.641
   set macro1 "Crank"
   mac1_d1  #7
   mac1_a1  0.25
@@ -2277,7 +2278,7 @@ patch "Gurdy Rosin" family=gurdy note=67 range=60..84
   rosin          0.7
   wheel          0.7
   dog            0.3
-  volume         0.518
+  volume         0.542
   set macro1 "Crank"
   mac1_d1  #7
   mac1_a1  0.25
@@ -2352,7 +2353,7 @@ patch "Gurdy Drones" family=drones note=67 range=60..84 role=drone
   bag            8 s
   drones         1
   dog            0
-  volume         0.566
+  volume         0.593
   set macro1 "Crank"
   mac1_d1  #7
   mac1_a1  0.25
@@ -2809,7 +2810,7 @@ patch "Dog on a Drone" family=odd note=67 range=60..84 role=drone
   dog            0.8
   drones         1
   bag            8 s
-  volume         0.419
+  volume         0.439
   set macro1 "Slower"
   mac1_d1  #7
   mac1_a1  -0.3
@@ -2851,7 +2852,7 @@ patch "Coup Drone" family=odd note=67 range=60..84 role=tap
   threshold      0.6
   bag            6 s
   drones         0.8
-  volume         0.487
+  volume         0.51
   set macro1 "Crank"
   mac1_d1  #7
   mac1_a1  0.25

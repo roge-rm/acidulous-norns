@@ -1227,7 +1227,7 @@ patch "Hollow Fifth" note=60 range=40..84 family=hollow
     time         #3
     feedback     0.35
     tone         4000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
 
 # Odd partials stretched a little sharp, morphing slowly to a
@@ -2309,7 +2309,7 @@ patch "Rising Glass" note=72 range=55..96 family=shimmer
     time         #3
     feedback     0.35
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.18
   send reverb    0.22
 
@@ -2485,7 +2485,7 @@ patch "Mirror Ice" note=60 range=40..84 family=shimmer role=drone
     time         #4
     feedback     0.45
     tone         3500 Hz
-    pingpong     #1
+    mode         #1
     mix          0.22
   send reverb    0.2
 
@@ -3625,7 +3625,7 @@ patch "Stepping Cloud" note=60 range=36..84 family=morph role=drone
     time         #3
     feedback     0.3
     tone         4500 Hz
-    pingpong     #1
+    mode         #1
     mix          0.15
 
 # A smooth random LFO on the morph between a plain cloud and a stretched,
@@ -4271,7 +4271,7 @@ patch "Glint Pick" note=67 range=48..91 family=pluck role=keys
     time         #3
     feedback     0.3
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.22
   send reverb    0.18
 

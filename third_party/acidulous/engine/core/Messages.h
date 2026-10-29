@@ -79,7 +79,20 @@ enum class Unit : uint8_t {
      * They always act on the master.
      */
     Perform,
+    /** A track's third and fourth inserts. Effect1 and Effect2 are the first two. */
+    Effect3, Effect4,
 };
+
+/** The track insert slot [u] names, 0..kEffectSlots-1, or -1 when it isn't one. */
+inline int32_t trackInsertSlot(Unit u) {
+    switch (u) {
+    case Unit::Effect1: return 0;
+    case Unit::Effect2: return 1;
+    case Unit::Effect3: return 2;
+    case Unit::Effect4: return 3;
+    default: return -1;
+    }
+}
 
 /** Indices within Unit::Performance. */
 constexpr int32_t kPerfMod = 0;      // CC 1

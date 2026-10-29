@@ -19,58 +19,67 @@ namespace acidulous::effect {
     void reset() override;                                                    \
     bool process(float *L, float *R, int32_t frames, bool stereoIn) override;
 
+/**
+ * Delay on a note value, in four modes:
+ *
+ *   - normal: an echo a side.
+ *   - ping-pong: the echoes bounce from side to side.
+ *   - multi-tap: 2 to 4 taps inside the time, spread across the stereo
+ *     field, with `spacing` bunching them early or late. The last tap, at
+ *     the full time, feeds back.
+ *   - reverse: each stretch of `time` is played backwards, with short
+ *     crossfades between stretches. Feedback plays an echo forwards again.
+ *
+ * The extras are `duck` (echoes drop while the track plays) and `wobble`
+ * (tape-like drift of the time).
+ */
 class Delay final : public Effect {
   public:
-    enum P { Time, Feedback, Tone, PingPong, Mix, Duck, Wobble, Gain, Count };
+    enum P { Time, Feedback, Tone, Mode, Mix, Duck, Wobble, Gain, Taps, Spacing, Count };
+    enum ModeKind { Normal, PingPong, MultiTap, Reverse };
+    static constexpr int32_t kMaxTaps = 4;
     Delay() { initParams(); }
     ACIDULOUS_EFFECT_COMMON(Delay)
-    void onBlock(int64_t, int64_t, float bpm) override { this->bpm = bpm; }
+    void onBlock(int64_t tickStart, int64_t, float bpm) override;
   private:
+    void runMultiTap(float *L, float *R, int32_t frames, bool stereoIn, float target, float toneCoeff);
+    void runReverse(float *L, float *R, int32_t frames, bool stereoIn, float target, float toneCoeff, int timeIdx,
+                    double ticksPerFrame);
+    float wobbleDrift(float depth);
+    float duckedMix(float inL, float inR);
     dsp::DelayLine line[2];
+    // Reverse reads from these, long enough for a whole 3 s stretch. Every
+    // mode writes them as it writes line, so a switch to or from reverse
+    // carries on with the same echoes.
+    dsp::ForgetfulDelayLine revLine[2];
     float readSamples = 24000.0f, lp[2]{}, duckEnv = 0.0f, wobblePhase = 0.0f, sr = 48000.0f, bpm = 120.0f;
     bool snapRead = true; // see reset()
-};
-
-/**
- * Reverb.
- *
- * Based on Freeverb: eight combs and four allpasses a side, with `size`,
- * `damp` and `predelay`. The extras:
- *
- *   - Shimmer: the tail is fed back an octave up, so each pass climbs into a
- *     rising chord. The pitch shift is a delay line read at double speed with
- *     two crossfaded taps, and it sits inside the feedback so it builds up.
- *   - Bits and crush: only the tail goes through a bit quantiser and a
- *     sample-and-hold, so the dry stays clean and the room sounds like an old
- *     sampler.
- *   - Wobble: the comb lengths drift slowly and out of step, so a long tail
- *     never sits still, like tape.
- *
- * Freeze holds the tail forever and gate cuts it off.
- */
-class Reverb final : public Effect {
-  public:
-    enum P { Size, Damp, Tone, PreDelay, Mix, Freeze, Gate, Shimmer, Bits, Crush, Wobble, Gain, Count };
-    Reverb() { initParams(); }
-    ACIDULOUS_EFFECT_COMMON(Reverb)
-  private:
-    struct Comb { dsp::DelayLine line; float store = 0.0f; int32_t len = 1; };
-    struct Allpass { dsp::DelayLine line; int32_t len = 1; };
-    /** Eight combs and four allpasses a side at full quality, half at lean. */
-    static constexpr int32_t kCombs = 8;
-    static constexpr int32_t kAps = 4;
-    Comb combs[2][kCombs];
-    Allpass aps[2][kAps];
-    dsp::DelayLine pre[2];
-    /** The shimmer's line: the tail, read back an octave up. */
-    dsp::DelayLine shimmerLine[2];
-    float shimmerPhase[2]{}, shimmerFb[2]{};
-    /** The shimmer path's DC blocker. See the note where it's used. */
-    float shimDcX[2]{}, shimDcY[2]{}, shimLp[2]{};
-    float crushAcc[2]{}, crushHeld[2]{};
-    float wobblePhase = 0.0f;
-    float lp[2]{}, gateEnv = 0.0f, inputEnv = 0.0f, sr = 48000.0f;
-    int32_t gateHold = 0;
+    // Per-block, for the helpers: the knobs as process() read them.
+    float fb_ = 0.0f, mix_ = 0.0f, duck_ = 0.0f, wobbleDepth_ = 0.0f, duckAtk_ = 0.0f, duckRel_ = 0.0f, glide_ = 0.0f;
+    // Reverse: frames into the current stretch; its length and the tail it
+    // plays on into the next, fixed when it starts; the same for the one
+    // fading out.
+    float revAt = 0.0f, revLen = 0.0f, revTail = 0.0f, revPrevLen = 0.0f;
+    bool revStart = true;
+    // The fade into the current stretch: frames into it and its length. It
+    // fades from the stretch before, or from the other mode's tap at
+    // revFadeD frames back when reverse has just come on.
+    float revFadeAt = 0.0f, revFadeLen = 0.0f, revFadeD = 0.0f;
+    bool revFadeNormal = false;
+    // The current stretch's length in ticks; the clock jumped this block.
+    double revTicks = 0.0;
+    bool revJumped = false;
+    // The clock's tick to a fraction, moved on by the frames played and kept
+    // within a tick of the block's start; the stretch now playing as a count
+    // of stretches from the song's start.
+    double clock = 0.0;
+    bool synced = false;
+    int64_t revWindow = 0;
+    /** A stretch's length in ticks: the note value, halved until twice it fits the line. */
+    double stretchTicks(int timeIdx) const;
+    void startStretch(double ticks, double ticksPerFrame, float into);
+    /** How far a stretch may run before it starts over, so every read stays in revLine. */
+    float stretchLimit() const;
 };
 
 class Eq final : public Effect {
@@ -81,6 +90,10 @@ class Eq final : public Effect {
   private:
     dsp::Biquad low[2], mid[2], high[2], tiltLo[2], tiltHi[2];
     float sr = 48000.0f;
+    /** What each band was designed from, so a later slice of a block redesigns only what moved. */
+    float lowFor[2] = {}, midFor[3] = {}, highFor[2] = {}, tiltFor = 0.0f;
+    void remember();
+    void designMoved();
 };
 
 class Distortion final : public Effect {
@@ -145,10 +158,10 @@ class Phaser final : public Effect {
     enum P { Rate, Depth, Feedback, Stages, Spread, Mix, Gain, Count };
     Phaser() { initParams(2.5f); }
     ACIDULOUS_EFFECT_COMMON(Phaser)
-    void onBlock(int64_t tickStart, int64_t, float) override { tick = tickStart; }
+    void onBlock(int64_t tickStart, int64_t, float b) override { tick = tickStart; bpm = b; }
   private:
     dsp::Biquad ap[2][8];
-    float fb[2]{}, sr = 48000.0f;
+    float fb[2]{}, sr = 48000.0f, bpm = 120.0f;
     int64_t tick = 0;
 };
 
@@ -165,10 +178,10 @@ class Chorus final : public Effect {
     enum P { Rate, Depth, Voices, Spread, Drift, Mix, Gain, Count };
     Chorus() { initParams(5.0f); }
     ACIDULOUS_EFFECT_COMMON(Chorus)
-    void onBlock(int64_t tickStart, int64_t, float) override { tick = tickStart; }
+    void onBlock(int64_t tickStart, int64_t, float b) override { tick = tickStart; bpm = b; }
   private:
     dsp::DelayLine line[2];
-    float drift[4]{}, sr = 48000.0f;
+    float drift[4]{}, sr = 48000.0f, bpm = 120.0f;
     uint32_t rng = 0x9e3779b9u;
     int64_t tick = 0;
 };

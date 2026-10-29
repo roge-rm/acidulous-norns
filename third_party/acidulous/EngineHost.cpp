@@ -63,6 +63,8 @@ LinkTimebase sLink;
 Unit unitFromName(const std::string &u) {
     if (u == "effect1") return Unit::Effect1;
     if (u == "effect2") return Unit::Effect2;
+    if (u == "effect3") return Unit::Effect3;
+    if (u == "effect4") return Unit::Effect4;
     if (u == "mod1") return Unit::Mod1;
     if (u == "mod2") return Unit::Mod2;
     if (u == "mod3") return Unit::Mod3;
@@ -360,12 +362,12 @@ SendPlan EngineHost::applyPatchChain(int rack, const PatchChain &chain, PatchTra
         }
         LOGE("param queue stayed full; dropped %s %s", unit.c_str(), name.c_str());
     };
-    for (int32_t s = 0; s < kEffectSlots; ++s) {
+    for (int32_t s = 0; s < kPatchInsertSlots; ++s) {
         if (((plan.clear >> s) & 1u) != 0 && ((plan.owned >> s) & 1u) == 0) mountEffect(rack, s, "");
     }
     uint32_t ownedNow = plan.owned;
     int32_t failed = 0;
-    for (size_t i = 0; i < inserts.size() && i < static_cast<size_t>(kEffectSlots); ++i) {
+    for (size_t i = 0; i < inserts.size() && i < static_cast<size_t>(kPatchInsertSlots); ++i) {
         const int32_t slot = plan.slotOf[i];
         if (slot < 0) continue;
         const PatchInsert &fx = *inserts[i];
@@ -437,7 +439,8 @@ PresetPatch EngineHost::rackPatch(int rack, const std::string &name, std::string
         from = to + 1;
     }
     if (!withEffects) return p;
-    for (int32_t s = 0; s < kEffectSlots; ++s) {
+    // Only the patch's slots; the ones after are the player's.
+    for (int32_t s = 0; s < kPatchInsertSlots; ++s) {
         const std::string &type = mountedEffectType[rack][s];
         if (type.empty()) continue;
         const std::string unit = "effect" + std::to_string(s + 1);
@@ -448,6 +451,15 @@ PresetPatch EngineHost::rackPatch(int rack, const std::string &name, std::string
         for (int32_t i = 0; i < count; ++i) {
             const float v = paramNormalized(rack, unit, fxDefs[i].name);
             if (v >= 0.0f) fx.params.emplace_back(fxDefs[i].name, v);
+        }
+        // The mod slot only when it's on, so a patch without one says nothing about it.
+        if (paramNormalized(rack, unit, "mod_source") > 0.0f) {
+            int32_t modCount = 0;
+            const ParamDef *modDefs = slotmod::defs(modCount);
+            for (int32_t i = 0; i < modCount; ++i) {
+                const float v = paramNormalized(rack, unit, modDefs[i].name);
+                if (v >= 0.0f) fx.params.emplace_back(modDefs[i].name, v);
+            }
         }
         fx.bypass = paramNormalized(rack, unit, "bypass") >= 0.5f;
         if (!effectFormula_[rack][s].empty()) fx.settings.emplace_back("formula", effectFormula_[rack][s]);
@@ -1198,6 +1210,7 @@ int EngineHost::paramIndex(const std::string &machineType, const std::string &un
     if (u == Unit::Perform) return sEngine.master.perform.params().indexOf(name.c_str());
     if (u >= Unit::Group1Fx1 && u <= Unit::Group4Fx2) {
         if (name == "bypass") return kEffectBypassIndex;
+        if (const int32_t mod = slotModIndexOf(name.c_str()); mod != -1) return mod;
         const int k = static_cast<int>(u) - static_cast<int>(Unit::Group1Fx1);
         int32_t n = 0;
         const ParamDef *defs = EffectRegistry::paramDefs(
@@ -1207,6 +1220,7 @@ int EngineHost::paramIndex(const std::string &machineType, const std::string &un
     }
     if (u == Unit::MasterFx1 || u == Unit::MasterFx2) {
         if (name == "bypass") return kEffectBypassIndex;
+        if (const int32_t mod = slotModIndexOf(name.c_str()); mod != -1) return mod;
         int32_t n = 0;
         const ParamDef *defs =
             EffectRegistry::paramDefs(mountedMasterInsertType[u == Unit::MasterFx1 ? 0 : 1].c_str(), n);
@@ -1215,6 +1229,7 @@ int EngineHost::paramIndex(const std::string &machineType, const std::string &un
     }
     if (u == Unit::Send1 || u == Unit::Send2) {
         if (name == "bypass") return kEffectBypassIndex;
+        if (const int32_t mod = slotModIndexOf(name.c_str()); mod != -1) return mod;
         int32_t n = 0;
         const ParamDef *defs = EffectRegistry::paramDefs(mountedSendType[u == Unit::Send1 ? 0 : 1].c_str(), n);
         for (int32_t i = 0; i < n; ++i) if (name == defs[i].name) return i;
@@ -1222,6 +1237,7 @@ int EngineHost::paramIndex(const std::string &machineType, const std::string &un
     }
     if (u == Unit::Input1 || u == Unit::Input2) {
         if (name == "bypass") return kEffectBypassIndex;
+        if (const int32_t mod = slotModIndexOf(name.c_str()); mod != -1) return mod;
         int32_t n = 0;
         const ParamDef *defs =
             EffectRegistry::paramDefs(mountedInputType[u == Unit::Input1 ? 0 : 1].c_str(), n);
@@ -1236,8 +1252,9 @@ int EngineHost::paramIndex(const std::string &machineType, const std::string &un
         if (name == "soft") return kPerfSoft;
         return -1;
     }
-    if (u == Unit::Effect1 || u == Unit::Effect2) {
+    if (trackInsertSlot(u) >= 0) {
         if (name == "bypass") return kEffectBypassIndex;
+        if (const int32_t mod = slotModIndexOf(name.c_str()); mod != -1) return mod;
         int32_t n = 0;
         const ParamDef *defs = EffectRegistry::paramDefs(machineType.c_str(), n); // the effect's type here
         for (int32_t i = 0; i < n; ++i) if (name == defs[i].name) return i;
@@ -1279,8 +1296,8 @@ bool EngineHost::setParam(int rack, const std::string &unit, const std::string &
         index = paramIndex(mountedSendType[u == Unit::Send1 ? 0 : 1], unit, name);
     } else if (u == Unit::Input1 || u == Unit::Input2) {
         index = paramIndex(mountedInputType[u == Unit::Input1 ? 0 : 1], unit, name);
-    } else if (u == Unit::Effect1 || u == Unit::Effect2) {
-        index = paramIndex(mountedEffectType[rack][u == Unit::Effect1 ? 0 : 1], unit, name);
+    } else if (trackInsertSlot(u) >= 0) {
+        index = paramIndex(mountedEffectType[rack][trackInsertSlot(u)], unit, name);
     } else if (u == Unit::Mod1 || u == Unit::Mod2 || u == Unit::Mod3) {
         // Three modifier slots (see `paramNormalized`).
         index = paramIndex(mountedModifierType[rack][u == Unit::Mod1 ? 0 : u == Unit::Mod2 ? 1 : 2], unit, name);
@@ -1784,7 +1801,7 @@ bool EngineHost::snapshotSetLane(int64_t handle, int rack, int scene, const std:
     auto *snap = fromHandle(handle);
     if (snap == nullptr || scene < 0 || scene >= static_cast<int>(snap->scenes.size())) return false;
     const int index = paramIndex(machineType, unit, name);
-    if (index < 0) return false;
+    if (index == -1) return false; // bypass and the mod slot's are below -1
     const size_t idx = static_cast<size_t>(rack) * snap->scenes.size() + static_cast<size_t>(scene);
     if (idx >= snap->clips.size() || !snap->clips[idx]) return false;
     // A lane edit changes the clip's rev, so a clip receiving lanes is always
@@ -2178,7 +2195,7 @@ std::string EngineHost::loadFormula(int rack, const std::string &formula, const 
 
 std::string EngineHost::loadEffectFormula(int rack, const std::string &unit, const std::string &formula) {
     const Unit u = unitFromName(unit);
-    const bool track = u == Unit::Effect1 || u == Unit::Effect2;
+    const bool track = trackInsertSlot(u) >= 0;
     if (track && (rack < 0 || rack >= kRackCount)) return "no such rack";
     auto expr = std::make_unique<machine::formulate::Expr>();
     std::string error;
@@ -2194,7 +2211,7 @@ std::string EngineHost::loadEffectFormula(int rack, const std::string &unit, con
     mount.object = expr.release();
     mount.deleter = deleteAs<machine::formulate::Expr>;
     if (!mountObjectWithRetry(mount)) return "mount queue full";
-    if (track) effectFormula_[rack][u == Unit::Effect1 ? 0 : 1] = formula;
+    if (track) effectFormula_[rack][trackInsertSlot(u)] = formula;
     return "";
 }
 
@@ -2339,6 +2356,7 @@ std::string EngineHost::freezeClip(int rack, int64_t sceneId, const std::string 
         if (Effect *e = r.currentEffect(sl)) {
             e->reset();
             e->params().jumpAll();
+            e->resetMod();
         }
     }
     for (int32_t sl = 0; sl < kInputModSlots; ++sl) {
@@ -2660,10 +2678,9 @@ float EngineHost::paramNormalized(int rack, const std::string &unit, const std::
     if (rack < 0 || rack >= kRackCount) return -1.0f;
     const auto live = sEngine.readLive(); // it may be being replaced (see Retirer::ReadGuard)
     const Unit u = unitFromName(unit);
-    const bool isFx = u == Unit::Effect1 || u == Unit::Effect2;
+    const bool isFx = trackInsertSlot(u) >= 0;
     const bool isEv = u == Unit::Mod1 || u == Unit::Mod2 || u == Unit::Mod3;
-    // Three modifier slots but only two effect slots.
-    const int slot = isFx ? (u == Unit::Effect1 ? 0 : 1)
+    const int slot = isFx ? trackInsertSlot(u)
                           : (u == Unit::Mod1 ? 0 : u == Unit::Mod2 ? 1 : 2);
     const int index = paramIndex(isFx ? mountedEffectType[rack][slot] : (isEv ? mountedModifierType[rack][slot] : mountedType[rack]), unit, name);
     if (index == -1) return -1.0f;
@@ -2675,14 +2692,23 @@ float EngineHost::paramNormalized(int rack, const std::string &unit, const std::
     if (isFx) {
         Effect *fx = sEngine.racks[rack].currentEffect(slot);
         if (fx == nullptr) return -1.0f;
-        return index == kEffectBypassIndex ? (fx->bypassed() ? 1.0f : 0.0f) : fx->params().normalized(index);
+        return fx->normalizedAt(index);
     }
     if (u == Unit::Machine) {
         Machine *m = sEngine.racks[rack].currentMachine();
         return m ? m->params().normalized(index) : -1.0f;
     }
     if (u == Unit::Channel) return sEngine.racks[rack].channelNormalized(index);
-    return -1.0f;
+    // The slots that aren't a track's: sends, the master's and groups' inserts, the input's.
+    Effect *fx = nullptr;
+    if (u == Unit::Send1 || u == Unit::Send2) fx = sEngine.master.send(u == Unit::Send1 ? 0 : 1);
+    else if (u == Unit::MasterFx1 || u == Unit::MasterFx2) fx = sEngine.master.insert(u == Unit::MasterFx1 ? 0 : 1);
+    else if (u == Unit::Input1 || u == Unit::Input2) fx = sEngine.inputFx[u == Unit::Input1 ? 0 : 1];
+    else if (u >= Unit::Group1Fx1 && u <= Unit::Group4Fx2) {
+        const int k = static_cast<int>(u) - static_cast<int>(Unit::Group1Fx1);
+        fx = sEngine.master.groupInsert(k / kGroupInsertSlots, k % kGroupInsertSlots);
+    }
+    return fx != nullptr ? fx->normalizedAt(index) : -1.0f;
 }
 
 const char *EngineHost::mountedModifier(int rack, int slot) const {
@@ -2707,7 +2733,7 @@ float EngineHost::sendParamNormalized(int slot, const std::string &name) const {
     if (index == -1) return -1.0f;
     Effect *fx = sEngine.master.send(slot);
     if (fx == nullptr) return -1.0f;
-    return index == kEffectBypassIndex ? (fx->bypassed() ? 1.0f : 0.0f) : fx->params().normalized(index);
+    return fx->normalizedAt(index);
 }
 
 float EngineHost::masterParamNormalized(const std::string &name) const {
@@ -2723,7 +2749,7 @@ float EngineHost::masterInsertParamNormalized(int slot, const std::string &name)
     if (index == -1) return -1.0f;
     Effect *fx = sEngine.master.insert(slot);
     if (fx == nullptr) return -1.0f;
-    return index == kEffectBypassIndex ? (fx->bypassed() ? 1.0f : 0.0f) : fx->params().normalized(index);
+    return fx->normalizedAt(index);
 }
 
 bool EngineHost::loopSong() const { return sEngine.transport.loopSong(); }

@@ -59,7 +59,8 @@ class EngineHost {
     const char *mountedEffect(int rack, int slot) const;
     /**
      * Puts a machine patch's effects on [rack]: its inserts and sends, by the
-     * rules in engine/core/PatchChain.h. [state] is the track's from the last
+     * rules in engine/core/PatchChain.h. Its inserts only go in the first
+     * kPatchInsertSlots slots; the slots after are left alone. [state] is the track's from the last
      * patch load and is updated; keep it with the track. [sendReverbNow] and
      * [sendDelayNow] are the track's send levels now, 0..1. [skipped], if
      * given, is how many inserts found no free slot, and [unknown] how many
@@ -75,7 +76,7 @@ class EngineHost {
     /**
      * [rack]'s machine as it is now, as a patch called [name]: its type, every
      * parameter by name normalised 0..1 and its macro names (macro1..8). With
-     * [withEffects], its inserts (parameters, bypass, a Formula's formula) and
+     * [withEffects], the inserts in its first kPatchInsertSlots slots (parameters, bypass, a Formula's formula) and
      * its send levels when either is up or [state] (the track's, from
      * applyPatchChain) says the patch still holds them, as the app saves a
      * patch with effects. Settings only the host knows, like file paths or a
@@ -264,7 +265,7 @@ class EngineHost {
     /** Which member channels are holding a note, a bit per channel. */
     int mpeHeldMask() const;
 
-    // unit: "machine" | "effect1" | "effect2" | "mod1" | "mod2" | "channel".
+    // unit: "machine" | "effect1".."effect4" | "mod1".."mod3" | "channel".
     // value is normalised 0..1. Names are resolved here, on the UI thread.
     // `record`: a user gesture that can be recorded, not the song syncing state.
     bool setParam(int rack, const std::string &unit, const std::string &name, float value, bool record,
@@ -676,12 +677,12 @@ class EngineHost {
     std::atomic<int> mpeZoneKind{0};
     std::atomic<int> mpeZoneMembers{15};
     std::atomic<float> renderSeconds{0.0f}, renderPeak{0.0f};
-    std::string mountedEffectType[16][2];
+    std::string mountedEffectType[kRackCount][kEffectSlots];
     /** The formula last loaded into each insert, kept for rackPatch. Cleared when the slot is mounted again. */
-    std::string effectFormula_[16][2];
+    std::string effectFormula_[kRackCount][kEffectSlots];
     /** The last machine and inserts queued per rack, to tell when the audio thread has them. Never dereferenced. */
     const void *queuedMachine_[16] = {};
-    const void *queuedEffect_[16][2] = {};
+    const void *queuedEffect_[kRackCount][kEffectSlots] = {};
     /** Whether the audio thread has the rack's last queued machine and inserts. */
     bool mountsLanded(int rack) const;
     /** What is on each send bus, for resolving its parameters by name. */

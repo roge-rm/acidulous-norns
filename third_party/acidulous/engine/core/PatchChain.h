@@ -6,12 +6,14 @@
 
 #include <engine/core/Constants.h>
 
-// The effects a machine patch brings with it: up to kEffectSlots inserts with
-// their parameters, and its reverb and delay send levels.
+// The effects a machine patch brings with it: up to kPatchInsertSlots inserts
+// with their parameters, and its reverb and delay send levels.
 //
-// A track remembers which insert slots its current patch filled, as a bit per
-// slot. Loading the next patch clears only those, then puts the new patch's
-// inserts in free slots, its old slots first. Inserts the player added stay.
+// A patch's inserts only go in the first kPatchInsertSlots slots; the slots
+// after them are always the player's. A track remembers which slots its
+// current patch filled, as a bit per slot. Loading the next patch clears only
+// those, then puts the new patch's inserts in free slots, its old slots first.
+// Inserts the player added stay.
 // When no slot is free a patch's insert is skipped. An insert naming an effect
 // this build doesn't have is left out before any slot is chosen. Every slot a
 // patch fills gets a new effect, even of the same type, so no tail carries on.
@@ -39,7 +41,7 @@ struct PatchChain {
 
 struct InsertPlan {
     /** The slot each of the patch's inserts goes in, in order, or -1 for skipped. */
-    int32_t slotOf[kEffectSlots]{};
+    int32_t slotOf[kPatchInsertSlots]{};
     /** Slots to empty first: the last patch's, a bit per slot. */
     uint32_t clear = 0;
     /** The slots the patch now owns. */
@@ -106,18 +108,18 @@ inline SendPlan planPatchSends(const PatchChain &chain, float nowReverb, float n
  */
 inline InsertPlan planPatchInserts(const bool occupied[kEffectSlots], uint32_t owned, int32_t wanted) {
     InsertPlan plan;
-    for (int32_t s = 0; s < kEffectSlots; ++s) plan.slotOf[s] = -1;
+    for (int32_t s = 0; s < kPatchInsertSlots; ++s) plan.slotOf[s] = -1;
     if (wanted < 0) wanted = 0;
-    int32_t chosen[kEffectSlots];
+    int32_t chosen[kPatchInsertSlots];
     int32_t n = 0;
-    for (int32_t s = 0; s < kEffectSlots; ++s) {
+    for (int32_t s = 0; s < kPatchInsertSlots; ++s) {
         if ((owned >> s) & 1u) plan.clear |= 1u << s;
     }
     // The last patch's slots, then free ones.
-    for (int32_t s = 0; s < kEffectSlots && n < wanted; ++s) {
+    for (int32_t s = 0; s < kPatchInsertSlots && n < wanted; ++s) {
         if ((plan.clear >> s) & 1u) chosen[n++] = s;
     }
-    for (int32_t s = 0; s < kEffectSlots && n < wanted; ++s) {
+    for (int32_t s = 0; s < kPatchInsertSlots && n < wanted; ++s) {
         if (((plan.clear >> s) & 1u) == 0 && !occupied[s]) chosen[n++] = s;
     }
     // Low to high, so the chain keeps its order.

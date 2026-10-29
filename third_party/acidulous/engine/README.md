@@ -26,6 +26,7 @@ effect/     Effect interface (onBlock for tempo, run() with bypass) · EffectReg
             Chorus Tremolo Width Shifter Harmonizer Amp Gate Swell
             Rotary Grain Resonator (FromMachines.h)
             Smash Acid Mouth Tape Slicer Magneto Horn Spectral Formula
+            Transient Midside Deesser
 modifier/    InputMod interface + MidiSink · InputModRegistry · Scales.h (33 scales,
             25 chords) · InputMods: Scale Chord Arp
 rack/       Rack (clip player -> modifiers -> machine -> effects -> channel strip) ·

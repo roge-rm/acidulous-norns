@@ -81,12 +81,15 @@ bool Amp::process(float *L, float *R, int32_t frames, bool stereoIn) {
     const int chans = stereoIn ? 2 : 1;
     for (int c = 0; c < chans; ++c) {
         Channel &s = ch[c];
-        s.inShelf.lowShelf(v.inShelfHz, v.inShelfDb, sr * 2.0f);
-        s.bright.highShelf(v.brightHz, v.brightDb, sr * 2.0f);
+        // The voicing and the cabinet hold still across a block's slices (see glides).
+        if (subOffset_ == 0) {
+            s.inShelf.lowShelf(v.inShelfHz, v.inShelfDb, sr * 2.0f);
+            s.bright.highShelf(v.brightHz, v.brightDb, sr * 2.0f);
+        }
         s.tone.set(v, p.get(Bass), p.get(Mid), p.get(Treble));
         s.presence.highShelf(2200.0f, p.get(Presence) * 9.0f, sr * 2.0f);
         s.power.set(p.get(Master), p.get(Sag), v.sagScale);
-        s.cab.set(p.get(Size), p.get(Cone), p.get(Mic), p.get(Edge), p.get(Room));
+        if (subOffset_ == 0) s.cab.set(p.get(Size), p.get(Cone), p.get(Mic), p.get(Edge), p.get(Room));
     }
 
     for (int c = 0; c < chans; ++c) {

@@ -1,12 +1,42 @@
-# Reverb - a room, its tone, and the two things that are not rooms.
+# Reverb - a room, a plate, a hall, a spring, an early digital box, a room
+# built from its size, and the things that are not rooms.
 #
-# `size` is the room and `damp` is what the walls are made of; `predelay` is
-# how far you are from them, and it is the control that keeps a big reverb from
-# swallowing the thing that caused it. The two that are not rooms are `freeze`,
-# which holds the tail for as long as you leave it, and `gate`, which cuts the
-# tail off flat and is a sound rather than a space.
+# `model` picks the tank: #0 room, #1 plate, #2 hall, #3 spring, #4 early,
+# #5 space, #6 tube, #7 string, #8 drumhead, #9 thunder, #10 howl,
+# #11 flutter. `size` is the room and
+# `damp` is what the walls are made of; `predelay` is how far you are from
+# them, and it is the control that keeps a big reverb from swallowing the
+# thing that caused it. `duck` drops the tail while the track plays,
+# `distance` moves the source further away and `bloom` lets the tail fill in
+# slowly. The things that are not rooms are `freeze`, which holds the tail for
+# as long as you leave it, and `gate`, which cuts the tail off flat.
 #
-# Families: room, tone, gate, hold, shimmer, lofi.
+# The spring has `drip`, how far each echo chirps, and `knock`, how hard a
+# sharp hit shakes the tank. The early box has `rate`, the rate its tank runs
+# at. The space has no size: it has `width`, `depth` and `height` in metres,
+# `position`, where you stand from the front to the back, and the walls'
+# `material`: #0 tile, #1 plaster, #2 wood, #3 curtains.
+#
+# The tube and the string are one tuned line the track rings through. `pitch`
+# is in semitones from middle C, or from the track's last note with `follow`
+# on. The tube has `open`, from a pipe closed at one end (odd harmonics) to
+# one open at both; the string has `stiff`, from a string to a metal wire, and
+# `pick`, where the input lands on it, from the end to the middle.
+#
+# The drumhead is a skin the track hits: `size` is the drum and `tension`
+# tunes it; `snares` puts wires under it that buzz when a hit moves the head
+# far enough. The thunder sheet is a sheet of metal whose energy spills from
+# its low modes to its high ones the harder it's hit, so a loud hit blooms
+# into a crash; `metal` is how readily, from a gong to a thin sheet. Howl is
+# a room with a microphone in feedback: turned up, the modes near the
+# speaker's peak ring on and then hold as drones, and `size` retunes them.
+# Flutter is two parallel walls; `walls` is how far apart they are, and the
+# echo between them rings at that pitch.
+#
+# Families: room (rooms and halls), mechanical (plates and springs), space
+# (rooms from their size and flutter), tail (duck, distance, bloom and the
+# gate), body (tube, string, drumhead and thunder sheet), drone (freeze,
+# shimmer and howl), lofi (the early box and the crushed ones).
 
 machine fx.Reverb
 
@@ -28,7 +58,7 @@ patch Room family=room
   predelay       18 ms
   mix            0.28
 
-patch Hall family=room
+patch "Big Room" family=room
   # Long, soft, and far away. Above about a half, `size` stops sounding like a
   # bigger room and starts sounding like a different building.
   size           0.72
@@ -46,15 +76,7 @@ patch Cathedral family=room
   predelay       60 ms
   mix            0.42
 
-patch Plate family=room
-  # A bright plate, dense and smooth.
-  size           0.45
-  damp           0.15
-  tone           12000 Hz
-  predelay       15 ms
-  mix            0.25
-
-patch Dark family=tone
+patch Dark family=room
   # The top taken off the tail but not off the source: the room is made of
   # curtains rather than tile, and nothing sibilant comes back.
   size           0.6
@@ -63,7 +85,7 @@ patch Dark family=tone
   predelay       25 ms
   mix            0.32
 
-patch Bright family=tone
+patch Bright family=room
   # The other way: hard surfaces, nothing absorbed, and the tail keeps every
   # bit of the top it was given. Unkind to cymbals on purpose.
   size           0.55
@@ -72,7 +94,342 @@ patch Bright family=tone
   predelay       12 ms
   mix            0.3
 
-patch Gated family=gate
+patch "Small Hall" family=room
+  # A hall at the small end: early reflections close behind the note and a
+  # short tail.
+  model          #2
+  size           0.3
+  damp           0.35
+  tone           8000 Hz
+  predelay       12 ms
+  mix            0.25
+
+patch "Concert Hall" family=room
+  # The middle of the range. The lows hang on a little longer than the rest,
+  # as they do in a real hall.
+  model          #2
+  size           0.55
+  damp           0.45
+  tone           7000 Hz
+  predelay       25 ms
+  mix            0.3
+
+patch "Big Hall" family=room
+  # Long and soft, with the reflections spread wide. The one for strings.
+  model          #2
+  size           0.8
+  damp           0.5
+  tone           6000 Hz
+  predelay       40 ms
+  mix            0.35
+
+patch "Warm Hall" family=room
+  # A hall with heavy curtains: the highs die early and the lows carry on.
+  model          #2
+  size           0.65
+  damp           0.8
+  tone           3500 Hz
+  predelay       30 ms
+  mix            0.32
+
+patch "Bright Hall" family=room
+  # Stone and glass. The highs last almost as long as the lows.
+  model          #2
+  size           0.6
+  damp           0.1
+  tone           13000 Hz
+  predelay       20 ms
+  mix            0.28
+
+patch Plate family=mechanical
+  # A bright plate, dense and smooth, with no room around it: the classic
+  # thing to put on a snare or a voice.
+  model          #1
+  size           0.45
+  damp           0.15
+  tone           12000 Hz
+  predelay       15 ms
+  mix            0.25
+
+patch "Vocal Plate" family=mechanical
+  # A little longer and a little darker, with enough predelay that the words
+  # come before their own tail.
+  model          #1
+  size           0.55
+  damp           0.3
+  tone           9000 Hz
+  predelay       35 ms
+  mix            0.25
+
+patch "Snare Plate" family=mechanical
+  # Short and very bright. It gives a snare a crack and a ring and is gone
+  # before the next one.
+  model          #1
+  size           0.3
+  damp           0.05
+  tone           15000 Hz
+  predelay       4 ms
+  mix            0.3
+
+patch "Long Plate" family=mechanical
+  # The plate let ring. Smooth enough to sit behind a pad without turning
+  # into a chord of its own.
+  model          #1
+  size           0.8
+  damp           0.35
+  tone           8000 Hz
+  predelay       25 ms
+  mix            0.3
+
+patch "Dark Plate" family=mechanical
+  # Most of the top taken out in the tank, so the tail is warm and the source
+  # keeps its edge.
+  model          #1
+  size           0.6
+  damp           0.75
+  tone           4500 Hz
+  predelay       20 ms
+  mix            0.3
+
+patch Spring family=mechanical
+  # Three springs in a tank: every hit comes back as a run of chirping
+  # echoes, and a sharp one shakes the tank.
+  model          #3
+  size           0.45
+  damp           0.35
+  drip           0.5
+  knock          0.3
+  predelay       0 ms
+  mix            0.3
+
+patch "Short Spring" family=mechanical
+  # A small tank on a guitar amp: quick to die, a little drip.
+  model          #3
+  size           0.15
+  damp           0.4
+  drip           0.35
+  knock          0.2
+  predelay       0 ms
+  mix            0.25
+
+patch Drip family=mechanical
+  # The chirp at its longest: each echo pours down from the top.
+  model          #3
+  size           0.55
+  damp           0.2
+  drip           1.0
+  knock          0.2
+  predelay       0 ms
+  mix            0.4
+
+patch Knocked family=mechanical
+  # Every drum hit kicks the tank: a thump and a crash of springs.
+  model          #3
+  size           0.6
+  damp           0.3
+  drip           0.7
+  knock          1.0
+  predelay       0 ms
+  mix            0.35
+
+patch "Dark Spring" family=mechanical
+  # The springs through a dull tank, for under a vocal.
+  model          #3
+  size           0.5
+  damp           0.8
+  tone           3000 Hz
+  drip           0.45
+  knock          0.1
+  predelay       5 ms
+  mix            0.3
+
+patch "Living Room" family=space
+  # A small furnished room with a wooden floor.
+  model          #5
+  width          4.5 m
+  depth          6 m
+  height         2.6 m
+  position       0.6
+  material       #2
+  predelay       0 ms
+  mix            0.25
+
+patch Bathroom family=space
+  # Small and tiled: bright, and the walls come back at once.
+  model          #5
+  width          2.5 m
+  depth          3 m
+  height         2.5 m
+  position       0.5
+  material       #0
+  predelay       0 ms
+  mix            0.3
+
+patch Stairwell family=space
+  # Narrow and very tall, in plaster.
+  model          #5
+  width          3 m
+  depth          5 m
+  height         15 m
+  position       0.4
+  material       #1
+  predelay       0 ms
+  mix            0.3
+
+patch Studio family=space
+  # A treated room: curtains on the walls, a short soft tail.
+  model          #5
+  width          8 m
+  depth          11 m
+  height         4 m
+  position       0.4
+  material       #3
+  predelay       0 ms
+  mix            0.3
+
+patch "Wood Hall" family=space
+  # A big hall panelled in wood, from the middle of the seats.
+  model          #5
+  width          24 m
+  depth          40 m
+  height         13 m
+  position       0.55
+  material       #2
+  predelay       5 ms
+  mix            0.35
+
+patch "Car Park" family=space
+  # Huge, low and hard: a long flat concrete ceiling, close overhead.
+  model          #5
+  width          30 m
+  depth          50 m
+  height         3 m
+  position       0.3
+  material       #0
+  predelay       0 ms
+  mix            0.35
+
+patch "Stone Church" family=space
+  # Long, high and bare, heard from near the back.
+  model          #5
+  width          15 m
+  depth          45 m
+  height         15 m
+  position       0.85
+  material       #1
+  predelay       10 ms
+  mix            0.4
+
+patch Flutter family=space
+  # Two walls two metres apart: every hit rings back as a buzz.
+  model          #11
+  walls          2 m
+  size           0.4
+  damp           0.3
+  predelay       0 ms
+  mix            0.3
+
+patch Corridor family=space
+  # Walls a metre apart and hard: a high, ringing flutter.
+  model          #11
+  walls          1 m
+  size           0.6
+  damp           0.15
+  predelay       0 ms
+  mix            0.3
+
+patch Tunnel family=space
+  # Walls far apart: the echoes come back slow enough to count.
+  model          #11
+  walls          12 m
+  size           0.6
+  damp           0.5
+  predelay       0 ms
+  mix            0.3
+
+patch "Pipe Ring" family=space
+  # A quarter of a metre: the flutter becomes a note.
+  model          #11
+  walls          0.3 m
+  size           0.7
+  damp           0.2
+  predelay       0 ms
+  mix            0.25
+
+patch "Soft Walls" family=space
+  # Curtains on the walls: a short, dull flutter.
+  model          #11
+  walls          3 m
+  size           0.3
+  damp           0.8
+  predelay       0 ms
+  mix            0.3
+
+patch "Ducked Plate" family=tail
+  # A long plate that keeps out of the way: it drops while the track plays
+  # and swells up in the gaps.
+  model          #1
+  size           0.7
+  damp           0.3
+  tone           9000 Hz
+  predelay       20 ms
+  mix            0.4
+  duck           0.7
+  duckrel        400 ms
+
+patch "Ducked Hall" family=tail
+  # A big hall under a busy part, ducked hard and slow to come back, so it
+  # fills only the pauses.
+  model          #2
+  size           0.8
+  damp           0.45
+  predelay       30 ms
+  mix            0.45
+  duck           0.9
+  duckrel        900 ms
+
+patch "Back Row" family=tail
+  # The room heard from the back: the direct sound smaller and further off,
+  # the room louder, later and duller.
+  size           0.5
+  damp           0.4
+  predelay       10 ms
+  mix            0.3
+  distance       0.7
+  gain           3.8 dB
+
+patch "Far Hall" family=tail
+  # The hall from far away, with the reflections late and quiet.
+  model          #2
+  size           0.7
+  damp           0.45
+  predelay       20 ms
+  mix            0.3
+  distance       0.85
+  gain           4.3 dB
+
+patch Bloom family=tail
+  # A hall that starts thin and fills in over the first couple of seconds of
+  # a held note.
+  model          #2
+  size           0.75
+  damp           0.4
+  predelay       20 ms
+  mix            0.4
+  bloom          0.8
+
+patch "Slow Plate" family=tail
+  # A plate that grows: each phrase comes in nearly dry and its tail swells
+  # up behind it.
+  model          #1
+  size           0.65
+  damp           0.25
+  tone           10000 Hz
+  predelay       15 ms
+  mix            0.4
+  bloom          1.0
+
+patch Gated family=tail
   # The tail cut off flat instead of decaying. A big room and a short gate is
   # the sound of the eighties, and it works because the cut is what you hear
   # rather than the room.
@@ -82,7 +439,7 @@ patch Gated family=gate
   predelay       8 ms
   mix            0.55
 
-patch "Snare Gate" family=gate
+patch "Snare Gate" family=tail
   # Tighter and brighter, set where it does the most for a snare: enough room
   # to thicken the hit and not enough to blur the next one.
   size           0.6
@@ -92,7 +449,271 @@ patch "Snare Gate" family=gate
   predelay       5 ms
   mix            0.6
 
-patch Freeze family=hold
+patch "Gated Plate" family=tail
+  # The gate on a plate: a dense bright burst behind each hit, cut short.
+  model          #1
+  size           0.75
+  damp           0.1
+  tone           12000 Hz
+  gate           0.12
+  predelay       5 ms
+  mix            0.5
+
+patch Tube family=body
+  # A pipe closed at one end: every hit comes out as a hollow note an octave
+  # under middle C, in odd harmonics.
+  model          #6
+  pitch          -12 st
+  size           0.5
+  damp           0.4
+  predelay       0 ms
+  mix            0.3
+
+patch Drainpipe family=body
+  # Long and dark, two octaves down. Kicks boom in it.
+  model          #6
+  pitch          -24 st
+  size           0.6
+  damp           0.6
+  predelay       0 ms
+  mix            0.35
+
+patch "Open Pipe" family=body
+  # Open at both ends: every harmonic, so it sounds more like a flute than a
+  # bottle.
+  model          #6
+  pitch          -5 st
+  open           1.0
+  size           0.55
+  damp           0.3
+  predelay       0 ms
+  mix            0.3
+
+patch Bark family=body
+  # Bright and pushed hard, so loud hits growl.
+  model          #6
+  pitch          -17 st
+  size           0.4
+  damp           0.15
+  predelay       0 ms
+  mix            0.45
+
+patch "Following Tube" family=body
+  # Tuned to the track's last note, an octave down, half open.
+  model          #6
+  follow         #1
+  pitch          -12 st
+  open           0.5
+  size           0.55
+  damp           0.4
+  predelay       0 ms
+  mix            0.3
+
+patch String family=body
+  # A string an octave under middle C, picked near the end.
+  model          #7
+  pitch          -12 st
+  size           0.6
+  damp           0.35
+  stiff          0.2
+  pick           0.25
+  predelay       0 ms
+  mix            0.3
+
+patch Wire family=body
+  # Stiff and bright: the overtones go sharp and it rings like a metal wire.
+  model          #7
+  pitch          -5 st
+  size           0.75
+  damp           0.1
+  stiff          1.0
+  pick           0.15
+  predelay       0 ms
+  mix            0.3
+
+patch "Middle Pluck" family=body
+  # Picked in the middle, so the even harmonics are gone: round and hollow.
+  model          #7
+  pitch          -12 st
+  size           0.55
+  damp           0.5
+  stiff          0.1
+  pick           1.0
+  predelay       0 ms
+  mix            0.3
+
+patch "Low Wire" family=body
+  # A long metal wire well down, struck by every kick.
+  model          #7
+  pitch          -29 st
+  size           0.7
+  damp           0.3
+  stiff          0.7
+  pick           0.4
+  predelay       0 ms
+  mix            0.35
+
+patch Sympathy family=body
+  # Tuned to the track's last note and left to ring under it.
+  model          #7
+  follow         #1
+  pitch          0 st
+  size           0.8
+  damp           0.4
+  stiff          0.15
+  pick           0.3
+  predelay       0 ms
+  mix            0.25
+
+patch Drumhead family=body
+  # A floor tom the track hits: every kick and snare comes back as a low,
+  # out of tune ring.
+  model          #8
+  size           0.5
+  tension        0.5
+  damp           0.4
+  predelay       0 ms
+  mix            0.3
+
+patch "Snare Drum" family=body
+  # A tight head with wires under it. Loud hits set the snares off and the
+  # quiet ones only ring.
+  model          #8
+  size           0.3
+  tension        0.75
+  snares         0.7
+  damp           0.35
+  predelay       0 ms
+  mix            0.3
+
+patch Timpani family=body
+  # A big loose head with a long ring, for kicks that roll on.
+  model          #8
+  size           0.85
+  tension        0.35
+  damp           0.3
+  predelay       0 ms
+  mix            0.35
+
+patch "Rattle Box" family=body
+  # A small, slack head with loose wires: everything buzzes.
+  model          #8
+  size           0.2
+  tension        0.3
+  snares         1.0
+  damp           0.5
+  predelay       0 ms
+  mix            0.25
+
+patch "Talking Drum" family=body
+  # Wobble pulls the head's pitch up and down as it rings.
+  model          #8
+  size           0.55
+  tension        0.6
+  wobble         0.8
+  damp           0.3
+  predelay       0 ms
+  mix            0.3
+
+patch "Thunder Sheet" family=body
+  # A big metal sheet: soft hits hum, hard ones bloom into a crash.
+  model          #9
+  size           0.6
+  metal          0.6
+  damp           0.4
+  predelay       0 ms
+  mix            0.3
+
+patch Gong family=body
+  # Heavy and slow to spill, so it mostly hums and only roars when you lean
+  # on it.
+  model          #9
+  size           0.8
+  metal          0.2
+  damp           0.3
+  predelay       0 ms
+  mix            0.3
+
+patch "Tin Sheet" family=body
+  # Small and thin: every hit splashes straight into a hiss.
+  model          #9
+  size           0.25
+  metal          1.0
+  damp           0.5
+  predelay       0 ms
+  mix            0.25
+
+patch "Distant Storm" family=body
+  # The biggest sheet a long way off, rumbling behind the track.
+  model          #9
+  size           1.0
+  metal          0.7
+  damp           0.55
+  distance       0.6
+  predelay       0 ms
+  mix            0.3
+  gain           2.7 dB
+
+patch "Dark Gong" family=body
+  # A gong with the top rolled off: a low bloom with no hiss.
+  model          #9
+  size           0.7
+  metal          0.4
+  damp           0.7
+  tone           3000 Hz
+  predelay       0 ms
+  mix            0.35
+
+patch Howl family=drone
+  # A room with a microphone left open: the modes near the speaker's peak
+  # ring a long time behind everything.
+  model          #10
+  howl           0.5
+  size           0.5
+  damp           0.4
+  predelay       0 ms
+  mix            0.25
+
+patch Feedback family=drone
+  # Over the edge: anything played turns into drones that hold.
+  model          #10
+  howl           0.9
+  size           0.5
+  damp           0.4
+  predelay       0 ms
+  mix            0.2
+
+patch "Small Room Squeal" family=drone
+  # A small room right on the edge, so the drones sit high and ring for
+  # seconds.
+  model          #10
+  howl           0.74
+  size           0.15
+  damp           0.3
+  predelay       0 ms
+  mix            0.2
+
+patch "Big Room Drone" family=drone
+  # A big room past the edge: low drones that build and hold.
+  model          #10
+  howl           0.85
+  size           0.9
+  damp           0.5
+  predelay       0 ms
+  mix            0.2
+
+patch "Ducked Howl" family=drone
+  # Drones that only sing in the gaps.
+  model          #10
+  howl           0.9
+  size           0.6
+  damp           0.4
+  duck           1.0
+  duckrel        600 ms
+  predelay       0 ms
+  mix            0.25
+
+patch Freeze family=drone
   # Held. The tail stops decaying and stays exactly where it was until you let
   # go - not a long reverb, an infinite one, and the difference is that this
   # one does not get quieter.
@@ -102,7 +723,7 @@ patch Freeze family=hold
   predelay       20 ms
   mix            0.6
 
-patch Shimmer family=shimmer
+patch Shimmer family=drone
   # The tail fed back an octave up, so each pass climbs. Not a bright reverb -
   # a rising one: hold a chord and the room builds a second chord above it out
   # of what you already played.
@@ -112,7 +733,7 @@ patch Shimmer family=shimmer
   predelay       30 ms
   mix            0.45
 
-patch Ascend family=shimmer
+patch Ascend family=drone
   # The same idea taken as far as it goes, in a small bright room where the
   # ladder climbs fastest. Every pass is an octave, and the damping is what
   # decides how many rungs there are before it runs out.
@@ -123,7 +744,7 @@ patch Ascend family=shimmer
   predelay       15 ms
   mix            0.55
 
-patch "Held Sky" family=shimmer
+patch "Held Sky" family=drone
   # Shimmer under a long soft room, with the top rolled off so the climb
   # thickens rather than sharpens. The one to put a pad through.
   size           0.95
@@ -133,6 +754,53 @@ patch "Held Sky" family=shimmer
   wobble         0.3
   predelay       50 ms
   mix            0.5
+
+patch "Early Digital" family=lofi
+  # A cheap digital reverb from the first boxes: short lines run at a low
+  # rate, grainy and a bit metallic.
+  model          #4
+  size           0.5
+  damp           0.35
+  rate           16000 Hz
+  predelay       10 ms
+  mix            0.3
+
+patch "Low Rate" family=lofi
+  # The tank at its slowest: dull, with the aliases hanging over the top.
+  model          #4
+  size           0.6
+  damp           0.3
+  rate           8000 Hz
+  predelay       15 ms
+  mix            0.35
+
+patch "Metal Box" family=lofi
+  # Small and bright, so the short lines ring like a can.
+  model          #4
+  size           0.2
+  damp           0.05
+  rate           24000 Hz
+  predelay       5 ms
+  mix            0.3
+
+patch "Digital Hall" family=lofi
+  # As big as the box goes, at its top rate.
+  model          #4
+  size           0.85
+  damp           0.4
+  rate           32000 Hz
+  predelay       30 ms
+  mix            0.35
+
+patch "Grain Hall" family=lofi
+  # A long tail at a low rate, coarse all the way down.
+  model          #4
+  size           0.9
+  damp           0.5
+  rate           11000 Hz
+  bits           #9
+  predelay       25 ms
+  mix            0.4
 
 patch "Eight Bit" family=lofi
   # A room made of cheap memory. The dry signal is untouched and the tail is
@@ -186,11 +854,3 @@ patch Seasick family=lofi
   wobble         1.0
   predelay       25 ms
   mix            0.4
-
-patch Spring family=lofi
-  # A small, boingy spring tank.
-  size           0.3
-  damp           0.5
-  tone           5000 Hz
-  wobble         0.5
-  mix            0.25

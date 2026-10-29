@@ -42,9 +42,15 @@ void Engine::runInputChain() {
         R[i] = inputScratch[i * 2 + 1];
     }
     bool stereo = true;
+    // Last block's transport, as the clock range is.
+    ModTransport inputMod = modTransport;
+    inputMod.started = inputModStart;
+    inputModStart = false;
     for (int32_t s = 0; s < kInputSlots; ++s) {
         if (inputFx[s] == nullptr) continue;
-        inputFx[s]->onBlock(clock.blockStart(), clock.blockEnd(), clock.bpm());
+        inputFx[s]->setTransport(inputMod);
+        if (inputFx[s]->modActive()) inputFx[s]->setModKey(modKeyFor(inputFx[s]->modKeyTrack(), true), 240u + s, inputMod);
+        inputFx[s]->block(clock.blockStart(), clock.blockEnd(), clock.bpm());
         stereo = inputFx[s]->run(L, R, kBlockFrames, stereo);
     }
     for (int32_t i = 0; i < kBlockFrames; ++i) {
@@ -118,18 +124,22 @@ void Engine::renderBlock(const float *in, float *out) {
         for (auto &n : mpeChannelNote) n = -1;
         for (int32_t r = 0; r < kRackCount; ++r) {
             racks[r].allNotesOff();
+            // The taps too, so a keyed mod or a sidechain on the first block
+            // after hears silence rather than what played before.
+            std::memset(racks[r].keyBuf, 0, sizeof(racks[r].keyBuf));
+            std::memset(racks[r].keyPrev, 0, sizeof(racks[r].keyPrev));
             // Parameters jump rather than glide, so the start of a render doesn't
             // depend on what was playing before it.
             if (Machine *m = racks[r].currentMachine()) panicMachine(*m);
             racks[r].jumpChannel();
             for (int32_t s = 0; s < kEffectSlots; ++s) {
-                if (Effect *e = racks[r].currentEffect(s)) { e->reset(); e->params().jumpAll(); }
+                if (Effect *e = racks[r].currentEffect(s)) { e->reset(); e->params().jumpAll(); e->resetMod(); }
             }
             // The input chain too, once. A delay on the input would otherwise
             // keep repeating after a panic.
             if (r == 0) {
                 for (Effect *e : inputFx) {
-                    if (e != nullptr) { e->reset(); e->params().jumpAll(); }
+                    if (e != nullptr) { e->reset(); e->params().jumpAll(); e->resetMod(); }
                 }
             }
             // The modifiers too. An arpeggiator keeps a step, so without this
@@ -228,7 +238,12 @@ void Engine::renderBlock(const float *in, float *out) {
         scheduler.start(0);
     }
 
+    bool startedInLauncher = false;
+    modTransport.started = false;
     if (startPending) {
+        startedInLauncher = transport.launcherMode();
+        modTransport.started = true;
+        inputModStart = true;
         if (transport.takeContinued()) {
             scheduler.resume();
         } else {
@@ -306,6 +321,23 @@ void Engine::renderBlock(const float *in, float *out) {
         }
     } else if (!counting) {
         scheduler.applyIdleTempo();
+    }
+    // The inserts' mods follow the song's position, from where the scheduler
+    // ended this block, so a loop or a scene jump inside it lands on the
+    // block's end. Stopped, counting in or waiting on Link's downbeat, they run from where play will
+    // start: the start scene's tick, less the ticks the count-in has left so
+    // its last click lands on the song's phase. Clip mode has none, so it
+    // keeps the one it had: 0 from a start, or the song's where it took over.
+    if (!scheduler.launcherActive() && !transport.launcherMode()) {
+        if (playing && !counting && !linkWaiting) {
+            modTransport.songOffset = scheduler.songTickOffset();
+        } else {
+            const int64_t from = scheduler.songTickAtStartOf(transport.requestedStartScene());
+            const double left = counting && countInPerTick > 0.0 ? countInFrames / countInPerTick : 0.0;
+            modTransport.songOffset = counting ? from - std::llround(clock.phase() + left) : from;
+        }
+    } else if (startedInLauncher) {
+        modTransport.songOffset = 0;
     }
 
     // 24 pulses per quarter note, which at 240 PPQN is exactly every tenth
@@ -455,14 +487,26 @@ void Engine::renderBlock(const float *in, float *out) {
     // effect behaves the same on a track or a send. Every rack has rendered
     // by now, so the sends' sidechain keys are always this block's.
     for (int32_t s = 0; s < kSendSlots; ++s) {
-        if (Effect *e = master.send(s)) e->setKey(keyFor(e->sidechainRack(), -1));
+        if (Effect *e = master.send(s)) {
+            e->setKey(keyFor(e->sidechainRack(), -1));
+            e->setTransport(modTransport);
+            if (e->modActive()) e->setModKey(modKeyFor(e->modKeyTrack()), 210u + s, modTransport);
+        }
     }
     for (int32_t s = 0; s < kMasterInsertSlots; ++s) {
-        if (Effect *e = master.insert(s)) e->setKey(keyFor(e->sidechainRack(), -1));
+        if (Effect *e = master.insert(s)) {
+            e->setKey(keyFor(e->sidechainRack(), -1));
+            e->setTransport(modTransport);
+            if (e->modActive()) e->setModKey(modKeyFor(e->modKeyTrack()), 200u + s, modTransport);
+        }
     }
     for (int32_t g = 0; g < kGroupSlots; ++g) {
         for (int32_t s = 0; s < kGroupInsertSlots; ++s) {
-            if (Effect *e = master.groupInsert(g, s)) e->setKey(keyFor(e->sidechainRack(), -1));
+            if (Effect *e = master.groupInsert(g, s)) {
+                e->setKey(keyFor(e->sidechainRack(), -1));
+                e->setTransport(modTransport);
+                if (e->modActive()) e->setModKey(modKeyFor(e->modKeyTrack()), 220u + g * kGroupInsertSlots + s, modTransport);
+            }
         }
     }
     // Where this block began to a fraction of a tick: the tick at the
@@ -595,7 +639,11 @@ void Engine::renderRack(int32_t r, int32_t *usOut, bool *frozenOut) {
     // Give each detector its key for this block (see keyFor), or silence for
     // an empty rack.
     for (int32_t s = 0; s < kEffectSlots; ++s) {
-        if (Effect *e = rack.currentEffect(s)) e->setKey(keyFor(e->sidechainRack(), r));
+        if (Effect *e = rack.currentEffect(s)) {
+            e->setKey(keyFor(e->sidechainRack(), r));
+            e->setTransport(modTransport);
+            if (e->modActive()) e->setModKey(modKeyFor(e->modKeyTrack()), 1u + r * kEffectSlots + s, modTransport);
+        }
     }
     // A machine can listen too: Diction mouthing another track's sound.
     if (Machine *m = rack.currentMachine()) m->setKey(keyFor(m->sidechainRack(), r));
@@ -626,6 +674,15 @@ const float *Engine::keyFor(int32_t source, int32_t self) const {
     if (source < 0 || source >= kRackCount || source == self) return nullptr; // its own input
     if (!racks[source].isActive()) return kSilence;
     return self < 0 || renderPlace[source] < renderPlace[self] ? racks[source].keyBuf : racks[source].keyPrev;
+}
+
+const float *Engine::modKeyFor(int32_t source, bool beforeRacks) const {
+    static const float kSilence[kBlockFrames] = {};
+    if (source < 0 || source >= kRackCount || !racks[source].isActive()) return kSilence;
+    // Always last block's. The input chain runs before the racks, when keyBuf
+    // still holds it; after that it's keyPrev, copied before any rack renders,
+    // so a rack on any core can read it while the source renders this block's.
+    return beforeRacks ? racks[source].keyBuf : racks[source].keyPrev;
 }
 
 void Engine::sidechainOrder(int32_t *order) const {
@@ -1175,26 +1232,22 @@ void Engine::drainParams() {
             const int32_t k = static_cast<int32_t>(p.unit) - static_cast<int32_t>(Unit::Group1Fx1);
             Effect *fx = master.groupInsert(k / kGroupInsertSlots, k % kGroupInsertSlots);
             if (fx != nullptr) {
-                if (p.index == kEffectBypassIndex) fx->setBypass(p.value >= 0.5f);
-                else fx->params().set(p.index, p.value);
+                fx->setParamAt(p.index, p.value);
             }
         } else if (p.unit == Unit::MasterFx1 || p.unit == Unit::MasterFx2) {
             Effect *fx = master.insert(p.unit == Unit::MasterFx1 ? 0 : 1);
             if (fx != nullptr) {
-                if (p.index == kEffectBypassIndex) fx->setBypass(p.value >= 0.5f);
-                else fx->params().set(p.index, p.value);
+                fx->setParamAt(p.index, p.value);
             }
         } else if (p.unit == Unit::Send1 || p.unit == Unit::Send2) {
             Effect *fx = master.send(p.unit == Unit::Send1 ? 0 : 1);
             if (fx != nullptr) {
-                if (p.index == kEffectBypassIndex) fx->setBypass(p.value >= 0.5f);
-                else fx->params().set(p.index, p.value);
+                fx->setParamAt(p.index, p.value);
             }
         } else if (p.unit == Unit::Input1 || p.unit == Unit::Input2) {
             Effect *fx = inputFx[p.unit == Unit::Input1 ? 0 : 1];
             if (fx != nullptr) {
-                if (p.index == kEffectBypassIndex) fx->setBypass(p.value >= 0.5f);
-                else fx->params().set(p.index, p.value);
+                fx->setParamAt(p.index, p.value);
             }
         } else if (p.rack >= 0 && p.rack < kRackCount) {
             if (p.quantise > 0 && playing) {
@@ -1257,7 +1310,9 @@ Effect *Engine::effectAt(int32_t rack, Unit unit) {
     switch (unit) {
     case Unit::Effect1:
     case Unit::Effect2:
-        return rack >= 0 && rack < kRackCount ? racks[rack].currentEffect(unit == Unit::Effect1 ? 0 : 1) : nullptr;
+    case Unit::Effect3:
+    case Unit::Effect4:
+        return rack >= 0 && rack < kRackCount ? racks[rack].currentEffect(trackInsertSlot(unit)) : nullptr;
     case Unit::Send1:
     case Unit::Send2:
         return master.send(unit == Unit::Send1 ? 0 : 1);

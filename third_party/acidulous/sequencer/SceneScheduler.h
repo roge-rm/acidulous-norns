@@ -422,6 +422,23 @@ class SceneScheduler {
     }
     int32_t currentRepeat() const { return repeatIdx; }
     int32_t currentScene() const { return sceneIdx; }
+    /** The song tick a start(requestedScene) would begin at. */
+    int64_t songTickAtStartOf(int32_t requestedScene) const {
+        if (snap == nullptr || snap->scenes.empty()) return 0;
+        const auto count = static_cast<int32_t>(snap->scenes.size());
+        const int32_t idx = std::clamp(requestedScene == Transport::kCurrentScene ? sceneIdx : requestedScene, 0, count - 1);
+        return snap->songTickAt(idx, 0, 0);
+    }
+    /**
+     * What to add to a clock tick to get the song's position, from where the
+     * arranger is now. An insert's mod follows it, so a scene played or
+     * frozen on its own moves as it does in the song. After process(), it
+     * holds for the block just run, a loop inside it included.
+     */
+    int64_t songTickOffset() const {
+        if (snap == nullptr || snap->scenes.empty()) return 0;
+        return snap->songTickAt(sceneIdx, repeatIdx, 0) - iterationOrigin;
+    }
 
     /** True while clip mode is driving playback. */
     bool launcherActive() const { return transport != nullptr && transport->launcherMode(); }

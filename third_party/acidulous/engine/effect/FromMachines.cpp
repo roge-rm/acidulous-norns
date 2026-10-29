@@ -230,7 +230,8 @@ bool Resonator::process(float *L, float *R, int32_t frames, bool stereoIn) {
     int root = low - ((low - key) % 12 + 12) % 12;
     if (root < low) root += 12;
     const float decay = p.get(Decay), tone = 0.05f + 0.95f * p.get(Tone), metal = p.get(Metal);
-    for (int s = 0; s < count; ++s) {
+    // Once a block: the strings' knobs hold still across its slices (see glides).
+    for (int s = 0; s < (subOffset_ == 0 ? count : 0); ++s) {
         const int degree = s % scale.count, octave = s / scale.count;
         const float note = static_cast<float>(root + 12 * octave + scale.intervals[degree]);
         const float hz = 440.0f * std::pow(2.0f, (note - 69.0f) / 12.0f);

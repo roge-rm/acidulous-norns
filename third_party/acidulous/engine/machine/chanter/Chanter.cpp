@@ -29,6 +29,12 @@ constexpr float kFingerGlide = 0.003f;
 constexpr float kCoupPush = 0.8f, kCoupFalls = 0.06f;
 /** How long the strings ring once the wheel stops bowing them, seconds. */
 constexpr float kStringT60 = 2.5f, kStoppedT60 = 0.15f;
+/**
+ * The two melody strings, tuned 3 cents apart: the second plays 12 dB under
+ * the first so they beat about 4 dB deep. Both are lifted so the pair holds
+ * the same average power as two at full: sqrt(2 / (1 + 0.25^2)).
+ */
+constexpr float kMelodyFirst = 1.3719887f, kMelodySecond = 0.25f * kMelodyFirst;
 /** The nudge that starts a string on the wheel. */
 constexpr float kKick = 0.6f;
 /** How hard the wheel pushes the strings. */
@@ -736,7 +742,8 @@ bool Chanter::render(float *L, float *R, int32_t frames) {
         }
         for (int32_t i = 0; i < frames; ++i) {
             const float melodySpeed = playing && wheelOn ? bowSpeed + 1e-3f : 0.0f;
-            float y = (bow(melody[0], melodySpeed, grip) + bow(melody[1], melodySpeed, grip)) * level;
+            float y = (kMelodyFirst * bow(melody[0], melodySpeed, grip) +
+                       kMelodySecond * bow(melody[1], melodySpeed, grip)) * level;
             const float droneSpeed = wheelOn ? bowSpeed + 1e-3f : 0.0f;
             float drone = 0.0f;
             for (int d = 0; d < k.drones; ++d) drone += bow(gurdyDrones[d], droneSpeed, grip);

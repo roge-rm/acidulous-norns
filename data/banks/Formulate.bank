@@ -425,7 +425,7 @@ patch "Echo Lead" note=64 range=48..88 family=lead
     time         #3
     feedback     0.4
     tone         4000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.3
   send reverb    0.1
 
@@ -2410,7 +2410,7 @@ patch "Echo Arp" note=60 range=45..84 family=arp
     time         #3
     feedback     0.45
     tone         3500 Hz
-    pingpong     #1
+    mode         #1
     mix          0.3
   send reverb    0.15
 
@@ -4252,7 +4252,7 @@ patch "Three on Four" note=60 range=45..84 family=hybrid
     time         #3
     feedback     0.3
     tone         4000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
 
 # A square trilling a fifth, ringing a saw that climbs the first five

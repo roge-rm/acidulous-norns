@@ -47,6 +47,13 @@ void Spectral::prepare(int32_t sampleRate) {
     im.assign(n, 0.0f);
     lean.assign(bins, 1.0f);
     leanDb = 1000.0f;
+    leanDirty = false;
+    octaves.resize(bins);
+    const float binHz = sr / static_cast<float>(size);
+    for (size_t k = 0; k < bins; ++k) {
+        const float hz = std::max(50.0f, static_cast<float>(k) * binHz);
+        octaves[k] = std::log2(hz / 1000.0f);
+    }
     for (int c = 0; c < 2; ++c) {
         in[c].assign(n, 0.0f);
         out[c].assign(n, 0.0f);
@@ -70,6 +77,13 @@ void Spectral::reset() {
 }
 
 void Spectral::frame(int c) {
+    if (leanDirty) {
+        // Tilt turns about 1 kHz, a few octaves either way. It lifts by no
+        // more than 6 dB, so leaning dark doesn't boom and bright doesn't
+        // hiss. Built here since only a frame reads it.
+        leanDirty = false;
+        for (size_t k = 0; k < lean.size(); ++k) lean[k] = std::pow(10.0f, std::min(6.0f, leanDb * octaves[k]) / 20.0f);
+    }
     const auto &p = params_;
     const int32_t half = size / 2;
     for (int32_t i = 0; i < size; ++i) {
@@ -143,15 +157,8 @@ bool Spectral::process(float *L, float *R, int32_t frames, bool stereoIn) {
     const float mix = p.get(Mix);
     const float tilt = p.get(Tilt);
     if (std::fabs(tilt - leanDb) > 0.01f) {
-        // Tilt turns about 1 kHz, a few octaves either way. It lifts by no
-        // more than 6 dB, so leaning dark doesn't boom and bright doesn't
-        // hiss.
         leanDb = tilt;
-        const float binHz = sr / static_cast<float>(size);
-        for (size_t k = 0; k < lean.size(); ++k) {
-            const float hz = std::max(50.0f, static_cast<float>(k) * binHz);
-            lean[k] = std::pow(10.0f, std::min(6.0f, tilt * std::log2(hz / 1000.0f)) / 20.0f);
-        }
+        leanDirty = true;
     }
     stereo = stereoIn;
     const bool wantFreeze = p.get(Freeze) > 0.5f;

@@ -85,7 +85,7 @@ bool Acid::process(float *L, float *R, int32_t frames, bool stereoIn) {
     const float driveGain = 1.0f + p.get(Drive) * 7.0f;
     const float driveComp = kNominal / dsp::fastTanh(kNominal * driveGain);
     const float fastCoef = dsp::onePoleCoeff(0.002f, sr), slowCoef = dsp::onePoleCoeff(0.08f, sr);
-    const double ticksPerSample = frames > 0 ? static_cast<double>(blockEnd - blockStart) / frames : 0.0;
+    const double ticksPerSample = frames > 0 ? static_cast<double>(blockEnd - blockStart) / blockFramesOf(frames) : 0.0;
 
     for (int32_t i = 0; i < frames; ++i) {
         const float inL = L[i], inR = stereoIn ? R[i] : L[i];
@@ -103,7 +103,7 @@ bool Acid::process(float *L, float *R, int32_t frames, bool stereoIn) {
                 armed = true;
             }
         } else {
-            const auto tick = blockStart + static_cast<int64_t>(i * ticksPerSample);
+            const auto tick = blockStart + static_cast<int64_t>((i + subOffset_) * ticksPerSample);
             const int64_t step = tick / kSixteenth;
             if (step != lastStep) {
                 lastStep = step;

@@ -99,9 +99,10 @@
 #
 # The tongue only acts on a reed: a jet patch's chiff comes from `keys` and
 # its breath. Flutter acts on both, tapping a reed shut or breaking up the
-# air jet (Flutter Flute). On a jet `register` works as on a reed, the same
-# note on a higher partial of a longer tube, except in the bottom octave,
-# where the tube would be longer than the instrument. Baritone Sax (0.5) and Sax Section (0.48)
+# air jet (Flutter Flute). On a jet `register` puts the same note on a higher
+# partial of a longer tube on every note, the bottom octave too, where the
+# tube is longer than the instrument; a reed drops back to a lower register
+# there. tools/timber_test.sh checks the jets' tuning on it. Baritone Sax (0.5) and Sax Section (0.48)
 # have the embouchure that keeps one low note from reading 40-odd cents
 # flat. On Alto Sax that note is 51, and a tongue over 0.7 lets the attack
 # ring a flat second mode louder than the note for 0.4 s.

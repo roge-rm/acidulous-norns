@@ -54,8 +54,8 @@ bool Mouth::process(float *L, float *R, int32_t frames, bool stereoIn) {
     const float vowel = p.get(Vowel), size = p.get(Size), nasal = p.get(Nasal), depth = p.get(Depth), mix = p.get(Mix);
     const int move = std::clamp(static_cast<int>(p.get(Move) + 0.5f), 0, 2);
     const float beats = dsp::Lfo::beatsOf(static_cast<int>(p.get(Rate) + 0.5f));
-    float phase = dsp::Lfo::phaseAt(tick, beats);
     const float inc = dsp::Lfo::phaseInc(beats, bpm, sr);
+    float phase = slicePhase(dsp::Lfo::phaseAt(tick, beats), inc);
     const float followCoef = dsp::onePoleCoeff(0.03f, sr);
 
     for (int32_t i = 0; i < frames; ++i) {

@@ -359,10 +359,37 @@ void Replay::noteTables(const std::string &line) {
 }
 
 std::string Replay::upgradeLine(const std::string &line) {
+    if (version >= 4 && line.find("\"pingpong\"") == std::string::npos) return line;
     const auto w = words(line);
     if (w.size() < 2) return line;
     auto text = [&](size_t k) { return line.substr(w[k].first, w[k].second - w[k].first); };
     const std::string call = text(0);
+    // The Delay's pingpong switch became `mode`, with on as ping-pong
+    // (model/DelayMigration.kt). Lines from any version can hold it, and
+    // only the Delay had a param by that name.
+    auto delayMode = [](float v) { return v >= 0.5f ? 1.0f / 3.0f : 0.0f; };
+    if (call == "SetParam" && w.size() >= 5 && unquote(text(2)) != "machine" && unquote(text(3)) == "pingpong") {
+        const float v = std::strtof(text(4).c_str(), nullptr);
+        return line.substr(0, w[3].first) + "\"mode\" " + floatText(delayMode(v)) + line.substr(w[4].second);
+    }
+    if (call == "SnapshotSetLane" && w.size() >= 9 && unquote(text(5)) != "machine" && unquote(text(6)) == "pingpong") {
+        std::string out = line.substr(0, w[6].first) + "\"mode\"" + line.substr(w[6].second, w[8].second - w[6].second);
+        // Points are pairs from word 9 on; every second one is a value, and -1 means the knob's own value.
+        size_t last = w[8].second;
+        for (size_t k = 9; k < w.size(); ++k) {
+            std::string word = text(k);
+            const bool closes = !word.empty() && word.back() == ']';
+            if (closes) word.pop_back();
+            if ((k - 9) % 2 == 1) {
+                const float v = std::strtof(word.c_str(), nullptr);
+                if (v != -1.0f) word = floatText(delayMode(v));
+            }
+            out += line.substr(last, w[k].first - last) + word + (closes ? "]" : "");
+            last = w[k].second;
+        }
+        return out + line.substr(last);
+    }
+    if (version >= 4) return line;
     if (call == "MountMachine" && w.size() >= 3) {
         const int rack = std::atoi(text(1).c_str());
         machineOf[rack] = unquote(text(2));
@@ -523,7 +550,7 @@ bool replay(const std::string &text, Replay &r) {
             }
             continue;
         }
-        if (r.version < 4) line = r.upgradeLine(line);
+        line = r.upgradeLine(line);
         // An upgrade can add lines after the one it was given.
         for (size_t part = 0; part <= line.size();) {
             size_t partEnd = line.find('\n', part);

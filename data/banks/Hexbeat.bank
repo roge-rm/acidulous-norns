@@ -3800,7 +3800,7 @@ patch Servo family=electro
   insert Delay
     time         #1
     feedback     0.25
-    pingpong     #1
+    mode         #1
     mix          0.2
 
 patch Falling family=electro
@@ -3946,7 +3946,7 @@ patch Zapper family=electro
   insert Delay
     time         #2
     feedback     0.4
-    pingpong     #1
+    mode         #1
     mix          0.25
 
 patch Bleep family=electro
@@ -5112,5 +5112,5 @@ patch Glitchy family=odd
   insert Delay
     time         #0
     feedback     0.6
-    pingpong     #1
+    mode         #1
     mix          0.3

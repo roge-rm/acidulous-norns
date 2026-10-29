@@ -8,6 +8,8 @@ namespace acidulous::dsp {
 class Biquad {
   public:
     void reset() { x1 = x2 = y1 = y2 = 0.0f; }
+    /** Another section's coefficients, keeping this one's state. */
+    void copyCoefficients(const Biquad &o) { b0 = o.b0; b1 = o.b1; b2 = o.b2; a1 = o.a1; a2 = o.a2; }
     float process(float x) {
         const float y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
         x2 = x1; x1 = x; y2 = y1; y1 = guardDenormal(y);

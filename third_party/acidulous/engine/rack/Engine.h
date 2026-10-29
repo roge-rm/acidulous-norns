@@ -170,6 +170,20 @@ class Engine : public Rack::ModifiedNoteSink {
      */
     const float *keyFor(int32_t source, int32_t self) const;
     /**
+     * What an insert's keyed mod follows: [source]'s tap as last block left
+     * it, never this block's. [beforeRacks] for the input chain, which runs
+     * before the copy into keyPrev.
+     */
+    const float *modKeyFor(int32_t source, bool beforeRacks = false) const;
+    /**
+     * The transport as the inserts' mods see it this block: the clock tick to
+     * song tick offset (SceneScheduler::songTickOffset) and whether play
+     * started this block.
+     */
+    ModTransport modTransport;
+    /** Play started since the input chain last ran, which is before the transport each block. */
+    bool inputModStart = false;
+    /**
      * One rack's share of a block, a job on its own: the events held for it,
      * its keys, its render, and what it cost. Every rack it listens to has
      * rendered by then, except across a loop, where it hears the last block.

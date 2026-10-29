@@ -87,6 +87,8 @@ class Resonator final : public Effect {
     static constexpr int kMaxStrings = 16;
     Resonator() { initParams(3.5f); }
     ACIDULOUS_EFFECT_COMMON(Resonator)
+    /** The strings are tuned and damped with a pow each, so a mod moves those knobs once a block. */
+    bool glides(int32_t index) const override { return index != Low && index != Decay && index != Tone && index != Metal; }
   private:
     machine::Waveguide strings[kMaxStrings];
     float hzOf[kMaxStrings] = {};

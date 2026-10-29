@@ -79,7 +79,7 @@ bool Slicer::process(float *L, float *R, int32_t frames, bool stereoIn) {
     const auto sliceTicks = static_cast<int64_t>(beats * kTicksPerBeat);
     const float gate = p.get(Gate), mix = p.get(Mix);
     const double ratio = std::pow(2.0, p.get(Pitch) / 12.0);
-    const double ticksPerSample = frames > 0 ? static_cast<double>(blockEnd - blockStart) / frames : 0.0;
+    const double ticksPerSample = frames > 0 ? static_cast<double>(blockEnd - blockStart) / blockFramesOf(frames) : 0.0;
     const float fade = std::max(1.0f, kFade * sr);
 
     for (int32_t i = 0; i < frames; ++i) {
@@ -88,7 +88,7 @@ bool Slicer::process(float *L, float *R, int32_t frames, bool stereoIn) {
         ring[1][static_cast<size_t>(write)] = in[1];
 
         // A new slice when the transport crosses a slice line.
-        const auto tick = blockStart + static_cast<int64_t>(i * ticksPerSample);
+        const auto tick = blockStart + static_cast<int64_t>((i + subOffset_) * ticksPerSample);
         const int64_t now = sliceTicks > 0 ? tick / sliceTicks : 0;
         if (now != slice) {
             slice = now;

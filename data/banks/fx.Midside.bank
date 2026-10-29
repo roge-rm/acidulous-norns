@@ -1,0 +1,65 @@
+# Midside - what both sides share and how they differ, each with its own
+# level and tilt.
+#
+# `width` scales the side: 0 is mono, 2 twice as wide. `mid` and `side` set
+# each half's level and `midtilt` and `sidetilt` lean it brighter or darker
+# around 650 Hz. `mono` takes the side out below a frequency, so the bass
+# sits in the middle. The extra is `breathe`: the side drops while the
+# middle is loud and opens up in the gaps.
+#
+# Families: wide, narrow, eq, breathe.
+
+machine fx.Midside
+
+patch Init family=wide
+
+patch Wider family=wide
+  width          1.4
+
+patch Widest family=wide
+  width          1.9
+  mono           120 Hz
+
+patch "Air Sides" family=wide
+  # Wider and brighter at the edges only.
+  width          1.2
+  sidetilt       4 dB
+
+patch Narrow family=narrow
+  width          0.5
+
+patch Mono family=narrow
+  width          0
+
+patch "Mono Bass" family=narrow
+  mono           150 Hz
+
+patch "Centre Focus" family=narrow
+  # The middle up and the edges down, for a lead that has to sit in front.
+  mid            2 dB
+  side           -6 dB
+  gain           -1.6 dB
+patch "Dark Sides" family=eq
+  sidetilt       -4 dB
+
+patch "Bright Centre" family=eq
+  midtilt        3 dB
+  gain           +1.6 dB
+patch "Clean Low End" family=eq
+  width          1.2
+  sidetilt       2 dB
+  mono           120 Hz
+
+patch Breathing family=breathe
+  # Narrow on each hit, wide as it rings.
+  width          1.5
+  breathe        0.7
+
+patch "Open Gaps" family=breathe
+  width          1.8
+  breathe        1
+
+patch "Pulse Wide" family=breathe
+  width          1.3
+  breathe        0.5
+  mono           100 Hz

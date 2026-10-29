@@ -577,7 +577,7 @@ patch "Acid Echo" family=classic  note=36 range=24..55
     time         #3
     feedback     0.35
     tone         3500 Hz
-    pingpong     #1
+    mode         #1
     mix          0.25
   send reverb    0.1
 
@@ -1035,7 +1035,7 @@ patch "Dotted Pluck" family=short  note=36 range=24..55
     time         #3
     feedback     0.4
     tone         4000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.3
   send reverb    0.12
 
@@ -2382,7 +2382,7 @@ patch "Glide Echo" family=motion  note=36 range=24..55
     time         #4
     feedback     0.35
     tone         3000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.25
   send reverb    0.1
 
@@ -4056,6 +4056,6 @@ patch Whistler family=filter  note=60 range=52..76
     time         #4
     feedback     0.35
     tone         3000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.25
   send reverb    0.1

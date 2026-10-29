@@ -95,7 +95,7 @@ struct BankPatch {
     int low = -1, high = -1;
     std::vector<BankValue> values;
     std::vector<std::pair<std::string, std::string>> settings;
-    // Effects the patch puts on its track, at most kEffectSlots.
+    // Effects the patch puts on its track, at most kPatchInsertSlots.
     std::vector<BankInsert> inserts;
     // Send levels 0..1, or -1 where the patch names none.
     float sendReverb = -1.0f, sendDelay = -1.0f;
@@ -242,8 +242,8 @@ inline bool readBankFrom(std::istream &in, const std::string &path, Bank &bank, 
             BankInsert fx;
             fx.line = lineNo;
             if (!detail::token(line, at, fx.type)) return fail("an effect type is wanted after insert");
-            if (static_cast<int32_t>(p.inserts.size()) >= kEffectSlots) {
-                return fail("a patch carries at most " + std::to_string(kEffectSlots) + " inserts");
+            if (static_cast<int32_t>(p.inserts.size()) >= kPatchInsertSlots) {
+                return fail("a patch carries at most " + std::to_string(kPatchInsertSlots) + " inserts");
             }
             p.inserts.push_back(std::move(fx));
             continue;

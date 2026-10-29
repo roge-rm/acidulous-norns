@@ -59,7 +59,8 @@ struct Replay {
      * An older line on today's counts and levels: Filament's sympathetic
      * level (engine/machine/filament/SymLevel.h), for version 2 and older
      * Trinity's destinations, and for version 1 its waves and Nexus's wtosc
-     * tables too (engine/machine/TableCounts.h). Tracks what each rack
+     * tables too (engine/machine/TableCounts.h), and in any version the
+     * Delay's old pingpong switch as its mode. Tracks what each rack
      * holds, as written, to know which parameters those are. May give back
      * more than one line, joined by newlines.
      */

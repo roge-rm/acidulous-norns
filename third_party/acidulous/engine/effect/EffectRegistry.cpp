@@ -2,6 +2,10 @@
 #include "Effects.h"
 #include "FromMachines.h"
 #include "Acid.h"
+#include "DeEsser.h"
+#include "MidSide.h"
+#include "Reverb.h"
+#include "Transient.h"
 #include "Mouth.h"
 #include "Formula.h"
 #include "Horn.h"
@@ -49,6 +53,9 @@ const Entry kEntries[] = {
     {"Horn", make<effect::Horn>},
     {"Spectral", make<effect::Spectral>},
     {"Formula", make<effect::Formula>},
+    {"Transient", make<effect::Transient>},
+    {"Midside", make<effect::MidSide>},
+    {"Deesser", make<effect::DeEsser>},
 };
 constexpr int32_t kCount = sizeof(kEntries) / sizeof(kEntries[0]);
 
@@ -65,6 +72,8 @@ Effect *EffectRegistry::create(const char *typeName) {
 }
 
 const ParamDef *EffectRegistry::paramDefs(const char *typeName, int32_t &count) {
+    // Every insert's mod slot, read like an effect's table. Not an effect: create() refuses it.
+    if (typeName != nullptr && std::strcmp(typeName, kSlotModType) == 0) return slotmod::defs(count);
     // One probe instance per type, built on first use. The tables are static
     // inside each paramDefs(), the probe is just a way to reach them.
     static Effect *probes[kCount] = {};

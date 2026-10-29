@@ -54,6 +54,20 @@ constexpr float kReedCurve = 3.0f;
  */
 constexpr float kDcPole = 0.997f, kDcLowHz = 45.0f, kDcNoteRatio = 0.5f;
 
+/**
+ * What a jet on a register needs added to play in tune, cents, by the
+ * semitones from the instrument's lowest note to the note, every 3 from 0.
+ * Measured across the flute patches (tools/timber_test.sh). Rows: a cone's
+ * octave, a cone's twelfth, a cylinder's twelfth.
+ */
+constexpr int kJetTrimPoints = 10;
+constexpr float kJetTrimStep = 3.0f;
+constexpr float kJetTrim[3][kJetTrimPoints] = {
+    {-0.1f, 1.0f, 0.5f, -0.3f, -1.6f, -2.6f, -4.0f, -5.2f, -6.7f, -5.6f},
+    {0.4f, 1.5f, 1.4f, 0.8f, 0.2f, -0.5f, -1.4f, -2.7f, -3.4f, -3.2f},
+    {-1.1f, -0.1f, -0.4f, -1.0f, -1.6f, -2.4f, -4.5f, -7.4f, -7.4f, -7.4f},
+};
+
 using dsp::clampf;
 
 /**
@@ -285,14 +299,31 @@ class Pipe {
         if (!dirty) return;
         dirty = false;
 
-        const float period = sr / freq;
-        const float w = 6.28318530718f * freq / sr;
-        dcPole = freq < kDcLowHz ? std::max(kDcPole, std::exp(-6.28318530718f * kDcNoteRatio * freq / sr)) : kDcPole;
+        // A vent puts the note on a higher partial of a longer tube. If a
+        // reed's instrument isn't long enough, drop to a lower register, like
+        // a player would. Otherwise the note lands between modes and plays
+        // badly out of tune. A jet keeps its register past the instrument's
+        // end, as long as the line holds the tube.
+        const float base = cylinder ? 0.5f : 1.0f;
+        const float whole = base * (sr / lowest);
+        const float room = static_cast<float>(upper.size() - 3);
+        int32_t useMode = regMode;
+        while (useMode > 1 && (excite == Jet ? (base * static_cast<float>(useMode) + 0.5f) * (sr / freq) > room
+                                             : base * static_cast<float>(useMode) * (sr / freq) > whole * 1.02f)) {
+            useMode = cylinder ? (useMode > 3 ? 3 : 1) : useMode - 1;
+        }
+        sounding = useMode;
+        // A jet on a register is trimmed into tune by the note.
+        const float hz = excite == Jet && useMode > 1 ? freq * jetTrim(cylinder, useMode, freq / lowest) : freq;
+
+        const float period = sr / hz;
+        const float w = 6.28318530718f * hz / sr;
+        dcPole = hz < kDcLowHz ? std::max(kDcPole, std::exp(-6.28318530718f * kDcNoteRatio * hz / sr)) : kDcPole;
 
         // The lattice. A forked fingering pulls the cutoff down, but never
         // below the note it has to reflect or the note wouldn't speak.
         const float cut = clampf(latticeHz * (1.0f - finger * 0.7f),
-                                 std::max(120.0f, freq * 1.6f), sr * 0.45f);
+                                 std::max(120.0f, hz * 1.6f), sr * 0.45f);
         // Two poles, or four when `holes` is high, since more open holes cut
         // off harder. Flat below the corner either way.
         latticeCut = cut;
@@ -308,18 +339,21 @@ class Pipe {
 
         // How much tube is left below the hole the note is fingered on,
         // worked out from the note and the size of the instrument.
-        const float base = cylinder ? 0.5f : 1.0f;
-        const float whole = base * (sr / lowest);
-        // A vent puts the note on a higher partial of a longer tube. If the
-        // instrument isn't long enough, drop to a lower register, like a
-        // player would. Otherwise the note lands between modes and plays
-        // badly out of tune.
-        int32_t useMode = regMode;
-        while (useMode > 1 && base * static_cast<float>(useMode) * period > whole * 1.02f) {
-            useMode = cylinder ? (useMode > 3 ? 3 : 1) : useMode - 1;
-        }
-        sounding = useMode;
         const float nominal = base * static_cast<float>(useMode) * period;
+        // Past the instrument's end the vented tube stands in for it, as the
+        // lowest note the vent is scaled to. The wall loss there is cornered
+        // at the note rather than the tube, which keeps the next mode up (5/3
+        // of the note on a twelfth) from taking over. The corner moves over
+        // 0.97..1.07 of the instrument's length, so a bend across the end
+        // doesn't step the tone.
+        const bool jetVent = excite == Jet && useMode > 1;
+        const float over = nominal / whole;
+        const float body = jetVent && over > 1.0f ? lowest / over : lowest;
+        float pastMix = 0.0f;
+        if (jetVent) {
+            const float t = clampf((over - 0.97f) / 0.1f, 0.0f, 1.0f);
+            pastMix = t * t * (3.0f - 2.0f * t);
+        }
 
         // The register vent, as a high pass on the loop. It stops the
         // partials below the one wanted, cornered between the tube's
@@ -329,8 +363,8 @@ class Pipe {
         // 0.3 x the lowest note and 0.25 x the note. Without it a cone (and
         // the long tube below the holes on high notes) rings a spurious low
         // mode that can take over the note.
-        float ventHz = std::max(lowest * 0.3f, freq * 0.25f);
-        if (useMode > 1) ventHz = std::max(ventHz, (freq / static_cast<float>(useMode)) * 1.5f);
+        float ventHz = std::max(body * 0.3f, hz * 0.25f);
+        if (useMode > 1) ventHz = std::max(ventHz, (hz / static_cast<float>(useMode)) * 1.5f);
         ventCoeff = 1.0f - std::exp(-6.28318530718f * ventHz / sr);
         float below = (whole - nominal) * (1.0f + finger * 0.4f) * belowScale;
         lowerDelay = clampf(below, 1.0f, static_cast<float>(lower.size() - 3));
@@ -353,8 +387,9 @@ class Pipe {
         // don't jump to a higher mode. It's a shelf, not a lowpass, because
         // the tube's resonance multiplies any loss and a lowpass dulls the
         // tone a lot. See kWallDepth.
-        const float tubeHz = freq / static_cast<float>(useMode);
-        wallCoeff = 1.0f - std::exp(-6.28318530718f * clampf(tubeHz, 30.0f, sr * 0.45f) / sr);
+        const float tubeHz = hz / static_cast<float>(useMode);
+        const float wallHz = pastMix > 0.0f ? tubeHz * std::pow(static_cast<float>(useMode), pastMix) : tubeHz;
+        wallCoeff = 1.0f - std::exp(-6.28318530718f * clampf(wallHz, 30.0f, sr * 0.45f) / sr);
         wallDepth = clampf(kWallDepth * std::sqrt(lowest / std::max(tubeHz, 1.0f)), 0.0f, 0.6f);
         {
             float wr, wi;
@@ -563,6 +598,17 @@ class Pipe {
     float lowerLength() const { return lowerDelay; }
 
   private:
+    /** kJetTrim as a ratio, for [mode] at [ratio] times the lowest note. */
+    static float jetTrim(bool cylindrical, int32_t mode, float ratio) {
+        const float *row = kJetTrim[cylindrical ? 2 : (mode == 2 ? 0 : 1)];
+        const float at = clampf(12.0f * std::log2(std::max(ratio, 1e-3f)) / kJetTrimStep, 0.0f,
+                                static_cast<float>(kJetTrimPoints - 1));
+        const int32_t i = std::min(static_cast<int32_t>(at), kJetTrimPoints - 2);
+        const float f = at - static_cast<float>(i);
+        const float cents = row[i] + (row[i + 1] - row[i]) * f;
+        return std::exp2(cents / 1200.0f);
+    }
+
     static void onePole(float c, float cw, float sw, float &re, float &im) {
         // c / (1 - (1-c) z^-1) on the unit circle.
         const float dr = 1.0f - (1.0f - c) * cw, di = (1.0f - c) * sw;

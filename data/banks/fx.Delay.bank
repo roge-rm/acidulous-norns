@@ -1,7 +1,13 @@
-# Delay - the classic, and the two it has that a delay usually does not.
+# Delay - the classic in four modes, and the two extras it has that a delay
+# usually does not.
 #
-# `time` is a note value, so it is written as a step index: #0 1/16, #1 1/8T,
-# #2 1/8, #3 1/8., #4 1/4, #5 1/4., #6 1/2, #7 free.
+# `time` is a note value, so it is written as a step index: #0 1/32, #1 1/16,
+# #2 1/8, #3 1/8., #4 1/4, #5 1/4., #6 1/2, #7 1 bar.
+#
+# `mode` is #0 normal, #1 ping-pong, #2 multi-tap, #3 reverse. Multi-tap puts
+# `taps` (2 to 4) inside the time, panned outside in, bunched early or late
+# by `spacing`; only the last feeds back. Reverse plays each stretch of
+# `time` backwards, and feedback turns an echo forwards again.
 #
 # Values are in each parameter's own units; `audition params fx.Delay` lists
 # them. A patch names only what it changes.
@@ -14,7 +20,7 @@ patch Slapback family=short
   time           #0
   feedback       0.12
   tone           4500 Hz
-  pingpong       #0
+  mode           #0
   mix            0.28
 
 patch Doubler family=short
@@ -22,28 +28,28 @@ patch Doubler family=short
   time           #0
   feedback       0
   mix            0.3
-  pingpong       #0
+  mode           #0
 
 patch Rockabilly family=short
   # A quick, bright slap with one repeat.
   time           #1
   feedback       0.2
   tone           7000 Hz
-  pingpong       #0
+  mode           #0
   mix            0.35
 
 patch "Eighth Sync" family=synced
   time           #2
   feedback       0.38
   tone           7000 Hz
-  pingpong       #0
+  mode           #0
   mix            0.32
 
 patch "Ping Pong" family=synced
   time           #3
   feedback       0.5
   tone           8000 Hz
-  pingpong       #1
+  mode           #1
   mix            0.38
 
 patch "Dotted Eighth" family=synced
@@ -71,7 +77,7 @@ patch Dub family=dub
   time           #5
   feedback       0.82
   tone           2200 Hz
-  pingpong       #1
+  mode           #1
   mix            0.45
 
 patch Ducked family=dub
@@ -80,7 +86,7 @@ patch Ducked family=dub
   time           #4
   feedback       0.55
   tone           5200 Hz
-  pingpong       #1
+  mode           #1
   mix            0.5
   duck           0.8
 
@@ -105,7 +111,7 @@ patch Tape family=tape
   time           #4
   feedback       0.55
   tone           3200 Hz
-  pingpong       #0
+  mode           #0
   mix            0.36
   wobble         0.35
   gain           -2.5 dB
@@ -114,7 +120,7 @@ patch Seasick family=tape
   time           #6
   feedback       0.7
   tone           2800 Hz
-  pingpong       #1
+  mode           #1
   mix            0.5
   wobble         0.85
   duck           0.3
@@ -139,7 +145,7 @@ patch Wash family=ambient
   time           #6
   feedback       0.8
   tone           1500 Hz
-  pingpong       #1
+  mode           #1
   mix            0.35
   gain           -1 dB
 
@@ -148,7 +154,7 @@ patch "Dark Ping Pong" family=ambient
   time           #2
   feedback       0.5
   tone           2500 Hz
-  pingpong       #1
+  mode           #1
   mix            0.3
 
 patch "Ghost Notes" family=ambient
@@ -156,4 +162,74 @@ patch "Ghost Notes" family=ambient
   time           #1
   feedback       0.3
   mix            0.15
-  pingpong       #1
+  mode           #1
+
+patch "Three Taps" family=taps
+  # Three even taps in a quarter: a triplet that answers itself across the
+  # field.
+  time           #4
+  mode           #2
+  taps           3
+  feedback       0.2
+  mix            0.32
+  gain           -0.5 dB
+patch "Rolling Taps" family=taps
+  # Four even taps over a half note, so every eighth comes back.
+  time           #6
+  mode           #2
+  taps           4
+  feedback       0.3
+  tone           5000 Hz
+  mix            0.3
+  gain           -1.2 dB
+patch "Late Bunch" family=taps
+  # Four taps crowding the end of the quarter: a flam before the beat.
+  time           #4
+  mode           #2
+  taps           4
+  spacing        0.8
+  feedback       0.25
+  mix            0.3
+  gain           -0.7 dB
+patch Scatter family=taps
+  # Four taps thrown early in a dotted quarter, then a dark tail.
+  time           #5
+  mode           #2
+  taps           4
+  spacing        -0.7
+  feedback       0.45
+  tone           3000 Hz
+  mix            0.32
+
+patch Backwards family=reverse
+  # Each quarter played back end first, once.
+  time           #4
+  mode           #3
+  feedback       0.2
+  mix            0.45
+
+patch "Reverse Half" family=reverse
+  # Half a bar at a time, backwards, swelling into the next one.
+  time           #6
+  mode           #3
+  feedback       0.35
+  tone           4000 Hz
+  mix            0.42
+
+patch "Swell Back" family=reverse
+  # Ducked, so the backwards half notes rise in the gaps.
+  time           #6
+  mode           #3
+  feedback       0.5
+  tone           5000 Hz
+  duck           0.6
+  mix            0.5
+
+patch "Reverse Tape" family=reverse
+  # Backwards quarters on a worn tape.
+  time           #4
+  mode           #3
+  feedback       0.45
+  tone           3000 Hz
+  wobble         0.4
+  mix            0.4

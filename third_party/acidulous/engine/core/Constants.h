@@ -8,7 +8,10 @@ constexpr int32_t kSampleRate = 48000; // Oboe resamples if the device disagrees
 constexpr int32_t kBlockFrames = 64;   // one render block; the sequencer's event resolution
 constexpr int32_t kRackCount = 16;     // one per MIDI channel; a 4x4 picker
 constexpr int32_t kPPQN = 240;         // ticks per quarter note
-constexpr int32_t kEffectSlots = 2;    // per rack, for now
+constexpr int32_t kEffectSlots = 4;    // per rack
+// A patch brings at most this many inserts, and they go in the first slots.
+// The ones after are always the player's.
+constexpr int32_t kPatchInsertSlots = 2;
 /**
  * Effects on the input, before anything hears it.
  *

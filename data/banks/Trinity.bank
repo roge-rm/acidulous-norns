@@ -120,7 +120,7 @@ patch "Saw Lead" family=lead  note=67 range=48..91 role=lead
     time         #2
     feedback     0.35
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.25
 
 patch "Square Lead" family=lead  note=67 range=48..91 role=lead
@@ -327,7 +327,7 @@ patch "Big Lead" family=lead  note=67 range=48..91 role=lead
   insert Delay
     time         #3
     feedback     0.4
-    pingpong     #1
+    mode         #1
     mix          0.17
   send reverb    0.14
 
@@ -441,7 +441,7 @@ patch "Octave Lead" family=lead  note=67 range=48..91 role=lead
     time         #3
     feedback     0.35
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
 
 patch "Glide Lead" family=lead  note=67 range=48..91 role=lead
@@ -499,7 +499,7 @@ patch "Glide Lead" family=lead  note=67 range=48..91 role=lead
   insert Delay
     time         #2
     feedback     0.3
-    pingpong     #0
+    mode         #0
     mix          0.2
 
 patch "PWM Lead" family=lead  note=67 range=48..91 role=lead
@@ -1111,7 +1111,7 @@ patch "Bell Lead" family=lead  note=67 range=48..91 role=lead
     time         #3
     feedback     0.4
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.21
   send reverb    0.14
 
@@ -1359,7 +1359,7 @@ patch "Sync Sweep" family=lead  note=67 range=48..91 role=lead
     time         #3
     feedback     0.35
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.25
 
 patch "Scan Lead" family=lead  note=67 range=48..91 role=lead
@@ -1494,7 +1494,7 @@ patch "Bent Lead" family=lead  note=67 range=48..91 role=lead
   insert Delay
     time         #2
     feedback     0.3
-    pingpong     #1
+    mode         #1
     mix          0.2
 
 patch "Fold Lead" family=lead  note=67 range=48..91 role=lead
@@ -1611,7 +1611,7 @@ patch "Ring Lead" family=lead  note=67 range=48..91 role=lead
     time         #3
     feedback     0.3
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
 
 patch "Metal Lead" family=lead  note=67 range=48..91 role=lead
@@ -1676,7 +1676,7 @@ patch "Metal Lead" family=lead  note=67 range=48..91 role=lead
     time         #3
     feedback     0.35
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
 
 patch "Crush Lead" family=lead  note=67 range=48..91 role=lead
@@ -1791,7 +1791,7 @@ patch Scream family=lead  note=67 range=48..91 role=lead
     time         #3
     feedback     0.35
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.22
 
 patch "Sub Bass" family=bass  note=36 range=24..55 role=bass
@@ -4911,7 +4911,7 @@ patch "Glass Scan" family=pad  note=55 range=36..79 role=pad
     time         #3
     feedback     0.35
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.17
   send reverb    0.14
 
@@ -4982,7 +4982,7 @@ patch "Spiral Pad" family=pad  note=55 range=36..79 role=pad
     time         #3
     feedback     0.35
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.17
   send reverb    0.14
 
@@ -5153,7 +5153,7 @@ patch "Gate Pad" family=pad  note=55 range=36..79 role=pad
     time         #3
     feedback     0.3
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.17
   send reverb    0.14
 
@@ -6441,7 +6441,7 @@ patch "Chime Keys" family=keys  note=60 range=36..84 role=keys
     time         #3
     feedback     0.3
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.17
   send reverb    0.14
 
@@ -7125,7 +7125,7 @@ patch "Bright Pluck" family=pluck  note=60 range=36..84 role=arp
     time         #3
     feedback     0.35
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.18
   send reverb    0.17
 
@@ -7242,7 +7242,7 @@ patch "Table Pluck" family=pluck  note=60 range=36..84 role=arp
     time         #3
     feedback     0.3
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
 
 patch "Steel Tongue" family=pluck  note=60 range=36..84 role=arp
@@ -7355,7 +7355,7 @@ patch "Glass Pluck" family=pluck  note=60 range=36..84 role=arp
     time         #3
     feedback     0.3
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
 
 patch "Wire Pluck" family=pluck  note=60 range=36..84 role=arp
@@ -7690,7 +7690,7 @@ patch Blip family=pluck  note=60 range=36..84 role=arp
     time         #3
     feedback     0.3
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
 
 patch "Dub Pluck" family=pluck  note=55 range=36..79 role=arp
@@ -7749,7 +7749,7 @@ patch "Dub Pluck" family=pluck  note=55 range=36..79 role=arp
     time         #3
     feedback     0.4
     tone         2500 Hz
-    pingpong     #0
+    mode         #0
     mix          0.25
   insert Tape
     age          0.3
@@ -8098,7 +8098,7 @@ patch "Echo Pluck" family=sequence  note=60 range=36..84 role=keys
     time         #3
     feedback     0.5
     tone         4500 Hz
-    pingpong     #1
+    mode         #1
     mix          0.3
   send reverb    0.15
 
@@ -8357,7 +8357,7 @@ patch "Triplet Swell" family=sequence  note=55 range=36..79 role=sequence
     time         #2
     feedback     0.3
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
 
 
@@ -8474,7 +8474,7 @@ patch "Dub Chords" family=sequence  note=55 range=40..79 role=keys
     time         #4
     feedback     0.5
     tone         2200 Hz
-    pingpong     #0
+    mode         #0
     mix          0.23
   send reverb    0.14
 
@@ -8677,7 +8677,7 @@ patch "Trance Gate" family=sequence  note=55 range=36..79 role=sequence
     time         #2
     feedback     0.3
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.13
   send reverb    0.13
 
@@ -8876,7 +8876,7 @@ patch "Sixteen Steps" family=sequence  note=60 range=48..79 role=ostinato
     time         #3
     feedback     0.3
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
 
 
@@ -8950,7 +8950,7 @@ patch "Three Over Four" family=sequence  note=60 range=48..79 role=ostinato
     time         #2
     feedback     0.25
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.18
 
 
@@ -9440,7 +9440,7 @@ patch Telegraph family=sequence  note=67 range=55..84 role=ostinato
     time         #1
     feedback     0.3
     tone         5000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
 
 
@@ -11516,7 +11516,7 @@ patch Chimes family=bells  note=79 range=60..96 role=bell
     time         #3
     feedback     0.3
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.14
   send reverb    0.15
 
@@ -11631,7 +11631,7 @@ patch Crystal family=bells  note=79 range=60..96 role=bell
     time         #3
     feedback     0.3
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.17
   send reverb    0.14
 
@@ -11696,7 +11696,7 @@ patch "Ice Bell" family=bells  note=79 range=60..96 role=bell
     time         #3
     feedback     0.3
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.14
   send reverb    0.12
 
@@ -12177,7 +12177,7 @@ patch "Digital Bell" family=bells  note=72 range=48..96 role=bell
     time         #3
     feedback     0.3
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.17
   send reverb    0.14
 
@@ -12348,7 +12348,7 @@ patch "Reverse Bell" family=bells  note=72 range=48..96 role=pad
     time         #3
     feedback     0.35
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.21
   send reverb    0.17
 
@@ -12774,7 +12774,7 @@ patch "Tempo Sweep" family=motion  note=55 range=36..79 role=sequence
     time         #3
     feedback     0.3
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.13
   send reverb    0.10
 
@@ -13085,7 +13085,7 @@ patch "Glass Wheel" family=motion  note=55 range=36..79 role=pad
     time         #3
     feedback     0.35
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.14
   send reverb    0.15
 
@@ -13199,7 +13199,7 @@ patch "Step Drift" family=motion  note=55 range=36..79 role=sequence
     time         #3
     feedback     0.35
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.17
   send reverb    0.14
 
@@ -13434,7 +13434,7 @@ patch "Ring Sweep" family=motion  note=55 range=36..79 role=pad
     time         #3
     feedback     0.3
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.17
   send reverb    0.17
 
@@ -13505,7 +13505,7 @@ patch Riser family=motion  note=55 range=36..79 role=hold
     time         #3
     feedback     0.3
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.14
   send reverb    0.15
 
@@ -13724,7 +13724,7 @@ patch Kaleidoscope family=motion  note=55 range=36..79 role=pad
     time         #3
     feedback     0.4
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.18
   send reverb    0.15
 
@@ -14179,7 +14179,7 @@ patch Rain family=texture  note=55 range=36..79 role=pad
     time         #2
     feedback     0.35
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.18
   send reverb    0.15
 
@@ -14470,7 +14470,7 @@ patch "Deep Space" family=texture  note=48 range=36..72 role=drone
     time         #5
     feedback     0.55
     tone         3000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.13
   send reverb    0.08
 
@@ -14626,7 +14626,7 @@ patch Siren family=texture  note=67 range=48..84 role=hold
     time         #3
     feedback     0.3
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.17
   send reverb    0.14
 
@@ -14691,7 +14691,7 @@ patch Laser family=texture  note=60 range=36..84 role=keys
     time         #2
     feedback     0.4
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.3
   send reverb    0.15
 
@@ -14890,6 +14890,6 @@ patch "Bit Rot" family=texture  note=55 range=36..79 role=sequence
     time         #3
     feedback     0.35
     tone         6000 Hz
-    pingpong     #1
+    mode         #1
     mix          0.2
   send reverb    0.15
