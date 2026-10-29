@@ -995,6 +995,8 @@ local enc_mode = {}
 
 local function selecting(n)
   if n == 1 or picker.active() or lists.active(parts) or scope.active() then return true end
+  -- the out strip's rev model and dly mode, K1 held, step one at a time
+  if state.page == "sends" and state.out and state.k1 then return true end
   if n == 2 then return state.page ~= "mixer" and state.page ~= "sends" end
   if state.page == "play" then
     local mac = part_macros()[play_state().focus]
@@ -1079,7 +1081,11 @@ local function handle_enc(n, d)
       if mixer then
         if n == 3 then parts.delta_master(d) end
       else
-        parts.delta_out_send(n == 2 and "rev_size" or "dly_feedback", d)
+        if state.k1 then
+          parts.delta_out_choice(n == 2 and "rev_model" or "dly_mode", d)
+        else
+          parts.delta_out_send(n == 2 and "rev_size" or "dly_feedback", d)
+        end
       end
     elseif mixer and n == 2 then
       local pid = parts.id(i, "pan")

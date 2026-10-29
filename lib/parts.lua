@@ -462,7 +462,7 @@ end
 -- engine/effect), with the slot the plugin takes. time is in the delay's
 -- note values at the engine's tempo. The reverb's model knobs follow its
 -- model (models: the ones a knob is on), from lib/fxcards.lua.
-P.DELAY_TIMES = {"1/32", "1/16", "1/8", "3/16", "1/4", "3/8", "1/2", "1 bar"}
+P.DELAY_TIMES = FXCARDS.effects.Delay.o.time
 P.REVERB_MODELS = FXCARDS.reverb_models
 P.DELAY_MODES = FXCARDS.effects.Delay.o.mode
 P.SEND_PARAMS = {
@@ -470,7 +470,7 @@ P.SEND_PARAMS = {
   {id = "rev_damp", name = "rev damp", slot = 0, param = "damp", min = 0, max = 1, default = 0.4},
   {id = "rev_tone", name = "rev tone", slot = 0, param = "tone", min = 500, max = 18000, default = 9000, exp = true},
   {id = "rev_predelay", name = "rev predelay", slot = 0, param = "predelay", min = 0, max = 200, default = 10, unit = "ms"},
-  {id = "rev_model", name = "rev model", slot = 0, param = "model", options = P.REVERB_MODELS, default = 1},
+  {id = "rev_model", name = "rev model", slot = 0, param = "model", options = P.REVERB_MODELS, default = 1, new = true},
 }
 do
   -- each model's own knobs, once each; follow tunes to a track's notes, so a send hasn't it
@@ -482,7 +482,7 @@ do
       if at[name] then
         table.insert(at[name].models, model)
       elseif d and name ~= "follow" then
-        local sp = {id = "rev_" .. name, name = "rev " .. name, slot = 0, param = name, models = {model}}
+        local sp = {id = "rev_" .. name, name = "rev " .. name, slot = 0, param = name, models = {model}, new = true}
         local opts = FXCARDS.effects.Reverb.o and FXCARDS.effects.Reverb.o[name]
         if d[5] == "stepped" and opts then
           sp.options, sp.default = opts, math.floor(d[4] - d[2]) + 1
@@ -499,9 +499,9 @@ for _, sp in ipairs({
   {id = "dly_time", name = "dly time", slot = 1, param = "time", options = P.DELAY_TIMES, default = 4},
   {id = "dly_feedback", name = "dly feedback", slot = 1, param = "feedback", min = 0, max = 0.95, default = 0.4},
   {id = "dly_tone", name = "dly tone", slot = 1, param = "tone", min = 300, max = 18000, default = 6000, exp = true},
-  {id = "dly_mode", name = "dly mode", slot = 1, param = "mode", options = P.DELAY_MODES, default = 2},
-  {id = "dly_taps", name = "dly taps", slot = 1, param = "taps", options = {"2", "3", "4"}, default = 2},
-  {id = "dly_spacing", name = "dly spacing", slot = 1, param = "spacing", min = -1, max = 1, default = 0},
+  {id = "dly_mode", name = "dly mode", slot = 1, param = "mode", options = P.DELAY_MODES, default = 2, new = true},
+  {id = "dly_taps", name = "dly taps", slot = 1, param = "taps", options = {"2", "3", "4"}, default = 2, new = true},
+  {id = "dly_spacing", name = "dly spacing", slot = 1, param = "spacing", min = -1, max = 1, default = 0, new = true},
 }) do P.SEND_PARAMS[#P.SEND_PARAMS + 1] = sp end
 
 -- Shows the reverb's knobs for its model, as the app does: size isn't on
@@ -535,6 +535,23 @@ local function send_send_param(sp)
   send("/send", {sp.slot, sp.param, send_param_value(sp)})
 end
 
+-- Whether the reverb's model has a size: space is sized in metres.
+function P.reverb_sized()
+  return P.REVERB_MODELS[params:get("rev_model")] ~= "space"
+end
+
+-- The out strip's rev model and dly mode, K1 held: the script's, or nil
+-- while a song is loaded, whose sends the strip can't read them from.
+function P.out_choice(pid)
+  if P.song_sends then return nil end
+  return params:string(pid)
+end
+
+function P.delta_out_choice(pid, d)
+  if P.song_sends then return end
+  params:delta(pid, d)
+end
+
 -- The sends page's out strip: the reverb's size and the delay's feedback,
 -- the song's while one is loaded (P.song_sends, {size, feedback} 0-1 from
 -- lib/song.lua, nil for a send the song doesn't have), else the script's.
@@ -549,7 +566,10 @@ end
 
 -- pid's value in its param's units, or nil for the song's missing send.
 function P.out_send(pid)
-  if not P.song_sends then return params:get(pid) end
+  if not P.song_sends then
+    if pid == "rev_size" and not P.reverb_sized() then return nil end
+    return params:get(pid)
+  end
   local v, sp = P.song_sends[OUT_SENDS[pid]], send_spec(pid)
   return v and sp.min + v * (sp.max - sp.min)
 end
@@ -561,6 +581,7 @@ end
 
 function P.delta_out_send(pid, d)
   if not P.song_sends then
+    if pid == "rev_size" and not P.reverb_sized() then return end
     params:delta(pid, d)
     return
   end
@@ -952,27 +973,36 @@ end
 local function is_user_slot(slot) return slot == 2 or slot == 3 end
 
 -- Sends the user's slot types the plugin doesn't hold, before the edits.
--- Each /insert of an effect is answered by /inserts, so it's counted like a
+-- They wait for /effects, and only names in it go; a part with no machine
+-- has its slots emptied, and they go again once one is mounted. Each
+-- /insert of an effect is answered by /inserts, so it's counted like a
 -- /patch; emptying a slot already empty gets no answer, so it isn't.
+-- True when an effect was mounted.
 local function send_inserts(part)
   -- a song's tracks have the song's inserts; a script part's wait for the racks
-  if part.song or P.song_holds then return end
+  if part.song or P.song_holds or part.parked then return false end
+  local mounted = false
   for _, slot in ipairs(P.USER_SLOTS) do
     local want = part.inserts[slot]
     if part.insert_pending[slot] then
       timer.cancel(part.insert_pending[slot])
       part.insert_pending[slot] = nil
     end
-    if want ~= part.insert_sent[slot] then
+    if not part.machine or (want and #P.effects > 0 and not tab.contains(P.effects, want)) then want = nil end
+    if want and #P.effects == 0 then
+      -- not yet: /effects sends it
+    elseif want ~= part.insert_sent[slot] then
       if want then
         local now = util.time()
         part.fx_wait = (now - part.fx_asked > 2) and 1 or part.fx_wait + 1
         part.fx_asked = now
+        mounted = true
       end
       part.insert_sent[slot] = want
       psend(part, "/insert", {part.n - 1, slot, want or ""})
     end
   end
+  return mounted
 end
 
 -- Puts an effect (or nil) in the part's user slot 2 or 3 with its defaults.
@@ -1053,7 +1083,9 @@ local function send_fx_edits(part, user_only)
   for k, v in pairs(part.fx_edits) do
     local slot, name = k:match("^(%d):(.+)$")
     slot = tonumber(slot)
-    if not user_only or is_user_slot(slot) then psend(part, "/fx", {part.n - 1, slot, name, v}) end
+    -- a user slot's only once its effect is there
+    local ok = is_user_slot(slot) and part.insert_sent[slot] or not (user_only or is_user_slot(slot))
+    if ok then psend(part, "/fx", {part.n - 1, slot, name, v}) end
   end
 end
 
@@ -1467,6 +1499,7 @@ local function load_machine(part, with_values)
   if not part.machine then
     part.fx = {}
     send_patch(part, "/unmount", {r})
+    send_inserts(part)
     name = nil
   elseif pr then
     part.want_values = with_values
@@ -2151,6 +2184,13 @@ function P.after_read(filename)
   params:set("param_layout", LAYOUT.NOW, true)
   -- a PSET from before the delay's modes has its ping pong switch: on is
   -- ping-pong, off normal
+  -- one from before the reverb's models and the delay's modes has none of
+  -- their params, which keep what was set before: they go to the defaults
+  if filename and not saved_has(filename, "rev_model") then
+    for _, sp in ipairs(P.SEND_PARAMS) do
+      if sp.new and not saved_has(filename, sp.id) then params:set(sp.id, sp.default, true) end
+    end
+  end
   local pingpong = filename and not saved_has(filename, "dly_mode") and saved_count(filename, "dly_pingpong", nil, nil)
   if pingpong then params:set("dly_mode", pingpong == 2 and 2 or 1, true) end
   show_send_params()
@@ -2694,6 +2734,10 @@ function P.osc(path, args)
   elseif path == "/effects" then
     P.effects = {}
     for k, name in ipairs(args) do P.effects[k] = name end
+    -- picks that waited for the list go now, with their edits
+    for _, part in ipairs(own) do
+      if send_inserts(part) then send_fx_edits(part, true) end
+    end
   elseif path == "/inserts" then
     -- the part's inserts after a patch or unmount, with the edits on top
     local i = (args[1] or -1) + 1

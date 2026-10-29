@@ -108,7 +108,7 @@ The mixer has a meter, fader and pan for each part, with m for mute and s for so
 | **K2** | mute |
 | **K3** | solo |
 
-The sends page has reverb and delay sends for each part. On out, the knobs change reverb size and delay feedback.
+The sends page has reverb and delay sends for each part. On out, E2 and E3 change reverb size and delay feedback, or with K1 held the reverb's model and the delay's mode. The space model has no size, so it shows a dash.
 
 | Sends | |
 |---|---|
@@ -116,7 +116,7 @@ The sends page has reverb and delay sends for each part. On out, the knobs chang
 | **E2** | reverb send |
 | **E3** | delay send |
 
-Reverb and delay start when first used. Other settings are under PARAMETERS > EDIT > sends and master: the reverb's model and its knobs for that model, and the delay's mode (normal, ping-pong, multi-tap or reverse) with taps and spacing for multi-tap. Delay time is in notes at the norns tempo.
+Reverb and delay start when first used. Other settings are under PARAMETERS > EDIT > sends and master, with the knobs of the reverb's model, and taps and spacing for the delay's multi-tap mode. Delay time is in notes at the norns tempo.
 
 ### Songs
 

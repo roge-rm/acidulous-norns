@@ -1,6 +1,6 @@
 local here = arg[0]:match("^(.*)/[^/]+$")
 local which = arg[2]
-local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11"}
+local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12"}
 if not which then
   -- every case, each in a fresh run
   local failed = 0
@@ -302,6 +302,45 @@ elseif which == "11" then
   fx[2].mods_by.mod_source.value = 1
   again = panel.fx_cards(fx, nil)
   CHECK(again[1].title ~= "inserts" and again[#again].controls[2].label == "track", "a song's track has no picker; a keyed mod its track")
+elseif which == "12" then
+  -- an old PSET resets the new send params
+  params:set("rev_model", 6, true)
+  params:set("dly_taps", 3, true)
+  params:set("rev_width", 20, true)
+  local name = os.tmpname()
+  local f = io.open(name, "w")
+  f:write('"parts": 1\n')
+  f:close()
+  P.after_read(name)
+  os.remove(name)
+  CHECK(params:get("rev_model") == 1 and params:get("dly_taps") == 2 and params:get("rev_width") == 9,
+    "rev model, dly taps and rev width back to their defaults")
+  -- picks wait for /effects, and only its names go
+  P.osc("/inserts", {0})
+  P.own[1].fx_wait = 0
+  SENT_CLEAR()
+  P.set_insert(1, 2, "Chorus", false)
+  CHECK(not FIND("/insert") and P.own[1].fx_wait == 0, "no /insert before /effects")
+  P.osc("/effects", {"Delay", "Chorus"})
+  CHECK(FIND("/insert", function(a) return a[1] == 0 and a[2] == 2 and a[3] == "Chorus" end) ~= nil, "Chorus once /effects comes")
+  P.osc("/inserts", {0})
+  P.own[1].fx_wait = 0
+  SENT_CLEAR()
+  P.set_insert(1, 3, "Bogus", false)
+  CHECK(not FIND("/insert", function(a) return a[3] == "Bogus" end) and P.own[1].fx_wait == 0,
+    "an effect the plugin hasn't got isn't sent or waited for")
+  -- no machine: the slots are emptied, and go again with the next machine
+  SENT_CLEAR()
+  params:set("p1_machine", 1)
+  ADVANCE(0.5)
+  CHECK(FIND("/insert", function(a) return a[1] == 0 and a[2] == 2 and a[3] == "" end) ~= nil, "no machine empties fx 3")
+  SENT_CLEAR()
+  P.set_insert(1, 2, "Delay", false)
+  CHECK(not FIND("/insert"), "a pick with no machine waits")
+  params:set("p1_machine", 2)
+  ADVANCE(0.5)
+  CHECK(FIND("/insert", function(a) return a[1] == 0 and a[2] == 2 and a[3] == "Delay" end) ~= nil,
+    "and goes with the next machine")
 end
 print(FAILS == 0 and "all ok" or (FAILS .. " failed"))
 os.exit(FAILS == 0 and 0 or 1)
