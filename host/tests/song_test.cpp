@@ -730,13 +730,13 @@ int main(int argc, char** argv)
         unsetenv("ACIDULOUS_SAMPLE_LIMIT_MB");
     }
 
-    // Frozen racks: a Bias rack (not offered by the plugin) plays its clip
+    // Frozen racks: an unknown machine's rack plays its clip
     // from a stand-in and is an empty part; a Reflux rack keeps its machine.
     {
         unsetenv("ACIDULOUS_SAMPLE_LIMIT_MB");
         const std::string a = wav(4800);
         write_zip(scratch + "/fz.zip",
-                  {{"engine.txt", "acidulous-engine 4\nClearFrozen\nMountMachine 0 \"Bias\"\nMountMachine 1 \"Reflux\"\n"
+                  {{"engine.txt", "acidulous-engine 4\nClearFrozen\nMountMachine 0 \"Zork\"\nMountMachine 1 \"Reflux\"\n"
                                   "MountFrozen 0 5 \"zip:a.wav\" 120.0 1536 4800 0 0.1\n"
                                   "MountFrozen 1 5 \"zip:a.wav\" 120.0 1536 4800 0 0.1\n"},
                    {"a.wav", a}});
@@ -745,13 +745,23 @@ int main(int argc, char** argv)
             Reply r, fr;
             const bool ok = load(scratch + "/fz.zip", r, mode);
             check(ok && str(r, 2).empty() && int(r.args[3].num) == 0, std::string("frozen racks load, mode ") + mode + ": " + str(r, 2));
-            check(int(r.args[4].num) == 1 && str(r, 6) == "Reflux", std::string("the Reflux is a part and the Bias rack isn't, mode ") + mode);
+            check(int(r.args[4].num) == 1 && str(r, 6) == "Reflux", std::string("the Reflux is a part and the Zork rack isn't, mode ") + mode);
             const bool got = log.wait("/song_frozen", fr);
             const size_t want = std::string(mode) == "frozen" ? 2 : 1;
             check(got && size_t(fr.args[0].num) == want && int(fr.args[1].num) == 0 && int(fr.args[2].num) == 0 &&
                       (want == 1 || (int(fr.args[4].num) == 1 && int(fr.args[5].num) == 1)),
                   std::string("/song_frozen lists the racks that play clips, mode ") + mode);
         }
+    }
+
+    // The app's tape song: its Bias rack is a part with its Reel takes.
+    {
+        const std::string tape = zip.substr(0, zip.rfind('/') + 1) + "tape.zip";
+        Reply r, st;
+        const bool ok = load(tape, r);
+        check(ok && str(r, 2).empty(), "tape.zip loads: " + str(r, 2));
+        state(1, st);
+        check(st.args.size() > 1 && st.args[1].str == "Bias", "the Bias rack is part 1");
     }
 
     // A song's Mosaic zones are the part's, with absolute paths.

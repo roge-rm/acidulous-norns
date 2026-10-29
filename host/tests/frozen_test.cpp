@@ -68,7 +68,7 @@ struct Song
 FrozenHost host_for()
 {
     FrozenHost h;
-    h.can_run = [](const std::string& m) { return m != "Bias" && m != "Zork"; };
+    h.can_run = [](const std::string& m) { return m != "Zork"; };
     return h;
 }
 
@@ -174,7 +174,7 @@ int main()
     // frozen in every mode, with no machine or loads
     {
         Song s;
-        s.machine(0, "Bias");
+        s.machine(0, "Zork");
         s.machine(1, "Zork");
         s.machine(2, "Reflux");
         s.sample(0, 100);
@@ -193,7 +193,7 @@ int main()
             auto f = choose_frozen(s.text, m, host_for());
             check(f.no_machine == std::vector<int>({0, 1, 4}), "can't-run racks lose their machine");
             check(has(f.text, "MountMachine 0 \"Reflux\"") && has(f.text, "MountMachine 1 \"Reflux\"") &&
-                      has(f.text, "MountMachine 4 \"Reflux\"") && f.text.find("Bias") == std::string::npos,
+                      has(f.text, "MountMachine 4 \"Reflux\"") && f.text.find("Zork") == std::string::npos,
                   "they hold the stand-in, also the rack with no machine line");
             check(f.text.find("LoadSample 1") == std::string::npos && f.text.find("SetParam 0 \"machine\"") == std::string::npos,
                   "their Load lines and machine values are gone");
@@ -274,7 +274,7 @@ int main()
     // the stand-in racks hold no notes where the frozen clip doesn't play
     {
         Song s;
-        s.machine(0, "Bias");
+        s.machine(0, "Zork");
         s.frozen(0, "10");
         s.scenes({"10", "20"});
         s.clip(0, 0, 12, true);
@@ -297,7 +297,7 @@ int main()
     // kept as it is
     {
         Song s;
-        s.machine(0, "Bias");
+        s.machine(0, "Zork");
         s.frozen(0, "10");
         s.raw("ClearFrozen");
         s.machine(1, "Trinity");
@@ -316,7 +316,7 @@ int main()
     // its clip counts as having no machine
     {
         Song s;
-        s.machine(0, "Bias");
+        s.machine(0, "Zork");
         s.frozen(0, "10");
         s.raw("UnmountMachine 0");
         s.machine(1, "Trinity");

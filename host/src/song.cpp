@@ -1152,8 +1152,6 @@ bool Core::load_song(const std::string& path, const std::string& songs_dir_in, c
     // Which racks play their frozen clips, and the lines left out for it.
     FrozenHost fh;
     fh.can_run = [](const std::string& m) {
-        if(m == "Bias")
-            return false;
         for(int32_t i = 0; i < MachineRegistry::count(); ++i)
             if(m == MachineRegistry::name(i))
                 return true;

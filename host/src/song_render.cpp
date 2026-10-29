@@ -179,8 +179,6 @@ int main(int argc, char** argv)
     replay.afterLine = [](int) { pull_blocks(1); };
     core::FrozenHost fh;
     fh.can_run = [](const std::string& m) {
-        if(m == "Bias")
-            return false;
         for(int32_t i = 0; i < acidulous::MachineRegistry::count(); ++i)
             if(m == acidulous::MachineRegistry::name(i))
                 return true;
