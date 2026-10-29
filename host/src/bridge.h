@@ -90,7 +90,7 @@
 //   /shape s:path                      a file's length and shape, for the picker
 //   /hear [s:path]                     plays a file once over everything, up
 //        to 30 seconds of it; no path stops it
-//   /song_load s:path [s:songs_dir]    a song zip from the app, unpacked
+//   /song_load s:path [s:songs_dir [s:frozen]]   a song zip from the app, unpacked
 //        into songs_dir/<zip name>/ (default ~/dust/data/acidulous/songs,
 //        else a folder under ~/dust/data), or a folder holding one already
 //        unpacked. Every part is emptied, then its engine.txt replayed
@@ -106,7 +106,17 @@
 //        audio stopping during the replay) loads the song before it again
 //        from its folder, unless the new one replaced it; if that can't be
 //        done, /song_unloaded 1 comes before its /song_loaded; the old song's
-//        /song_loaded has the path it was first loaded from. A teardown
+//        /song_loaded has the path it was first loaded from. frozen is
+//        which racks play the zip's frozen clips instead of their notes:
+//        auto (default), notes or frozen. frozen plays every frozen clip
+//        as the app does, notes drops them, and auto freezes the racks
+//        whose machine is missing or can't run, the costliest ones in a
+//        scene over 60% (docs/machines.md) and, when the song is over the
+//        sample budget, racks whose clips cover all their notes, which then
+//        drop their samples and machine. A frozen rack that loses its
+//        machine holds a Reflux instead (the engine plays no rack without
+//        one) and is an empty part to the script. A rack whose machine
+//        can't run is frozen in every mode. A teardown
 //        while the audio is stopped is finished once it's back. The
 //        transport is left stopped
 //   /song_unload                       empties every part and what the song
@@ -191,6 +201,10 @@
 //   /strip i:part f:gain f:pan i:mute i:solo   a song part's channel strip
 //        as /channel takes it (gain 0-1.5 linear, pan 0.5 centre), read back
 //        after a song loads
+//   /song_frozen i:count (i:part i:machine s:track)*count   the parts that
+//        play frozen clips, just before /song_loaded; machine is 0 for a
+//        part with no machine of its own (it plays only its clips, and isn't
+//        in /song_loaded), track is its name in song.json
 //   /song_scenes i:count (s:name s:id s:engine_id i:repeat)*count   the
 //        song's scenes in play order, just before /song_loaded: names and
 //        ids from song.json ("scene N" for one without a name), the engine

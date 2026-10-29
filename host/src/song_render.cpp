@@ -1,6 +1,6 @@
 // Replays a song zip's engine lines into EngineHost and writes a WAV.
 //
-//   acidulous-song [--live SECONDS] <song.zip or folder> <out.wav> [seconds] [tail] [bits]
+//   acidulous-song [--live SECONDS] [--frozen auto|notes|frozen] <song.zip or folder> <out.wav> [seconds] [tail] [bits]
 //
 // The lines are engine.txt in the zip (unpacked with unzip into a scratch
 // folder) or the folder. Each line is the app's own JNI call, made through
@@ -13,10 +13,16 @@
 // transport from scene 0 instead and pulls SECONDS of blocks through the
 // driver, as the plugin hears it, always float.
 //
+// --frozen picks which racks play the zip's frozen clips (default frozen, as
+// the app plays them; see song_frozen.h). The sample budget isn't applied.
+//
 // Tracks render on the calling thread, as in the plugin (ACIDULOUS_WORKERS=0
 // unless set).
+#include "song_frozen.h"
+
 #include <drivers/AudioDriver.h>
 #include <EngineHost.h>
+#include <engine/machine/MachineRegistry.h>
 #include <jni.h>
 #include <platform/lines/EngineLines.h>
 
@@ -87,19 +93,28 @@ std::string shell_quote(const std::string& s)
 int main(int argc, char** argv)
 {
     float live = -1.f;
+    core::FrozenMode frozen = core::FrozenMode::Frozen;
     std::vector<std::string> rest;
     for(int k = 1; k < argc; ++k)
     {
         const std::string a = argv[k];
         if(a == "--live" && k + 1 < argc)
             live = std::strtof(argv[++k], nullptr);
+        else if(a == "--frozen" && k + 1 < argc)
+        {
+            if(!core::parse_frozen_mode(argv[++k], frozen))
+            {
+                std::fprintf(stderr, "acidulous-song: --frozen takes auto, notes or frozen\n");
+                return 2;
+            }
+        }
         else
             rest.push_back(a);
     }
     if(rest.size() < 2)
     {
         std::fprintf(stderr,
-                     "usage: acidulous-song [--live SECONDS] <song.zip or folder> <out.wav> [seconds] [tail] [bits]\n");
+                     "usage: acidulous-song [--live SECONDS] [--frozen auto|notes|frozen] <song.zip or folder> <out.wav> [seconds] [tail] [bits]\n");
         return 2;
     }
     const std::string in      = rest[0];
@@ -162,7 +177,20 @@ int main(int argc, char** argv)
     // line after a mount (LoadNexusPatch, BuildCloud) needs the machine in
     // place. It also keeps the 512-entry parameter queue from filling.
     replay.afterLine = [](int) { pull_blocks(1); };
-    if(!acidulous::lines::replay(text.str(), replay))
+    core::FrozenHost fh;
+    fh.can_run = [](const std::string& m) {
+        if(m == "Bias")
+            return false;
+        for(int32_t i = 0; i < acidulous::MachineRegistry::count(); ++i)
+            if(m == acidulous::MachineRegistry::name(i))
+                return true;
+        return false;
+    };
+    const core::FrozenChoice pick = core::choose_frozen(text.str(), frozen, fh);
+    if(!pick.frozen.empty())
+        std::fprintf(stderr, "acidulous-song: %zu racks play frozen clips, %zu without a machine\n", pick.frozen.size(),
+                     pick.no_machine.size());
+    if(!acidulous::lines::replay(pick.text, replay))
     {
         jniweb::arena().clear();
         Java_com_rm_acidulous_engine_EngineNative_nativeStop(&env, nullptr);

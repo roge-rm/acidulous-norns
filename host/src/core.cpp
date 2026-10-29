@@ -861,10 +861,13 @@ bool Core::command(const std::string& path, const Args& a)
     }
     if(path == "/song_load" && a.size() >= 1)
     {
-        // s:path [s:songs_dir]. Every part waits behind it.
+        // s:path [s:songs_dir [s:frozen mode]]. Every part waits behind it.
         // load_song checks the folder and fills in the default.
         std::string dir = a.size() > 1 ? to_str(a[1]) : std::string();
-        post_all([this, p = to_str(a[0]), dir] { load_song(p, dir); });
+        FrozenMode  mode = FrozenMode::Auto;
+        if(a.size() > 2 && !parse_frozen_mode(to_str(a[2]), mode))
+            error("song: frozen clips are auto, notes or frozen, not " + to_str(a[2]));
+        post_all([this, p = to_str(a[0]), dir, mode] { load_song(p, dir, "", mode); });
         return true;
     }
     if(path == "/song_unload")

@@ -794,6 +794,8 @@ void Core::clear_song(bool quiet)
     song_from.clear();
     song_scenes.clear();
     song_zones.clear();
+    for(bool& b : song_standin)
+        b = false;
     song_on.store(false);
     wait_applied();
     teardown_dirty = !moving || !next_block() || any_stray();
@@ -1017,7 +1019,8 @@ struct Stalled
 // rack back. Replies /song_loaded. Worker thread, with every part pending.
 // Anything refused before the replay leaves what's loaded, and the song's
 // old folder, as they were.
-bool Core::load_song(const std::string& path, const std::string& songs_dir_in, const std::string& reloading_as)
+bool Core::load_song(const std::string& path, const std::string& songs_dir_in, const std::string& reloading_as,
+                     FrozenMode mode)
 {
     const bool reloading = !reloading_as.empty();
     std::string folder, staged;
@@ -1026,6 +1029,7 @@ bool Core::load_song(const std::string& path, const std::string& songs_dir_in, c
     // were emptied, unless its folder was replaced. touched: the parts were
     // emptied.
     const std::string old_folder = song_folder, old_from = song_from;
+    const FrozenMode  old_mode   = song_mode;
     bool              old_intact = true, touched = false;
     const auto        fail       = [&](const std::string& what) {
         if(!staged.empty())
@@ -1039,7 +1043,7 @@ bool Core::load_song(const std::string& path, const std::string& songs_dir_in, c
             if(!old_folder.empty() && old_intact && is_dir(old_folder))
             {
                 std::fprintf(stderr, "acidulous: song: loading %s again\n", old_folder.c_str());
-                back = load_song(old_folder, "", old_from.empty() ? old_folder : old_from);
+                back = load_song(old_folder, "", old_from.empty() ? old_folder : old_from, old_mode);
             }
             if(!back)
                 reply("/song_unloaded", {Value::i(1)});
@@ -1140,10 +1144,25 @@ bool Core::load_song(const std::string& path, const std::string& songs_dir_in, c
     std::vector<uint8_t> bytes;
     if(!read_all(from + "/engine.txt", bytes, kMaxSongBytes, why))
         return fail("no engine.txt in " + folder);
-    const std::string text(bytes.begin(), bytes.end());
+    const std::string whole(bytes.begin(), bytes.end());
     bytes = {};
-    if(!engine_lines(text))
+    if(!engine_lines(whole))
         return fail("not engine lines");
+
+    // Which racks play their frozen clips, and the lines left out for it.
+    FrozenHost fh;
+    fh.can_run = [](const std::string& m) {
+        if(m == "Bias")
+            return false;
+        for(int32_t i = 0; i < MachineRegistry::count(); ++i)
+            if(m == MachineRegistry::name(i))
+                return true;
+        return false;
+    };
+    fh.audio_bytes = [&](const std::string& t) { return song_audio(t, from, kHeldSlots).total(); };
+    fh.budget      = sample_budget_bytes();
+    const FrozenChoice pick = choose_frozen(whole, mode, fh);
+    const std::string& text = pick.text;
 
     // The song's audio against the sample budget, before anything goes.
     const SongAudio audio = song_audio(text, from, kHeldSlots);
@@ -1213,6 +1232,7 @@ bool Core::load_song(const std::string& path, const std::string& songs_dir_in, c
         pre_song_send[s] = send_mounted[s];
     song_folder = folder;
     song_from   = reloading ? reloading_as : path;
+    song_mode   = mode;
 
     // Each line's text by number, for noting the mounts that landed.
     std::vector<std::pair<size_t, size_t>> line_at;
@@ -1275,6 +1295,11 @@ bool Core::load_song(const std::string& path, const std::string& songs_dir_in, c
 
     // The app's tracks, in rack order.
     const Json* tracks = song.get("tracks");
+    for(bool& b : song_standin)
+        b = false;
+    for(int r : pick.no_machine)
+        if(r >= 0 && r < kParts)
+            song_standin[r] = true;
     Args        list;
     int         count = 0;
     for(int r = 0; r < kParts; ++r)
@@ -1337,6 +1362,26 @@ bool Core::load_song(const std::string& path, const std::string& songs_dir_in, c
     send_scenes();
     Args out{Value::s(song_from), Value::s(folder), Value::s(""), Value::i(replay.skipped), Value::i(count)};
     out.insert(out.end(), list.begin(), list.end());
+    // The racks playing their frozen clips: part, whether it still has a
+    // machine, and its track's name.
+    {
+        Args fr;
+        int  n = 0;
+        for(int r : pick.frozen)
+        {
+            if(r < 0 || r >= kParts)
+                continue;
+            const Json* track = tracks && tracks->kind == Json::Array && size_t(r) < tracks->items.size()
+                                    ? &tracks->items[size_t(r)]
+                                    : nullptr;
+            fr.push_back(Value::i(r));
+            fr.push_back(Value::i(parts[r].machine.empty() ? 0 : 1));
+            fr.push_back(Value::s(track ? track->text("name") : std::string()));
+            ++n;
+        }
+        fr.insert(fr.begin(), Value::i(n));
+        reply("/song_frozen", fr);
+    }
     reply("/song_master", {Value::f(master < 0.f ? 1.f : master)});
     // The song's Reverb size and Delay feedback, 0-1, or -1 for a send it
     // doesn't have.
@@ -1449,7 +1494,8 @@ bool Core::song_position(Args& out) const
 void Core::read_back(int r, const void* track_ptr)
 {
     const Json* track   = static_cast<const Json*>(track_ptr);
-    const char* mounted = host.mountedMachine(r);
+    // A stand-in machine holds the rack for its frozen clips only (song_frozen.h).
+    const char* mounted = song_standin[r] ? nullptr : host.mountedMachine(r);
     parts[r]            = Part{};
     parts[r].machine    = mounted ? mounted : "";
     patch_fx[r]         = PatchTrackState{};

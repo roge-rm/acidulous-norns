@@ -52,7 +52,7 @@ target_link_libraries(acidulous-engine PUBLIC Threads::Threads)
 # Also linked into the SuperCollider plugin.
 set_property(TARGET acidulous-engine PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-add_library(acidulous-core STATIC src/core.cpp src/song.cpp)
+add_library(acidulous-core STATIC src/core.cpp src/song.cpp src/song_frozen.cpp)
 target_compile_options(acidulous-core PRIVATE -Wall)
 target_link_libraries(acidulous-core PUBLIC acidulous-lines acidulous-engine)
 set_property(TARGET acidulous-core PROPERTY POSITION_INDEPENDENT_CODE ON)
@@ -72,7 +72,8 @@ target_compile_options(acidulous-lines PRIVATE -w)
 target_link_libraries(acidulous-lines PUBLIC acidulous-engine)
 set_property(TARGET acidulous-lines PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-add_executable(acidulous-song src/song_render.cpp)
+add_executable(acidulous-song src/song_render.cpp src/song_frozen.cpp)
+target_include_directories(acidulous-song PRIVATE src)
 target_compile_options(acidulous-song PRIVATE -Wall)
 target_link_libraries(acidulous-song acidulous-lines)
 
@@ -95,6 +96,11 @@ target_link_libraries(acidulous-limit-test acidulous-core)
 add_executable(acidulous-preset-test tests/preset_test.cpp)
 target_include_directories(acidulous-preset-test PRIVATE src)
 target_link_libraries(acidulous-preset-test acidulous-core)
+
+# The frozen-clip chooser, with synthetic engine lines.
+add_executable(acidulous-frozen-test tests/frozen_test.cpp src/song_frozen.cpp)
+target_include_directories(acidulous-frozen-test PRIVATE src)
+target_compile_options(acidulous-frozen-test PRIVATE -Wall)
 
 # Loads a song zip through the core and checks every rack.
 add_executable(acidulous-song-test tests/song_test.cpp)

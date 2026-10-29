@@ -28,6 +28,8 @@
 #include <utility>
 #include <vector>
 
+#include "song_frozen.h"
+
 #include <engine/core/Constants.h>
 #include <engine/core/PatchChain.h>
 
@@ -246,7 +248,9 @@ class Core
     // replies nothing but /error when it fails, and replies /song_loaded
     // with this path (the one the old song came from) when it loads. False
     // when it failed.
-    bool load_song(const std::string& path, const std::string& songs_dir, const std::string& reloading_as = "");
+    // mode: which racks play their frozen clips (song_frozen.h).
+    bool load_song(const std::string& path, const std::string& songs_dir, const std::string& reloading_as = "",
+                   FrozenMode mode = FrozenMode::Auto);
     bool any_stray() const;
     void clear_master_inserts();
     void resync_teardown();
@@ -322,6 +326,8 @@ class Core
     // Worker only: the loaded song's folder, "" for none, and the path it
     // was loaded from (a zip, or the folder).
     std::string                      song_folder, song_from;
+    FrozenMode                       song_mode = FrozenMode::Auto; // the loaded song's
+    bool                             song_standin[kParts] = {};    // racks holding a frozen stand-in
     // Worker only: the script's own master params, as its /master sent them
     // while no song was loaded, put back when a song goes.
     std::map<std::string, float>     own_master;

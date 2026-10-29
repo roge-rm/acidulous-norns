@@ -298,9 +298,12 @@ int main(int argc, char** argv)
         }
     });
     const auto cmd = [&](const char* path, core::Args a) { c->command(path, a); };
-    const auto load = [&](const std::string& path, Reply& r) {
+    const auto load = [&](const std::string& path, Reply& r, const std::string& frozen = "") {
         log.clear();
-        cmd("/song_load", {Value::s(path), Value::s(songs)});
+        if(frozen.empty())
+            cmd("/song_load", {Value::s(path), Value::s(songs)});
+        else
+            cmd("/song_load", {Value::s(path), Value::s(songs), Value::s(frozen)});
         return log.wait("/song_loaded", r) && r.args.size() >= 5;
     };
     const auto state = [&](int part, Reply& r) {
@@ -699,7 +702,12 @@ int main(int argc, char** argv)
         check(ok && str(e, 0).find("in use") != std::string::npos, "a /load after it sees the song's sample: " + str(e, 0));
         // The frozen clip's zip unpacks beside the song's sample within the
         // budget, so the song stays until the budget check refuses it.
+        // Auto drops the clip of a song with no arrangement; frozen keeps it.
         ok = load(scratch + "/frozen.zip", r);
+        check(ok && str(r, 2).empty(), "auto leaves out a frozen clip nothing needs: " + str(r, 2));
+        std::system(("rm -rf '" + songs + "/frozen'").c_str());
+        ok = load(scratch + "/forage.zip", r);
+        ok = load(scratch + "/frozen.zip", r, "frozen");
         check(ok && str(r, 2).find("over the 1.0 MB") != std::string::npos, "frozen clips count: " + str(r, 2));
         Reply st;
         state(0, st);
@@ -720,6 +728,30 @@ int main(int argc, char** argv)
         state(0, st);
         check(st.args.size() > 1 && st.args[1].str == "Forage", "part 0 has Forage again");
         unsetenv("ACIDULOUS_SAMPLE_LIMIT_MB");
+    }
+
+    // Frozen racks: a Bias rack (not offered by the plugin) plays its clip
+    // from a stand-in and is an empty part; a Reflux rack keeps its machine.
+    {
+        unsetenv("ACIDULOUS_SAMPLE_LIMIT_MB");
+        const std::string a = wav(4800);
+        write_zip(scratch + "/fz.zip",
+                  {{"engine.txt", "acidulous-engine 4\nClearFrozen\nMountMachine 0 \"Bias\"\nMountMachine 1 \"Reflux\"\n"
+                                  "MountFrozen 0 5 \"zip:a.wav\" 120.0 1536 4800 0 0.1\n"
+                                  "MountFrozen 1 5 \"zip:a.wav\" 120.0 1536 4800 0 0.1\n"},
+                   {"a.wav", a}});
+        for(const char* mode : {"auto", "notes", "frozen"})
+        {
+            Reply r, fr;
+            const bool ok = load(scratch + "/fz.zip", r, mode);
+            check(ok && str(r, 2).empty() && int(r.args[3].num) == 0, std::string("frozen racks load, mode ") + mode + ": " + str(r, 2));
+            check(int(r.args[4].num) == 1 && str(r, 6) == "Reflux", std::string("the Reflux is a part and the Bias rack isn't, mode ") + mode);
+            const bool got = log.wait("/song_frozen", fr);
+            const size_t want = std::string(mode) == "frozen" ? 2 : 1;
+            check(got && size_t(fr.args[0].num) == want && int(fr.args[1].num) == 0 && int(fr.args[2].num) == 0 &&
+                      (want == 1 || (int(fr.args[4].num) == 1 && int(fr.args[5].num) == 1)),
+                  std::string("/song_frozen lists the racks that play clips, mode ") + mode);
+        }
     }
 
     // A song's Mosaic zones are the part's, with absolute paths.

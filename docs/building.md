@@ -86,6 +86,8 @@ host/build/acidulous-song song.zip out.wav [seconds] [tail] [bits]
 host/build/acidulous-song --live 20 song.zip out.wav
 ```
 
+`--frozen auto|notes|frozen` picks which racks play the zip's frozen clips (default `frozen`, as the app does; `notes` plays every rack's notes, and `auto` is what the plugin chooses without the sample budget). `acidulous-frozen-test` checks that choice on made-up engine lines.
+
 By default it renders like the app's export, from the top to the end of the song plus 2 s of tail, as 32-bit float. It should match the app's own render of the same song (`tools/engine_replay.sh` in the app) byte for byte. `--live S` plays the song from the first scene through the plugin's audio driver for S seconds instead, which comes out close but not identical.
 
 `tools/make-keys-sf2.py` makes Mosaic's default, `data/samples/acidulous-soft-horn.sf2`: Trinity's Soft Horn rendered every 6 semitones from C1 to C7, mono at 24 kHz, each with a crossfaded sustain loop.
