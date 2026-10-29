@@ -8,7 +8,7 @@
 -- plugin ignores the script's /tempo and /beat, and norns' clock runs at the
 -- song's tempo when its source is internal, without touching the clock_tempo
 -- param. Unloading puts the clock back and sends the script's parts again.
---   S.add_params()          the hidden "song" param, saved in PSETs
+--   S.add_params()          the hidden "song" param and "frozen clips", saved in PSETs
 --   S.osc(path, args)       the plugin's /song_ replies
 --   S.read()                after a PSET is read; false when its parts
 --                           shouldn't be sent
@@ -25,6 +25,7 @@ local parts
 local loaded = nil  -- the path the loaded song came from
 local folder = nil  -- where the plugin unpacked it
 local loading = nil -- the path asked for, until /song_loaded
+local frozen = {}   -- {part, machine, name} per part playing frozen clips, from /song_frozen
 local scenes = {}   -- {name, id, repeats}, in play order
 local pos = {playing = false, scene = 0, pass = 0, queued = -1, bpm = nil}
 local cursor = 1    -- the scene E2 is on
@@ -101,9 +102,14 @@ reset = function()
   if was then load_later(0.5, was) end
 end
 
+-- Which racks play the zip's frozen clips instead of their notes; read when
+-- a song loads.
+S.FROZEN = {"auto", "notes", "frozen"}
+
 function S.add_params()
   params:add_text("song", "song", "")
   params:hide("song")
+  params:add_option("song_frozen", "frozen clips", S.FROZEN, 1)
 end
 
 load_later = function(wait, path)
@@ -119,7 +125,7 @@ function S.load(path)
   cancel_pending()
   loading = path
   parts.song_load_started(path == loaded)
-  parts.send("/song_load", {path})
+  parts.send("/song_load", {path, "", S.FROZEN[params:get("song_frozen")] or "auto"})
   hold(true, true)
 end
 
@@ -169,6 +175,13 @@ function S.osc(path, args)
       scenes[#scenes + 1] = {name = args[k] or "", id = args[k + 1] or "", repeats = args[k + 3] or 1}
       k = k + 4
     end
+  elseif path == "/song_frozen" then
+    frozen = {}
+    local k = 2
+    for _ = 1, args[1] or 0 do
+      frozen[#frozen + 1] = {part = args[k], machine = args[k + 1] == 1, name = args[k + 2] or ""}
+      k = k + 3
+    end
   elseif path == "/song_loaded" then
     local err = args[3] or ""
     if args[1] == loading then loading = nil end
@@ -195,7 +208,8 @@ function S.osc(path, args)
       tracks[#tracks + 1] = {part = args[k], machine = args[k + 1], patch = args[k + 2], name = args[k + 3] or ""}
       k = k + 4
     end
-    parts.song_loaded(tracks)
+    parts.song_loaded(tracks, frozen)
+    frozen = {}
     pos = {playing = false, scene = 0, pass = 0, queued = -1, bpm = nil}
     cursor = 1
     parts.send("/song_position", {})

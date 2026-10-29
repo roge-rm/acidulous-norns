@@ -2588,7 +2588,9 @@ end
 
 -- The song loaded: tracks is {part, machine, patch, name} per rack with a
 -- machine. The rest are empty. Each track plays from MIDI channel n.
-function P.song_loaded(tracks)
+-- frozen: {part, machine, name} per rack playing frozen clips; one with no
+-- machine of its own shows as frozen.
+function P.song_loaded(tracks, frozen)
   P.song_reading = false
   -- the load emptied the script parts' own inserts
   for _, part in ipairs(own) do part.insert_sent = {} end
@@ -2609,6 +2611,15 @@ function P.song_loaded(tracks)
       part.name = nil
     end
     part.channel = get(part, "channel") - 1
+    part.frozen = false
+  end
+  for _, f in ipairs(frozen or {}) do
+    local part = P.song[f.part + 1]
+    if part then
+      part.frozen = true
+      if not f.machine and f.name ~= "" then part.name = f.name end
+      if part.n > 8 then wide = true end
+    end
   end
   P.song_wide = wide
   P.song_view = true

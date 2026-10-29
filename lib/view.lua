@@ -55,9 +55,11 @@ function view.main(parts, state, note)
     local y = 13 + 7 * (k - 1)
     local on = i == state.sel
     if on then fill_rect(0, y - 6, 128, 7, 3) end
-    local b = part.machine and (on and 15 or 7) or (on and 8 or 2)
-    local sounding = part.machine and (part.held > 0 or meter(part.level) > 0.1)
-    fill_rect(0, y - 5, 2, 5, sounding and 15 or (part.machine and 6 or 1))
+    -- a frozen part with no machine of its own still plays
+    local live = part.machine or part.frozen
+    local b = live and (on and 15 or 7) or (on and 8 or 2)
+    local sounding = live and (part.held > 0 or meter(part.level) > 0.1)
+    fill_rect(0, y - 5, 2, 5, sounding and 15 or (live and 6 or 1))
     screen.level(b)
     text(first > 1 and 3 or 4, y, tostring(i))
     if part.machine then
@@ -74,8 +76,15 @@ function view.main(parts, state, note)
       else
         -- a song track with no patch name shows its machine
         local patch = part.patch or (part.name and part.machine) or ""
-        text(44, y, fit(patch:lower(), 68))
+        text(44, y, fit(patch:lower(), part.frozen and 56 or 68))
+        -- a part playing frozen clips
+        if part.frozen then text(112, y, "fz", "right") end
       end
+    elseif part.frozen then
+      if on and state.k1 then screen.level(15) end
+      text(mx, y, part.name and fit(part.name:lower(), mw) or "frozen")
+      screen.level(math.max(1, b - 3))
+      if part.name then text(44, y, "frozen") end
     else
       text(mx, y, part.name and fit(part.name:lower(), mw) or "-")
     end

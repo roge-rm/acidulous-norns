@@ -55,6 +55,21 @@ if which == "1" then
   CHECK(FIND("/patch", function(a) return a[1] == 0 and a[3] == "Third" end) ~= nil, "after a refused load part 1 gets /patch Third")
   CHECK(FIND("/mount", function(a) return a[1] == 1 and a[2] == "Bare" end) ~= nil, "and part 2 gets /mount Bare")
   CHECK(not P.own[1].owed and not P.own[2].owed, "and nothing is owed")
+  -- frozen clips: the param is sent, and a part with no machine shows frozen
+  SENT_CLEAR()
+  params:set("song_frozen", 3)
+  S.load("F")
+  CHECK(FIND("/song_load", function(a) return a[1] == "F" and a[3] == "frozen" end) ~= nil, "/song_load carries the frozen clips mode")
+  P.osc("/song_frozen", {2, 0, 0, "lead", 1, 1, "bass"})
+  readback("F", {{1, "Reflux", "Squelch", "bass"}})
+  CHECK(P.song[1].frozen and not P.song[1].machine and P.song[1].name == "lead", "a frozen part with no machine is marked and named")
+  CHECK(P.song[2].frozen and P.song[2].machine == "Reflux", "a frozen part with a machine is marked")
+  CHECK(not P.song[3].frozen, "other parts aren't")
+  params:set("song_frozen", 1)
+  S.load("G")
+  CHECK(FIND("/song_load", function(a) return a[1] == "G" and a[3] == "auto" end) ~= nil, "auto is sent by default")
+  readback("G", {{0, "Reflux", "Squelch", "bass"}})
+  CHECK(not P.song[1].frozen and not P.song[2].frozen, "a song with no frozen parts marks none")
 elseif which == "2" then
   -- inserts, modifiers and files changed during a song-page load from no song
   local drive = {name = "drive", value = 0.2}
