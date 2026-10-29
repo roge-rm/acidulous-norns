@@ -69,10 +69,35 @@ std::vector<std::string> first_words(const std::string& line, size_t max)
     return out;
 }
 
+// Where the nth word of a line starts, quotes counted as one word.
+size_t word_start(const std::string& line, size_t n)
+{
+    size_t i = 0;
+    for(size_t k = 0;; ++k)
+    {
+        while(i < line.size() && line[i] == ' ')
+            ++i;
+        if(k == n || i >= line.size())
+            return i;
+        if(line[i] == '"')
+        {
+            for(++i; i < line.size() && line[i] != '"'; ++i)
+                if(line[i] == '\\')
+                    ++i;
+            ++i;
+        }
+        else
+            while(i < line.size() && line[i] != ' ')
+                ++i;
+    }
+}
+
 enum class Kind
 {
     Other,
     Machine,   // MountMachine
+    Unmount,   // UnmountMachine
+    Clear,     // ClearFrozen
     Param,     // SetParam of the machine's own values
     Load,      // a call that loads a rack's samples or patch into its machine
     Frozen,    // MountFrozen
@@ -131,6 +156,14 @@ FrozenChoice choose_frozen(const std::string& text, FrozenMode mode, const Froze
                 l.name = w[2];
                 machine_of[l.rack] = w[2];
             }
+            else if(call == "UnmountMachine" && w.size() >= 2)
+            {
+                l.kind = Kind::Unmount;
+                l.rack = rack(1);
+                machine_of.erase(l.rack);
+            }
+            else if(call == "ClearFrozen")
+                l.kind = Kind::Clear;
             else if(call == "SetParam" && w.size() >= 3 && w[2] == "machine")
             {
                 l.kind = Kind::Param;
@@ -161,6 +194,7 @@ FrozenChoice choose_frozen(const std::string& text, FrozenMode mode, const Froze
             {
                 // handle rack scene rev bars playMode mute seed notes
                 l.kind = Kind::Clip;
+                l.rack = rack(2);
                 if(w[7] != "true" && w[9].compare(0, 2, "i[") == 0 && std::atoi(w[9].c_str() + 2) > 0)
                     building.clips.insert({rack(2), rack(3)});
             }
@@ -176,8 +210,12 @@ FrozenChoice choose_frozen(const std::string& text, FrozenMode mode, const Froze
     // The racks with frozen clips, and the scene ids they have one in.
     std::map<int, std::set<std::string>> clips_of;
     for(const Line& l : lines)
-        if(l.kind == Kind::Frozen)
+    {
+        if(l.kind == Kind::Clear)
+            clips_of.clear();
+        else if(l.kind == Kind::Frozen)
             clips_of[l.rack].insert(l.name);
+    }
 
     std::set<int> forced, frozen;
     for(const auto& kv : clips_of)
@@ -209,7 +247,8 @@ FrozenChoice choose_frozen(const std::string& text, FrozenMode mode, const Froze
                     const bool here = has != clips_of.end() && has->second.count(id);
                     if(frozen.count(c.first) && here)
                         continue;
-                    const double cost = machine_cost(machine_of.count(c.first) ? machine_of[c.first] : "");
+                    const auto   m    = machine_of.find(c.first);
+                    const double cost = m == machine_of.end() ? 0.0 : machine_cost(m->second);
                     sum += cost;
                     if(here && !frozen.count(c.first) && cost > worst_cost)
                         worst = c.first, worst_cost = cost;
@@ -237,10 +276,15 @@ FrozenChoice choose_frozen(const std::string& text, FrozenMode mode, const Froze
             // The engine only plays a rack that has a machine, so a rack
             // without one holds the stand-in, and the machine's own values
             // and loads go.
+            // The stand-in plays nothing: its clips lose their notes (the
+            // mute flag stays, a muted clip turns frozen playback off) and an
+            // UnmountMachine of it goes.
             if(lost && l.kind == Kind::Machine)
                 stand_in(l.rack);
-            else if(lost && (l.kind == Kind::Load || l.kind == Kind::Param))
+            else if(lost && (l.kind == Kind::Load || l.kind == Kind::Param || l.kind == Kind::Unmount))
                 continue;
+            else if(lost && l.kind == Kind::Clip)
+                out += l.text.substr(0, word_start(l.text, 9)) + "i[0:] f[0:] null\n";
             else
             {
                 if(lost && l.kind == Kind::Frozen && !machine_of.count(l.rack))
@@ -251,7 +295,7 @@ FrozenChoice choose_frozen(const std::string& text, FrozenMode mode, const Froze
         return out;
     };
 
-    if(host.audio_bytes && host.budget > 0)
+    if(mode == FrozenMode::Auto && host.audio_bytes && host.budget > 0)
     {
         std::string now   = build();
         int64_t     total = host.audio_bytes(now);

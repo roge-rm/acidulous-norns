@@ -61,6 +61,7 @@ struct Song
         text += "SnapshotSetClip @0 " + std::to_string(rack) + " " + std::to_string(scene) + " 1 2 0 " +
                 (mute ? "true" : "false") + " 0 i[" + std::to_string(notes) + ": 0 120 36 120 0 100] f[0:] null\n";
     }
+    void raw(const std::string& line) { text += line + "\n"; }
     void commit() { text += "SnapshotCommit @0\n"; }
 };
 
@@ -198,6 +199,9 @@ int main()
                   "their Load lines and machine values are gone");
             check(has(f.text, "SetParam 0 \"channel\" \"p1\" 0.5 false 0"), "their channel strip stays");
             check(has(f.text, "MountMachine 2 \"Reflux\""), "a machine that runs stays");
+            check(has(f.text, "SnapshotSetClip @0 0 0 1 2 0 false 0 i[0:] f[0:] null") &&
+                      f.text.find("i[12:") == std::string::npos,
+                  "a stand-in's clips lose their notes and keep the rest");
             check(f.text.find("MountFrozen 0 ") != std::string::npos && f.text.find("MountFrozen 4 ") != std::string::npos,
                   "their clips stay");
             check((m == FrozenMode::Frozen) == (f.text.find("MountFrozen 2 ") != std::string::npos),
@@ -207,12 +211,14 @@ int main()
 
     // the sample budget: the audio is the samples of racks that have a
     // machine plus the clips kept. Rack 0 (4 MB of samples) has a frozen clip
-    // in its only scene, rack 1 (3 MB) has notes in a second scene too.
+    // in its only scene, rack 1 (3 MB) has notes in a second scene too. Two
+    // Cumulus are over 60 in scene 10, so auto freezes rack 0 (the swap is
+    // auto's only).
     {
         Song s;
-        s.machine(0, "Forage");
+        s.machine(0, "Cumulus");
         s.sample(0, 4000);
-        s.machine(1, "Forage");
+        s.machine(1, "Cumulus");
         s.sample(1, 3000);
         s.frozen(0, "10");
         s.frozen(1, "10");
@@ -240,29 +246,105 @@ int main()
             return sum;
         };
         h.budget = 100000;
-        auto fits = choose_frozen(s.text, FrozenMode::Frozen, h);
-        check(fits.text == s.text && fits.no_machine.empty(), "under the budget nothing is swapped");
-        h.budget = 8000; // 7000 + 1000 of clips = 8000: fits exactly
-        check(choose_frozen(s.text, FrozenMode::Frozen, h).no_machine.empty(), "exactly at the budget is fine");
+        auto fits = choose_frozen(s.text, FrozenMode::Auto, h);
+        check(fits.no_machine.empty(), "under the budget nothing is swapped");
+        h.budget = 7500; // 7000 + 500 for rack 0's clip fits exactly
+        check(choose_frozen(s.text, FrozenMode::Auto, h).no_machine.empty(), "exactly at the budget is fine");
         h.budget = 5000;
-        auto f = choose_frozen(s.text, FrozenMode::Frozen, h);
+        auto f = choose_frozen(s.text, FrozenMode::Auto, h);
         check(f.no_machine == std::vector<int>({0}), "rack 0 is covered and drops its samples");
         check(f.text.find("LoadSample 0") == std::string::npos && has(f.text, "MountMachine 0 \"Reflux\"") &&
-                  !has(f.text, "MountMachine 0 \"Forage\""),
+                  !has(f.text, "MountMachine 0 \"Cumulus\""),
               "it holds the stand-in and its LoadSample is gone");
-        check(has(f.text, "MountMachine 1 \"Forage\""), "rack 1 has notes in a scene without a clip and stays");
+        check(has(f.text, "MountMachine 1 \"Cumulus\""), "rack 1 has notes in a scene without a clip and stays");
         h.budget = 100;
-        f = choose_frozen(s.text, FrozenMode::Frozen, h);
+        f = choose_frozen(s.text, FrozenMode::Auto, h);
         check(f.no_machine == std::vector<int>({0}), "still over: only what's covered is swapped");
         check(h.audio_bytes(f.text) > h.budget, "and the caller sees it's over");
         // notes mode drops the clips, and nothing is covered
         h.budget = 5000;
         f = choose_frozen(s.text, FrozenMode::Notes, h);
         check(f.no_machine.empty(), "notes mode swaps nothing");
-        // auto with the heavy racks gets the same swap for racks it froze
+        // frozen mode never swaps
         h.budget = 5000;
-        f = choose_frozen(s.text, FrozenMode::Auto, h);
-        check(f.no_machine.empty() && f.frozen.empty(), "auto with a light song freezes nothing and swaps nothing");
+        f = choose_frozen(s.text, FrozenMode::Frozen, h);
+        check(f.no_machine.empty(), "frozen mode swaps nothing");
+    }
+
+    // the stand-in racks hold no notes where the frozen clip doesn't play
+    {
+        Song s;
+        s.machine(0, "Bias");
+        s.frozen(0, "10");
+        s.scenes({"10", "20"});
+        s.clip(0, 0, 12, true);
+        s.clip(0, 1);
+        s.commit();
+        auto f = choose_frozen(s.text, FrozenMode::Notes, host_for());
+        check(has(f.text, "SnapshotSetClip @0 0 0 1 2 0 true 0 i[0:] f[0:] null") &&
+                  has(f.text, "SnapshotSetClip @0 0 1 1 2 0 false 0 i[0:] f[0:] null"),
+              "a muted clip stays muted, the others stay unmuted, all empty");
+        check(has(f.text, "SnapshotSetClipCached @0 0 1 1"), "the cached line stays");
+    }
+    // a rack that keeps its machine keeps its notes
+    {
+        const Song s = busy();
+        auto       f = choose_frozen(s.text, FrozenMode::Frozen, host_for());
+        check(f.text.find("i[0:]") == std::string::npos, "racks with their machine keep their notes");
+    }
+
+    // ClearFrozen forgets the clips before it; one after a MountFrozen is
+    // kept as it is
+    {
+        Song s;
+        s.machine(0, "Bias");
+        s.frozen(0, "10");
+        s.raw("ClearFrozen");
+        s.machine(1, "Trinity");
+        s.frozen(1, "10");
+        s.scenes({"10"});
+        s.clip(0, 0);
+        s.clip(1, 0);
+        s.commit();
+        auto f = choose_frozen(s.text, FrozenMode::Frozen, host_for());
+        check(f.frozen == std::vector<int>({1}), "a cleared clip's rack isn't frozen");
+        check(f.no_machine.empty(), "and isn't forced to the stand-in");
+        check(has(f.text, "ClearFrozen"), "the ClearFrozen line stays");
+    }
+
+    // an UnmountMachine of a stand-in rack goes, and a rack unmounted before
+    // its clip counts as having no machine
+    {
+        Song s;
+        s.machine(0, "Bias");
+        s.frozen(0, "10");
+        s.raw("UnmountMachine 0");
+        s.machine(1, "Trinity");
+        s.raw("UnmountMachine 1");
+        s.frozen(1, "10");
+        s.scenes({"10"});
+        s.clip(0, 0);
+        s.commit();
+        auto f = choose_frozen(s.text, FrozenMode::Notes, host_for());
+        check(f.text.find("UnmountMachine") == std::string::npos, "the stand-in is not unmounted");
+        check(f.no_machine == std::vector<int>({0, 1}), "both racks hold the stand-in");
+        check(has(f.text, "MountMachine 1 \"Reflux\"") && !has(f.text, "MountMachine 1 \"Trinity\""),
+              "rack 1 has no machine from its UnmountMachine on");
+    }
+
+    // a rack with notes and no MountMachine costs nothing
+    {
+        Song t;
+        t.machine(0, "Trinity");
+        t.machine(1, "Ratio");
+        t.frozen(1, "10");
+        t.scenes({"10"});
+        t.clip(0, 0);
+        t.clip(1, 0);
+        for(int r = 2; r < 6; ++r)
+            t.clip(r, 0); // four racks with no machine: 45.8 stays under 60 only if they cost 0
+        t.commit();
+        check(choose_frozen(t.text, FrozenMode::Auto, host_for()).frozen.empty(), "racks with no machine cost 0");
     }
 
     // no snapshot, and an empty song

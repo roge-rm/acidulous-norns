@@ -1,6 +1,6 @@
 local here = arg[0]:match("^(.*)/[^/]+$")
 local which = arg[2]
-local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12"}
+local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12", "13"}
 if not which then
   -- every case, each in a fresh run
   local failed = 0
@@ -356,6 +356,33 @@ elseif which == "12" then
   ADVANCE(0.5)
   CHECK(FIND("/insert", function(a) return a[1] == 0 and a[2] == 2 and a[3] == "Delay" end) ~= nil,
     "and goes with the next machine")
+elseif which == "13" then
+  -- the frozen clips mode loads a loaded song again
+  S.load("A")
+  readback("A", A)
+  SENT_CLEAR()
+  params:set("song_frozen", 2)
+  CHECK(not FIND("/song_load"), "the reload waits")
+  ADVANCE(1)
+  CHECK(FIND("/song_load", function(a) return a[1] == "A" and a[3] == "notes" end) ~= nil, "a new mode in the menu loads the song again")
+  readback("A", A)
+  SENT_CLEAR()
+  -- a PSET: same song, another mode
+  params:set("song", "A", true)
+  params:set("song_frozen", 3, true)
+  CHECK(S.read() == false, "the PSET reads")
+  CHECK(not FIND("/song_load"), "the reload waits")
+  ADVANCE(1)
+  local n = 0
+  for _, m in ipairs(SENT) do if m.path == "/song_load" then n = n + 1 end end
+  CHECK(n == 1 and FIND("/song_load", function(a) return a[1] == "A" and a[3] == "frozen" end) ~= nil,
+    "a PSET with the same song and another mode loads it once, in that mode")
+  readback("A", A)
+  SENT_CLEAR()
+  params:set("song", "A", true)
+  S.read()
+  ADVANCE(1)
+  CHECK(not FIND("/song_load"), "and the same mode again loads nothing")
 end
 print(FAILS == 0 and "all ok" or (FAILS .. " failed"))
 os.exit(FAILS == 0 and 0 or 1)

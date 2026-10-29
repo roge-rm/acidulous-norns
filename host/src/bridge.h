@@ -115,7 +115,8 @@
 //        sample budget, racks whose clips cover all their notes, which then
 //        drop their samples and machine. A frozen rack that loses its
 //        machine holds a Reflux instead (the engine plays no rack without
-//        one) and is an empty part to the script. A rack whose machine
+//        one) and is an empty part to the script; its clips have no
+//        notes, so it plays only where it has a frozen clip. A rack whose machine
 //        can't run is frozen in every mode. A teardown
 //        while the audio is stopped is finished once it's back. The
 //        transport is left stopped

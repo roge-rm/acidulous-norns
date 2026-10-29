@@ -25,6 +25,7 @@ local parts
 local loaded = nil  -- the path the loaded song came from
 local folder = nil  -- where the plugin unpacked it
 local loading = nil -- the path asked for, until /song_loaded
+local sent_mode = nil -- the frozen clips mode of the last /song_load
 local frozen = {}   -- {part, machine, name} per part playing frozen clips, from /song_frozen
 local scenes = {}   -- {name, id, repeats}, in play order
 local pos = {playing = false, scene = 0, pass = 0, queued = -1, bpm = nil}
@@ -89,7 +90,7 @@ function S.cleanup() give_back_tempo() end
 reset = function()
   -- a PSET's song still waiting to be sent counts as asked for
   local was = pending_path or loading or loaded
-  loaded, folder, loading, scenes = nil, nil, nil, {}
+  loaded, folder, loading, scenes, sent_mode = nil, nil, nil, {}, nil
   pos = {playing = false, scene = 0, pass = 0, queued = -1, bpm = nil}
   parts.song_master, parts.song_sends = nil, nil
   quiet_unload, parts_owed = false, false
@@ -110,7 +111,15 @@ function S.add_params()
   params:add_text("song", "song", "")
   params:hide("song")
   params:add_option("song_frozen", "frozen clips", S.FROZEN, 1)
+  -- a new mode loads the song again; a PSET read sets it silently and
+  -- S.read handles that
+  params:set_action("song_frozen", function()
+    local path = pending_path or loading or loaded
+    if path and (pending_path or sent_mode ~= S.mode()) then load_later(0.5, path) end
+  end)
 end
+
+function S.mode() return S.FROZEN[params:get("song_frozen")] or "auto" end
 
 load_later = function(wait, path)
   cancel_pending()
@@ -125,7 +134,8 @@ function S.load(path)
   cancel_pending()
   loading = path
   parts.song_load_started(path == loaded)
-  parts.send("/song_load", {path, "", S.FROZEN[params:get("song_frozen")] or "auto"})
+  sent_mode = S.mode()
+  parts.send("/song_load", {path, "", sent_mode})
   hold(true, true)
 end
 
@@ -148,6 +158,8 @@ function S.read()
   -- the PSET's master level is the script's; the out strip keeps the song's
   if want ~= "" and want == loaded then
     cancel_pending()
+    -- a PSET with another frozen clips mode loads the song again
+    if sent_mode ~= S.mode() then load_later(0.2, want) end
     return false
   end
   if want == "" then
@@ -223,7 +235,7 @@ function S.osc(path, args)
     local v = args[1] or 1
     parts.song_master = v > 0 and math.max(-60, 20 * math.log(v, 10)) or -60
   elseif path == "/song_unloaded" then
-    loaded, folder, scenes = nil, nil, {}
+    loaded, folder, scenes, sent_mode = nil, nil, {}, nil
     pos = {playing = false, scene = 0, pass = 0, queued = -1, bpm = nil}
     parts.song_master, parts.song_sends = nil, nil
     parts.song_gone(loading ~= nil)
