@@ -2522,19 +2522,30 @@ function P.osc(path, args)
     while k + 2 <= #args do
       local slot, type, count = args[k], args[k + 1], args[k + 2]
       k = k + 3
-      local list = {}
-      for _ = 1, count do
-        if k + 7 > #args then break end
-        local d = {
-          name = args[k], min = args[k + 1], max = args[k + 2], default = args[k + 3],
-          unit = args[k + 4], steps = args[k + 5], curve = args[k + 6], value = args[k + 7],
-        }
-        local edit = part.fx_edits[slot .. ":" .. d.name]
-        if edit then d.value = edit end
-        list[#list + 1] = d
-        k = k + 8
+      -- count params, then the slot's mod params ("~mod") the same way
+      local function defs(n)
+        local list = {}
+        for _ = 1, n do
+          if k + 7 > #args then break end
+          local d = {
+            name = args[k], min = args[k + 1], max = args[k + 2], default = args[k + 3],
+            unit = args[k + 4], steps = args[k + 5], curve = args[k + 6], value = args[k + 7],
+          }
+          local edit = part.fx_edits[slot .. ":" .. d.name]
+          if edit then d.value = edit end
+          list[#list + 1] = d
+          k = k + 8
+        end
+        return list
       end
-      fx[slot] = {type = type, params = list}
+      local list = defs(count)
+      local mods = {}
+      if k <= #args then
+        local mcount = args[k]
+        k = k + 1
+        mods = defs(mcount)
+      end
+      fx[slot] = {type = type, params = list, mods = mods}
     end
     part.fx = fx
   elseif path == "/macro_names" then
