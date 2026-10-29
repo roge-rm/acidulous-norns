@@ -1,6 +1,6 @@
 local here = arg[0]:match("^(.*)/[^/]+$")
 local which = arg[2]
-local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "11"}
+local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11"}
 if not which then
   -- every case, each in a fresh run
   local failed = 0
@@ -222,6 +222,35 @@ elseif which == "9" then
     if m.args[1] == 0 then order[m.path] = order[m.path] or k end
   end
   CHECK(order["/patch"] < order["/insert"] and (not fx or order["/insert"] < order["/fx"]), "after the patch, before the edits")
+elseif which == "10" then
+  -- an old PSET's delay ping pong is the mode
+  local function pset(lines)
+    local name = os.tmpname()
+    local f = io.open(name, "w")
+    f:write(table.concat(lines, "\n") .. "\n")
+    f:close()
+    return name
+  end
+  for _, c in ipairs({{1, 1, "off: normal"}, {2, 2, "on: ping-pong"}}) do
+    local name = pset({'"dly_pingpong": ' .. c[1], '"parts": 1'})
+    params:set("dly_mode", 3, true)
+    P.after_read(name)
+    os.remove(name)
+    CHECK(params:get("dly_mode") == c[2], "dly_pingpong " .. c[3] .. " (" .. params:get("dly_mode") .. ")")
+  end
+  local name = pset({'"dly_pingpong": 2', '"dly_mode": 3', '"parts": 1'})
+  params:set("dly_mode", 3, true)
+  P.after_read(name)
+  os.remove(name)
+  CHECK(params:get("dly_mode") == 3, "a PSET with dly_mode keeps it")
+  SENT_CLEAR()
+  P.send_master()
+  CHECK(FIND("/send", function(a) return a[1] == 1 and a[2] == "mode" and math.abs(a[3] - 2 / 3) < 1e-6 end) ~= nil,
+    "multi-tap goes as mode 2/3")
+  CHECK(not FIND("/send", function(a) return a[2] == "pingpong" end), "and no pingpong")
+  params:set("rev_model", 6)
+  CHECK(FIND("/send", function(a) return a[1] == 0 and a[2] == "model" and math.abs(a[3] - 5 / 11) < 1e-6 end) ~= nil,
+    "rev model space goes as 5/11")
 elseif which == "11" then
   -- the insert cards: the picker, an effect's groups, the reverb's model
   -- knobs and the mod card by source

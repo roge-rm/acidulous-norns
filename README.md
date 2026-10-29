@@ -116,7 +116,7 @@ The sends page has reverb and delay sends for each part. On out, the knobs chang
 | **E2** | reverb send |
 | **E3** | delay send |
 
-Reverb and delay start when first used. Other settings are under PARAMETERS > EDIT > sends and master. Delay time is in notes at the norns tempo.
+Reverb and delay start when first used. Other settings are under PARAMETERS > EDIT > sends and master: the reverb's model and its knobs for that model, and the delay's mode (normal, ping-pong, multi-tap or reverse) with taps and spacing for multi-tap. Delay time is in notes at the norns tempo.
 
 ### Songs
 

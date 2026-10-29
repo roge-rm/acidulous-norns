@@ -6,6 +6,8 @@ local timer = include("lib/timer")
 local OLD_PATCHES = include("lib/oldpatches")
 -- machine params saved by an older engine, for old PSETs
 local LAYOUT = include("lib/layout")
+-- the inserts' and send effects' option names, the reverb's models
+local FXCARDS = include("lib/fxcards")
 
 local P = {}
 
@@ -457,19 +459,62 @@ end
 -- ---- the sends and the master ----------------------------------------------------
 
 -- The send effects' params as the engine has them (Reverb and Delay in
--- engine/effect/Effects.cpp), with the slot the plugin takes. time is in
--- the delay's note values at the engine's tempo.
+-- engine/effect), with the slot the plugin takes. time is in the delay's
+-- note values at the engine's tempo. The reverb's model knobs follow its
+-- model (models: the ones a knob is on), from lib/fxcards.lua.
 P.DELAY_TIMES = {"1/32", "1/16", "1/8", "3/16", "1/4", "3/8", "1/2", "1 bar"}
+P.REVERB_MODELS = FXCARDS.reverb_models
+P.DELAY_MODES = FXCARDS.effects.Delay.o.mode
 P.SEND_PARAMS = {
   {id = "rev_size", name = "rev size", slot = 0, param = "size", min = 0, max = 1, default = 0.5},
   {id = "rev_damp", name = "rev damp", slot = 0, param = "damp", min = 0, max = 1, default = 0.4},
   {id = "rev_tone", name = "rev tone", slot = 0, param = "tone", min = 500, max = 18000, default = 9000, exp = true},
   {id = "rev_predelay", name = "rev predelay", slot = 0, param = "predelay", min = 0, max = 200, default = 10, unit = "ms"},
+  {id = "rev_model", name = "rev model", slot = 0, param = "model", options = P.REVERB_MODELS, default = 1},
+}
+do
+  -- each model's own knobs, once each; follow tunes to a track's notes, so a send hasn't it
+  local defs, at = {}, {}
+  for _, d in ipairs(FXCARDS.sends.Reverb) do defs[d[1]] = d end
+  for _, model in ipairs(P.REVERB_MODELS) do
+    for _, name in ipairs(FXCARDS.reverb_knobs[model] or {}) do
+      local d = defs[name]
+      if at[name] then
+        table.insert(at[name].models, model)
+      elseif d and name ~= "follow" then
+        local sp = {id = "rev_" .. name, name = "rev " .. name, slot = 0, param = name, models = {model}}
+        local opts = FXCARDS.effects.Reverb.o and FXCARDS.effects.Reverb.o[name]
+        if d[5] == "stepped" and opts then
+          sp.options, sp.default = opts, math.floor(d[4] - d[2]) + 1
+        else
+          sp.min, sp.max, sp.default, sp.exp, sp.unit = d[2], d[3], d[4], d[5] == "exponential", d[7]
+        end
+        at[name] = sp
+        P.SEND_PARAMS[#P.SEND_PARAMS + 1] = sp
+      end
+    end
+  end
+end
+for _, sp in ipairs({
   {id = "dly_time", name = "dly time", slot = 1, param = "time", options = P.DELAY_TIMES, default = 4},
   {id = "dly_feedback", name = "dly feedback", slot = 1, param = "feedback", min = 0, max = 0.95, default = 0.4},
   {id = "dly_tone", name = "dly tone", slot = 1, param = "tone", min = 300, max = 18000, default = 6000, exp = true},
-  {id = "dly_pingpong", name = "dly ping pong", slot = 1, param = "pingpong", options = {"off", "on"}, default = 2},
-}
+  {id = "dly_mode", name = "dly mode", slot = 1, param = "mode", options = P.DELAY_MODES, default = 2},
+  {id = "dly_taps", name = "dly taps", slot = 1, param = "taps", options = {"2", "3", "4"}, default = 2},
+  {id = "dly_spacing", name = "dly spacing", slot = 1, param = "spacing", min = -1, max = 1, default = 0},
+}) do P.SEND_PARAMS[#P.SEND_PARAMS + 1] = sp end
+
+-- Shows the reverb's knobs for its model, as the app does: size isn't on
+-- space, which is sized in metres.
+local function show_send_params()
+  local model = P.REVERB_MODELS[params:get("rev_model")]
+  for _, sp in ipairs(P.SEND_PARAMS) do
+    local on = true
+    if sp.models then on = tab.contains(sp.models, model) end
+    if sp.id == "rev_size" then on = model ~= "space" end
+    if on then params:show(sp.id) else params:hide(sp.id) end
+  end
+end
 
 local function send_param_value(sp)
   local v = params:get(sp.id)
@@ -594,14 +639,19 @@ function P.add_master_params()
       local unit = sp.unit or (sp.exp and "Hz" or "")
       params:add_control(sp.id, sp.name,
         controlspec.new(sp.min, sp.max, sp.exp and "exp" or "lin", 0, sp.default, unit, sp.exp and 0.005 or 0.01),
-        unit == "" and percent or nil)
+        unit == "" and sp.max <= 1 and percent or nil)
     end
     params:set_action(sp.id, function()
+      if sp.id == "rev_model" then
+        show_send_params()
+        rebuild_menu()
+      end
       if P.loading then return end
       if P.song_holds then P.owed_master = true return end
       send_send_param(sp)
     end)
   end
+  show_send_params()
   -- the wavetable count a PSET was saved with, for P.after_read; never shown
   params:add_number("wave_tables", "wave tables", 0, 1024, P.WAVE_TABLES)
   params:hide("wave_tables")
@@ -2099,6 +2149,12 @@ function P.after_read(filename)
     for i = 1, P.COUNT do migrate_layout(i) end
   end
   params:set("param_layout", LAYOUT.NOW, true)
+  -- a PSET from before the delay's modes has its ping pong switch: on is
+  -- ping-pong, off normal
+  local pingpong = filename and not saved_has(filename, "dly_mode") and saved_count(filename, "dly_pingpong", nil, nil)
+  if pingpong then params:set("dly_mode", pingpong == 2 and 2 or 1, true) end
+  show_send_params()
+  rebuild_menu()
   -- a PSET from before songs has none
   if filename and params.lookup["song"] and not saved_has(filename, "song") then params:set("song", "", true) end
   -- the song module keeps a loaded song's racks; false when the parts
