@@ -30,6 +30,7 @@
 #include "core.h"
 
 #include <EngineHost.h>
+#include <engine/effect/EffectRegistry.h>
 #include <engine/machine/MachineRegistry.h>
 
 #include <atomic>
@@ -460,6 +461,23 @@ int main(int argc, char** argv)
                 drive = float(ins.args[k + 7].num);
         }
         check(dist && delay, "part 2's inserts are Distortion and Delay");
+        // Each slot: slot, type, count, 8 args per param, then the mod
+        // params the same way, ending on the last arg.
+        int32_t mod_count = 0;
+        acidulous::EffectRegistry::paramDefs("~mod", mod_count);
+        bool   whole = ok && mod_count > 0;
+        size_t k     = 1;
+        int    slots = 0;
+        while(whole && k < ins.args.size())
+        {
+            whole = k + 2 < ins.args.size() && ins.args[k].num >= 0 && ins.args[k].num < acidulous::kEffectSlots;
+            k += 3 + 8 * size_t(whole ? ins.args[k + 2].num : 0);
+            whole = whole && k + 1 < ins.args.size() && int(ins.args[k].num) == mod_count &&
+                    ins.args[k + 1].str == "mod_source";
+            k += 1 + 8 * size_t(mod_count);
+            ++slots;
+        }
+        check(whole && k == ins.args.size() && slots == 2, "part 2's /inserts has each slot's mod params");
         check(log.count("/inserts", 2) == 1 && log.count("/inserts", 12) == 1, "one /inserts per part for the load");
         for(const auto& l : lines)
             if(l.rack == 2 && l.unit == "effect1" && l.name == "drive")

@@ -11,11 +11,17 @@
 //        (0-1.5 linear, so 1/1.5 is unity), "pan" (0.5 centre), "mute",
 //        "solo", "sendreverb", "senddelay". A send above 0 mounts its effect
 //   /send i:slot s:name f:value01      a send effect's param: slot 0 the
-//        Reverb (size, damp, tone, predelay), 1 the Delay (time, feedback,
-//        tone, pingpong). Kept until the effect is mounted. With a song
+//        Reverb (size, damp, tone, predelay ...), 1 the Delay (time, feedback,
+//        tone, mode ...). Kept until the effect is mounted. With a song
 //        loaded it moves the song's send and the script's values stay
 //   /fx i:part i:slot s:name f:value01  a param of the part's insert in slot
-//        0 or 1, by name, as /inserts lists them
+//        0 to 3, or of its mod slot ("mod_source" ...), by name, as /inserts
+//        lists them. A patch's inserts go in slots 0-1; 2-3 are the script's
+//   /insert i:part i:slot s:type       mounts a new effect with its defaults
+//        in the part's own slot 2 or 3, or empties it with "", then replies
+//        /inserts with what the engine holds. Patch and machine changes keep
+//        it; a song load or unload empties it
+//   /effects                           the insert effects there are
 //   /mod i:part i:slot s:type          mounts a modifier ("Scale", "Chord",
 //        "Arp") in the part's slot 0 to 2, on and with its defaults, or
 //        empties the slot with "". Notes go through slot 0, then 1, then 2.
@@ -72,7 +78,8 @@
 //        replies. files 1 loads the files it names too: "label:path" under
 //        that root, a plain relative path from the first unlabelled root that
 //        has it, then the file's own folder. A patch from before version 3 is
-//        refused; a version 3 Trinity patch has its destinations moved. When
+//        refused; a version 3 Trinity patch has its destinations moved, and
+//        below version 6 a Delay insert's pingpong becomes mode. When
 //        it fails the part still gets machine, as does a /patch that can't be
 //        found, with /values of what it has
 //   /preset_scan s:folder              the patches of the .acpreset files in it
@@ -137,10 +144,12 @@
 //        holds a note on (bit 0 is channel 1), and what each member channel
 //        holding a note last sent, -1 for nothing
 //   /inserts i:part (i:slot s:type i:count (s:name f:min f:max f:default
-//        s:unit i:steps s:curve f:value01)*count)*   the part's inserts, one
-//        after each /patch and /unmount (a /patch that fails takes the last
-//        patch's inserts off); just the part when it has none. Params as
-//        /def has them; values are the patch's, or the defaults
+//        s:unit i:steps s:curve f:value01)*count i:mcount (the same)*mcount)*
+//        the part's inserts, slots 0-3, one after each /patch and /unmount (a
+//        /patch that fails takes the last patch's inserts off); just the part
+//        when it has none. Params as /def has them, then the slot's mod
+//        params ("~mod": mod_source, mod_shape ... mod_step16); values are
+//        the patch's, or the defaults
 //   /mods i:part (i:slot s:type i:bypass i:count (s:name f:value01)*count)*
 //        both slots as the engine holds them once everything sent before
 //        has landed; an empty slot has type "" and count 0
@@ -151,6 +160,7 @@
 //        steps is 0 unless stepped; curve is "lin", "exp" or "step"
 //   /defs_end s:machine i:count
 //   /patches s:machine s:name...       /machines s:name...
+//   /effects s:name...
 //   /load f:percent f:worst_percent    4 times a second
 //   /levels f:peak...                  each part's peak, 20 times a second
 //   /meters f:peak f:lufs              the master's peak and short-term

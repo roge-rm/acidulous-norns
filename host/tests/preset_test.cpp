@@ -5,6 +5,10 @@
 // - a save straight after a /patch, while its insert mount is still queued
 // - the app's version 3 fixture (host/tests/acpreset), a patch too old to load
 //   and Trinity destinations moved on a version 3 patch
+// - a Delay insert's pingpong moved to mode on a version 5 patch, kept on 6
+// - the part's own inserts in slots 2-3 (/insert), insert mods through /fx
+//   and their read-back in /inserts, and a saved patch keeping only slots
+//   0-1 with their mods
 // - Dice's sample and Mosaic's folder saved as relative paths and found again,
 //   and a missing file that leaves the rest loaded
 // - /preset_scan and /preset_delete
@@ -13,6 +17,7 @@
 
 #include <EngineHost.h>
 #include <engine/core/PresetFile.h>
+#include <engine/effect/EffectRegistry.h>
 #include <engine/machine/MachineRegistry.h>
 
 #include <atomic>
@@ -24,6 +29,7 @@
 #include <cstring>
 #include <fstream>
 #include <iterator>
+#include <map>
 #include <mutex>
 #include <string>
 #include <sys/stat.h>
@@ -134,6 +140,36 @@ int index_of(const char* machine, const char* name)
         if(!std::strcmp(defs[i].name, name))
             return i;
     return -1;
+}
+
+// An /inserts reply as slot -> type and name -> value, the mod params too.
+struct Slot
+{
+    std::string                  type;
+    int                          count = 0, mods = 0;
+    std::map<std::string, float> values;
+};
+std::map<int, Slot> inserts_of(const Reply& r)
+{
+    std::map<int, Slot> out;
+    size_t              k = 1;
+    const auto          params = [&](Slot& s, int n) {
+        for(int i = 0; i < n && k + 7 < r.args.size(); ++i, k += 8)
+            s.values[r.args[k].str] = float(r.args[k + 7].num);
+    };
+    while(k + 2 < r.args.size())
+    {
+        Slot& s = out[int(r.args[k].num)];
+        s.type  = r.args[k + 1].str;
+        s.count = int(r.args[k + 2].num);
+        k += 3;
+        params(s, s.count);
+        if(k >= r.args.size())
+            break;
+        s.mods = int(r.args[k++].num);
+        params(s, s.mods);
+    }
+    return out;
 }
 
 bool exists(const std::string& path)
@@ -301,6 +337,111 @@ int main(int argc, char** argv)
                   version == 3 ? "its destinations moved" : "its destinations kept");
             std::remove(f.c_str());
         }
+    }
+
+    // A version 5 Delay insert has the pingpong switch: on becomes ping-pong
+    // (mode 1/3), off normal (0). A version 6 one keeps its mode.
+    {
+        struct Case
+        {
+            int         version;
+            const char* name;
+            float       value, want;
+        };
+        for(const Case& k : {Case{5, "pingpong", 1.f, 1.f / 3.f}, Case{5, "pingpong", 0.f, 0.f},
+                             Case{6, "mode", 2.f / 3.f, 2.f / 3.f}})
+        {
+            acidulous::Preset v;
+            v.unit = "Trinity";
+            acidulous::PresetPatch pp;
+            pp.machine = "Trinity";
+            pp.name    = "D" + std::to_string(k.version);
+            pp.version = k.version;
+            acidulous::PatchInsert fx;
+            fx.type   = "Delay";
+            fx.params = {{k.name, k.value}, {"feedback", 0.7f}};
+            pp.chain.inserts.push_back(fx);
+            v.patches.push_back(pp);
+            const auto        bytes = acidulous::presetfile::write(v);
+            const std::string f     = scratch + "/Trinity/delay.acpreset";
+            std::ofstream(f, std::ios::binary).write(reinterpret_cast<const char*>(bytes.data()), std::streamsize(bytes.size()));
+            const std::string what = "version " + std::to_string(k.version) + " " + k.name + " " + std::to_string(k.value);
+            check(load(4, f, 0, 1, r) && r.args[3].str.empty(), what + " loads");
+            Reply ins;
+            auto  slots = log.wait("/inserts", ins) ? inserts_of(ins) : std::map<int, Slot>{};
+            check(slots[0].type == "Delay" && std::fabs(slots[0].values["mode"] - k.want) < 1e-4f &&
+                      std::fabs(slots[0].values["feedback"] - 0.7f) < 1e-4f,
+                  what + ": mode " + std::to_string(slots[0].values["mode"]));
+            // What the engine holds, read back by an /insert in the part's own slot.
+            log.clear();
+            cmd("/insert", {Value::i(4), Value::i(3), Value::s("Chorus")});
+            slots = log.wait("/inserts", ins) ? inserts_of(ins) : std::map<int, Slot>{};
+            check(std::fabs(slots[0].values["mode"] - k.want) < 1e-4f && slots[3].type == "Chorus",
+                  what + ": the engine has it");
+            std::remove(f.c_str());
+        }
+    }
+
+    // The part's own inserts and insert mods.
+    {
+        Reply ins;
+        log.clear();
+        cmd("/patch", {Value::i(4), Value::s("Trinity"), Value::s("Saw Lead")});
+        log.wait("/inserts", ins);
+        log.clear();
+        cmd("/insert", {Value::i(4), Value::i(2), Value::s("Delay")});
+        auto  slots = log.wait("/inserts", ins) ? inserts_of(ins) : std::map<int, Slot>{};
+        int32_t mod_count = 0;
+        acidulous::EffectRegistry::paramDefs("~mod", mod_count);
+        check(slots[0].type == "Distortion" && slots[2].type == "Delay" && slots[3].type == "Chorus",
+              "the patch's insert in slot 0 and the part's own in 2 and 3, kept over a /patch");
+        check(mod_count > 0 && slots[0].mods == mod_count && slots[2].mods == mod_count && slots[2].values.count("mod_step16"),
+              "every slot reads back its mod params");
+        log.clear();
+        cmd("/insert", {Value::i(4), Value::i(1), Value::s("Chorus")});
+        check(log.wait("/error", ins) && log.count("/inserts") == 0, "slot 1 is a patch's");
+        cmd("/fx", {Value::i(4), Value::i(0), Value::s("mod_source"), Value::f(0.25f)});
+        cmd("/fx", {Value::i(4), Value::i(0), Value::s("mod_target1"), Value::f(2.f / 64.f)});
+        cmd("/fx", {Value::i(4), Value::i(0), Value::s("mod_depth1"), Value::f(0.8f)});
+        cmd("/fx", {Value::i(4), Value::i(2), Value::s("mod_source"), Value::f(0.5f)});
+        cmd("/fx", {Value::i(4), Value::i(2), Value::s("mode"), Value::f(1.f)});
+        log.clear();
+        cmd("/fx", {Value::i(4), Value::i(2), Value::s("mod_nothing"), Value::f(1.f)});
+        check(log.wait("/error", ins), "an unknown mod param is an error");
+        log.clear();
+        cmd("/insert", {Value::i(4), Value::i(3), Value::s("")});
+        slots = log.wait("/inserts", ins) ? inserts_of(ins) : std::map<int, Slot>{};
+        check(std::fabs(slots[0].values["mod_source"] - 0.25f) < 1e-4f && std::fabs(slots[0].values["mod_depth1"] - 0.8f) < 1e-4f &&
+                  std::fabs(slots[2].values["mod_source"] - 0.5f) < 1e-4f && std::fabs(slots[2].values["mode"] - 1.f) < 1e-4f &&
+                  !slots.count(3),
+              "/fx mod params and the emptied slot 3 read back");
+        const std::string f = scratch + "/Trinity/modded.acpreset";
+        check(save(4, f, "Modded", no_roots) == "ok", "save with insert mods");
+        acidulous::Preset m;
+        if(read_file(f, m) && m.patches.size() == 1)
+        {
+            const auto& ch = m.patches[0].chain.inserts;
+            float       src[2] = {-1.f, -1.f};
+            for(size_t i = 0; i < ch.size() && i < 2; ++i)
+                for(const auto& kv : ch[i].params)
+                    if(kv.first == "mod_source")
+                        src[i] = kv.second;
+            // Saw Lead's Distortion and Delay, without the part's Delay in slot 2
+            check(ch.size() == 2 && ch[0].type == "Distortion" && std::fabs(src[0] - 0.25f) < 1e-4f &&
+                      ch[1].type == "Delay" && src[1] < 0.f,
+                  "only the patch's slots saved, slot 0 with its mod");
+        }
+        else
+            check(false, "read the modded patch");
+        // Loading it back keeps the part's own slot 2.
+        log.clear();
+        check(load(4, f, 0, 1, r) && r.args[3].str.empty(), "load the modded patch");
+        slots = log.wait("/inserts", ins) ? inserts_of(ins) : std::map<int, Slot>{};
+        check(std::fabs(slots[0].values["mod_source"] - 0.25f) < 1e-4f && slots[2].type == "Delay",
+              "its mod came back and slot 2 stayed");
+        std::remove(f.c_str());
+        cmd("/insert", {Value::i(4), Value::i(2), Value::s("")});
+        cmd("/unmount", {Value::i(4)});
     }
 
     // Dice: its sample, relative to the root.

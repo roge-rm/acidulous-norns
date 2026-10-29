@@ -230,6 +230,7 @@ class Core
     // live: values from the engine for slots no patch filled, else defaults.
     void send_inserts(int part, const acidulous::PatchInsert* const at[acidulous::kEffectSlots], bool live = false);
     void set_fx(int part, int slot, const std::string& name, float v01);
+    void set_insert(int part, int slot, const std::string& type);
     void set_send(int slot, const std::string& name, float v01);
     void set_mod(int part, int slot, const std::string& type);
     void set_mod_param(int part, int slot, const std::string& name, float v01);

@@ -814,8 +814,11 @@ bool Core::any_stray() const
     {
         if(!parts[p].machine.empty())
             continue;
-        if(*host.mountedMachine(p) || *host.mountedEffect(p, 0) || *host.mountedEffect(p, 1))
+        if(*host.mountedMachine(p))
             return true;
+        for(int s = 0; s < kEffectSlots; ++s)
+            if(*host.mountedEffect(p, s))
+                return true;
         for(int s = 0; s < kModSlots; ++s)
             if(mod_types[p][s].empty() && *host.mountedModifier(p, s))
                 return true;

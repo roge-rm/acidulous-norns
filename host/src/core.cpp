@@ -14,6 +14,7 @@
 #include <engine/format/AudioDecoder.h>
 #include <engine/format/Sf2Reader.h>
 #include <engine/effect/EffectRegistry.h>
+#include <engine/effect/SlotMod.h>
 #include <engine/inputmod/InputModRegistry.h>
 #include <engine/machine/MachineRegistry.h>
 #include <engine/machine/TableCounts.h>
@@ -52,6 +53,9 @@ static const char* const kChannelNames[] = {"gain", "pan", "mute", "solo"};
 // The engine units of the part's modifier slots.
 static const char* const kModUnits[] = {"mod1", "mod2", "mod3"};
 static_assert(sizeof(kModUnits) / sizeof(kModUnits[0]) == kModSlots, "a unit name per modifier slot");
+// The engine units of the part's insert slots.
+static const char* const kInsertUnits[] = {"effect1", "effect2", "effect3", "effect4"};
+static_assert(sizeof(kInsertUnits) / sizeof(kInsertUnits[0]) == kEffectSlots, "a unit name per insert slot");
 
 // Forage's 13 pads and the shared sample above them.
 constexpr int kForagePads  = 13;
@@ -411,7 +415,7 @@ Core::~Core()
     // apply at the top of a block, at most kMaxMountsPerBlock (8) a block,
     // and the engine's queue holds 64, so blocks are pulled as they're
     // queued since the UGen no longer runs this core. A part queues at most
-    // 6 (machine, 3 modifiers, 2 inserts), so a block after each keeps the
+    // 8 (machine, 3 modifiers, 4 inserts), so a block after each keeps the
     // queue from filling. A retired machine frees what was mounted into it.
     // The UGen has stopped calling process(), but a pull may still be
     // finishing, so a pull that fails is tried again, for up to 100 ms.
@@ -1044,6 +1048,23 @@ bool Core::command(const std::string& path, const Args& a)
             post_part(part, [this, part, slot, n = to_str(a[2]), v = to_float(a[3])] { set_fx(part, slot, n, v); });
         return true;
     }
+    if(path == "/insert" && a.size() >= 3)
+    {
+        const int part = to_int(a[0]), slot = to_int(a[1]);
+        if(part_ok(part) && slot >= kPatchInsertSlots && slot < kEffectSlots)
+            post_part(part, [this, part, slot, t = to_str(a[2])] { set_insert(part, slot, t); });
+        else if(part_ok(part))
+            error("insert slot " + std::to_string(slot) + " is a patch's");
+        return true;
+    }
+    if(path == "/effects")
+    {
+        Args out;
+        for(int32_t i = 0; i < EffectRegistry::count(); ++i)
+            out.push_back(Value::s(EffectRegistry::name(i)));
+        reply("/effects", out);
+        return true;
+    }
     if(path == "/mod" && a.size() >= 3)
     {
         const int part = to_int(a[0]), slot = to_int(a[1]);
@@ -1492,7 +1513,7 @@ void Core::apply_chain(int part, const acidulous::PatchChain& chain, const std::
         occupied[s] = !std::string(host.mountedEffect(part, s)).empty();
     const acidulous::InsertPlan slots = acidulous::planPatchInserts(occupied, patch_fx[part].owned, int32_t(known.size()));
     const acidulous::PatchInsert* at[kEffectSlots] = {};
-    for(size_t i = 0; i < known.size() && i < size_t(kEffectSlots); ++i)
+    for(size_t i = 0; i < known.size() && i < size_t(kPatchInsertSlots); ++i)
         if(slots.slotOf[i] >= 0)
             at[slots.slotOf[i]] = known[i];
 
@@ -1516,14 +1537,17 @@ void Core::apply_chain(int part, const acidulous::PatchChain& chain, const std::
 
 // "/inserts i:part" and per mounted insert slot "i:slot s:type i:count" and
 // count params of "s:name f:min f:max f:default s:unit i:steps s:curve
-// f:value01", as /def has them. The values are the ones the patch set, or the
+// f:value01", as /def has them, then "i:mcount" and the slot's mod params
+// ("~mod") the same way. The values are the ones the patch set, or the
 // defaults (with [live], what the engine holds). [at] is the insert the patch
 // put in each slot, or null.
 void Core::send_inserts(int part, const acidulous::PatchInsert* const at[kEffectSlots], bool live)
 {
     if(quiet_inserts)
         return;
-    Args out{Value::i(part)};
+    int32_t         mod_count = 0;
+    const ParamDef* mod_defs  = EffectRegistry::paramDefs(kSlotModType, mod_count);
+    Args            out{Value::i(part)};
     for(int slot = 0; slot < kEffectSlots; ++slot)
     {
         const std::string type = host.mountedEffect(part, slot);
@@ -1534,16 +1558,11 @@ void Core::send_inserts(int part, const acidulous::PatchInsert* const at[kEffect
         const acidulous::PatchInsert* fx = nullptr;
         if(((patch_fx[part].owned >> slot) & 1u) && at[slot] && at[slot]->type == type)
             fx = at[slot];
-        out.push_back(Value::i(slot));
-        out.push_back(Value::s(type));
-        out.push_back(Value::i(count));
-        for(int32_t i = 0; i < count; ++i)
-        {
-            const ParamDef& d = defs[i];
-            float           v = d.unmap(d.def);
+        const auto param = [&](const ParamDef& d) {
+            float v = d.unmap(d.def);
             if(live && !fx)
             {
-                const float now = host.paramNormalized(part, slot == 0 ? "effect1" : "effect2", d.name);
+                const float now = host.paramNormalized(part, kInsertUnits[slot], d.name);
                 if(now >= 0.f)
                     v = now;
             }
@@ -1559,12 +1578,21 @@ void Core::send_inserts(int part, const acidulous::PatchInsert* const at[kEffect
             out.push_back(Value::i(d.curve == Curve::Stepped ? d.steps : 0));
             out.push_back(Value::s(d.curve == Curve::Exponential ? "exp" : d.curve == Curve::Stepped ? "step" : "lin"));
             out.push_back(Value::f(v < 0.f ? 0.f : v > 1.f ? 1.f : v));
-        }
+        };
+        out.push_back(Value::i(slot));
+        out.push_back(Value::s(type));
+        out.push_back(Value::i(count));
+        for(int32_t i = 0; i < count; ++i)
+            param(defs[i]);
+        out.push_back(Value::i(mod_defs ? mod_count : 0));
+        for(int32_t i = 0; mod_defs && i < mod_count; ++i)
+            param(mod_defs[i]);
     }
     reply("/inserts", out);
 }
 
-// One of the part's insert's params, by name.
+// One of the part's insert's params, or its mod slot's ("mod_source" ...), by
+// name.
 void Core::set_fx(int part, int slot, const std::string& name, float v01)
 {
     const std::string type = host.mountedEffect(part, slot);
@@ -1575,7 +1603,7 @@ void Core::set_fx(int part, int slot, const std::string& name, float v01)
     }
     int32_t         count = 0;
     const ParamDef* defs  = EffectRegistry::paramDefs(type.c_str(), count);
-    bool            found = false;
+    bool            found = slotModIndexOf(name.c_str()) != -1;
     for(int32_t i = 0; i < count && !found; ++i)
         found = name == defs[i].name;
     if(!found)
@@ -1583,7 +1611,32 @@ void Core::set_fx(int part, int slot, const std::string& name, float v01)
         error("no " + type + " param " + name);
         return;
     }
-    push_param(part, slot == 0 ? "effect1" : "effect2", name, v01);
+    push_param(part, kInsertUnits[slot], name, v01);
+}
+
+// Mounts a new effect with its defaults in one of the part's own insert slots
+// (2-3; patches fill 0-1), or empties it with "", then sends /inserts with
+// what the engine holds.
+void Core::set_insert(int part, int slot, const std::string& type)
+{
+    int32_t count = 0;
+    if(!type.empty() && !EffectRegistry::paramDefs(type.c_str(), count))
+    {
+        error("no effect " + type);
+        return;
+    }
+    if(type.empty() && !*host.mountedEffect(part, slot))
+        return;
+    settle();
+    mounts_queued = true;
+    if(!host.mountEffect(part, slot, type))
+    {
+        error("can't mount effect " + type);
+        host.mountEffect(part, slot, "");
+    }
+    settle();
+    const acidulous::PatchInsert* none[kEffectSlots] = {};
+    send_inserts(part, none, true);
 }
 
 // Mounts a modifier (Scale, Chord, Arp) in the part's slot 0 to 2, or empties
@@ -2945,6 +2998,21 @@ bool read_preset(const std::string& path, Preset& out, std::string& why)
     return EngineHost::readPreset(data.data(), data.size(), out, why);
 }
 
+// A patch from before version 6 has the Delay's old pingpong switch, which
+// the app moves to mode on load: on is ping-pong (1/3), off is normal (0).
+// Its other params stay.
+void upgrade_delay_mode(PatchChain& chain)
+{
+    for(auto& fx : chain.inserts)
+    {
+        if(fx.type != "Delay")
+            continue;
+        for(auto& kv : fx.params)
+            if(kv.first == "pingpong")
+                kv = {"mode", kv.second >= 0.5f ? 1.f / 3.f : 0.f};
+    }
+}
+
 // Makes [dir] and the folders above it.
 bool make_dirs(const std::string& dir)
 {
@@ -3125,6 +3193,8 @@ void Core::load_preset(int part, const std::string& path, int index, const std::
         std::fprintf(stderr, "acidulous: %s: %d param(s) %s hasn't got\n", path.c_str(), unknown, machine.c_str());
     src.settings = pp.settings;
     src.chain    = pp.chain;
+    if(pp.version < 6)
+        upgrade_delay_mode(src.chain);
     src.low      = pp.low;
     src.high     = pp.high;
     if(!apply_patch(part, machine, src, tag))

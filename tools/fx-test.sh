@@ -23,7 +23,7 @@ drive=$("$render" "$out/fx-drive.txt" "$out/fx-drive.wav" 2>&1)
 bad=$("$render" "$out/fx-bad.txt" "$out/fx-bad.wav" 2>&1)
 missing=$("$render" "$out/fx-missing.txt" "$out/fx-missing.wav" 2>&1)
 
-if ! grep -q '^  /inserts 0 0 "Distortion" 6 .* 1 "Delay" 8 ' <<<"$plain"; then
+if ! grep -q '^  /inserts 0 0 "Distortion" 6 .* 1 "Delay" 10 ' <<<"$plain"; then
     grep '^  /inserts' <<<"$plain" || true
     echo "FAIL: /inserts doesn't list Saw Lead's Distortion and Delay" >&2
     failed=1
