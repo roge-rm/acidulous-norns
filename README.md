@@ -88,7 +88,7 @@ Patches are grouped into families and machines into the app's groups. In either 
 
 Cards group the machine's controls as in the app. E1 picks a card, E2 a control and E3 changes it. Hold K1 for fine steps. Hold K1 and turn E2 right to jump to the amp envelope, or left to return. Kit cards start with a pad selector. K2 returns to play.
 
-Effect cards follow the machine's. Their edits save in PSETs and reset when you choose a different patch.
+Effect cards follow the machine's. A patch's effects fill inserts 1 and 2; on the inserts card, fx 3 and fx 4 pick effects of your own, which stay when you change patches or machines. Each effect has a mod card: pick a source (LFO, steps, follow or another track) and up to two of its knobs to move, each with a depth. Edits and your effects save in PSETs, and edits to a patch's effects reset when you choose a different patch.
 
 Each part has three note modifier slots for Scale, Chord or Arp. Set them on the mods card, then use their cards to change settings. Notes pass through slot 1, then 2, then 3. Scale and Chord share key and scale. Modifiers stay when you change patches or machines and save in PSETs. An active Scale shows its key and scale on the play page.
 

@@ -6,6 +6,7 @@
 
 local generated = include("lib/cards")
 local modcards = include("lib/modcards")
+local fxcards = include("lib/fxcards")
 local macros = include("lib/macros")
 
 local M = {}
@@ -127,59 +128,210 @@ function M.cards(machine, defs, pad, names)
   return cards
 end
 
--- Option names for effects' stepped params, by effect and param, used when
--- the count matches the param's steps. A stepped 0-1 param with 2 steps is
--- off and on.
-local LFO_RATES = {"1/32", "1/16t", "1/16", "1/8t", "1/16d", "1/8", "1/4t", "1/8d", "1/4",
-  "1/2t", "1/4d", "1/2", "1/2d", "1 bar", "2 bars", "4 bars", "8 bars"}
-local FX_OPTS = {
-  Delay = {time = {"1/32", "1/16", "1/8", "3/16", "1/4", "3/8", "1/2", "1 bar"}},
-  Distortion = {mode = {"soft", "hard", "fold", "tube"}},
-  Compressor = {pumprate = {"1/16", "1/8", "1/4", "1/2"}},
-  Filter = {mode = {"lp", "bp", "hp"}, lforate = LFO_RATES},
-  Phaser = {rate = LFO_RATES, stages = {"2", "4", "6", "8"}},
-  Flanger = {rate = LFO_RATES},
-  Chorus = {rate = LFO_RATES, voices = {"2", "3", "4"}},
-  Tremolo = {rate = LFO_RATES, shape = {"sine", "tri", "square"}},
-  Rotary = {speed = {"brake", "slow", "fast"}},
-  Amp = {stack = {"us", "uk", "modern"}},
-  Horn = {kind = {"brass", "clarinet", "oboe", "flute"}},
-  Mouth = {rate = LFO_RATES, move = {"lfo", "level", "key"}},
-  Acid = {mode = {"lp", "bp"}},
-  Slicer = {rate = {"1/4", "1/8", "1/16", "1/32"}},
-  Magneto = {mode = {"sp", "lp2", "lp4", "hq", "xlp"}},
-}
+-- The inserts' cards as the app lays them out (lib/fxcards.lua, made by
+-- tools/gen-cards.py): an effect's groups, or its params four to a card in
+-- engine order, then its mod card. A stepped 0-1 param with 2 steps is off
+-- and on.
+local KNOBS = 4 -- per effect card without groups, as many as fit
+local SLOTS = 4 -- a part's insert slots; 0-1 hold the patch's, 2-3 the user's
+local USER_FIRST = 2
 
-local KNOBS = 4 -- per effect card, as many as fit
+-- A control for an insert's param d (a def from /inserts) in slot.
+local function fx_control(type, slot, d, label)
+  local o = (fxcards.effects[type] and fxcards.effects[type].o or {})[d.name]
+  if o and #o ~= d.steps then o = nil end
+  if not o and d.curve == "step" and d.steps == 2 and d.min == 0 and d.max == 1 then o = {"off", "on"} end
+  local kind = "knob"
+  if o and #o == 2 and o[1] == "off" then kind = "onoff"
+  elseif o and #o <= 3 then kind = "switch"
+  elseif o then kind = "step" end
+  return {label = label or d.name, kind = kind, fx = slot, name = d.name, def = d, opts = o}
+end
 
--- Cards for the part's inserts, after the machine's: fx is parts.list[i].fx,
--- slot (0 or 1) -> {type, params}. Each control has fx (the slot) and index
--- (the param) instead of a machine slot. An effect with more params than a
--- card holds gets numbered cards.
-function M.fx_cards(fx)
-  if not fx then return {} end
-  if fx.cards then return fx.cards end
-  local cards = {}
-  for slot = 0, 1 do
-    local e = fx[slot]
-    if e and #e.params > 0 then
-      local title = e.type:lower()
-      local opts = FX_OPTS[e.type] or {}
-      local split = #e.params > KNOBS
-      for j = 1, #e.params, KNOBS do
-        local list = {}
-        for k = j, math.min(#e.params, j + KNOBS - 1) do
-          local d = e.params[k]
-          local o = opts[d.name]
-          if o and #o ~= d.steps then o = nil end
-          if not o and d.curve == "step" and d.steps == 2 and d.min == 0 and d.max == 1 then o = {"off", "on"} end
-          list[#list + 1] = {label = d.name, kind = o and "step" or "knob", fx = slot, index = k, def = d, opts = o}
-        end
-        cards[#cards + 1] = {title = split and (title .. " " .. (j + KNOBS - 1) // KNOBS) or title, controls = list}
-      end
+-- The reverb's model, by name, from the slot's model param.
+local function reverb_model(e)
+  local d = e.by.model
+  if not d then return nil end
+  local n = #fxcards.reverb_models
+  return fxcards.reverb_models[util.clamp(math.floor(d.value * (n - 1) + 0.5), 0, n - 1) + 1]
+end
+
+-- Whether a reverb insert shows this param on its model: the shared ones,
+-- less size on space (sized in metres), and the model's own.
+local own_knobs = nil
+local function reverb_shows(model, name)
+  if not own_knobs then
+    own_knobs = {}
+    for _, list in pairs(fxcards.reverb_knobs) do
+      for _, n in ipairs(list) do own_knobs[n] = true end
     end
   end
-  fx.cards = cards
+  if name == "size" then return model ~= "space" end
+  if own_knobs[name] then return tab.contains(fxcards.reverb_knobs[model] or {}, name) end
+  return true
+end
+
+-- The effect's cards: its groups (the reverb's model knobs after the
+-- first), then a "more" card for anything not in them.
+local function effect_cards(e, slot)
+  local type = e.type
+  local title = type:lower()
+  local model = type == "Reverb" and reverb_model(e) or nil
+  local shown = {}
+  for _, d in ipairs(e.params) do
+    if not model or reverb_shows(model, d.name) then shown[#shown + 1] = d end
+  end
+  local groups = fxcards.effects[type] and fxcards.effects[type].g
+  local cards = {}
+  if not groups then
+    local split = #shown > KNOBS
+    for j = 1, #shown, KNOBS do
+      local list = {}
+      for k = j, math.min(#shown, j + KNOBS - 1) do list[#list + 1] = fx_control(type, slot, shown[k]) end
+      cards[#cards + 1] = {title = split and (title .. " " .. (j + KNOBS - 1) // KNOBS) or title, controls = list}
+    end
+    return cards
+  end
+  if model then
+    groups = {groups[1], {model, fxcards.reverb_knobs[model] or {}}, table.unpack(groups, 2)}
+  end
+  local by, taken = {}, {}
+  for _, d in ipairs(shown) do by[d.name] = d end
+  local function add(t, names)
+    local list = {}
+    for _, n in ipairs(names) do
+      if by[n] and not taken[n] then
+        taken[n] = true
+        list[#list + 1] = fx_control(type, slot, by[n])
+      end
+    end
+    if #list > 0 then cards[#cards + 1] = {title = title .. " " .. t, controls = list} end
+  end
+  for _, g in ipairs(groups) do add(g[1], g[2]) end
+  local rest = {}
+  for _, d in ipairs(shown) do
+    if not taken[d.name] then rest[#rest + 1] = d.name end
+  end
+  add("more", rest)
+  return cards
+end
+
+-- A mod setting with words for its steps.
+local function mod_choice(e, slot, name, label, opts)
+  local d = e.mods_by[name]
+  if not d then return nil end
+  local kind = #opts <= 2 and "switch" or "step"
+  return {label = label, kind = kind, fx = slot, name = name, def = d, opts = opts}
+end
+
+-- The insert's mod card, as the app's: the source, the controls it uses,
+-- then two of the effect's params it moves, each with a depth either way.
+-- Steps get a card of their own, a knob per step.
+local function mod_cards(e, slot)
+  local m = e.mods_by
+  if not m.mod_source then return {} end
+  local title = e.type:lower() .. " mod"
+  local list = {}
+  local function add(c) if c then list[#list + 1] = c end end
+  local sources = fxcards.mod.sources
+  add(mod_choice(e, slot, "mod_source", "source", sources))
+  local source = math.floor(m.mod_source.value * (#sources - 1) + 0.5)
+  if source == 0 then return {{title = title, controls = list}} end
+  local cards = {}
+  local length = 16
+  if source == 1 then
+    add(mod_choice(e, slot, "mod_shape", "shape", fxcards.mod.shapes))
+    add(mod_choice(e, slot, "mod_rate", "rate", fxcards.mod.rates))
+  elseif source == 2 then
+    add(mod_choice(e, slot, "mod_rate", "rate", fxcards.mod.rates))
+    add(mod_choice(e, slot, "mod_length", "length", {"8", "16"}))
+    length = m.mod_length and m.mod_length.value >= 0.5 and 16 or 8
+  else
+    if source == 4 then
+      local tracks = {}
+      for k = 1, 16 do tracks[k] = tostring(k) end
+      tracks[17] = "none"
+      add(mod_choice(e, slot, "mod_key", "track", tracks))
+    end
+    if m.mod_attack then add(fx_control(e.type, slot, m.mod_attack, "attack")) end
+    if m.mod_release then add(fx_control(e.type, slot, m.mod_release, "release")) end
+  end
+  -- the effect's params a mod can move: all but the sidechain, which picks a track
+  local targets, labels = {-1}, {"none"}
+  for k, d in ipairs(e.params) do
+    if d.name ~= "sidechain" and k <= 64 then
+      targets[#targets + 1] = k - 1
+      labels[#labels + 1] = d.name
+    end
+  end
+  for j = 1, 2 do
+    local t, depth = m["mod_target" .. j], m["mod_depth" .. j]
+    if t then
+      local def = {name = t.name, min = 0, max = 1, default = 0, unit = "", steps = #labels, curve = "step"}
+      list[#list + 1] = {label = "target " .. j, kind = "step", fx = slot, name = t.name, def = def,
+        opts = labels, targets = targets}
+    end
+    if depth then add(fx_control(e.type, slot, depth, "depth " .. j)) end
+  end
+  cards[1] = {title = title, controls = list}
+  if source == 2 then
+    local steps = {}
+    for k = 1, length do
+      local d = m["mod_step" .. k]
+      if d then steps[#steps + 1] = fx_control(e.type, slot, d, tostring(k)) end
+    end
+    if #steps > 0 then cards[2] = {title = e.type:lower() .. " steps", controls = steps} end
+  end
+  return cards
+end
+
+-- What the cards depend on, so they're made again when it changes.
+local function fx_key(fx, picks)
+  local key = {}
+  for slot = 0, SLOTS - 1 do
+    local e = fx[slot]
+    if e then
+      local m = e.mods_by or {}
+      local function at(d) return d and tostring(math.floor(d.value * 64 + 0.5)) or "" end
+      key[#key + 1] = table.concat({e.type, at(e.by and e.by.model), at(m.mod_source), at(m.mod_length)}, ":")
+    else
+      key[#key + 1] = ""
+    end
+  end
+  if picks then key[#key + 1] = #picks end
+  return table.concat(key, "|")
+end
+
+-- Cards for the part's inserts, after the machine's: fx is parts.list[i].fx,
+-- slot (0 to 3) -> {type, params, mods}. picks: the effects a script part
+-- can put in slots 3-4 (parts.effects), or nil for a song's track, whose
+-- inserts are the song's. Then an "inserts" card picks those, followed by
+-- each slot's cards. Each control has fx (the slot) and name (the param),
+-- or what = "type" on the picker.
+function M.fx_cards(fx, picks)
+  if not fx then return {} end
+  local key = fx_key(fx, picks)
+  if fx.cards and fx.cards_key == key then return fx.cards end
+  local cards = {}
+  if picks and #picks > 0 then
+    local opts = {"none"}
+    for k, t in ipairs(picks) do opts[k + 1] = t:lower() end
+    local def = {name = "type", min = 0, max = 1, default = 0, unit = "", steps = #opts, curve = "step"}
+    local list = {}
+    for slot = USER_FIRST, SLOTS - 1 do
+      list[#list + 1] = {label = "fx " .. (slot + 1), kind = "step", fx = slot, what = "type", def = def, opts = opts}
+    end
+    cards[1] = {title = "inserts", controls = list}
+  end
+  for slot = 0, SLOTS - 1 do
+    local e = fx[slot]
+    if e and #e.params > 0 then
+      e.by, e.mods_by = e.by or {}, e.mods_by or {}
+      for _, c in ipairs(effect_cards(e, slot)) do cards[#cards + 1] = c end
+      for _, c in ipairs(mod_cards(e, slot)) do cards[#cards + 1] = c end
+    end
+  end
+  fx.cards, fx.cards_key = cards, key
   return cards
 end
 

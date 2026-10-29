@@ -1,5 +1,17 @@
 local here = arg[0]:match("^(.*)/[^/]+$")
 local which = arg[2]
+local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "11"}
+if not which then
+  -- every case, each in a fresh run
+  local failed = 0
+  for _, c in ipairs(CASES) do
+    print("-- case " .. c)
+    local ok = os.execute(string.format("lua5.4 %q %q %s", arg[0], arg[1] or ".", c))
+    if not ok then failed = failed + 1 end
+  end
+  print(failed == 0 and "all cases ok" or (failed .. " case(s) failed"))
+  os.exit(failed == 0 and 0 or 1)
+end
 local P, S = dofile(here .. "/harness.lua")
 
 local function readback(path, tracks)
@@ -45,11 +57,12 @@ if which == "1" then
   CHECK(not P.own[1].owed and not P.own[2].owed, "and nothing is owed")
 elseif which == "2" then
   -- inserts, modifiers and files changed during a song-page load from no song
-  P.own[1].fx = {[0] = {type = "Distortion", params = {{name = "drive", value = 0.2}}}}
+  local drive = {name = "drive", value = 0.2}
+  P.own[1].fx = {[0] = {type = "Distortion", params = {drive}, by = {drive = drive}, mods = {}, mods_by = {}}}
   S.load("A")
   CHECK(P.song_holds and P.song_racks and not P.song_view, "holds and racks, the script's parts shown")
   SENT_CLEAR()
-  P.set_fx(1, {fx = 0, index = 1}, 0.9)
+  P.set_fx(1, {fx = 0, name = "drive"}, 0.9)
   P.set_mod_type(2, 0, "Arp", false)
   P.clear_files(3)
   CHECK(#SENT == 0 or not (FIND("/fx") or FIND("/mod") or FIND("/load")), "nothing sent while held")
@@ -148,6 +161,118 @@ elseif which == "7" then
   CHECK(P.out_send("rev_size") == nil, "a song without a reverb shows none")
   P.osc("/song_unloaded", {1})
   CHECK(P.out_send("rev_size") == size, "after unload the script's again")
+elseif which == "8" then
+  -- the "fx" param over 4 slots: the user's types, edits and mod params
+  P.effects = {"Delay", "Reverb", "Chorus"}
+  P.osc("/inserts", {0})
+  SENT_CLEAR()
+  P.set_fx(1, {fx = 2, what = "type"}, 1 / 3)
+  P.set_fx(1, {fx = 2, what = "type"}, 0)
+  P.set_fx(1, {fx = 2, what = "type"}, 3 / 3)
+  CHECK(not FIND("/insert"), "turning through the effects sends nothing yet")
+  ADVANCE(0.5)
+  CHECK(FIND("/insert", function(a) return a[1] == 0 and a[2] == 2 and a[3] == "Chorus" end) ~= nil,
+    "the one it stops on, Chorus, goes to slot 2 (fx 3)")
+  CHECK(P.own[1].fx_wait == 1, "and its /inserts reply is waited for")
+  local delay = {2, "Chorus", 1, "rate", 0, 1, 0, "", 17, "step", 0.5, 2,
+    "mod_source", 0, 1, 0, "", 5, "step", 0, "mod_target1", 0, 1, 0, "", 65, "step", 0}
+  local reply = {0}
+  for _, v in ipairs(delay) do reply[#reply + 1] = v end
+  P.osc("/inserts", reply)
+  CHECK(P.own[1].fx_wait == 0 and P.own[1].fx[2] and P.own[1].fx[2].type == "Chorus", "the reply shows Chorus")
+  P.set_fx(1, {fx = 2, name = "rate"}, 0.25)
+  P.set_fx(1, {fx = 2, name = "mod_source"}, 0.25)
+  P.set_fx(1, {fx = 2, name = "mod_target1", targets = {-1, 0}}, 1)
+  CHECK(FIND("/fx", function(a) return a[2] == 2 and a[3] == "mod_target1" and math.abs(a[4] - 1 / 64) < 1e-6 end) ~= nil,
+    "a mod target goes as (index + 1)/64")
+  local saved = params:get("p1_fx")
+  CHECK(saved == "2=Chorus|2,mod_source,0.2500|2,mod_target1,0.0156|2,rate,0.2500", "saved as " .. saved)
+  local edits, inserts = P.decode_fx(saved)
+  CHECK(inserts[2] == "Chorus" and inserts[3] == nil and math.abs(edits["2:rate"] - 0.25) < 1e-6
+    and math.abs(edits["2:mod_source"] - 0.25) < 1e-6, "and read back")
+  CHECK(P.encode_fx(edits, inserts) == saved, "the same again")
+  -- an old PSET: slots 0-1 only, the Delay's pingpong
+  edits, inserts = P.decode_fx("0,drive,0.2000|1,pingpong,1.0000|0,pingpong,0.0000")
+  CHECK(next(inserts) == nil, "an old fx param has slots 3-4 empty")
+  CHECK(math.abs(edits["1:mode"] - 1 / 3) < 1e-6 and edits["0:mode"] == 0 and not edits["1:pingpong"]
+    and math.abs(edits["0:drive"] - 0.2) < 1e-6, "pingpong on is mode ping-pong, off normal")
+  -- a new patch keeps the user's slot and its edits
+  P.set(1, "patch", 2)
+  ADVANCE(0.5)
+  CHECK(P.decode_fx(params:get("p1_fx"))["2:rate"] ~= nil, "a new patch keeps slot 3's edits")
+  CHECK(not FIND("/insert", function(a) return a[3] == "" end), "and doesn't empty it")
+elseif which == "9" then
+  -- a song takes the racks and gives them back: the user's slots go again
+  P.effects = {"Delay", "Reverb", "Chorus"}
+  P.set_insert(1, 3, "Delay", false)
+  CHECK(FIND("/insert", function(a) return a[1] == 0 and a[2] == 3 and a[3] == "Delay" end) ~= nil, "Delay to slot 3 (fx 4)")
+  S.load("A")
+  SENT_CLEAR()
+  P.set_insert(1, 2, "Reverb", false)
+  CHECK(not FIND("/insert"), "a pick while a song loads isn't sent")
+  CHECK(P.own[1].owed, "and is owed")
+  readback("A", A)
+  P.osc("/song_unloaded", {1})
+  CHECK(FIND("/insert", function(a) return a[1] == 0 and a[2] == 3 and a[3] == "Delay" end) ~= nil
+    and FIND("/insert", function(a) return a[1] == 0 and a[2] == 2 and a[3] == "Reverb" end) ~= nil,
+    "after the unload both go again")
+  local fx = FIND("/fx", function(a) return a[1] == 0 end)
+  local order = {}
+  for k, m in ipairs(SENT) do
+    if m.args[1] == 0 then order[m.path] = order[m.path] or k end
+  end
+  CHECK(order["/patch"] < order["/insert"] and (not fx or order["/insert"] < order["/fx"]), "after the patch, before the edits")
+elseif which == "11" then
+  -- the insert cards: the picker, an effect's groups, the reverb's model
+  -- knobs and the mod card by source
+  local panel = include("lib/panel")
+  local function def(name, steps, v)
+    return {name = name, min = 0, max = 1, default = 0, unit = "", steps = steps or 0,
+      curve = steps and "step" or "lin", value = v or 0}
+  end
+  local function slot(type, names, mods)
+    local e = {type = type, params = {}, mods = {}, by = {}, mods_by = {}}
+    for _, d in ipairs(names) do e.params[#e.params + 1] = d; e.by[d.name] = d end
+    for _, d in ipairs(mods) do e.mods[#e.mods + 1] = d; e.mods_by[d.name] = d end
+    return e
+  end
+  local function mods(source)
+    local list = {def("mod_source", 5, source / 4), def("mod_shape", 7), def("mod_rate", 17), def("mod_length", 2, 0),
+      def("mod_attack"), def("mod_release"), def("mod_key", 17), def("mod_target1", 65), def("mod_depth1"),
+      def("mod_target2", 65), def("mod_depth2")}
+    for k = 1, 16 do list[#list + 1] = def("mod_step" .. k) end
+    list[9].min = -1
+    return list
+  end
+  local reverb = {def("size"), def("damp"), def("model", 12, 5 / 11), def("width"), def("drip"), def("gain")}
+  local fx = {[0] = slot("Reverb", reverb, mods(0)), [2] = slot("Delay", {def("time", 8), def("mode", 4), def("taps", 3)}, mods(2))}
+  local cards = panel.fx_cards(fx, {"Delay", "Reverb"})
+  local titles = {}
+  for _, c in ipairs(cards) do titles[#titles + 1] = c.title end
+  local got = table.concat(titles, ",")
+  CHECK(got == "inserts,reverb tank,reverb space,reverb tail,reverb mod,delay echo,delay mode,delay mod,delay steps",
+    "cards " .. got)
+  CHECK(#cards[1].controls == 2 and cards[1].controls[2].label == "fx 4" and #cards[1].controls[1].opts == 3,
+    "the picker has fx 3 and fx 4, none and 2 effects")
+  local tank = {}
+  for _, c in ipairs(cards[2].controls) do tank[#tank + 1] = c.name end
+  CHECK(table.concat(tank, ",") == "model,damp", "space has no size (" .. table.concat(tank, ",") .. ")")
+  CHECK(cards[2].controls[1].opts[6] == "space", "the model names its step")
+  local m = {}
+  for _, c in ipairs(cards[8].controls) do m[#m + 1] = c.label end
+  CHECK(table.concat(m, ",") == "source,rate,length,target 1,depth 1,target 2,depth 2", "steps mod: " .. table.concat(m, ","))
+  CHECK(#cards[9].controls == 8, "8 steps at length 8")
+  CHECK(#cards[8].controls[4].opts == 4, "targets: none and the delay's 3 params")
+  P.own[1].fx = fx
+  P.set_fx(1, cards[8].controls[4], 1)
+  CHECK(math.abs(fx[2].mods_by.mod_target1.value - 3 / 64) < 1e-6, "the last target is the third param, 3/64")
+  CHECK(P.fx_value(1, cards[8].controls[4]) == 1, "and reads back at the end")
+  fx[2].mods_by.mod_source.value = 0.25
+  local again = panel.fx_cards(fx, {"Delay", "Reverb"})
+  CHECK(again[#again].title == "delay mod" and again[#again].controls[2].label == "shape", "an LFO mod has its shape")
+  fx[2].mods_by.mod_source.value = 1
+  again = panel.fx_cards(fx, nil)
+  CHECK(again[1].title ~= "inserts" and again[#again].controls[2].label == "track", "a song's track has no picker; a keyed mod its track")
 end
 print(FAILS == 0 and "all ok" or (FAILS .. " failed"))
 os.exit(FAILS == 0 and 0 or 1)

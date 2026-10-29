@@ -119,14 +119,20 @@ local function new_part(i, song)
     last_path = nil, -- the last file or folder loaded, for the picker
     resend_files = false, -- send the files after the next mount
     want_default = false, -- load the machine's default after the next mount
-    -- the inserts the plugin last listed, slot 0 or 1 -> {type, params},
-    -- each param a def with its 0-1 value; from /inserts
+    -- the inserts the plugin last listed, slot 0 to 3 -> {type, params,
+    -- mods, by, mods_by}, each param a def with its 0-1 value, by and
+    -- mods_by the same by name; from /inserts
     fx = {},
-    -- insert params moved by hand, "slot:name" -> 0-1. Saved in the part's
-    -- "fx" param and sent again over the patch's after a PSET is read.
+    -- insert and insert mod params moved by hand, "slot:name" -> 0-1. Saved
+    -- in the part's "fx" param and sent again over the patch's after a PSET
+    -- is read.
     fx_edits = {},
-    -- /patch and /unmount sent and not yet answered by /inserts, and when the
-    -- last went, so only the newest one's /inserts is shown
+    -- the effects picked for the user's slots 2 and 3 (shown as 3 and 4),
+    -- slot -> type; saved in the "fx" param. insert_sent is what the plugin
+    -- was last sent for them, insert_pending a pick waiting to be sent.
+    inserts = {}, insert_sent = {}, insert_pending = {},
+    -- /patch, /unmount and /insert sent and not yet answered by /inserts,
+    -- and when the last went, so only the newest one's /inserts is shown
     fx_wait = 0, fx_asked = 0,
     -- a patch's macro names, 8 strings ("" for unnamed), or nil when
     -- it names none; from /macro_names, not saved
@@ -181,6 +187,7 @@ local HELD_BY_SONG = {
   ["/patch"] = true, ["/unmount"] = true, ["/preset_load"] = true, ["/mount"] = true, ["/param"] = true,
   ["/load"] = true, ["/channel"] = true, ["/fx"] = true, ["/mod"] = true, ["/mod_bypass"] = true,
   ["/mod_param"] = true, ["/send"] = true, ["/master"] = true, ["/mods_off"] = true, ["/preset_save"] = true,
+  ["/insert"] = true,
 }
 
 local function send(path, args)
@@ -393,10 +400,16 @@ function P.start(ready)
     end
   end)
   send("/machines", {})
+  local effects_asked = 0
   P.tempo_timer = timer.every(0.25, function()
     if P.ready then
       P.send_tempo()
       P.send_beat()
+      -- the effects for the user's insert slots, asked until they come
+      if #P.effects == 0 and util.time() - effects_asked > 2 then
+        effects_asked = util.time()
+        send("/effects", {})
+      end
     end
   end)
 end
@@ -834,13 +847,18 @@ end
 
 -- ---- insert effects --------------------------------------------------------------
 
--- The part's insert edits as the "fx" param holds them: "slot,name,value"
--- per edit, joined with "|".
-local function encode_fx(edits)
+-- The part's insert edits and the user's slot types as the "fx" param holds
+-- them: "slot=type" per user slot, then "slot,name,value" per edit, joined
+-- with "|". PSETs from before 4 slots have edits for slots 0-1 only.
+P.USER_SLOTS = {2, 3}
+local function encode_fx(edits, inserts)
+  local out = {}
+  for _, slot in ipairs(P.USER_SLOTS) do
+    if inserts[slot] then out[#out + 1] = slot .. "=" .. inserts[slot] end
+  end
   local keys = {}
   for k in pairs(edits) do keys[#keys + 1] = k end
   table.sort(keys)
-  local out = {}
   for _, k in ipairs(keys) do
     local slot, name = k:match("^(%d):(.+)$")
     out[#out + 1] = string.format("%s,%s,%.4f", slot, name, edits[k])
@@ -848,51 +866,144 @@ local function encode_fx(edits)
   return table.concat(out, "|")
 end
 
+-- The edits and the user's slot types. An edit of the Delay's old pingpong
+-- switch becomes its mode: on is ping-pong (1/3), off normal.
 local function decode_fx(s)
-  local edits = {}
+  local edits, inserts = {}, {}
   for entry in (s or ""):gmatch("[^|]+") do
-    local slot, name, v = entry:match("^([01]),([^,]+),([%d%.eE+-]+)$")
-    if slot and tonumber(v) then edits[slot .. ":" .. name] = util.clamp(tonumber(v), 0, 1) end
+    local slot, name, v = entry:match("^([0-3]),([^,]+),([%d%.eE+-]+)$")
+    if slot and tonumber(v) then
+      v = util.clamp(tonumber(v), 0, 1)
+      if name == "pingpong" then name, v = "mode", v >= 0.5 and 1 / 3 or 0 end
+      edits[slot .. ":" .. name] = v
+    else
+      local at, type = entry:match("^([23])=(%w+)$")
+      if at then inserts[tonumber(at)] = type end
+    end
   end
-  return edits
+  return edits, inserts
 end
+P.encode_fx, P.decode_fx = encode_fx, decode_fx
 
 local function save_fx(part)
   if part.song then return end
-  params:set(id(part.n, "fx"), encode_fx(part.fx_edits), true)
+  params:set(id(part.n, "fx"), encode_fx(part.fx_edits, part.inserts), true)
 end
 
--- Drops the part's insert edits, for a newly picked patch.
+-- Drops the edits of the patch's inserts, for a newly picked patch. The
+-- user's slots keep theirs, as the plugin keeps those effects.
 local function clear_fx(part)
-  part.fx_edits = {}
+  for k in pairs(part.fx_edits) do
+    if tonumber(k:match("^(%d)")) < P.USER_SLOTS[1] then part.fx_edits[k] = nil end
+  end
   save_fx(part)
 end
 
--- An insert control's 0-1 value (ctl from panel.fx_cards).
+local function is_user_slot(slot) return slot == 2 or slot == 3 end
+
+-- Sends the user's slot types the plugin doesn't hold, before the edits.
+-- Each /insert of an effect is answered by /inserts, so it's counted like a
+-- /patch; emptying a slot already empty gets no answer, so it isn't.
+local function send_inserts(part)
+  -- a song's tracks have the song's inserts; a script part's wait for the racks
+  if part.song or P.song_holds then return end
+  for _, slot in ipairs(P.USER_SLOTS) do
+    local want = part.inserts[slot]
+    if part.insert_pending[slot] then
+      timer.cancel(part.insert_pending[slot])
+      part.insert_pending[slot] = nil
+    end
+    if want ~= part.insert_sent[slot] then
+      if want then
+        local now = util.time()
+        part.fx_wait = (now - part.fx_asked > 2) and 1 or part.fx_wait + 1
+        part.fx_asked = now
+      end
+      part.insert_sent[slot] = want
+      psend(part, "/insert", {part.n - 1, slot, want or ""})
+    end
+  end
+end
+
+-- Puts an effect (or nil) in the part's user slot 2 or 3 with its defaults.
+-- With wait it's sent once no other type has come for 0.3 s, so turning
+-- through the effects mounts only the one it stops on.
+local function set_insert(part, slot, type, wait)
+  if part.song or not is_user_slot(slot) or part.inserts[slot] == type then return end
+  part.inserts[slot] = type
+  for k in pairs(part.fx_edits) do
+    if k:match("^(%d)") == tostring(slot) then part.fx_edits[k] = nil end
+  end
+  save_fx(part)
+  if part.insert_pending[slot] then timer.cancel(part.insert_pending[slot]) end
+  part.insert_pending[slot] = nil
+  local function go()
+    part.insert_pending[slot] = nil
+    if held(part) then return end
+    send_inserts(part)
+  end
+  if wait then part.insert_pending[slot] = timer.after(0.3, go) else go() end
+end
+function P.set_insert(i, slot, type, wait) set_insert(P.part(i), slot, type, wait) end
+
+-- The effects the plugin has, from /effects.
+P.effects = {}
+
+-- A mod target's position among the ones the card offers (ctl.targets,
+-- param indexes with -1 for none) from its 0-1 value, (index + 1)/64.
+local function target_pos(ctl, v)
+  local at = math.floor(v * 64 + 0.5) - 1
+  for k, t in ipairs(ctl.targets) do
+    if t == at then return (k - 1) / (#ctl.targets - 1) end
+  end
+  return 0
+end
+
+-- An insert control's 0-1 value (ctl from panel.fx_cards): a param or mod
+-- setting, by name, or the user slot's type on the "inserts" card.
 function P.fx_value(i, ctl)
-  local e = P.part(i).fx[ctl.fx]
-  local d = e and e.params[ctl.index]
-  return d and d.value or 0
+  local part = P.part(i)
+  if ctl.what == "type" then
+    local at = tab.key(P.effects, part.inserts[ctl.fx]) or 0
+    return #P.effects > 0 and at / #P.effects or 0
+  end
+  local e = part.fx[ctl.fx]
+  local d = e and ((e.by and e.by[ctl.name]) or (e.mods_by and e.mods_by[ctl.name]))
+  if not d then return 0 end
+  if ctl.targets then return target_pos(ctl, d.value) end
+  return d.value
 end
 
 function P.set_fx(i, ctl, v)
   local part = P.part(i)
+  if ctl.what == "type" then
+    local at = math.floor(v * #P.effects + 0.5)
+    set_insert(part, ctl.fx, P.effects[at], true)
+    return
+  end
   local e = part.fx[ctl.fx]
-  local d = e and e.params[ctl.index]
+  local d = e and ((e.by and e.by[ctl.name]) or (e.mods_by and e.mods_by[ctl.name]))
   -- a patch on its way brings its own inserts
-  if not d or part.pending then return end
+  if not d or (part.pending and not is_user_slot(ctl.fx)) then return end
+  if ctl.targets then
+    local t = ctl.targets[math.floor(v * (#ctl.targets - 1) + 0.5) + 1] or -1
+    v = (t + 1) / 64
+  end
   d.value = v
   part.fx_edits[ctl.fx .. ":" .. d.name] = v
   save_fx(part)
   psend(part, "/fx", {i - 1, ctl.fx, d.name, v})
 end
 
--- Sends the part's insert edits, after its /patch. The plugin runs them after
--- the patch, so they go on top of its inserts.
-local function send_fx_edits(part)
+-- Sends the part's insert edits, after its /patch and the user's slots. The
+-- plugin runs them after those, so they go on top of their inserts.
+-- user_only: just the user's slots', for a machine with no patch.
+local function send_fx_edits(part, user_only)
+  send_inserts(part)
   for k, v in pairs(part.fx_edits) do
     local slot, name = k:match("^(%d):(.+)$")
-    psend(part, "/fx", {part.n - 1, tonumber(slot), name, v})
+    slot = tonumber(slot)
+    if not user_only or is_user_slot(slot) then psend(part, "/fx", {part.n - 1, slot, name, v}) end
   end
 end
 
@@ -1324,6 +1435,7 @@ local function load_machine(part, with_values)
     send_fx_edits(part)
   else
     psend(part, "/mount", {r, part.machine})
+    send_fx_edits(part, true)
   end
   part.patch = pr and pr.name or name
   part.sent = pr and preset_tag(pr) or name
@@ -1425,7 +1537,12 @@ local function apply(part)
     return
   end
   send_strip(part)
-  part.fx_edits = decode_fx(params:get(id(i, "fx")))
+  part.fx_edits, part.inserts = decode_fx(params:get(id(i, "fx")))
+  -- the user's slots go again: the racks may have been emptied meanwhile.
+  -- A slot the PSET leaves empty is emptied only if it was sent something.
+  for _, slot in ipairs(P.USER_SLOTS) do
+    if part.inserts[slot] then part.insert_sent[slot] = nil end
+  end
   part.preset = decode_preset(params:get(id(i, "preset")))
   part.want_default = false -- a PSET's files stay as saved
   load_machine(part, false)
@@ -1478,6 +1595,11 @@ local function park(part)
   notes_off(part)
   part.fx = {}
   send_patch(part, "/unmount", {part.n - 1})
+  -- and its own inserts go, sent again when it's shown
+  for _, slot in ipairs(P.USER_SLOTS) do
+    if part.insert_sent[slot] then psend(part, "/insert", {part.n - 1, slot, ""}) end
+    part.insert_sent[slot] = nil
+  end
   -- a parked part's solo would keep the others quiet
   psend(part, "/channel", {part.n - 1, "solo", 0})
 end
@@ -2037,6 +2159,7 @@ function P.resend()
   if P.on_resend then P.on_resend() end
   for i, part in ipairs(own) do
     part.fx_wait = 0 -- the old plugin's replies won't come
+    part.insert_sent = {}
     if not own_on(i) then
       park(part) -- the new plugin has nothing there
     elseif part.pending then
@@ -2371,6 +2494,8 @@ end
 -- machine. The rest are empty. Each track plays from MIDI channel n.
 function P.song_loaded(tracks)
   P.song_reading = false
+  -- the load emptied the script parts' own inserts
+  for _, part in ipairs(own) do part.insert_sent = {} end
   stashed = nil
   local named, wide = {}, false
   for _, t in ipairs(tracks) do
@@ -2510,6 +2635,9 @@ function P.osc(path, args)
     if not part or not (part.song or params.lookup[id(i, "rev")]) then return end
     if not part.sends_moved.rev then put(part, "rev", args[2]) end
     if not part.sends_moved.dly then put(part, "dly", args[3]) end
+  elseif path == "/effects" then
+    P.effects = {}
+    for k, name in ipairs(args) do P.effects[k] = name end
   elseif path == "/inserts" then
     -- the part's inserts after a patch or unmount, with the edits on top
     local i = (args[1] or -1) + 1
@@ -2545,7 +2673,10 @@ function P.osc(path, args)
         k = k + 1
         mods = defs(mcount)
       end
-      fx[slot] = {type = type, params = list, mods = mods}
+      local by, mods_by = {}, {}
+      for _, d in ipairs(list) do by[d.name] = d end
+      for _, d in ipairs(mods) do mods_by[d.name] = d end
+      fx[slot] = {type = type, params = list, mods = mods, by = by, mods_by = mods_by}
     end
     part.fx = fx
   elseif path == "/macro_names" then

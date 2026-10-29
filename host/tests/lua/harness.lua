@@ -110,6 +110,7 @@ function params:set(id, v, silent) self:lookup_param(id):set(v, silent) end
 function params:string(id) local p = self:lookup_param(id); return p.options and p.options[p.selected] or tostring(p:get()) end
 function params:set_action(id, fn) self:lookup_param(id).action = fn end
 function params:hide() end
+function params:read() end
 function params:show() end
 function params:delta(id, d)
   local p = self:lookup_param(id)

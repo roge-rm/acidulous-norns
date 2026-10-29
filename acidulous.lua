@@ -749,7 +749,8 @@ local function part_cards()
   -- then the inserts' and the modifiers', in a new list, as the machine's is cached
   local all = {}
   for _, c in ipairs(cards) do all[#all + 1] = c end
-  for _, c in ipairs(panel.fx_cards(part.fx)) do all[#all + 1] = c end
+  -- a song's tracks have the song's inserts, so only a script part picks its own
+  for _, c in ipairs(panel.fx_cards(part.fx, not part.song and parts.effects or nil)) do all[#all + 1] = c end
   for _, c in ipairs(panel.mod_cards(part.mods, parts.mod_defs)) do all[#all + 1] = c end
   cards = all
   -- mounting or reordering modifiers moves their cards: follow the one open
@@ -941,8 +942,8 @@ local function turn_control(d)
     if v ~= old then parts.set_mod(state.sel, ctl, v) end
     return
   end
-  -- an insert's param, or the machine's slot
-  local sid = ctl.fx and ("fx" .. ctl.fx .. ":" .. ctl.index) or parts.id(state.sel, "s" .. ctl.slot)
+  -- an insert's param or type, or the machine's slot
+  local sid = ctl.fx and ("fx" .. ctl.fx .. ":" .. (ctl.name or ctl.what)) or parts.id(state.sel, "s" .. ctl.slot)
   local old = ctl.fx and parts.fx_value(state.sel, ctl) or parts.get(state.sel, "s" .. ctl.slot)
   local v = turned(sid, ctl.def, n, old, d, ctl.fx and n > 1)
   if ctl.fx then
