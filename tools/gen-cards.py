@@ -12,6 +12,10 @@ Also writes lib/modcards.lua, the modifiers' cards (Scale, Chord, Arp), from
 SlotsPanel.kt: its PANEL_GROUPS, switchLabels and SHORT_LABELS, with the
 params of the vendored engine's InputMods.cpp.
 
+And lib/fxcards.lua, the insert effects' cards: SlotsPanel.kt's PANEL_GROUPS
+and switchLabels over the vendored engine's effect params, the reverb's
+models and their knobs, and the mod card's words from InsertModCard.kt.
+
 Usage: tools/gen-cards.py [APP_REPO] [OUT]
   APP_REPO defaults to ~/Projects/AndroidStudioProjects/Acidulous,
   OUT to lib/cards.lua next to this script.
@@ -775,6 +779,159 @@ def write_mod_cards(ev):
     for p in problems: print("  " + p)
 
 
+# ---- effect cards ------------------------------------------------------------------
+
+EFFECTS_DIR = os.path.join(HERE, "..", "third_party/acidulous/engine/effect")
+CARD_KT = os.path.join(SRC, "ui/InsertModCard.kt")
+FX_OUT = os.path.join(os.path.dirname(OUT), "fxcards.lua")
+
+
+def effect_defs():
+    """effect name -> [(name, min, max, default, curve, steps, unit)] from the
+    vendored engine's paramDefs, in engine order, by EffectRegistry's names."""
+    srcs = {}
+    for root, _, files in os.walk(EFFECTS_DIR):
+        for f in files:
+            if f.endswith((".cpp", ".h")):
+                srcs[os.path.join(root, f)] = open(os.path.join(root, f), encoding="utf-8").read()
+    every = "\n".join(srcs.values())
+    consts = {m.group(1): int(m.group(2)) for m in re.finditer(r"constexpr int(?:32_t)? (\w+)\s*=\s*(\d+);", every)}
+    for m in re.finditer(r"enum \w+ \{([^}]*)\}", every):
+        names = [n.strip().split("=")[0].strip() for n in m.group(1).split(",") if n.strip()]
+        if names and names[-1].startswith("k") and all("=" not in n for n in m.group(1).split(",")):
+            consts[names[-1]] = len(names) - 1
+
+    def num(v):
+        v = v.strip().rstrip("fF")
+        try: return float(v)
+        except ValueError: return float(consts.get(v, 0))
+
+    by_class = {}
+    for text in srcs.values():
+        for m in re.finditer(r"const ParamDef \*(\w+)::paramDefs\(int32_t &count\) const \{", text):
+            body = text[m.end():text.index("count =", m.end())]
+            defs = []
+            for d in re.finditer(r'\{"(\w+)",\s*([^,]+),\s*([^,]+),\s*([^,]+),\s*Curve::(\w+),\s*([^,]+),\s*"([^"]*)"\}', body):
+                n, lo, hi, de, curve, steps, unit = d.groups()
+                steps = steps.strip()
+                st = int(steps) if steps.isdigit() else consts.get(steps, 0)
+                defs.append((n, num(lo), num(hi), num(de), curve, st, unit))
+            by_class[m.group(1)] = defs
+    reg = open(os.path.join(EFFECTS_DIR, "EffectRegistry.cpp"), encoding="utf-8").read()
+    out = {}
+    for name, cls in re.findall(r'\{"(\w+)", make<effect::(\w+)>\}', reg):
+        out[name] = by_class.get(cls, [])
+    return out
+
+
+def fx_cards(ev):
+    text = open(SLOTS, encoding="utf-8").read()
+    toks = tokenize(text)
+    defs = effect_defs()
+    groups = {}
+    for m in re.finditer(r'"(\w+)" to listOf\((.*?)\n    \)', text[text.index("private val PANEL_GROUPS"):], re.S):
+        if m.group(1) not in defs or m.group(1) in groups: continue
+        groups[m.group(1)] = [(t, re.findall(r'"(\w+)"', names))
+                              for t, names in re.findall(r'"([\w ]+)" to listOf\(([^)]*)\)', m.group(2))]
+    fi = next(i for i, t in enumerate(toks) if t.v == "switchLabels" and toks[i - 1].v == "fun")
+    branches = switch_labels(ev, toks, fi, len(toks))
+    problems = []
+
+    def labels(type_, name, steps):
+        env = {"type": type_, "name": name, "steps": steps}
+        for (ca, cb), (ea, eb) in branches:
+            try:
+                if not test(ev, toks, ca, cb, env): continue
+            except Fail as e:
+                problems.append(f"{type_}.{name}: {e}"); continue
+            if toks[ea].v == "null": return None
+            try:
+                return [str(x) for x in ev.eval(toks, ea, eb, env)]
+            except Fail as e:
+                problems.append(f"{type_}.{name}: {e}"); return None
+        return None
+
+    def words(o):
+        return [ascii_label(x.replace("↑", " up").replace("↓", " dn")) for x in o]
+
+    effects = {}
+    for type_, ds in defs.items():
+        if not ds: problems.append(f"{type_}: no params found")
+        opts = {}
+        for d in ds:
+            if d[4] != "Stepped": continue
+            o = labels(type_, d[0], d[5])
+            # a list for another type's param of the same name has the wrong count
+            if o and d[5] > 0 and len(o) != d[5]: o = None
+            if o and o != ["off", "on"]: opts[d[0]] = words(o)
+        effects[type_] = {"g": groups.get(type_, []), "o": opts}
+    models = [ascii_label(x) for x in ev.lookup("REVERB_MODELS", {})]
+    knobs_text = text[text.index("private val REVERB_MODEL_KNOBS"):]
+    knobs_text = knobs_text[:knobs_text.index("\n)")]
+    knobs = [(m, re.findall(r'"(\w+)"', ns)) for m, ns in re.findall(r'"(\w+)" to listOf\(([^)]*)\)', knobs_text)]
+    card = open(CARD_KT, encoding="utf-8").read()
+    def kt_list(src, name):
+        m = re.search(name + r" = listOf\(([^)]*)\)", src)
+        return words(re.findall(r'"([^"]*)"', m.group(1)))
+    mod = {"sources": kt_list(card, "SOURCE_WORDS"), "shapes": kt_list(card, "SHAPE_WORDS"),
+           "rates": [x.lower() for x in kt_list(text, "internal val NOTE_RATES")]}
+    sends = {t: defs[t] for t in ("Reverb", "Delay")}
+    return effects, models, knobs, mod, sends, problems
+
+
+def write_fx_cards(ev):
+    effects, models, knobs, mod, sends, problems = fx_cards(ev)
+    L = lua_str
+    lines = [
+        "-- Generated by tools/gen-cards.py from the app's SlotsPanel.kt and InsertModCard.kt",
+        "-- and the vendored engine's effects; don't edit.",
+        "return {",
+        "  -- effect -> {g = cards {title, param names} as the app groups them (none: engine",
+        "  -- order), o = stepped param -> option labels}",
+        "  effects = {",
+    ]
+    for type_ in effects:
+        e = effects[type_]
+        lines.append(f"    {type_} = {{")
+        if e["g"]:
+            lines.append("      g = {")
+            for t, ns in e["g"]:
+                lines.append(f"        {{{L(t)}, {{" + ", ".join(L(n) for n in ns) + "}},")
+            lines.append("      },")
+        if e["o"]:
+            lines.append("      o = {")
+            for n, o in e["o"].items():
+                lines.append(f"        {n} = {{" + ", ".join(L(x) for x in o) + "},")
+            lines.append("      },")
+        lines.append("    },")
+    lines.append("  },")
+    lines.append("  -- the effects in the engine's order")
+    lines.append("  order = {" + ", ".join(L(t) for t in effects) + "},")
+    lines.append("  -- the reverb's models, in the engine's order, and each one's own knobs")
+    lines.append("  reverb_models = {" + ", ".join(L(m) for m in models) + "},")
+    lines.append("  reverb_knobs = {")
+    for m, ns in knobs:
+        lines.append(f"    {m} = {{" + ", ".join(L(n) for n in ns) + "},")
+    lines.append("  },")
+    lines.append("  -- an insert's mod: its sources, LFO shapes and rates")
+    lines.append("  mod = {")
+    for k in ("sources", "shapes", "rates"):
+        lines.append(f"    {k} = {{" + ", ".join(L(x) for x in mod[k]) + "},")
+    lines.append("  },")
+    lines.append("  -- the send effects' params: {name, min, max, default, curve, steps, unit}")
+    lines.append("  sends = {")
+    for t, ds in sends.items():
+        lines.append(f"    {t} = {{")
+        for n, lo, hi, de, curve, st, unit in ds:
+            lines.append(f"      {{{L(n)}, {lo:g}, {hi:g}, {de:g}, {L(curve.lower())}, {st}, {L(unit)}}},")
+        lines.append("    },")
+    lines.append("  },")
+    lines.append("}")
+    with open(FX_OUT, "w") as f: f.write("\n".join(lines) + "\n")
+    print(f"{len(effects)} effects -> {os.path.relpath(FX_OUT)}")
+    for p in problems: print("  " + p)
+
+
 # ---- the file ----------------------------------------------------------------------
 
 def top_vals(toks, into):
@@ -894,6 +1051,7 @@ def main():
     print(f"{len(out)} machines, {sum(len(v) for v in out.values())} cards -> {os.path.relpath(OUT)}")
     for p in problems: print("  " + p)
     write_mod_cards(ev)
+    write_fx_cards(ev)
 
 
 if __name__ == "__main__":
