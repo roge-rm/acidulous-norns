@@ -104,6 +104,8 @@ Played on the norns the same way, with the test files from `host/tests/make_mate
 | Molt | Init | voice.wav | 5.6 | 6.8 | 15.1 | 7 |
 | Molt | Choir | voice.flac | 6.1 | 7.0 | 14.4 | 7 |
 
+Bias plays a take from the song's folder, so it's measured in a song: the tape test song (Forage and Bias, Reverb and Delay sends) with the plugin's readout, 14 readings after the song had played 12 seconds. With Forage's notes taken out and Bias playing it reads load 8.9, highest 9.2, worst 14.4. With Bias taken out too (the sends and the song's racks alone) it reads 8.2, 8.4 and 12.8. So Bias adds about 0.7% load and 2% worst, and `machine_cost` has 2.0.
+
 Dice's worst blocks are when it swaps slices. Pollen's grains are the heavy part, Chord Dust most of all.
 
 Memory: the Pi 4 has 1851 MB and no swap, and with norns and acidulous running about 1165 MB is free, with scsynth at about 145 MB. A 62 MB SoundFont (65 samples) took scsynth to 268 MB, and it went back to 146 MB once a small one replaced it.
