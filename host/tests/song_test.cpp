@@ -280,6 +280,7 @@ int main(int argc, char** argv)
 
     std::atomic<bool>  go{true}, paused{false};
     std::atomic<float> peak{0.f};
+    std::mutex         peak_mx;  // a block is rendered and counted whole, so a reset can't be overwritten by an older one
     std::thread        audio([&] {
         float l[64], r[64];
         while(go)
@@ -289,11 +290,14 @@ int main(int argc, char** argv)
                 std::this_thread::sleep_for(1ms);
                 continue;
             }
-            c->process(nullptr, nullptr, l, r, 64);
-            float p = peak.load();
-            for(int i = 0; i < 64; ++i)
-                p = std::max(p, std::max(std::fabs(l[i]), std::fabs(r[i])));
-            peak.store(p);
+            {
+                std::lock_guard<std::mutex> lock(peak_mx);
+                c->process(nullptr, nullptr, l, r, 64);
+                float p = peak.load();
+                for(int i = 0; i < 64; ++i)
+                    p = std::max(p, std::max(std::fabs(l[i]), std::fabs(r[i])));
+                peak.store(p);
+            }
             std::this_thread::sleep_for(300us);
         }
     });
@@ -515,7 +519,7 @@ int main(int argc, char** argv)
     }
 
     // It plays.
-    peak.store(0.f);
+    { std::lock_guard<std::mutex> lock(peak_mx); peak.store(0.f); }
     host.transportPlay(0);
     std::this_thread::sleep_for(3s);
     host.transportStop();
@@ -762,6 +766,22 @@ int main(int argc, char** argv)
         check(ok && str(r, 2).empty(), "tape.zip loads: " + str(r, 2));
         state(1, st);
         check(st.args.size() > 1 && st.args[1].str == "Bias", "the Bias rack is part 1");
+        // Unloaded and loaded again: the Reel is freed with the rack and made anew.
+        for(int round = 0; round < 2; ++round)
+        {
+            log.clear();
+            cmd("/song_unload", {});
+            Reply un;
+            check(log.wait("/song_unloaded", un, 60s) && un.args.size() == 1 && un.args[0].num == 1,
+                  "the tape song unloads");
+            state(1, st);
+            check(st.args.size() > 1 && st.args[1].str.empty(), "the Bias rack is gone");
+            Reply again;
+            const bool ok2 = load(tape, again);
+            check(ok2 && str(again, 2).empty(), "tape.zip loads again: " + str(again, 2));
+            state(1, st);
+            check(st.args.size() > 1 && st.args[1].str == "Bias", "the Bias rack is back as part 1");
+        }
     }
 
     // A song's Mosaic zones are the part's, with absolute paths.
@@ -841,7 +861,7 @@ int main(int argc, char** argv)
         // The worker would finish a teardown left dirty within 250 ms.
         std::this_thread::sleep_for(800ms);
         log.clear();
-        peak.store(0.f);
+        { std::lock_guard<std::mutex> lock(peak_mx); peak.store(0.f); }
         cmd("/song_play", {});
         std::this_thread::sleep_for(1500ms);
         cmd("/song_position", {});
@@ -917,7 +937,7 @@ int main(int argc, char** argv)
             if(m5.args[k].type == 's' && !m5.args[k].str.empty())
                 none = false;
         check(none, "part 5's Arp is gone");
-        peak.store(0.f);
+        { std::lock_guard<std::mutex> lock(peak_mx); peak.store(0.f); }
         host.transportPlay(0);
         std::this_thread::sleep_for(1s);
         host.transportStop();
