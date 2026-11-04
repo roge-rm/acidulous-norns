@@ -39,13 +39,16 @@ local quiet_unload = false -- an unload for a PSET, whose parts are already on t
 local parts_owed = false
 local pending_load = nil -- the timer of a load still to be sent
 local pending_path = nil -- and the song it loads
+local pending_mode = false -- it only reloads the song for a new frozen clips mode
 
 local function cancel_pending()
   timer.cancel(pending_load)
-  pending_load, pending_path = nil, nil
+  pending_load, pending_path, pending_mode = nil, nil, false
 end
 
--- Loads path after wait seconds, unless cancelled first.
+-- Loads path after wait seconds, unless cancelled first. With for_mode it
+-- only reloads for a new frozen clips mode, and is left out when the mode is
+-- back to the one sent by then.
 local load_later
 
 -- What the parts module needs to know: song_holds, messages sent now would
@@ -115,17 +118,20 @@ function S.add_params()
   -- S.read handles that
   params:set_action("song_frozen", function()
     local path = pending_path or loading or loaded
-    if path and (pending_path or sent_mode ~= S.mode()) then load_later(0.5, path) end
+    if path and (pending_path or sent_mode ~= S.mode()) then load_later(0.5, path, true) end
   end)
 end
 
 function S.mode() return S.FROZEN[params:get("song_frozen")] or "auto" end
 
-load_later = function(wait, path)
+load_later = function(wait, path, for_mode)
+  -- a load already waiting for another reason stays a real load
+  local mode_only = for_mode and (not pending_path or pending_mode) or false
   cancel_pending()
-  pending_path = path
+  pending_path, pending_mode = path, mode_only
   pending_load = timer.after(wait, function()
-    pending_load, pending_path = nil, nil
+    pending_load, pending_path, pending_mode = nil, nil, false
+    if mode_only and sent_mode == S.mode() and (path == loaded or path == loading) then return end
     S.load(path)
   end)
 end
@@ -159,7 +165,7 @@ function S.read()
   if want ~= "" and want == loaded then
     cancel_pending()
     -- a PSET with another frozen clips mode loads the song again
-    if sent_mode ~= S.mode() then load_later(0.2, want) end
+    if sent_mode ~= S.mode() then load_later(0.2, want, true) end
     return false
   end
   if want == "" then

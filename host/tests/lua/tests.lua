@@ -383,6 +383,19 @@ elseif which == "13" then
   S.read()
   ADVANCE(1)
   CHECK(not FIND("/song_load"), "and the same mode again loads nothing")
+  -- the mode flipped and back before the reload goes loads nothing
+  SENT_CLEAR()
+  params:set("song_frozen", 1)
+  ADVANCE(0.2)
+  params:set("song_frozen", 3)
+  ADVANCE(1)
+  CHECK(not FIND("/song_load"), "a mode flipped and back loads nothing")
+  params:set("song_frozen", 2)
+  ADVANCE(0.2)
+  params:set("song_frozen", 1)
+  ADVANCE(1)
+  CHECK(FIND("/song_load", function(a) return a[1] == "A" and a[3] == "auto" end) ~= nil,
+    "flipped twice to a third mode loads it once")
 end
 print(FAILS == 0 and "all ok" or (FAILS .. " failed"))
 os.exit(FAILS == 0 and 0 or 1)
