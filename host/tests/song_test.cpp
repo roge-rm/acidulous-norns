@@ -269,7 +269,17 @@ int main(int argc, char** argv)
         std::fprintf(stderr, "usage: acidulous-song-test BANK_DIR SCRATCH_DIR SONG_ZIP\n");
         return 2;
     }
-    const std::string banks = argv[1], scratch = std::string(argv[2]) + "/songs-test", zip = argv[3];
+    // The plugin hands back canonical paths, so the scratch folder is made
+    // absolute and resolved first.
+    std::system(("mkdir -p '" + std::string(argv[2]) + "'").c_str());
+    char* real_scratch = realpath(argv[2], nullptr);
+    if(!real_scratch)
+    {
+        std::fprintf(stderr, "no scratch folder: %s\n", argv[2]);
+        return 2;
+    }
+    const std::string banks = argv[1], scratch = std::string(real_scratch) + "/songs-test", zip = argv[3];
+    std::free(real_scratch);
     // Songs folders from OSC must be under $HOME/dust/data.
     const std::string songs = scratch + "/dust/data/acidulous/songs";
     std::system(("rm -rf '" + scratch + "' && mkdir -p '" + scratch + "/dust/data'").c_str());
