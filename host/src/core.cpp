@@ -2141,7 +2141,21 @@ bool Core::apply_patch(int part, const std::string& machine, PatchSource& src, c
             continue;
         }
         if(!push_param(part, "machine", defs[i].name, src.norm[size_t(i)]))
+        {
+            // The params pushed so far are the engine's now and the rest keep
+            // the last patch's: the part's values and the script's follow
+            // that, and fail() takes the last patch's effects off.
+            auto& held = parts[part].values;
+            if(held.size() == size_t(count))
+            {
+                std::copy(src.norm.begin(), src.norm.begin() + i, held.begin());
+                Args values{Value::i(part), Value::s(machine), Value::s(tag)};
+                for(const float v : held)
+                    values.push_back(Value::f(v));
+                reply("/values", values);
+            }
             return fail();
+        }
     }
     parts[part].values = src.norm;
 
