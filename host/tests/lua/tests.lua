@@ -1,6 +1,6 @@
 local here = arg[0]:match("^(.*)/[^/]+$")
 local which = arg[2]
-local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12", "13"}
+local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12", "13", "14"}
 if not which then
   -- every case, each in a fresh run
   local failed = 0
@@ -396,6 +396,39 @@ elseif which == "13" then
   ADVANCE(1)
   CHECK(FIND("/song_load", function(a) return a[1] == "A" and a[3] == "auto" end) ~= nil,
     "flipped twice to a third mode loads it once")
+elseif which == "14" then
+  -- a failed patch's values aren't remembered, so picking it again is clean
+  local part = P.own[1]
+  local n = #P.defs[part.machine]
+  local function values(tag, v)
+    local a = {0, part.machine, tag}
+    for j = 1, n do a[#a + 1] = v end
+    return a
+  end
+  params:set("p1_patch", 2)
+  ADVANCE(1)
+  local tag2 = part.sent
+  P.osc("/values", values(tag2, 0.3))
+  params:set("p1_s1", 0.9)
+  params:set("p1_patch", 3)
+  ADVANCE(1)
+  local tag3 = part.sent
+  P.osc("/patch_failed", {0, part.machine, tag3})
+  P.osc("/values", values(tag3, 0.6))
+  CHECK(params:get("p1_s1") == 0.6, "the failed patch shows what the plugin holds")
+  params:set("p1_patch", 2)
+  ADVANCE(1)
+  P.osc("/values", values(tag2, 0.3))
+  params:set("p1_patch", 3)
+  ADVANCE(1)
+  SENT_CLEAR()
+  P.osc("/values", values(tag3, 0.2))
+  CHECK(params:get("p1_s1") == 0.2 and not part.dim, "picking it again loads it clean, no recalled edits")
+  CHECK(not FIND("/param"), "and sends no edits on top")
+  params:set("p1_patch", 2)
+  ADVANCE(1)
+  P.osc("/values", values(tag2, 0.3))
+  CHECK(params:get("p1_s1") == 0.3 or params:get("p1_s1") == 0.9, "another patch's own memory is kept")
 end
 print(FAILS == 0 and "all ok" or (FAILS .. " failed"))
 os.exit(FAILS == 0 and 0 or 1)

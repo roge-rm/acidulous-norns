@@ -2027,6 +2027,7 @@ void Core::patch_failed_on(int part, const std::string& machine, const std::stri
     patch_failed(part, what);
     if(parts[part].machine.empty() || !lower_equal(parts[part].machine, machine))
         return;
+    reply("/patch_failed", {Value::i(part), Value::s(parts[part].machine), Value::s(tag)});
     Args values{Value::i(part), Value::s(parts[part].machine), Value::s(tag)};
     for(const float v : parts[part].values)
         values.push_back(Value::f(v));
@@ -2143,16 +2144,14 @@ bool Core::apply_patch(int part, const std::string& machine, PatchSource& src, c
         if(!push_param(part, "machine", defs[i].name, src.norm[size_t(i)]))
         {
             // The params pushed so far are the engine's now and the rest keep
-            // the last patch's: the part's values and the script's follow
-            // that, and fail() takes the last patch's effects off.
+            // the last patch's: the part's values follow that (and
+            // fail() sends them), and fail() takes the last patch's effects off.
             auto& held = parts[part].values;
             if(held.size() == size_t(count))
             {
                 std::copy(src.norm.begin(), src.norm.begin() + i, held.begin());
-                Args values{Value::i(part), Value::s(machine), Value::s(tag)};
-                for(const float v : held)
-                    values.push_back(Value::f(v));
-                reply("/values", values);
+                if(machine == "Cumulus")
+                    request_cloud(part);
             }
             return fail();
         }

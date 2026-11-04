@@ -856,9 +856,14 @@ local function mem_key(part)
   return part.machine and (part.machine .. "/" .. (patch_key(part) or ""))
 end
 
+-- Keys whose last patch failed: what the part holds under them is part old
+-- patch, so nothing is remembered until one loads.
+local failed = {}
+local function failed_key(part, key) return (part.song and "s:" or "m:") .. key end
+
 local function remember(part)
   local key = mem_key(part)
-  if not key then return end
+  if not key or failed[failed_key(part, key)] then return end
   local t = {}
   for j = 1, #P.defs[part.machine] do t[j] = get(part, "s" .. j) end
   mems(part)[key] = t
@@ -1499,6 +1504,7 @@ local function load_machine(part, with_values)
   local name = patch_name(part)
   local pr = part.machine and part.preset
   part.want_values = false
+  part.failing = false
   part.song_files = false
   if part.song then part.macros = nil end
   if not with_values then part.edits = {} end
@@ -2692,8 +2698,14 @@ function P.osc(path, args)
         if d.name:match("^mac%d") and args[j + 3] then put(part, "s" .. j, args[j + 3]) end
       end
     end
+    local was_failed = part.failing
+    part.failing = false
     if not part.want_values then return end
     part.want_values = false
+    if not was_failed then
+      local key = mem_key(part)
+      if key then failed[failed_key(part, key)] = nil end
+    end
     for j = 4, #args do
       if part.song or params.lookup[id(i, "s" .. (j - 3))] then put(part, "s" .. (j - 3), args[j]) end
     end
@@ -2704,6 +2716,15 @@ function P.osc(path, args)
     part.edits = {}
     part.dim = false
     remember(part)
+  elseif path == "/patch_failed" then
+    local part = P.song_racks and P.song[(args[1] or -1) + 1] or own[(args[1] or -1) + 1]
+    if not part or part.machine ~= args[2] or part.sent ~= args[3] then return end
+    local key = mem_key(part)
+    if key then
+      mems(part)[key] = nil
+      failed[failed_key(part, key)] = true
+    end
+    part.failing = true
   elseif path == "/mounted" then
     -- only a song's racks: the script knows what it mounted
     local part = P.song_racks and P.song[(args[1] or -1) + 1]
