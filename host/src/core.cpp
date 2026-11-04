@@ -20,6 +20,7 @@
 #include <engine/machine/TableCounts.h>
 #include <engine/machine/cumulus/Cloud.h>
 #include <engine/machine/cumulus/Cumulus.h>
+#include <engine/machine/filament/SymLevel.h>
 #include <engine/machine/formulate/Program.h>
 #include <engine/machine/nexus/Graph.h>
 #include <engine/machine/nexus/Modules.h>
@@ -3016,6 +3017,24 @@ void upgrade_delay_mode(PatchChain& chain)
     }
 }
 
+// A Filament param [name] at [v] from a patch before version 5, on today's
+// louder sympathetic bank: symlevel and the depth of each matrix slot aimed
+// at the bank are scaled, as the app does (FilamentMigration.kt).
+float filament_level(const std::vector<std::pair<std::string, float>>& params, const std::string& name, float v)
+{
+    namespace fl = filament_levels;
+    if(name == "symlevel")
+        return fl::level(v);
+    const int slot = fl::matrixSlot(name, "amt");
+    if(slot == 0)
+        return v;
+    const std::string dst = "m" + std::to_string(slot) + "_dst";
+    for(const auto& kv : params)
+        if(kv.first == dst)
+            return fl::aimsAtBank(kv.second) ? fl::depth(v) : v;
+    return v;
+}
+
 // Makes [dir] and the folders above it.
 bool make_dirs(const std::string& dir)
 {
@@ -3189,8 +3208,25 @@ void Core::load_preset(int part, const std::string& path, int index, const std::
         float v = kv.second < 0.f ? 0.f : kv.second > 1.f ? 1.f : kv.second;
         if(pp.version < 4 && machine == "Trinity" && tables::isTrinityDest(kv.first))
             v = tables::trinityDest(v);
+        if(pp.version < 5 && machine == "Filament")
+            v = filament_level(pp.params, kv.first, v);
         src.norm[size_t(i)] = v;
         src.named.push_back(kv.first);
+    }
+    // Before version 5 a Filament patch that never set symlevel had the old
+    // default, which is moved like a saved one.
+    if(pp.version < 5 && machine == "Filament")
+    {
+        bool has = false;
+        for(const auto& kv : pp.params)
+            has = has || kv.first == "symlevel";
+        for(int32_t i = 0; i < count && !has; ++i)
+            if(std::strcmp(defs[i].name, "symlevel") == 0)
+            {
+                src.norm[size_t(i)] = filament_levels::level(filament_levels::kLevelDefault);
+                src.named.push_back("symlevel");
+                has = true;
+            }
     }
     if(unknown > 0)
         std::fprintf(stderr, "acidulous: %s: %d param(s) %s hasn't got\n", path.c_str(), unknown, machine.c_str());

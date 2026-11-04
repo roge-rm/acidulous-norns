@@ -5,6 +5,8 @@
 // - a save straight after a /patch, while its insert mount is still queued
 // - the app's version 3 fixture (host/tests/acpreset), a patch too old to load
 //   and Trinity destinations moved on a version 3 patch
+// - a Filament's sympathetic level and depths aimed at it scaled on a
+//   version 4 patch, kept on 5
 // - a Delay insert's pingpong moved to mode on a version 5 patch, kept on 6
 // - the part's own inserts in slots 2-3 (/insert), insert mods through /fx
 //   and their read-back in /inserts, and a saved patch keeping only slots
@@ -17,6 +19,7 @@
 
 #include <EngineHost.h>
 #include <engine/core/PresetFile.h>
+#include <engine/machine/filament/SymLevel.h>
 #include <engine/effect/EffectRegistry.h>
 #include <engine/machine/MachineRegistry.h>
 
@@ -335,6 +338,51 @@ int main(int argc, char** argv)
             const double want_dest = version == 3 ? 33.0 / 36.0 : 1.0, want_mac = version == 3 ? 20.0 / 36.0 : 20.0 / 33.0;
             check(std::fabs(state(0, dest) - want_dest) < 1e-4 && std::fabs(state(0, mac) - want_mac) < 1e-4,
                   version == 3 ? "its destinations moved" : "its destinations kept");
+            std::remove(f.c_str());
+        }
+    }
+
+    // A version 4 Filament patch has its sympathetic level and the depth of a
+    // matrix slot aimed at the bank scaled by sqrt(0.2 / 3), and a missing
+    // symlevel taken at its old default; a slot aimed elsewhere and a
+    // version 5 patch keep theirs.
+    {
+        namespace fl = acidulous::filament_levels;
+        const int level = index_of("Filament", "symlevel"), amt1 = index_of("Filament", "m1_amt"),
+                  amt2 = index_of("Filament", "m2_amt");
+        struct Case
+        {
+            int  version;
+            bool has_level;
+        };
+        for(const Case& k : {Case{4, true}, Case{4, false}, Case{5, true}})
+        {
+            acidulous::Preset v;
+            v.unit = "Filament";
+            acidulous::PresetPatch pp;
+            pp.machine = "Filament";
+            pp.name    = "F" + std::to_string(k.version);
+            pp.version = k.version;
+            if(k.has_level)
+                pp.params.push_back({"symlevel", 0.6f});
+            pp.params.push_back({"m1_dst", float(fl::kDstSympathetic) / float(fl::kDests - 1)});
+            pp.params.push_back({"m1_amt", 0.9f});
+            pp.params.push_back({"m2_dst", 0.f});
+            pp.params.push_back({"m2_amt", 0.9f});
+            v.patches.push_back(pp);
+            const auto        bytes = acidulous::presetfile::write(v);
+            const std::string f     = scratch + "/filament.acpreset";
+            std::ofstream(f, std::ios::binary).write(reinterpret_cast<const char*>(bytes.data()), std::streamsize(bytes.size()));
+            const std::string what = "Filament version " + std::to_string(k.version) + (k.has_level ? "" : " without symlevel");
+            check(load_as(6, f, 0, 1, "Filament", "", r) && r.args[3].str.empty(), what + " loads");
+            const bool   old        = k.version < 5;
+            const double want_level = old ? fl::level(k.has_level ? 0.6f : fl::kLevelDefault) : 0.6;
+            const double want_amt1  = old ? fl::depth(0.9f) : 0.9;
+            const double got_level = state(6, level), got_amt1 = state(6, amt1), got_amt2 = state(6, amt2);
+            check(std::fabs(got_level - want_level) < 1e-4 && std::fabs(got_amt1 - want_amt1) < 1e-4 &&
+                      std::fabs(got_amt2 - 0.9) < 1e-4,
+                  what + ": symlevel " + std::to_string(got_level) + ", m1_amt " + std::to_string(got_amt1) +
+                      ", m2_amt " + std::to_string(got_amt2));
             std::remove(f.c_str());
         }
     }
