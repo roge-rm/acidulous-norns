@@ -1055,4 +1055,9 @@ def main():
 
 
 if __name__ == "__main__":
+    if any(a in ("-h", "--help") for a in sys.argv[1:]):
+        print(__doc__.strip())
+        sys.exit(0)
+    if not os.path.isfile(PANEL):
+        sys.exit("no app repo at %s (no %s)\n\n%s" % (APP, os.path.relpath(PANEL, APP), __doc__.strip()))
     main()
