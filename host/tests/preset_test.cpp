@@ -20,6 +20,7 @@
 // - Forage's slice_sample from presets, loaded and saved relative to the root
 // - Diction's recorded voices from presets, loaded, saved packed as the app
 //   packs them and loaded again
+// - the app's machine presets loaded as their engine lines load them
 // - /preset_scan and /preset_delete
 // Usage: acidulous-preset-test BANK_DIR SCRATCH_DIR MATERIAL_DIR FIXTURE_DIR
 #include "core.h"
@@ -29,6 +30,8 @@
 #include <engine/machine/filament/SymLevel.h>
 #include <engine/effect/EffectRegistry.h>
 #include <engine/machine/MachineRegistry.h>
+#include <jni.h>
+#include <platform/lines/EngineLines.h>
 
 #include <atomic>
 #include <chrono>
@@ -770,6 +773,123 @@ int main(int argc, char** argv)
         check(error_has("no takes"), "a voice with no takes is an /error");
         load_kind(3, "voice", bo + "bank.json", 0);
         check(error_has("has Forage"), "a voice on Forage is refused");
+    }
+
+    // The app's machine presets: /preset_load on part 6 against the preset's
+    // engine/1.txt replayed onto rack 7, its zip unpacked for the zip: paths.
+    // Machine params, macro names, inserts and sends match within 1e-4.
+    // Effect presets (delay, delay2) aren't loaded by /preset_load yet.
+    {
+        auto&             host  = acidulous::EngineHost::instance();
+        const std::string audio = scratch + "/audio/";
+        const int         native = 6, lines = 7;
+        // [rack]'s patch, once its mounts are in.
+        const auto patch_of = [&](int rack) {
+            acidulous::PresetPatch pp;
+            std::string            why;
+            for(int tries = 0; tries < 200 && pp.machine.empty(); ++tries)
+            {
+                pp = host.rackPatch(rack, "x", why, true, nullptr);
+                if(pp.machine.empty())
+                    std::this_thread::sleep_for(5ms);
+            }
+            return pp;
+        };
+        const auto blocks = [&](int n) {
+            const int64_t until = host.framesRendered() + 64 * n;
+            for(int k = 0; k < 2000 && host.framesRendered() < until; ++k)
+                std::this_thread::sleep_for(200us);
+        };
+        for(const char* name : {"reflux", "hit", "sing"})
+        {
+            const std::string file = fixtures + "/" + name + ".acpreset";
+            const std::string root = scratch + "/replay/" + name + "/";
+            std::ifstream        f(file, std::ios::binary);
+            std::vector<uint8_t> bytes((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+            std::vector<std::pair<std::string, std::vector<uint8_t>>> entries;
+            std::string                                               why, text;
+            acidulous::presetfile::unzip(bytes.data(), bytes.size(), entries, why);
+            for(const auto& e : entries)
+            {
+                const std::string out = root + e.first;
+                std::system(("mkdir -p '" + out.substr(0, out.rfind('/')) + "'").c_str());
+                std::ofstream(out, std::ios::binary)
+                    .write(reinterpret_cast<const char*>(e.second.data()), std::streamsize(e.second.size()));
+                if(e.first == "engine/1.txt")
+                    text.assign(e.second.begin(), e.second.end());
+            }
+
+            log.clear();
+            cmd("/preset_load", {Value::i(native), Value::s(file), Value::i(0), Value::s("@t"), Value::i(1),
+                                 Value::s(""), Value::s(""), Value::s(audio)});
+            const bool loaded = log.wait("/preset_loaded", r) && r.args[3].str.empty();
+            c->drain();
+
+            static JNIEnv                    env;
+            acidulous::lines::Replay         replay;
+            std::vector<std::string>         problems;
+            replay.env        = &env;
+            replay.root       = root;
+            replay.targetRack = lines;
+            replay.log        = [&](const std::string& p) { problems.push_back(p); };
+            replay.afterLine  = [&](int) { blocks(2); };
+            const bool replayed = !text.empty() && acidulous::lines::replay(text, replay);
+            jniweb::arena().clear();
+            for(const auto& p : problems)
+                std::printf("  %s lines: %s\n", name, p.c_str());
+            blocks(4);
+
+            const auto a = patch_of(native), b = patch_of(lines);
+            int        differ = 0;
+            const auto say    = [&](const std::string& what) {
+                std::printf("  %s: %s\n", name, what.c_str());
+                ++differ;
+            };
+            if(std::string(name) == "reflux" && std::fabs(param(a, "cutoff") - 0.3f) > 1e-4f)
+                say("cutoff isn't the preset's 0.3");
+            if(a.machine != b.machine)
+                say("machine " + a.machine + " vs " + b.machine);
+            std::map<std::string, float> pa(a.params.begin(), a.params.end()), pb(b.params.begin(), b.params.end());
+            for(const auto& kv : pb)
+            {
+                const auto it = pa.find(kv.first);
+                if(it == pa.end())
+                    say(kv.first + " missing from the native load");
+                else if(std::fabs(it->second - kv.second) > 1e-4f)
+                    say(kv.first + " native " + std::to_string(it->second) + ", lines " + std::to_string(kv.second));
+            }
+            for(const auto& kv : pa)
+                if(!pb.count(kv.first))
+                    say(kv.first + " missing from the lines");
+            if(host.macroNames(native) != host.macroNames(lines))
+                say("macro names differ");
+            if(a.settings != b.settings)
+                say("settings (macro names, formulas) differ");
+            if(a.chain.inserts.size() != b.chain.inserts.size())
+                say("insert count " + std::to_string(a.chain.inserts.size()) + " vs " +
+                    std::to_string(b.chain.inserts.size()));
+            for(size_t k = 0; k < a.chain.inserts.size() && k < b.chain.inserts.size(); ++k)
+            {
+                const auto& ia = a.chain.inserts[k];
+                const auto& ib = b.chain.inserts[k];
+                if(ia.type != ib.type || ia.bypass != ib.bypass || ia.settings != ib.settings)
+                    say("insert " + std::to_string(k) + " " + ia.type + " vs " + ib.type);
+                std::map<std::string, float> xa(ia.params.begin(), ia.params.end());
+                for(const auto& kv : ib.params)
+                    if(!xa.count(kv.first) || std::fabs(xa[kv.first] - kv.second) > 1e-4f)
+                        say("insert " + std::to_string(k) + " " + kv.first);
+            }
+            if(a.chain.hasSends != b.chain.hasSends || std::fabs(a.chain.sendReverb - b.chain.sendReverb) > 1e-4f ||
+               std::fabs(a.chain.sendDelay - b.chain.sendDelay) > 1e-4f)
+                say("sends differ");
+            std::printf("  %s: %zu params compared\n", name, pb.size());
+            check(loaded && replayed && !a.machine.empty() && pb.size() > 10 && differ == 0,
+                  std::string(name) + ": /preset_load matches its engine lines");
+            cmd("/unmount", {Value::i(native)});
+            host.unmountMachine(lines);
+            c->drain();
+            blocks(4);
+        }
     }
 
     // Listing and deleting.
