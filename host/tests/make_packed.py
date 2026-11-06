@@ -8,7 +8,10 @@ them, into host/tests/acpreset:
   big-other.acpreset     Dice on a small sample, with over 64 MB of other files
   slices.acpreset        Forage whose slice_sample is media/loops/break.wav
   voices.acpreset        Diction singing one recorded voice and morphing to another
-Usage: host/tests/make_packed.py"""
+  arp.acpreset           two Arp presets as the app writes modifier presets
+  chord.acpreset         a Chord preset with key, scale and latch, which a load keeps
+  scale.acpreset         a Scale preset, which the app refuses
+Usage: host/tests/make_packed.py [modifiers]  (modifiers: only the last three)"""
 import io
 import json
 import os
@@ -46,6 +49,21 @@ def write(name, machine, patch, settings, media):
             z.writestr(entry, data)
         z.writestr("patches/1.json", json.dumps(patch_json, indent=4))
         z.writestr("preset.json", json.dumps(manifest, indent=4))
+
+
+def modifier(name, unit, patches):
+    """A modifier preset as the app writes one: patches keyed mod.<unit>, no media or engine lines."""
+    entries = ["patches/%d.json" % (k + 1) for k in range(len(patches))]
+    with zipfile.ZipFile(os.path.join(OUT, name), "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+        for entry, (patch, params) in zip(entries, patches):
+            z.writestr(entry, json.dumps({"machine": "mod." + unit, "name": patch, "params": params, "version": 6}, indent=4))
+        z.writestr("preset.json", json.dumps({"version": 1, "kind": "modifier", "unit": unit, "patches": entries}, indent=4))
+
+
+def modifiers():
+    modifier("arp.acpreset", "Arp", [("Up 16ths", {"rate": 0.7777778, "gate": 0.23076923}), ("Slow", {"rate": 0.0})])
+    modifier("chord.acpreset", "Chord", [("Wide", {"type": 0.5, "strum": 0.25, "key": 0.5, "scale": 0.5, "latch": 1.0})])
+    modifier("scale.acpreset", "Scale", [("Mine", {"key": 0.5})])
 
 
 def bank(name, takes):
@@ -93,4 +111,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if sys.argv[1:] == ["modifiers"]:
+        modifiers()
+    else:
+        main()
+        modifiers()

@@ -229,6 +229,8 @@ class Core
                      std::vector<std::pair<std::string, std::string>> settings, const std::vector<std::string>& roots);
     void load_fx_preset(int part, int slot, const std::string& path, int index, const std::string& want_name);
     void save_fx_preset(int part, int slot, const std::string& path, const std::string& name);
+    void load_mod_preset(int part, int slot, const std::string& path, int index, const std::string& want_name);
+    void save_mod_preset(int part, int slot, const std::string& path, const std::string& name);
     void scan_presets(const std::string& folder, bool deep = false);
     void delete_preset(const std::string& path, int index);
     std::string load_zones(int part, const std::string& path, int index, const std::vector<std::string>& roots,
@@ -333,6 +335,9 @@ class Core
     float                       part_sends[kParts][kSends] = {};
     acidulous::PatchTrackState  patch_fx[kParts];
     std::string                 mod_types[kParts][kModSlots]; // on the worker: what each modifier slot has
+    // Worker only: the formula last loaded into each insert slot's Formula,
+    // for saving its preset; cleared when the slot is mounted again.
+    std::string                 fx_formula[kParts][acidulous::kEffectSlots];
     bool                        mod_bypass[kParts][kModSlots] = {}; // on the worker
     // Worker only: the loaded song's folder, "" for none, and the path it
     // was loaded from (a zip, or the folder).

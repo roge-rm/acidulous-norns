@@ -109,8 +109,17 @@
 //        /insert does
 //   /fx_preset_save i:part i:slot s:path s:name   writes the effect in the
 //        part's slot 2 or 3 as an effect preset the app can read, its params
-//        without the slot's mod (no Formula formula), making its folder.
+//        without the slot's mod, a Formula with the formula it last loaded,
+//        making its folder.
 //        Replaces only a file of one patch without the app's engine lines
+//   /mod_preset_load i:part i:slot s:path i:index s:name   puts the app's
+//        Arp or Chord preset called name (or at index) in the part's
+//        modifier slot 0 to 2: its type mounted, on, if the slot has another,
+//        the preset's params and the rest at defaults. latch, key, scale,
+//        memory and m1_1..m8_6 stay as they are. Replies /mod_preset_loaded
+//   /mod_preset_save i:part i:slot s:path s:name   writes the Arp or Chord in
+//        the slot as a modifier preset the app can read, without what a load
+//        keeps, making its folder. Replaces only a file of one patch
 //   /preset_delete s:path i:index      takes the patch out of the file, or
 //        deletes the file when it's the last or index is -1. A file with the
 //        app's samples (media/ or engine/) isn't rewritten
@@ -257,8 +266,8 @@
 //        and the /loaded for its files; error "" when it loaded. A missing
 //        file is an /error of its own and the rest still loads
 //   /preset_scan s:folder (s:file i:index s:name s:unit i:count i:packed)...
-//        by file name, unit the machine or "fx.<type>" for an effect
-//        preset, count the file's patches, packed 1
+//        by file name, unit the machine, "fx.<type>" for an effect preset or
+//        "mod.<type>" for a modifier preset, count the file's patches, packed 1
 //        when a rewrite would lose something: the app's engine lines, or the
 //        packed files of a file of more than one patch; files that can't be
 //        read are left out
@@ -268,6 +277,10 @@
 //        empty) and its effect's params as the engine holds them, error ""
 //        when it loaded
 //   /fx_preset_saved i:part i:slot s:path s:result   "ok" or what went wrong
+//   /mod_preset_loaded i:part i:slot s:type s:name s:error (s:param
+//        f:value01)...   the slot's type ("" if empty) and its params as the
+//        engine holds them, error "" when it loaded
+//   /mod_preset_saved i:part i:slot s:path s:result   "ok" or what went wrong
 #pragma once
 #include <string>
 

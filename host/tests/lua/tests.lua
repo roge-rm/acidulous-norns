@@ -1,6 +1,6 @@
 local here = arg[0]:match("^(.*)/[^/]+$")
 local which = arg[2]
-local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"}
+local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17"}
 if not which then
   -- every case, each in a fresh run
   local failed = 0
@@ -528,6 +528,95 @@ elseif which == "16" then
   SENT_CLEAR()
   P.osc("/preset_deleted", {dir .. "Chorus/wide.acpreset", 0, "ok"})
   CHECK(FIND("/preset_scan", function(a) return a[1] == dir end) ~= nil, "then rescans the fx folder")
+  L.key(P, 2, 1, false)
+  CHECK(not L.active(P), "K2 closes it")
+elseif which == "17" then
+  -- the modifier preset list: scan, a preset of another type put back in
+  -- order, the mods param, save, a load into the slot of its type, delete
+  local entered
+  package.preload.textentry = function() return {enter = function(cb, default, title) entered = {cb = cb, default = default, title = title} end} end
+  local L = include("lib/lists")
+  P.on_saved_mod = function() L.refresh(P, nil) end
+  P.on_preset_note = function(text) L.note(text) end
+  local part = P.own[1]
+  P.osc("/mod_defs", {"Scale", 2, "key", 0, 11, 0, "", 12, "step", "scale", 0, 32, 0, "", 33, "step"})
+  P.osc("/mod_defs", {"Chord", 3, "type", 0, 24, 0, "", 25, "step", "strum", 0, 200, 0, "ms", 0, "lin",
+    "latch", 0, 1, 0, "", 2, "step"})
+  P.osc("/mod_defs", {"Arp", 2, "rate", 0, 9, 5, "", 10, "step", "gate", 5, 200, 60, "%", 0, "lin"})
+  P.set_mod_type(1, 0, "Arp", false)
+  P.set_mod_type(1, 1, "Scale", false)
+  SENT_CLEAR()
+  local dir = "/d/acidulous/presets/mod/"
+  CHECK(L.open_mod(P, 1, 1) and FIND("/preset_scan", function(a) return a[1] == dir and a[2] == 1 end) ~= nil,
+    "opening it scans the mod folder and its folders")
+  P.osc("/preset_scan", {dir, "Arp/up.acpreset", 0, "Up", "mod.Arp", 1, 0,
+    "Chord/wide.acpreset", 0, "Wide", "mod.Chord", 1, 0, "x.acpreset", 0, "X", "fx.Delay", 1, 0})
+  local sc = L.screen(P, false)
+  CHECK(#P.saved_mod == 2 and P.saved_mod[2].type == "Chord" and P.saved_mod[2].path == dir .. "Chord/wide.acpreset",
+    "modifier rows kept with their type, an effect's left out")
+  CHECK(#sc.tabs == 1 and sc.tabs[1].name == "all" and #sc.rows == 2 and sc.title:find("mod 2 scale", 1, true) ~= nil,
+    "a Scale has no presets: just all")
+  L.key(P, 3, 1, true)
+  CHECK(L.screen(P, true).confirm == "delete Up?", "K1+K3 on a saved row asks to delete")
+  L.key(P, 2, 1, false)
+  CHECK(L.active(P), "K2 says no and stays open")
+  L.enc(P, 2, 1)
+  SENT_CLEAR()
+  L.key(P, 3, 1, false)
+  local m = FIND("/mod_preset_load")
+  CHECK(part.mods[0].type == "Chord" and part.mods[1].type == "Arp" and part.mods[2] == nil and
+    m and m.args[1] == 0 and m.args[2] == 0 and m.args[3] == dir .. "Chord/wide.acpreset" and m.args[5] == "Wide",
+    "a Chord preset on the Scale's slot: a Chord, then put in order before the Arp, and loaded there")
+  P.osc("/mod_preset_loaded", {0, 0, "Chord", "Wide", "", "type", 0.5, "strum", 0, "latch", 0})
+  local mods = params:get("p1_mods")
+  CHECK(mods:find("0,Chord,0,type=0.5000", 1, true) and not mods:find("strum", 1, true) and
+    mods:find("1,Arp,0", 1, true), "the mods param holds its type and changed params")
+  sc = L.screen(P, false)
+  CHECK(sc.title:find("mod 1 chord", 1, true) and sc.tabs[1].name == "chord" and #sc.tabs[1].patches == 2,
+    "the list follows to its slot and type")
+  CHECK(sc.tabs[sc.tab].name == "all" and sc.rows[sc.cursor].current, "and stays on the row, now current")
+  -- K1+K3 on new preset: name entry, then /mod_preset_save in mod/Chord/
+  L.enc(P, 1, -1)
+  L.enc(P, 2, -5)
+  SENT_CLEAR()
+  L.key(P, 3, 1, true)
+  CHECK(entered and entered.default == "Wide" and entered.title == "save chord as", "K1+K3 asks a name, from the preset's")
+  entered.cb("Mine")
+  m = FIND("/mod_preset_save")
+  CHECK(m and m.args[2] == 0 and m.args[3] == dir .. "Chord/Mine.acpreset" and m.args[4] == "Mine", "and saves it")
+  SENT_CLEAR()
+  P.osc("/mod_preset_saved", {0, 0, dir .. "Chord/Mine.acpreset", "ok"})
+  CHECK(FIND("/preset_scan") ~= nil and part.mod_presets[0].path == dir .. "Chord/Mine.acpreset",
+    "saved: rescanned, current")
+  -- an Arp preset goes to the Arp's slot, the Chord stays
+  L.enc(P, 1, 1)
+  L.enc(P, 2, -5)
+  SENT_CLEAR()
+  L.key(P, 3, 1, false)
+  m = FIND("/mod_preset_load")
+  CHECK(m and m.args[2] == 1 and FIND("/mod") == nil and part.mods[0].type == "Chord",
+    "an Arp preset loads into the Arp's slot")
+  P.osc("/mod_preset_loaded", {0, 1, "Arp", "Up", "", "rate", 0.7, "gate", 0.2})
+  CHECK(params:get("p1_mods"):find("1,Arp,0,gate=0.2000,rate=0.7000", 1, true), "its values in the mods param")
+  sc = L.screen(P, false)
+  CHECK(sc.title:find("mod 2 arp", 1, true) and sc.tabs[1].name == "arp", "the list on the Arp")
+  -- delete it
+  L.key(P, 3, 1, true)
+  SENT_CLEAR()
+  L.key(P, 3, 1, false)
+  CHECK(FIND("/preset_delete", function(a) return a[1] == dir .. "Arp/up.acpreset" and a[2] == 0 end) ~= nil,
+    "K1+K3 then K3 deletes it")
+  SENT_CLEAR()
+  P.osc("/preset_deleted", {dir .. "Arp/up.acpreset", 0, "ok"})
+  CHECK(FIND("/preset_scan", function(a) return a[1] == dir end) ~= nil and part.mod_presets[1] == nil,
+    "then rescans the mod folder, the slot's preset forgotten")
+  -- a Scale's slot can't be saved from
+  P.set_mod_type(1, 2, "Scale", false)
+  L.close()
+  L.open_mod(P, 1, 2)
+  P.osc("/preset_scan", {dir})
+  L.key(P, 3, 1, true)
+  CHECK(not L.screen(P, true).confirm, "an empty all tab: nothing to save or delete")
   L.key(P, 2, 1, false)
   CHECK(not L.active(P), "K2 closes it")
 end

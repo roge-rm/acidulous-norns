@@ -531,6 +531,7 @@ Core::~Core()
             const char* fx = host.mountedEffect(p, s);
             if(fx && *fx)
                 host.mountEffect(p, s, "");
+            fx_formula[p][s].clear();
         }
         pull(1);
     }
@@ -1097,6 +1098,24 @@ bool Core::command(const std::string& path, const Args& a)
             post_part(part, [this, part, slot, p = to_str(a[2]), n = to_str(a[3])] { save_fx_preset(part, slot, p, n); });
         else if(part_ok(part))
             error("insert slot " + std::to_string(slot) + " is a patch's");
+        return true;
+    }
+    if(path == "/mod_preset_load" && a.size() >= 5)
+    {
+        // i:part i:slot s:path i:index s:name
+        const int part = to_int(a[0]), slot = to_int(a[1]);
+        if(part_ok(part) && slot >= 0 && slot < kModSlots)
+            post_part(part, [this, part, slot, p = to_str(a[2]), index = to_int(a[3]), n = to_str(a[4])] {
+                load_mod_preset(part, slot, p, index, n);
+            });
+        return true;
+    }
+    if(path == "/mod_preset_save" && a.size() >= 4)
+    {
+        // i:part i:slot s:path s:name
+        const int part = to_int(a[0]), slot = to_int(a[1]);
+        if(part_ok(part) && slot >= 0 && slot < kModSlots)
+            post_part(part, [this, part, slot, p = to_str(a[2]), n = to_str(a[3])] { save_mod_preset(part, slot, p, n); });
         return true;
     }
     if(path == "/preset_delete" && a.size() >= 2)
@@ -1750,6 +1769,7 @@ void Core::set_insert(int part, int slot, const std::string& type)
         return;
     settle();
     mounts_queued = true;
+    fx_formula[part][slot].clear();
     if(!host.mountEffect(part, slot, type))
     {
         error("can't mount effect " + type);
@@ -3275,8 +3295,11 @@ constexpr long kMaxPresetFile = 64L << 20;
 // The most a preset's manifest and patches may take, packed.
 constexpr size_t kMaxPatchBytes = size_t(16) << 20;
 
+bool read_modifier_preset(const std::vector<uint8_t>& data, Preset& out, std::string& why);
+
 // Reads the manifest and patches of the preset at [path], only those
-// entries, so the app's packed files can be any size.
+// entries, so the app's packed files can be any size. A modifier preset
+// too, its kind "modifier".
 bool read_preset(const std::string& path, Preset& out, std::string& why)
 {
     FILE* f = std::fopen(path.c_str(), "rb");
@@ -3321,7 +3344,10 @@ bool read_preset(const std::string& path, Preset& out, std::string& why)
         why = "can't be read";
         return false;
     }
-    return EngineHost::readPreset(data.data(), data.size(), out, why);
+    if(EngineHost::readPreset(data.data(), data.size(), out, why))
+        return true;
+    std::string ignore;
+    return read_modifier_preset(data, out, ignore);
 }
 
 // A patch from before version 6 has the Delay's old pingpong switch, which
@@ -3559,6 +3585,129 @@ uint32_t crc32_add(uint32_t c, const uint8_t* data, size_t n)
     for(size_t i = 0; i < n; ++i)
         c = table[(c ^ data[i]) & 0xffu] ^ (c >> 8);
     return c ^ 0xffffffffu;
+}
+
+// [entries] as a zip of stored entries.
+std::vector<uint8_t> stored_zip(const std::vector<std::pair<std::string, std::vector<uint8_t>>>& entries)
+{
+    std::vector<uint8_t> out, dir;
+    for(const auto& e : entries)
+    {
+        const uint32_t at  = uint32_t(out.size());
+        const uint32_t crc = crc32_add(0, e.second.data(), e.second.size());
+        const auto     common = [&](std::vector<uint8_t>& o) {
+            put16(o, 20);
+            put16(o, 0);
+            put16(o, 0);
+            put16(o, 0);
+            put16(o, 0x21);
+            put32(o, crc);
+            put32(o, uint32_t(e.second.size()));
+            put32(o, uint32_t(e.second.size()));
+            put16(o, uint32_t(e.first.size()));
+            put16(o, 0);
+        };
+        put32(out, 0x04034b50u);
+        common(out);
+        out.insert(out.end(), e.first.begin(), e.first.end());
+        out.insert(out.end(), e.second.begin(), e.second.end());
+        put32(dir, 0x02014b50u);
+        put16(dir, 20);
+        common(dir);
+        put16(dir, 0);
+        put16(dir, 0);
+        put16(dir, 0);
+        put32(dir, 0);
+        put32(dir, at);
+        dir.insert(dir.end(), e.first.begin(), e.first.end());
+    }
+    const uint32_t dir_at = uint32_t(out.size());
+    out.insert(out.end(), dir.begin(), dir.end());
+    put32(out, 0x06054b50u);
+    put16(out, 0);
+    put16(out, 0);
+    put16(out, uint32_t(entries.size()));
+    put16(out, uint32_t(entries.size()));
+    put32(out, uint32_t(dir.size()));
+    put32(out, dir_at);
+    put16(out, 0);
+    return out;
+}
+
+// In the JSON [text], the string value of the first [key] changed from
+// [from] to [to]. False if it isn't [from].
+bool swap_json_string(std::string& text, const std::string& key, const std::string& from, const std::string& to)
+{
+    const size_t k = text.find("\"" + key + "\"");
+    if(k == std::string::npos)
+        return false;
+    size_t at = k + key.size() + 2;
+    while(at < text.size() && std::isspace(static_cast<unsigned char>(text[at])))
+        ++at;
+    if(at >= text.size() || text[at] != ':')
+        return false;
+    ++at;
+    while(at < text.size() && std::isspace(static_cast<unsigned char>(text[at])))
+        ++at;
+    const std::string want = "\"" + from + "\"";
+    if(text.compare(at, want.size(), want) != 0)
+        return false;
+    text.replace(at, want.size(), "\"" + to + "\"");
+    return true;
+}
+
+// presetfile reads and writes only machine and effect presets, so the app's
+// modifier presets (kind "modifier", patches keyed "mod.<type>") go through
+// it as effect presets: their manifest's kind is swapped on the way in and
+// back on the way out.
+
+// Reads the modifier preset in the zip [data] into [out], kind "modifier".
+// False with [why] set if it isn't one or can't be read.
+bool read_modifier_preset(const std::vector<uint8_t>& data, Preset& out, std::string& why)
+{
+    std::vector<std::pair<std::string, std::vector<uint8_t>>> entries;
+    if(!presetfile::unzip(data.data(), data.size(), entries, why))
+        return false;
+    bool found = false;
+    for(auto& e : entries)
+        if(e.first == "preset.json")
+        {
+            std::string text(e.second.begin(), e.second.end());
+            found = swap_json_string(text, "kind", "modifier", "effect");
+            e.second.assign(text.begin(), text.end());
+        }
+    if(!found)
+        return false;
+    const std::vector<uint8_t> zip = stored_zip(entries);
+    if(!EngineHost::readPreset(zip.data(), zip.size(), out, why))
+        return false;
+    out.kind = "modifier";
+    return true;
+}
+
+// [preset] as .acpreset bytes, as presetfile::write makes them, a modifier
+// preset too.
+std::vector<uint8_t> preset_bytes(const Preset& preset)
+{
+    if(preset.kind != "modifier")
+        return presetfile::write(preset);
+    Preset as_effect = preset;
+    as_effect.kind   = "effect";
+    std::vector<std::pair<std::string, std::vector<uint8_t>>> entries;
+    std::string                                               why;
+    const std::vector<uint8_t>                                bytes = presetfile::write(as_effect);
+    if(!presetfile::unzip(bytes.data(), bytes.size(), entries, why))
+        return {};
+    for(auto& e : entries)
+    {
+        std::string text(e.second.begin(), e.second.end());
+        if(e.first == "preset.json")
+            swap_json_string(text, "kind", "effect", "modifier");
+        else
+            swap_json_string(text, "machine", "fx." + preset.unit, "mod." + preset.unit);
+        e.second.assign(text.begin(), text.end());
+    }
+    return stored_zip(entries);
 }
 
 // A file going into a saved preset as [entry]: [data] if [source] is empty,
@@ -3956,7 +4105,7 @@ void Core::load_preset(int part, const std::string& path, int index, const std::
     if(!read_preset(path, preset, why))
         return fail(why);
     if(preset.kind != "machine")
-        return fail("an effect preset");
+        return fail(preset.kind == "effect" ? "an effect preset" : "a modifier preset");
     // By name first, as a patch deleted from the file moves the ones after it.
     if(!want_name.empty() && !(index >= 0 && size_t(index) < preset.patches.size() &&
                                preset.patches[size_t(index)].name == want_name))
@@ -4279,6 +4428,7 @@ void Core::load_fx_preset(int part, int slot, const std::string& path, int index
     if(type != host.mountedEffect(part, slot))
     {
         mounts_queued = true;
+        fx_formula[part][slot].clear();
         if(!host.mountEffect(part, slot, type))
         {
             host.mountEffect(part, slot, "");
@@ -4317,6 +4467,7 @@ void Core::load_fx_preset(int part, int slot, const std::string& path, int index
         const std::string error = host.loadEffectFormula(part, unit, formula);
         if(!error.empty())
             std::fprintf(stderr, "acidulous: %s: formula: %s\n", path.c_str(), error.c_str());
+        fx_formula[part][slot] = error.empty() ? formula : "";
     }
     mounts_queued = true;
     settle();
@@ -4325,7 +4476,7 @@ void Core::load_fx_preset(int part, int slot, const std::string& path, int index
 
 // Saves the effect in the part's own insert slot 2 or 3 as an effect preset
 // at [path] called [name], as the app's slot picker saves one: its params
-// without the slot's mod. A Formula's formula isn't saved. Replies
+// without the slot's mod, and a Formula's formula as last loaded. Replies
 // "/fx_preset_saved i:part i:slot s:path s:ok|error".
 void Core::save_fx_preset(int part, int slot, const std::string& path, const std::string& name)
 {
@@ -4362,6 +4513,8 @@ void Core::save_fx_preset(int part, int slot, const std::string& path, const std
     }
     if(count <= 0 || int32_t(pp.params.size()) < count)
         return done("busy");
+    if(type == "Formula" && !fx_formula[part][slot].empty())
+        pp.settings.emplace_back("formula", fx_formula[part][slot]);
     Preset preset;
     preset.kind = "effect";
     preset.unit = type;
@@ -4379,10 +4532,164 @@ void Core::save_fx_preset(int part, int slot, const std::string& path, const std
     done("");
 }
 
+// The modifiers the app has presets for (PatchStore.MODIFIERS_WITH_PRESETS).
+bool mod_has_presets(const std::string& type) { return type == "Arp" || type == "Chord"; }
+
+// A modifier param a preset neither saves nor loads, as the app's
+// PatchStore.modifierKeeps: latch, the chord's key and scale, and its memory.
+bool mod_preset_keeps(const std::string& name)
+{
+    if(name == "latch" || name == "key" || name == "scale" || name == "memory")
+        return true;
+    return name.size() == 4 && name[0] == 'm' && name[1] >= '1' && name[1] <= '8' && name[2] == '_' && name[3] >= '1' &&
+           name[3] <= '6';
+}
+
+// Puts patch [index] (or the one called [want_name]) of the modifier preset
+// at [path] in the part's modifier slot 0 to 2, as the app's slot picker
+// does: its type mounted, on, if the slot has another, the preset's params
+// and the rest at their defaults, apart from those mod_preset_keeps names.
+// Replies "/mod_preset_loaded i:part i:slot s:type s:name s:error (s:param
+// f:value01)..." with the slot's type and values.
+void Core::load_mod_preset(int part, int slot, const std::string& path, int index, const std::string& want_name)
+{
+    const char* unit = kModUnits[slot];
+    const auto  done = [&](const std::string& name, const std::string& why) {
+        if(!why.empty())
+            std::fprintf(stderr, "acidulous: %s: %s\n", path.c_str(), why.c_str());
+        wait_applied();
+        const std::string& type = mod_types[part][slot];
+        Args               out{Value::i(part), Value::i(slot), Value::s(type), Value::s(name), Value::s(why)};
+        int32_t            count = 0;
+        const ParamDef*    defs  = type.empty() ? nullptr : InputModRegistry::paramDefs(type.c_str(), count);
+        for(int32_t i = 0; defs && i < count; ++i)
+        {
+            const float v = host.paramNormalized(part, unit, defs[i].name);
+            out.push_back(Value::s(defs[i].name));
+            out.push_back(Value::f(v < 0.f ? defs[i].unmap(defs[i].def) : v));
+        }
+        reply("/mod_preset_loaded", out);
+    };
+    Preset      preset;
+    std::string why;
+    if(!read_preset(path, preset, why))
+        return done("", why);
+    if(preset.kind != "modifier")
+        return done("", "not a modifier preset");
+    if(!want_name.empty() && !(index >= 0 && size_t(index) < preset.patches.size() &&
+                               preset.patches[size_t(index)].name == want_name))
+        for(size_t k = 0; k < preset.patches.size(); ++k)
+            if(preset.patches[k].name == want_name)
+            {
+                index = int(k);
+                break;
+            }
+    if(index < 0 || size_t(index) >= preset.patches.size())
+        return done("", "no patch " + std::to_string(index + 1));
+    const PresetPatch& pp = preset.patches[size_t(index)];
+    int32_t            t  = 0;
+    while(t < InputModRegistry::count() && !lower_equal(InputModRegistry::name(t), preset.unit))
+        ++t;
+    if(t == InputModRegistry::count() || !mod_has_presets(InputModRegistry::name(t)))
+        return done("", "no modifier " + preset.unit);
+    const std::string type  = InputModRegistry::name(t);
+    int32_t           count = 0;
+    const ParamDef*   defs  = InputModRegistry::paramDefs(type.c_str(), count);
+    if(!defs || count <= 0)
+        return done("", "no modifier " + preset.unit);
+    if(type != mod_types[part][slot])
+    {
+        set_mod(part, slot, type);
+        if(mod_types[part][slot] != type)
+            return done("", "can't mount modifier " + type);
+    }
+    int unknown = 0;
+    for(const auto& kv : pp.params)
+    {
+        int32_t i = 0;
+        while(i < count && kv.first != defs[i].name)
+            ++i;
+        if(i == count)
+            ++unknown;
+    }
+    if(unknown > 0)
+        std::fprintf(stderr, "acidulous: %s: %d param(s) %s hasn't got\n", path.c_str(), unknown, type.c_str());
+    for(int32_t i = 0; i < count; ++i)
+    {
+        if(mod_preset_keeps(defs[i].name))
+            continue;
+        float v = defs[i].unmap(defs[i].def);
+        for(const auto& kv : pp.params)
+            if(kv.first == defs[i].name)
+                v = kv.second;
+        push_param(part, unit, defs[i].name, v);
+    }
+    done(pp.name, "");
+}
+
+// Saves the modifier in the part's slot 0 to 2 as a modifier preset at
+// [path] called [name], as the app's slot picker saves one: its params
+// without those mod_preset_keeps names. Only an Arp or a Chord, as the app
+// has presets for those alone. Replies "/mod_preset_saved i:part i:slot
+// s:path s:ok|error".
+void Core::save_mod_preset(int part, int slot, const std::string& path, const std::string& name)
+{
+    const auto done = [&](const std::string& why) {
+        if(!why.empty())
+            std::fprintf(stderr, "acidulous: saving %s: %s\n", path.c_str(), why.c_str());
+        reply("/mod_preset_saved", {Value::i(part), Value::i(slot), Value::s(path), Value::s(why.empty() ? "ok" : why)});
+    };
+    if(song_on.load())
+        return done("not while a song is loaded");
+    if(name.empty())
+        return done("no name");
+    const std::string type = mod_types[part][slot];
+    if(type.empty())
+        return done("no modifier in mod " + std::to_string(slot + 1));
+    if(!mod_has_presets(type))
+        return done("no " + lower(type) + " presets");
+    int32_t         count = 0;
+    const ParamDef* defs  = InputModRegistry::paramDefs(type.c_str(), count);
+    if(!defs || count <= 0)
+        return done("no modifier " + type);
+    wait_applied();
+    PresetPatch pp;
+    pp.machine = type;
+    pp.name    = name;
+    for(int32_t i = 0; i < count; ++i)
+    {
+        if(mod_preset_keeps(defs[i].name))
+            continue;
+        const float v = host.paramNormalized(part, kModUnits[slot], defs[i].name);
+        if(v < 0.f)
+            return done("busy");
+        pp.params.emplace_back(defs[i].name, v);
+    }
+    Preset preset;
+    preset.kind = "modifier";
+    preset.unit = type;
+    preset.patches.push_back(pp);
+    std::string why;
+    // Only a file of one patch is replaced, so a bank's other patches stay.
+    {
+        Preset      old;
+        std::string ignore;
+        if(exists(path) && (!read_preset(path, old, ignore) || old.patches.size() > 1 || has_engine_lines(path)))
+            return done("would replace more than one patch");
+    }
+    const std::vector<uint8_t> bytes = preset_bytes(preset);
+    if(bytes.empty())
+        return done("can't be written");
+    if(!write_file(path, bytes, why))
+        return done(why);
+    done("");
+}
+
 // "/preset_scan s:folder (s:file i:index s:name s:unit i:count i:packed)..."
 // for every patch of every .acpreset in [folder], by file name; with [deep]
 // the ones in its folders too, file as "folder/name". An effect preset's unit
-// is "fx.<type>", as the app keys it. Files that can't be read are left out.
+// is "fx.<type>" and a modifier preset's "mod.<type>", as the app keys them.
+// Files that can't be read are left out.
 void Core::scan_presets(const std::string& folder, bool deep)
 {
     const std::string        dir = folder.empty() || folder.back() == '/' ? folder : folder + "/";
@@ -4432,7 +4739,9 @@ void Core::scan_presets(const std::string& folder, bool deep)
             std::fprintf(stderr, "acidulous: %s: %s\n", (dir + n).c_str(), why.c_str());
             continue;
         }
-        const std::string unit = preset.kind == "effect" ? "fx." + preset.unit : preset.unit;
+        const std::string unit = preset.kind == "effect"     ? "fx." + preset.unit
+                                 : preset.kind == "modifier" ? "mod." + preset.unit
+                                                             : preset.unit;
         // what a rewrite would lose: the app's engine lines, or another patch's files
         const bool packed = has_engine_lines(dir + n) || (preset.patches.size() > 1 && has_packed_entries(dir + n));
         for(size_t k = 0; k < preset.patches.size() && out.size() < 1 + 6 * kMaxRows; ++k)
@@ -4470,7 +4779,7 @@ void Core::delete_preset(const std::string& path, int index)
     if(preset.patches.size() == 1)
         return done(std::remove(path.c_str()) == 0 ? "" : std::string("can't delete it: ") + std::strerror(errno));
     preset.patches.erase(preset.patches.begin() + index);
-    if(!write_file(path, presetfile::write(preset), why))
+    if(!write_file(path, preset_bytes(preset), why))
         return done(why);
     done("");
 }

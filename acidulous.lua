@@ -699,6 +699,7 @@ function init()
   parts.on_read = song.read
   parts.on_saved = function(machine) lists.refresh(parts, machine) end
   parts.on_saved_fx = function() lists.refresh(parts, nil) end
+  parts.on_saved_mod = function() lists.refresh(parts, nil) end
   parts.on_preset_note = function(text) lists.note(text) end
   -- text entry takes the keys, so K1's release never comes here
   lists.before_text = function() state.k1 = false end
@@ -1038,6 +1039,17 @@ local function card_fx_slot()
   return nil
 end
 
+-- The modifier slot (0 to 2) the card page shows: on the mods card the
+-- picked control's, on a modifier's own card its slot. nil on others and on
+-- a song's track.
+local function card_mod_slot()
+  if parts.list[state.sel].song then return nil end
+  local ps, cards = part_cards()
+  local card = cards[ps.card]
+  local ctl = card and (card.controls[ps.knob] or card.controls[1])
+  return ctl and ctl.mod
+end
+
 local function handle_key(n, z)
   if not parts.ready then return end
   if n == 1 then
@@ -1065,6 +1077,9 @@ local function handle_key(n, z)
   elseif n == 2 and z == 1 and state.page == "card" and state.k1 and card_fx_slot() then
     -- K1+K2 on a card of fx 3 or 4: that slot's effect presets
     lists.open_fx(parts, state.sel, card_fx_slot())
+  elseif n == 2 and z == 1 and state.page == "card" and state.k1 and card_mod_slot() then
+    -- K1+K2 on the mods card or a modifier's: that slot's modifier presets
+    lists.open_mod(parts, state.sel, card_mod_slot())
   elseif n == 2 and z == 1 and state.page == "card" then
     state.page = "play"
   elseif n == 3 then

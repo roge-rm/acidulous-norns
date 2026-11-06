@@ -151,6 +151,9 @@ local function new_part(i, song)
     -- or nil. They belong to the part, so a machine or patch change keeps
     -- them. Saved in the part's "mods" param.
     mods = {},
+    -- the modifier preset each slot last loaded or saved, slot -> {path,
+    -- index}, for the list; not saved
+    mod_presets = {},
     vals = song and {} or nil,
     name = nil,     -- a song track's name from song.json
   }
@@ -194,7 +197,8 @@ local HELD_BY_SONG = {
   ["/patch"] = true, ["/unmount"] = true, ["/preset_load"] = true, ["/mount"] = true, ["/param"] = true,
   ["/load"] = true, ["/channel"] = true, ["/fx"] = true, ["/mod"] = true, ["/mod_bypass"] = true,
   ["/mod_param"] = true, ["/send"] = true, ["/master"] = true, ["/mods_off"] = true, ["/preset_save"] = true,
-  ["/insert"] = true, ["/fx_preset_load"] = true, ["/fx_preset_save"] = true,
+  ["/insert"] = true, ["/fx_preset_load"] = true, ["/fx_preset_save"] = true, ["/mod_preset_load"] = true,
+  ["/mod_preset_save"] = true,
 }
 
 local function send(path, args)
@@ -1215,6 +1219,7 @@ local function set_mod_type(part, slot, type, wait)
   if (old and old.type) == type then return end
   local m = type and {type = type, bypass = false, values = {}} or nil
   part.mods[slot] = m
+  part.mod_presets[slot] = nil
   local other = shared_with(part, slot)
   if shares(m) and other then
     for name in pairs(SHARED) do m.values[name] = mod_param_value(other, name) end
@@ -1312,9 +1317,9 @@ local function rearrange(part, layout)
       part.mod_pending[slot] = nil
     end
   end
-  local old, new = part.mods, {}
-  for slot, from in pairs(layout) do new[slot] = old[from] end
-  part.mods = new
+  local old, new, presets = part.mods, {}, {}
+  for slot, from in pairs(layout) do new[slot], presets[slot] = old[from], part.mod_presets[from] end
+  part.mods, part.mod_presets = new, presets
   save_mods(part)
   notes_off(part)
   for slot = 0, P.MOD_SLOTS - 1 do
@@ -1671,6 +1676,7 @@ local function apply(part)
   -- with no files this still clears what the machine had before
   if P.SAMPLE_MACHINES[part.machine] then send_files(part) end
   part.mods = decode_mods(params:get(id(i, "mods")))
+  part.mod_presets = {}
   send_mods(part)
 end
 
@@ -2450,6 +2456,80 @@ function P.save_fx_preset(i, slot, path, name)
   psend(part, "/fx_preset_save", {i - 1, slot, path, name})
 end
 
+-- ---- modifier presets -------------------------------------------------------------
+
+-- A modifier's presets go in mod/<type>/ under P.PRESETS, as the app keeps
+-- them in patches/mod/<type>/. As in the app only the Arp and the Chord
+-- have them. P.saved_mod lists all of them, from one /preset_scan of that
+-- folder and its folders: {file, path, index, name, type, count, packed}.
+P.MOD_PRESETS = P.PRESETS .. "mod/"
+P.MOD_PRESET_TYPES = {Arp = true, Chord = true}
+P.saved_mod = {}
+
+function P.mod_preset_dir(type) return P.MOD_PRESETS .. type .. "/" end
+
+function P.scan_mod_presets() send("/preset_scan", {P.MOD_PRESETS, 1}) end
+
+-- Puts the part's modifiers in Scale, Chord, Arp order along the slots, if
+-- they aren't.
+local function sort_mods(part)
+  local list, last, sorted = {}, 0, true
+  for slot = 0, P.MOD_SLOTS - 1 do
+    local m = part.mods[slot]
+    if m then
+      if MOD_RANK[m.type] < last then sorted = false end
+      last = MOD_RANK[m.type]
+      list[#list + 1] = {rank = last, from = slot}
+    end
+  end
+  if sorted then return end
+  table.sort(list, function(a, b)
+    if a.rank ~= b.rank then return a.rank < b.rank end
+    return a.from < b.from
+  end)
+  local layout = {}
+  for k, e in ipairs(list) do layout[k - 1] = e.from end
+  rearrange(part, layout)
+end
+
+-- Puts modifier preset s (from P.saved_mod) on part i: in slot if it has
+-- the preset's type, else in the slot that has, else slot takes the type and
+-- the modifiers go back in order as toggle_mod keeps them.
+-- /mod_preset_loaded answers. Returns the slot it went to.
+function P.load_mod_preset(i, slot, s)
+  local part = P.part(i)
+  if part.song or not P.MOD_PRESET_TYPES[s.type] or held(part) then return nil end
+  local at = (part.mods[slot] and part.mods[slot].type == s.type) and slot or mod_slot(part, s.type)
+  if not at then
+    set_mod_type(part, slot, s.type)
+    sort_mods(part)
+    at = mod_slot(part, s.type)
+  end
+  part.mod_presets[at] = {path = s.path, index = s.index}
+  psend(part, "/mod_preset_load", {i - 1, at, s.path, s.index, s.name})
+  return at
+end
+
+-- Saves the modifier in part i's slot as the modifier preset at path,
+-- called name. /mod_preset_saved answers.
+function P.save_mod_preset(i, slot, path, name)
+  local part = P.part(i)
+  if part.song or P.song_holds then
+    if P.on_preset_note then P.on_preset_note("not in a song") end
+    return
+  end
+  local m = part.mods[slot]
+  if not m or not P.MOD_PRESET_TYPES[m.type] then return end
+  -- a type still waiting goes first, so its values are what's saved
+  if part.mod_pending and part.mod_pending[slot] then
+    timer.cancel(part.mod_pending[slot])
+    part.mod_pending[slot] = nil
+    send_mod(part, slot)
+  end
+  part.mod_saving = {slot = slot, path = path}
+  psend(part, "/mod_preset_save", {i - 1, slot, path, name})
+end
+
 -- Sends a part's volume and machine with its patch, which fills the slots
 -- with the patch's values when it's applied.
 function P.start_part(i)
@@ -2933,6 +3013,47 @@ function P.osc(path, args)
       if math.abs(v - default) > 1e-5 then part.fx_edits[slot .. ":" .. name] = v end
     end
     save_fx(part)
+  elseif path == "/preset_scan" and (args[1] or "") == P.MOD_PRESETS then
+    local list = {}
+    for k = 2, #args - 5, 6 do
+      local type = tostring(args[k + 3]):match("^mod%.(.+)$")
+      if type then
+        list[#list + 1] = {file = args[k], path = P.MOD_PRESETS .. args[k], index = args[k + 1], name = args[k + 2],
+          type = type, count = args[k + 4], packed = args[k + 5] == 1}
+      end
+    end
+    P.saved_mod = list
+    if P.on_saved_mod then P.on_saved_mod() end
+  elseif path == "/mod_preset_loaded" then
+    -- the slot's values, kept in the part's "mods" param so a PSET puts
+    -- them back; the defaults left out as the param keeps them
+    local part = rpart((args[1] or -1) + 1)
+    local slot, type, err = args[2], args[3] or "", args[5] or ""
+    if not part or part.song or not slot then return end
+    if err ~= "" then print("acidulous: modifier preset: " .. err) end
+    if P.on_preset_note then P.on_preset_note(err == "" and "loaded" or err) end
+    if err ~= "" then part.mod_presets[slot] = nil end
+    local m = part.mods[slot]
+    -- the script picked the slot's type before asking; another means it
+    -- has moved on since
+    if err ~= "" or not m or m.type ~= type then return end
+    local values = {}
+    for k = 6, #args - 1, 2 do
+      local d = mod_def(type, args[k])
+      if not d or math.abs(args[k + 1] - P.unmap(d, d.default)) > 1e-5 then values[args[k]] = args[k + 1] end
+    end
+    m.values = values
+    save_mods(part)
+  elseif path == "/mod_preset_saved" then
+    local part = rpart((args[1] or -1) + 1)
+    if not part then return end
+    local ok = args[4] == "ok"
+    if not ok then print("acidulous: saving " .. tostring(args[3]) .. ": " .. tostring(args[4])) end
+    local saving = part.mod_saving
+    part.mod_saving = nil
+    if ok and saving and saving.path == args[3] then part.mod_presets[saving.slot] = {path = saving.path, index = 0} end
+    if P.on_preset_note then P.on_preset_note(ok and "saved" or args[4]) end
+    P.scan_mod_presets()
   elseif path == "/fx_preset_saved" then
     local part = rpart((args[1] or -1) + 1)
     if not part then return end
@@ -3018,6 +3139,15 @@ function P.osc(path, args)
         end
       end
       P.scan_fx_presets()
+      return
+    end
+    if file:sub(1, #P.MOD_PRESETS) == P.MOD_PRESETS then
+      for _, part in ipairs(all) do
+        for slot, at in pairs(part.mod_presets or {}) do
+          if at.path == file then part.mod_presets[slot] = nil end
+        end
+      end
+      P.scan_mod_presets()
       return
     end
     local machine = args[1]:match("([^/]+)/[^/]+$")

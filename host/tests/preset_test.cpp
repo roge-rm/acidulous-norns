@@ -35,6 +35,7 @@
 #include <engine/core/PresetFile.h>
 #include <engine/machine/filament/SymLevel.h>
 #include <engine/effect/EffectRegistry.h>
+#include <engine/inputmod/InputModRegistry.h>
 #include <engine/machine/MachineRegistry.h>
 #include <jni.h>
 #include <platform/lines/EngineLines.h>
@@ -1282,8 +1283,173 @@ int main(int argc, char** argv)
         cmd("/preset_delete", {Value::s(fxdir + "Chorus/wide.acpreset"), Value::i(0)});
         check(log.wait("/preset_deleted", r) && r.args[2].str == "ok" && !exists(fxdir + "Chorus/wide.acpreset"),
               "delete an effect preset");
+
+        // A Formula's formula: saved as last loaded, back the same, and none
+        // for a Formula mounted fresh.
+        {
+            acidulous::Preset v;
+            v.kind = "effect";
+            v.unit = "Formula";
+            acidulous::PresetPatch pp;
+            pp.machine  = "Formula";
+            pp.name     = "Crush";
+            pp.settings = {{"formula", "x & 224"}};
+            v.patches.push_back(pp);
+            const auto bytes = acidulous::presetfile::write(v);
+            std::system(("mkdir -p '" + fxdir + "Formula'").c_str());
+            std::ofstream(fxdir + "Formula/crush.acpreset", std::ios::binary)
+                .write(reinterpret_cast<const char*>(bytes.data()), std::streamsize(bytes.size()));
+        }
+        const auto formula_of = [&](const std::string& file) {
+            acidulous::Preset got;
+            return read_file(file, got) && got.patches.size() == 1 ? setting(got.patches[0], "formula") : std::string("?");
+        };
+        check(fx_load(4, 2, fxdir + "Formula/crush.acpreset", 0, "Crush", r) && r.args[4].str.empty() &&
+                  r.args[2].str == "Formula",
+              "a Formula preset loads");
+        check(fx_save(4, 2, fxdir + "Formula/again.acpreset", "Again") == "ok" &&
+                  formula_of(fxdir + "Formula/again.acpreset") == "x & 224",
+              "its formula saved");
+        cmd("/insert", {Value::i(4), Value::i(2), Value::s("Delay")});
+        check(fx_load(4, 2, fxdir + "Formula/again.acpreset", 0, "Again", r) && r.args[4].str.empty() &&
+                  fx_save(4, 2, fxdir + "Formula/third.acpreset", "Third") == "ok" &&
+                  formula_of(fxdir + "Formula/third.acpreset") == "x & 224",
+              "saved, loaded and saved again: the same formula");
+        cmd("/insert", {Value::i(4), Value::i(2), Value::s("")});
+        cmd("/insert", {Value::i(4), Value::i(2), Value::s("Formula")});
+        c->drain();
+        check(fx_save(4, 2, fxdir + "Formula/fresh.acpreset", "Fresh") == "ok" &&
+                  formula_of(fxdir + "Formula/fresh.acpreset").empty(),
+              "a fresh Formula saves no formula");
         cmd("/insert", {Value::i(4), Value::i(2), Value::s("")});
         cmd("/insert", {Value::i(4), Value::i(3), Value::s("")});
+        c->drain();
+    }
+
+    // Modifier presets: the app's Arp and Chord presets into a part's
+    // modifier slots, what a load keeps, another type switching the slot,
+    // refusals, a save the app can read, the deep scan and a delete.
+    {
+        const std::string moddir   = scratch + "/mod/";
+        const auto        mod_load = [&](int part, int slot, const std::string& path, int index,
+                                  const std::string& name, Reply& out) {
+            log.clear();
+            cmd("/mod_preset_load", {Value::i(part), Value::i(slot), Value::s(path), Value::i(index), Value::s(name)});
+            return log.wait("/mod_preset_loaded", out) && out.args.size() >= 5;
+        };
+        const auto mod_save = [&](int part, int slot, const std::string& path, const std::string& name) {
+            log.clear();
+            cmd("/mod_preset_save", {Value::i(part), Value::i(slot), Value::s(path), Value::s(name)});
+            Reply out;
+            return log.wait("/mod_preset_saved", out) && out.args.size() > 3 ? out.args[3].str : std::string("no reply");
+        };
+        const auto value_of = [](const Reply& out, const std::string& name) {
+            for(size_t k = 5; k + 1 < out.args.size(); k += 2)
+                if(out.args[k].str == name)
+                    return float(out.args[k + 1].num);
+            return -1.f;
+        };
+        // The JSON of each entry of the zip at [file].
+        const auto entries_of = [](const std::string& file) {
+            std::ifstream        f(file, std::ios::binary);
+            std::vector<uint8_t> bytes((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+            std::vector<std::pair<std::string, std::vector<uint8_t>>> entries;
+            std::string                                               why;
+            std::map<std::string, std::string>                        out;
+            if(!bytes.empty() && acidulous::presetfile::unzip(bytes.data(), bytes.size(), entries, why))
+                for(const auto& e : entries)
+                    out[e.first].assign(e.second.begin(), e.second.end());
+            return out;
+        };
+        const auto def01 = [](const char* type, const char* name) {
+            int32_t     count = 0;
+            const auto* defs  = acidulous::InputModRegistry::paramDefs(type, count);
+            for(int32_t i = 0; defs && i < count; ++i)
+                if(!std::strcmp(defs[i].name, name))
+                    return defs[i].unmap(defs[i].def);
+            return -1.f;
+        };
+        const int part = 2;
+        check(mod_load(part, 2, fixtures + "/arp.acpreset", 0, "Up 16ths", r) && r.args[4].str.empty() &&
+                  r.args[2].str == "Arp" && r.args[3].str == "Up 16ths" &&
+                  std::fabs(value_of(r, "rate") - 0.7777778f) < 1e-4f &&
+                  std::fabs(value_of(r, "gate") - 0.23076923f) < 1e-4f,
+              "an Arp preset into an empty mod 3");
+        cmd("/mod_param", {Value::i(part), Value::i(2), Value::s("latch"), Value::f(1.f)});
+        check(mod_load(part, 2, fixtures + "/arp.acpreset", 0, "Slow", r) && r.args[3].str == "Slow" &&
+                  value_of(r, "rate") == 0.f && std::fabs(value_of(r, "gate") - def01("Arp", "gate")) < 1e-4f &&
+                  value_of(r, "latch") == 1.f,
+              "found by name, a param it doesn't name at its default, latch kept");
+        log.clear();
+        cmd("/mods", {Value::i(part)});
+        check(log.wait("/mods", r) && r.args.size() > 1 && r.args[1].num == 0 && r.args[2].str.empty(),
+              "/mods: slot 1 still empty");
+        check(mod_load(part, 2, fixtures + "/chord.acpreset", 0, "", r) && r.args[4].str.empty() &&
+                  r.args[2].str == "Chord" && std::fabs(value_of(r, "type") - 0.5f) < 1e-4f &&
+                  std::fabs(value_of(r, "key") - def01("Chord", "key")) < 1e-4f &&
+                  std::fabs(value_of(r, "scale") - def01("Chord", "scale")) < 1e-4f && value_of(r, "latch") == 0.f,
+              "a Chord preset switches the slot, its key, scale and latch not taken");
+        check(mod_load(part, 2, fixtures + "/scale.acpreset", 0, "", r) && !r.args[4].str.empty() &&
+                  r.args[2].str == "Chord",
+              "a Scale preset refused, the slot left");
+        check(mod_load(part, 2, fixtures + "/delay.acpreset", 0, "", r) && r.args[4].str == "not a modifier preset",
+              "an effect preset refused");
+        check(mod_load(part, 0, fixtures + "/reflux.acpreset", 0, "", r) && r.args[4].str == "not a modifier preset" &&
+                  r.args[2].str.empty(),
+              "a machine preset refused, the slot left empty");
+        log.clear();
+        cmd("/fx_preset_load", {Value::i(part), Value::i(2), Value::s(fixtures + "/arp.acpreset"), Value::i(0), Value::s("")});
+        check(log.wait("/fx_preset_loaded", r) && r.args[4].str == "not an effect preset", "nor an effect slot");
+
+        cmd("/mod_param", {Value::i(part), Value::i(2), Value::s("strum"), Value::f(0.4f)});
+        cmd("/mod_param", {Value::i(part), Value::i(2), Value::s("key"), Value::f(0.25f)});
+        check(mod_save(part, 2, moddir + "Chord/mine.acpreset", "Mine") == "ok", "save mod 3's Chord");
+        {
+            auto        e   = entries_of(moddir + "Chord/mine.acpreset");
+            std::string man = e["preset.json"], pj = e["patches/1.json"];
+            check(man.find("\"kind\": \"modifier\"") != std::string::npos &&
+                      man.find("\"unit\": \"Chord\"") != std::string::npos &&
+                      pj.find("\"machine\": \"mod.Chord\"") != std::string::npos &&
+                      pj.find("\"strum\"") != std::string::npos && pj.find("\"key\"") == std::string::npos &&
+                      pj.find("\"latch\"") == std::string::npos && e.size() == 2,
+                  "saved as the app's modifier preset, keyed mod.Chord, without key and latch");
+        }
+        check(mod_load(part, 1, moddir + "Chord/mine.acpreset", 0, "Mine", r) && r.args[4].str.empty() &&
+                  r.args[2].str == "Chord" && std::fabs(value_of(r, "strum") - 0.4f) < 1e-4f &&
+                  std::fabs(value_of(r, "type") - 0.5f) < 1e-4f,
+              "the saved Chord back into mod 2");
+        cmd("/mod", {Value::i(part), Value::i(0), Value::s("Scale")});
+        check(mod_save(part, 0, moddir + "Scale/s.acpreset", "S") == "no scale presets" && !exists(moddir + "Scale"),
+              "a Scale isn't saved");
+        cmd("/mod", {Value::i(part), Value::i(0), Value::s("")});
+        check(mod_save(part, 0, moddir + "Arp/e.acpreset", "E") != "ok", "an empty slot isn't saved");
+        check(mod_save(part, 2, moddir + "Chord/x.acpreset", "") == "no name", "no name");
+
+        // The deep scan lists them as mod.<type>; deleting one patch of the
+        // app's two keeps it a modifier preset.
+        std::system(("mkdir -p '" + moddir + "Arp' && cp '" + fixtures + "/arp.acpreset' '" + moddir + "Arp/'").c_str());
+        const auto scan = [&] {
+            std::set<std::string> rows;
+            log.clear();
+            cmd("/preset_scan", {Value::s(moddir), Value::i(1)});
+            if(log.wait("/preset_scan", r))
+                for(size_t k = 1; k + 5 < r.args.size(); k += 6)
+                    rows.insert(r.args[k].str + "|" + r.args[k + 2].str + "|" + r.args[k + 3].str);
+            return rows;
+        };
+        auto rows = scan();
+        check(rows.size() == 3 && rows.count("Arp/arp.acpreset|Up 16ths|mod.Arp") &&
+                  rows.count("Arp/arp.acpreset|Slow|mod.Arp") && rows.count("Chord/mine.acpreset|Mine|mod.Chord"),
+              "deep scan: 3 rows as mod.<type>");
+        log.clear();
+        cmd("/preset_delete", {Value::s(moddir + "Arp/arp.acpreset"), Value::i(0)});
+        check(log.wait("/preset_deleted", r) && r.args[2].str == "ok", "delete one patch of the app's Arp");
+        rows = scan();
+        check(rows.size() == 2 && rows.count("Arp/arp.acpreset|Slow|mod.Arp") &&
+                  entries_of(moddir + "Arp/arp.acpreset")["preset.json"].find("\"modifier\"") != std::string::npos,
+              "delete one patch of two: still a modifier preset");
+        for(int slot = 0; slot < 3; ++slot)
+            cmd("/mod", {Value::i(part), Value::i(slot), Value::s("")});
         c->drain();
     }
 
