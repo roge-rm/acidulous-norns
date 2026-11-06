@@ -17,8 +17,9 @@
 //   Mosaic zones and SoundFont), kept on a second load, a ../ name refused
 //   and over 64 MB refused, the patch still loading, a small file from a
 //   preset with over 64 MB of others
-// - Forage's slice_sample and Diction's recorded voices from presets, loaded
-//   and saved relative to the root
+// - Forage's slice_sample from presets, loaded and saved relative to the root
+// - Diction's recorded voices from presets, loaded, saved packed as the app
+//   packs them and loaded again
 // - /preset_scan and /preset_delete
 // Usage: acidulous-preset-test BANK_DIR SCRATCH_DIR MATERIAL_DIR FIXTURE_DIR
 #include "core.h"
@@ -40,6 +41,7 @@
 #include <iterator>
 #include <map>
 #include <mutex>
+#include <set>
 #include <string>
 #include <sys/stat.h>
 #include <thread>
@@ -688,17 +690,72 @@ int main(int argc, char** argv)
                    {Value::i(1), Value::s(audio), Value::s("voice"), Value::s(bo + "bank.json"),
                     Value::s("morphvoice"), Value::s(cy + "bank.json")}) == "ok",
               "save the voices");
+        // The voices are packed as the app packs them, media/voices/<name>/.
         if(read_file(scratch + "/Diction/two.acpreset", p) && !p.patches.empty())
-            check(setting(p.patches[0], "voice") == "acidulous/presets/Diction/voices/voices/Bo/bank.json" &&
-                      setting(p.patches[0], "morphvoice") == "acidulous/presets/Diction/voices/voices/Cy/bank.json",
-                  "voices saved relative to the root");
-        // and that preset finds them again where they are
+            check(setting(p.patches[0], "voice") == "media/voices/Bo/bank.json" &&
+                      setting(p.patches[0], "morphvoice") == "media/voices/Cy/bank.json",
+                  "voices saved as the app's media/voices/<name>/bank.json");
+        {
+            std::ifstream        f(scratch + "/Diction/two.acpreset", std::ios::binary);
+            std::vector<uint8_t> bytes((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+            std::vector<std::pair<std::string, std::vector<uint8_t>>> entries;
+            std::string                                               why;
+            std::set<std::string>                                     names;
+            bool                                                      same = true;
+            const bool ok = acidulous::presetfile::unzip(bytes.data(), bytes.size(), entries, why);
+            for(const auto& e : entries)
+            {
+                names.insert(e.first);
+                const std::string rest = e.first.rfind("media/voices/", 0) == 0 ? e.first.substr(13) : "";
+                if(rest.empty())
+                    continue;
+                std::ifstream        g(audio + "acidulous/presets/Diction/voices/voices/" + rest, std::ios::binary);
+                std::vector<uint8_t> there((std::istreambuf_iterator<char>(g)), std::istreambuf_iterator<char>());
+                same = same && there == e.second;
+            }
+            check(ok && same && names.count("preset.json") && names.count("patches/1.json") &&
+                      names.count("media/voices/Bo/bank.json") && names.count("media/voices/Bo/aa.wav") &&
+                      names.count("media/voices/Bo/ay.wav") && names.count("media/voices/Bo/aa-s.wav") &&
+                      names.count("media/voices/Cy/bank.json") && names.count("media/voices/Cy/iy.wav") &&
+                      !names.count("media/voices/Bo/bad.wav") && names.size() == 8,
+                  "the saved zip holds each voice's bank.json and takes");
+        }
+        // and loading that file unpacks them again, the same voices
+        const std::string bo2 = audio + "acidulous/presets/Diction/two/voices/Bo/";
+        const std::string cy2 = audio + "acidulous/presets/Diction/two/voices/Cy/";
         log.clear();
         cmd("/preset_load", {Value::i(4), Value::s(scratch + "/Diction/two.acpreset"), Value::i(0), Value::s("@t"),
                              Value::i(1), Value::s("Diction"), Value::s(""), Value::s(audio)});
-        check(log.wait("/preset_loaded", r) && (c->drain(), true) && loaded("voice", bo + "bank.json") &&
-                  loaded("voice", cy + "bank.json") && log.count("/error") == 0,
-              "the saved voices found again");
+        check(log.wait("/preset_loaded", r) && (c->drain(), true) && r.args[3].str.empty() &&
+                  loaded("voice", bo2 + "bank.json") && loaded("voice", cy2 + "bank.json") &&
+                  log.count("/error") == 0,
+              "the saved voices load again");
+        {
+            const auto spec = [](const std::string& dir) {
+                std::vector<std::string> files;
+                int                      missing = 0;
+                std::string              why;
+                std::string              s = core::voice_spec(dir + "bank.json", files, missing, why);
+                for(size_t at; (at = s.find(dir)) != std::string::npos;)
+                    s.erase(at, dir.size());
+                return missing == 0 ? s : std::string();
+            };
+            check(!spec(bo).empty() && spec(bo) == spec(bo2) && !spec(cy).empty() && spec(cy) == spec(cy2),
+                  "the reloaded voices are the same");
+        }
+        // a voice and morph voice from two folders of one name get two names
+        {
+            const std::string other = audio + "elsewhere/Bo/";
+            std::system(("mkdir -p '" + other + "' && cp '" + bo + "bank.json' '" + bo + "aa.wav' '" + other + "'").c_str());
+            check(save(4, scratch + "/Diction/same.acpreset", "Same",
+                       {Value::i(1), Value::s(audio), Value::s("voice"), Value::s(bo + "bank.json"),
+                        Value::s("morphvoice"), Value::s(other + "bank.json")}) == "ok",
+                  "save two voices of one name");
+            if(read_file(scratch + "/Diction/same.acpreset", p) && !p.patches.empty())
+                check(setting(p.patches[0], "voice") == "media/voices/Bo/bank.json" &&
+                          setting(p.patches[0], "morphvoice") == "media/voices/Bo 2/bank.json",
+                      "the second one is Bo 2");
+        }
 
         // /load: the built-in voice back, a voice with none of its takes, not on Forage.
         const auto load_kind = [&](int part, const std::string& kind, const std::string& path, int arg) {
