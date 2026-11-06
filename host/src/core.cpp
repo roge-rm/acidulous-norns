@@ -3511,98 +3511,53 @@ bool read_bytes(const std::string& path, size_t max, std::vector<uint8_t>& out)
     return ok;
 }
 
-uint32_t crc32_of(const std::vector<uint8_t>& data)
+// Size of the regular file at [path], or -1.
+int64_t file_size(const std::string& path)
+{
+    struct stat st{};
+    return stat(path.c_str(), &st) == 0 && S_ISREG(st.st_mode) ? int64_t(st.st_size) : -1;
+}
+
+// CRC-32 of [n] bytes at [data] carried on from [c] (0 to start).
+uint32_t crc32_add(uint32_t c, const uint8_t* data, size_t n)
 {
     static uint32_t table[256];
     static bool     made = [] {
         for(uint32_t i = 0; i < 256; ++i)
         {
-            uint32_t c = i;
+            uint32_t x = i;
             for(int k = 0; k < 8; ++k)
-                c = (c & 1u) ? 0xedb88320u ^ (c >> 1) : c >> 1;
-            table[i] = c;
+                x = (x & 1u) ? 0xedb88320u ^ (x >> 1) : x >> 1;
+            table[i] = x;
         }
         return true;
     }();
     (void)made;
-    uint32_t c = 0xffffffffu;
-    for(const uint8_t b : data)
-        c = table[(c ^ b) & 0xffu] ^ (c >> 8);
+    c ^= 0xffffffffu;
+    for(size_t i = 0; i < n; ++i)
+        c = table[(c ^ data[i]) & 0xffu] ^ (c >> 8);
     return c ^ 0xffffffffu;
 }
 
-// Adds [files] to the stored zip [zip] (as presetfile::write makes it, no
-// comment), stored and dated like its own entries. False if [zip] isn't one.
-bool zip_append(std::vector<uint8_t>& zip, const std::vector<std::pair<std::string, std::vector<uint8_t>>>& files)
+// A file going into a saved preset as [entry]: [data] if [source] is empty,
+// else read from [source] while writing, [size] bytes.
+struct Packed
 {
-    if(files.empty())
-        return true;
-    if(zip.size() < 22 || le32(zip.data() + zip.size() - 22) != 0x06054b50u)
-        return false;
-    const unsigned char* e     = zip.data() + zip.size() - 22;
-    const uint32_t       count = le16(e + 10), dsize = le32(e + 12), dat = le32(e + 16);
-    if(uint64_t(dat) + dsize != zip.size() - 22)
-        return false;
-    std::vector<uint8_t> dir(zip.begin() + dat, zip.begin() + dat + dsize);
-    zip.resize(dat);
-    for(const auto& file : files)
-    {
-        const std::string& n    = file.first;
-        const uint32_t     crc  = crc32_of(file.second);
-        const uint32_t     size = uint32_t(file.second.size());
-        const uint32_t     at   = uint32_t(zip.size());
-        const auto         common = [&](std::vector<uint8_t>& o) {
-            put16(o, 0x0800); // names are UTF-8
-            put16(o, 0);      // stored
-            put16(o, 0);
-            put16(o, 0x21);
-            put32(o, crc);
-            put32(o, size);
-            put32(o, size);
-            put16(o, uint32_t(n.size()));
-            put16(o, 0);
-        };
-        put32(zip, 0x04034b50u);
-        put16(zip, 20);
-        common(zip);
-        zip.insert(zip.end(), n.begin(), n.end());
-        zip.insert(zip.end(), file.second.begin(), file.second.end());
-        put32(dir, 0x02014b50u);
-        put16(dir, 20);
-        put16(dir, 20);
-        common(dir);
-        put16(dir, 0);
-        put16(dir, 0);
-        put16(dir, 0);
-        put32(dir, 0);
-        put32(dir, at);
-        dir.insert(dir.end(), n.begin(), n.end());
-    }
-    const uint32_t dir_at = uint32_t(zip.size());
-    const uint32_t total  = count + uint32_t(files.size());
-    zip.insert(zip.end(), dir.begin(), dir.end());
-    put32(zip, 0x06054b50u);
-    put16(zip, 0);
-    put16(zip, 0);
-    put16(zip, total);
-    put16(zip, total);
-    put32(zip, uint32_t(dir.size()));
-    put32(zip, dir_at);
-    put16(zip, 0);
-    return true;
-}
+    std::string          entry, source;
+    std::vector<uint8_t> data;
+    uint64_t             size = 0;
+};
 
 // Diction's voice and morphvoice in [settings], absolute paths to a voice's
 // bank.json, packed as the app's PresetFile packs them: its bank.json and
 // takes as media/voices/<name>/ in [files], the setting made
 // media/voices/<name>/bank.json. A voice that can't be read, or would take
-// the files over kMaxMediaBytes, keeps its path.
-void pack_voices(std::vector<std::pair<std::string, std::string>>& settings,
-                 std::vector<std::pair<std::string, std::vector<uint8_t>>>& files)
+// [total] over kMaxMediaBytes, keeps its path. Entries go in [taken].
+void pack_voices(std::vector<std::pair<std::string, std::string>>& settings, std::vector<Packed>& files,
+                 std::set<std::string>& taken, uint64_t& total)
 {
     std::map<std::string, std::string> done; // bank path -> its setting
     std::set<std::string>              names;
-    size_t                             total = 0;
     for(auto& kv : settings)
     {
         if((kv.first != "voice" && kv.first != "morphvoice") || kv.second.empty() || packed_path(kv.second))
@@ -3631,30 +3586,24 @@ void pack_voices(std::vector<std::pair<std::string, std::string>>& settings,
         std::string       name = want;
         for(int n = 2; names.count(name); ++n)
             name = want + " " + std::to_string(n);
-        const std::string prefix = "media/voices/" + name + "/";
-        std::vector<std::pair<std::string, std::vector<uint8_t>>> own;
-        size_t                                                     size = index.size();
-        own.emplace_back(prefix + "bank.json", std::move(index));
+        const std::string   prefix = "media/voices/" + name + "/";
+        std::vector<Packed> own;
+        uint64_t            size = index.size();
+        own.push_back({prefix + "bank.json", "", std::move(index), size});
         std::set<std::string> seen;
-        bool                  fits = true;
         for(const auto& t : takes->fields)
         {
             const std::string& file = t.second.str;
             if(t.second.kind != Json::String || file.empty() || file == "." || file == ".." ||
                file.find_first_of("/\\") != std::string::npos || !seen.insert(file).second)
                 continue;
-            std::vector<uint8_t> data;
-            if(!read_bytes(folder + "/" + file, kMaxMediaBytes, data))
+            const int64_t n = file_size(folder + "/" + file);
+            if(n < 0)
                 continue;
-            size += data.size();
-            if(total + size > kMaxMediaBytes)
-            {
-                fits = false;
-                break;
-            }
-            own.emplace_back(prefix + file, std::move(data));
+            size += uint64_t(n);
+            own.push_back({prefix + file, folder + "/" + file, {}, uint64_t(n)});
         }
-        if(!fits)
+        if(total + size > kMaxMediaBytes)
         {
             std::fprintf(stderr, "acidulous: voice %s too big to pack, kept as a path\n", bank.c_str());
             continue;
@@ -3662,18 +3611,240 @@ void pack_voices(std::vector<std::pair<std::string, std::string>>& settings,
         total += size;
         names.insert(name);
         for(auto& f : own)
+        {
+            taken.insert(f.entry);
             files.push_back(std::move(f));
+        }
         kv.second  = prefix + "bank.json";
         done[bank] = kv.second;
     }
+}
+
+// The other file settings in [settings] (pads, sample, slice_sample, sf2, the
+// files of Mosaic's zones), absolute paths, packed as the app's PresetFile
+// packs them: the file as media/<its path under the first unlabelled root> in
+// [files], the setting pointing there. A file unpacked from a preset,
+// <root>acidulous/presets/<unit>/<preset>/x, goes back in as media/x, and one
+// under no root as media/<its name>. A name another file has gets " (2)" as
+// the app's import does. Files under a labelled root (the script's own),
+// missing ones and ones that would take [total] over kMaxMediaBytes keep their
+// path.
+void pack_files(std::vector<std::pair<std::string, std::string>>& settings, const std::vector<std::string>& roots,
+                std::vector<Packed>& files, std::set<std::string>& taken, uint64_t& total)
+{
+    std::map<std::string, std::string> done; // file -> its entry
+    const auto pack = [&](const std::string& path) -> std::string {
+        if(path.empty() || packed_path(path))
+            return path;
+        const std::string p  = squash(path);
+        const auto        at = done.find(p);
+        if(at != done.end())
+            return at->second;
+        std::string rel;
+        for(const auto& root : roots)
+        {
+            const Root r = parse_root(root);
+            if(r.dir.size() > 1 && p.size() > r.dir.size() && p.compare(0, r.dir.size(), r.dir) == 0)
+            {
+                if(!r.label.empty())
+                    return path;
+                rel = p.substr(r.dir.size());
+                break;
+            }
+        }
+        if(rel.empty())
+            rel = base_name(p);
+        // acidulous/presets/<unit>/<preset>/x back to x
+        if(rel.rfind("acidulous/presets/", 0) == 0)
+        {
+            const size_t unit = rel.find('/', 18);
+            const size_t name = unit == std::string::npos ? unit : rel.find('/', unit + 1);
+            if(name != std::string::npos && name + 1 < rel.size())
+                rel = rel.substr(name + 1);
+        }
+        if(!safe_name(rel))
+            rel = base_name(p);
+        const int64_t size = file_size(p);
+        if(size < 0 || !safe_name(rel))
+            return path;
+        if(total + uint64_t(size) > kMaxMediaBytes)
+        {
+            std::fprintf(stderr, "acidulous: %s too big to pack, kept as a path\n", p.c_str());
+            return path;
+        }
+        std::string  entry = "media/" + rel;
+        const size_t dot   = rel.find_last_of('.');
+        const size_t slash = rel.find_last_of('/');
+        const bool   ext   = dot != std::string::npos && (slash == std::string::npos || dot > slash + 1);
+        for(int n = 2; taken.count(entry); ++n)
+            entry = "media/" + (ext ? rel.substr(0, dot) : rel) + " (" + std::to_string(n) + ")" +
+                    (ext ? rel.substr(dot) : std::string());
+        total += uint64_t(size);
+        taken.insert(entry);
+        files.push_back({entry, p, {}, uint64_t(size)});
+        done[p] = entry;
+        return entry;
+    };
+    for(auto& kv : settings)
+        if(kv.first != "voice" && kv.first != "morphvoice")
+            kv.second = map_paths(kv.first, kv.second, pack);
+}
+
+// Writes the stored zip [zip] (as presetfile::write makes it, no comment) to
+// [path] with [files] added, stored and dated like its own entries: a temp
+// file, then renamed over [path]. False with [why] if it can't.
+bool write_with_files(const std::string& path, const std::vector<uint8_t>& zip, const std::vector<Packed>& files,
+                      std::string& why)
+{
+    if(files.empty())
+        return write_file(path, zip, why);
+    if(zip.size() < 22 || le32(zip.data() + zip.size() - 22) != 0x06054b50u)
+    {
+        why = "couldn't pack its files";
+        return false;
+    }
+    const unsigned char* e     = zip.data() + zip.size() - 22;
+    const uint32_t       count = le16(e + 10), dsize = le32(e + 12), dat = le32(e + 16);
+    if(uint64_t(dat) + dsize != zip.size() - 22 || count + files.size() > 0xffff)
+    {
+        why = "couldn't pack its files";
+        return false;
+    }
+    if(!make_dirs(dir_of(path)))
+    {
+        why = std::string("can't make its folder: ") + std::strerror(errno);
+        return false;
+    }
+    const std::string tmp = path + ".tmp";
+    FILE*             out = std::fopen(tmp.c_str(), "wb");
+    if(!out)
+    {
+        why = std::string("can't write it: ") + std::strerror(errno);
+        return false;
+    }
+    std::vector<uint8_t> dir(zip.begin() + dat, zip.begin() + dat + dsize);
+    std::vector<uint8_t> buf(size_t(1) << 16);
+    uint64_t             at = dat;
+    bool                 ok = std::fwrite(zip.data(), 1, dat, out) == dat;
+    // Streams [f]'s source through [each], false if it isn't [f.size] bytes.
+    const auto stream = [&](const Packed& f, auto each) {
+        FILE* in = std::fopen(f.source.c_str(), "rb");
+        if(!in)
+            return false;
+        uint64_t got = 0;
+        size_t   n;
+        while((n = std::fread(buf.data(), 1, buf.size(), in)) > 0 && got + n <= f.size)
+        {
+            got += n;
+            each(buf.data(), n);
+        }
+        std::fclose(in);
+        return n == 0 && got == f.size;
+    };
+    for(size_t k = 0; ok && k < files.size(); ++k)
+    {
+        const Packed& f   = files[k];
+        uint32_t      crc = 0;
+        if(f.source.empty())
+            crc = crc32_add(0, f.data.data(), f.data.size());
+        else if(!stream(f, [&](const uint8_t* d, size_t n) { crc = crc32_add(crc, d, n); }))
+        {
+            why = base_name(f.source) + " changed while saving";
+            ok  = false;
+            break;
+        }
+        const std::string& n      = f.entry;
+        const uint32_t     size   = uint32_t(f.size);
+        const auto         common = [&](std::vector<uint8_t>& o) {
+            put16(o, 0x0800); // names are UTF-8
+            put16(o, 0);      // stored
+            put16(o, 0);
+            put16(o, 0x21);
+            put32(o, crc);
+            put32(o, size);
+            put32(o, size);
+            put16(o, uint32_t(n.size()));
+            put16(o, 0);
+        };
+        std::vector<uint8_t> head;
+        put32(head, 0x04034b50u);
+        put16(head, 20);
+        common(head);
+        head.insert(head.end(), n.begin(), n.end());
+        put32(dir, 0x02014b50u);
+        put16(dir, 20);
+        put16(dir, 20);
+        common(dir);
+        put16(dir, 0);
+        put16(dir, 0);
+        put16(dir, 0);
+        put32(dir, 0);
+        put32(dir, uint32_t(at));
+        dir.insert(dir.end(), n.begin(), n.end());
+        ok = std::fwrite(head.data(), 1, head.size(), out) == head.size();
+        if(ok && f.source.empty())
+            ok = std::fwrite(f.data.data(), 1, f.data.size(), out) == f.data.size();
+        else if(ok)
+        {
+            uint32_t   again = 0;
+            const bool same  = stream(f, [&](const uint8_t* d, size_t m) {
+                again = crc32_add(again, d, m);
+                ok    = std::fwrite(d, 1, m, out) == m && ok;
+            }) && again == crc;
+            if(!same)
+                why = base_name(f.source) + " changed while saving";
+            ok = ok && same;
+        }
+        at += head.size() + f.size;
+    }
+    if(ok)
+    {
+        const uint32_t total = count + uint32_t(files.size());
+        std::vector<uint8_t> end;
+        put32(end, 0x06054b50u);
+        put16(end, 0);
+        put16(end, 0);
+        put16(end, total);
+        put16(end, total);
+        put32(end, uint32_t(dir.size()));
+        put32(end, uint32_t(at));
+        put16(end, 0);
+        ok = std::fwrite(dir.data(), 1, dir.size(), out) == dir.size() &&
+             std::fwrite(end.data(), 1, end.size(), out) == end.size();
+    }
+    ok = std::fclose(out) == 0 && ok;
+    if(!ok || std::rename(tmp.c_str(), path.c_str()) != 0)
+    {
+        if(why.empty())
+            why = std::string("can't write it: ") + std::strerror(errno);
+        std::remove(tmp.c_str());
+        return false;
+    }
+    return true;
+}
+
+// Whether the preset at [path] has the app's engine lines, which a rewrite
+// would lose, or can't be read as a zip.
+bool has_engine_lines(const std::string& path)
+{
+    FILE* f = std::fopen(path.c_str(), "rb");
+    if(!f)
+        return true;
+    std::map<std::string, ZipEntry> index;
+    bool                            app = !zip_index(f, index);
+    std::fclose(f);
+    for(const auto& kv : index)
+        app = app || kv.first.rfind("engine/", 0) == 0;
+    return app;
 }
 
 } // namespace
 
 // Saves the part's sound as a preset at [path], with [settings] (the files
 // the script knows, as absolute paths) and what the core holds: a Nexus
-// graph, a Formulate program, Mosaic's zones. File paths are written
-// relative to the first of [roots] they're under. Replies /preset_saved.
+// graph, a Formulate program, Mosaic's zones. The files are packed in it
+// under media/ (pack_voices, pack_files); paths left out are written relative
+// to the first of [roots] they're under. Replies /preset_saved.
 void Core::save_preset(int part, const std::string& path, const std::string& name,
                        std::vector<std::pair<std::string, std::string>> settings,
                        const std::vector<std::string>& roots)
@@ -3707,9 +3878,13 @@ void Core::save_preset(int part, const std::string& path, const std::string& nam
             set(kv.first, kv.second);
     if(p.machine == "Mosaic" && !p.zones.empty())
         set("zones", p.zones);
-    std::vector<std::pair<std::string, std::vector<uint8_t>>> media;
+    // The files go in the zip under media/, up to kMaxMediaBytes in all.
+    std::vector<Packed>   media;
+    std::set<std::string> taken;
+    uint64_t              packed = 0;
     if(p.machine == "Diction")
-        pack_voices(settings, media);
+        pack_voices(settings, media, taken, packed);
+    pack_files(settings, roots, media, taken, packed);
     for(auto& kv : settings)
         kv.second = map_paths(kv.first, kv.second, [&](const std::string& f) { return relative_to(f, roots); });
 
@@ -3725,17 +3900,14 @@ void Core::save_preset(int part, const std::string& path, const std::string& nam
     }
     if(bytes.empty())
         return done(why.empty() ? "busy" : why);
-    if(!zip_append(bytes, media))
-        return done("couldn't pack the voice");
-    media = {};
     // Only a file of one patch is replaced, so a bank's other patches stay.
     {
         Preset      old;
         std::string ignore;
-        if(exists(path) && (!read_preset(path, old, ignore) || old.patches.size() > 1 || has_packed_entries(path)))
+        if(exists(path) && (!read_preset(path, old, ignore) || old.patches.size() > 1 || has_engine_lines(path)))
             return done("would replace more than one patch");
     }
-    if(!write_file(path, bytes, why))
+    if(!write_with_files(path, bytes, media, why))
         return done(why);
     done("");
 }
@@ -4050,7 +4222,8 @@ void Core::scan_presets(const std::string& folder)
         }
         if(preset.kind != "machine")
             continue;
-        const bool packed = has_packed_entries(dir + n);
+        // what a rewrite would lose: the app's engine lines, or another patch's files
+        const bool packed = has_engine_lines(dir + n) || (preset.patches.size() > 1 && has_packed_entries(dir + n));
         for(size_t k = 0; k < preset.patches.size() && out.size() < 1 + 6 * kMaxRows; ++k)
         {
             out.push_back(Value::s(n));

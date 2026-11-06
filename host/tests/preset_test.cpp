@@ -11,15 +11,18 @@
 // - the part's own inserts in slots 2-3 (/insert), insert mods through /fx
 //   and their read-back in /inserts, and a saved patch keeping only slots
 //   0-1 with their mods
-// - Dice's sample and Mosaic's folder saved as relative paths and found again,
-//   and a missing file that leaves the rest loaded
+// - Dice's sample and Mosaic's folder packed and found again, a labelled
+//   path kept, and a missing file that leaves the rest loaded
 // - the app's packed media/ files unpacked (Forage pad from hit.acpreset,
 //   Mosaic zones and SoundFont), kept on a second load, a ../ name refused
 //   and over 64 MB refused, the patch still loading, a small file from a
 //   preset with over 64 MB of others
-// - Forage's slice_sample from presets, loaded and saved relative to the root
+// - Forage's slice_sample from presets, loaded and saved packed
 // - Diction's recorded voices from presets, loaded, saved packed as the app
 //   packs them and loaded again
+// - every machine's files (Forage pads and slices, Dice, Pollen and Molt
+//   samples, Mosaic's SoundFont and zones) packed as media/<path>, two of one
+//   name made distinct, loaded back the same, saved over, past 64 MB a path
 // - the app's machine presets loaded as their engine lines load them
 // - /preset_scan and /preset_delete
 // Usage: acidulous-preset-test BANK_DIR SCRATCH_DIR MATERIAL_DIR FIXTURE_DIR
@@ -237,7 +240,7 @@ int main(int argc, char** argv)
                              const std::string& name, Reply& r) {
         log.clear();
         cmd("/preset_load", {Value::i(part), Value::s(path), Value::i(index), Value::s("@t"), Value::i(files),
-                             Value::s(machine), Value::s(name), Value::s(mat + "/")});
+                             Value::s(machine), Value::s(name), Value::s(scratch + "/audio/"), Value::s(mat + "/")});
         return log.wait("/preset_loaded", r) && r.args.size() > 4;
     };
     const auto load = [&](int part, const std::string& path, int index, int files, Reply& r) {
@@ -503,7 +506,7 @@ int main(int argc, char** argv)
         cmd("/unmount", {Value::i(4)});
     }
 
-    // Dice: its sample, relative to the root.
+    // Dice: its sample, packed.
     cmd("/patch", {Value::i(1), Value::s("Dice"), Value::s("Init")});
     cmd("/load", {Value::i(1), Value::s("sample"), Value::s(mat + "/loop.wav")});
     const std::string dice = scratch + "/Dice/loop.acpreset";
@@ -530,13 +533,14 @@ int main(int argc, char** argv)
               "ok",
           "save Dice");
     if(read_file(dice, p) && !p.patches.empty())
-        check(setting(p.patches[0], "sample") == "loop.wav", "Dice's sample is relative");
+        check(setting(p.patches[0], "sample") == "media/loop.wav", "Dice's sample packed by its path");
     cmd("/load", {Value::i(1), Value::s("clear"), Value::s("")});
     check(load(1, dice, 0, 1, r) && r.args[3].str.empty(), "load Dice back");
     {
         bool found = false;
         for(const auto& x : log.all("/loaded"))
-            found = found || (x.args[1].str == "sample" && x.args[2].str == mat + "/loop.wav");
+            found = found || (x.args[1].str == "sample" &&
+                              x.args[2].str == scratch + "/audio/acidulous/presets/Dice/loop/loop.wav");
         check(found, "Dice's sample loaded again");
     }
 
@@ -548,7 +552,7 @@ int main(int argc, char** argv)
     if(read_file(mosaic, p) && !p.patches.empty())
     {
         const std::string z = setting(p.patches[0], "zones");
-        check(z.rfind("keys/Keys C3.wav|", 0) == 0 && z.find(mat) == std::string::npos, "Mosaic's zones are relative");
+        check(z.rfind("media/keys/Keys C3.wav|", 0) == 0 && z.find(mat) == std::string::npos, "Mosaic's zones packed");
     }
     cmd("/load", {Value::i(2), Value::s("clear"), Value::s("")});
     check(load(2, mosaic, 0, 1, r) && r.args[3].str.empty(), "load Mosaic back");
@@ -606,8 +610,8 @@ int main(int argc, char** argv)
                    {Value::i(1), Value::s(audio), Value::s("p00_sample"), Value::s(hit)}) == "ok",
               "save the unpacked pad");
         if(read_file(scratch + "/Forage/hit.acpreset", p) && !p.patches.empty())
-            check(setting(p.patches[0], "p00_sample") == "acidulous/presets/Forage/hit/samples/hit.wav",
-                  "saved relative to the root");
+            check(setting(p.patches[0], "p00_sample") == "media/samples/hit.wav",
+                  "packed by its name in the preset it came from");
 
         // A name with .. in it is refused, the patch still loads.
         check(load_packed(1, "bad-name.acpreset", "Dice", r) && r.args[3].str.empty() && error_has("bad name") &&
@@ -640,7 +644,7 @@ int main(int argc, char** argv)
                   !exists(audio + "acidulous/presets/Dice/big-other/huge.bin"),
               "a small file from a big preset");
 
-        // Forage's slice_sample, then saved relative to the root.
+        // Forage's slice_sample, then saved packed.
         const std::string brk = audio + "acidulous/presets/Forage/slices/loops/break.wav";
         check(load_packed(3, "slices.acpreset", "Forage", r) && r.args[3].str.empty() && log.count("/error") == 0 &&
                   loaded("slices", brk),
@@ -649,8 +653,8 @@ int main(int argc, char** argv)
                    {Value::i(1), Value::s(audio), Value::s("slice_sample"), Value::s(brk)}) == "ok",
               "save the slices");
         if(read_file(scratch + "/Forage/sliced.acpreset", p) && !p.patches.empty())
-            check(setting(p.patches[0], "slice_sample") == "acidulous/presets/Forage/slices/loops/break.wav",
-                  "slices saved relative to the root");
+            check(setting(p.patches[0], "slice_sample") == "media/loops/break.wav",
+                  "slices packed by their name in the preset they came from");
 
         // Diction's recorded voice from the app's sing.acpreset: unpacked, and
         // its spec the one in the app's engine lines. Its one take is cut too
@@ -758,6 +762,184 @@ int main(int argc, char** argv)
                 check(setting(p.patches[0], "voice") == "media/voices/Bo/bank.json" &&
                           setting(p.patches[0], "morphvoice") == "media/voices/Bo 2/bank.json",
                       "the second one is Bo 2");
+        }
+
+        // Every machine's files packed as the app packs them, media/<path
+        // under the root>, and loaded back from there the same.
+        {
+            const auto bytes_of = [](const std::string& path) {
+                std::ifstream f(path, std::ios::binary);
+                return std::vector<uint8_t>((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+            };
+            const auto entries_of = [&](const std::string& path) {
+                const std::vector<uint8_t> zip = bytes_of(path);
+                std::vector<std::pair<std::string, std::vector<uint8_t>>> list;
+                std::string                                               why;
+                acidulous::presetfile::unzip(zip.data(), zip.size(), list, why, size_t(80) << 20);
+                return std::map<std::string, std::vector<uint8_t>>(list.begin(), list.end());
+            };
+            const std::string pk = audio + "pk/", out = scratch + "/outside/";
+            std::system(("mkdir -p '" + pk + "' '" + out + "a' '" + out + "b' && cp -r '" + mat + "/loop.wav' '" + mat +
+                         "/voice.wav' '" + mat + "/test.sf2' '" + mat + "/keys' '" + mat + "/kit' '" + pk +
+                         "' && cp '" + mat + "/kit/03-snare.wav' '" + out + "a/hit.wav' && cp '" + mat +
+                         "/kit/04-clap.wav' '" + out + "b/hit.wav'")
+                            .c_str());
+            const core::Args root{Value::i(2), Value::s(audio), Value::s("script=" + mat + "/")};
+            const auto       with = [&](core::Args a, std::initializer_list<std::string> kv) {
+                for(const auto& x : kv)
+                    a.push_back(Value::s(x));
+                return a;
+            };
+            const auto reload = [&](int part, const std::string& file, const std::string& machine) {
+                log.clear();
+                cmd("/preset_load", {Value::i(part), Value::s(file), Value::i(0), Value::s("@t"), Value::i(1),
+                                     Value::s(machine), Value::s(""), Value::s(audio), Value::s("script=" + mat + "/")});
+                Reply x;
+                const bool ok = log.wait("/preset_loaded", x) && x.args.size() > 4 && x.args[3].str.empty();
+                c->drain();
+                return ok && log.count("/error") == 0;
+            };
+            // Each [entry] in the zip at [file] holds the bytes of [source].
+            const auto holds = [&](const std::map<std::string, std::vector<uint8_t>>& z, const std::string& entry,
+                                   const std::string& source) {
+                const auto it = z.find(entry);
+                return it != z.end() && !it->second.empty() && it->second == bytes_of(source);
+            };
+
+            // Forage: pads, one file on two pads, two files of one name from
+            // outside the root, one from the script's folder kept as a path.
+            cmd("/patch", {Value::i(3), Value::s("Forage"), Value::s("Init")});
+            const std::string forage = scratch + "/Forage/pads.acpreset";
+            check(save(3, forage, "Pads",
+                       with(root, {"p00_sample", pk + "kit/01-kick.wav", "p01_sample", pk + "kit/01-kick.wav",
+                                   "p02_sample", out + "a/hit.wav", "p03_sample", out + "b/hit.wav", "p04_sample",
+                                   mat + "/kit/05-tom1.wav"})) == "ok",
+                  "save Forage's pads");
+            auto z = entries_of(forage);
+            if(read_file(forage, p) && !p.patches.empty())
+            {
+                const auto& pp = p.patches[0];
+                check(setting(pp, "p00_sample") == "media/pk/kit/01-kick.wav" &&
+                          setting(pp, "p01_sample") == "media/pk/kit/01-kick.wav" &&
+                          setting(pp, "p02_sample") == "media/hit.wav" &&
+                          setting(pp, "p03_sample") == "media/hit (2).wav" &&
+                          setting(pp, "p04_sample") == "script:kit/05-tom1.wav",
+                      "Forage's pads point into media/, the same name twice made two");
+            }
+            check(z.size() == 5 && holds(z, "media/pk/kit/01-kick.wav", pk + "kit/01-kick.wav") &&
+                      holds(z, "media/hit.wav", out + "a/hit.wav") && holds(z, "media/hit (2).wav", out + "b/hit.wav"),
+                  "Forage's pads packed once each");
+            const std::string fdir = audio + "acidulous/presets/Forage/pads/";
+            check(reload(3, forage, "Forage") && loaded("pad", fdir + "pk/kit/01-kick.wav") &&
+                      loaded("pad", fdir + "hit.wav") && loaded("pad", fdir + "hit (2).wav") &&
+                      loaded("pad", mat + "/kit/05-tom1.wav") && bytes_of(fdir + "hit (2).wav") == bytes_of(out + "b/hit.wav"),
+                  "Forage's pads load back the same files");
+            // saved again from where they were unpacked, under the same names
+            check(save(3, forage, "Pads",
+                       with(root, {"p00_sample", fdir + "pk/kit/01-kick.wav", "p02_sample", fdir + "hit.wav",
+                                   "p03_sample", fdir + "hit (2).wav"})) == "ok",
+                  "a one-patch file with files is saved over");
+            z = entries_of(forage);
+            check(z.count("media/pk/kit/01-kick.wav") && z.count("media/hit.wav") && z.count("media/hit (2).wav") &&
+                      z.size() == 5,
+                  "unpacked files go back in by their names in the preset");
+            log.clear();
+            cmd("/preset_scan", {Value::s(scratch + "/Forage")});
+            {
+                bool flag = true;
+                if(log.wait("/preset_scan", r))
+                    for(size_t k = 1; k + 5 < r.args.size(); k += 6)
+                        if(r.args[k].str == "pads.acpreset")
+                            flag = r.args[k + 5].num != 0;
+                check(!flag, "our own packed file isn't marked packed");
+            }
+
+            // Forage's slices.
+            check(save(3, scratch + "/Forage/cut.acpreset", "Cut", with(root, {"slice_sample", pk + "loop.wav"})) == "ok",
+                  "save Forage's slices");
+            z = entries_of(scratch + "/Forage/cut.acpreset");
+            if(read_file(scratch + "/Forage/cut.acpreset", p) && !p.patches.empty())
+                check(setting(p.patches[0], "slice_sample") == "media/pk/loop.wav" &&
+                          holds(z, "media/pk/loop.wav", pk + "loop.wav"),
+                      "Forage's slices packed");
+            check(reload(3, scratch + "/Forage/cut.acpreset", "Forage") &&
+                      loaded("slices", audio + "acidulous/presets/Forage/cut/pk/loop.wav"),
+                  "Forage's slices load back");
+
+            // Dice, Pollen and Molt: their sample.
+            int part = 0;
+            for(const char* m : {"Dice", "Pollen", "Molt"})
+            {
+                const std::string machine = m, file = scratch + "/" + machine + "/one.acpreset";
+                cmd("/patch", {Value::i(part), Value::s(machine), Value::s("Init")});
+                check(save(part, file, "One", with(root, {"sample", pk + "voice.wav"})) == "ok", "save " + machine);
+                z = entries_of(file);
+                if(read_file(file, p) && !p.patches.empty())
+                    check(setting(p.patches[0], "sample") == "media/pk/voice.wav" &&
+                              holds(z, "media/pk/voice.wav", pk + "voice.wav") && z.size() == 3,
+                          machine + "'s sample packed");
+                const std::string back = audio + "acidulous/presets/" + machine + "/one/pk/voice.wav";
+                check(reload(part, file, machine) && loaded("sample", back) && bytes_of(back) == bytes_of(pk + "voice.wav"),
+                      machine + "'s sample loads back the same");
+                part = part == 0 ? 1 : 0;
+            }
+
+            // Mosaic: a SoundFont, then a folder's zones with their files.
+            cmd("/patch", {Value::i(2), Value::s("Mosaic"), Value::s("Init")});
+            check(save(2, scratch + "/Mosaic/font.acpreset", "Font",
+                       with(root, {"sf2", pk + "test.sf2", "sf2preset", "0"})) == "ok",
+                  "save Mosaic's SoundFont");
+            z = entries_of(scratch + "/Mosaic/font.acpreset");
+            if(read_file(scratch + "/Mosaic/font.acpreset", p) && !p.patches.empty())
+                check(setting(p.patches[0], "sf2") == "media/pk/test.sf2" && holds(z, "media/pk/test.sf2", pk + "test.sf2"),
+                      "Mosaic's SoundFont packed");
+            check(reload(2, scratch + "/Mosaic/font.acpreset", "Mosaic") &&
+                      loaded("sf2", audio + "acidulous/presets/Mosaic/font/pk/test.sf2"),
+                  "Mosaic's SoundFont loads back");
+            log.clear();
+            cmd("/load", {Value::i(2), Value::s("folder"), Value::s(pk + "keys")});
+            c->drain();
+            const std::string zfile = scratch + "/Mosaic/zoned.acpreset";
+            check(save(2, zfile, "Zoned", root) == "ok", "save Mosaic's zones");
+            z = entries_of(zfile);
+            std::string zones;
+            if(read_file(zfile, p) && !p.patches.empty())
+                zones = setting(p.patches[0], "zones");
+            check(zones.rfind("media/pk/keys/Keys C3.wav|", 0) == 0 && zones.find("\nmedia/pk/keys/Keys C5.wav|") != std::string::npos &&
+                      holds(z, "media/pk/keys/Keys C3.wav", pk + "keys/Keys C3.wav") &&
+                      holds(z, "media/pk/keys/Keys C4.wav", pk + "keys/Keys C4.wav") &&
+                      holds(z, "media/pk/keys/Keys C5.wav", pk + "keys/Keys C5.wav") && z.size() == 5,
+                  "Mosaic's zones point into media/ with their files packed");
+            const std::string zdir = audio + "acidulous/presets/Mosaic/zoned/pk/keys/";
+            {
+                const bool ok = reload(2, zfile, "Mosaic");
+                bool       found = false;
+                for(const auto& x : log.all("/loaded"))
+                    found = found || x.args[1].str == "zones";
+                check(ok && found && bytes_of(zdir + "Keys C4.wav") == bytes_of(pk + "keys/Keys C4.wav"),
+                      "Mosaic's zones load back the same files");
+            }
+
+            // 64 MB in all: a file that would go past it stays a path.
+            const std::string huge = pk + "huge.wav";
+            std::system(("truncate -s " + std::to_string((64 << 20) - 100000) + " '" + huge + "'").c_str());
+            check(save(3, scratch + "/Forage/full.acpreset", "Full",
+                       with(root, {"p00_sample", huge, "p01_sample", pk + "loop.wav", "p02_sample",
+                                   pk + "kit/02-rim.aif"})) == "ok",
+                  "save past 64 MB");
+            z = entries_of(scratch + "/Forage/full.acpreset");
+            {
+                // too big for readPreset, so the patch's JSON is read as text
+                const auto        it   = z.find("patches/1.json");
+                const std::string json = it == z.end() ? "" : std::string(it->second.begin(), it->second.end());
+                check(json.find("\"media/pk/huge.wav\"") != std::string::npos &&
+                          json.find("\"pk/loop.wav\"") != std::string::npos &&
+                          json.find("\"media/pk/kit/02-rim.aif\"") != std::string::npos && z.count("media/pk/huge.wav") &&
+                          !z.count("media/pk/loop.wav") && z.count("media/pk/kit/02-rim.aif"),
+                      "a file past 64 MB in all stays a path");
+            }
+            std::remove(huge.c_str());
+            std::remove((scratch + "/Forage/full.acpreset").c_str());
         }
 
         // /load: the built-in voice back, a voice with none of its takes, not on Forage.

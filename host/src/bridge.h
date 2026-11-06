@@ -71,12 +71,17 @@
 //        folder. The settings are the files the script knows (sample,
 //        pNN_sample, slice_sample, sf2, sf2preset, voice, morphvoice) as
 //        absolute paths; the plugin adds a
-//        Nexus graph, a Formulate program and Mosaic's zones, and writes
-//        every file path relative to the first root it's under: a root
-//        "/dir/" as "path", one "label=/dir/" as "label:path". Waits for a
-//        queued mount; "busy" if it never lands. Won't replace a file of
-//        more than one patch or with the app's samples in it, or while a song
-//        is loaded
+//        Nexus graph, a Formulate program and Mosaic's zones. The files are
+//        packed in it as the app packs them: media/<path under the first
+//        unlabelled root> (a file unpacked from a preset as media/<its path
+//        in that preset>, one under no root as media/<name>, a taken name
+//        "name (2).wav"), a Diction voice as media/voices/<name>/, 64 MB in
+//        all. Files under a labelled root, missing ones and ones past 64 MB
+//        are written as paths relative to the first root they're under: a
+//        root "/dir/" as "path", one "label=/dir/" as "label:path". Waits
+//        for a queued mount; "busy" if it never lands. Won't replace a file
+//        of more than one patch or with the app's engine lines in it, or
+//        while a song is loaded
 //   /preset_load i:part s:path i:index s:tag i:files s:machine s:name s:root...
 //        puts the patch called name (or at index, if none is) on the part as
 //        /patch does, mounting its machine, with tag as the patch name in its
@@ -241,7 +246,9 @@
 //        file is an /error of its own and the rest still loads
 //   /preset_scan s:folder (s:file i:index s:name s:unit i:count i:packed)...
 //        by file name, unit the machine, count the file's patches, packed 1
-//        when it has the app's samples; files that can't be read are left out
+//        when a rewrite would lose something: the app's engine lines, or the
+//        packed files of a file of more than one patch; files that can't be
+//        read are left out
 //   /preset_deleted s:path i:index s:result   "ok" or what went wrong
 #pragma once
 #include <string>
