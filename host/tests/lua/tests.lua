@@ -1,6 +1,6 @@
 local here = arg[0]:match("^(.*)/[^/]+$")
 local which = arg[2]
-local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12", "13", "14"}
+local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12", "13", "14", "15"}
 if not which then
   -- every case, each in a fresh run
   local failed = 0
@@ -429,6 +429,33 @@ elseif which == "14" then
   ADVANCE(1)
   P.osc("/values", values(tag2, 0.3))
   CHECK(params:get("p1_s1") == 0.3 or params:get("p1_s1") == 0.9, "another patch's own memory is kept")
+elseif which == "15" then
+  -- Diction's voices and Forage's slices are kept as the part's files and saved
+  local part = P.own[1]
+  part.machine = "Diction"
+  P.osc("/loaded", {0, "voice", "/a/Bo/bank.json", 0, "Bo", "Diction"})
+  P.osc("/loaded", {0, "voice", "/a/Cy/bank.json", 1, "Cy", "Diction"})
+  CHECK(part.files.voice0 and part.files.voice1 and part.files.voice1.path == "/a/Cy/bank.json",
+    "both voices kept")
+  CHECK(params:get("p1_files"):find("voice,1,/a/Cy/bank.json", 1, true) ~= nil, "and in the files param")
+  SENT_CLEAR()
+  P.save_preset(1, "/p/x.acpreset", "X")
+  local function has(args, k, v)
+    for j = 1, #args - 1 do
+      if args[j] == k and args[j + 1] == v then return true end
+    end
+    return false
+  end
+  CHECK(FIND("/preset_save", function(a) return has(a, "voice", "/a/Bo/bank.json") and
+    has(a, "morphvoice", "/a/Cy/bank.json") end) ~= nil, "saved as voice and morphvoice")
+  part.machine = "Forage"
+  part.files = {}
+  P.osc("/loaded", {0, "slices", "/a/break.wav", 0, "break", "Forage"})
+  CHECK(part.files.slices and P.material(1) == "break", "the slices kept and shown")
+  SENT_CLEAR()
+  P.save_preset(1, "/p/y.acpreset", "Y")
+  CHECK(FIND("/preset_save", function(a) return has(a, "slice_sample", "/a/break.wav") end) ~= nil,
+    "saved as slice_sample")
 end
 print(FAILS == 0 and "all ok" or (FAILS .. " failed"))
 os.exit(FAILS == 0 and 0 or 1)

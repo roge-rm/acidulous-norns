@@ -15,7 +15,10 @@
 //   and a missing file that leaves the rest loaded
 // - the app's packed media/ files unpacked (Forage pad from hit.acpreset,
 //   Mosaic zones and SoundFont), kept on a second load, a ../ name refused
-//   and over 64 MB refused, the patch still loading
+//   and over 64 MB refused, the patch still loading, a small file from a
+//   preset with over 64 MB of others
+// - Forage's slice_sample and Diction's recorded voices from presets, loaded
+//   and saved relative to the root
 // - /preset_scan and /preset_delete
 // Usage: acidulous-preset-test BANK_DIR SCRATCH_DIR MATERIAL_DIR FIXTURE_DIR
 #include "core.h"
@@ -625,6 +628,91 @@ int main(int argc, char** argv)
         check(load_packed(2, "sf2-packed.acpreset", "Mosaic", r) && r.args[3].str.empty() && log.count("/error") == 0 &&
                   loaded("sf2", audio + "acidulous/presets/Mosaic/sf2-packed/sf/tiny.sf2"),
               "Mosaic's packed SoundFont unpacked and loaded");
+
+        // Only the named file comes out of a preset with over 64 MB of others.
+        check(load_packed(1, "big-other.acpreset", "Dice", r) && r.args[3].str.empty() && log.count("/error") == 0 &&
+                  loaded("sample", audio + "acidulous/presets/Dice/big-other/small.wav") &&
+                  !exists(audio + "acidulous/presets/Dice/big-other/huge.bin"),
+              "a small file from a big preset");
+
+        // Forage's slice_sample, then saved relative to the root.
+        const std::string brk = audio + "acidulous/presets/Forage/slices/loops/break.wav";
+        check(load_packed(3, "slices.acpreset", "Forage", r) && r.args[3].str.empty() && log.count("/error") == 0 &&
+                  loaded("slices", brk),
+              "Forage's packed slice_sample unpacked and loaded");
+        check(save(3, scratch + "/Forage/sliced.acpreset", "Sliced",
+                   {Value::i(1), Value::s(audio), Value::s("slice_sample"), Value::s(brk)}) == "ok",
+              "save the slices");
+        if(read_file(scratch + "/Forage/sliced.acpreset", p) && !p.patches.empty())
+            check(setting(p.patches[0], "slice_sample") == "acidulous/presets/Forage/slices/loops/break.wav",
+                  "slices saved relative to the root");
+
+        // Diction's recorded voice from the app's sing.acpreset: unpacked, and
+        // its spec the one in the app's engine lines. Its one take is cut too
+        // short for the engine, which says so.
+        const std::string ana = audio + "acidulous/presets/Diction/sing/voices/Ana/";
+        check(load_packed(4, "sing.acpreset", "Diction", r) && r.args[3].str.empty() && exists(ana + "bank.json") &&
+                  exists(ana + "ah.wav") && error_has("IY: too short"),
+              "Diction's packed voice unpacked and sent to the engine");
+        {
+            std::ifstream        f(fixtures + "/sing.acpreset", std::ios::binary);
+            std::vector<uint8_t> bytes((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+            std::vector<std::pair<std::string, std::vector<uint8_t>>> entries;
+            std::string                                               why, line;
+            acidulous::presetfile::unzip(bytes.data(), bytes.size(), entries, why);
+            for(const auto& e : entries)
+                if(e.first == "engine/1.txt")
+                {
+                    const std::string text(e.second.begin(), e.second.end());
+                    const size_t      at = text.find("LoadVoice 0 0 \"");
+                    if(at != std::string::npos)
+                        line = text.substr(at + 15, text.find('"', at + 15) - at - 15);
+                }
+            const std::string zip = "zip:media/voices/Ana/";
+            if(line.find(zip) != std::string::npos)
+                line.replace(line.find(zip), zip.size(), ana);
+            std::vector<std::string> files;
+            int                      missing = 0;
+            check(!line.empty() && core::voice_spec(ana + "bank.json", files, missing, why) == line && missing == 0,
+                  "the voice's spec is the app's");
+        }
+
+        // A voice sung in and one to morph to; a take with a problem isn't unpacked.
+        const std::string bo = audio + "acidulous/presets/Diction/voices/voices/Bo/";
+        const std::string cy = audio + "acidulous/presets/Diction/voices/voices/Cy/";
+        check(load_packed(4, "voices.acpreset", "Diction", r) && r.args[3].str.empty() && log.count("/error") == 0 &&
+                  loaded("voice", bo + "bank.json") && loaded("voice", cy + "bank.json") &&
+                  exists(bo + "aa-s.wav") && exists(bo + "ay.wav") && !exists(bo + "bad.wav"),
+              "two packed voices unpacked and loaded");
+        check(save(4, scratch + "/Diction/two.acpreset", "Two",
+                   {Value::i(1), Value::s(audio), Value::s("voice"), Value::s(bo + "bank.json"),
+                    Value::s("morphvoice"), Value::s(cy + "bank.json")}) == "ok",
+              "save the voices");
+        if(read_file(scratch + "/Diction/two.acpreset", p) && !p.patches.empty())
+            check(setting(p.patches[0], "voice") == "acidulous/presets/Diction/voices/voices/Bo/bank.json" &&
+                      setting(p.patches[0], "morphvoice") == "acidulous/presets/Diction/voices/voices/Cy/bank.json",
+                  "voices saved relative to the root");
+        // and that preset finds them again where they are
+        log.clear();
+        cmd("/preset_load", {Value::i(4), Value::s(scratch + "/Diction/two.acpreset"), Value::i(0), Value::s("@t"),
+                             Value::i(1), Value::s("Diction"), Value::s(""), Value::s(audio)});
+        check(log.wait("/preset_loaded", r) && (c->drain(), true) && loaded("voice", bo + "bank.json") &&
+                  loaded("voice", cy + "bank.json") && log.count("/error") == 0,
+              "the saved voices found again");
+
+        // /load: the built-in voice back, a voice with none of its takes, not on Forage.
+        const auto load_kind = [&](int part, const std::string& kind, const std::string& path, int arg) {
+            log.clear();
+            cmd("/load", {Value::i(part), Value::s(kind), Value::s(path), Value::i(arg)});
+            c->drain();
+        };
+        load_kind(4, "voice", "", 0);
+        check(loaded("voice", "") && log.count("/error") == 0, "the built-in voice back");
+        std::remove((cy + "iy.wav").c_str());
+        load_kind(4, "voice", cy + "bank.json", 1);
+        check(error_has("no takes"), "a voice with no takes is an /error");
+        load_kind(3, "voice", bo + "bank.json", 0);
+        check(error_has("has Forage"), "a voice on Forage is refused");
     }
 
     // Listing and deleting.

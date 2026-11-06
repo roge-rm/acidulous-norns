@@ -1,4 +1,5 @@
 #include "core.h"
+#include "json.h"
 
 #include <EngineHost.h>
 #include <drivers/AudioDriver.h>
@@ -20,6 +21,7 @@
 #include <engine/machine/TableCounts.h>
 #include <engine/machine/cumulus/Cloud.h>
 #include <engine/machine/cumulus/Cumulus.h>
+#include <engine/machine/diction/RecordedVoice.h>
 #include <engine/machine/filament/SymLevel.h>
 #include <engine/machine/formulate/Program.h>
 #include <engine/machine/nexus/Graph.h>
@@ -349,7 +351,95 @@ int note_in_name(const std::string& name)
     return found;
 }
 
+// The prompts a voice is recorded from, as the app's VoicePrompts lists them:
+// each vowel held, then each consonant between two of each carrier vowel.
+const char* const kVoiceVowels[] = {"IY", "IH", "EH", "AE", "AA", "AO", "AH", "UH",
+                                    "UW", "ER", "EY", "AY", "AW", "OY", "OW"};
+const char* const kVoiceConsonants[] = {"P", "B",  "T",  "D",  "K",  "G", "CH", "JH", "F", "V", "TH", "DH",
+                                        "S", "Z",  "SH", "ZH", "HH", "M", "N",  "NG", "L", "R", "W",  "Y"};
+const char* const kVoiceCarriers[] = {"AA", "IY", "UW"};
+
+// The folder [path] is in, with its slash, or "".
+std::string folder_of(const std::string& path)
+{
+    const size_t slash = path.find_last_of('/');
+    return slash == std::string::npos ? std::string() : path.substr(0, slash + 1);
+}
+
 } // namespace
+
+// What Diction sings a recorded voice from, as the app's VoiceBank.engineSpec
+// builds it: a line per take that's cut and fine, from the voice's bank.json
+// at [bank], with its takes beside it. [files] gets each such take's file
+// name, there or not; takes not there are left out and counted in [missing].
+// "" with [why] set if the bank can't be read.
+std::string voice_spec(const std::string& bank, std::vector<std::string>& files, int& missing, std::string& why)
+{
+    files.clear();
+    missing = 0;
+    std::string text;
+    {
+        FILE* f = std::fopen(bank.c_str(), "rb");
+        if(!f)
+        {
+            why = "not found";
+            return "";
+        }
+        char   buf[4096];
+        size_t n;
+        while((n = std::fread(buf, 1, sizeof buf, f)) > 0 && text.size() < (size_t(1) << 20))
+            text.append(buf, n);
+        std::fclose(f);
+    }
+    JsonReader r{text};
+    const Json j = r.value();
+    const Json* takes = j.get("takes");
+    const Json* cuts  = j.get("cuts");
+    if(!r.ok || j.kind != Json::Object || !takes || takes->kind != Json::Object)
+    {
+        why = "not a voice";
+        return "";
+    }
+    const std::string folder = folder_of(bank);
+    std::string       spec;
+    // Adds [head]'s line for prompt [id] if its take is cut and fine, with
+    // [fields] of its cut after the path.
+    const auto add = [&](const std::string& id, const std::string& head, std::initializer_list<const char*> fields) {
+        const std::string file = takes->text(id.c_str());
+        const Json*       cut  = cuts ? cuts->get(id.c_str()) : nullptr;
+        if(file.empty() || !cut || cut->kind != Json::Object || !cut->text("problem").empty())
+            return;
+        if(file.find_first_of("/|\n") != std::string::npos || file == "." || file == "..")
+            return;
+        files.push_back(file);
+        struct stat st{};
+        if(stat((folder + file).c_str(), &st) != 0)
+        {
+            ++missing;
+            return;
+        }
+        std::string line = head + "|" + folder + file;
+        for(const char* k : fields)
+        {
+            const Json* v = cut->get(k);
+            line += "|" + std::to_string(v && v->kind == Json::Number ? (long long)v->num : 0LL);
+        }
+        spec += (spec.empty() ? "" : "\n") + line;
+    };
+    for(const char* v : kVoiceVowels)
+    {
+        const std::string vs = v;
+        const bool glides = vs == "EY" || vs == "AY" || vs == "AW" || vs == "OY" || vs == "OW";
+        if(glides)
+            add("v-" + lower(vs), "D|" + vs, {"holdFrom", "holdTo", "glideFrom", "glideTo"});
+        else
+            add("v-" + lower(vs), "V|" + vs, {"holdFrom", "holdTo"});
+    }
+    for(const char* c : kVoiceCarriers)
+        for(const char* k : kVoiceConsonants)
+            add(lower(c) + "-" + lower(k), std::string("C|") + k + "|" + c, {"consonantFrom", "consonantTo"});
+    return spec;
+}
 
 // The bytes a file takes decoded to floats: at `to_rate` (0 keeps its own),
 // the first `max_seconds` (0 all of it), mono kept as one channel unless
@@ -1332,9 +1422,14 @@ void Core::clear_objects(int part)
         deleter = delete_as<audio::Utterance>;
     else if(m == "Bias")
         deleter = delete_as<audio::Reel>;
+    else if(m == "Diction")
+        deleter = delete_as<machine::diction::RecordedVoice>, slots = 2;
     else
         return;
     clear_held(part);
+    for(auto& v : parts[part].voice)
+        v.clear();
+    parts[part].voice_lsf[0] = parts[part].voice_lsf[1] = false;
     for(int slot = 0; slot < slots; ++slot)
     {
         Mount mt;
@@ -2560,7 +2655,78 @@ void Core::load_now(int part, const std::string& kind, const std::string& path, 
         set_held(part, 0, need);
         return loaded(part, kind, path, arg, path.empty() ? "" : stem(path));
     }
+    if(kind == "slices")
+    {
+        if(!want({"Forage"}))
+            return;
+        // the one file every pad can slice, in the slot above them, up to ten minutes
+        const int64_t need = path.empty() ? 0 : decoded_bytes(path, kSampleRate, kMaxSliceSeconds, false);
+        if(!room_for(need, why))
+            return load_error(part, kind, path, arg, why);
+        if(!host.loadSample(part, kForagePads, path, why, kMaxSliceSeconds))
+            return load_error(part, kind, path, arg, why);
+        set_held(part, kForagePads, need);
+        return loaded(part, kind, path, arg, path.empty() ? "" : stem(path));
+    }
+    if(kind == "voice")
+    {
+        if(!want({"Diction"}))
+            return;
+        if(arg < 0 || arg > 1)
+            return load_error(part, kind, path, arg, "no voice " + std::to_string(arg));
+        int missing = 0;
+        why         = load_voice(part, arg, path, missing);
+        if(!why.empty())
+            return load_error(part, kind, path, arg, why);
+        // A voice to morph to needs the one sung in analysed for it too.
+        const Part& p = parts[part];
+        if(arg == 1 && !path.empty() && !p.voice[0].empty() && !p.voice_lsf[0])
+        {
+            int         also = 0;
+            const std::string first = p.voice[0];
+            why                     = load_voice(part, 0, first, also);
+            if(!why.empty())
+                load_error(part, kind, first, 0, why);
+        }
+        loaded(part, kind, path, arg, path.empty() ? "" : base_name(folder_of(path)));
+        if(missing > 0)
+            load_error(part, kind, path, arg,
+                       std::to_string(missing) + (missing == 1 ? " take" : " takes") + " not found");
+        return;
+    }
     load_error(part, kind, path, arg, "no such kind of load");
+}
+
+// Diction: the recorded voice whose bank.json is at [path] into voice [slot]
+// (0 sung in, 1 morphed to), "" for the built-in one. Its takes are counted
+// against the sample budget at twice their decoded size, the voice keeping a
+// cut of each and its source. Returns "" or why not. Under the mount lock.
+std::string Core::load_voice(int part, int slot, const std::string& path, int& missing)
+{
+    Part&       p = parts[part];
+    std::string spec, why;
+    int64_t     need = 0;
+    missing          = 0;
+    if(!path.empty())
+    {
+        std::vector<std::string> files;
+        spec = voice_spec(path, files, missing, why);
+        if(spec.empty())
+            return why.empty() ? "no takes in that voice" : why;
+        const std::string folder = folder_of(path);
+        for(const auto& f : files)
+            need += 2 * decoded_bytes(folder + f, kSampleRate, 0, false);
+        if(!room_for(need, why))
+            return why;
+    }
+    const bool lsf = !spec.empty() && (slot == 1 || !p.voice[1].empty());
+    why            = host.loadVoice(part, slot, spec.empty() ? "" : spec + (lsf ? "\nLSF" : ""));
+    if(!why.empty())
+        return why;
+    p.voice[slot]     = path;
+    p.voice_lsf[slot] = lsf;
+    set_held(part, slot, need);
+    return "";
 }
 
 // Forage: the folder's first 13 audio files, sorted, on pads 1-13, and the
@@ -2800,11 +2966,10 @@ void Core::hear(const std::string& path)
 namespace
 {
 
-// The app's settings that hold paths to the user's files (PresetFile.isMediaKey,
-// less a recorded voice's, which the norns hasn't got).
+// The app's settings that hold paths to the user's files (PresetFile.isMediaKey).
 bool media_key(const std::string& k)
 {
-    return k == "sample" || k == "slice_sample" || k == "sf2" || k == "zones" ||
+    return k == "sample" || k == "slice_sample" || k == "sf2" || k == "zones" || k == "voice" || k == "morphvoice" ||
            (k.size() > 7 && k.compare(k.size() - 7, 7, "_sample") == 0);
 }
 
@@ -2927,6 +3092,145 @@ std::string resolve(const std::string& path, const std::vector<std::string>& roo
     return squash((first.empty() ? own : first) + path);
 }
 
+// Where a file in a zip is, from its central directory.
+struct ZipEntry
+{
+    uint32_t flags = 0, method = 0, crc = 0, packed = 0, size = 0;
+    uint32_t local = 0; // its local header's offset
+};
+
+void put16(std::vector<uint8_t>& o, uint32_t v)
+{
+    o.push_back(uint8_t(v));
+    o.push_back(uint8_t(v >> 8));
+}
+void put32(std::vector<uint8_t>& o, uint32_t v)
+{
+    put16(o, v & 0xffff);
+    put16(o, v >> 16);
+}
+
+// Each entry of the zip [f] by name, from its central directory, reading only
+// the end of the file and the directory. False if that can't be read.
+bool zip_index(FILE* f, std::map<std::string, ZipEntry>& out)
+{
+    if(std::fseek(f, 0, SEEK_END) != 0)
+        return false;
+    const long size = std::ftell(f);
+    if(size < 22)
+        return false;
+    const long                 tail = std::min<long>(size, 22 + 0xffff);
+    std::vector<unsigned char> end(size_t(tail), 0);
+    if(std::fseek(f, size - tail, SEEK_SET) != 0 || std::fread(end.data(), 1, end.size(), f) != end.size())
+        return false;
+    for(long at = tail - 22; at >= 0; --at)
+    {
+        const unsigned char* e = end.data() + at;
+        if(le32(e) != 0x06054b50u)
+            continue;
+        const uint32_t count = le16(e + 10), dsize = le32(e + 12), dat = le32(e + 16);
+        if(uint64_t(dat) + dsize > uint64_t(size - tail + at))
+            return false;
+        std::vector<unsigned char> dir(dsize);
+        if(std::fseek(f, long(dat), SEEK_SET) != 0 || std::fread(dir.data(), 1, dir.size(), f) != dir.size())
+            return false;
+        size_t p = 0;
+        for(uint32_t k = 0; k < count; ++k)
+        {
+            if(p + 46 > dir.size() || le32(dir.data() + p) != 0x02014b50u)
+                return false;
+            const unsigned char* c = dir.data() + p;
+            const size_t n = le16(c + 28), skip = size_t(le16(c + 30)) + le16(c + 32);
+            if(p + 46 + n > dir.size())
+                return false;
+            ZipEntry z;
+            z.flags  = le16(c + 8);
+            z.method = le16(c + 10);
+            z.crc    = le32(c + 16);
+            z.packed = le32(c + 20);
+            z.size   = le32(c + 24);
+            z.local  = le32(c + 42);
+            out.emplace(std::string(reinterpret_cast<const char*>(c + 46), n), z);
+            p += 46 + n + skip;
+        }
+        return true;
+    }
+    return false;
+}
+
+// The entries [names] of the zip [f], still packed, copied into a zip of
+// their own for presetfile to read. False if one can't be read or they come
+// to over [max] bytes packed.
+bool zip_subset(FILE* f, const std::map<std::string, ZipEntry>& index, const std::vector<std::string>& names,
+                size_t max, std::vector<uint8_t>& out)
+{
+    out.clear();
+    if(std::fseek(f, 0, SEEK_END) != 0)
+        return false;
+    const long size = std::ftell(f);
+    size_t     packed = 0;
+    for(const auto& n : names)
+    {
+        const auto it = index.find(n);
+        if(it == index.end() || it->second.packed > max - packed)
+            return false;
+        packed += it->second.packed;
+    }
+    std::vector<uint8_t> dir;
+    for(const auto& n : names)
+    {
+        const ZipEntry& z = index.at(n);
+        unsigned char   lh[30];
+        if(std::fseek(f, long(z.local), SEEK_SET) != 0 || std::fread(lh, 1, 30, f) != 30 || le32(lh) != 0x04034b50u)
+            return false;
+        const uint64_t data = uint64_t(z.local) + 30 + le16(lh + 26) + le16(lh + 28);
+        if(data + z.packed > uint64_t(size))
+            return false;
+        const uint32_t at = uint32_t(out.size());
+        // the local header, then its central directory record
+        const auto common = [&](std::vector<uint8_t>& o) {
+            put16(o, 20);
+            put16(o, z.flags & ~8u); // sizes are in the header, no descriptor after
+            put16(o, z.method);
+            put16(o, 0);
+            put16(o, 0x21);
+            put32(o, z.crc);
+            put32(o, z.packed);
+            put32(o, z.size);
+            put16(o, uint32_t(n.size()));
+            put16(o, 0);
+        };
+        put32(out, 0x04034b50u);
+        common(out);
+        out.insert(out.end(), n.begin(), n.end());
+        put32(dir, 0x02014b50u);
+        put16(dir, 20);
+        common(dir);
+        put16(dir, 0);
+        put16(dir, 0);
+        put16(dir, 0);
+        put32(dir, 0);
+        put32(dir, at);
+        dir.insert(dir.end(), n.begin(), n.end());
+        const size_t from = out.size();
+        out.resize(from + z.packed);
+        if(z.packed > 0 &&
+           (std::fseek(f, long(data), SEEK_SET) != 0 || std::fread(out.data() + from, 1, z.packed, f) != z.packed))
+            return false;
+    }
+    const uint32_t dir_at = uint32_t(out.size());
+    out.insert(out.end(), dir.begin(), dir.end());
+    put32(out, 0x06054b50u);
+    put16(out, 0);
+    put16(out, 0);
+    put16(out, uint32_t(names.size()));
+    put16(out, uint32_t(names.size()));
+    put32(out, uint32_t(dir.size()));
+    put32(out, dir_at);
+    put16(out, 0);
+    return true;
+}
+
 // Whether a zip has entries under media/ or engine/, which the app writes
 // and presetfile::write doesn't. Reads only the central directory. True when
 // it can't tell, so nothing is rewritten by mistake.
@@ -2935,58 +3239,22 @@ bool has_packed_entries(const std::string& path)
     FILE* f = std::fopen(path.c_str(), "rb");
     if(!f)
         return true;
-    std::fseek(f, 0, SEEK_END);
-    const long size = std::ftell(f);
-    const long tail = std::min<long>(size, 22 + 0xffff);
-    std::vector<unsigned char> end(size_t(tail > 0 ? tail : 0));
-    std::fseek(f, size - tail, SEEK_SET);
-    bool packed = true;
-    if(tail >= 22 && std::fread(end.data(), 1, end.size(), f) == end.size())
-    {
-        for(long at = tail - 22; at >= 0; --at)
-        {
-            const unsigned char* e = end.data() + at;
-            if(!(e[0] == 0x50 && e[1] == 0x4b && e[2] == 0x05 && e[3] == 0x06))
-                continue;
-            const uint32_t count = e[10] | e[11] << 8;
-            const uint32_t dsize = e[12] | e[13] << 8 | e[14] << 16 | uint32_t(e[15]) << 24;
-            const uint32_t dat   = e[16] | e[17] << 8 | e[18] << 16 | uint32_t(e[19]) << 24;
-            std::vector<unsigned char> dir(dsize);
-            if(long(dat) + long(dsize) > size || std::fseek(f, long(dat), SEEK_SET) != 0 ||
-               std::fread(dir.data(), 1, dir.size(), f) != dir.size())
-                break;
-            packed    = false;
-            size_t at2 = 0;
-            for(uint32_t k = 0; k < count; ++k)
-            {
-                if(at2 + 46 > dir.size())
-                {
-                    packed = true;
-                    break;
-                }
-                const unsigned char* c = dir.data() + at2;
-                const size_t n = c[28] | c[29] << 8, skip = size_t(c[30] | c[31] << 8) + size_t(c[32] | c[33] << 8);
-                if(at2 + 46 + n > dir.size())
-                {
-                    packed = true;
-                    break;
-                }
-                const std::string name(reinterpret_cast<const char*>(c + 46), n);
-                if(name.rfind("media/", 0) == 0 || name.rfind("engine/", 0) == 0)
-                    packed = true;
-                at2 += 46 + n + skip;
-            }
-            break;
-        }
-    }
+    std::map<std::string, ZipEntry> index;
+    bool                            packed = !zip_index(f, index);
     std::fclose(f);
+    for(const auto& kv : index)
+        packed = packed || kv.first.rfind("media/", 0) == 0 || kv.first.rfind("engine/", 0) == 0;
     return packed;
 }
 
-// Presets with media from the app can be big; patches are read from the first
-// 64 MB only, which is far more than any without media.
+// A preset's manifest and patches are read from the first 64 MB of a file
+// whose zip directory can't be read.
 constexpr long kMaxPresetFile = 64L << 20;
+// The most a preset's manifest and patches may take, packed.
+constexpr size_t kMaxPatchBytes = size_t(16) << 20;
 
+// Reads the manifest and patches of the preset at [path], only those
+// entries, so the app's packed files can be any size.
 bool read_preset(const std::string& path, Preset& out, std::string& why)
 {
     FILE* f = std::fopen(path.c_str(), "rb");
@@ -2995,17 +3263,36 @@ bool read_preset(const std::string& path, Preset& out, std::string& why)
         why = "can't be read";
         return false;
     }
-    std::fseek(f, 0, SEEK_END);
-    const long size = std::ftell(f);
-    std::fseek(f, 0, SEEK_SET);
-    if(size <= 0 || size > kMaxPresetFile)
+    std::vector<uint8_t>            data;
+    std::map<std::string, ZipEntry> index;
+    bool                            ok = false;
+    if(zip_index(f, index))
     {
-        std::fclose(f);
-        why = size <= 0 ? "empty" : "too big";
-        return false;
+        std::vector<std::string> want;
+        for(const auto& kv : index)
+        {
+            const std::string& n = kv.first;
+            if(n == "preset.json" ||
+               (n.rfind("patches/", 0) == 0 && n.size() > 13 && n.compare(n.size() - 5, 5, ".json") == 0))
+                want.push_back(n);
+        }
+        ok = zip_subset(f, index, want, kMaxPatchBytes, data);
     }
-    std::vector<uint8_t> data(static_cast<size_t>(size));
-    const bool           ok = std::fread(data.data(), 1, data.size(), f) == data.size();
+    if(!ok)
+    {
+        // read whole, for presetfile to say what's wrong with it
+        std::fseek(f, 0, SEEK_END);
+        const long size = std::ftell(f);
+        std::fseek(f, 0, SEEK_SET);
+        if(size <= 0 || size > kMaxPresetFile)
+        {
+            std::fclose(f);
+            why = size <= 0 ? "empty" : "too big";
+            return false;
+        }
+        data.assign(static_cast<size_t>(size), 0);
+        ok = std::fread(data.data(), 1, data.size(), f) == data.size();
+    }
     std::fclose(f);
     if(!ok)
     {
@@ -3112,47 +3399,17 @@ bool safe_name(const std::string& name)
     return true;
 }
 
-// Each file in a zip with its inflated size, from the central directory.
-// False if that can't be read.
-bool zip_sizes(const std::vector<uint8_t>& zip, std::map<std::string, uint64_t>& out)
-{
-    const auto u16 = [&](size_t at) { return uint32_t(zip[at]) | uint32_t(zip[at + 1]) << 8; };
-    const auto u32 = [&](size_t at) { return u16(at) | u16(at + 2) << 16; };
-    const size_t n = zip.size();
-    if(n < 22)
-        return false;
-    size_t       end  = n - 22;
-    const size_t stop = n > 22 + 0xffff ? n - 22 - 0xffff : 0;
-    while(u32(end) != 0x06054b50u)
-    {
-        if(end == stop)
-            return false;
-        --end;
-    }
-    const uint32_t count = u16(end + 10);
-    size_t         at    = u32(end + 16);
-    for(uint32_t k = 0; k < count; ++k)
-    {
-        if(at + 46 > end || u32(at) != 0x02014b50u)
-            return false;
-        const size_t len = u16(at + 28);
-        if(at + 46 + len > end)
-            return false;
-        out[std::string(reinterpret_cast<const char*>(zip.data() + at + 46), len)] = u32(at + 24);
-        at += 46 + len + u16(at + 30) + u16(at + 32);
-    }
-    return true;
-}
-
 // Unpacks the entries [names] of the preset zip at [path] into
 // <first unlabelled root>acidulous/presets/<unit>/<file stem>/, "media/x" as
 // x there and any other entry by its own name. Returns that folder, or "" if
 // there's no root to put it under. A file already there with the entry's size
 // is kept. Entries that can't be unpacked are in [failed] with why; the rest
-// are still written. Holds the file and the inflated entries in memory, at
-// most kMaxMediaBytes of them. Worker only.
+// are still written. Only the named entries are read, one at a time, packed
+// and inflated, so a preset's other files can be any size. [used] counts what
+// was unpacked against kMaxMediaBytes over calls for one patch. Worker only.
 std::string unpack_media(const std::string& path, const std::string& unit, const std::set<std::string>& names,
-                         const std::vector<std::string>& roots, std::map<std::string, std::string>& failed)
+                         const std::vector<std::string>& roots, std::map<std::string, std::string>& failed,
+                         uint64_t& used)
 {
     std::string root;
     for(const auto& r : roots)
@@ -3177,79 +3434,62 @@ std::string unpack_media(const std::string& path, const std::string& unit, const
     const std::string dir = root + "acidulous/presets/" + unit + "/" + name + "/";
     const auto dest = [&](const std::string& e) { return dir + (e.rfind("media/", 0) == 0 ? e.substr(6) : e); };
 
-    std::vector<uint8_t> zip;
+    FILE* f = std::fopen(path.c_str(), "rb");
+    if(!f)
     {
-        FILE* f = std::fopen(path.c_str(), "rb");
-        if(!f)
-        {
-            fail_all("can't read the preset");
-            return dir;
-        }
-        std::fseek(f, 0, SEEK_END);
-        const long size = std::ftell(f);
-        std::fseek(f, 0, SEEK_SET);
-        bool ok = size > 0 && size <= kMaxPresetFile;
-        if(ok)
-        {
-            zip.resize(size_t(size));
-            ok = std::fread(zip.data(), 1, zip.size(), f) == zip.size();
-        }
-        std::fclose(f);
-        if(!ok)
-        {
-            fail_all(size > kMaxPresetFile ? "too big" : "can't read the preset");
-            return dir;
-        }
+        fail_all("can't read the preset");
+        return dir;
     }
-    std::map<std::string, uint64_t> sizes;
-    if(!zip_sizes(zip, sizes))
+    std::map<std::string, ZipEntry> index;
+    if(!zip_index(f, index))
     {
+        std::fclose(f);
         fail_all("not a zip");
         return dir;
     }
-    std::set<std::string> need;
-    uint64_t              total = 0;
+    std::vector<std::string> need;
+    uint64_t                 total = 0;
     for(const auto& e : names)
     {
-        const auto it = sizes.find(e);
+        const auto it = index.find(e);
         if(!safe_name(e))
             failed[e] = "a bad name";
-        else if(it == sizes.end())
+        else if(it == index.end())
             failed[e] = "not in the preset";
         else
         {
             struct stat st{};
-            if(stat(dest(e).c_str(), &st) == 0 && S_ISREG(st.st_mode) && uint64_t(st.st_size) == it->second)
+            if(stat(dest(e).c_str(), &st) == 0 && S_ISREG(st.st_mode) && uint64_t(st.st_size) == it->second.size)
                 continue;
-            need.insert(e);
-            total += it->second;
+            need.push_back(e);
+            total += it->second.size;
         }
     }
-    if(need.empty())
-        return dir;
-    std::vector<std::pair<std::string, std::vector<uint8_t>>> entries;
-    std::string                                               why;
-    if(total > kMaxMediaBytes || !presetfile::unzip(zip.data(), zip.size(), entries, why, kMaxMediaBytes))
+    if(used + total > kMaxMediaBytes)
     {
-        const std::string what = total > kMaxMediaBytes || why == "too big to be a preset file" ? "too big" : why;
         for(const auto& e : need)
-            failed[e] = what;
-        return dir;
+            failed[e] = "too big";
+        need.clear();
     }
-    zip = {};
-    zip.shrink_to_fit();
-    for(auto& kv : entries)
-    {
-        if(!need.count(kv.first))
-            continue;
-        if(!write_file(dest(kv.first), kv.second, why))
-            failed[kv.first] = why;
-        need.erase(kv.first);
-        kv.second = {};
-        kv.second.shrink_to_fit();
-    }
+    used += total;
     for(const auto& e : need)
-        failed[e] = "not in the preset";
+    {
+        std::vector<uint8_t>                                      one;
+        std::vector<std::pair<std::string, std::vector<uint8_t>>> entries;
+        std::string                                               why;
+        // packed can be a little over inflated, never by a megabyte
+        if(!zip_subset(f, index, {e}, kMaxMediaBytes + (size_t(1) << 20), one))
+            failed[e] = "a broken zip";
+        else if(!presetfile::unzip(one.data(), one.size(), entries, why, kMaxMediaBytes) || entries.size() != 1)
+            failed[e] = why == "too big to be a preset file" ? "too big" : why.empty() ? "a broken zip" : why;
+        else
+        {
+            one = {};
+            if(!write_file(dest(e), entries[0].second, why))
+                failed[e] = why;
+        }
+    }
+    std::fclose(f);
     return dir;
 }
 
@@ -3439,17 +3679,41 @@ void Core::load_preset_files(int part, const std::string& path, int index,
     const auto is_sample = [&](const std::string& k) {
         return k == "sample" && (m == "Dice" || m == "Pollen" || m == "Molt");
     };
+    const auto is_slices = [&](const std::string& k) { return k == "slice_sample" && m == "Forage"; };
+    const auto is_voice  = [&](const std::string& k) { return (k == "voice" || k == "morphvoice") && m == "Diction"; };
     // The app's packed files these settings name are unpacked first.
     std::set<std::string> packed;
     for(const auto& kv : settings)
-        if(packed_path(kv.second) && (is_pad(kv.first) || is_sample(kv.first) || (kv.first == "sf2" && m == "Mosaic")))
+        if(packed_path(kv.second) && (is_pad(kv.first) || is_sample(kv.first) || is_slices(kv.first) ||
+                                      is_voice(kv.first) || (kv.first == "sf2" && m == "Mosaic")))
             packed.insert(kv.second);
     std::map<std::string, std::string> failed;
     std::string                        media;
+    uint64_t                           used = 0;
     if(!packed.empty() && has_packed_entries(path))
-        media = unpack_media(path, m, packed, roots, failed);
+        media = unpack_media(path, m, packed, roots, failed, used);
     else
         packed.clear();
+    // A packed voice's takes, named in its bank.json, come out after it.
+    for(const auto& kv : settings)
+    {
+        if(!is_voice(kv.first) || !packed.count(kv.second) || failed.count(kv.second))
+            continue;
+        std::vector<std::string> files;
+        int                      missing = 0;
+        std::string              why;
+        voice_spec(media + kv.second.substr(6), files, missing, why);
+        std::set<std::string> takes;
+        for(const auto& t : files)
+            takes.insert(dir_of(kv.second) + t);
+        std::map<std::string, std::string> bad;
+        if(!takes.empty())
+            unpack_media(path, m, takes, roots, bad, used);
+        if(!bad.empty())
+            load_error(part, "voice", kv.second, kv.first == "voice" ? 0 : 1,
+                       base_name(bad.begin()->first) + ": " + bad.begin()->second +
+                           (bad.size() > 1 ? " (and " + std::to_string(bad.size() - 1) + " more)" : ""));
+    }
     // Loads [file] as [kind], or says why its packed copy couldn't be unpacked.
     const auto load_file = [&](const std::string& kind, const std::string& file, int arg) {
         if(!packed.count(file))
@@ -3459,7 +3723,7 @@ void Core::load_preset_files(int part, const std::string& path, int index,
             return load_error(part, kind, file, arg, it->second);
         load(part, kind, media + file.substr(6), arg, roots);
     };
-    std::string sf2;
+    std::string sf2, voice, morph;
     int         sf2preset = 0;
     bool        zones     = false;
     for(const auto& kv : settings)
@@ -3473,8 +3737,8 @@ void Core::load_preset_files(int part, const std::string& path, int index,
             if(pad < kForagePads)
                 load_file("pad", kv.second, pad);
         }
-        else if(m == "Forage" && k == "slice_sample")
-            load_error(part, "slices", kv.second, 0, "slices can't be loaded here");
+        else if(is_slices(k))
+            load_file("slices", kv.second, 0);
         else if(is_sample(k))
             load_file("sample", kv.second, 0);
         else if(k == "sf2" && m == "Mosaic")
@@ -3483,11 +3747,18 @@ void Core::load_preset_files(int part, const std::string& path, int index,
             sf2preset = std::max(0, std::atoi(kv.second.c_str()));
         else if(k == "zones" && m == "Mosaic")
             zones = true;
+        else if(is_voice(k))
+            (k == "voice" ? voice : morph) = kv.second;
     }
     if(!sf2.empty())
         load_file("sf2", sf2, sf2preset);
     else if(zones)
         load(part, "zones", path, index, roots);
+    // the voice to morph to first, so the one sung in is analysed for it once
+    if(!morph.empty())
+        load_file("voice", morph, 1);
+    if(!voice.empty())
+        load_file("voice", voice, 0);
 }
 
 // Mosaic: the zones of patch [index] of the preset at [path], their files
@@ -3521,7 +3792,10 @@ std::string Core::load_zones(int part, const std::string& path, int index, const
     std::map<std::string, std::string> failed;
     std::string                        media;
     if(!packed.empty() && has_packed_entries(path))
-        media = unpack_media(path, "Mosaic", packed, roots, failed);
+    {
+        uint64_t used = 0;
+        media         = unpack_media(path, "Mosaic", packed, roots, failed, used);
+    }
     else
         packed.clear();
     if(!failed.empty())

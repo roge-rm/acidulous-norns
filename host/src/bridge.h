@@ -55,7 +55,11 @@
 //        pad 0-12), "kit" (Forage, a folder: its first 13 audio files by name
 //        on pads 0-12), "sf2" (Mosaic, arg the preset's index in /presets),
 //        "folder" (Mosaic, a folder of WAVs mapped by the note names in their
-//        names), "sample" (Dice, Pollen, Molt), "clear" (empties the part's
+//        names), "sample" (Dice, Pollen, Molt), "slices" (Forage, the one
+//        file its pads slice, up to 10 minutes of it), "voice" (Diction, a
+//        recorded voice's bank.json from the app with its takes beside it,
+//        arg 0 the voice sung in, 1 the one morphed to; an empty path puts
+//        the built-in voice back), "clear" (empties the part's
 //        machine). An empty path clears a pad or sample. WAV, AIFF and FLAC;
 //        SoundFonts over 64 MB are refused, and so is a load that would take
 //        the decoded samples of every part past 320 MB, or a path with | in it.
@@ -65,7 +69,8 @@
 //   /preset_save i:part s:path s:name i:nroots s:root... (s:key s:value)...
 //        writes the part's sound as a .acpreset the app can read, making its
 //        folder. The settings are the files the script knows (sample,
-//        pNN_sample, sf2, sf2preset) as absolute paths; the plugin adds a
+//        pNN_sample, slice_sample, sf2, sf2preset, voice, morphvoice) as
+//        absolute paths; the plugin adds a
 //        Nexus graph, a Formulate program and Mosaic's zones, and writes
 //        every file path relative to the first root it's under: a root
 //        "/dir/" as "path", one "label=/dir/" as "label:path". Waits for a
@@ -80,9 +85,10 @@
 //        has it, then the file's own folder. A "media/x" path in a file with
 //        the app's packed files is unpacked to <first unlabelled root>
 //        acidulous/presets/<machine>/<file stem>/x and loaded from there (a
-//        file already there at its size is kept; 64 MB unpacked at most, else
-//        an /error "too big"); one that can't be is an /error naming it and
-//        the rest of the patch still loads. A patch from before version 3 is
+//        file already there at its size is kept; only the files the patch
+//        names are read, 64 MB unpacked at most, else an /error "too big");
+//        one that can't be is an /error naming it and the rest of the patch
+//        still loads. A Diction voice's takes come out with its bank.json. A patch from before version 3 is
 //        refused; a version 3 Trinity patch has its destinations moved, and
 //        below version 6 a Delay insert's pingpong becomes mode. When
 //        it fails the part still gets machine, as does a /patch that can't be

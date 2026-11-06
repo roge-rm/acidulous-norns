@@ -910,13 +910,21 @@ local function encode(files)
   return table.concat(out, "|")
 end
 
+-- Where a load of kind is kept in part.files: a pad or a Diction voice by
+-- its number, Forage's slices on their own, anything else as "main".
+local function file_key(kind, arg)
+  if kind == "pad" or kind == "voice" then return kind .. arg end
+  if kind == "slices" then return "slices" end
+  return "main"
+end
+
 local function decode(s)
   local files = {}
   for entry in (s or ""):gmatch("[^|]+") do
     local kind, arg, path = entry:match("^(%a+),(%-?%d+),(.+)$")
     if kind then
       arg = tonumber(arg)
-      files[kind == "pad" and ("pad" .. arg) or "main"] = {kind = kind, path = path, arg = arg}
+      files[file_key(kind, arg)] = {kind = kind, path = path, arg = arg}
     end
   end
   return files
@@ -1477,6 +1485,7 @@ function P.material(i)
         first = first or f
       end
     end
+    if n == 0 and part.files.slices then return part.files.slices.name or stem(part.files.slices.path) end
     if n == 0 then return "empty, k1+k3" end
     return base(first.path:match("^(.*)/[^/]+$") or "") .. ", " .. n .. (n == 1 and " pad" or " pads")
   elseif m == "Mosaic" or m == "Dice" or m == "Pollen" or m == "Molt" then
@@ -2378,6 +2387,10 @@ function P.save_preset(i, path, name)
     elseif f.kind == "sf2" then
       set("sf2", f.path)
       set("sf2preset", f.arg)
+    elseif f.kind == "slices" then
+      set("slice_sample", f.path)
+    elseif f.kind == "voice" then
+      set(f.arg == 1 and "morphvoice" or "voice", f.path)
     end
     -- a folder's or preset's zones are the plugin's to add
   end
@@ -2999,10 +3012,9 @@ function P.osc(path, args)
     -- loaded into the machine the part had before a change, and gone with it
     if args[6] ~= part.machine then return end
     if part.loading and part.loading.kind == kind then part.loading = nil end
-    if kind == "pad" then
-      part.files["pad" .. arg] = fpath ~= "" and {kind = kind, path = fpath, arg = arg, name = name} or nil
-    elseif kind == "sf2" or kind == "folder" or kind == "sample" or kind == "zones" then
-      part.files.main = fpath ~= "" and {kind = kind, path = fpath, arg = arg, name = name} or nil
+    if kind == "pad" or kind == "slices" or kind == "voice" or kind == "sf2" or kind == "folder"
+      or kind == "sample" or kind == "zones" then
+      part.files[file_key(kind, arg)] = fpath ~= "" and {kind = kind, path = fpath, arg = arg, name = name} or nil
     end
     if fpath ~= "" and kind ~= "pad" then part.last_path = fpath
     elseif kind == "pad" and fpath ~= "" and not part.loading then part.last_path = fpath end

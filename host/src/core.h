@@ -83,6 +83,9 @@ constexpr int kModSlots = acidulous::kInputModSlots;
 int64_t decoded_bytes(const std::string& path, int to_rate, int max_seconds, bool both);
 // The most every part's decoded samples and a song's audio may take together.
 long long sample_budget_bytes();
+// Diction's spec for the recorded voice whose bank.json is at [bank], its
+// fine takes' file names in [files] and those not there counted in [missing].
+std::string voice_spec(const std::string& bank, std::vector<std::string>& files, int& missing, std::string& why);
 
 class Core
 {
@@ -157,6 +160,11 @@ class Core
         // absolute path, as EngineHost::loadZoneMap takes them. "" for none.
         std::string zones;
         int         low = -1, high = -1; // the loaded patch's note range, -1 for none
+        // Diction's recorded voices as loaded, the one sung in and the one
+        // morphed to ("" for the built-in), and whether each was analysed for
+        // morphing.
+        std::string voice[2];
+        bool        voice_lsf[2] = {false, false};
     };
 
     // A patch to put on a part, from a bank or a preset file.
@@ -198,6 +206,7 @@ class Core
     std::string load_take(int part, const std::string& path, bool sung);
     void loaded(int part, const std::string& kind, const std::string& path, int arg, const std::string& name);
     void load_error(int part, const std::string& kind, const std::string& path, int arg, const std::string& why);
+    std::string load_voice(int part, int slot, const std::string& path, int& missing);
     void send_presets(const std::string& path);
     void send_shape(const std::string& path);
     void hear(const std::string& path);
