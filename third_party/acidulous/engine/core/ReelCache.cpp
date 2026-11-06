@@ -1,6 +1,10 @@
 #include "ReelCache.h"
 #include <algorithm>
+#include <atomic>
+#include <chrono>
 #include <cstdio>
+#include <functional>
+#include <thread>
 #include <engine/core/Constants.h>
 #include <engine/core/Reel.h>
 #include <engine/format/WavStream.h>
@@ -19,6 +23,10 @@ namespace acidulous::audio {
  * Stereo is written in two passes over the source, one per channel, to avoid
  * buffering a whole channel.
  *
+ * It writes a file of its own and renames it to [dest] when it's whole, so
+ * two threads converting the same take at once don't write into each other
+ * and nothing maps [dest] half written.
+ *
  * Returns the frame count written, or 0 with the reason in [error].
  */
 int64_t ReelCache::convert(const std::string &path, const std::string &dest, bool &stereoOut,
@@ -27,7 +35,7 @@ int64_t ReelCache::convert(const std::string &path, const std::string &dest, boo
     if (!in.open(path, error)) return 0;
     stereoOut = in.channels() == 2;
     const double ratio = static_cast<double>(in.rate()) / static_cast<double>(kSampleRate);
-    const int64_t outFrames = static_cast<int64_t>(static_cast<double>(in.frames()) / ratio);
+    const int64_t outFrames = framesFor(in.frames(), in.rate());
     if (outFrames <= 0) {
         error = "empty";
         return 0;
@@ -37,7 +45,14 @@ int64_t ReelCache::convert(const std::string &path, const std::string &dest, boo
         return 0;
     }
 
-    std::FILE *out = std::fopen(dest.c_str(), "wb");
+    static std::atomic<uint64_t> serial{0};
+    const auto now = static_cast<uint64_t>(std::chrono::steady_clock::now().time_since_epoch().count());
+    const uint64_t thread = std::hash<std::thread::id>{}(std::this_thread::get_id());
+    char tag[64];
+    std::snprintf(tag, sizeof(tag), ".%llx-%llx-%llx.part", static_cast<unsigned long long>(thread),
+                  static_cast<unsigned long long>(now), static_cast<unsigned long long>(serial.fetch_add(1)));
+    const std::string part = dest + tag;
+    std::FILE *out = std::fopen(part.c_str(), "wb");
     if (out == nullptr) {
         error = "can't write the cache";
         return 0;
@@ -79,12 +94,39 @@ int64_t ReelCache::convert(const std::string &path, const std::string &dest, boo
             written += n;
         }
     }
-    std::fclose(out);
+    if (std::fclose(out) != 0 && ok) {
+        ok = false;
+        error = "the cache couldn't be written";
+    }
     if (!ok) {
-        std::remove(dest.c_str());
+        std::remove(part.c_str());
         return 0;
     }
+    if (std::rename(part.c_str(), dest.c_str()) != 0) {
+        // Windows won't rename over a file. If another thread got there
+        // first, its file is whole and the same, so that one does.
+        std::remove(part.c_str());
+        if (sizeFor(outFrames, stereoOut) != fileSize(dest)) {
+            error = "the cache couldn't be written";
+            return 0;
+        }
+    }
     return outFrames;
+}
+
+int64_t ReelCache::framesFor(int64_t frames, int32_t rate) {
+    if (rate <= 0) return 0;
+    const double ratio = static_cast<double>(rate) / static_cast<double>(kSampleRate);
+    return static_cast<int64_t>(static_cast<double>(frames) / ratio);
+}
+
+int64_t ReelCache::sizeFor(int64_t frames, bool stereo) {
+    return frames * static_cast<int64_t>(sizeof(int16_t)) * (stereo ? 2 : 1);
+}
+
+int64_t ReelCache::fileSize(const std::string &path) {
+    struct stat st {};
+    return ::stat(path.c_str(), &st) == 0 ? static_cast<int64_t>(st.st_size) : -1;
 }
 
 /**

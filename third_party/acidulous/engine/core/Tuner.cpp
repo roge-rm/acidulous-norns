@@ -53,7 +53,8 @@ float vertex(float left, float mid, float right) {
 
 } // namespace
 
-float PitchFinder::find(const float *mono, int32_t frames, float sampleRate, float *clarity) {
+float PitchFinder::find(const float *mono, int32_t frames, float sampleRate, float *clarity, float minHz,
+                        float maxHz) {
     if (clarity != nullptr) *clarity = 0.0f;
     if (mono == nullptr || frames < 2048 || sampleRate < 8000.0f) return 0.0f;
 
@@ -66,8 +67,8 @@ float PitchFinder::find(const float *mono, int32_t frames, float sampleRate, flo
     // --- coarse: decimated, searching the whole range ------------------------------
     const int32_t decimate = std::max(1, static_cast<int32_t>(sampleRate / kCoarseRate + 0.5f));
     const float coarseRate = sampleRate / static_cast<float>(decimate);
-    const int32_t minLag = std::max(2, static_cast<int32_t>(coarseRate / kMaxHz));
-    const int32_t maxLag = static_cast<int32_t>(coarseRate / kMinHz) + 1;
+    const int32_t minLag = std::max(2, static_cast<int32_t>(coarseRate / maxHz));
+    const int32_t maxLag = static_cast<int32_t>(coarseRate / minHz) + 1;
 
     // Three periods of the lowest note is enough to pick the octave, and a
     // shorter window keeps the coarse search cheap.

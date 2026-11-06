@@ -1,7 +1,7 @@
 # Acidulous engine
 
 Copied from the Acidulous app, https://github.com/roge-rm/Acidulous, at commit
-8d1ab3286fbbbb7b8f5b8a1364deb4792e5cdca3 (see VERSION), by tools/vendor-acidulous.sh:
+b8c3ae0c0b712b0a6f3c42799996a6c1dfda71fd (see VERSION), by tools/vendor-acidulous.sh:
 
 - engine/, sequencer/ and EngineHost.cpp/.h from app/src/main/cpp
 - from app/src/main/cpp/platform: android/jni_bridge.cpp, web/jni.h (a fake
@@ -9,7 +9,8 @@ Copied from the Acidulous app, https://github.com/roge-rm/Acidulous, at commit
   log call to stderr), link/LinkTimebase.h and lines/ (EngineLines.h/.cpp
   and lines_dispatch.cpp, not its drivers)
 - tools/patchbank.h and tools/audition_settings.h
-- the factory banks, in data/banks at the top of this repo
+- the factory banks, in data/banks at the top of this repo, and the Venue
+  rooms (impulse-<id>.wav) in data/rooms
 
 It's GPL-3.0-or-later, see LICENSE and NOTICE. Don't edit these files here;
 change them in the app and copy them again.

@@ -85,6 +85,12 @@ inline int32_t slotModIndexOf(const char *name) {
 struct ModTransport {
     int64_t songOffset = 0; // clock tick to song tick
     bool started = false;   // this block is play's first: the followers empty
+    bool rolling = false;   // the song is moving: playing, past any count-in
+    // The track's swing (seq::Swing's percent and pair), straight off a
+    // track, and the song tick its clip started at, which swing counts from.
+    float swing = 50.0f;
+    int64_t swingPair = 120;
+    int64_t swingFrom = 0;
 };
 
 /** One insert's mod. Audio thread only; no allocation. */

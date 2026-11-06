@@ -48,6 +48,7 @@ class MasterBus {
     static constexpr int32_t groupParam(int32_t g) { return G1Gain + g * 3; }
 
     MasterBus();
+    void setTuning(const float *ratios) { tuning_ = ratios; }
     void prepare(int32_t sampleRate); // not on the audio thread
 
     ParamSet &params() { return params_; }
@@ -177,6 +178,8 @@ class MasterBus {
     ParamSet params_;
     /** Where the performance effects ran last block: a group, or -1 for the whole mix. */
     int32_t performWas = -1;
+    /** The song's tuning for the inserts and sends here, set by the engine each block; null is equal temperament. */
+    const float *tuning_ = nullptr;
     Effect *sends[kSendSlots]{};
     Effect *inserts[kMasterInsertSlots]{};
     Effect *groupInserts[kGroupSlots][kGroupInsertSlots]{};

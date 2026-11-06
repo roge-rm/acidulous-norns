@@ -35,14 +35,18 @@ class Fathom final : public Machine {
         // a kit shares, and density reaches each pad's own density too.
         MacroBase = PadFirst + 16 * 4,
         MacroParams = 9, // knob, 4 destinations, 4 depths
-        Count = MacroBase + 8 * MacroParams
+        // The key: how far each pitched drop is pulled onto the notes held on
+        // the track or onto a scale, free at 0 and every drop in key at 1.
+        KeySnap = MacroBase + 8 * MacroParams, KeyTo, KeyScale, KeyRoot,
+        Count
     };
+    enum KeySource : int32_t { KeyChord = 0, KeyScaleNotes, KeySourceCount };
     // Where a macro route goes. Continuous params only: the model, tune,
-    // surface, bend range, octave and the pads are left out.
+    // surface, bend range, octave, the key's choices and the pads are left out.
     enum MacroDest : int32_t {
         McOff, McDensity, McSize, McRise, McDecay, McGust, McWhistle, McTone,
         McSwell, McSpread, McFade, McVelocity, McVolume,
-        McPitch,
+        McPitch, McSnap,
         MacroDestCount
     };
     static constexpr int kMacros = 8;
@@ -78,6 +82,9 @@ class Fathom final : public Machine {
     /** Notes still sounding, and grains (bubbles, drops, crackles) started so far, for tests. */
     int activeVoices() const;
     uint32_t grainsStarted() const { return started; }
+    /** The starting pitch of the latest ringing grain, Hz, for tests. */
+    float lastRingHz() const { return lastRing_; }
+    uint32_t ringsStarted() const { return ringCount_; }
 
   private:
     /** One event: a bubble, a drop's tap, a struck surface or a crackle. */
@@ -126,6 +133,10 @@ class Fathom final : public Machine {
     void updateMacros();
     Voice *voiceFor(uint8_t note);
     Grain *spawn(Voice &v, int kind, float hz, float amp, float decaySeconds, float rise);
+    /** Rebuilds the key's notes, in octaves mod 1, from what's held and the knobs now. Block rate. */
+    void buildKey(float offset);
+    /** A drop's pitch [f], Hz, pulled onto the key by the snap amount. */
+    float keyed(float f) const;
     /** The voice's events: what kind, and the next one's grains. */
     void event(Voice &v, float hz);
     float white() {
@@ -152,6 +163,16 @@ class Fathom final : public Machine {
     int32_t quietSamples = 0;
     bool asleep = true;
     float mac_[MacroDestCount]{};
+    /** Which MIDI notes are held now, for the chord the key snaps to. */
+    bool held_[128]{};
+    /** The key's notes as positions in the octave, 0..1, from log2 of their Hz: one per held note at most. */
+    static constexpr int kKeyNotes = 128;
+    float keyClass_[kKeyNotes]{};
+    int keyCount_ = 0;
+    /** The snap amount for this block. */
+    float keySnap_ = 0.0f;
+    float lastRing_ = 0.0f;
+    uint32_t ringCount_ = 0;
 };
 
 } // namespace acidulous::machine

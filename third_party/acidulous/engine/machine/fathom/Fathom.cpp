@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdio>
 #include <engine/dsp/Math.h>
+#include <engine/inputmod/Scales.h>
 #include <engine/machine/Voices.h>
 
 namespace acidulous::machine {
@@ -31,7 +32,9 @@ constexpr float kOpenRain = 3.0f;
 
 } // namespace
 
-Fathom::Fathom() { initParams(); }
+Fathom::Fathom() {
+    initParams();
+}
 
 const ParamDef *Fathom::paramDefs(int32_t &count) const {
     static const ParamDef first[MacroBase] = {
@@ -147,6 +150,10 @@ const ParamDef *Fathom::paramDefs(int32_t &count) const {
                 put(b + 5 + r, n, -1.0f, 1.0f, 0.0f, Curve::Linear, 0);
             }
         }
+        defs[KeySnap] = ParamDef{"snap", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""};
+        defs[KeyTo] = ParamDef{"snap_to", 0.0f, static_cast<float>(KeySourceCount - 1), 0.0f, Curve::Stepped, KeySourceCount, ""}; // chord, scale
+        defs[KeyScale] = ParamDef{"scale", 0.0f, static_cast<float>(music::kScaleCount - 1), 10.0f, Curve::Stepped, music::kScaleCount, ""};
+        defs[KeyRoot] = ParamDef{"key", 0.0f, 11.0f, 0.0f, Curve::Stepped, 12, ""};
         built = true;
     }
     count = Count;
@@ -164,7 +171,7 @@ struct DestMap {
             {P::Density, P::McDensity}, {P::Size, P::McSize}, {P::Rise, P::McRise}, {P::Decay, P::McDecay},
             {P::Gust, P::McGust}, {P::Whistle, P::McWhistle}, {P::Tone, P::McTone}, {P::Swell, P::McSwell},
             {P::Spread, P::McSpread}, {P::Fade, P::McFade}, {P::VelocityAmount, P::McVelocity},
-            {P::Volume, P::McVolume},
+            {P::Volume, P::McVolume}, {P::KeySnap, P::McSnap},
         };
         for (const auto &pr : pairs) of[pr[0]] = static_cast<int8_t>(pr[1]);
         // The density route moves every pad's own density as well.
@@ -232,6 +239,11 @@ void Fathom::reset() {
     for (Grain &g : grains) g.used = false;
     for (SurfaceMode &m : surface) m.y1 = m.y2 = 0.0f;
     for (float &m : mac_) m = 0.0f;
+    for (bool &h : held_) h = false;
+    keyCount_ = 0;
+    keySnap_ = 0.0f;
+    lastRing_ = 0.0f;
+    ringCount_ = 0;
     builtSurface = -1;
     surfaceIn = surfaceBurst = 0.0f;
     bpm = 120.0f;
@@ -292,8 +304,79 @@ Fathom::Grain *Fathom::spawn(Voice &, int kind, float hz, float amp, float decay
     g->pan = clampf(paramOf(Spread), 0.0f, 1.0f) * white();
     g->age = 0;
     g->wait = 0;
+    if (kind == Ring) {
+        lastRing_ = hz;
+        ++ringCount_;
+    }
     ++started;
     return g;
+}
+
+namespace {
+// The sounds whose bubbles or rings have a pitch for the key to move.
+bool pitched(int kind) {
+    switch (kind) {
+    case Fathom::Bubbles: case Fathom::Drips: case Fathom::Rain: case Fathom::Stream: case Fathom::Surf:
+    case Fathom::Waterfall: case Fathom::Ice: case Fathom::Splash: case Fathom::Underwater: return true;
+    default: return false;
+    }
+}
+} // namespace
+
+void Fathom::buildKey(float offset) {
+    const int to = std::clamp(steppedTargetOf(KeyTo), 0, KeySourceCount - 1);
+    keyCount_ = 0;
+    // Each note goes through the track's tuning, so the drops land on the tuned notes.
+    auto add = [&](float note) {
+        const float o = std::log2(noteHz(note + offset));
+        const float c = o - std::floor(o);
+        for (int i = 0; i < keyCount_; ++i) {
+            if (std::fabs(keyClass_[i] - c) < 1e-4f) return;
+        }
+        if (keyCount_ < kKeyNotes) keyClass_[keyCount_++] = c;
+    };
+    if (to == KeyChord) {
+        // In a kit a held pad gives its own note as it's set now, and only if its sound has a pitch.
+        const bool kit = steppedTargetOf(Kit) != 0;
+        for (int n = 0; n < 128; ++n) {
+            if (!held_[n]) continue;
+            if (!kit) {
+                add(static_cast<float>(n));
+                continue;
+            }
+            const int pad = n - kBaseNote;
+            if (pad < 0 || pad >= kPads) continue;
+            if (!pitched(std::clamp(steppedTargetOf(padParam(pad, PadModel)), 0, KindCount - 1))) continue;
+            add(static_cast<float>(steppedTargetOf(padParam(pad, PadNote))));
+        }
+    } else {
+        const int scale = std::clamp(steppedTargetOf(KeyScale), 0, music::kScaleCount - 1);
+        const int root = std::clamp(steppedTargetOf(KeyRoot), 0, 11);
+        const music::ScaleDef &d = music::kScales[scale];
+        for (int i = 0; i < d.count; ++i) add(static_cast<float>(60 + root + d.intervals[i]));
+    }
+}
+
+float Fathom::keyed(float f) const {
+    if (keySnap_ <= 0.0f || keyCount_ == 0 || f <= 0.0f) return f;
+    // How far the drop is from the nearest key note below and above it, in octaves.
+    const float x = std::log2(f);
+    const float frac = x - std::floor(x);
+    float below = 1.0f, above = 1.0f;
+    for (int i = 0; i < keyCount_; ++i) {
+        float d = frac - keyClass_[i];
+        if (d < 0.0f) d += 1.0f;
+        below = std::fmin(below, d);
+        above = std::fmin(above, 1.0f - d);
+    }
+    // Where it sits between the two, 0 on a note and 1 halfway: drops nearer
+    // than the amount are caught, with a short soft edge so none jump.
+    const float nearest = std::fmin(below, above);
+    const float half = 0.5f * (below + above);
+    const float t = half > 0.0f ? nearest / half : 0.0f;
+    const float w = clampf((keySnap_ * 1.15f - t) / 0.15f, 0.0f, 1.0f);
+    if (w <= 0.0f) return f;
+    return std::exp2(below <= above ? x - below * w : x + above * w);
 }
 
 void Fathom::event(Voice &v, float hz) {
@@ -303,7 +386,8 @@ void Fathom::event(Voice &v, float hz) {
     const float decay = clampf(paramOf(Decay), 0.0f, 1.0f);
     // A bubble rings for about kBubbleQ cycles, longer with the decay knob.
     auto ring = [&](float f) { return (0.3f + 1.4f * decay) * kBubbleQ / (3.14159265f * f); };
-    auto sized = [&](float f, float spread) { return f * std::exp2(spread * white() / 12.0f); };
+    // A drop's size spread from the note, then pulled onto the key.
+    auto sized = [&](float f, float spread) { return keyed(f * std::exp2(spread * white() / 12.0f)); };
     switch (kind) {
     case Bubbles: {
         const float f = sized(hz, size);
@@ -328,8 +412,8 @@ void Fathom::event(Voice &v, float hz) {
             break;
         default:
             spawn(v, Tick, 3000.0f + 4000.0f * uniform(), amp * 0.6f * kOpenRain, 0.002f, 0.0f);
-            // A few drops on water catch a bubble.
-            if (uniform() < 0.08f) {
+            // A few drops on water catch a bubble, more as the key comes in, so the rain sings it.
+            if (uniform() < 0.08f + 0.32f * keySnap_) {
                 const float f = sized(hz * 2.0f, size);
                 spawn(v, Ring, f, amp * 0.4f * kOpenRain, ring(f) * 0.5f, rise);
             }
@@ -425,6 +509,7 @@ void Fathom::noteOn(uint8_t note, uint8_t velocity) {
     const int pad = static_cast<int>(note) - kBaseNote;
     if (kit && (pad < 0 || pad >= kPads)) return;
     const int kind = std::clamp(steppedTargetOf(kit ? padParam(pad, PadModel) : static_cast<int32_t>(Model)), 0, KindCount - 1);
+    held_[note & 127] = true;
     Voice *v = voiceFor(note);
     const bool fresh = !v->used || v->note != note || v->kind != kind;
     v->note = note;
@@ -455,6 +540,7 @@ void Fathom::noteOn(uint8_t note, uint8_t velocity) {
 }
 
 void Fathom::noteOff(uint8_t note) {
+    held_[note & 127] = false;
     for (Voice &v : voices) {
         if (v.used && v.held && v.note == note) v.held = false;
     }
@@ -462,6 +548,7 @@ void Fathom::noteOff(uint8_t note) {
 
 void Fathom::allNotesOff() {
     for (Voice &v : voices) v.held = false;
+    for (bool &h : held_) h = false;
 }
 
 void Fathom::controlChange(uint8_t cc, uint8_t value) {
@@ -503,6 +590,17 @@ bool Fathom::render(float *L, float *R, int32_t frames) {
     const float dt = 1.0f / sampleRate;
     const float swellBeats = clampf(paramOf(Swell), 1.0f, 16.0f);
     const int surf = std::clamp(steppedTargetOf(Surface), 0, SurfaceCount - 1);
+    // The key, built at block rate from what's held now, through the voices' own pitch path less the note.
+    // The target, since a note-on's first bubble comes in this block, with the macros' routes added.
+    {
+        const float snap = targetOf(KeySnap);
+        const ParamDef &def = params_.def(KeySnap);
+        keySnap_ = clampf(mac_[McSnap] == 0.0f ? snap : def.map(def.unmap(snap) + mac_[McSnap]), 0.0f, 1.0f);
+    }
+    if (keySnap_ > 0.0f) {
+        buildKey(12.0f * static_cast<float>(steppedTargetOf(Octave)) + paramOf(Tune) / 100.0f + bend * paramOf(BendRange) +
+                 (mac_[McPitch] != 0.0f ? mac_[McPitch] * 24.0f : 0.0f));
+    }
 
     // The roof or window the rain falls on.
     if (surf != builtSurface) {

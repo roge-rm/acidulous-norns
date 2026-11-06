@@ -9,7 +9,10 @@
 # track's own level (louder opens the mouth, a wah that talks), or another
 # track through the sidechain. `depth` is how far it moves from `vowel`.
 #
-# Families: talk, sweep, key.
+# `words` is how far the clip's words move it: give the track's notes words
+# in the editor and the mouth says them.
+#
+# Families: talk, sweep, key, words.
 
 machine fx.Mouth
 
@@ -102,3 +105,36 @@ patch Mumble family=key
   size           0.75
   nasal          0.5
   gain           3.5 dB
+
+patch Say family=words
+  # Says the clip's words, the vowel held while the note is.
+  words          1
+  vowel          0.3
+  depth          0
+  gain           -1.3 dB
+
+patch Sing family=words
+  # A bigger throat for a pad singing its words, a little of the dry under it.
+  words          1
+  vowel          0.5
+  depth          0
+  size           0.7
+  mix            0.85
+  gain           -2.3 dB
+
+patch Chant family=words
+  # Small and nasal, the words on a thin, reedy throat.
+  words          1
+  vowel          0.4
+  depth          0
+  size           0.3
+  nasal          0.45
+  gain           4.4 dB
+
+patch Mutter family=words
+  # Half the words, half the level: louder notes open the mouth further.
+  words          0.6
+  move           #1
+  vowel          0.05
+  depth          0.6
+  size           0.55

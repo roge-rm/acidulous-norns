@@ -25,7 +25,7 @@
 // The format:
 //
 //     # comments run to the end of the line
-//     machine  Reflux          # or `effect Delay`
+//     machine  Reflux          # or `effect Delay`, or `modifier Arp`
 //     role     bass             # the phrase these patches are auditioned with
 //     material none             # what to mount; see audition_material.h
 //     input    none             # what to put on the input bus
@@ -103,7 +103,7 @@ struct BankPatch {
 };
 
 struct Bank {
-    std::string unit;     // "Reflux", or "fx.Delay"
+    std::string unit;     // "Reflux", "fx.Delay" or "mod.Arp"
     std::string role = "note";
     std::string material = "none";
     std::string input = "none";
@@ -111,8 +111,10 @@ struct Bank {
     std::string path;
 
     bool isEffect() const { return unit.rfind("fx.", 0) == 0; }
-    /** The engine's type name: "Delay" for "fx.Delay". */
-    std::string typeName() const { return isEffect() ? unit.substr(3) : unit; }
+    /** An input modifier's bank, like the arp's. */
+    bool isModifier() const { return unit.rfind("mod.", 0) == 0; }
+    /** The engine's type name: "Delay" for "fx.Delay", "Arp" for "mod.Arp". */
+    std::string typeName() const { return isEffect() ? unit.substr(3) : isModifier() ? unit.substr(4) : unit; }
 };
 
 namespace detail {
@@ -186,10 +188,10 @@ inline bool readBankFrom(std::istream &in, const std::string &path, Bank &bank, 
         std::string head;
         detail::token(line, at, head);
 
-        if (head == "machine" || head == "effect") {
+        if (head == "machine" || head == "effect" || head == "modifier") {
             std::string name;
             if (!detail::token(line, at, name)) return fail("a name is wanted after " + head);
-            bank.unit = (head == "effect" ? "fx." : "") + name;
+            bank.unit = (head == "effect" ? "fx." : head == "modifier" ? "mod." : "") + name;
             continue;
         }
         if (head == "role" && bank.patches.empty()) {
@@ -238,7 +240,7 @@ inline bool readBankFrom(std::istream &in, const std::string &path, Bank &bank, 
         BankPatch &p = bank.patches.back();
 
         if (head == "insert") {
-            if (bank.isEffect()) return fail("an effect's patch can't carry inserts");
+            if (bank.isEffect() || bank.isModifier()) return fail("only a machine's patch can carry inserts");
             BankInsert fx;
             fx.line = lineNo;
             if (!detail::token(line, at, fx.type)) return fail("an effect type is wanted after insert");
@@ -249,7 +251,7 @@ inline bool readBankFrom(std::istream &in, const std::string &path, Bank &bank, 
             continue;
         }
         if (head == "send") {
-            if (bank.isEffect()) return fail("an effect's patch can't carry sends");
+            if (bank.isEffect() || bank.isModifier()) return fail("only a machine's patch can carry sends");
             std::string which, num;
             if (!detail::token(line, at, which) || !detail::token(line, at, num)) {
                 return fail("send wants reverb or delay and a level");
@@ -308,7 +310,7 @@ inline bool readBankFrom(std::istream &in, const std::string &path, Bank &bank, 
         values.push_back(std::move(v));
     }
     if (bank.unit.empty()) {
-        error = path + ": no `machine` or `effect` line";
+        error = path + ": no `machine`, `effect` or `modifier` line";
         return false;
     }
     return true;

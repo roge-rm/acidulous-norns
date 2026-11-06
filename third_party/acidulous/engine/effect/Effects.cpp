@@ -544,8 +544,9 @@ bool Compressor::process(float *L, float *R, int32_t frames, bool stereoIn) {
         const float inL = L[i], inR = stereoIn ? R[i] : L[i];
         // The detector listens to the sidechain if there is one, otherwise
         // this track.
-        const float a = key_ != nullptr ? std::fabs(key_[i])
-                                        : (std::fabs(inL) > std::fabs(inR) ? std::fabs(inL) : std::fabs(inR));
+        float a = key_ != nullptr ? std::fabs(key_[i])
+                                  : (std::fabs(inL) > std::fabs(inR) ? std::fabs(inL) : std::fabs(inR));
+        if (!std::isfinite(a)) a = 0.0f;
         env += (a - env) * (a > env ? atk : rel);
         float g = 1.0f;
         if (env > 1e-5f) {

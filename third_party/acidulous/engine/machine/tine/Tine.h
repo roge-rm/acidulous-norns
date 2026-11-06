@@ -20,6 +20,14 @@ namespace acidulous::machine {
  * a rattle on a thumb piano, the octave that grows out of a pan's note after
  * it's struck, rolls on held notes, and a bow drawn across a bar under
  * pressure.
+ *
+ * A note can melt into another model while it rings: each mode glides its
+ * ratio (on a log scale, so the middle is out of tune with both), its ring
+ * time and its share of a strike to its partner in the other model, paired
+ * in order. A mode only one of them has fades out, or is fed from what the
+ * note is ringing with until it sounds. `melt` is how long it takes, `heat`
+ * how much velocity and pressure hurry it, and `return` has it go once or
+ * back and forth.
  */
 class Tine final : public Machine {
   public:
@@ -36,14 +44,21 @@ class Tine final : public Machine {
         // is 24 semitones per unit.
         MacroBase,
         MacroParams = 9, // knob, 4 destinations, 4 depths
-        Count = MacroBase + 8 * MacroParams
+        // Added after the macros. The model a note melts into, how long a
+        // struck note takes to get there (0 off, then 0.05 to 20 s on a log
+        // scale), how much velocity and pressure hurry it, and whether it
+        // goes once or back and forth.
+        Into = MacroBase + 8 * MacroParams, Melt, Heat, Return,
+        Count
     };
     // Where a macro route goes. Continuous params only: the model, tune,
-    // voices, bend range and octave are left out.
+    // voices, bend range, octave and into are left out.
     enum MacroDest : int32_t {
         McOff, McMallet, McPosition, McDecay, McBright, McDamp, McTube, McMotor, McDepth,
         McBloom, McBuzz, McRoll, McSpread, McVelocity, McVolume, McPair,
         McPitch,
+        // Where the melt is: added to how far each note has melted.
+        McMelt,
         MacroDestCount
     };
     static constexpr int kMacros = 8;
@@ -76,6 +91,10 @@ class Tine final : public Machine {
 
     /** Notes sounding, for tests. */
     int activeVoices() const;
+    /** How far the first sounding note has melted, 0 to 1, or -1 if it isn't melting. For tests. */
+    float meltOf() const;
+    /** Mode [i]'s ratio now on the first sounding note, for tests. */
+    float modeRatio(int i) const;
 
   private:
     struct Mode {
@@ -86,6 +105,16 @@ class Tine final : public Machine {
         float bow = 0.0f;
         float ratio = 1.0f, t60 = 1.0f, r = 0.0f;
         float y1 = 0.0f, y2 = 0.0f;
+        /** Melting only: the noise feed that sounds a mode the note didn't start with, and its bloom drive. */
+        float feed = 0.0f, bloomK = 0.0f;
+        /** Melting only: the cosine and sine of the step it's tuned to now, and its pole. */
+        float cw = 1.0f, sw = 0.0f, re = 0.0f;
+    };
+    /** A model as built for a note: what melting goes from and to. */
+    struct Shape {
+        int count = 0, bloom = -1;
+        float logRatio[kModes]{}, logT60[kModes]{}, amp[kModes]{}, logAmp[kModes]{}, bowShare[kModes]{};
+        float click = 0.0f, contact = 1.0f;
     };
     struct Voice {
         Mode modes[kModes];
@@ -124,6 +153,30 @@ class Tine final : public Machine {
         float builtPair = -1.0f;
         /** The pitch macro at the note-on (in [pitch]) and now, in its 0..1 units. */
         float macAt = 0.0f, macNow = 0.0f;
+        /** How hard the damper was when it came down, for a melting note's ring times. */
+        float dampBy = 0.0f;
+        /** The model the note was struck as and the one it melts into, as built. */
+        Shape from, to;
+        /** Into differs from the model, so the note can melt. */
+        bool canMelt = false;
+        /** On the melting path: set once the melt first moves, kept until a fresh note. */
+        bool melted = false;
+        /** The velocity it was struck at, for heat. */
+        float hit = 0.8f;
+        /** How far through the melt, in melts (0..1 once; 0..2 a round trip back and forth), and the blend now. */
+        float meltU = 0.0f, meltPos = 0.0f;
+        /** The blend and pitch the modes were last tuned to, so a settled melt isn't worked out again. */
+        float tunedPos = -1.0f, tunedPitch = -1000.0f;
+        /** Each mode's level at the last melt step, as a log of its share; a ringing mode is scaled from it. */
+        float lastLogAmp[kModes]{};
+        /** A mode the note didn't start with: its share at the last step, and the level it's held to. */
+        float fedShare[kModes]{}, fedLevel[kModes]{};
+        /** Modes being fed, for the per-sample noise. */
+        int fed = 0;
+        /** Samples since the last retune step, at the start of a block: what a melt step moves by. */
+        int32_t sinceStep = 0;
+        /** The return [meltU] is counted in: back and forth, or once. */
+        bool breathing = false;
     };
 
     /** Param [p], smoothed, with the macros' routes to it added. */
@@ -142,6 +195,24 @@ class Tine final : public Machine {
     /** Tunes the modes to the voice's pitch now, keeping their decay. */
     void retune(Voice &v);
     void strike(Voice &v, float velocity);
+    /** Builds [s] for [kind] at frequency [f] from the knobs' targets, as build() does the modes. */
+    void shapeOf(int kind, float f, Shape &s) const;
+    /** Where the melt is for [v] now, 0 to 1, from its progress and the melt macro [mac]. */
+    float meltBlend(const Voice &v, float mac) const;
+    /** Recounts [v.meltU] in the return now set, keeping the blend where it is. */
+    void meltReturn(Voice &v) const;
+    /** Puts [v] on the melting path; [struck] when a strike is about to land at the blend. */
+    void meltBegin(Voice &v, bool struck, int32_t span = -1);
+    /**
+     * Tunes a melting voice's modes to the blend at [v.meltPos]: retune() for a melting note,
+     * [samples] after the last, with levels glided over the [span] samples to the next step
+     * (-1: from the start of the next block).
+     */
+    void meltTune(Voice &v, int32_t samples = 0, int32_t span = -1);
+    /** Moves a ringing mode to step [w] and pole [re] keeping its phase and level, so a glide doesn't wobble. */
+    static void carry(Mode &m, float w, float re);
+    /** ring() for a melting note: [nz] the noise feeding modes the note didn't start with. */
+    float ringMelt(Mode *modes, const Voice &v, float x, float bow, float bloom, float nz);
     void damp(Voice &v);
     /** Rings [modes] (the voice's or its pair's) one sample on, struck by [x] and bowed by [bow]. */
     float ring(Mode *modes, const Voice &v, float x, float bow, float bloom);
@@ -155,13 +226,19 @@ class Tine final : public Machine {
         return static_cast<float>(noise >> 8) * (2.0f / 16777216.0f) - 1.0f;
     }
 
+    /** The melt's own noise, so feeding a mode leaves the knock and the rattle as they were. */
+    float feedWhite() {
+        feedNoise = feedNoise * 1664525u + 1013904223u;
+        return static_cast<float>(feedNoise >> 8) * (2.0f / 16777216.0f) - 1.0f;
+    }
+
     Voice voices[kVoices];
     float sampleRate = 48000.0f;
     float bend = 0.0f, wheel = 0.0f, channelPressure_ = 0.0f;
     bool dampersUp = false;
     float motorPhase = 0.0f;
     int retuneCountdown = 0;
-    uint32_t noise = 0x5bd1e995u;
+    uint32_t noise = 0x5bd1e995u, feedNoise = 0x27d4eb2fu;
     uint32_t clock = 0;
     int32_t quietSamples = 0;
     bool asleep = true;

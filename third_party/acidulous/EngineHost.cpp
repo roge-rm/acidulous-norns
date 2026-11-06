@@ -11,6 +11,7 @@
 #include <engine/machine/nexus/Nexus.h>
 
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <android/log.h>
 #include <cstdio>
@@ -28,12 +29,16 @@
 #include <engine/dsp/Wavetable.h>
 #include <engine/format/WavWriter.h>
 #include <engine/core/Reel.h>
+#include <engine/core/TakeScore.h>
 #include <engine/effect/EffectRegistry.h>
 #include <engine/inputmod/InputModRegistry.h>
 #include <engine/machine/MachineRegistry.h>
 #include <engine/format/Sf2Reader.h>
 #include <engine/core/Slices.h>
 #include <engine/format/AudioDecoder.h>
+#include <engine/effect/EffectRegistry.h>
+#include <engine/effect/Venue.h>
+#include <engine/dsp/RoomCapture.h>
 #include <engine/core/Take.h>
 #include <engine/machine/forage/Forage.h>
 #include <engine/machine/cumulus/Cumulus.h>
@@ -1404,6 +1409,9 @@ bool EngineHost::renderTargets(const std::vector<RenderTarget> &targets, float t
     sEngine.transport.requestStop();
     float silent[kBlockFrames * 2];
     sEngine.renderBlock(nullptr, silent); // apply the stop
+    // Listening through a phrase plays instead of the song, so it would be
+    // all a render heard.
+    dropListening();
 
     // Start from silence, so nothing from before (filter and delay state,
     // tails) bleeds into the start of the file.
@@ -1575,6 +1583,11 @@ bool EngineHost::audioAnchor(int64_t &frame, int64_t &nanos, int32_t &sampleRate
 
 void EngineHost::setExternalSync(bool on) { sEngine.transport.setExternalSync(on); }
 void EngineHost::setTuning(int rack, const float *ratios) {
+    // -1 is the song's tuning, for the group, master and input inserts.
+    if (rack == -1) {
+        sEngine.setSongTuning(ratios);
+        return;
+    }
     if (rack < 0 || rack >= kRackCount) return;
     sEngine.racks[rack].setTuning(ratios);
 }
@@ -1884,19 +1897,19 @@ std::shared_ptr<const audio::Reel::Source> EngineHost::sourceFor(const std::stri
         const std::string dest = cacheRoot + "/" + audio::ReelCache::nameFor(path);
         bool stereo = false;
         int64_t frames = 0;
-        struct stat st {};
-        if (::stat(dest.c_str(), &st) == 0 && st.st_size > 0) {
-            // Already converted. The name includes the source's size and
-            // mtime, so an edited file gets a new one.
+        // Already converted if a file of the right size is there. The name
+        // includes the source's size and mtime, so an edited file gets a new
+        // one. convert() renames a whole file into place, so one that's
+        // there is complete, and a wrong size is from before that and redone.
+        if (const int64_t have = audio::ReelCache::fileSize(dest); have > 0) {
             WavStream again;
             if (again.open(path, error)) {
                 stereo = again.channels() == 2;
-                frames = static_cast<int64_t>(static_cast<double>(again.frames()) *
-                                              kSampleRate / again.rate());
+                frames = audio::ReelCache::framesFor(again.frames(), again.rate());
             }
-        } else {
-            frames = audio::ReelCache::convert(path, dest, stereo, error);
+            if (audio::ReelCache::sizeFor(frames, stereo) != have) frames = 0;
         }
+        if (frames <= 0) frames = audio::ReelCache::convert(path, dest, stereo, error);
         auto map = std::make_shared<audio::Mapping>();
         if (frames > 0 && map->open(dest) &&
             made->point(map, static_cast<int32_t>(frames), stereo)) {
@@ -1929,24 +1942,296 @@ std::shared_ptr<const audio::Reel::Source> EngineHost::sourceFor(const std::stri
 /**
  * Loads an audio track's regions, one line per lane per cell:
  *
- *   sceneId|lane|absPath|offset|frames|startTick|ticks|bpm|loop
+ *   sceneId|lane|absPath|offset|frames|startTick|ticks|bpm|loop|fadeIn|fadeOut
+ *
+ * A comped lane follows its region line with more takes and the pieces to
+ * play. The region line's file is take 0, the take lines are 1, 2, ... in
+ * order, and piece start and end are frames into the region:
+ *
+ *   take|sceneId|lane|absPath|offset
+ *   piece|sceneId|lane|start|end|take|shift
+ *   span|sceneId|lane|take|start|end
+ *   blend|sceneId|lane
+ *   nudge|sceneId|lane|take|start|end|shift
+ *   spread|sceneId|lane|amount
+ *
+ * A piece's shift is optional and plays its take that many frames later.
+ * A span gives the region frames a take has audio for, and blend plays
+ * every take at once instead of the pieces (see Reel::Region::blend). In a
+ * blend, a nudge plays one stretch of a take later (a word lined up) and
+ * spread places the takes across the stereo field, 0 to 1.
  *
  * Each distinct file is decoded once however many lines use it, as int16
  * with mono kept mono (see engine/core/Reel.h). An empty spec clears the reel.
  */
+/**
+ * [path] as a source, reusing one a reel already holds if the file hasn't
+ * changed since, so a reel that only changes its pieces, or listening
+ * through a phrase, decodes nothing.
+ */
+std::shared_ptr<const audio::Reel::Source> EngineHost::sharedSource(const std::string &path,
+                                                                   int64_t &residentFrames,
+                                                                   int &mappedCount) {
+    struct stat st {};
+    std::string key = path;
+    if (::stat(path.c_str(), &st) == 0) {
+        key += '|' + std::to_string(static_cast<long long>(st.st_size)) + '|' +
+               std::to_string(static_cast<long long>(st.st_mtime));
+    }
+    {
+        std::lock_guard<std::mutex> hold(reelSourcesLock);
+        auto it = reelSources.find(key);
+        if (it != reelSources.end()) {
+            if (auto held = it->second.lock()) return held;
+        }
+    }
+    auto made = sourceFor(path, residentFrames, mappedCount);
+    if (made == nullptr) return nullptr;
+    std::lock_guard<std::mutex> hold(reelSourcesLock);
+    // Forget sources nothing holds any more, so the map doesn't grow.
+    for (auto it = reelSources.begin(); it != reelSources.end();) {
+        it = it->second.expired() ? reelSources.erase(it) : std::next(it);
+    }
+    reelSources[key] = made;
+    return made;
+}
+
 std::string EngineHost::loadReel(int rack, const std::string &spec) {
     if (rack < 0 || rack >= kRackCount) return "no such rack";
     // An empty spec arrives after an audio track is deleted, when the Bias is
     // already gone, so that's not an error.
     if (awaitMachine(sEngine, rack, "Bias") == nullptr) return spec.empty() ? "" : "that rack is not a Bias";
 
-    auto reel = std::make_unique<audio::Reel>();
-    std::string error;
-    // Distinct paths, decoded once each. Local, since each reel owns its
-    // sources and racks don't share them.
-    std::unordered_map<std::string, std::shared_ptr<const audio::Reel::Source>> decoded;
     int64_t totalFrames = 0;
     int mapped = 0;
+    size_t files = 0;
+    auto reel = parseReel(spec, totalFrames, mapped, files);
+
+    LOGI("reel on rack %d: %zu cells, %zu files (%d mapped), %.1f MB resident", rack,
+         reel->cells.size(), files, mapped,
+         static_cast<double>(totalFrames) * sizeof(int16_t) / (1024.0 * 1024.0));
+
+    Mount mount;
+    mount.kind = Mount::Kind::Object;
+    mount.machineType = "Bias";
+    mount.rack = rack;
+    mount.slot = 0;
+    // Handed over before the mount: on failure the retry deletes it.
+    mount.object = reel.release();
+    mount.deleter = deleteAs<audio::Reel>;
+    if (!mountObjectWithRetry(mount)) return "mount queue full";
+    return "";
+}
+
+/**
+ * Listening through a phrase on a Bias. The first line is
+ *
+ *   listen|lane|from|to
+ *
+ * and the rest is a reel spec with one cell per pass, lane 0 each, in the
+ * order they play. An empty spec stops listening.
+ */
+std::string EngineHost::listenReel(int rack, const std::string &spec) {
+    if (rack < 0 || rack >= kRackCount) return "no such rack";
+    if (awaitMachine(sEngine, rack, "Bias") == nullptr) return spec.empty() ? "" : "that rack is not a Bias";
+
+    std::unique_ptr<audio::Listen> listen;
+    if (!spec.empty()) {
+        const size_t eol = spec.find('\n');
+        const std::string head = spec.substr(0, eol);
+        std::vector<std::string> f;
+        std::string part;
+        std::istringstream fields(head);
+        while (std::getline(fields, part, '|')) f.push_back(part);
+        if (f.size() < 4 || f[0] != "listen") return "listen: no header";
+        listen = std::make_unique<audio::Listen>();
+        listen->lane = std::atoi(f[1].c_str());
+        listen->from = std::atoi(f[2].c_str());
+        listen->to = std::atoi(f[3].c_str());
+        int64_t totalFrames = 0;
+        int mapped = 0;
+        size_t files = 0;
+        auto reel = parseReel(eol == std::string::npos ? "" : spec.substr(eol + 1), totalFrames, mapped, files);
+        for (auto &cell : reel->cells) {
+            if (cell.lanes[0].source) listen->passes.push_back(std::move(cell.lanes[0]));
+        }
+        for (const auto &r : listen->passes) {
+            for (const auto &t : r.takes) {
+                if (t.source) t.source->willNeed(t.offset + listen->from, kSampleRate);
+            }
+            if (r.source) r.source->willNeed(r.offset + listen->from, kSampleRate);
+        }
+        if (!listen->playable()) return "listen: nothing to play";
+    }
+
+    Mount mount;
+    mount.kind = Mount::Kind::Object;
+    mount.machineType = "Bias";
+    mount.rack = rack;
+    mount.slot = 1;
+    mount.object = listen.release();
+    mount.deleter = deleteAs<audio::Listen>;
+    if (!mountObjectWithRetry(mount)) return "mount queue full";
+    return "";
+}
+
+int64_t EngineHost::listenPlayed(int rack) const {
+    if (rack < 0 || rack >= kRackCount) return -1;
+    const auto live = sEngine.readLive(); // it may be being replaced (see Retirer::ReadGuard)
+    Machine *m = sEngine.racks[rack].currentMachine();
+    if (m == nullptr || std::strcmp(m->typeName(), "Bias") != 0) return -1;
+    return static_cast<machine::Bias *>(m)->listenPlayed();
+}
+
+namespace {
+/** The first line of an analysis spec split at '|', and the rest after it. */
+std::vector<std::string> headOf(const std::string &spec, std::string &rest) {
+    const size_t eol = spec.find('\n');
+    rest = eol == std::string::npos ? "" : spec.substr(eol + 1);
+    std::vector<std::string> f;
+    std::string part;
+    std::istringstream fields(spec.substr(0, eol));
+    while (std::getline(fields, part, '|')) f.push_back(part);
+    return f;
+}
+
+std::vector<int32_t> cutsOf(const std::string &list) {
+    std::vector<int32_t> cuts;
+    std::string part;
+    std::istringstream items(list);
+    while (std::getline(items, part, ',')) {
+        if (!part.empty()) cuts.push_back(std::atoi(part.c_str()));
+    }
+    return cuts;
+}
+
+/** A tuning from `refHz:period:cents,cents,...`; empty is twelve equal steps from A 440. */
+audio::takescore::Tuning tuningOf(const std::string &text) {
+    audio::takescore::Tuning t;
+    std::vector<std::string> f;
+    std::string part;
+    std::istringstream fields(text);
+    while (std::getline(fields, part, ':')) f.push_back(part);
+    if (f.size() < 3) return t;
+    const float ref = static_cast<float>(std::atof(f[0].c_str()));
+    const float period = static_cast<float>(std::atof(f[1].c_str()));
+    if (!(ref > 0.0f) || !(period > 0.0f)) return t;
+    t.refHz = ref;
+    t.period = period;
+    std::istringstream items(f[2]);
+    while (std::getline(items, part, ',')) {
+        if (part.empty()) continue;
+        const float c = static_cast<float>(std::atof(part.c_str()));
+        if (c >= 0.0f && c < period) t.degrees.push_back(c);
+    }
+    std::sort(t.degrees.begin(), t.degrees.end());
+    if (t.degrees.empty()) t.degrees.push_back(0.0f);
+    return t;
+}
+
+/** The comped or blended lane [r] settled, as the engine would play it. */
+audio::Reel::Region settled(const audio::Reel::Region &r) {
+    audio::Reel::Region out = r;
+    if (out.source) out.settle();
+    return out;
+}
+} // namespace
+
+std::vector<float> EngineHost::scoreTakes(const std::string &spec) {
+    std::string rest;
+    const auto f = headOf(spec, rest);
+    if (f.size() < 4 || f[0] != "score") return {};
+    int64_t totalFrames = 0;
+    int mapped = 0;
+    size_t files = 0;
+    // Unsettled, so a lane playing one take whole still shows every take.
+    auto reel = parseReel(rest, totalFrames, mapped, files, false);
+    const audio::Reel::Cell *cell = reel->find(1);
+    if (cell == nullptr || !cell->lanes[0].source) return {};
+    const audio::Reel::Region &r = cell->lanes[0];
+    audio::takescore::Stack stack;
+    stack.gridStep = std::atof(f[1].c_str());
+    stack.gridPhase = std::atof(f[2].c_str());
+    stack.cuts = cutsOf(f[3]);
+    stack.sampleRate = static_cast<float>(kSampleRate);
+    if (r.takes.empty()) {
+        stack.takes.push_back({r.source.get(), r.offset, 0, r.frames});
+    } else {
+        for (const auto &t : r.takes) stack.takes.push_back({t.source.get(), t.offset, t.start, t.end});
+    }
+    if (stack.cuts.size() < 2) return {};
+    if (f.size() > 4) stack.tuning = tuningOf(f[4]);
+    // A lead: cell 2, read as it plays, [delta] frames on from this lane.
+    const audio::Reel::Cell *leadCell = reel->find(2);
+    if (leadCell != nullptr && leadCell->has(0)) {
+        const audio::Reel::Region lead = settled(leadCell->lanes[0]);
+        const int32_t delta = f.size() > 5 ? std::atoi(f[5].c_str()) : 0;
+        const int32_t total = stack.cuts.back();
+        stack.lead.assign(static_cast<size_t>(std::max(0, total)), 0.0f);
+        int32_t hint = 0;
+        for (int32_t at = 0; at < total; ++at) {
+            const int64_t g = static_cast<int64_t>(at) + delta;
+            if (g < 0 || g >= lead.frames) continue;
+            float x = 0.0f, y = 0.0f;
+            lead.soundAt(g, hint, x, y);
+            stack.lead[static_cast<size_t>(at)] = 0.5f * (x + y);
+        }
+    }
+    const auto scores = audio::takescore::scoreStack(stack);
+    const auto takes = static_cast<int32_t>(stack.takes.size());
+    const auto phrases = static_cast<int32_t>(stack.cuts.size() - 1);
+    std::vector<float> out = {static_cast<float>(takes), static_cast<float>(phrases)};
+    for (const auto &sc : scores) {
+        out.insert(out.end(), {sc.score, sc.pitchCents, sc.timingMs, sc.clips, sc.snrDb});
+    }
+    return out;
+}
+
+std::vector<float> EngineHost::lineUpTakes(const std::string &spec) {
+    std::string rest;
+    const auto f = headOf(spec, rest);
+    if (f.size() < 3 || (f[0] != "lineup" && f[0] != "blendup")) return {};
+    int64_t totalFrames = 0;
+    int mapped = 0;
+    size_t files = 0;
+    auto reel = parseReel(rest, totalFrames, mapped, files);
+    const audio::Reel::Cell *lead = reel->find(1);
+    const audio::Reel::Cell *dbl = reel->find(2);
+    if (lead == nullptr || dbl == nullptr || !lead->has(0) || !dbl->has(0)) return {};
+    const int32_t maxShift = std::atoi(f[1].c_str());
+    const int32_t delta = f.size() > 3 ? std::atoi(f[3].c_str()) : 0;
+    const auto rate = static_cast<float>(kSampleRate);
+    std::vector<float> out;
+    if (f[0] == "lineup") {
+        for (const auto &w : audio::takescore::lineUpWords(lead->lanes[0], delta, dbl->lanes[0], cutsOf(f[2]), maxShift, rate)) {
+            out.insert(out.end(), {static_cast<float>(w.start), static_cast<float>(w.end), w.shift});
+        }
+        return out;
+    }
+    const auto &stack = dbl->lanes[0];
+    const auto words = audio::takescore::lineUpStack(lead->lanes[0], delta, stack, cutsOf(f[2]), maxShift, rate);
+    out.push_back(static_cast<float>(words.size()));
+    for (const auto &take : words) {
+        out.push_back(static_cast<float>(take.size()));
+        for (const auto &w : take) out.insert(out.end(), {static_cast<float>(w.start), static_cast<float>(w.end), w.shift});
+    }
+    return out;
+}
+
+void EngineHost::dropListening() {
+    for (int rack = 0; rack < kRackCount; ++rack) {
+        Machine *m = sEngine.racks[rack].currentMachine();
+        if (m == nullptr || std::strcmp(m->typeName(), "Bias") != 0) continue;
+        delete static_cast<audio::Listen *>(m->swapObject(1, nullptr));
+    }
+}
+
+/** A reel from its spec (see loadReel), its files read through sharedSource. */
+std::unique_ptr<audio::Reel> EngineHost::parseReel(const std::string &spec, int64_t &totalFrames,
+                                                   int &mapped, size_t &files, bool settle) {
+    auto reel = std::make_unique<audio::Reel>();
+    // Distinct paths, looked up once each.
+    std::unordered_map<std::string, std::shared_ptr<const audio::Reel::Source>> decoded;
 
     std::istringstream lines(spec);
     std::string line;
@@ -1956,6 +2241,58 @@ std::string EngineHost::loadReel(int rack, const std::string &spec) {
         std::string part;
         std::istringstream fields(line);
         while (std::getline(fields, part, '|')) f.push_back(part);
+        if (!f.empty() && (f[0] == "take" || f[0] == "piece" || f[0] == "span" || f[0] == "blend" ||
+                           f[0] == "nudge" || f[0] == "spread")) {
+            const bool isTake = f[0] == "take";
+            const size_t need = isTake ? 5u
+                                : f[0] == "piece" || f[0] == "span" ? 6u
+                                : f[0] == "nudge" ? 7u
+                                : f[0] == "spread" ? 4u : 3u;
+            if (f.size() < need) {
+                LOGE("reel: short %s line: %s", f[0].c_str(), line.c_str());
+                continue;
+            }
+            const int64_t sceneId = std::strtoll(f[1].c_str(), nullptr, 10);
+            const int32_t lane = std::atoi(f[2].c_str());
+            audio::Reel::Region *r = nullptr;
+            for (auto &c : reel->cells) {
+                if (c.sceneId == sceneId && lane >= 0 && lane < audio::kReelLanes && c.lanes[lane].source) {
+                    r = &c.lanes[lane];
+                }
+            }
+            if (r == nullptr) {
+                LOGE("reel: %s before its region: %s", f[0].c_str(), line.c_str());
+                continue;
+            }
+            if (r->takes.empty()) r->takes.push_back({r->source, r->offset});
+            if (f[0] == "blend") {
+                r->blend = true;
+            } else if (f[0] == "spread") {
+                r->spread = std::clamp(static_cast<float>(std::atof(f[3].c_str())), 0.0f, 1.0f);
+            } else if (f[0] == "nudge") {
+                const int32_t k = std::atoi(f[3].c_str());
+                if (k >= 0 && k < static_cast<int32_t>(r->takes.size())) {
+                    r->takes[static_cast<size_t>(k)].nudges.push_back(
+                        {std::atoi(f[4].c_str()), std::atoi(f[5].c_str()), std::atoi(f[6].c_str())});
+                }
+            } else if (f[0] == "span") {
+                const int32_t k = std::atoi(f[3].c_str());
+                if (k >= 0 && k < static_cast<int32_t>(r->takes.size())) {
+                    r->takes[static_cast<size_t>(k)].start = std::atoi(f[4].c_str());
+                    r->takes[static_cast<size_t>(k)].end = std::atoi(f[5].c_str());
+                }
+            } else if (isTake) {
+                auto &src = decoded[f[3]];
+                if (src == nullptr) src = sharedSource(f[3], totalFrames, mapped);
+                // A take that won't read stays in the stack as a gap, so the
+                // pieces' take numbers still line up. settle() drops its pieces.
+                r->takes.push_back({src, std::atoi(f[4].c_str())});
+            } else {
+                r->pieces.push_back({std::atoi(f[3].c_str()), std::atoi(f[4].c_str()), std::atoi(f[5].c_str()),
+                                     f.size() > 6 ? std::atoi(f[6].c_str()) : 0});
+            }
+            continue;
+        }
         if (f.size() < 9) {
             LOGE("reel: %zu fields, wanted 9: %s", f.size(), line.c_str());
             continue;
@@ -1966,7 +2303,7 @@ std::string EngineHost::loadReel(int rack, const std::string &spec) {
 
         auto &src = decoded[f[2]];
         if (src == nullptr) {
-            src = sourceFor(f[2], totalFrames, mapped);
+            src = sharedSource(f[2], totalFrames, mapped);
             if (src == nullptr) continue;
         }
 
@@ -1980,6 +2317,8 @@ std::string EngineHost::loadReel(int rack, const std::string &spec) {
             cell->sceneId = sceneId;
         }
         audio::Reel::Region &r = cell->lanes[lane];
+        r.takes.clear();
+        r.pieces.clear();
         r.source = src;
         r.offset = std::atoi(f[3].c_str());
         r.frames = std::atoi(f[4].c_str());
@@ -1992,29 +2331,27 @@ std::string EngineHost::loadReel(int rack, const std::string &spec) {
         r.fadeOut = f.size() > 10 ? std::atoi(f[10].c_str()) : 0;
     }
 
+    // Comped lanes: tidy the pieces and move the joins to quiet spots.
+    for (auto &cell : reel->cells) {
+        for (auto &r : cell.lanes) {
+            if (r.source && settle) r.settle();
+        }
+    }
+
     // Prefetch the start of every region while still on the loader thread,
     // so the audio thread doesn't take a page fault on a mapped take's first
     // block. It's only a hint, so it costs nothing if the kernel ignores it.
     for (const auto &cell : reel->cells) {
         for (const auto &r : cell.lanes) {
             if (r.source) r.source->willNeed(r.offset, kSampleRate);
+            for (const auto &t : r.takes) {
+                if (t.source) t.source->willNeed(t.offset, kSampleRate);
+            }
         }
     }
 
-    LOGI("reel on rack %d: %zu cells, %zu files (%d mapped), %.1f MB resident", rack,
-         reel->cells.size(), decoded.size(), mapped,
-         static_cast<double>(totalFrames) * sizeof(int16_t) / (1024.0 * 1024.0));
-
-    Mount mount;
-    mount.kind = Mount::Kind::Object;
-    mount.machineType = "Bias";
-    mount.rack = rack;
-    mount.slot = 0;
-    // Handed over before the mount: on failure the retry deletes it.
-    mount.object = reel.release();
-    mount.deleter = deleteAs<audio::Reel>;
-    if (!mountObjectWithRetry(mount)) return "mount queue full";
-    return "";
+    files = decoded.size();
+    return reel;
 }
 
 std::string EngineHost::buildCloud(int rack, const float *spectrum01, int32_t count) {
@@ -2210,8 +2547,61 @@ std::string EngineHost::loadEffectFormula(int rack, const std::string &unit, con
     // Handed over before the mount: on failure the retry deletes it.
     mount.object = expr.release();
     mount.deleter = deleteAs<machine::formulate::Expr>;
+    mount.machineType = "Formula";
     if (!mountObjectWithRetry(mount)) return "mount queue full";
     if (track) effectFormula_[rack][trackInsertSlot(u)] = formula;
+    return "";
+}
+
+std::string EngineHost::loadImpulse(int rack, const std::string &unit, const std::string &path, float length01,
+                                    float decay01, float stretch01) {
+    const Unit u = unitFromName(unit);
+    const bool track = trackInsertSlot(u) >= 0;
+    if (track && (rack < 0 || rack >= kRackCount)) return "no such rack";
+    const auto key = std::make_pair(track ? rack : 0, static_cast<int>(u));
+    Mount mount;
+    mount.kind = Mount::Kind::EffectObject;
+    mount.rack = key.first;
+    mount.slot = static_cast<int32_t>(u);
+    mount.machineType = "Venue";
+    mount.deleter = deleteAs<effect::VenueImpulse>;
+    if (path.empty()) {
+        {
+            std::lock_guard<std::mutex> lock(impulseMtx_);
+            impulses_.erase(key);
+        }
+        mount.object = nullptr;
+        return mountObjectWithRetry(mount) ? "" : "mount queue full";
+    }
+    std::shared_ptr<const SampleData> data;
+    {
+        std::lock_guard<std::mutex> lock(impulseMtx_);
+        const auto it = impulses_.find(key);
+        if (it != impulses_.end() && it->second.path == path) data = it->second.data;
+    }
+    if (!data) {
+        std::string error;
+        // Twice the longest length, for a stretch of one half.
+        auto decoded = decodeAudio(path, kSampleRate, error, 20);
+        if (!decoded) return error.empty() ? "that file couldn't be read" : error;
+        effect::normaliseImpulse(decoded->left, decoded->right);
+        data = std::move(decoded);
+        std::lock_guard<std::mutex> lock(impulseMtx_);
+        impulses_[key] = ImpulseSource{path, data};
+    }
+    int32_t count = 0;
+    const ParamDef *defs = EffectRegistry::paramDefs("Venue", count);
+    if (defs == nullptr || count < effect::Venue::Count) return "no Venue effect";
+    effect::VenueShape shape;
+    shape.length = defs[effect::Venue::Length].map(length01);
+    shape.decay = defs[effect::Venue::Decay].map(decay01);
+    shape.stretch = defs[effect::Venue::Stretch].map(stretch01);
+    auto built = effect::buildVenueImpulse(data->left.data(), data->stereo ? data->right.data() : nullptr, data->frames,
+                                           kSampleRate, shape);
+    if (!built) return "that impulse is empty";
+    // Handed over before the mount: on failure the retry deletes it.
+    mount.object = built.release();
+    if (!mountObjectWithRetry(mount)) return "mount queue full";
     return "";
 }
 
@@ -2237,11 +2627,16 @@ std::string EngineHost::compCell(int rack, int64_t sceneId, int32_t frames, floa
         }
     } offline{rendering};
     sAudio.stop();
+    // The tape pushed just before this call can still be queued; land it so
+    // the comp plays the cell it was asked about.
+    sEngine.landMounts();
     // Asked again now that nothing can swap it: it could have been replaced
     // just before the stop.
     Machine *m = sEngine.racks[rack].currentMachine();
     if (m == nullptr || std::strcmp(m->typeName(), "Bias") != 0) return "that rack is not a Bias";
     auto *bias = static_cast<machine::Bias *>(m);
+    // Listening through would be all the comp heard.
+    delete static_cast<audio::Listen *>(bias->swapObject(1, nullptr));
 
     WavWriter writer;
     std::string error;
@@ -2298,8 +2693,23 @@ std::string EngineHost::freezeClip(int rack, int64_t sceneId, const std::string 
         ~Guard() { flag.store(false); }
     } guard{rendering};
 
-    // Read while the audio thread is still running, so the snapshot could be
-    // replaced by an edit mid-read (see Retirer::ReadGuard).
+    // Take the engine off the device and render at full quality, so the
+    // frozen track matches the others. Back on at every return.
+    const OfflineRender renderingAtFullQuality;
+    struct Offline {
+        bool on = true;
+        void restart() {
+            if (on && !sAudio.start()) LOGE("audio failed to restart after a freeze");
+            on = false;
+        }
+        ~Offline() { restart(); }
+    } offline;
+    sAudio.stop();
+    // A song or machine pushed just before this call can still be queued for
+    // the audio thread, so land it here, or the freeze would read the song
+    // before it.
+    sEngine.landMounts();
+
     int32_t sceneIdx = -1;
     int64_t ticks = 0;
     float bpm = 0.0f;
@@ -2322,10 +2732,6 @@ std::string EngineHost::freezeClip(int rack, int64_t sceneId, const std::string 
     if (clipFrames <= 0) return "that clip is too short to render";
     const int64_t tailFrames = static_cast<int64_t>(std::max(0.0f, tailSeconds) * kSampleRate);
 
-    // Take the engine off the device and render at full quality, so the
-    // frozen track matches the others.
-    const OfflineRender renderingAtFullQuality;
-    sAudio.stop();
     const bool loopSongBefore = sEngine.transport.loopSong();
     const bool loopSceneBefore = sEngine.transport.loopScene();
     // This drives the scheduler through one scene by hand, so clip mode is
@@ -2337,6 +2743,8 @@ std::string EngineHost::freezeClip(int rack, int64_t sceneId, const std::string 
     sEngine.transport.requestStop();
     float scratch[kBlockFrames * 2];
     sEngine.renderBlock(nullptr, scratch);
+    // Listening through a phrase plays instead of the song.
+    dropListening();
 
     // Start clean, with nothing ringing from before.
     //
@@ -2425,7 +2833,7 @@ std::string EngineHost::freezeClip(int rack, int64_t sceneId, const std::string 
     sEngine.transport.setLoopSong(loopSongBefore);
     sEngine.transport.setLoopScene(loopSceneBefore);
     sEngine.transport.setLauncher(launcherBefore);
-    if (!sAudio.start()) LOGE("audio failed to restart after a freeze");
+    offline.restart();
 
     // The tail is stored after the clip instead of mixed into its start. The
     // rack plays it with a second cursor, so the first pass has no tail, the
@@ -2623,6 +3031,10 @@ std::string EngineHost::startCapture(const std::string &path, int source) {
     const auto which = source == 1 ? Capture::FromMaster : Capture::FromInput;
     // Recording with no input open would write a silent file, so refuse.
     if (which == Capture::FromInput && !sAudio.isInputRunning()) return "audio input is not open";
+    // A new file starts with no marks. The audio thread only stamps them while
+    // a capture runs, so this can't race it.
+    if (sEngine.capture.armed()) return "already recording";
+    sEngine.marks.reset();
     std::string error;
     if (!sEngine.capture.start(path, kSampleRate, which, error)) return error;
     return "";
@@ -2655,6 +3067,144 @@ float EngineHost::capturedSeconds() const {
 int64_t EngineHost::capturedFrames() const { return sEngine.capture.frames(); }
 float EngineHost::capturedPeak() const { return sEngine.capture.peak(); }
 bool EngineHost::captureOverflowed() const { return sEngine.capture.overflowed(); }
+
+namespace {
+// How long each pass is left to ring out after its sweep, seconds.
+constexpr float kRoomTailSeconds = 6.0f;
+// The longest sweep and the most passes, the capture window's range. The
+// analysis peaks at about 90 MB at these.
+constexpr float kRoomMaxSweepSeconds = 10.0f;
+constexpr int kRoomMaxRepeats = 4;
+// The impulse from the last sweep, for listening to and saving.
+std::mutex sRoomLock;
+dsp::room::Impulse sRoom;
+
+float fromDb(float db) { return std::pow(10.0f, std::clamp(db, -60.0f, 0.0f) / 20.0f); }
+} // namespace
+
+void EngineHost::roomTone(bool on, float levelDb) {
+    if (on) {
+        sEngine.roomSweep.startTone(fromDb(levelDb));
+    } else if (sEngine.roomSweep.current() == RoomSweep::Tone) {
+        sEngine.roomSweep.stop();
+    }
+}
+
+std::string EngineHost::roomSweepStart(float seconds, int repeats, float levelDb) {
+    if (!sAudio.isInputRunning()) return "audio input is not open";
+    std::lock_guard<std::mutex> hold(sRoomLock);
+    sEngine.roomSweep.stop();
+    dsp::room::SweepSpec spec;
+    spec.rate = kSampleRate;
+    spec.sweepFrames = static_cast<int32_t>(std::clamp(seconds, 1.0f, kRoomMaxSweepSeconds) * kSampleRate);
+    spec.tailFrames = static_cast<int32_t>(kRoomTailSeconds * kSampleRate);
+    spec.repeats = std::clamp(repeats, 1, kRoomMaxRepeats);
+    if (!sEngine.roomSweep.prepare(spec, fromDb(levelDb))) return "a sweep is already playing";
+    sRoom = dsp::room::Impulse();
+    sEngine.roomSweep.start();
+    return "";
+}
+
+void EngineHost::roomSweepStop() { sEngine.roomSweep.stop(); }
+
+void EngineHost::roomClose() {
+    std::lock_guard<std::mutex> hold(sRoomLock);
+    sEngine.roomSweep.release();
+    sRoom = dsp::room::Impulse();
+}
+int EngineHost::roomSweepState() const { return sEngine.roomSweep.current(); }
+float EngineHost::roomSweepProgress() const { return sEngine.roomSweep.progress(); }
+float EngineHost::roomSweepPeak() const { return sEngine.roomSweep.recordedPeak(); }
+
+std::string EngineHost::roomAnalyse(float *picture, int columns) {
+    std::lock_guard<std::mutex> hold(sRoomLock);
+    if (sEngine.roomSweep.current() != RoomSweep::Done) return "there is no sweep to use|0|0|0|0|0|0";
+    const std::vector<float> &rec = sEngine.roomSweep.recording();
+    sRoom = dsp::room::deconvolve(rec.data(), static_cast<int64_t>(rec.size() / 2), sEngine.roomSweep.sweepSpec());
+    if (!sRoom.error.empty()) return sRoom.error + "|0|0|0|0|0|0";
+    const std::vector<float> shape = dsp::room::picture(sRoom, columns);
+    std::copy(shape.begin(), shape.end(), picture);
+    char out[160];
+    std::snprintf(out, sizeof(out), "|%d|%d|%d|%d|%.1f|%d", sRoom.frames(), sRoom.autoFrames, sRoom.directFrame,
+                  sRoom.latencyFrames, static_cast<double>(sRoom.snrDb), sRoom.stereo() ? 2 : 1);
+    return out;
+}
+
+std::string EngineHost::roomListen(int frames) {
+    std::vector<float> l, r;
+    {
+        std::lock_guard<std::mutex> hold(sRoomLock);
+        if (sRoom.frames() <= 0) return "there is nothing to play";
+        dsp::room::finish(sRoom, frames, l, r);
+    }
+    if (r.empty()) r = l;
+    // A 3 ms click of noise, heard dry and then through the room.
+    constexpr int32_t kClick = kSampleRate * 3 / 1000;
+    float click[kClick];
+    uint32_t seed = 12345u;
+    for (int32_t i = 0; i < kClick; ++i) {
+        seed = seed * 1664525u + 1013904223u;
+        const float v = static_cast<float>(seed >> 9) * (2.0f / 8388608.0f) - 1.0f;
+        click[i] = v * std::exp(-4.0f * static_cast<float>(i) / kClick);
+    }
+    const auto n = static_cast<int32_t>(l.size());
+    const int32_t gap = kSampleRate / 2;
+    std::vector<float> pcm(static_cast<size_t>(gap + n + kClick) * 2, 0.0f);
+    for (int32_t i = 0; i < kClick; ++i) pcm[static_cast<size_t>(i) * 2] = pcm[static_cast<size_t>(i) * 2 + 1] = 0.5f * click[i];
+    float peak = 0.0f;
+    std::vector<float> wet(static_cast<size_t>(n + kClick) * 2, 0.0f);
+    for (int32_t i = 0; i < n + kClick; ++i) {
+        float a = 0.0f, b = 0.0f;
+        for (int32_t k = 0; k < kClick; ++k) {
+            const int32_t j = i - k;
+            if (j < 0 || j >= n) continue;
+            a += click[k] * l[static_cast<size_t>(j)];
+            b += click[k] * r[static_cast<size_t>(j)];
+        }
+        wet[static_cast<size_t>(i) * 2] = a;
+        wet[static_cast<size_t>(i) * 2 + 1] = b;
+        peak = std::max(peak, std::max(std::fabs(a), std::fabs(b)));
+    }
+    const float g = peak > 0.0f ? 0.5f / peak : 0.0f;
+    for (size_t i = 0; i < wet.size(); ++i) pcm[static_cast<size_t>(gap) * 2 + i] += wet[i] * g;
+    sEngine.audition.play(pcm.data(), static_cast<int64_t>(pcm.size() / 2));
+    return "";
+}
+
+std::string EngineHost::roomSave(const std::string &path, int frames) {
+    std::vector<float> l, r;
+    {
+        std::lock_guard<std::mutex> hold(sRoomLock);
+        if (sRoom.frames() <= 0) return "there is nothing to save";
+        dsp::room::finish(sRoom, frames, l, r);
+    }
+    std::string error;
+    const std::string tmp = path + ".part";
+    {
+        WavWriter writer;
+        if (!writer.open(tmp, kSampleRate, 24, error)) return error.empty() ? "that file couldn't be written" : error;
+        std::vector<float> block(static_cast<size_t>(kBlockFrames) * 2);
+        const auto n = static_cast<int32_t>(l.size());
+        for (int32_t at = 0; at < n; at += kBlockFrames) {
+            const int32_t m = std::min(kBlockFrames, n - at);
+            for (int32_t i = 0; i < m; ++i) {
+                const auto s = static_cast<size_t>(at + i);
+                block[static_cast<size_t>(i) * 2] = l[s];
+                block[static_cast<size_t>(i) * 2 + 1] = r.empty() ? l[s] : r[s];
+            }
+            writer.write(block.data(), m);
+        }
+        if (!writer.close()) {
+            std::remove(tmp.c_str());
+            return "that file couldn't be finished";
+        }
+    }
+    if (std::rename(tmp.c_str(), path.c_str()) != 0) {
+        std::remove(tmp.c_str());
+        return "that file couldn't be written";
+    }
+    return "";
+}
 
 void EngineHost::panic() { sEngine.panicFlag.store(true, std::memory_order_release); }
 void EngineHost::setCountInBars(int32_t bars) { sEngine.transport.setCountInBars(bars); }

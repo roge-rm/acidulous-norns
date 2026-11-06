@@ -7,7 +7,12 @@
 # `split`: only what is above it is shaped, so a loop's hats and snare
 # snap while its kick stays as it was. At its bottom the whole sound is.
 #
-# Families: punch, tighten, soften, room, split.
+# The second extra is the accent grid. With `grid` 1, each hit is shaped by
+# the step it lands on: `a01`..`a16` are 0 down, 1 flat, 2 up, `length` of
+# them, each `rate` long (#0 1/16T, #1 1/16, #2 1/8), from the song's start.
+# An up step gives the onset `depth` dB more, a down step that much less.
+#
+# Families: punch, tighten, soften, room, split, grid.
 
 machine fx.Transient
 
@@ -76,3 +81,78 @@ patch "Top Crack" family=split
 patch "Bloom Above" family=split
   sustain        0.8
   split          800 Hz
+
+patch "Backbeat Snap" family=grid
+  # The snare on 2 and 4 cracks, the offbeat eighths sit back.
+  grid           1
+  depth          6 dB
+  gain           -2 dB
+  a03            0
+  a05            2
+  a07            0
+  a11            0
+  a13            2
+  a15            0
+
+patch "Offbeat Push" family=grid
+  # The offbeat eighths lean forward, the beats softened under them.
+  grid           1
+  gain           1.4 dB
+  depth          6 dB
+  a01            0
+  a03            2
+  a05            0
+  a07            2
+  a09            0
+  a11            2
+  a13            0
+  a15            2
+
+patch "Ghost Hats" family=grid
+  # Only the top: sixteenth hats with the beats up and the e's and a's ghosted.
+  grid           1
+  depth          9 dB
+  split          3000 Hz
+  a01            2
+  a02            0
+  a04            0
+  a05            2
+  a06            0
+  a08            0
+  a09            2
+  a10            0
+  a12            0
+  a13            2
+  a14            0
+  a16            0
+
+patch Tresillo family=grid
+  # 3+3+2 over half a bar, the rest pulled back.
+  grid           1
+  depth          6 dB
+  gain           -2 dB
+  length         8
+  a01            2
+  a02            0
+  a03            0
+  a04            2
+  a05            0
+  a06            0
+  a07            2
+  a08            0
+
+patch Dembow family=grid
+  # The 3+3+2 snare a dembow rides on, the backbeat pulled back under it.
+  grid           1
+  gain           0.9 dB
+  depth          6 dB
+  a02            0
+  a05            0
+  a13            0
+  a04            2
+  a06            0
+  a07            2
+  a10            0
+  a12            2
+  a14            0
+  a15            2

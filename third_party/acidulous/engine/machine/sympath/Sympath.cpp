@@ -43,6 +43,25 @@ constexpr float kContactRound = 0.01f;
  */
 constexpr float kBowGain = 0.36f, kBowedHeard = 0.16f, kBowKick = 0.2f;
 constexpr float kZing = 50.0f, kZingMost = 0.35f;
+/**
+ * How hard the song shakes the sympathetic strings at full ring, and the
+ * drone strings against them. The song comes in at track level, about as
+ * loud as a played note, but shakes every string all the time, so it goes in
+ * softer than a note does.
+ */
+constexpr float kSongShake = 6.0f, kSongDrones = 0.5f;
+/** Listening: the song taken down this many times, the low-pass before it, and how often the notes are picked, seconds. */
+constexpr int kHearDown = 8;
+constexpr float kHearLowHz = 1200.0f, kHearEvery = 0.1f;
+/** A retuning string's glide, seconds. */
+constexpr float kRetuneGlide = 0.08f;
+/**
+ * How loud Sympath may sound against the song before it lets less of the song
+ * in: all of it under a quarter, none at a half. A cut in proportion would
+ * settle where a loop holds itself up; shut at a half, two tracks keyed on
+ * each other, each as loud as the other, can only die away.
+ */
+constexpr float kSongFrom = 0.25f, kSongMost = 0.5f, kEnvUp = 0.005f, kEnvDown = 0.2f;
 
 /**
  * Each kind: its lowest string and how long that rings, how much top the
@@ -156,11 +175,23 @@ const ParamDef *Sympath::paramDefs(int32_t &count) const {
         {"octave", -2.0f, 2.0f, 0.0f, Curve::Stepped, 5, ""},
         {"volume", 0.0f, 1.0f, 0.7f, Curve::Linear, 0, ""},
     };
+    static const ParamDef last[Count - Sidechain] = {
+        // The track whose sound rings the strings: 0 for none, 1..16.
+        {"sidechain", 0.0f, 16.0f, 0.0f, Curve::Stepped, 17, ""},
+        {"ring", 0.0f, 1.0f, 0.5f, Curve::Linear, 0, ""},
+        // 0 keeps sa and the scale; up from there the strings retune to the
+        // song's notes, learning its key slowly or following each chord.
+        {"listen", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
+        // How long the sympathetic and drone strings ring: a quarter, as
+        // they were, four times.
+        {"bloom", 0.0f, 1.0f, 0.5f, Curve::Linear, 0, ""},
+    };
     static ParamDef defs[Count];
     static char names[kMacros * MacroParams][12];
     static bool built = false;
     if (!built) {
         for (int32_t i = 0; i < MacroBase; ++i) defs[i] = first[i];
+        for (int32_t i = Sidechain; i < Count; ++i) defs[i] = last[i - Sidechain];
         auto put = [&](int32_t i, const char *n, float mn, float mx, float df, acidulous::Curve c, int32_t steps) {
             char *name = names[i - MacroBase];
             std::snprintf(name, 12, "%s", n);
@@ -265,6 +296,8 @@ void Sympath::prepare(int32_t rate) {
         v.bowCut.setSampleRate(sampleRate);
     }
     tarbZing.setSampleRate(sampleRate);
+    ear.prepare(sampleRate, kHearDown, kHearLowHz);
+    hearBuilt = false;
     skinTone.setSampleRate(sampleRate);
     skinTone.set(1400.0f, 0.3f);
     reset();
@@ -295,13 +328,31 @@ void Sympath::reset() {
         v.pitch = v.aim = 60.0f;
         v.gain = 0.0f;
     }
-    for (Free &f : tarbs) f.wave.clear();
+    for (Free &f : tarbs) {
+        f.wave.clear();
+        f.hz = f.aim = 0.0f;
+    }
     for (Free &f : drones) {
         f.wave.clear();
         f.strokeLength = f.strokeAt = 0;
+        f.hz = f.aim = 0.0f;
     }
     builtSa = builtScale = builtKind = -1.0f;
     builtTune = -1000.0f;
+    builtBloom = -1.0f;
+    builtGen = hearGen = 0xffffffffu;
+    songEnv = freeEnv = 0.0f;
+    songHold = 1.0f;
+    builtSong = 0;
+    tarbT60 = kTarbT60;
+    droneT60 = kDroneT60;
+    bloomTrim = 1.0f;
+    ear.reset();
+    hearUntil = 0;
+    glideTick = 0;
+    songCount = 0;
+    songRoot = -1;
+    songSig = 0;
     bpm = 120.0f;
     bend = wheel = channelPressure_ = 0.0f;
     gamakPhase = 0.0f;
@@ -393,35 +444,213 @@ void Sympath::tuneString(Waveguide &w, float hz, float t60, float tone) {
     w.setDamping(std::pow(10.0f, -3.0f / (std::fmax(t60, 0.01f) * hz)), tone);
 }
 
+int Sympath::nearestKey(float hz) const {
+    const float want = std::log2(std::fmax(hz, 1.0f));
+    // In equal temperament the key is the note; a tuning looks either side of it.
+    const int guess = std::clamp(static_cast<int>(std::lround(69.0f + 12.0f * (want - std::log2(440.0f)))), 0, 127);
+    if (tuningTable() == nullptr) return guess;
+    int best = guess;
+    float bestOff = 1e9f;
+    for (int k = std::max(0, guess - 48); k <= std::min(127, guess + 48); ++k) {
+        const float off = std::fabs(std::log2(noteHz(static_cast<float>(k))) - want);
+        if (off < bestOff) {
+            bestOff = off;
+            best = k;
+        }
+    }
+    return best;
+}
+
+void Sympath::checkTuning() {
+    const float *t = tuningTable();
+    if (t == nullptr ? tuningSeenEqual : (!tuningSeenEqual && std::equal(t, t + 128, tuningSeen))) return;
+    tuningSeenEqual = t == nullptr;
+    if (t != nullptr) std::copy(t, t + 128, tuningSeen);
+    ++tuningGen;
+}
+
+void Sympath::tuneHearing() {
+    hearGen = tuningGen;
+    hearBuilt = true;
+    // The steps to the octave: the first key over 60 an octave up, within 5
+    // cents. A tuning with none, or more steps than the bands can hold,
+    // isn't listened to: the strings keep the scale.
+    hearPeriod = 12;
+    if (tuningTable() != nullptr) {
+        hearPeriod = 0;
+        const float c60 = noteHz(60.0f);
+        for (int n = 1; n <= kHearSteps; ++n) {
+            const float cents = 1200.0f * std::log2(noteHz(60.0f + static_cast<float>(n)) / c60);
+            if (std::fabs(cents - 1200.0f) < 5.0f) {
+                hearPeriod = n;
+                break;
+            }
+        }
+    }
+    // Bands from note 48, one on each key, about two thirds of a semitone
+    // wide: three octaves, or two in a tuning of more than 24 steps.
+    ear.setCount((hearPeriod <= 24 ? 3 : 2) * hearPeriod);
+    for (int b = 0; b < ear.count; ++b) ear.setBand(b, noteHz(static_cast<float>(48 + b)));
+    songCount = 0;
+    songRoot = -1;
+    songSig = 0;
+}
+
+void Sympath::hear(const float *song, int32_t frames, float listen) {
+    if (!hearBuilt || hearGen != tuningGen) tuneHearing();
+    if (hearPeriod <= 0) return;
+    const float downRate = sampleRate / static_cast<float>(kHearDown);
+    // How long the bands remember: eight seconds at the bottom, one at the top.
+    const float memory = 8.0f * std::pow(1.0f / 8.0f, clampf(listen, 0.0f, 1.0f));
+    const float keep = 1.0f - std::exp(-1.0f / (memory * downRate));
+    const int every = std::max(1, static_cast<int>(kHearEvery * downRate));
+    for (int32_t i = 0; i < frames; ++i) {
+        if (!ear.step(song[i], keep)) continue;
+        if (--hearUntil <= 0) {
+            hearUntil = every;
+            chooseSongNotes(listen);
+        }
+    }
+    ear.settle();
+}
+
+void Sympath::chooseSongNotes(float listen) {
+    const int n = hearPeriod;
+    float steps[kHearSteps] = {};
+    // Steps finer than a semitone are narrower than the bands, so a band
+    // only counts where it's louder than both its neighbours.
+    const float *heard = ear.heard;
+    for (int b = 0; b < ear.count; ++b) {
+        if (n > 12 && ((b > 0 && heard[b - 1] > heard[b]) || (b + 1 < ear.count && heard[b + 1] > heard[b]))) continue;
+        steps[b % n] += heard[b];
+    }
+    float loudest = 0.0f;
+    int best = 0;
+    for (int c = 0; c < n; ++c) {
+        if (steps[c] > loudest) {
+            loudest = steps[c];
+            best = c;
+        }
+    }
+    // Nothing heard: the strings keep what they had.
+    if (loudest < 1e-9f) return;
+    // A note joins when it's this near the loudest, and leaves when it falls
+    // to three quarters of that, so the strings don't flicker between two.
+    // Higher listening takes fewer: each chord's notes rather than the key's.
+    const float joins = loudest * (0.2f + 0.25f * clampf(listen, 0.0f, 1.0f));
+    bool was[kHearSteps] = {};
+    for (int j = 0; j < songCount; ++j) was[songNotes[j]] = true;
+    if (songRoot < 0 || songRoot >= n || steps[best] > 1.25f * steps[songRoot] || steps[songRoot] < joins) songRoot = best;
+    int order[kHearSteps];
+    for (int c = 0; c < n; ++c) order[c] = c;
+    std::sort(order, order + n, [&](int a, int b) { return steps[a] != steps[b] ? steps[a] > steps[b] : a < b; });
+    bool in[kHearSteps] = {};
+    in[songRoot] = true;
+    int count = 1;
+    for (int j = 0; j < n && count < kSongNotes; ++j) {
+        const int c = order[j];
+        if (in[c]) continue;
+        if (steps[c] >= (was[c] ? 0.75f * joins : joins)) {
+            in[c] = true;
+            ++count;
+        }
+    }
+    // From the root up.
+    songCount = 0;
+    uint64_t sig = 1469598103934665603ull ^ static_cast<uint64_t>(songRoot);
+    for (int d = 0; d < n; ++d) {
+        const int c = (songRoot + d) % n;
+        if (!in[c]) continue;
+        songNotes[songCount++] = c;
+        sig = (sig ^ static_cast<uint64_t>(c + 1)) * 1099511628211ull;
+    }
+    songSig = sig | 1ull;
+}
+
 void Sympath::tuneFree() {
     const int kind = std::clamp(steppedTargetOf(Model), 0, KindCount - 1);
     const Make &k = kMakes[kind];
     const float sa = static_cast<float>(std::clamp(steppedTargetOf(Sa), 0, 11));
     const int scale = std::clamp(steppedTargetOf(Scale), 0, kScales - 1);
     const float tune = targetOf(Tune) / 100.0f;
-    if (sa == builtSa && static_cast<float>(scale) == builtScale && static_cast<float>(kind) == builtKind && tune == builtTune) return;
+    const float bloom = clampf(goalOf(Bloom), 0.0f, 1.0f);
+    // Listening, once the song's notes are known; the scale until then.
+    const uint64_t song = goalOf(Listen) > 0.0f && songCount > 0 && sidechainRack() >= 0 ? songSig : 0;
+    if (sa == builtSa && static_cast<float>(scale) == builtScale && static_cast<float>(kind) == builtKind && tune == builtTune &&
+        bloom == builtBloom && tuningGen == builtGen && song == builtSong) {
+        return;
+    }
+    // A change of model starts the strings where they belong; a change of
+    // the song's notes, or going back to the scale, glides them there.
+    const bool glide = (song != 0 || builtSong != 0) && static_cast<float>(kind) == builtKind;
     builtSa = sa;
     builtScale = static_cast<float>(scale);
     builtKind = static_cast<float>(kind);
     builtTune = tune;
+    builtBloom = bloom;
+    builtGen = tuningGen;
+    builtSong = song;
+    // At the middle exactly as before: a quarter as long at 0, four times at 1.
+    const float stretch = std::pow(4.0f, 2.0f * (bloom - 0.5f));
+    tarbT60 = kTarbT60 * stretch;
+    droneT60 = kDroneT60 * stretch;
+    bloomTrim = std::pow(stretch, -0.5f);
+    const bool equal = tuningTable() == nullptr;
     const float saNote = 48.0f + sa + tune;
+    // In a tuning, sa and each step of the scale are the keys nearest them.
+    const auto keyHz = [&](float equalNote) {
+        return noteHz(static_cast<float>(nearestKey(440.0f * std::pow(2.0f, (equalNote - 69.0f) / 12.0f))) + tune);
+    };
+    // Listening: the song's root in the octave over note 48, its notes from there.
+    const int n = hearPeriod;
+    const int rootKey = 48 + (song != 0 ? songRoot : 0);
+    const auto set = [&](Free &f, float hz, float t60, float tone) {
+        f.aim = hz;
+        if (!glide || f.hz <= 0.0f) {
+            f.hz = hz;
+            tuneString(f.wave, f.hz, t60, tone);
+        } else if (f.hz == hz) {
+            tuneString(f.wave, f.hz, t60, tone);
+        }
+    };
     tarbCount = k.tarbs;
     for (int i = 0; i < tarbCount; ++i) {
         // A shamisen's one is its low string, buzzing on the neck; a sitar's
         // run up the scale from the Sa above the main string's.
-        float note = saNote - 12.0f;
-        if (kind != Shamisen) note = saNote + 12.0f + static_cast<float>(kScaleSteps[scale][i % 7] + 12 * (i / 7));
         Free &f = tarbs[i];
-        f.hz = noteHz(note);
+        float hz;
+        if (song != 0) {
+            const int j = i % songCount, octave = (i / songCount) % 3;
+            const int d = (songNotes[j] - songRoot + n) % n;
+            // Past the top key, a period down and its ratio up: a tuning of
+            // many steps runs off the keyboard in a couple of octaves.
+            int key = kind == Shamisen ? rootKey - n : rootKey + n + d + n * octave;
+            float up = 1.0f;
+            while (key > 127) {
+                key -= n;
+                up *= noteHz(60.0f + static_cast<float>(n)) / noteHz(60.0f);
+            }
+            hz = noteHz(static_cast<float>(key) + tune) * up;
+        } else if (equal) {
+            float note = saNote - 12.0f;
+            if (kind != Shamisen) note = saNote + 12.0f + static_cast<float>(kScaleSteps[scale][i % 7] + 12 * (i / 7));
+            hz = noteHz(note);
+        } else {
+            const float s = kind == Shamisen ? -12.0f : 12.0f + static_cast<float>(kScaleSteps[scale][i % 7] + 12 * (i / 7));
+            hz = keyHz(48.0f + sa + s);
+        }
         f.pan = tarbCount > 1 ? kTarbSpread * (2.0f * static_cast<float>(i) / static_cast<float>(tarbCount - 1) - 1.0f) : 0.0f;
-        tuneString(f.wave, f.hz, kTarbT60, 0.97f);
+        set(f, hz, tarbT60, 0.97f);
     }
     droneCount = k.drones;
     for (int i = 0; i < droneCount; ++i) {
         Free &f = drones[i];
-        f.hz = noteHz(saNote + k.droneAt[i]);
+        float hz;
+        if (song != 0) hz = noteHz(static_cast<float>(nearestKey(noteHz(static_cast<float>(rootKey)) * std::pow(2.0f, k.droneAt[i] / 12.0f))) + tune);
+        else if (equal) hz = noteHz(saNote + k.droneAt[i]);
+        else hz = keyHz(48.0f + sa + k.droneAt[i]);
         f.pan = 0.3f;
-        tuneString(f.wave, f.hz, kDroneT60, 0.95f);
+        set(f, hz, droneT60, 0.95f);
     }
 }
 
@@ -513,6 +742,7 @@ void Sympath::start(uint8_t note, uint8_t velocity) {
     v->strings[0].bowDc = 0.0f;
     v->strings[0].kickLength = std::max(2, static_cast<int>(0.5f * sampleRate / foldHz(noteHz(pitch))));
     // The drone strings, struck with the note.
+    checkTuning();
     tuneFree();
     const float chikari = clampf(goalOf(Chikari), 0.0f, 1.0f);
     if (chikari > 0.0f) {
@@ -571,10 +801,32 @@ bool Sympath::render(float *L, float *R, int32_t frames) {
     params_.tick();
     updateMacros();
     for (int32_t i = 0; i < frames; ++i) L[i] = R[i] = 0.0f;
+    // The song: another track's sound for the strings to ring with, when
+    // there are strings for it to ring. Anything over silence wakes them.
+    const float *song = nullptr;
+    const float ring = clampf(paramOf(Ring), 0.0f, 1.0f);
+    if (key_ != nullptr && sidechainRack() >= 0) {
+        const Make &mk = kMakes[std::clamp(steppedTargetOf(Model), 0, KindCount - 1)];
+        if (mk.tarbs + mk.drones > 0 && (ring > 0.0f || goalOf(Listen) > 0.0f)) {
+            float loudest = 0.0f;
+            for (int32_t i = 0; i < frames; ++i) loudest = std::fmax(loudest, std::fabs(key_[i]));
+            if (loudest > kSilent) {
+                song = key_;
+                asleep = false;
+                quietSamples = 0;
+            }
+        }
+    }
     if (asleep) return true;
 
+    checkTuning();
     const int kind = std::clamp(steppedTargetOf(Model), 0, KindCount - 1);
     const Make &k = kMakes[kind];
+    const float listen = goalOf(Listen);
+    if (song != nullptr && listen > 0.0f) hear(song, frames, listen);
+    // How hard the song shakes the strings: the knob squared, so the low half is fine control.
+    const float songGain = song != nullptr ? kSongShake * ring * ring * bloomTrim : 0.0f;
+    if (songGain <= 0.0f) song = nullptr;
     // The pluck knob, bowed: how hard the bow presses, from airy to gripping.
     const float pluckKnob = clampf(paramOf(Pluck), 0.0f, 1.0f);
     // Where the rosin lets go: a firmer grip, a narrower curve. The string
@@ -598,6 +850,9 @@ bool Sympath::render(float *L, float *R, int32_t frames) {
         for (Voice &v : voices) v.zing.set(k.zingHz, 0.55f);
         tarbZing.set(k.zingHz, 0.55f);
     }
+    const float envUp = 1.0f - std::exp(-1.0f / (kEnvUp * sampleRate));
+    const float envDown = 1.0f - std::exp(-1.0f / (kEnvDown * sampleRate));
+    const float glideCoef = 1.0f - std::exp(-static_cast<float>(4 * kRetuneEvery) / (kRetuneGlide * sampleRate));
     const float skinFall = std::exp(-1.0f / (0.012f * sampleRate));
     const float dcPole = 1.0f - 6.2831853f * 15.0f / sampleRate;
     float peaks[kVoices] = {};
@@ -621,6 +876,16 @@ bool Sympath::render(float *L, float *R, int32_t frames) {
                     const float hz = noteHz(base + v.strings[s].offset);
                     tuneString(v.strings[s].wave, hz, stringT60(hz, v.held || kind == Tanpura), tone);
                 }
+            }
+            // Strings retuning to the song's notes slide there, as a peg
+            // turned: a quarter of them each time, so each every 64 samples.
+            glideTick = (glideTick + 1) & 3;
+            for (int t = glideTick; t < tarbCount + droneCount; t += 4) {
+                Free &f = t < tarbCount ? tarbs[t] : drones[t - tarbCount];
+                if (f.hz == f.aim || f.aim <= 0.0f) continue;
+                f.hz *= std::pow(f.aim / f.hz, glideCoef);
+                if (std::fabs(f.aim / f.hz - 1.0f) < 1e-4f) f.hz = f.aim;
+                tuneString(f.wave, f.hz, t < tarbCount ? tarbT60 : droneT60, t < tarbCount ? 0.97f : 0.95f);
             }
         }
         float played = 0.0f;
@@ -686,10 +951,20 @@ bool Sympath::render(float *L, float *R, int32_t frames) {
         }
         // The sympathetic strings, shaken by everything played.
         const float shakeBy = k.bowed > 0.0f ? kBowedSympathy : kSympathy;
+        float shake = played * shakeBy;
+        if (bloomTrim != 1.0f) shake *= bloomTrim;
+        // And by the song.
+        float heardSong = 0.0f;
+        if (song != nullptr) {
+            const float level = std::fabs(song[i]);
+            songEnv += (level - songEnv) * (level > songEnv ? envUp : envDown);
+            heardSong = song[i] * songGain * songHold;
+            shake += heardSong;
+        }
         float sympathy = 0.0f, sl = 0.0f, sr = 0.0f;
         for (int t = 0; t < tarbCount; ++t) {
             Free &f = tarbs[t];
-            f.wave.exciteOverTurn(played * shakeBy);
+            f.wave.exciteOverTurn(shake);
             float y = f.wave.step(0.0f);
             // The shamisen's low string lies on the neck: sawari.
             if (kind == Shamisen) {
@@ -709,6 +984,7 @@ bool Sympath::render(float *L, float *R, int32_t frames) {
             Free &f = drones[d];
             float in = 0.0f;
             if (f.strokeAt < f.strokeLength) in = f.stroke[static_cast<size_t>(f.strokeAt++)];
+            if (song != nullptr) f.wave.exciteOverTurn(heardSong * kSongDrones);
             droneOut += f.wave.step(in);
         }
         droneOut *= kHouse * k.level;
@@ -731,6 +1007,15 @@ bool Sympath::render(float *L, float *R, int32_t frames) {
         dcOut[1] = hr;
         L[i] = hl;
         R[i] = hr;
+        if (song != nullptr) {
+            // Measured as a track listening to this one would hear it.
+            const float level = std::fabs(0.5f * (hl + hr));
+            freeEnv += (level - freeEnv) * (level > freeEnv ? envUp : envDown);
+            const float letIn = clampf((kSongMost * songEnv - freeEnv) / ((kSongMost - kSongFrom) * songEnv + 1e-9f), 0.0f, 1.0f);
+            songHold += (letIn - songHold) * envUp;
+            freeEnv = dsp::undenormal(freeEnv);
+            songEnv = dsp::undenormal(songEnv);
+        }
         any = any || sympathy > kSilent;
     }
     for (int vi = 0; vi < kVoices; ++vi) {

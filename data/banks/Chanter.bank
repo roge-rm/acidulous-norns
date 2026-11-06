@@ -14,14 +14,21 @@
 # wheel on the beat to set the dog buzzing in time; pressure or the mod
 # wheel pushes it too.
 #
-# 80 patches in seven families: isles (highland, smallpipes, uilleann),
+# The song patches follow another track's bass with the drones (`follow`,
+# `glide`); they leave the track to the song, and the harness plays them
+# over the band on track 1. The bag patches make the bag finite: `wind` is
+# the share of what the pipes use that the piper puts back, `sag` how far
+# the pitch falls as the pressure goes.
+#
+# 92 patches in nine families: isles (highland, smallpipes, uilleann),
 # west (gaita, cornemuse, musette), east (gaida, sackpipa, dudy), double
-# (zampogna, tulum, launeddas), gurdy, drones and odd.
+# (zampogna, tulum, launeddas), gurdy, drones, odd, song and bag.
 #
 # Every patch but Init carries eight named macros. Destinations are
 # numbered as in Chanter.h's MacroDest: #1 drones, #2 bag, #3 reed,
 # #4 grace, #5 drift, #6 air, #7 crank, #8 rosin, #9 dog, #10 threshold,
-# #11 velocity, #12 volume, #13 pitch (24 semitones a unit). A pipe gets
+# #11 velocity, #12 volume, #13 pitch (24 semitones a unit), #14 follow,
+# #15 wind, #16 sag. A pipe gets
 # Drones, Hard Reed, Grace, Squeeze, Breath, Long Bag, Wild and Steady;
 # a hurdy-gurdy Crank, Dog, Easy Buzz, Rosin, Drones, Long Run, Wander and
 # Low. A macro whose knob has no room left goes the other way under the
@@ -2993,6 +3000,409 @@ patch "Hiccup Pipes" family=odd note=69 range=67..81 role=lead
   mac7_a2  0.3
   mac7_d3  #6
   mac7_a3  0.15
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "Pipes Follow" family=song note=69 range=67..81 role=lead
+  # The great pipes over the band: the drones go where its bass goes.
+  grace          25 ms
+  drones         0.9
+  reed           0.55
+  follow         0.6
+  glide          0.4 s
+  volume         0.624
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Squeeze"
+  mac3_d1  #5
+  mac3_a1  0.5
+  set macro4 "Breath"
+  mac4_d1  #6
+  mac4_a1  0.35
+  set macro5 "Quicker"
+  mac5_d1  #14
+  mac5_a1  0.4
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Short Wind"
+  mac7_d1  #15
+  mac7_a1  -0.65
+  set macro8 "Groan"
+  mac8_d1  #16
+  mac8_a1  0.8
+
+patch "Smallpipes Follow" family=song note=67 range=65..79 role=lead
+  # Soft, closed smallpipes, the drones close behind the bass.
+  model          #1
+  key            #7
+  drones         0.8
+  follow         0.7
+  glide          0.3 s
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Squeeze"
+  mac3_d1  #5
+  mac3_a1  0.5
+  set macro4 "Breath"
+  mac4_d1  #6
+  mac4_a1  0.35
+  set macro5 "Quicker"
+  mac5_d1  #14
+  mac5_a1  0.4
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Short Wind"
+  mac7_d1  #15
+  mac7_a1  -0.65
+  set macro8 "Groan"
+  mac8_d1  #16
+  mac8_a1  0.8
+
+patch "Slow Turn" family=song note=69 range=67..81 role=lead
+  # The drones take their time: a held bass note pulls them round slowly.
+  grace          25 ms
+  drones         0.9
+  follow         0.25
+  glide          1.5 s
+  volume         0.624
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Squeeze"
+  mac3_d1  #5
+  mac3_a1  0.5
+  set macro4 "Breath"
+  mac4_d1  #6
+  mac4_a1  0.35
+  set macro5 "Quicker"
+  mac5_d1  #14
+  mac5_a1  0.4
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Short Wind"
+  mac7_d1  #15
+  mac7_a1  -0.65
+  set macro8 "Groan"
+  mac8_d1  #16
+  mac8_a1  0.8
+
+patch "Gurdy Follows" family=song note=67 range=60..84 role=lead
+  # A hurdy-gurdy whose drone strings and trompette are retuned to the bass.
+  model          #3
+  drones         0.85
+  rosin          0.65
+  key            #7
+  follow         0.6
+  glide          0.6 s
+  volume         0.603
+  set macro1 "Crank"
+  mac1_d1  #7
+  mac1_a1  0.4
+  set macro2 "Dog"
+  mac2_d1  #9
+  mac2_a1  0.5
+  set macro3 "Easy Buzz"
+  mac3_d1  #10
+  mac3_a1  -0.3
+  set macro4 "Rosin"
+  mac4_d1  #8
+  mac4_a1  0.3
+  set macro5 "Quicker"
+  mac5_d1  #14
+  mac5_a1  0.4
+  set macro6 "Long Run"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Groan"
+  mac7_d1  #16
+  mac7_a1  0.8
+  set macro8 "Wander"
+  mac8_d1  #5
+  mac8_a1  0.5
+
+patch "Uilleann Follows" family=song note=62 range=62..86 role=lead
+  # Sweet uilleann pipes, the low drones sliding under each chord.
+  model          #4
+  drones         0.85
+  key            #2
+  follow         0.5
+  glide          0.8 s
+  volume         0.973
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Squeeze"
+  mac3_d1  #5
+  mac3_a1  0.5
+  set macro4 "Breath"
+  mac4_d1  #6
+  mac4_a1  0.35
+  set macro5 "Quicker"
+  mac5_d1  #14
+  mac5_a1  0.4
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Short Wind"
+  mac7_d1  #15
+  mac7_a1  -0.65
+  set macro8 "Groan"
+  mac8_d1  #16
+  mac8_a1  0.8
+
+patch "Bass Shadow" family=song note=67 range=67..81 role=lead
+  # A cornemuse whose drones shadow the bass almost note for note.
+  model          #6
+  key            #7
+  drones         1
+  follow         0.9
+  glide          0.15 s
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Squeeze"
+  mac3_d1  #5
+  mac3_a1  0.5
+  set macro4 "Breath"
+  mac4_d1  #6
+  mac4_a1  0.35
+  set macro5 "Slower"
+  mac5_d1  #14
+  mac5_a1  -0.5
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Short Wind"
+  mac7_d1  #15
+  mac7_a1  -0.65
+  set macro8 "Groan"
+  mac8_d1  #16
+  mac8_a1  0.8
+
+patch "Running Dry" family=bag note=69 range=67..81 role=lead
+  # A piper short of wind: a long tune drains the bag, the pipes sag and the drones choke.
+  grace          25 ms
+  drones         0.8
+  wind           0.3
+  sag            0.8
+  bag            1 s
+  volume         0.624
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Squeeze"
+  mac3_d1  #5
+  mac3_a1  0.5
+  set macro4 "Breath"
+  mac4_d1  #6
+  mac4_a1  0.35
+  set macro5 "More Wind"
+  mac5_d1  #15
+  mac5_a1  0.4
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Less Sag"
+  mac7_d1  #16
+  mac7_a1  -0.6
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "Tired Piper" family=bag note=67 range=65..79 role=lead
+  # Smallpipes that just keep up, until the tune runs long.
+  model          #1
+  key            #7
+  wind           0.42
+  sag            0.6
+  bag            1 s
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Squeeze"
+  mac3_d1  #5
+  mac3_a1  0.5
+  set macro4 "Breath"
+  mac4_d1  #6
+  mac4_a1  0.35
+  set macro5 "More Wind"
+  mac5_d1  #15
+  mac5_a1  0.4
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Less Sag"
+  mac7_d1  #16
+  mac7_a1  -0.6
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "Dying Drones" family=bag note=69 range=67..81 role=lead
+  # Wind enough for any tune, but let go and the drones groan down and die one by one.
+  grace          25 ms
+  drones         0.9
+  wind           0.9
+  sag            1
+  bag            0.6 s
+  volume         0.624
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Squeeze"
+  mac3_d1  #5
+  mac3_a1  0.5
+  set macro4 "Breath"
+  mac4_d1  #6
+  mac4_a1  0.35
+  set macro5 "Short Wind"
+  mac5_d1  #15
+  mac5_a1  -0.65
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Less Sag"
+  mac7_d1  #16
+  mac7_a1  -0.6
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "Coasting Wheel" family=bag note=67 range=60..84 role=lead
+  # A tiring arm on the crank: the wheel slows over a long tune and coasts down after it.
+  model          #3
+  key            #7
+  wind           0.35
+  sag            0.8
+  bag            0.4 s
+  volume         0.603
+  set macro1 "Crank"
+  mac1_d1  #7
+  mac1_a1  0.4
+  set macro2 "Dog"
+  mac2_d1  #9
+  mac2_a1  0.5
+  set macro3 "Easy Buzz"
+  mac3_d1  #10
+  mac3_a1  -0.3
+  set macro4 "Rosin"
+  mac4_d1  #8
+  mac4_a1  0.3
+  set macro5 "More Wind"
+  mac5_d1  #15
+  mac5_a1  0.4
+  set macro6 "Long Run"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Less Sag"
+  mac7_d1  #16
+  mac7_a1  -0.6
+  set macro8 "Wander"
+  mac8_d1  #5
+  mac8_a1  0.5
+
+patch "Cheek Breaths" family=bag note=60 range=55..76 role=lead
+  # Launeddas breathed round through the nose: a dip in the pressure every couple of seconds.
+  model          #12
+  key            #0
+  wind           0.15
+  sag            0.5
+  volume         1
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Squeeze"
+  mac3_d1  #5
+  mac3_a1  0.5
+  set macro4 "Breath"
+  mac4_d1  #6
+  mac4_a1  0.35
+  set macro5 "More Wind"
+  mac5_d1  #15
+  mac5_a1  0.4
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Less Sag"
+  mac7_d1  #16
+  mac7_a1  -0.6
+  set macro8 "Steady"
+  mac8_d1  #5
+  mac8_a1  -0.2
+  mac8_d2  #6
+  mac8_a2  -0.15
+
+patch "Groaning Gaida" family=bag note=67 range=67..79 role=lead
+  # A goatskin bag that won't hold: the deep drone sags and groans at every long note.
+  model          #5
+  key            #7
+  grace          15 ms
+  wind           0.45
+  sag            1
+  bag            0.5 s
+  volume         0.917
+  set macro1 "Drones Back"
+  mac1_d1  #1
+  mac1_a1  -0.45
+  set macro2 "Hard Reed"
+  mac2_d1  #3
+  mac2_a1  0.35
+  set macro3 "Squeeze"
+  mac3_d1  #5
+  mac3_a1  0.5
+  set macro4 "Breath"
+  mac4_d1  #6
+  mac4_a1  0.35
+  set macro5 "More Wind"
+  mac5_d1  #15
+  mac5_a1  0.4
+  set macro6 "Long Bag"
+  mac6_d1  #2
+  mac6_a1  0.5
+  set macro7 "Less Sag"
+  mac7_d1  #16
+  mac7_a1  -0.6
   set macro8 "Steady"
   mac8_d1  #5
   mac8_a1  -0.2

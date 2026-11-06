@@ -175,16 +175,16 @@ void PitchTrack::find(const std::vector<float> &mono, int32_t frames, float samp
     // invents a pitch or pulls one toward silence.
     {
         std::vector<float> smoothed = hz;
-        std::vector<float> near;
+        std::vector<float> around;
         for (size_t i = 0; i < hz.size(); ++i) {
             if (hz[i] <= 0.0f) continue;
-            near.clear();
+            around.clear();
             for (size_t k = i >= 2 ? i - 2 : 0; k < hz.size() && k <= i + 2; ++k) {
-                if (hz[k] > 0.0f) near.push_back(hz[k]);
+                if (hz[k] > 0.0f) around.push_back(hz[k]);
             }
-            if (near.size() < 3) continue;
-            std::nth_element(near.begin(), near.begin() + static_cast<long>(near.size() / 2), near.end());
-            smoothed[i] = near[near.size() / 2];
+            if (around.size() < 3) continue;
+            std::nth_element(around.begin(), around.begin() + static_cast<long>(around.size() / 2), around.end());
+            smoothed[i] = around[around.size() / 2];
         }
         hz.swap(smoothed);
     }

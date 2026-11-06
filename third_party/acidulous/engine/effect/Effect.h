@@ -9,6 +9,8 @@
 // An insert effect in a rack slot. Same lifecycle rules as Machine.
 namespace acidulous {
 
+class Retirer;
+
 // Bypass is addressed like a parameter (unit effect1/2, this index) so the UI,
 // automation lanes and recording treat it as one, without it living in every
 // effect's table.
@@ -27,6 +29,14 @@ class Effect {
     // A note-on reaching the track's machine, after transpose, with its pitch
     // in hertz in the track's tuning. Audio thread.
     virtual void onNote(int32_t /*note*/, float /*hz*/) {}
+    // That note let go, when the machine is sent the off: after a pedal lets
+    // it go, or when the voice limit takes it. Audio thread.
+    virtual void onNoteOff(int32_t /*note*/) {}
+    // Every note let go at once, as the machine's allNotesOff. Audio thread.
+    virtual void onAllNotesOff() {}
+    // A clip note's words, just before its onNote: phone codes as
+    // Machine::lyric has them, only valid for the call. Audio thread.
+    virtual void onLyric(const uint8_t * /*phones*/, int32_t /*count*/) {}
     // In place. Return true if the output is stereo.
     virtual bool process(float *L, float *R, int32_t frames, bool stereoIn) = 0;
     /**
@@ -35,6 +45,8 @@ class Effect {
      * thread. Effects that hold none refuse by handing the new one back.
      */
     virtual void *swapObject(int32_t /*slot*/, void *object) { return object; }
+    /** Set by the engine as it mounts the effect: where it can send what it's done with. Audio thread. */
+    void setRetirer(Retirer *r) { retirer_ = r; }
     /**
      * Whether a mod on parameter [index] glides across the block in slices.
      * An effect returns false for a knob that rebuilds a table or a cabinet,
@@ -118,6 +130,8 @@ class Effect {
     bool modActive() const { return mod_.active(); }
     /** Before block(): the song's position, for an effect that lines up with the bar. */
     void setTransport(const ModTransport &transport) { modTransport_ = transport; }
+    /** What setTransport or setModKey last gave it. */
+    const ModTransport &transport() const { return modTransport_; }
 
     /**
      * The rack this effect's detector listens to, e.g. a compressor on the
@@ -137,8 +151,17 @@ class Effect {
      * renders and only valid for that call.
      */
     void setKey(const float *key) { key_ = key; }
+    /** The track's tuning, set by the rack each block as for its machine: null is equal temperament. */
+    void setTuning(const float *ratios) { tuning_ = ratios; }
+    /** Set by a track's rack as it mounts the effect: only there do onNote and onNoteOff arrive. */
+    void setHearsNotes(bool on) { hearsNotes_ = on; }
 
   protected:
+    /** A MIDI note's pitch in hertz, in the track's tuning. */
+    float noteHz(int32_t note) const {
+        const float equal = 440.0f * std::exp2((static_cast<float>(note) - 69.0f) / 12.0f);
+        return tuning_ == nullptr ? equal : equal * tuning_[std::clamp(note, 0, 127)];
+    }
     /**
      * `trimDb` is added to the output gain, so that the effect at its default
      * settings comes out about as loud as it went in. A drive comes out
@@ -169,6 +192,8 @@ class Effect {
 
     /** The sidechain for this block, or null: see `setKey`. */
     const float *key_ = nullptr;
+    const float *tuning_ = nullptr;
+    bool hearsNotes_ = false;
 
   private:
     /**
@@ -289,6 +314,8 @@ class Effect {
     int32_t blockFramesOf(int32_t frames) const { return subBlock_ > 0 ? subBlock_ : frames; }
 
     ParamSet params_;
+    // Null when not mounted by an engine (a test, say).
+    Retirer *retirer_ = nullptr;
     bool bypass_ = false;
     SlotMod mod_;
     ModTransport modTransport_;

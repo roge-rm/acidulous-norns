@@ -111,6 +111,7 @@ void MasterBus::process(Rack *racks, int32_t rackCount, float *out, int32_t fram
             Effect *fx = groupInserts[g][s];
             if (fx == nullptr) continue;
             fx->block(tickStart, tickEnd, bpm);
+            fx->setTuning(tuning_);
             fx->run(groupL[g], groupR[g], frames, true);
         }
         if (g == performOn) perform.process(groupL[g], groupR[g], frames, bpm);
@@ -140,6 +141,7 @@ void MasterBus::process(Rack *racks, int32_t rackCount, float *out, int32_t fram
         if (fx == nullptr) continue;
         fx->block(tickStart, tickEnd, bpm);
         for (int32_t i = 0; i < frames; ++i) wetL[i] = wetR[i] = sendSum[s][i];
+        fx->setTuning(tuning_);
         // Mono in, so the effect is told and can make its own width.
         fx->run(wetL, wetR, frames, false);
         for (int32_t i = 0; i < frames; ++i) {
@@ -155,6 +157,7 @@ void MasterBus::process(Rack *racks, int32_t rackCount, float *out, int32_t fram
         Effect *fx = inserts[s];
         if (fx == nullptr) continue;
         fx->block(tickStart, tickEnd, bpm);
+        fx->setTuning(tuning_);
         fx->run(sumL, sumR, frames, true);
     }
 

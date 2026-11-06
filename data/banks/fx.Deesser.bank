@@ -8,7 +8,12 @@
 # threshold is then how far under the rest the band may come up to, with
 # -36 dB meaning 10 dB under.
 #
-# Families: voice, gentle, steady, tame.
+# The second extra is `throw`: what comes off the band goes into its own
+# echo, bouncing left and right, so each s comes back as a bright trail.
+# `time` is #0 1/16, #1 1/8, #2 1/8., #3 1/4, #4 1/4., #5 1/2; `feedback`
+# how long it keeps coming back.
+#
+# Families: voice, gentle, steady, tame, throw.
 
 machine fx.Deesser
 
@@ -68,3 +73,27 @@ patch "Bright Cymbals" family=tame
   freq           11000 Hz
   threshold      -46 dB
   range          12 dB
+
+patch "Ess Throw" family=throw
+  # Each s comes back once or twice a dotted eighth later.
+  throw          0.5
+  feedback       0.35
+
+patch "Dub Sparkle" family=throw
+  # Quarter-note repeats that bounce for a bar or two.
+  throw          0.8
+  time           #3
+  feedback       0.65
+
+patch "Hiss Trail" family=throw
+  # Fast sixteenths, a short shimmer after each s.
+  throw          0.6
+  time           #0
+  feedback       0.55
+
+patch "Long Air" family=throw
+  # Cuts harder and sends it to half notes that ring a long way.
+  range          18 dB
+  throw          1.0
+  time           #5
+  feedback       0.75

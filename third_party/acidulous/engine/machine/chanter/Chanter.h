@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <engine/dsp/Filter.h>
+#include <engine/dsp/KeyEar.h>
 #include <engine/machine/Machine.h>
 #include <engine/machine/filament/Waveguide.h>
 #include <engine/machine/timber/Pipe.h>
@@ -21,6 +22,13 @@ namespace acidulous::machine {
  * and the trompette, whose bridge (the dog) is loose, so it hops and buzzes
  * once the wheel turns fast enough. A player sets it buzzing in rhythm by
  * pushing the wheel on the beat.
+ *
+ * The drones can follow the song: `sidechain` picks a track, and with
+ * `follow` up they move to the bass note it leans on, keeping their
+ * intervals, in the track's tuning. `wind` makes the bag finite: playing
+ * drains it, the piper's wind puts back that share, and as the pressure
+ * falls the pipes go flat and thin and the drones choke one by one; `sag`
+ * sets how far they fall. On the hurdy-gurdy the bag is the wheel.
  */
 class Chanter final : public Machine {
   public:
@@ -38,6 +46,11 @@ class Chanter final : public Machine {
         // Added after the macros. Which beats the coups fall on: every beat,
         // or only the second and fourth, counted from the first note.
         CoupBeats = MacroBase + 8 * MacroParams,
+        // Added after the coups. The song: the track whose bass the drones
+        // follow (0 none, 1..16), how quickly (0 stays on the key) and how
+        // long a move takes. The bag: the share of what the pipes use the
+        // wind puts back (1 endless), and how far the pitch sags with it.
+        Sidechain, Follow, Glide, Wind, Sag,
         Count
     };
     // Where a macro route goes. The model, tune, key, coup, bend range and
@@ -45,7 +58,7 @@ class Chanter final : public Machine {
     enum MacroDest : int32_t {
         McOff, McDrones, McBag, McReed, McGrace, McDrift, McAir,
         McWheel, McRosin, McDog, McThreshold, McVelocity, McVolume,
-        McPitch,
+        McPitch, McFollow, McWind, McSag,
         MacroDestCount
     };
     static constexpr int kMacros = 8;
@@ -80,6 +93,14 @@ class Chanter final : public Machine {
     float wind() const { return bag; }
     /** How hard the dog is buzzing now, for tests. */
     float dogLevel() const { return dogNow; }
+    /** How much air is in a finite bag, 0 to 1, for tests. */
+    float bagStore() const { return store; }
+    /** Drone [d]'s note now, as a MIDI pitch; [kDrones] is the trompette. For tests. */
+    float droneNote(int d) const { return droneNow[d]; }
+    /** How open drone [d] is, 0 choked, for tests. */
+    float droneOpen(int d) const { return open[d]; }
+    /** The key the drones follow, or -1 for none heard yet, for tests. */
+    int followRoot() const { return root; }
 
   private:
     /** A bowed string on the wheel. */
@@ -106,6 +127,17 @@ class Chanter final : public Machine {
     int heldNote() const { return heldCount > 0 ? held[heldCount - 1] : -1; }
     void startNote(int note, float velocity, bool legato);
     void setupPipes();
+    /** Notes a new tuning by what's in it, as Sympath does. */
+    void checkTuning();
+    /** Puts the ear's bands on the keys from 30 to 250 Hz. */
+    void tuneEar();
+    /** Listens to a block of the song's low end, and picks its bass note every 20 ms. */
+    void hear(const float *song, int32_t frames, float follow);
+    void chooseBass(float follow, float seconds);
+    /** The key whose pitch in the track's tuning is nearest [hz]. */
+    int nearestKey(float hz) const;
+    /** Where the drones and the trompette go for the bass key [root]. */
+    void placeDrones(int kind, float tune);
     float bow(Bowed &s, float speed, float grip);
     float white() {
         noise = noise * 1664525u + 1013904223u;
@@ -170,6 +202,38 @@ class Chanter final : public Machine {
     uint32_t noise = 0x3b9aca07u;
     int32_t quietSamples = 0;
     bool asleep = true;
+
+    /** A finite bag's air, 0 to 1, and how long the piper still blows it up hard to strike in, seconds. */
+    float store = 1.0f;
+    float strikeLeft = 0.0f;
+    /** Launeddas: where the player is in the breath taken through the nose, seconds. */
+    float cheekAt = 0.0f;
+    /** Each drone's note now and where it's going (index kDrones is the trompette), and where a peg turn started. */
+    float droneNow[kDrones + 1]{}, droneAim[kDrones + 1]{}, moveFrom[kDrones + 1]{}, moveAim[kDrones + 1]{};
+    float moveT[kDrones + 1]{};
+    bool dronesPlaced = false, followed = false;
+    /** How open each drone is (a drone chokes when the pressure falls past it), and each drone's push, per sample. */
+    float open[kDrones]{}, dronePushNow[kDrones]{};
+    bool choked[kDrones]{};
+
+    /** Listening: bands on the keys from 30 to 250 Hz, each band's key and pitch. */
+    static constexpr int kEarBands = 192;
+    dsp::KeyEar<kEarBands> ear;
+    float earHz[kEarBands]{};
+    int earKey[kEarBands]{};
+    int earUntil = 0;
+    bool earBuilt = false;
+    float tuningSeen[128]{};
+    bool tuningSeenEqual = true;
+    uint32_t tuningGen = 0, earGen = 0xffffffffu;
+    /** The bass key the drones follow, and one heard for [pendingFor] seconds that may take its place. */
+    int root = -1, pending = -1;
+    float pendingFor = 0.0f;
+    /** What the drones' aims were placed for. */
+    int placedRoot = -2, placedKind = -1, placedKey = -1;
+    float placedTune = 1e9f;
+    uint32_t placedGen = 0xffffffffu;
+    float placedAim[kDrones + 1]{};
 };
 
 } // namespace acidulous::machine

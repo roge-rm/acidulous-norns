@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <vector>
 #include <engine/dsp/Filter.h>
+#include <engine/dsp/KeyEar.h>
 #include <engine/machine/Machine.h>
 #include <engine/machine/filament/Waveguide.h>
 
@@ -22,6 +23,10 @@ namespace acidulous::machine {
  * lands on their notes and ring on after it. Drone strings struck with each
  * note, a tanpura that plucks its four strings by itself in time, slides from
  * note to note, and a finger pulling the string sideways to bend it up.
+ *
+ * The song can ring them too: `sidechain` picks a track whose sound shakes
+ * the sympathetic and drone strings (`ring`), and with `listen` they retune
+ * themselves to the notes that track plays. They follow the track's tuning.
  */
 class Sympath final : public Machine {
   public:
@@ -38,7 +43,11 @@ class Sympath final : public Machine {
         // unit and moves the notes played after it.
         MacroBase,
         MacroParams = 9, // knob, 4 destinations, 4 depths
-        Count = MacroBase + 8 * MacroParams
+        // The song: the track that rings the strings (0 none, 1..16), how
+        // hard, how quickly they learn its notes (0 keeps the scale), and how
+        // long the sympathetic and drone strings ring.
+        Sidechain = MacroBase + 8 * MacroParams, Ring, Listen, Bloom,
+        Count
     };
     // Where a macro route goes. The model, tune, sa, scale, first, cycle,
     // voices, bend range and octave are left out.
@@ -60,6 +69,8 @@ class Sympath final : public Machine {
     static constexpr int kTarbs = 11;
     static constexpr int kDrones = 3;
     static constexpr int kScales = 10;
+    /** The most notes the strings take from the song, and the most steps a tuning's octave can have for listening. */
+    static constexpr int kSongNotes = 7, kHearSteps = 53;
 
     Sympath();
 
@@ -80,6 +91,13 @@ class Sympath final : public Machine {
 
     /** Notes sounding, for tests. */
     int activeVoices() const;
+    /** A sympathetic string's pitch now and where it's going, Hz, and how many there are, for tests. */
+    float tarbHz(int i) const { return i >= 0 && i < tarbCount ? tarbs[i].hz : 0.0f; }
+    float tarbAim(int i) const { return i >= 0 && i < tarbCount ? tarbs[i].aim : 0.0f; }
+    int tarbStrings() const { return tarbCount; }
+    bool sleeping() const { return asleep; }
+    /** How much of the song gets in now, 0..1, for tests. */
+    float songLetIn() const { return songHold; }
 
   private:
     /** A string and what's still going into it. */
@@ -127,6 +145,8 @@ class Sympath final : public Machine {
         std::vector<float> stroke;
         int32_t strokeLength = 0, strokeAt = 0;
         float hz = 0.0f, pan = 0.0f;
+        /** Where a string listening to the song is retuning to, Hz. */
+        float aim = 0.0f;
     };
 
     float read(int32_t p, bool goal) const { return goal ? params_.target(p) : params_.get(p); }
@@ -147,8 +167,17 @@ class Sympath final : public Machine {
     void tuneString(Waveguide &w, float hz, float t60, float tone);
     float stringT60(float hz, bool held) const;
     float stringTone(float velocity) const;
-    /** Tunes the sympathetic and drone strings to the tonic and scale. */
+    /** Tunes the sympathetic and drone strings to the tonic and scale, or the song's notes. */
     void tuneFree();
+    /** The key whose pitch in the track's tuning is nearest [hz]. */
+    int nearestKey(float hz) const;
+    /** Notes a new tuning by what's in it, since the rack hands over one of two tables in turn. */
+    void checkTuning();
+    /** Finds the tuning's steps to the octave and sets the listening filters on its keys. */
+    void tuneHearing();
+    /** Listens to a block of the song for its notes, and picks them every tenth of a second. */
+    void hear(const float *song, int32_t frames, float listen);
+    void chooseSongNotes(float listen);
     float white() {
         noise = noise * 1664525u + 1013904223u;
         return static_cast<float>(noise >> 8) * (2.0f / 16777216.0f) - 1.0f;
@@ -165,6 +194,35 @@ class Sympath final : public Machine {
     float gamakPhase = 0.0f;
     float mac_[MacroDestCount]{}, macGoal_[MacroDestCount]{};
     int retuneCountdown = 0;
+    float builtBloom = -1.0f;
+    /** The tuning last seen, counted up each time it changes, and what was built for. */
+    float tuningSeen[128]{};
+    bool tuningSeenEqual = true;
+    uint32_t tuningGen = 0, builtGen = 0xffffffffu, hearGen = 0xffffffffu;
+    /**
+     * The song's level and the free strings', followed, and how much of the
+     * song gets in: the strings may ring no louder than half the song, so a
+     * loop through another track (two Sympaths keyed on each other) dies away.
+     */
+    float songEnv = 0.0f, freeEnv = 0.0f, songHold = 1.0f;
+    uint64_t builtSong = 0;
+    float tarbT60 = 5.0f, droneT60 = 3.5f;
+    /** How much more or less a longer or shorter bloom lets in, so it rings as loud. */
+    float bloomTrim = 1.0f;
+    /**
+     * Listening: the song low-passed and taken down 8 times, through a
+     * narrow band on each key of three octaves, each band's energy held
+     * over the listen time. [hearPeriod] is the tuning's steps to the octave,
+     * 0 for a tuning without octaves, which keeps the scale.
+     */
+    dsp::KeyEar<2 * kHearSteps> ear;
+    int hearPeriod = 12;
+    bool hearBuilt = false;
+    int hearUntil = 0, glideTick = 0;
+    /** The song's notes, as steps over the first band's key, its root, and all of it packed, 0 for none. */
+    int songNotes[kSongNotes]{};
+    int songCount = 0, songRoot = -1;
+    uint64_t songSig = 0;
     /** The gourd. */
     dsp::Svf body;
     float bodyBuiltFor = -1.0f;

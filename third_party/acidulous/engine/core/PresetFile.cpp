@@ -728,12 +728,17 @@ bool goodUnit(const std::string &unit) {
 const char *kManifest = "preset.json";
 constexpr int kManifestVersion = 1;
 const char *kEffectPrefix = "fx."; // PatchStore.FX
+const char *kModifierPrefix = "mod."; // PatchStore.MOD
+
+// PatchStore.MODIFIERS_WITH_PRESETS
+bool modifierHasPresets(const std::string &unit) { return unit == "Arp" || unit == "Chord"; }
 
 } // namespace
 
 std::vector<uint8_t> write(const Preset &preset) {
     const bool effect = preset.kind == "effect";
-    const std::string key = effect ? kEffectPrefix + preset.unit : preset.unit;
+    const bool modifier = preset.kind == "modifier";
+    const std::string key = effect ? kEffectPrefix + preset.unit : modifier ? kModifierPrefix + preset.unit : preset.unit;
     ZipWriter zip;
     std::string list;
     for (size_t i = 0; i < preset.patches.size(); ++i) {
@@ -744,7 +749,7 @@ std::vector<uint8_t> write(const Preset &preset) {
         quote(list, entry);
     }
     std::string manifest = "{\n    \"version\": " + std::to_string(kManifestVersion) + ",\n    \"kind\": ";
-    quote(manifest, effect ? "effect" : "machine");
+    quote(manifest, effect ? "effect" : modifier ? "modifier" : "machine");
     manifest += ",\n    \"unit\": ";
     quote(manifest, preset.unit);
     manifest += ",\n    \"patches\": [" + (list.empty() ? std::string() : "\n" + list + "\n    ") + "]\n}";
@@ -778,11 +783,12 @@ bool read(const uint8_t *data, size_t size, Preset &out, std::string &error) {
     const Json *kind = manifest.get("kind");
     const Json *unit = manifest.get("unit");
     const Json *patches = manifest.get("patches");
-    if (kind == nullptr || kind->kind != Json::String || (kind->text != "machine" && kind->text != "effect")) {
-        error = "not a machine or effect preset";
+    if (kind == nullptr || kind->kind != Json::String || (kind->text != "machine" && kind->text != "effect" && kind->text != "modifier")) {
+        error = "not a machine, effect or modifier preset";
         return false;
     }
     if (unit == nullptr || unit->kind != Json::String || !goodUnit(unit->text)) { error = "a bad unit name"; return false; }
+    if (kind->text == "modifier" && !modifierHasPresets(unit->text)) { error = "that modifier has no presets"; return false; }
     if (patches == nullptr || patches->kind != Json::Array || patches->items.empty()) { error = "no patches"; return false; }
     out.kind = kind->text;
     out.unit = unit->text;

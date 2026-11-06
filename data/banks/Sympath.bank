@@ -12,13 +12,22 @@
 # `first`. With one voice, `meend` slides from note to note; `gamak` (and
 # the mod wheel) shakes the note, and pressure pulls the string up.
 #
-# 96 patches in eight families: sitar, sarod, veena, drone, east, bowed,
-# fiddle and bridge. All ten scales are used somewhere.
+# The song: `sidechain` picks a track whose sound shakes the sympathetic and
+# drone strings, `ring` is how hard, and `listen` retunes them to the notes
+# that track plays, slowly learning its key at the bottom and following each
+# chord at the top. `bloom` is how long they ring. No patch names the track:
+# loading one keeps the track's. The harness plays the `song` family over
+# the band the effects get (A minor), as if it were the track picked. A
+# `halo` patch plays no notes at all.
+#
+# 102 patches in nine families: sitar, sarod, veena, drone, east, bowed,
+# fiddle, bridge and song. All ten scales are used somewhere.
 #
 # Every patch but Init carries eight named macros. Destinations are
 # numbered as in Sympath.h's MacroDest: #1 bridge, #2 curve, #3 pluck,
 # #4 position, #5 sustain, #6 bright, #7 tarbs, #8 chikari, #9 meend,
 # #10 gamak, #11 velocity, #12 volume, #13 pitch (24 semitones a unit).
+# The song's knobs have no macro route, so saved routes keep their places.
 # A plucked string gets Buzz, Bright, Longer, Tarbs (or Mid String),
 # Chikari (or Hard), Gamak, Slide (one voice) or Touch, and Low; a tanpura
 # Jawari, Round and Waver; a bowed string Grip (the bow's pressure). A
@@ -3757,3 +3766,225 @@ patch "Drone Cloud" family=bridge note=49 range=36..60 role=pad
   sustain        0.8
   bright         0.4
   volume         0.38
+
+patch "Halo" family=song note=57 range=45..81 role=halo
+  # Nothing played: the band on track 1 rings the sitar's sympathetic and
+  # drone strings, tuned to A minor, and they learn the song's key.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.144
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.1
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  sa             #9
+  scale          #3
+  ring           0.6
+  listen         0.25
+  bloom          0.65
+  tarbs          0.9
+  volume         0.7
+
+patch "Chord Catcher" family=song note=57 range=45..81 role=halo
+  # The electric sitar's strings retune to every chord the band plays and
+  # glide to the next.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Dry"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Hard"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.144
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  -0.4
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #3
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  model          #10
+  sa             #9
+  scale          #3
+  ring           0.65
+  listen         1
+  bloom          0.75
+  tarbs          1
+  volume         0.7
+
+patch "Sitar In The Band" family=song note=57 range=45..81 role=lead
+  # A sitar line in A with the band on track 1 shaking its strings too.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Slide"
+  set macro8 "Low"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.144
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.3
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #13
+  mac8_a1  -0.5
+  voices         #0
+  meend          90 ms
+  sa             #9
+  scale          #3
+  ring           0.6
+  tarbs          0.7
+  volume         0.45
+
+patch "Sarangi Shadow" family=song note=57 range=48..84 role=lead
+  # A bowed line, its forest of strings following the band's chords under it.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Tarbs"
+  set macro5 "Gamak"
+  set macro6 "Slide"
+  set macro7 "Touch"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.4
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #7
+  mac4_a1  0.25
+  mac5_d1  #10
+  mac5_a1  0.45
+  mac6_d1  #9
+  mac6_a1  0.4
+  mac7_d1  #11
+  mac7_a1  0.3
+  mac8_d1  #13
+  mac8_a1  -0.5
+  model          #11
+  voices         #0
+  meend          150 ms
+  sa             #9
+  scale          #3
+  ring           0.7
+  listen         0.8
+  bloom          0.7
+  tarbs          0.75
+  volume         0.513
+
+patch "Nyckel Bloom" family=song note=57 range=48..81 role=pad
+  # Long held notes on the keyed fiddle, its strings blooming for seconds
+  # with whatever the band plays.
+  set macro1 "Grip"
+  set macro2 "Bright"
+  set macro3 "Shorter"
+  set macro4 "Tarbs"
+  set macro5 "Gamak"
+  set macro6 "Slide"
+  set macro7 "Touch"
+  set macro8 "Low"
+  mac1_d1  #3
+  mac1_a1  0.4
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  -0.35
+  mac4_d1  #7
+  mac4_a1  0.15
+  mac5_d1  #10
+  mac5_a1  0.45
+  mac6_d1  #9
+  mac6_a1  0.4
+  mac7_d1  #11
+  mac7_a1  0.3
+  mac8_d1  #13
+  mac8_a1  -0.5
+  model          #15
+  sa             #9
+  scale          #3
+  ring           0.7
+  listen         0.4
+  bloom          0.85
+  tarbs          0.85
+  volume         0.5
+
+patch "Rudra Undertow" family=song note=45 range=36..72 role=drone
+  # The rudra veena's drone strings settle on the note the band leans on and
+  # ring with it under a slow low line.
+  set macro1 "Buzz"
+  set macro2 "Bright"
+  set macro3 "Longer"
+  set macro4 "Hard"
+  set macro5 "Chikari"
+  set macro6 "Gamak"
+  set macro7 "Touch"
+  set macro8 "High"
+  mac1_d1  #1
+  mac1_a1  0.4
+  mac1_d2  #12
+  mac1_a2  -0.144
+  mac2_d1  #6
+  mac2_a1  0.35
+  mac3_d1  #5
+  mac3_a1  0.35
+  mac4_d1  #3
+  mac4_a1  0.4
+  mac5_d1  #8
+  mac5_a1  0.6
+  mac6_d1  #10
+  mac6_a1  0.45
+  mac7_d1  #11
+  mac7_a1  0.3
+  mac8_d1  #13
+  mac8_a1  0.5
+  model          #5
+  sa             #9
+  scale          #3
+  ring           0.8
+  listen         0.7
+  bloom          0.8
+  chikari        0.4
+  volume         0.6

@@ -46,14 +46,14 @@ struct PresetPatch {
 };
 
 struct Preset {
-    std::string kind = "machine"; // or "effect"
-    std::string unit;             // the machine's or effect's type
+    std::string kind = "machine"; // or "effect" or "modifier"
+    std::string unit;             // the machine's, effect's or modifier's type (Arp or Chord)
     std::vector<PresetPatch> patches;
 };
 
 namespace presetfile {
 
-/** [preset] as .acpreset bytes. Each patch's machine is written as the app keeps it ("fx.Chorus" for an effect). */
+/** [preset] as .acpreset bytes. Each patch's machine is written as the app keeps it ("fx.Chorus" for an effect, "mod.Arp" for a modifier). */
 std::vector<uint8_t> write(const Preset &preset);
 
 /**

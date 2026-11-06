@@ -46,6 +46,10 @@ inline int64_t bytes(const audio::Reel *r) {
         for (const audio::Reel::Region &g : c.lanes) {
             const audio::Reel::Source *s = g.source.get();
             if (s != nullptr && seen.insert(s).second) n += bytes(s->own);
+            for (const audio::Reel::Region::Take &t : g.takes) {
+                const audio::Reel::Source *ts = t.source.get();
+                if (ts != nullptr && seen.insert(ts).second) n += bytes(ts->own);
+            }
         }
     }
     return n;

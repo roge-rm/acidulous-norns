@@ -14,9 +14,20 @@ struct ReelCache {
      *
      * Returns the frame count written, or 0 with the reason in [error]. Works
      * in chunks, so memory use doesn't grow with the length of the file.
+     * Safe to call from several threads at once for the same [dest]: each
+     * writes a file of its own and renames it into place when it's whole.
      */
     static int64_t convert(const std::string &path, const std::string &dest, bool &stereoOut,
                            std::string &error);
+
+    /** How many frames [frames] at [rate] come to at the engine rate. */
+    static int64_t framesFor(int64_t frames, int32_t rate);
+
+    /** The size in bytes of a converted file of [frames]. */
+    static int64_t sizeFor(int64_t frames, bool stereo);
+
+    /** The size of the file at [path] in bytes, or -1 if there's none. */
+    static int64_t fileSize(const std::string &path);
 
     /**
      * The converted file's name: a hash of the source path, size and modified

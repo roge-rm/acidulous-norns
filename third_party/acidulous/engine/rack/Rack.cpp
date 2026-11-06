@@ -150,11 +150,14 @@ void Rack::toMachine(uint8_t status, uint8_t d1, uint8_t d2, bool live) {
     if (mode != OutInternal && outQueue != nullptr) {
         sendOut({Outgoing::Midi, static_cast<uint8_t>((status & 0xf0) | lastOutChannel), d1, d2, 0, 0.0f, outFrame});
     }
-    if (mode == OutMidi) return;
-    if (machine == nullptr) return;
     const uint8_t kind = status & 0xf0;
     const bool on = kind == 0x90 && d2 > 0;
     const bool off = kind == 0x80 || (kind == 0x90 && d2 == 0);
+    // No machine to hold it for a pedal: the inserts hear the off now.
+    if (mode == OutMidi || machine == nullptr) {
+        if (off) offToInserts(d1);
+        return;
+    }
     // Pedals. A key released while a pedal holds it isn't released yet: its
     // note-off waits in pedalHeld until the pedal comes up.
     const bool takes = machine->takesPedals();
@@ -180,6 +183,7 @@ void Rack::toMachine(uint8_t status, uint8_t d1, uint8_t d2, bool live) {
             while (heldCount >= limit) {
                 const uint8_t oldest = held[0];
                 machine->handleMidi(0x80, oldest, 0);
+                offToInserts(oldest);
                 forgetHeld(oldest);
                 pedalHeld[oldest & 0x7f] = false;
             }
@@ -189,6 +193,11 @@ void Rack::toMachine(uint8_t status, uint8_t d1, uint8_t d2, bool live) {
         forgetHeld(d1);
     }
     machine->handleMidi(status, d1, d2);
+    if (off) offToInserts(d1);
+}
+
+void Rack::offToInserts(uint8_t note) {
+    for (Effect *e : effects) if (e != nullptr) e->onNoteOff(note);
 }
 
 void Rack::setPedal(int32_t which, uint8_t value) {
@@ -231,6 +240,7 @@ void Rack::releasePedalled() {
         pedalHeld[n] = false;
         forgetHeld(static_cast<uint8_t>(n));
         machine->handleMidi(0x80, static_cast<uint8_t>(n), 0);
+        offToInserts(static_cast<uint8_t>(n));
     }
 }
 
@@ -304,6 +314,8 @@ void Rack::playSequenced(uint8_t status, uint8_t d1, uint8_t d2) {
 void Rack::lyric(const uint8_t *phones, int32_t count) {
     if (keep({Queued::Lyric, 0, 0, 0, 0, 0.0f, 0, 0}, phones, count)) return;
     if (machine != nullptr) machine->lyric(phones, count);
+    // The inserts hear the words too, for a mouth that says them.
+    for (Effect *e : effects) if (e != nullptr) e->onLyric(phones, count);
 }
 
 void Rack::wordsAhead(const uint8_t *phones, int32_t count, uint8_t note, uint8_t velocity, int32_t inFrames) {
@@ -349,6 +361,7 @@ void Rack::allNotesOff() {
         if (modifiers[s] != nullptr) modifiers[s]->allNotesOff(sinks[s]);
     }
     if (machine != nullptr) machine->allNotesOff();
+    for (Effect *e : effects) if (e != nullptr) e->onAllNotesOff();
     // Panic comes through here, so the frozen ring-out stops too, at once.
     tailClip = nullptr;
     fadeClip = nullptr;
@@ -435,13 +448,14 @@ void Rack::updateFrozen(int64_t sceneId, float bpm, bool playing, bool ramping) 
     // Either way, stop whatever the machine was holding or it hangs while the
     // frozen audio plays and after it hands back.
     if (machine != nullptr) machine->allNotesOff();
+    for (Effect *e : effects) if (e != nullptr) e->onAllNotesOff();
     frozenNow = want;
     frozenCursor = -1;
     stretching = nullptr; // a new clip starts a new cycle, so the stretcher re-seeks
 }
 
 void Rack::updateScene(int64_t sceneId, int64_t cycleTick, bool playing, bool rolling, int64_t tickStart,
-                       int64_t tickInBar, int32_t ticksPerBar, int64_t swingPair) {
+                       int64_t tickInBar, int32_t ticksPerBar, int64_t swingPair, double countInTicks) {
     if (machine == nullptr) return;
     // The clip is set per rack per scene, so the mute is right in both modes
     // (same as updateFrozen).
@@ -449,6 +463,7 @@ void Rack::updateScene(int64_t sceneId, int64_t cycleTick, bool playing, bool ro
     machine->onScene(sceneId, cycleTick, playing, clip != nullptr && clip->mute);
     machine->onTransport(rolling, tickStart);
     machine->onBar(tickInBar, ticksPerBar, channelTarget(Swing), swingPair);
+    machine->onCountIn(countInTicks);
 }
 
 void Rack::syncFrozen(int64_t tickInIteration, float bpm) {
@@ -596,7 +611,9 @@ void Rack::render(int32_t frames) {
         machine->setTuning(t < 0 ? nullptr : tuningTables[t]);
         stereo = machine->render(bufL, bufR, frames);
         for (int32_t s = 0; s < kEffectSlots; ++s) {
-            if (effects[s] != nullptr) stereo = effects[s]->run(bufL, bufR, frames, stereo);
+            if (effects[s] == nullptr) continue;
+            effects[s]->setTuning(t < 0 ? nullptr : tuningTables[t]);
+            stereo = effects[s]->run(bufL, bufR, frames, stereo);
         }
     }
     // The ring-out, on top of whatever else plays: the next pass of a loop,
@@ -686,6 +703,7 @@ void Rack::render(int32_t frames) {
 Machine *Rack::swapMachine(Machine *next) {
     Machine *old = machine;
     if (old != nullptr) old->allNotesOff();
+    for (Effect *e : effects) if (e != nullptr) e->onAllNotesOff();
     heldCount = 0; // the notes went with the machine
     machine = next;
     // A machine that takes the pedals starts where they are.
@@ -700,6 +718,7 @@ Machine *Rack::swapMachine(Machine *next) {
 Effect *Rack::swapEffect(int32_t slot, Effect *next) {
     if (slot < 0 || slot >= kEffectSlots) return next; // caller retires it
     Effect *old = effects[slot];
+    if (next != nullptr) next->setHearsNotes(true);
     effects[slot] = next;
     return old;
 }

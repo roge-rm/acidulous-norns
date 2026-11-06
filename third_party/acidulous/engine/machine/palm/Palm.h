@@ -20,6 +20,13 @@ namespace acidulous::machine {
  * under a bass stroke; snares, rattles and jingles; a head that goes sharp
  * when struck hard and settles; the wrist pressing a bayan's or a talking
  * drum's head to bend it up; and rolls on held notes.
+ *
+ * Cycles: a held note plays a bar-long stroke pattern in time with the song
+ * (and its swing), a few bars round with a fill on the last, varied a little
+ * each bar from a generator seeded by the bar's number, so a render repeats.
+ * Two held notes share the pattern out: the bass strokes and low tones go
+ * to the lower drum, the rest to the higher. The pattern's second hand
+ * presses the head to bend it up, or lays on it to stop it ringing.
  */
 class Palm final : public Machine {
   public:
@@ -40,7 +47,11 @@ class Palm final : public Machine {
         // pad of a kit shares, not a pad's own.
         MacroBase,
         MacroParams = 9, // knob, 4 destinations, 4 depths
-        Count = MacroBase + 8 * MacroParams
+        // Cycles, after the macros. The pattern (0 off), the bars in a cycle
+        // (1, 2, 4 or 8, the last a fill), how much each bar varies, and how
+        // far the second hand presses the head up, semitones.
+        Cycle = MacroBase + 8 * MacroParams, Bars, Feel, Press,
+        Count
     };
     // Where a macro route goes. Continuous params only: the model, tune,
     // stroke, voices, bend range, octave and the pads are left out.
@@ -48,6 +59,7 @@ class Palm final : public Machine {
         McOff, McPosition, McHand, McDecay, McDamp, McDrop, McSqueeze, McRattle, McBody,
         McRoll, McSpread, McVelocity, McVolume, McFlam,
         McPitch,
+        McFeel, McPress,
         MacroDestCount
     };
     static constexpr int kMacros = 8;
@@ -63,6 +75,7 @@ class Palm final : public Machine {
     enum StrokeKind : int32_t { Open = 0, Slap, Muted, Bass, Rim, ByVelocity, StrokeCount };
     static constexpr int kVoices = 8;
     static constexpr int kModes = 10;
+    enum CycleKind : int32_t { CycleOff = 0, Tumbao, Kuku, Baladi, Maqsum, Theka, SixEight, Groove, Talk, CycleCount };
 
     Palm();
 
@@ -70,6 +83,10 @@ class Palm final : public Machine {
     const ParamDef *paramDefs(int32_t &count) const override;
     void prepare(int32_t sampleRate) override;
     void reset() override;
+    void onBlock(int64_t tickStart, int64_t tickEnd, float bpm) override;
+    void onTransport(bool rolling, int64_t tickStart) override;
+    void onBar(int64_t tickInBar, int32_t ticksPerBar, float swing, int64_t swingPair) override;
+    void onCountIn(double ticksLeft) override { countLeft = ticksLeft; }
     void noteOn(uint8_t note, uint8_t velocity) override;
     void noteOff(uint8_t note) override;
     void allNotesOff() override;
@@ -90,6 +107,16 @@ class Palm final : public Machine {
         float ratio = 1.0f, amp = 0.0f, t60 = 1.0f, r = 0.0f;
         float y1 = 0.0f, y2 = 0.0f;
     };
+    /** A cycle's stroke waiting to land: samples to go, its velocity and its
+     *  level against the note's, the stroke (-1 for the second hand laid on
+     *  the head), semitones from the note, and whether the second hand presses. */
+    struct Hit {
+        int32_t wait = 0;
+        float velocity = 0.0f, level = 0.0f, shift = 0.0f;
+        int8_t stroke = 0;
+        bool press = false;
+    };
+    static constexpr int kHits = 8;
     struct Voice {
         Mode modes[kModes + 1]; // the head's, then the body's
         int modeCount = 0;
@@ -126,6 +153,13 @@ class Palm final : public Machine {
         float level = 0.0f;
         int quietBlocks = 0;
         uint32_t age = 0;
+        /** Cycles: the note's velocity, strokes waiting, semitones the stroke
+         *  is played from the note (a low tone), and the second hand's press
+         *  now and where it's going, semitones. */
+        float noteVelocity = 0.8f;
+        Hit hits[kHits];
+        int hitCount = 0;
+        float shift = 0.0f, hand2 = 0.0f, hand2Aim = 0.0f;
     };
 
     /** Param [p], smoothed, with the macros' routes to it added. */
@@ -140,7 +174,7 @@ class Palm final : public Machine {
     float read(int32_t p, bool goal) const { return goal ? params_.target(p) : params_.get(p); }
     /** The voice's pitch now, with bend and the pitch macro's move since the note-on. */
     float pitchNow(const Voice &v) const {
-        const float p = v.pitch + bend * paramOf(BendRange) + v.noteBend;
+        const float p = v.pitch + v.shift + bend * paramOf(BendRange) + v.noteBend;
         // Apart so a note with no pitch macro moving is worked out as before.
         return v.macNow != v.macAt ? p + (v.macNow - v.macAt) * 24.0f : p;
     }
@@ -150,7 +184,12 @@ class Palm final : public Machine {
     void build(Voice &v);
     /** Tunes the modes to the voice's pitch now. */
     void retune(Voice &v);
-    void strike(Voice &v, float velocity);
+    /** Strikes with the param's stroke, or [stroke] if it's 0 or more. */
+    void strike(Voice &v, float velocity, int stroke = -1);
+    /** Queues the cycle's strokes that fall in this block. */
+    void cycleStep(int32_t frames);
+    /** Lands a queued cycle stroke on [v]. */
+    void land(Voice &v, const Hit &h);
     float white() {
         noise = noise * 1664525u + 1013904223u;
         return static_cast<float>(noise >> 8) * (2.0f / 16777216.0f) - 1.0f;
@@ -164,6 +203,16 @@ class Palm final : public Machine {
     uint32_t clock = 0;
     int32_t quietSamples = 0;
     bool asleep = true;
+    /** Cycles: the tempo, the song's place (see Machine::onBar), a clock in
+     *  ticks for when the song is stopped (from the first held note, or
+     *  where the song stopped, or the count-in's), and the count-in left. */
+    float bpm = 120.0f;
+    bool songRolling = false;
+    int64_t songTick = 0, barTick = 0, blockTicks = 0;
+    int32_t barTicks = 0;
+    float swingPercent = 50.0f;
+    int64_t swingPairTicks = 0;
+    double freeTick = 0.0, countLeft = 0.0;
     float mac_[MacroDestCount]{}, macGoal_[MacroDestCount]{};
 };
 

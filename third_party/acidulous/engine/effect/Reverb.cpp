@@ -472,7 +472,7 @@ void Reverb::prepare(int32_t sampleRate) {
 
     // Space: the input line holds the latest reflection of the largest room,
     // and the tail's lines the longest mean free path.
-    float far = 0.0f;
+    float farthest = 0.0f;
     for (int nx = -3; nx <= 3; ++nx)
         for (int ny = -3; ny <= 3; ++ny)
             for (int nz = -3; nz <= 3; ++nz) {
@@ -480,11 +480,11 @@ void Reverb::prepare(int32_t sampleRate) {
                 const float dx = static_cast<float>(std::abs(nx) + 1) * kSpaceMaxW;
                 const float dy = static_cast<float>(std::abs(ny) + 1) * kSpaceMaxD;
                 const float dz = static_cast<float>(std::abs(nz) + 1) * kSpaceMaxH;
-                far = std::max(far, std::sqrt(dx * dx + dy * dy + dz * dz));
+                farthest = std::max(farthest, std::sqrt(dx * dx + dy * dy + dz * dz));
             }
     // A power of two, so a still room's taps wrap with a mask.
     int32_t inSize = 1;
-    while (inSize < static_cast<int32_t>(far / kSoundSpeed * sr) + 8) inSize <<= 1;
+    while (inSize < static_cast<int32_t>(farthest / kSoundSpeed * sr) + 8) inSize <<= 1;
     spcIn.prepare(inSize);
     for (int i = 0; i < kSpaceLines; ++i) {
         spcLine[i].prepare(static_cast<int32_t>(kSpaceMfpMax * kSpaceSpread[i] * sr) + 2 * modRoom + 4);

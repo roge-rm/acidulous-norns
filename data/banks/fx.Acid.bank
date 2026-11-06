@@ -10,7 +10,14 @@
 # squelches like a bass line. `accent` is how much further an accented sweep
 # goes and how much louder it is.
 #
-# Families: follow, pattern, wild.
+# `follow` pulls the cutoff onto a note in key, so at a high resonance it
+# sings the note and the sweep rises from it. `from` is #0 a scale, from
+# `key` (#0 C to #11 B) and `scale` (#5 minor), a note a step, or #1 the
+# track's notes. `octave` (#0 -2 to #5 +3) moves the note. `glide` is the
+# slide time and `slides` how many steps slide, each pattern's own first;
+# with the track's notes a tied note always slides.
+#
+# Families: follow, pattern, wild, key.
 
 machine fx.Acid
 
@@ -117,3 +124,61 @@ patch Screamer family=wild
   decay          200 ms
   drive          0.9
   gain           -5.5 dB
+
+patch "Minor Scream" family=key
+  # A busy line screamed in A minor, on drums or a held pad.
+  pattern        #5
+  follow         1
+  key            #9
+  scale          #5
+  octave         #3
+  cutoff         400 Hz
+  resonance      0.93
+  env            0.35
+  decay          180 ms
+  accent         0.7
+  drive          0.4
+  slides         0.2
+  glide          70 ms
+  gain           -1.5 dB
+
+patch "Chord Follow" family=key
+  # Sixteenths up through the chord the track holds.
+  pattern        #2
+  from           #1
+  follow         0.9
+  octave         #4
+  cutoff         600 Hz
+  resonance      0.9
+  env            0.3
+  decay          150 ms
+  slides         0.3
+  glide          60 ms
+
+patch "Slide Line" family=key
+  # A rolling line in minor pentatonic, gliding like a bass line.
+  pattern        #8
+  follow         1
+  key            #9
+  scale          #10
+  octave         #3
+  cutoff         300 Hz
+  resonance      0.92
+  env            0.4
+  decay          200 ms
+  slides         0.45
+  glide          120 ms
+  drive          0.3
+
+patch "Sing Along" family=key
+  # The track's own notes sung back on each hit, tied notes sliding.
+  from           #1
+  follow         1
+  octave         #3
+  cutoff         500 Hz
+  resonance      0.9
+  env            0.25
+  decay          220 ms
+  slides         0
+  glide          90 ms
+  gain           -1 dB

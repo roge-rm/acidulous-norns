@@ -20,7 +20,7 @@ dsp/        Math · Osc (PolyBLEP saw/pulse) · Filter (TPT SVF) · MultiFilter 
 machine/    Machine interface · MachineRegistry, then one directory each:
             reflux trinity ratio mosaic hexbeat forage genesis resonance cumulus
             pollen dice formulate manual filament brazen timber cipher molt nexus
-            diction bias hammer tongue draw fret tine sympath palm chanter aviary fathom
+            diction bias hammer tongue draw fret tine sympath palm chanter aviary fathom divisi
 effect/     Effect interface (onBlock for tempo, run() with bypass) · EffectRegistry ·
             Delay Reverb Eq Distortion Compressor Filter Bitcrusher Phaser Flanger
             Chorus Tremolo Width Shifter Harmonizer Amp Gate Swell

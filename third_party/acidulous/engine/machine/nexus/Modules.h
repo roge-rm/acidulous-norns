@@ -595,6 +595,7 @@ class FxMod final : public Module {
     ~FxMod() override { delete fx; }
 
     void prepare(float sr, int32_t) override {
+        // An effect that swaps in objects (Venue) would need setRetirer here, as Engine::applyMount does.
         if (fx == nullptr) fx = EffectRegistry::create(effect);
         if (fx == nullptr) return;
         fx->prepare(static_cast<int32_t>(sr));

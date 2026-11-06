@@ -11,6 +11,7 @@
 #include <engine/core/InputBus.h>
 #include <engine/core/Handover.h>
 #include <engine/core/Messages.h>
+#include <engine/core/RoomSweep.h>
 #include <engine/core/RtQueue.h>
 #include <engine/core/HostTimebase.h>
 #include <engine/core/Timebase.h>
@@ -38,6 +39,12 @@ class Engine : public Rack::ModifiedNoteSink {
     // when no input is open. It's published on the input bus for the whole
     // block, monitored if asked, and captured if a recording is armed.
     void renderBlock(const float *inInterleaved, float *outInterleaved);
+    /**
+     * Applies every mount queued so far, without a block. For an offline
+     * render with the stream stopped, so it sees the song and machines it
+     * was asked about rather than whatever the last block left.
+     */
+    void landMounts();
 
     // --- Any thread ------------------------------------------------------------------
     bool mount(const Mount &m) { return mounts.push(m); }
@@ -181,6 +188,8 @@ class Engine : public Rack::ModifiedNoteSink {
      * started this block.
      */
     ModTransport modTransport;
+    /** Each rack's clip start as a song tick this block, for its inserts' swing. */
+    int64_t clipStartTick[kRackCount] = {};
     /** Play started since the input chain last ran, which is before the transport each block. */
     bool inputModStart = false;
     /**
@@ -274,6 +283,27 @@ class Engine : public Rack::ModifiedNoteSink {
      */
     Effect *inputFx[kInputSlots] = {nullptr, nullptr};
 
+    /**
+     * The song's own tuning, for the inserts not on a track (groups, master,
+     * sends, input). Written into the table the audio thread isn't reading,
+     * then switched with one store, as Rack::setTuning.
+     */
+    void setSongTuning(const float *ratios) {
+        if (ratios == nullptr) {
+            songTuningIndex.store(-1, std::memory_order_release);
+            return;
+        }
+        const int next = songTuningIndex.load(std::memory_order_acquire) == 0 ? 1 : 0;
+        for (int i = 0; i < 128; ++i) songTuningTables[next][i] = ratios[i];
+        songTuningIndex.store(next, std::memory_order_release);
+    }
+    const float *songTuning() const {
+        const int t = songTuningIndex.load(std::memory_order_acquire);
+        return t < 0 ? nullptr : songTuningTables[t];
+    }
+    float songTuningTables[2][128]{};
+    std::atomic<int> songTuningIndex{-1};
+
     Capture capture;
     /**
      * Where the song was during the capture (see CaptureMarks).
@@ -286,6 +316,8 @@ class Engine : public Rack::ModifiedNoteSink {
     std::atomic<int32_t> armedRack{kNoRack};
     /** Playing one file to hear what it is (see engine/core/Audition.h). */
     Audition audition;
+    /** Capturing a room: a sweep out, the input in (see engine/core/RoomSweep.h). */
+    RoomSweep roomSweep;
 
     /**
      * Stop everything now. Set from any thread and acted on at the next block
@@ -296,6 +328,8 @@ class Engine : public Rack::ModifiedNoteSink {
     // so the screen can show it in ticks.
     double countInFrames = 0.0;
     double countInPerTick = 0.0;
+    // Frames of the count-in left at the start of this block, for machines.
+    double countInAtStart = 0.0;
 
     /**
      * Armed, running, and past the count-in.
@@ -377,7 +411,8 @@ class Engine : public Rack::ModifiedNoteSink {
     };
     PendingParam pendingParams[kRackCount];
 
-    SharedQueue<Mount, 64> mounts;
+    static constexpr int32_t kMountQueueSize = 64;
+    SharedQueue<Mount, kMountQueueSize> mounts;
     SharedQueue<MidiMessage, 256> midiIn;
     SharedQueue<ParamMessage, 512> paramsIn;
 

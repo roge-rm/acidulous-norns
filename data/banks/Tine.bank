@@ -12,9 +12,11 @@
 # `buzz` a rattle on a tine, and `roll` strikes held notes again and again.
 # `pair` sounds a second copy of each note a few cents sharp, so the two
 # beat as a gamelan's pairs do; it also choruses vibes and bells. Pressure
-# bows a held bar.
+# bows a held bar. `into` is a model a ringing note melts into, `melt` how
+# long that takes (0 off, then 0.05 to 20 s on a log scale), `heat` how much
+# a hard hit or pressure hurries it, and `return` #1 melts back and forth.
 #
-# A hundred patches in eight families, plainest first:
+# A hundred and twelve patches in nine families, plainest first:
 #
 #   wood     Init, marimbas, xylophones, balafons, slit and log drums (16)
 #   vibes    the damper, the motor slow, fast and in time, paired, bowed (11)
@@ -24,6 +26,7 @@
 #   pans     steel pans, handpans, tongue drums, bowls struck and rubbed (15)
 #   hits     blocks, claves, a low log, cowbells, agogos, triangles (13)
 #   odd      bars on the wrong ratios, sour pairs, bowed glass, long metal (9)
+#   melt     one model melting into another as it rings, three back and forth (12)
 #
 # The gamelan patches are in whatever tuning the song or track has: a patch
 # can't carry slendro or pelog, so set those in the tuning.
@@ -36,7 +39,7 @@
 # Every patch but Init carries eight named macros. Destinations are
 # numbered as in Tine.h's MacroDest: #1 mallet, #2 position, #3 decay,
 # #4 bright, #5 damp, #6 tube, #7 motor, #8 depth, #9 bloom, #10 buzz,
-# #11 roll, #12 spread, #14 volume, #15 pair. Where a macro at full moves
+# #11 roll, #12 spread, #14 volume, #15 pair, #17 melt. Where a macro at full moves
 # the level by more than 1.5 dB, a volume route takes it back out, as far as
 # the volume knob goes; where the volume is near the top the macro is
 # gentler instead (Edge on the hits, Dark on the chimes). Where a family's
@@ -44,7 +47,8 @@
 # vibes left to ring, Body on the sarons and genders, Edge on the tongue
 # drums and bowls. Mallet, position, decay and bright are read when a note
 # is struck, and pair turns on at a note, so those macros change the next
-# note.
+# note. The melt patches' first macro, Melt, moves every note to the end of
+# its melt at full, ringing ones too.
 
 machine Tine
 role bell
@@ -4420,3 +4424,615 @@ patch "Endless Metal" family=odd note=48 range=36..72
   tube           0
   volume         0.42
   send reverb    0.3
+
+# --- melt -----------------------------------------------------------------------
+
+patch "Marimba to Bowl" family=melt note=60 range=36..96 role=melt
+  # Rosewood bars that turn into a bowl as they ring: the overtones slide, the note stays.
+  set macro1 "Melt"
+  set macro2 "Hard"
+  set macro3 "Dark"
+  set macro4 "Ring"
+  set macro5 "Tubes"
+  set macro6 "Beat"
+  set macro7 "Roll"
+  set macro8 "Wide"
+  mac1_d1  #17
+  mac1_a1  1
+  mac1_d2  #14
+  mac1_a2  -0.164
+  mac2_d1  #1
+  mac2_a1  0.4
+  mac2_d2  #4
+  mac2_a2  0.15
+  mac2_d3  #14
+  mac2_a3  -0.105
+  mac3_d1  #4
+  mac3_a1  -0.4
+  mac3_d2  #1
+  mac3_a2  -0.15
+  mac4_d1  #3
+  mac4_a1  0.35
+  mac4_d2  #5
+  mac4_a2  -0.6
+  mac5_d1  #6
+  mac5_a1  0.4
+  mac5_d2  #14
+  mac5_a2  -0.11
+  mac6_d1  #15
+  mac6_a1  0.2
+  mac6_d2  #14
+  mac6_a2  0.137
+  mac7_d1  #11
+  mac7_a1  0.5
+  mac7_d2  #14
+  mac7_a2  -0.316
+  mac8_d1  #12
+  mac8_a1  0.6
+  model          #0
+  into           #14
+  melt           0.683
+  heat           0.3
+  mallet         0.45
+  decay          0.7
+  tube           0.6
+  volume         0.561
+  send reverb    0.25
+
+patch "Glock to Gong" family=melt note=72 range=60..100 role=melt
+  # A glockenspiel note that sinks into a gong's crowded overtones.
+  set macro1 "Melt"
+  set macro2 "Hard"
+  set macro3 "Dark"
+  set macro4 "Ring"
+  set macro5 "Tubes"
+  set macro6 "Beat"
+  set macro7 "Roll"
+  set macro8 "Wide"
+  mac1_d1  #17
+  mac1_a1  1
+  mac2_d1  #1
+  mac2_a1  0.4
+  mac2_d2  #4
+  mac2_a2  0.15
+  mac2_d3  #14
+  mac2_a3  -0.131
+  mac3_d1  #4
+  mac3_a1  -0.4
+  mac3_d2  #1
+  mac3_a2  -0.15
+  mac4_d1  #3
+  mac4_a1  0.35
+  mac4_d2  #5
+  mac4_a2  -0.6
+  mac5_d1  #6
+  mac5_a1  0.4
+  mac5_d2  #14
+  mac5_a2  -0.162
+  mac6_d1  #15
+  mac6_a1  0.2
+  mac6_d2  #14
+  mac6_a2  0.214
+  mac7_d1  #11
+  mac7_a1  0.5
+  mac7_d2  #14
+  mac7_a2  -0.241
+  mac8_d1  #12
+  mac8_a1  0.6
+  model          #3
+  into           #13
+  melt           0.731
+  heat           0.3
+  mallet         0.5
+  decay          0.8
+  tube           0
+  volume         0.587
+  send reverb    0.25
+
+patch "Pan to Vibes" family=melt note=64 range=55..88 role=melt
+  # A steel pan's octave and twelfth melting into a vibraphone, motor turning.
+  set macro1 "Melt"
+  set macro2 "Hard"
+  set macro3 "Dark"
+  set macro4 "Ring"
+  set macro5 "Tubes"
+  set macro6 "Beat"
+  set macro7 "Roll"
+  set macro8 "Wide"
+  mac1_d1  #17
+  mac1_a1  1
+  mac2_d1  #1
+  mac2_a1  0.4
+  mac2_d2  #4
+  mac2_a2  0.15
+  mac2_d3  #14
+  mac2_a3  -0.098
+  mac3_d1  #4
+  mac3_a1  -0.4
+  mac3_d2  #1
+  mac3_a2  -0.15
+  mac4_d1  #3
+  mac4_a1  0.35
+  mac4_d2  #5
+  mac4_a2  -0.6
+  mac4_d3  #14
+  mac4_a3  -0.08
+  mac5_d1  #6
+  mac5_a1  0.4
+  mac5_d2  #14
+  mac5_a2  -0.08
+  mac6_d1  #15
+  mac6_a1  0.2
+  mac6_d2  #14
+  mac6_a2  0.096
+  mac7_d1  #11
+  mac7_a1  0.5
+  mac7_d2  #14
+  mac7_a2  -0.235
+  mac8_d1  #12
+  mac8_a1  0.6
+  model          #6
+  into           #1
+  melt           0.616
+  heat           0.4
+  motor          4.5
+  depth          0.4
+  tube           0.6
+  bloom          0.6
+  volume         0.477
+  send reverb    0.25
+
+patch "Thumb to Handpan" family=melt note=60 range=48..84 role=melt
+  # A thumb piano tine that opens out into a handpan.
+  set macro1 "Melt"
+  set macro2 "Hard"
+  set macro3 "Dark"
+  set macro4 "Ring"
+  set macro5 "Tubes"
+  set macro6 "Beat"
+  set macro7 "Roll"
+  set macro8 "Wide"
+  mac1_d1  #17
+  mac1_a1  1
+  mac2_d1  #1
+  mac2_a1  0.4
+  mac2_d2  #4
+  mac2_a2  0.15
+  mac2_d3  #14
+  mac2_a3  -0.148
+  mac3_d1  #4
+  mac3_a1  -0.4
+  mac3_d2  #1
+  mac3_a2  -0.15
+  mac4_d1  #3
+  mac4_a1  0.35
+  mac4_d2  #5
+  mac4_a2  -0.6
+  mac5_d1  #6
+  mac5_a1  0.4
+  mac5_d2  #14
+  mac5_a2  -0.229
+  mac6_d1  #15
+  mac6_a1  0.2
+  mac6_d2  #14
+  mac6_a2  0.17
+  mac7_d1  #11
+  mac7_a1  0.5
+  mac7_d2  #14
+  mac7_a2  -0.324
+  mac8_d1  #12
+  mac8_a1  0.6
+  model          #4
+  into           #7
+  melt           0.568
+  heat           0.5
+  buzz           0.15
+  tube           0
+  volume         0.83
+  send reverb    0.25
+
+patch "Vibes Breathing" family=melt note=60 range=53..89 role=melt
+  # Vibes that sway into a bowl and back while held.
+  set macro1 "Melt"
+  set macro2 "Hard"
+  set macro3 "Dark"
+  set macro4 "Ring"
+  set macro5 "Tubes"
+  set macro6 "Beat"
+  set macro7 "Roll"
+  set macro8 "Wide"
+  mac1_d1  #17
+  mac1_a1  1
+  mac2_d1  #1
+  mac2_a1  0.4
+  mac2_d2  #4
+  mac2_a2  0.15
+  mac2_d3  #14
+  mac2_a3  -0.102
+  mac3_d1  #4
+  mac3_a1  -0.4
+  mac3_d2  #1
+  mac3_a2  -0.15
+  mac4_d1  #3
+  mac4_a1  0.35
+  mac4_d2  #5
+  mac4_a2  -0.6
+  mac5_d1  #6
+  mac5_a1  0.4
+  mac5_d2  #14
+  mac5_a2  -0.097
+  mac6_d1  #15
+  mac6_a1  0.2
+  mac6_d2  #14
+  mac6_a2  0.212
+  mac7_d1  #11
+  mac7_a1  0.5
+  mac7_d2  #14
+  mac7_a2  -0.246
+  mac8_d1  #12
+  mac8_a1  0.6
+  model          #1
+  into           #14
+  melt           0.653
+  heat           0.5
+  decay          0.8
+  pair           3
+  tube           0.6
+  motor          0
+  return         #1
+  volume         0.494
+  send reverb    0.25
+
+patch "Saron to Gong" family=melt note=60 range=48..76 role=melt
+  # A saron that melts into a gong and rings on as one.
+  set macro1 "Melt"
+  set macro2 "Hard"
+  set macro3 "Dark"
+  set macro4 "Ring"
+  set macro5 "Tubes"
+  set macro6 "Beat"
+  set macro7 "Roll"
+  set macro8 "Wide"
+  mac1_d1  #17
+  mac1_a1  1
+  mac2_d1  #1
+  mac2_a1  0.4
+  mac2_d2  #4
+  mac2_a2  0.15
+  mac2_d3  #14
+  mac2_a3  -0.096
+  mac3_d1  #4
+  mac3_a1  -0.4
+  mac3_d2  #1
+  mac3_a2  -0.15
+  mac4_d1  #3
+  mac4_a1  0.35
+  mac4_d2  #5
+  mac4_a2  -0.6
+  mac5_d1  #6
+  mac5_a1  0.4
+  mac5_d2  #14
+  mac5_a2  -0.157
+  mac6_d1  #15
+  mac6_a1  0.2
+  mac6_d2  #14
+  mac6_a2  0.208
+  mac7_d1  #11
+  mac7_a1  0.5
+  mac7_d2  #14
+  mac7_a2  -0.246
+  mac8_d1  #12
+  mac8_a1  0.6
+  model          #11
+  into           #13
+  melt           0.683
+  heat           0.3
+  decay          0.7
+  tube           0
+  volume         0.57
+  send reverb    0.25
+
+patch "Wood to Metal" family=melt note=72 range=60..96 role=melt
+  # Xylophone that turns to glockenspiel; a hard hit turns it fast.
+  set macro1 "Melt"
+  set macro2 "Hard"
+  set macro3 "Dark"
+  set macro4 "Ring"
+  set macro5 "Tubes"
+  set macro6 "Beat"
+  set macro7 "Roll"
+  set macro8 "Wide"
+  mac1_d1  #17
+  mac1_a1  1
+  mac1_d2  #14
+  mac1_a2  -0.211
+  mac2_d1  #1
+  mac2_a1  0.4
+  mac2_d2  #4
+  mac2_a2  0.15
+  mac2_d3  #14
+  mac2_a3  -0.145
+  mac3_d1  #4
+  mac3_a1  -0.4
+  mac3_d2  #1
+  mac3_a2  -0.15
+  mac4_d1  #3
+  mac4_a1  0.35
+  mac4_d2  #5
+  mac4_a2  -0.6
+  mac4_d3  #14
+  mac4_a3  -0.122
+  mac5_d1  #6
+  mac5_a1  0.4
+  mac5_d2  #14
+  mac5_a2  -0.139
+  mac6_d1  #15
+  mac6_a1  0.2
+  mac7_d1  #11
+  mac7_a1  0.5
+  mac7_d2  #14
+  mac7_a2  -0.372
+  mac8_d1  #12
+  mac8_a1  0.6
+  model          #2
+  into           #3
+  melt           0.53
+  heat           0.9
+  mallet         0.6
+  decay          0.7
+  tube           0.4
+  volume         0.622
+  send reverb    0.25
+
+patch "Tongue Shimmer" family=melt note=60 range=48..77 role=melt
+  # A tongue drum that grows a triangle's dense ring out of its note.
+  set macro1 "Melt"
+  set macro2 "Hard"
+  set macro3 "Dark"
+  set macro4 "Ring"
+  set macro5 "Tubes"
+  set macro6 "Beat"
+  set macro7 "Roll"
+  set macro8 "Wide"
+  mac1_d1  #17
+  mac1_a1  1
+  mac1_d2  #14
+  mac1_a2  -0.175
+  mac2_d1  #1
+  mac2_a1  0.4
+  mac2_d2  #4
+  mac2_a2  0.15
+  mac2_d3  #14
+  mac2_a3  -0.129
+  mac3_d1  #4
+  mac3_a1  -0.4
+  mac3_d2  #1
+  mac3_a2  -0.15
+  mac4_d1  #3
+  mac4_a1  0.35
+  mac4_d2  #5
+  mac4_a2  -0.6
+  mac5_d1  #6
+  mac5_a1  0.4
+  mac5_d2  #14
+  mac5_a2  -0.199
+  mac6_d1  #15
+  mac6_a1  0.2
+  mac6_d2  #14
+  mac6_a2  0.241
+  mac7_d1  #11
+  mac7_a1  0.5
+  mac7_d2  #14
+  mac7_a2  -0.369
+  mac8_d1  #12
+  mac8_a1  0.6
+  model          #8
+  into           #18
+  melt           0.616
+  heat           0.4
+  decay          0.7
+  tube           0
+  volume         0.723
+  send reverb    0.25
+
+patch "Hot Crotales" family=melt note=72 range=60..96 role=melt
+  # Crotales that melt into a gong as fast as they're hit.
+  set macro1 "Melt"
+  set macro2 "Hard"
+  set macro3 "Dark"
+  set macro4 "Ring"
+  set macro5 "Tubes"
+  set macro6 "Beat"
+  set macro7 "Roll"
+  set macro8 "Wide"
+  mac1_d1  #17
+  mac1_a1  1
+  mac1_d2  #14
+  mac1_a2  0.106
+  mac2_d1  #1
+  mac2_a1  0.4
+  mac2_d2  #4
+  mac2_a2  0.15
+  mac3_d1  #4
+  mac3_a1  -0.4
+  mac3_d2  #1
+  mac3_a2  -0.15
+  mac4_d1  #3
+  mac4_a1  0.35
+  mac4_d2  #5
+  mac4_a2  -0.6
+  mac5_d1  #6
+  mac5_a1  0.4
+  mac5_d2  #14
+  mac5_a2  -0.135
+  mac6_d1  #15
+  mac6_a1  0.2
+  mac6_d2  #14
+  mac6_a2  0.171
+  mac7_d1  #11
+  mac7_a1  0.5
+  mac7_d2  #14
+  mac7_a2  -0.135
+  mac8_d1  #12
+  mac8_a1  0.6
+  model          #10
+  into           #13
+  melt           0.799
+  heat           1
+  decay          0.8
+  mallet         0.5
+  tube           0
+  volume         0.489
+  send reverb    0.25
+
+patch "Gong Cools" family=melt note=48 range=36..72 role=melt
+  # A gong strike whose clatter settles into a pure vibraphone note.
+  set macro1 "Melt"
+  set macro2 "Hard"
+  set macro3 "Dark"
+  set macro4 "Ring"
+  set macro5 "Tubes"
+  set macro6 "Beat"
+  set macro7 "Roll"
+  set macro8 "Wide"
+  mac1_d1  #17
+  mac1_a1  1
+  mac2_d1  #1
+  mac2_a1  0.4
+  mac2_d2  #4
+  mac2_a2  0.15
+  mac2_d3  #14
+  mac2_a3  -0.094
+  mac3_d1  #4
+  mac3_a1  -0.4
+  mac3_d2  #1
+  mac3_a2  -0.15
+  mac4_d1  #3
+  mac4_a1  0.35
+  mac4_d2  #5
+  mac4_a2  -0.6
+  mac5_d1  #6
+  mac5_a1  0.4
+  mac5_d2  #14
+  mac5_a2  -0.09
+  mac6_d1  #15
+  mac6_a1  0.2
+  mac7_d1  #11
+  mac7_a1  0.5
+  mac8_d1  #12
+  mac8_a1  0.6
+  model          #13
+  into           #1
+  melt           0.653
+  heat           0.3
+  mallet         0.4
+  decay          0.7
+  tube           0.5
+  volume         0.456
+  send reverb    0.25
+
+patch "Handpan Tide" family=melt note=55 range=45..77 role=melt
+  # Two pans, one into the other and back, as slow as a tide.
+  set macro1 "Melt"
+  set macro2 "Hard"
+  set macro3 "Dark"
+  set macro4 "Ring"
+  set macro5 "Tubes"
+  set macro6 "Beat"
+  set macro7 "Roll"
+  set macro8 "Wide"
+  mac1_d1  #17
+  mac1_a1  1
+  mac1_d2  #14
+  mac1_a2  -0.302
+  mac2_d1  #1
+  mac2_a1  0.4
+  mac2_d2  #4
+  mac2_a2  0.15
+  mac2_d3  #14
+  mac2_a3  -0.154
+  mac3_d1  #4
+  mac3_a1  -0.4
+  mac3_d2  #1
+  mac3_a2  -0.15
+  mac4_d1  #3
+  mac4_a1  0.35
+  mac4_d2  #5
+  mac4_a2  -0.6
+  mac5_d1  #6
+  mac5_a1  0.4
+  mac5_d2  #14
+  mac5_a2  -0.19
+  mac6_d1  #15
+  mac6_a1  0.2
+  mac6_d2  #14
+  mac6_a2  0.199
+  mac7_d1  #11
+  mac7_a1  0.5
+  mac7_d2  #14
+  mac7_a2  -0.378
+  mac8_d1  #12
+  mac8_a1  0.6
+  model          #7
+  into           #6
+  melt           0.731
+  heat           0.2
+  bloom          0.8
+  decay          0.8
+  tube           0
+  return         #1
+  volume         0.69
+  send reverb    0.25
+
+patch "Sinking Bowl" family=melt note=60 range=48..84 role=melt
+  # A struck bowl whose partials sink into a tubular bell's, off the note and back.
+  set macro1 "Melt"
+  set macro2 "Hard"
+  set macro3 "Dark"
+  set macro4 "Ring"
+  set macro5 "Tubes"
+  set macro6 "Beat"
+  set macro7 "Roll"
+  set macro8 "Wide"
+  mac1_d1  #17
+  mac1_a1  1
+  mac1_d2  #14
+  mac1_a2  -0.186
+  mac2_d1  #1
+  mac2_a1  0.4
+  mac2_d2  #4
+  mac2_a2  0.15
+  mac2_d3  #14
+  mac2_a3  -0.107
+  mac3_d1  #4
+  mac3_a1  -0.4
+  mac3_d2  #1
+  mac3_a2  -0.15
+  mac4_d1  #3
+  mac4_a1  0.35
+  mac4_d2  #5
+  mac4_a2  -0.6
+  mac5_d1  #6
+  mac5_a1  0.4
+  mac5_d2  #14
+  mac5_a2  -0.176
+  mac6_d1  #15
+  mac6_a1  0.2
+  mac6_d2  #14
+  mac6_a2  0.252
+  mac7_d1  #11
+  mac7_a1  0.5
+  mac7_d2  #14
+  mac7_a2  -0.24
+  mac8_d1  #12
+  mac8_a1  0.6
+  model          #14
+  into           #9
+  melt           0.769
+  heat           0.3
+  decay          0.8
+  tube           0
+  return         #1
+  volume         0.637
+  send reverb    0.25
+

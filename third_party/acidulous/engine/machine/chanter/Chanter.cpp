@@ -47,6 +47,32 @@ constexpr float kPipeTrim = 10.0f;
 constexpr float kDriftPush = 0.06f, kDriftCents = 6.0f;
 
 /**
+ * A finite bag, in bags a second at full pressure: the drones alone, the
+ * chanter on top, what the arm squeezes out once the piper stops blowing
+ * (a hurdy-gurdy's wheel coasts down slower), and the piper striking in.
+ */
+constexpr float kDroneUse = 0.12f, kChanterUse = 0.25f, kLetGo = 0.6f, kCoast = 0.3f, kStrikeFill = 2.0f;
+/** How long the piper blows hard to strike in from a soft bag, seconds. */
+constexpr float kStrike = 0.5f;
+/** Below this much air the pressure sags. */
+constexpr float kSagFrom = 0.35f;
+/** Where each drone chokes as the pressure falls, and the margin it needs to start again. */
+constexpr float kChoke[Chanter::kDrones] = {0.5f, 0.38f, 0.26f};
+constexpr float kChokeBack = 0.06f;
+/** How far the pitch falls at full sag, semitones: the drones as they die, the chanter and the strings. */
+constexpr float kDroneGroan = 2.0f, kChanterGroan = 0.8f, kStringGroan = 0.6f;
+/** How quickly a drone stops or starts once the pressure crosses it, seconds, and its push follows, per sample. */
+constexpr float kChokeTime = 0.08f, kDronePushTime = 0.01f;
+/** Launeddas: a breath in through the nose every few seconds, and how far the cheeks let the pressure dip. */
+constexpr float kCheekDip = 0.25f, kCheekTime = 0.3f;
+
+/** Listening for the bass: the band, taken down 16 times, picked every 20 ms. */
+constexpr float kBassLowHz = 30.0f, kBassHighHz = 250.0f, kEarLowHz = 300.0f, kEarEvery = 0.02f;
+constexpr int kEarDown = 16;
+/** Quieter than this isn't a bass note: the drones stay where they are. */
+constexpr float kEarFloor = 1e-9f;
+
+/**
  * Each kind: its drones, as semitones from the key note (A3 for A), their
  * level, the chanter's bore and reed, where its holes cut off the top, and
  * whether it's closed between notes.
@@ -258,6 +284,11 @@ const ParamDef *Chanter::paramDefs(int32_t &count) const {
             }
         }
         defs[CoupBeats] = ParamDef{"coupbeats", 0.0f, 1.0f, 0.0f, Curve::Stepped, 2, ""}; // every beat, 2 and 4
+        defs[Sidechain] = ParamDef{"sidechain", 0.0f, 16.0f, 0.0f, Curve::Stepped, 17, ""};
+        defs[Follow] = ParamDef{"follow", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""};
+        defs[Glide] = ParamDef{"glide", 0.0f, 2.0f, 0.5f, Curve::Linear, 0, "s"};
+        defs[Wind] = ParamDef{"wind", 0.0f, 1.0f, 1.0f, Curve::Linear, 0, ""};
+        defs[Sag] = ParamDef{"sag", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""};
         built = true;
     }
     count = Count;
@@ -275,6 +306,7 @@ struct DestMap {
             {P::Drones, P::McDrones}, {P::Bag, P::McBag}, {P::Reed, P::McReed}, {P::Grace, P::McGrace},
             {P::Drift, P::McDrift}, {P::Air, P::McAir}, {P::Wheel, P::McWheel}, {P::Rosin, P::McRosin},
             {P::Dog, P::McDog}, {P::Threshold, P::McThreshold}, {P::VelocityAmount, P::McVelocity}, {P::Volume, P::McVolume},
+            {P::Follow, P::McFollow}, {P::Wind, P::McWind}, {P::Sag, P::McSag},
         };
         for (const auto &pr : pairs) of[pr[0]] = static_cast<int8_t>(pr[1]);
     }
@@ -350,6 +382,8 @@ void Chanter::prepare(int32_t rate) {
     dogTone.set(2200.0f, 0.55f);
     box.setSampleRate(sampleRate);
     box.set(280.0f, 0.4f);
+    ear.prepare(sampleRate, kEarDown, kEarLowHz);
+    earBuilt = false;
     reset();
 }
 
@@ -391,6 +425,27 @@ void Chanter::reset() {
     noise = 0x3b9aca07u;
     quietSamples = 0;
     asleep = true;
+    store = 1.0f;
+    strikeLeft = cheekAt = 0.0f;
+    dronesPlaced = followed = false;
+    for (int d = 0; d <= kDrones; ++d) droneNow[d] = droneAim[d] = moveFrom[d] = moveAim[d] = moveT[d] = placedAim[d] = 0.0f;
+    for (int d = 0; d < kDrones; ++d) {
+        open[d] = 1.0f;
+        dronePushNow[d] = 0.0f;
+        choked[d] = false;
+    }
+    ear.reset();
+    earBuilt = false;
+    earUntil = 0;
+    tuningSeenEqual = true;
+    tuningGen = 0;
+    earGen = 0xffffffffu;
+    root = pending = -1;
+    pendingFor = 0.0f;
+    placedRoot = -2;
+    placedKind = placedKey = -1;
+    placedTune = 1e9f;
+    placedGen = 0xffffffffu;
 }
 
 void Chanter::onBlock(int64_t tickStart, int64_t tickEnd, float tempo) {
@@ -436,6 +491,8 @@ void Chanter::startNote(int note, float vel, bool legato) {
 
 void Chanter::noteOn(uint8_t note, uint8_t vel) {
     const bool legato = heldCount > 0;
+    // From a let-go bag the piper blows it up hard before the note speaks.
+    if (!legato && sinceRelease >= goalOf(Bag) && store < 0.6f) strikeLeft = kStrike;
     for (int i = 0; i < heldCount; ++i) {
         if (held[i] == note) {
             for (int j = i; j + 1 < heldCount; ++j) {
@@ -530,14 +587,162 @@ float Chanter::bow(Bowed &s, float speed, float grip) {
     return s.wave.step(excite + nudge);
 }
 
+int Chanter::nearestKey(float hz) const {
+    const float want = std::log2(std::fmax(hz, 1.0f));
+    const int guess = std::clamp(static_cast<int>(std::lround(69.0f + 12.0f * (want - std::log2(440.0f)))), 0, 127);
+    if (tuningTable() == nullptr) return guess;
+    int best = guess;
+    float bestOff = 1e9f;
+    for (int k = std::max(0, guess - 48); k <= std::min(127, guess + 48); ++k) {
+        const float off = std::fabs(std::log2(noteHz(static_cast<float>(k))) - want);
+        if (off < bestOff) {
+            bestOff = off;
+            best = k;
+        }
+    }
+    return best;
+}
+
+void Chanter::checkTuning() {
+    const float *t = tuningTable();
+    if (t == nullptr ? tuningSeenEqual : (!tuningSeenEqual && std::equal(t, t + 128, tuningSeen))) return;
+    tuningSeenEqual = t == nullptr;
+    if (t != nullptr) std::copy(t, t + 128, tuningSeen);
+    ++tuningGen;
+}
+
+void Chanter::tuneEar() {
+    earGen = tuningGen;
+    earBuilt = true;
+    // A band on every key of the tuning from 30 to 250 Hz. A tuning with
+    // more keys there than bands takes every second or third key, so the
+    // bands still reach 250 Hz.
+    int first = 0, last = -1;
+    while (first < 127 && noteHz(static_cast<float>(first)) < kBassLowHz) ++first;
+    for (int key = first; key <= 127 && noteHz(static_cast<float>(key)) <= kBassHighHz; ++key) last = key;
+    const int keys = last - first + 1;
+    const int stride = keys > kEarBands ? (keys + kEarBands - 1) / kEarBands : 1;
+    int n = 0;
+    for (int key = first; key <= last && n < kEarBands; key += stride) {
+        earKey[n] = key;
+        earHz[n] = noteHz(static_cast<float>(key));
+        ear.setBand(n, earHz[n]);
+        ++n;
+    }
+    ear.setCount(n);
+    root = pending = -1;
+    pendingFor = 0.0f;
+}
+
+void Chanter::hear(const float *song, int32_t frames, float follow) {
+    checkTuning();
+    if (!earBuilt || earGen != tuningGen) tuneEar();
+    if (ear.count < 2) return;
+    const float downRate = sampleRate / static_cast<float>(kEarDown);
+    // A quicker follow remembers less: from 0.6 s down to 0.12.
+    const float memory = 0.12f + 0.5f * (1.0f - follow);
+    const float keep = 1.0f - std::exp(-1.0f / (memory * downRate));
+    const int every = std::max(1, static_cast<int>(kEarEvery * downRate));
+    for (int32_t i = 0; i < frames; ++i) {
+        if (!ear.step(song[i], keep)) continue;
+        if (--earUntil <= 0) {
+            earUntil = every;
+            chooseBass(follow, static_cast<float>(every) / downRate);
+        }
+    }
+    ear.settle();
+}
+
+void Chanter::chooseBass(float follow, float seconds) {
+    const float *e = ear.heard;
+    const int n = ear.count;
+    auto peak = [&](int b) { return (b == 0 || e[b] >= e[b - 1]) && (b == n - 1 || e[b] >= e[b + 1]); };
+    float loudest = 0.0f;
+    int best = -1;
+    for (int b = 0; b < n; ++b) {
+        if (e[b] > loudest && peak(b)) {
+            loudest = e[b];
+            best = b;
+        }
+    }
+    // Silence: the drones stay where they are.
+    if (best < 0 || loudest < kEarFloor) {
+        pending = -1;
+        pendingFor = 0.0f;
+        return;
+    }
+    // A loud harmonic over a quieter fundamental: the note is the one an
+    // octave or a twelfth down, if it's there.
+    for (int b = 0; b < best; ++b) {
+        if (e[b] < 0.2f * loudest || !peak(b)) continue;
+        const float r = std::log2(earHz[b] / earHz[best]);
+        if (std::fabs(r + 1.0f) < 0.04f || std::fabs(r + 1.585f) < 0.04f) {
+            best = b;
+            break;
+        }
+    }
+    const int key = earKey[best];
+    auto sameClass = [&](int a, int b) {
+        const float c = std::fmod(std::fabs(1200.0f * std::log2(noteHz(static_cast<float>(a)) / noteHz(static_cast<float>(b)))), 1200.0f);
+        return c < 30.0f || c > 1170.0f;
+    };
+    if (root >= 0 && sameClass(key, root)) {
+        pending = -1;
+        pendingFor = 0.0f;
+        return;
+    }
+    // A new note has to hold before the drones go to it, so passing notes
+    // don't drag them: from 1.25 s with follow low to 50 ms at the top.
+    if (pending >= 0 && sameClass(key, pending)) {
+        pendingFor += seconds;
+    } else {
+        pending = key;
+        pendingFor = 0.0f;
+    }
+    const float hold = 0.05f + 1.2f * (1.0f - follow) * (1.0f - follow);
+    if (pendingFor >= hold) {
+        root = pending;
+        pending = -1;
+        pendingFor = 0.0f;
+    }
+}
+
+void Chanter::placeDrones(int kind, float tune) {
+    const Make &k = kMakes[kind];
+    const int keyStep = std::clamp(steppedTargetOf(Key), 0, 11);
+    if (root == placedRoot && kind == placedKind && keyStep == placedKey && tune == placedTune && tuningGen == placedGen) return;
+    placedRoot = root;
+    placedKind = kind;
+    placedKey = keyStep;
+    placedTune = tune;
+    placedGen = tuningGen;
+    // The bass's note in the octave nearest the key's, so the drones keep
+    // their register: the key's note was A3 for A.
+    const float keyHz = noteHz(static_cast<float>(57 + keyStep - 9));
+    const float rootHz = noteHz(static_cast<float>(root));
+    const float place = rootHz * std::pow(2.0f, std::round(std::log2(keyHz / rootHz)));
+    const bool equal = tuningTable() == nullptr;
+    const int rootKey = equal ? root + 12 * static_cast<int>(std::lround(std::log2(place / rootHz))) : nearestKey(place);
+    for (int d = 0; d < k.drones; ++d) {
+        const int at = equal ? rootKey + static_cast<int>(std::lround(k.droneAt[d]))
+                             : nearestKey(noteHz(static_cast<float>(rootKey)) * std::pow(2.0f, k.droneAt[d] / 12.0f));
+        placedAim[d] = static_cast<float>(at) + tune;
+    }
+    placedAim[kDrones] = static_cast<float>(rootKey) + tune;
+}
+
 bool Chanter::render(float *L, float *R, int32_t frames) {
     params_.tick();
     updateMacros();
     for (int32_t i = 0; i < frames; ++i) L[i] = R[i] = 0.0f;
-    if (asleep) return true;
-
     const int kind = std::clamp(steppedTargetOf(Model), 0, KindCount - 1);
     const Make &k = kMakes[kind];
+    // The song's low end, heard even while asleep so the drones start on its note.
+    const float follow = clampf(goalOf(Follow), 0.0f, 1.0f);
+    const bool listening = key_ != nullptr && sidechainRack() >= 0 && follow > 0.0f && k.drones > 0;
+    if (listening) hear(key_, frames, follow);
+    if (asleep) return true;
+
     const float keyNote = 57.0f + static_cast<float>(std::clamp(steppedTargetOf(Key), 0, 11) - 9) + targetOf(Tune) / 100.0f;
     const float dt = static_cast<float>(frames) / sampleRate;
     const float volume = paramOf(Volume);
@@ -549,9 +754,89 @@ bool Chanter::render(float *L, float *R, int32_t frames) {
     // the wheel likewise turns on.
     const bool playing = heldCount > 0;
     if (!playing) sinceRelease += dt;
-    const float aim = playing || sinceRelease < paramOf(Bag) ? 1.0f : 0.0f;
-    bag += (aim - bag) * (1.0f - std::exp(-dt / (aim > bag ? kFills : kEmpties)));
-    if (bag < 1e-4f && aim == 0.0f) bag = 0.0f;
+    const float wind = clampf(paramOf(Wind), 0.0f, 1.0f);
+    const float sag = clampf(paramOf(Sag), 0.0f, 1.0f);
+    // A finite bag (or the launeddas' breaths); at wind 1 the bag is as it
+    // always was. Sag only bends the pitch.
+    const bool finite = wind < 1.0f && kind != Launeddas;
+    const bool shaped = wind < 1.0f;
+    if (!shaped) {
+        const float aim = playing || sinceRelease < paramOf(Bag) ? 1.0f : 0.0f;
+        bag += (aim - bag) * (1.0f - std::exp(-dt / (aim > bag ? kFills : kEmpties)));
+        if (bag < 1e-4f && aim == 0.0f) bag = 0.0f;
+    } else {
+        // The piper blows while playing and for `bag` seconds after.
+        const bool piping = playing || sinceRelease < paramOf(Bag);
+        float aim = piping ? 1.0f : 0.0f;
+        float fallTime = kEmpties;
+        if (finite) {
+            // The bag holds so much air. The pipes use it as they sound, the
+            // wind puts back its share of what they'd use playing, and once
+            // the piper stops blowing the arm squeezes the rest out through
+            // the drones. The pressure holds until the bag's soft, then sags.
+            // On the hurdy-gurdy it's the wheel: the arm keeps it turning and
+            // let go, it coasts down.
+            const float ratio = wind / (1.0f - wind);
+            const float use = (kDroneUse + (playing ? kChanterUse * (1.0f + 0.5f * press) : 0.0f)) * bag;
+            float fill = piping ? ratio * (kDroneUse + kChanterUse) : 0.0f;
+            if (strikeLeft > 0.0f && piping) fill += kStrikeFill;
+            // Never quite nothing, so a let-go bag does empty.
+            const float out = piping ? 0.0f : (kind == Gurdy ? kCoast : kLetGo) * std::fmax(bag, 0.2f);
+            store = clampf(store + (fill - use - out) * dt, 0.0f, 1.0f);
+            const float x = clampf(store / kSagFrom, 0.0f, 1.0f);
+            aim = x * (2.0f - x);
+            fallTime = kind == Gurdy ? 0.15f : 0.05f;
+        }
+        if (!finite && playing) {
+            // No bag: circular breathing. A breath in through the nose every
+            // 1.5 to 7.5 s, and the cheeks don't quite hold the pressure.
+            cheekAt += dt;
+            const float every = 1.5f + 6.0f * wind;
+            if (cheekAt >= every) cheekAt -= every;
+            if (cheekAt < kCheekTime) aim *= 1.0f - kCheekDip * std::sin(3.14159265f * cheekAt / kCheekTime);
+        }
+        bag += (aim - bag) * (1.0f - std::exp(-dt / (aim > bag ? kFills : fallTime)));
+        if (bag < 1e-4f && aim == 0.0f) bag = 0.0f;
+    }
+    strikeLeft = std::fmax(0.0f, strikeLeft - dt);
+
+    // The drones' home on the key, and where the song's bass sends them.
+    float home[kDrones + 1];
+    for (int d = 0; d < kDrones; ++d) home[d] = keyNote + k.droneAt[d];
+    home[kDrones] = keyNote;
+    if (listening && root >= 0) placeDrones(kind, targetOf(Tune) / 100.0f);
+    for (int d = 0; d <= kDrones; ++d) droneAim[d] = listening && root >= 0 ? placedAim[d] : home[d];
+    if (listening) followed = true;
+    const bool gliding = listening || followed;
+    const bool dronesQuiet = kind == Gurdy ? bag <= 0.0f : bag <= 0.05f;
+    const float glideTime = goalOf(Glide);
+    float dip[kDrones] = {};
+    bool arrived = true;
+    for (int d = 0; d <= kDrones; ++d) {
+        if (!gliding || dronesQuiet || !dronesPlaced || glideTime <= 0.0f) {
+            droneNow[d] = moveFrom[d] = moveAim[d] = droneAim[d];
+            moveT[d] = 0.0f;
+        } else if (kind == Gurdy) {
+            // A peg turned: an even move over the glide time, easing in and out.
+            if (droneAim[d] != moveAim[d]) {
+                moveFrom[d] = droneNow[d];
+                moveAim[d] = droneAim[d];
+                moveT[d] = 0.0f;
+            }
+            moveT[d] += dt;
+            const float f = clampf(moveT[d] / glideTime, 0.0f, 1.0f);
+            droneNow[d] = f >= 1.0f ? droneAim[d] : moveFrom[d] + (droneAim[d] - moveFrom[d]) * f * f * (3.0f - 2.0f * f);
+        } else {
+            // A reed pulled to a new note: quick at first, settling in, and
+            // the pipe's push dips while it's on its way.
+            droneNow[d] += (droneAim[d] - droneNow[d]) * (1.0f - std::exp(-3.0f * dt / glideTime));
+            if (std::fabs(droneAim[d] - droneNow[d]) < 1e-3f) droneNow[d] = droneAim[d];
+            if (d < kDrones) dip[d] = 0.2f * std::fmin(1.0f, std::fabs(droneAim[d] - droneNow[d]));
+        }
+        if (droneNow[d] != droneAim[d]) arrived = false;
+    }
+    dronesPlaced = true;
+    if (!listening && arrived) followed = false;
 
     // Drift: the bag's pressure wanders as the arm squeezes it.
     driftLeft -= frames;
@@ -571,6 +856,35 @@ bool Chanter::render(float *L, float *R, int32_t frames) {
         const float push = (1.0f + kDriftPush * drift + 0.1f * press) * bag;
         const float cents = drift * kDriftCents;
         bool chanterOn = playing && bag > 0.3f;
+        // As the pressure sags the pipes go flat, and each drone chokes as
+        // it passes that drone's point, falling further as it dies.
+        // Only a finite bag chokes them; sag sets how far the pitch falls.
+        float chanterGroan = 0.0f, droneGroan[kDrones] = {};
+        bool reopened[kDrones] = {};
+        if (finite) {
+            const float chokeCoef = 1.0f - std::exp(-dt / kChokeTime);
+            for (int d = 0; d < k.drones; ++d) {
+                if (!choked[d] && bag < kChoke[d] && sounding) {
+                    choked[d] = true;
+                } else if (choked[d] && bag > kChoke[d] + kChokeBack) {
+                    choked[d] = false;
+                    reopened[d] = true;
+                }
+                open[d] += ((choked[d] ? 0.0f : 1.0f) - open[d]) * chokeCoef;
+            }
+        } else {
+            for (int d = 0; d < kDrones; ++d) {
+                choked[d] = false;
+                open[d] = 1.0f;
+            }
+        }
+        if (sag > 0.0f) {
+            chanterGroan = -sag * kChanterGroan * (1.0f - bag);
+            for (int d = 0; d < k.drones; ++d) {
+                const float q = clampf((1.0f - bag) / (1.0f - kChoke[d]), 0.0f, 1.0f);
+                droneGroan[d] = -sag * kDroneGroan * (q * q + 0.5f * (1.0f - open[d]));
+            }
+        }
         if (shutLeft > 0) {
             chanter.setTongue(1.0f);
             shutLeft -= frames;
@@ -580,7 +894,7 @@ bool Chanter::render(float *L, float *R, int32_t frames) {
         const float now = graceLeft > 0 ? gracePitch : melodyPitch;
         if (graceLeft > 0) graceLeft -= frames;
         const float reedKnob = paramOf(Reed);
-        chanter.setNote(noteHz(now + (cents + kPipeTrim + chanterTrim(kind, now, reedKnob)) * 0.01f));
+        chanter.setNote(noteHz(now + (cents + kPipeTrim + chanterTrim(kind, now, reedKnob)) * 0.01f + chanterGroan));
         chanter.setShape(k.cylinder, 1);
         chanter.setTube(noteHz(keyNote + 10.0f));
         chanter.setLattice(k.lattice, 0.0f, 0.4f);
@@ -606,7 +920,7 @@ bool Chanter::render(float *L, float *R, int32_t frames) {
             const float other = heldPitch[std::max(heldCount - 2, 0)];
             second.setTongue(0.0f);
             const float otherNow = other + bend * paramOf(BendRange);
-            second.setNote(noteHz(otherNow + (cents + kPipeTrim + chanterTrim(kind, otherNow, reedKnob)) * 0.01f));
+            second.setNote(noteHz(otherNow + (cents + kPipeTrim + chanterTrim(kind, otherNow, reedKnob)) * 0.01f + chanterGroan));
             second.setShape(k.cylinder, 1);
             second.setTube(noteHz(keyNote + 10.0f));
             second.setLattice(k.lattice, 0.0f, 0.4f);
@@ -629,7 +943,8 @@ bool Chanter::render(float *L, float *R, int32_t frames) {
         const float secondGain = k.level * k.second * level;
         for (int d = 0; d < k.drones; ++d) {
             timber::Pipe &p = drones[d];
-            const float hz = noteHz(keyNote + k.droneAt[d] + (k.droneCents[d] + cents + kPipeTrim) * 0.01f);
+            const float hz = noteHz(droneNow[d] + (k.droneCents[d] + cents + kPipeTrim) * 0.01f + droneGroan[d]);
+            p.setLengthGlide(gliding ? 0.01f : 0.0f);
             p.setNote(hz);
             p.setShape(true, 1);
             p.setTube(hz);
@@ -643,11 +958,16 @@ bool Chanter::render(float *L, float *R, int32_t frames) {
             p.setDrive(1.0f);
             const bool speaking = bag > 0.05f;
             p.tune();
-            if (speaking && !sounding) {
+            if ((speaking && !sounding) || reopened[d]) {
                 p.tune();
                 p.lift();
             }
         }
+        // Each drone's push, followed per sample when it can choke or dip.
+        const bool eachPush = shaped || gliding;
+        float dronePushAim[kDrones] = {};
+        for (int d = 0; d < k.drones; ++d) dronePushAim[d] = kDronePush * push * (finite ? open[d] : 1.0f) * (1.0f - dip[d]);
+        const float pushCoef = 1.0f - std::exp(-1.0f / (kDronePushTime * sampleRate));
         sounding = bag > 0.05f;
         const float chanterPush = chanterOn ? kChanterPush * push : 0.0f;
         const float rise = 1.0f - std::exp(-1.0f / (kPushRise * sampleRate));
@@ -659,7 +979,11 @@ bool Chanter::render(float *L, float *R, int32_t frames) {
             if (k.second > 0.0f) y += second.step(secondPushNow, white() * air * 0.35f * secondPushNow) * secondGain;
             float drone = 0.0f;
             for (int d = 0; d < k.drones; ++d) {
-                const float dp = kDronePush * push;
+                float dp = kDronePush * push;
+                if (eachPush) {
+                    dronePushNow[d] += (dronePushAim[d] - dronePushNow[d]) * pushCoef;
+                    dp = dronePushNow[d];
+                }
                 drone += drones[d].step(dp, white() * air * 0.2f * dp);
             }
             y += drone * droneLevel;
@@ -668,6 +992,9 @@ bool Chanter::render(float *L, float *R, int32_t frames) {
             dcIn = y;
             dcOut = hp;
             L[i] = R[i] = hp;
+        }
+        if (!eachPush) {
+            for (int d = 0; d < k.drones; ++d) dronePushNow[d] = kDronePush * push;
         }
     } else {
         // --- hurdy-gurdy --------------------------------------------------
@@ -716,16 +1043,22 @@ bool Chanter::render(float *L, float *R, int32_t frames) {
         const float bowSpeed = (1.2f + 2.0f * clampf(paramOf(Wheel), 0.0f, 1.0f) * (1.0f + coupNow + press)) * bag;
         const float tone = 0.55f + 0.3f * grip;
         const float rosinCents = rosinTrim(grip, clampf(paramOf(Wheel), 0.0f, 1.0f));
+        // A wheel slowing down pulls every string flat.
+        const float stringGroan = sag > 0.0f ? -sag * kStringGroan * (1.0f - bag) : 0.0f;
         auto tuneString = [&](Bowed &s, float note, bool bowing) {
             s.hz = noteHz(note + drift * kDriftCents * 0.002f);
             s.wave.setFrequency(noteHz(note + (drift * kDriftCents * 0.2f + rosinCents) * 0.01f));
             const float t60 = bowing ? kStringT60 : kStoppedT60;
             s.wave.setDamping(std::pow(10.0f, -3.0f / (t60 * s.hz)), tone);
         };
-        tuneString(melody[0], melodyPitch, playing);
-        tuneString(melody[1], melodyPitch + 0.03f, playing);
-        for (int d = 0; d < k.drones; ++d) tuneString(gurdyDrones[d], keyNote + k.droneAt[d], bag > 0.0f);
-        tuneString(trompette, keyNote, bag > 0.0f);
+        tuneString(melody[0], melodyPitch + stringGroan, playing);
+        tuneString(melody[1], melodyPitch + 0.03f + stringGroan, playing);
+        for (int d = 0; d < k.drones; ++d) {
+            gurdyDrones[d].wave.setLengthGlide(gliding ? 0.01f : 0.0f);
+            tuneString(gurdyDrones[d], droneNow[d] + stringGroan, bag > 0.0f);
+        }
+        trompette.wave.setLengthGlide(gliding ? 0.01f : 0.0f);
+        tuneString(trompette, droneNow[kDrones] + stringGroan, bag > 0.0f);
         const bool wheelOn = bag > 0.05f;
         auto kick = [&](Bowed &b) {
             b.kickLength = std::max(2, static_cast<int>(0.5f * sampleRate / std::fmax(b.hz, 20.0f)));

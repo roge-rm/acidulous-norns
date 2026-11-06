@@ -4,6 +4,7 @@
 #include <engine/machine/Machine.h>
 #include <engine/machine/diction/Phones.h>
 #include <engine/machine/diction/Throat.h>
+#include <engine/machine/diction/Words.h>
 #include <engine/machine/tongue/Reed.h>
 
 namespace acidulous::machine {
@@ -200,15 +201,6 @@ class Tongue final : public Machine {
         uint32_t age = 0;
     };
 
-    /** One step of a word: where the mouth goes, its hiss, and for how long (-1 held). */
-    struct Said {
-        float f[3];
-        float noise;
-        float band[2][3];
-        int32_t samples;
-    };
-    static constexpr int kSaid = 24;
-    static constexpr int kMaxPhones = 32;
 
     /** A pluck waiting for its sample: from a pattern step or a ratchet. */
     struct Due {
@@ -241,12 +233,12 @@ class Tongue final : public Machine {
     float harmonicFor(uint8_t note) const;
     /** The harmonic of the drone nearest [hz], from the 2nd up; folded by octaves into the 3rd to 12th when [fold]. */
     float harmonicNear(float hz, bool fold) const;
-    /** Turns the next note's words into steps for the mouth. */
-    void planWords();
     /** The mouth's hiss for the word step it's on. */
     void startSaid();
     /** The note is let go: its word's end sounds. */
-    void endWords();
+    void endWords() {
+        if (speech.release()) startSaid();
+    }
     /** Following has stopped: the mouth goes back to the keys, or off in drone mode. */
     void letGoOfFollow();
     /** The drone as it sounds: the lowest reed, or the drone note when nothing does. */
@@ -280,12 +272,7 @@ class Tongue final : public Machine {
     bool following = false;
     float followHz = 0.0f;
     /** The words: the next note's sounds, the steps they make, and where in them the mouth is. */
-    uint8_t pending[kMaxPhones] = {};
-    int pendingCount = 0;
-    Said said[kSaid];
-    int saidCount = 0, saidAt = 0, heldStep = 0;
-    int32_t saidLeft = 0;
-    bool saying = false;
+    diction::Words speech;
     diction::Bandpass hissBands[2];
     float hissShare[2] = {0.0f, 0.0f}, hissLevel = 0.0f;
     float mouthGoal[3] = {730, 1090, 2440};

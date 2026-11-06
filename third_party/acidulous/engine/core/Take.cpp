@@ -31,13 +31,13 @@ constexpr float kBarCandidates[] = {0.5f, 1.0f, 2.0f, 4.0f, 8.0f, 16.0f};
 double onGrid(const std::vector<int32_t> &onsets, int32_t start, double length, float bars) {
     if (onsets.empty()) return 1.0;
     const double step = length / (bars * 16.0);
-    int32_t near = 0;
+    int32_t onBeat = 0;
     for (const int32_t at : onsets) {
         if (at < start) continue;
         const double off = std::fmod(static_cast<double>(at - start), step);
-        if (std::min(off, step - off) < step * 0.2) ++near;
+        if (std::min(off, step - off) < step * 0.2) ++onBeat;
     }
-    return static_cast<double>(near) / static_cast<double>(onsets.size());
+    return static_cast<double>(onBeat) / static_cast<double>(onsets.size());
 }
 
 double tempoOf(double length, float bars, float sampleRate) {

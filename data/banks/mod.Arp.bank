@@ -1,0 +1,403 @@
+# Arp - presets for the arpeggiator, from plain runs to the far end.
+#
+# `rate` is a step index: #0 1/1, #1 1/2, #2 1/2T, #3 1/4, #4 1/4T, #5 1/8,
+# #6 1/8T, #7 1/16, #8 1/16T, #9 1/32.
+#
+# `mode` is #0 up, #1 down, #2 up-down, #3 down-up, #4 up and down (ends
+# played twice), #5 converge, #6 diverge, #7 random, #8 walk, #9 played,
+# #10 chord, #11 pinky, #12 thumb.
+#
+# `octmode` is #0 up, #1 down, #2 alternate. `velmode` is #0 played, #1
+# fixed, #2 accent (the first step of the length), #3 ramp up, #4 ramp down.
+#
+# Steps s01-s16 are on (1) by default, so a pattern names only the steps it
+# turns off. `shift` moves each pass of the run by that many semitones, up to
+# `cycles` passes, then starts again; with cycles at 1 it does nothing.
+# `ratchet` repeats a step's note inside the step.
+#
+# No preset sets `latch`: it's a playing switch, and loading a preset leaves
+# it as it was. Values are in each parameter's own units; `audition params
+# mod.Arp` lists them. A patch names only what it changes.
+
+modifier Arp
+
+# --- basics: plain runs at common rates ---------------------------------------
+
+patch Init family=basics
+
+patch "Up 16ths" family=basics
+  rate           #7
+  gate           50 %
+
+patch "Down 16ths" family=basics
+  rate           #7
+  mode           #1
+  gate           50 %
+
+patch "Up Down 8ths" family=basics
+  mode           #2
+  gate           70 %
+
+patch Quarters family=basics
+  rate           #3
+  mode           #2
+  gate           90 %
+
+patch "Played Order" family=basics
+  rate           #7
+  mode           #9
+  gate           55 %
+
+patch "Triplet 8ths" family=basics
+  rate           #6
+  mode           #3
+  gate           60 %
+
+patch "Legato 16ths" family=basics
+  # Each note runs into the next, so a mono synth slides.
+  rate           #7
+  mode           #4
+  gate           110 %
+
+# --- pulses: gates, step patterns and chops ----------------------------------
+
+patch "Staccato 16ths" family=pulses
+  rate           #7
+  gate           18 %
+  velmode        #1
+
+patch "Offbeat 8ths" family=pulses
+  # The house stab: only the and of each beat.
+  rate           #5
+  length         2
+  s01            0
+  gate           40 %
+  mode           #2
+
+patch "Accent Fours" family=pulses
+  rate           #7
+  length         4
+  gate           40 %
+  velmode        #2
+  accent         0.8
+
+patch Gallop family=pulses
+  # An eighth and two sixteenths.
+  rate           #7
+  length         4
+  s02            0
+  gate           50 %
+  velmode        #2
+  accent         0.6
+
+patch "Trance Gate" family=pulses
+  rate           #7
+  gate           35 %
+  s03            0
+  s06            0
+  s09            0
+  s12            0
+  s15            0
+  velmode        #2
+  accent         0.5
+
+patch "Stutter Gate" family=pulses
+  rate           #9
+  gate           30 %
+  length         8
+  s03            0
+  s04            0
+  s06            0
+  s08            0
+  mode           #2
+
+patch Tresillo family=pulses
+  # Three, three and two sixteenths.
+  rate           #7
+  length         8
+  s02            0
+  s03            0
+  s05            0
+  s06            0
+  s08            0
+  gate           45 %
+  velmode        #2
+  accent         0.4
+
+patch "Three Over Four" family=pulses
+  # A pattern of three against the bar of four.
+  rate           #7
+  length         3
+  s03            0
+  gate           55 %
+  mode           #3
+
+# --- rolls: ratchets and ratchet chance --------------------------------------
+
+patch "Double Time" family=rolls
+  ratchet        2
+  gate           50 %
+
+patch "Triple Hit" family=rolls
+  ratchet        3
+  gate           40 %
+  mode           #2
+
+patch "Quad Quarters" family=rolls
+  rate           #3
+  ratchet        4
+  gate           45 %
+  mode           #1
+
+patch "Sometimes Twice" family=rolls
+  rate           #7
+  ratchet        2
+  ratchetchance  30 %
+  gate           45 %
+
+patch "Snare Build" family=rolls
+  # Rolls now and then, louder through the bar.
+  rate           #7
+  ratchet        2
+  ratchetchance  25 %
+  velmode        #3
+  gate           40 %
+
+patch "Rolling Down" family=rolls
+  ratchet        4
+  ratchetchance  50 %
+  mode           #1
+  octaves        2
+  gate           55 %
+
+patch "Trap Hats" family=rolls
+  rate           #7
+  ratchet        3
+  ratchetchance  35 %
+  gate           30 %
+  s04            0
+  s11            0
+  velmode        #2
+  accent         0.7
+
+patch Skitter family=rolls
+  rate           #8
+  ratchet        2
+  ratchetchance  40 %
+  gate           25 %
+  mode           #5
+
+# --- climbs: octaves, shift and cycles ---------------------------------------
+
+patch "Two Octaves Up" family=climbs
+  rate           #7
+  octaves        2
+  gate           55 %
+
+patch "Three Down" family=climbs
+  rate           #7
+  mode           #1
+  octaves        3
+  octmode        #1
+  gate           55 %
+
+patch "Octave Bounce" family=climbs
+  rate           #7
+  mode           #2
+  octaves        3
+  octmode        #2
+  gate           60 %
+
+patch "Harp Sweep" family=climbs
+  rate           #9
+  octaves        4
+  gate           80 %
+  velmode        #3
+  length         16
+
+patch "Fifths Climb" family=climbs
+  # Each pass a fifth higher, three passes, then back down.
+  rate           #7
+  shift          7 st
+  cycles         3
+  gate           55 %
+
+patch "Whole Tone Rise" family=climbs
+  rate           #7
+  mode           #2
+  shift          2 st
+  cycles         4
+  gate           60 %
+
+patch "Falling Fourths" family=climbs
+  rate           #7
+  mode           #1
+  shift          -5 st
+  cycles         4
+  octaves        2
+  gate           50 %
+
+patch "Semitone Creep" family=climbs
+  # Up a semitone each pass for eight passes: tension for a build.
+  rate           #7
+  shift          1 st
+  cycles         8
+  octaves        2
+  gate           45 %
+  velmode        #3
+
+# --- broken: chance, humanise, swing, random and walk -------------------------
+
+patch "Swung 16ths" family=broken
+  rate           #7
+  swing          55 %
+  gate           50 %
+
+patch "Lazy Shuffle" family=broken
+  # A triplet feel on eighths, a note now and then left out.
+  swing          66 %
+  chance         85 %
+  humanise       0.3
+  mode           #9
+  gate           65 %
+
+patch "Loose Hands" family=broken
+  rate           #7
+  mode           #2
+  humanise       0.5
+  gate           55 %
+
+patch Gappy family=broken
+  rate           #7
+  chance         70 %
+  gate           45 %
+  octaves        2
+
+patch Walker family=broken
+  rate           #7
+  mode           #8
+  octaves        2
+  gate           70 %
+
+patch "Random 16ths" family=broken
+  rate           #7
+  mode           #7
+  octaves        2
+  gate           50 %
+
+patch "Sparse Bubbles" family=broken
+  # Few notes, held long, picked at random.
+  rate           #7
+  mode           #7
+  chance         45 %
+  gate           160 %
+  octaves        3
+
+patch Drunk family=broken
+  rate           #7
+  mode           #8
+  swing          70 %
+  humanise       0.8
+  chance         80 %
+  octaves        2
+  octmode        #2
+  gate           75 %
+
+# --- special: combinations that sound like nothing else ----------------------
+
+patch "Chord Stutter" family=special
+  # The whole chord, chopped on a broken pattern.
+  rate           #7
+  mode           #10
+  gate           25 %
+  s02            0
+  s03            0
+  s05            0
+  s06            0
+  s08            0
+  s10            0
+  s12            0
+  s14            0
+  s15            0
+  ratchet        2
+  ratchetchance  20 %
+  velmode        #2
+  accent         0.6
+
+patch "Pinky Pedal" family=special
+  # The top note between every other, rolling now and then, up a fourth on
+  # the second pass.
+  rate           #7
+  mode           #11
+  ratchet        2
+  ratchetchance  30 %
+  shift          5 st
+  cycles         2
+  gate           45 %
+
+patch "Thumb Rolls" family=special
+  rate           #7
+  mode           #12
+  octaves        2
+  ratchet        3
+  ratchetchance  25 %
+  velmode        #2
+  accent         0.7
+  gate           40 %
+
+patch "Ramp Cycles" family=special
+  # Louder through each bar while the run climbs in fifths.
+  rate           #7
+  mode           #4
+  velmode        #3
+  shift          7 st
+  cycles         4
+  gate           50 %
+
+patch "Five Against Four" family=special
+  rate           #7
+  mode           #5
+  length         5
+  s03            0
+  velmode        #2
+  accent         0.9
+  octaves        2
+  octmode        #2
+  gate           45 %
+
+patch "Seven Over Bar" family=special
+  rate           #7
+  mode           #6
+  length         7
+  s02            0
+  s05            0
+  s07            0
+  octaves        2
+  octmode        #2
+  ratchet        2
+  ratchetchance  35 %
+  gate           50 %
+
+patch "Fading Echo" family=special
+  # Triplets that fall away over six steps, some rolled into fours.
+  rate           #8
+  mode           #5
+  length         6
+  velmode        #4
+  ratchet        4
+  ratchetchance  40 %
+  gate           60 %
+
+patch "Glass Shards" family=special
+  # Thirty-seconds over four octaves, half of them missing, an octave down
+  # every other pass.
+  rate           #9
+  mode           #7
+  octaves        4
+  chance         50 %
+  gate           15 %
+  humanise       0.4
+  shift          -12 st
+  cycles         2
+  velmode        #2
+  accent         0.8

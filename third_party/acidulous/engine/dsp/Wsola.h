@@ -115,10 +115,28 @@ template <class Sample, int32_t Channels> class Stretcher {
      */
     int32_t fill(float *const dst[Channels], const Sample *const src[Channels], int64_t first, int64_t last,
                  int32_t n, float rate) {
-        if (window == nullptr || last - first < (looping ? kWindow * 2 : kWindow)) return 0;
         for (int32_t ch = 0; ch < Channels; ++ch) {
             if (src[ch] == nullptr) return 0;
         }
+        return fillFrom(dst, Planes{src}, first, last, n, rate);
+    }
+
+    /** Reads a take through one pointer per channel. */
+    struct Planes {
+        const Sample *const *p;
+        float scaled(int32_t ch, int64_t i) const { return SampleScale<Sample>::of(p[ch][i]); }
+        float raw(int32_t ch, int64_t i) const { return static_cast<float>(p[ch][i]); }
+    };
+
+    /**
+     * The same, reading through [src], anything with `scaled(ch, i)` (the
+     * sample as +-1) and `raw(ch, i)` (any fixed scale, for the search). A
+     * comped Bias lane reads its pieces this way.
+     */
+    template <class Reader>
+    int32_t fillFrom(float *const dst[Channels], const Reader &src, int64_t first, int64_t last, int32_t n,
+                     float rate) {
+        if (window == nullptr || last - first < (looping ? kWindow * 2 : kWindow)) return 0;
         int32_t made = 0;
         while (made < n) {
             if (taken >= have) {
@@ -156,7 +174,8 @@ template <class Sample, int32_t Channels> class Stretcher {
      * boundary instead of nudging the position, or the search compares
      * against unrelated audio.
      */
-    bool lay(const Sample *const src[Channels], int64_t first, int64_t last, float rate) {
+    template <class Reader>
+    bool lay(const Reader &src, int64_t first, int64_t last, float rate) {
         // Shift the overlap down: the tail becomes the head of the next window.
         for (int32_t ch = 0; ch < Channels; ++ch) {
             for (int32_t i = 0; i < kWindow - kHop; ++i) {
@@ -182,7 +201,7 @@ template <class Sample, int32_t Channels> class Stretcher {
             for (int32_t ch = 0; ch < Channels; ++ch) {
                 for (int32_t i = 0; i < kWindow; ++i) {
                     out[ch][static_cast<size_t>(i)] +=
-                        SampleScale<Sample>::of(src[ch][wrapped(want + i, first, last)]) * window[i];
+                        src.scaled(ch, wrapped(want + i, first, last)) * window[i];
                 }
             }
         } else {
@@ -190,7 +209,7 @@ template <class Sample, int32_t Channels> class Stretcher {
             if (want + kWindow > last) return false;
             for (int32_t ch = 0; ch < Channels; ++ch) {
                 for (int32_t i = 0; i < kWindow; ++i) {
-                    out[ch][static_cast<size_t>(i)] += SampleScale<Sample>::of(src[ch][want + i]) * window[i];
+                    out[ch][static_cast<size_t>(i)] += src.scaled(ch, want + i) * window[i];
                 }
             }
         }
@@ -240,7 +259,8 @@ template <class Sample, int32_t Channels> class Stretcher {
     }
 
     /** Runs the share of the search that [frames] of output pays for. */
-    void stepSearch(const Sample *const src[Channels], int64_t first, int64_t last, int32_t frames) {
+    template <class Reader>
+    void stepSearch(const Reader &src, int64_t first, int64_t last, int32_t frames) {
         if (searchLag > searchReach) return; // done
         searchCredit += static_cast<float>(searchLags) * static_cast<float>(frames) / static_cast<float>(kHop);
         int32_t lags = static_cast<int32_t>(searchCredit);
@@ -250,11 +270,13 @@ template <class Sample, int32_t Channels> class Stretcher {
     }
 
     /** Runs whatever is left of the search, when the hop is due. */
-    void finishSearch(const Sample *const src[Channels], int64_t first, int64_t last) {
+    template <class Reader>
+    void finishSearch(const Reader &src, int64_t first, int64_t last) {
         scoreLags(src, first, last, searchLags * 2 + 2);
     }
 
-    void scoreLags(const Sample *const src[Channels], int64_t first, int64_t last, int32_t lags) {
+    template <class Reader>
+    void scoreLags(const Reader &src, int64_t first, int64_t last, int32_t lags) {
         const int32_t overlap = kWindow - kHop;
         for (int32_t n = 0; n < lags && searchLag <= searchReach; ++n, searchLag += 4) {
             const int64_t at = looping ? wrapped(searchWant + searchLag, first, last) : searchWant + searchLag;
@@ -267,7 +289,7 @@ template <class Sample, int32_t Channels> class Stretcher {
                 float written = 0.0f, coming = 0.0f;
                 for (int32_t ch = 0; ch < Channels; ++ch) {
                     written += out[ch][static_cast<size_t>(kHop + i)];
-                    coming += static_cast<float>(src[ch][looping ? wrapped(at + i, first, last) : at + i]);
+                    coming += src.raw(ch, looping ? wrapped(at + i, first, last) : at + i);
                 }
                 score += written * coming;
             }

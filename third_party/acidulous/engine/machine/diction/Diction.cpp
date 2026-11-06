@@ -1001,12 +1001,12 @@ int32_t Diction::planRecorded(const uint8_t *p, int32_t count, Step *out, int32_
         }
         // A consonant, from between the vowels most like the word's: the next
         // vowel for one before the vowel, the last for one after.
-        const Phone *near = nullptr;
+        const Phone *nearest = nullptr;
         if (hold < 0 || i < hold) {
-            for (int32_t j = i + 1; j < count && near == nullptr; ++j) if (isVowel(phoneAt(j).kind)) near = &phoneAt(j);
+            for (int32_t j = i + 1; j < count && nearest == nullptr; ++j) if (isVowel(phoneAt(j).kind)) nearest = &phoneAt(j);
         }
-        for (int32_t j = i - 1; j >= 0 && near == nullptr; --j) if (isVowel(phoneAt(j).kind)) near = &phoneAt(j);
-        const float *vowel = near != nullptr ? (i < hold ? near->f : near->to) : kKnobVowels[2];
+        for (int32_t j = i - 1; j >= 0 && nearest == nullptr; --j) if (isVowel(phoneAt(j).kind)) nearest = &phoneAt(j);
+        const float *vowel = nearest != nullptr ? (i < hold ? nearest->f : nearest->to) : kKnobVowels[2];
         // Which take it's formed from, as its track says; the flap of butter
         // goes with the D.
         int32_t take = 0;

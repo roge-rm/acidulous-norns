@@ -2,6 +2,8 @@
 #include <atomic>
 #include <cstdint>
 
+#include <engine/core/Constants.h>
+
 // Where the song was during each part of a recording.
 //
 // Capture writes the input to a file without knowing where the song is, and
@@ -11,7 +13,8 @@
 //
 // That's all splitting a take needs. Consecutive marks pair into segments,
 // each one cell's region of the file, so Kotlin doesn't need to work out scene
-// lengths, repeats or tempo overrides.
+// lengths, repeats or tempo overrides. An end mark (cycleTicks 0) says the song
+// stopped there, and ends the segment before it.
 //
 // Limits:
 //
@@ -40,7 +43,7 @@ class CaptureMarks {
      */
     static constexpr int32_t kMax = 512;
 
-    /** Mount thread, when a recording is armed. */
+    /** Mount thread, when a lane is armed and when a capture starts, before it runs. */
     void reset() {
         n.store(0, std::memory_order_relaxed);
         bad.store(false, std::memory_order_relaxed);
@@ -49,16 +52,29 @@ class CaptureMarks {
     }
 
     /**
-     * Audio thread, once a block while a recording is armed.
+     * Audio thread, once a block while a recording is armed and the song is
+     * playing.
      *
      * Writes a mark at the start, when the cell changes, and when the cycle
      * starts again (the tick going backwards).
+     *
+     * [tickFrame] is how many frames into this block the tick [cycleTick] was
+     * reached (negative when it was in the block before), and [framesPerTick]
+     * the tick's length, so the mark pairs a tick with the exact frame it fell
+     * on. The scheduler notices a new cycle up to a tick late (the launcher
+     * applies a cycle that ends on a block's last tick in the next block), so
+     * a cell whose top was in this block or the one before is backed up to
+     * its top, tick 0. Every pass then starts at tick 0 in both modes.
      */
-    void observe(int64_t frame, int64_t sceneId, int64_t cycleTick, int32_t cycleTicks, float bpm) {
+    void observe(int64_t frame, int64_t sceneId, int64_t cycleTick, int32_t cycleTicks, float bpm,
+                 double tickFrame = 0.0, double framesPerTick = 0.0) {
         // No cycle means no cell. In clip mode a rack with nothing launched
         // isn't in any cell, so audio recorded before a clip is tapped isn't
-        // marked. The same applies before the transport starts.
-        if (cycleTicks <= 0) return;
+        // marked. A clip that stops ends the take there.
+        if (cycleTicks <= 0) {
+            halt(frame);
+            return;
+        }
         const bool fresh = lastScene == kNoScene;
         const bool moved = sceneId != lastScene;
         const bool wrapped = cycleTick < lastTick;
@@ -66,17 +82,36 @@ class CaptureMarks {
         lastTick = cycleTick;
         if (!fresh && !moved && !wrapped) return;
 
-        const int32_t at = n.load(std::memory_order_relaxed);
-        if (at >= kMax) {
-            bad.store(true, std::memory_order_relaxed);
-            return;
+        double at = static_cast<double>(frame) + tickFrame;
+        int64_t tick = cycleTick;
+        if (framesPerTick > 0.0) {
+            const double top = at - static_cast<double>(cycleTick) * framesPerTick;
+            // A tick of slack for rounding in the clock's remainder.
+            const double reach = tickFrame + kBlockFrames + framesPerTick;
+            if (cycleTick > 0 && static_cast<double>(cycleTick) * framesPerTick <= reach && top >= 0.0) {
+                at = top;
+                tick = 0;
+            }
+            // The first block of a file can't reach back before frame 0.
+            if (at < 0.0) {
+                at += framesPerTick;
+                tick = (tick + 1) % cycleTicks;
+            }
         }
-        marks[at].frame = frame;
-        marks[at].sceneId = sceneId;
-        marks[at].tick = static_cast<int32_t>(cycleTick);
-        marks[at].cycleTicks = cycleTicks;
-        marks[at].bpm = bpm;
-        n.store(at + 1, std::memory_order_release);
+        add(static_cast<int64_t>(at + 0.5), sceneId, tick, cycleTicks, bpm);
+    }
+
+    /**
+     * Audio thread: the song stopped (or the armed rack's clip did) while
+     * recording. Writes an end mark, cycleTicks 0, so the take ends here
+     * rather than wherever the capture is stopped, and the next play starts
+     * a fresh cell.
+     */
+    void halt(int64_t frame) {
+        if (lastScene == kNoScene) return;
+        lastScene = kNoScene;
+        lastTick = -1;
+        add(frame, 0, 0, 0, 0.0f);
     }
 
     /** The ring dropped frames, so every frame index after it is wrong. */
@@ -88,6 +123,20 @@ class CaptureMarks {
 
   private:
     static constexpr int64_t kNoScene = INT64_MIN;
+
+    void add(int64_t frame, int64_t sceneId, int64_t tick, int32_t cycleTicks, float bpm) {
+        const int32_t at = n.load(std::memory_order_relaxed);
+        if (at >= kMax) {
+            bad.store(true, std::memory_order_relaxed);
+            return;
+        }
+        marks[at].frame = frame;
+        marks[at].sceneId = sceneId;
+        marks[at].tick = static_cast<int32_t>(tick);
+        marks[at].cycleTicks = cycleTicks;
+        marks[at].bpm = bpm;
+        n.store(at + 1, std::memory_order_release);
+    }
 
     CaptureMark marks[kMax];
     std::atomic<int32_t> n{0};

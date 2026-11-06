@@ -20,7 +20,14 @@
 # Kit mode makes the sixteen keys from note 36 up into pads, each with its
 # own drum, stroke, note and level.
 #
-# A hundred and twelve patches in six families, plainest first:
+# `cycle` makes a held note play a bar-long pattern in time with the song,
+# `bars` bars round with a fill on the last; `feel` is how much each bar
+# varies, and `press` how far the second hand presses the head up on a
+# pressed stroke. Hold two notes and the lower takes the bass strokes and
+# low tones. The cycle patches are played as one note (two for a pair)
+# held twenty seconds at 120 bpm.
+#
+# A hundred and twenty-two patches in seven families, plainest first:
 #
 #   africa   Init, djembes, talking drums, ashiko and udu (22)
 #   latin    cajón, congas, bongos, batá and cuíca (24)
@@ -28,6 +35,8 @@
 #   india    tabla, bayan, kanjira, mridangam and dholak (23)
 #   kit      sixteen pads: world, cajón, frame, congas, tabla, talking, udu
 #            (12)
+#   cycles   held notes playing a tumbao, kuku, baladi, maqsum, theka, a
+#            six-eight, a cajón groove and a talking drum's pattern (10)
 #   odd      heads far out of range, talking drum and udu basses, a squeeze
 #            an octave wide (8)
 #
@@ -45,14 +54,16 @@
 # Every patch but Init carries eight named macros. Destinations are
 # numbered as in Palm.h's MacroDest: #1 position, #2 hand, #3 decay, #4 damp,
 # #5 drop, #7 rattle, #8 body, #9 roll, #10 spread, #12 volume, #13 flam,
-# #14 pitch (24 semitones a unit). Most patches have Middle (Edge on a bass
-# stroke), Quick, Ring, Damp, one that fits the drum (Body or Dry on a bass
-# stroke; Rattles, Snares or Jingles, or Bare where they are already on;
-# Drop otherwise), Flam, Roll and Tight. The cuíca has Low, Wide and High in
-# place of what does nothing on it, the udu Drop and Low. Kits have Edge,
-# Quick, Ring, Damp, Body or Tight, Jingles, Bare or Drop, Flam, and Wide or
-# Roll. A kit's macros reach the drum params every pad shares, never a pad's
-# own drum, stroke, note or level. Where a macro at full moves the level by
+# #14 pitch (24 semitones a unit), #15 feel, #16 press. Most patches have
+# Middle (Edge on a bass stroke), Quick, Ring, Damp, one that fits the drum
+# (Body or Dry on a bass stroke; Rattles, Snares or Jingles, or Bare where
+# they are already on; Drop otherwise), Flam, Roll and Tight. The cuíca has
+# Low, Wide and High in place of what does nothing on it, the udu Drop and
+# Low. Kits have Edge, Quick, Ring, Damp, Body or Tight, Jingles, Bare or
+# Drop, Flam, and Wide or Roll. Cycles have Feel, Press (Drop where the
+# pattern never presses), Edge, Quick, Ring, Damp, Body or Bare, and Tight.
+# A kit's macros reach the drum params every pad shares, never a pad's own
+# drum, stroke, note or level. Where a macro at full moves the level by
 # more than 1.5 dB, a volume route takes it back out, as far as the volume
 # knob goes; Damp is gentler where the volume is near the top. Position,
 # hand, decay, damp, drop, body and flam are read when a drum is struck, so
@@ -4645,6 +4656,382 @@ patch "Udu Kit" family=kit note=36 range=36..51
   p16_level      1
   volume         1
   body           0.8
+
+# --- cycles ------------------------------------------------------------------
+
+patch "Conga Tumbao" family=cycles note=57 range=50..64 role=scene
+  # Hold a note: heel and toe, a slap on two, open tones on four, a fill every fourth bar.
+  set macro1 "Feel"
+  set macro2 "Drop"
+  set macro3 "Edge"
+  set macro4 "Quick"
+  set macro5 "Ring"
+  set macro6 "Damp"
+  set macro7 "Body"
+  set macro8 "Tight"
+  mac1_d1  #15
+  mac1_a1  0.6
+  mac2_d1  #5
+  mac2_a1  0.5
+  mac3_d1  #1
+  mac3_a1  0.5
+  mac4_d1  #2
+  mac4_a1  0.4
+  mac5_d1  #3
+  mac5_a1  0.35
+  mac5_d2  #12
+  mac5_a2  -0.157
+  mac6_d1  #4
+  mac6_a1  0.6
+  mac6_d2  #12
+  mac6_a2  0.3
+  mac7_d1  #8
+  mac7_a1  0.5
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #6
+  cycle          #1
+  bars           #2
+  feel           0.4
+  volume         1
+
+patch "Conga Pair" family=cycles note=60 range=55..64 role=pair
+  # Hold two notes: the open tones and slaps on the higher conga, the heel and the low tones on the lower.
+  set macro1 "Feel"
+  set macro2 "Drop"
+  set macro3 "Edge"
+  set macro4 "Quick"
+  set macro5 "Ring"
+  set macro6 "Damp"
+  set macro7 "Body"
+  set macro8 "Tight"
+  mac1_d1  #15
+  mac1_a1  0.6
+  mac2_d1  #5
+  mac2_a1  0.5
+  mac3_d1  #1
+  mac3_a1  0.5
+  mac4_d1  #2
+  mac4_a1  0.4
+  mac5_d1  #3
+  mac5_a1  0.35
+  mac5_d2  #12
+  mac5_a2  -0.157
+  mac6_d1  #4
+  mac6_a1  0.6
+  mac6_d2  #12
+  mac6_a2  0.3
+  mac7_d1  #8
+  mac7_a1  0.5
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #6
+  cycle          #1
+  bars           #2
+  feel           0.5
+  volume         1
+
+patch "Djembe Kuku" family=cycles note=55 range=45..67 role=scene
+  # The slaps in pairs over a bass on one and three, the rattles on.
+  set macro1 "Feel"
+  set macro2 "Drop"
+  set macro3 "Edge"
+  set macro4 "Quick"
+  set macro5 "Ring"
+  set macro6 "Damp"
+  set macro7 "Bare"
+  set macro8 "Tight"
+  mac1_d1  #15
+  mac1_a1  0.6
+  mac2_d1  #5
+  mac2_a1  0.5
+  mac3_d1  #1
+  mac3_a1  0.5
+  mac4_d1  #2
+  mac4_a1  0.4
+  mac5_d1  #3
+  mac5_a1  0.35
+  mac5_d2  #12
+  mac5_a2  -0.157
+  mac6_d1  #4
+  mac6_a1  0.6
+  mac6_d2  #12
+  mac6_a2  0.3
+  mac7_d1  #7
+  mac7_a1  -0.5
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #2
+  cycle          #2
+  bars           #2
+  feel           0.45
+  rattle         0.5
+  body           0.7
+  volume         0.66
+
+patch "Darbuka Baladi" family=cycles note=55 range=48..62 role=scene
+  # Doum doum tek, doum tek, the soft kas between that come and go.
+  set macro1 "Feel"
+  set macro2 "Drop"
+  set macro3 "Edge"
+  set macro4 "Quick"
+  set macro5 "Ring"
+  set macro6 "Damp"
+  set macro7 "Body"
+  set macro8 "Tight"
+  mac1_d1  #15
+  mac1_a1  0.6
+  mac2_d1  #5
+  mac2_a1  0.5
+  mac3_d1  #1
+  mac3_a1  0.5
+  mac4_d1  #2
+  mac4_a1  0.4
+  mac5_d1  #3
+  mac5_a1  0.35
+  mac5_d2  #12
+  mac5_a2  -0.157
+  mac6_d1  #4
+  mac6_a1  0.6
+  mac6_d2  #12
+  mac6_a2  0.3
+  mac7_d1  #8
+  mac7_a1  0.5
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #8
+  cycle          #3
+  bars           #2
+  feel           0.5
+  body           0.7
+  volume         0.65
+
+patch "Riq Maqsum" family=cycles note=64 range=57..71 role=scene
+  # Doum tek tek doum tek on a riq, the jingles ringing on, a fill every other bar.
+  set macro1 "Feel"
+  set macro2 "Drop"
+  set macro3 "Edge"
+  set macro4 "Quick"
+  set macro5 "Ring"
+  set macro6 "Damp"
+  set macro7 "Bare"
+  set macro8 "Tight"
+  mac1_d1  #15
+  mac1_a1  0.6
+  mac2_d1  #5
+  mac2_a1  0.5
+  mac3_d1  #1
+  mac3_a1  0.5
+  mac4_d1  #2
+  mac4_a1  0.4
+  mac5_d1  #3
+  mac5_a1  0.35
+  mac5_d2  #12
+  mac5_a2  -0.157
+  mac6_d1  #4
+  mac6_a1  0.6
+  mac6_d2  #12
+  mac6_a2  0.3
+  mac7_d1  #7
+  mac7_a1  -0.5
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #9
+  cycle          #4
+  bars           #1
+  feel           0.4
+  rattle         0.6
+  volume         1
+
+patch "Tabla Theka" family=cycles note=37 range=36..37 role=pair
+  # Hold both pads: the bayan takes the bass strokes and presses up, the tabla the rest, a phrase three times to end the cycle.
+  set macro1 "Feel"
+  set macro2 "Press"
+  set macro3 "Edge"
+  set macro4 "Quick"
+  set macro5 "Ring"
+  set macro6 "Damp"
+  set macro7 "Body"
+  set macro8 "Tight"
+  mac1_d1  #15
+  mac1_a1  0.6
+  mac2_d1  #16
+  mac2_a1  0.5
+  mac3_d1  #1
+  mac3_a1  0.5
+  mac4_d1  #2
+  mac4_a1  0.4
+  mac5_d1  #3
+  mac5_a1  0.35
+  mac5_d2  #12
+  mac5_a2  -0.157
+  mac6_d1  #4
+  mac6_a1  0.6
+  mac6_d2  #12
+  mac6_a2  0.3
+  mac7_d1  #8
+  mac7_a1  0.5
+  mac8_d1  #14
+  mac8_a1  0.1
+  kit            1
+  p01_model      #1
+  p01_stroke     #3
+  p01_note       43
+  p02_model      #0
+  p02_stroke     #0
+  p02_note       62
+  cycle          #5
+  bars           #2
+  feel           0.35
+  press          4
+  volume         0.36
+
+patch "Bendir Six Eight" family=cycles note=48 range=41..55 role=scene
+  # Twelve to the bar in threes on a frame drum with its snares buzzing.
+  set macro1 "Feel"
+  set macro2 "Drop"
+  set macro3 "Edge"
+  set macro4 "Quick"
+  set macro5 "Ring"
+  set macro6 "Damp"
+  set macro7 "Bare"
+  set macro8 "Tight"
+  mac1_d1  #15
+  mac1_a1  0.6
+  mac2_d1  #5
+  mac2_a1  0.5
+  mac3_d1  #1
+  mac3_a1  0.5
+  mac4_d1  #2
+  mac4_a1  0.4
+  mac5_d1  #3
+  mac5_a1  0.35
+  mac5_d2  #12
+  mac5_a2  -0.157
+  mac6_d1  #4
+  mac6_a1  0.6
+  mac6_d2  #12
+  mac6_a2  0.3
+  mac7_d1  #7
+  mac7_a1  -0.5
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #11
+  cycle          #6
+  bars           #2
+  feel           0.4
+  rattle         0.5
+  volume         0.7
+
+patch "Cajon Groove" family=cycles note=47 range=40..60 role=scene
+  # Bass on one and three, slaps on two and four, ghost notes around them.
+  set macro1 "Feel"
+  set macro2 "Drop"
+  set macro3 "Edge"
+  set macro4 "Quick"
+  set macro5 "Ring"
+  set macro6 "Damp"
+  set macro7 "Bare"
+  set macro8 "Tight"
+  mac1_d1  #15
+  mac1_a1  0.6
+  mac2_d1  #5
+  mac2_a1  0.5
+  mac3_d1  #1
+  mac3_a1  0.5
+  mac4_d1  #2
+  mac4_a1  0.4
+  mac5_d1  #3
+  mac5_a1  0.35
+  mac5_d2  #12
+  mac5_a2  -0.157
+  mac6_d1  #4
+  mac6_a1  0.6
+  mac6_d2  #12
+  mac6_a2  0.3
+  mac7_d1  #7
+  mac7_a1  -0.5
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #3
+  cycle          #7
+  bars           #2
+  feel           0.5
+  rattle         0.5
+  volume         1
+
+patch "Talking Cycle" family=cycles note=52 range=45..60 role=scene
+  # Open and pressed strokes, the head stopped between; press sets how far the arm squeezes it up.
+  set macro1 "Feel"
+  set macro2 "Press"
+  set macro3 "Edge"
+  set macro4 "Quick"
+  set macro5 "Ring"
+  set macro6 "Damp"
+  set macro7 "Body"
+  set macro8 "Tight"
+  mac1_d1  #15
+  mac1_a1  0.6
+  mac2_d1  #16
+  mac2_a1  0.5
+  mac3_d1  #1
+  mac3_a1  0.5
+  mac4_d1  #2
+  mac4_a1  0.4
+  mac5_d1  #3
+  mac5_a1  0.35
+  mac5_d2  #12
+  mac5_a2  -0.157
+  mac6_d1  #4
+  mac6_a1  0.6
+  mac6_d2  #12
+  mac6_a2  0.3
+  mac7_d1  #8
+  mac7_a1  0.5
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #5
+  cycle          #8
+  bars           #1
+  feel           0.4
+  press          5
+  volume         0.68
+
+patch "Loose Bongos" family=cycles note=67 range=60..74 role=scene
+  # A tumbao on bongos played loose: every bar its own, a different fill each time.
+  set macro1 "Feel"
+  set macro2 "Drop"
+  set macro3 "Edge"
+  set macro4 "Quick"
+  set macro5 "Ring"
+  set macro6 "Damp"
+  set macro7 "Body"
+  set macro8 "Tight"
+  mac1_d1  #15
+  mac1_a1  0.6
+  mac2_d1  #5
+  mac2_a1  0.5
+  mac3_d1  #1
+  mac3_a1  0.5
+  mac4_d1  #2
+  mac4_a1  0.4
+  mac5_d1  #3
+  mac5_a1  0.35
+  mac5_d2  #12
+  mac5_a2  -0.157
+  mac6_d1  #4
+  mac6_a1  0.6
+  mac6_d2  #12
+  mac6_a2  0.3
+  mac7_d1  #8
+  mac7_a1  0.5
+  mac8_d1  #14
+  mac8_a1  0.1
+  model          #7
+  cycle          #1
+  bars           #1
+  feel           0.9
+  volume         0.92
 
 # --- odd ---------------------------------------------------------------------
 

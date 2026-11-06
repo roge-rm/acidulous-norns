@@ -14,7 +14,7 @@
 # rather than a setting that undoes something: with every control at nought the
 # whole chain is skipped, so a Bias track plays a file back sample for sample.
 #
-# Families: clean, tape, digital, broadcast, worn.
+# Families: clean, tape, digital, broadcast, worn, broken.
 
 machine Bias
 
@@ -40,6 +40,31 @@ patch Wide family=clean
   bumpfreq       45 Hz
   sat            0.15
   width          1.3
+
+patch Console family=clean
+  # A mixing desk run a little hot: some glue from the compressor, a touch of
+  # drive, and a lift under the kick. Still clean, just finished.
+  sat            0.25
+  comp           0.3
+  bump           1.5 dB
+  bumpfreq       80 Hz
+  highcut        19000 Hz
+
+patch Narrow family=clean
+  # The image pulled in towards the middle and the very top taken off, for a
+  # track that has to sit behind the others.
+  width          0.55
+  highcut        16000 Hz
+  sat            0.1
+
+patch Lean family=clean
+  # The low end thinned out and nothing else, so a full recording makes room
+  # for a bass.
+  lowcut         110 Hz
+  bump           -3 dB
+  bumpfreq       150 Hz
+  comp           0.15
+  sat            0.2
 
 patch Cassette family=tape
   # Type I ferric, played back on something ordinary: gone above thirteen and
@@ -125,6 +150,50 @@ patch Micro family=tape
   drop           0.25
   width          0
 
+patch Chrome family=tape
+  # A better cassette: brighter and quieter than Cassette, with a steadier
+  # transport. What a good deck did with good tape.
+  hiss           0.22
+  hisstone       0.65
+  lowcut         35 Hz
+  highcut        15500 Hz
+  bump           2 dB
+  bumpfreq       85 Hz
+  sat            0.3
+  comp           0.2
+  wow            0.12
+  flutter        0.18
+
+patch "Half Inch" family=tape
+  # Eight tracks on half inch tape at the slower speed: a fat head bump, more
+  # drive than Reel and a little more hiss.
+  hiss           0.2
+  hisstone       0.45
+  lowcut         30 Hz
+  highcut        16000 Hz
+  bump           4.5 dB
+  bumpfreq       70 Hz
+  sat            0.55
+  comp           0.35
+  wow            0.12
+  flutter        0.15
+  speed          0.8
+
+patch "Slow Reel" family=tape
+  # A reel at its slowest speed, for length rather than quality: dull above
+  # ten, a big low bump and a slow, wide wobble.
+  hiss           0.3
+  hisstone       0.4
+  lowcut         35 Hz
+  highcut        10000 Hz
+  bump           5 dB
+  bumpfreq       55 Hz
+  sat            0.5
+  comp           0.25
+  wow            0.35
+  flutter        0.2
+  speed          0.45
+
 patch Disc family=digital
   # **No hiss at all**, which is the point of standing it next to the tapes:
   # its character is entirely codec. A band edge just under sixteen, a smear
@@ -151,6 +220,33 @@ patch Sampler family=digital
   bits           #8
   rate           0.62
   sat            0.2
+
+patch Stream family=digital
+  # A low bit rate stream: the top gone at eleven, the transients smeared and
+  # the stereo folded in to save data.
+  lowcut         30 Hz
+  highcut        11000 Hz
+  bits           #12
+  smear          0.75
+  width          0.5
+  comp           0.2
+  sat            0.1
+
+patch "Eight Bit" family=digital
+  # Eight bits at a quarter of the rate, with nothing filtering what that
+  # folds back. The crunch and the aliasing are the whole sound.
+  bits           #4
+  rate           0.25
+  sat            0.15
+
+patch Early family=digital
+  # An early digital recorder: fourteen bits, a slightly low rate, a filter
+  # well under the top and a little smear. Clean, but you can hear the year.
+  highcut        14000 Hz
+  bits           #10
+  rate           0.75
+  smear          0.15
+  sat            0.1
 
 patch Phone family=broadcast
   # Three hundred to thirty-four hundred, eight bits, and a compressor that
@@ -185,6 +281,52 @@ patch AM family=broadcast
   hisstone       0.45
   comp           0.55
   sat            0.25
+  width          0
+
+patch FM family=broadcast
+  # A station on a good night: full range up to fifteen, a little hiss, and
+  # the limiter that makes every station as loud as the next.
+  lowcut         40 Hz
+  highcut        15000 Hz
+  hiss           0.1
+  hisstone       0.7
+  comp           0.75
+  sat            0.2
+  width          0.85
+
+patch Walkie family=broadcast
+  # A two-way radio: narrower than a phone, hiss under every word and a
+  # signal that drops out when you move.
+  lowcut         400 Hz
+  highcut        2700 Hz
+  hiss           0.45
+  hisstone       0.7
+  comp           0.85
+  sat            0.5
+  drop           0.25
+  width          0
+
+patch Megaphone family=broadcast
+  # A horn speaker driven flat out: mid range only, and breaking up on
+  # every loud note.
+  lowcut         600 Hz
+  highcut        4000 Hz
+  sat            0.85
+  comp           0.6
+  bump           -4 dB
+  bumpfreq       200 Hz
+  width          0
+
+patch Call family=broadcast
+  # A video call: wider than a phone line, but the codec smears every
+  # transient and the compressor pumps on the gaps.
+  lowcut         150 Hz
+  highcut        7000 Hz
+  bits           #8
+  smear          0.6
+  comp           0.65
+  sat            0.3
+  drop           0.1
   width          0
 
 patch Shellac family=worn
@@ -228,3 +370,87 @@ patch Wax family=worn
   sat            0.45
   comp           0.4
   width          0
+
+patch Attic family=worn
+  # A cassette that spent a few summers in a hot attic: the top is gone, the
+  # tape has stretched and the oxide comes away in places.
+  hiss           0.55
+  hisstone       0.5
+  lowcut         90 Hz
+  highcut        7000 Hz
+  bump           2 dB
+  bumpfreq       110 Hz
+  sat            0.35
+  comp           0.3
+  wow            0.45
+  flutter        0.3
+  speed          0.7
+  drop           0.35
+  width          0.7
+
+patch Copied family=worn
+  # A copy of a copy of a copy: every pass added its hiss, its bump and its
+  # saturation, so all of it is built up and the image has closed in.
+  hiss           0.6
+  hisstone       0.55
+  lowcut         70 Hz
+  highcut        8000 Hz
+  bump           5 dB
+  bumpfreq       100 Hz
+  sat            0.6
+  comp           0.5
+  wow            0.3
+  flutter        0.4
+  bleed          0.3
+  width          0.75
+
+patch Acetate family=worn
+  # A cut test disc played too many times: wider than a 78, but the grooves
+  # are worn and it crackles and skips through the quiet parts.
+  hiss           0.4
+  hisstone       0.35
+  lowcut         60 Hz
+  highcut        9000 Hz
+  bump           2 dB
+  bumpfreq       70 Hz
+  sat            0.3
+  drop           0.3
+  wow            0.25
+  speed          0.55
+  width          0.6
+
+patch Chewed family=broken
+  # Tape the deck tried to eat: crinkled, so the pitch lurches and the sound
+  # keeps falling away.
+  hiss           0.4
+  hisstone       0.5
+  lowcut         80 Hz
+  highcut        6000 Hz
+  sat            0.5
+  comp           0.3
+  wow            1
+  flutter        0.8
+  speed          1.2
+  drop           0.7
+  width          0.6
+
+patch Seasick family=broken
+  # The pitch rolls slowly and deeply, and otherwise the recording is left
+  # alone. A warped record as an effect.
+  wow            0.95
+  flutter        0.1
+  speed          0.3
+  highcut        13000 Hz
+  hiss           0.15
+  hisstone       0.4
+  sat            0.1
+
+patch Shredded family=broken
+  # Digital as far as it goes: six bits, a very low rate, the codec smearing
+  # everything left and the signal cutting out.
+  bits           #2
+  rate           0.12
+  smear          1
+  drop           0.5
+  highcut        9000 Hz
+  sat            0.3

@@ -390,6 +390,56 @@ Java_com_rm_acidulous_engine_EngineNative_nativeCaptureDeaf(JNIEnv *, jobject) {
     return host().captureDeaf() ? JNI_TRUE : JNI_FALSE;
 }
 
+JNIEXPORT void JNICALL
+Java_com_rm_acidulous_engine_EngineNative_nativeRoomTone(JNIEnv *, jobject, jboolean on, jfloat levelDb) {
+    host().roomTone(on == JNI_TRUE, levelDb);
+}
+
+JNIEXPORT jstring JNICALL
+Java_com_rm_acidulous_engine_EngineNative_nativeRoomSweepStart(JNIEnv *env, jobject, jfloat seconds, jint repeats,
+                                                               jfloat levelDb) {
+    return env->NewStringUTF(host().roomSweepStart(seconds, repeats, levelDb).c_str());
+}
+
+JNIEXPORT void JNICALL
+Java_com_rm_acidulous_engine_EngineNative_nativeRoomSweepStop(JNIEnv *, jobject) { host().roomSweepStop(); }
+
+JNIEXPORT void JNICALL
+Java_com_rm_acidulous_engine_EngineNative_nativeRoomClose(JNIEnv *, jobject) { host().roomClose(); }
+
+JNIEXPORT jint JNICALL
+Java_com_rm_acidulous_engine_EngineNative_nativeRoomSweepState(JNIEnv *, jobject) { return host().roomSweepState(); }
+
+JNIEXPORT jfloat JNICALL
+Java_com_rm_acidulous_engine_EngineNative_nativeRoomSweepProgress(JNIEnv *, jobject) {
+    return host().roomSweepProgress();
+}
+
+JNIEXPORT jfloat JNICALL
+Java_com_rm_acidulous_engine_EngineNative_nativeRoomSweepPeak(JNIEnv *, jobject) { return host().roomSweepPeak(); }
+
+JNIEXPORT jstring JNICALL
+Java_com_rm_acidulous_engine_EngineNative_nativeRoomAnalyse(JNIEnv *env, jobject, jfloatArray picture) {
+    const jsize n = env->GetArrayLength(picture);
+    jfloat *data = env->GetFloatArrayElements(picture, nullptr);
+    const std::string out = host().roomAnalyse(data, static_cast<int>(n));
+    env->ReleaseFloatArrayElements(picture, data, 0);
+    return env->NewStringUTF(out.c_str());
+}
+
+JNIEXPORT jstring JNICALL
+Java_com_rm_acidulous_engine_EngineNative_nativeRoomListen(JNIEnv *env, jobject, jint frames) {
+    return env->NewStringUTF(host().roomListen(frames).c_str());
+}
+
+JNIEXPORT jstring JNICALL
+Java_com_rm_acidulous_engine_EngineNative_nativeRoomSave(JNIEnv *env, jobject, jstring path, jint frames) {
+    const char *p = env->GetStringUTFChars(path, nullptr);
+    const std::string out = host().roomSave(p != nullptr ? p : "", frames);
+    if (p != nullptr) env->ReleaseStringUTFChars(path, p);
+    return env->NewStringUTF(out.c_str());
+}
+
 JNIEXPORT jint JNICALL
 Java_com_rm_acidulous_engine_EngineNative_nativeFileShape(JNIEnv *env, jobject, jstring path,
                                                           jfloatArray out, jint fromFrame,
@@ -597,6 +647,39 @@ Java_com_rm_acidulous_engine_EngineNative_nativeLoadReel(JNIEnv *env, jobject, j
 }
 
 JNIEXPORT jstring JNICALL
+Java_com_rm_acidulous_engine_EngineNative_nativeListenReel(JNIEnv *env, jobject, jint rack, jstring spec) {
+    const char *p = spec != nullptr ? env->GetStringUTFChars(spec, nullptr) : "";
+    const std::string out = host().listenReel(rack, p);
+    if (spec != nullptr) env->ReleaseStringUTFChars(spec, p);
+    return env->NewStringUTF(out.c_str());
+}
+
+JNIEXPORT jlong JNICALL
+Java_com_rm_acidulous_engine_EngineNative_nativeListenPlayed(JNIEnv *, jobject, jint rack) {
+    return static_cast<jlong>(host().listenPlayed(rack));
+}
+
+/** Scores of a stack's takes by phrase (see EngineHost::scoreTakes), or null. */
+JNIEXPORT jfloatArray JNICALL
+Java_com_rm_acidulous_engine_EngineNative_nativeScoreTakes(JNIEnv *env, jobject, jstring spec) {
+    const std::vector<float> v = host().scoreTakes(toStdString(env, spec));
+    if (v.empty()) return nullptr;
+    jfloatArray out = env->NewFloatArray(static_cast<jsize>(v.size()));
+    if (out != nullptr) env->SetFloatArrayRegion(out, 0, static_cast<jsize>(v.size()), v.data());
+    return out;
+}
+
+/** Shifts that line a double up on its lead, one per phrase (see EngineHost::lineUpTakes), or null. */
+JNIEXPORT jfloatArray JNICALL
+Java_com_rm_acidulous_engine_EngineNative_nativeLineUp(JNIEnv *env, jobject, jstring spec) {
+    const std::vector<float> v = host().lineUpTakes(toStdString(env, spec));
+    if (v.empty()) return nullptr;
+    jfloatArray out = env->NewFloatArray(static_cast<jsize>(v.size()));
+    if (out != nullptr) env->SetFloatArrayRegion(out, 0, static_cast<jsize>(v.size()), v.data());
+    return out;
+}
+
+JNIEXPORT jstring JNICALL
 Java_com_rm_acidulous_engine_EngineNative_nativeLoadTake(JNIEnv *env, jobject, jint rack, jstring path) {
     const char *p = path != nullptr ? env->GetStringUTFChars(path, nullptr) : "";
     const std::string out = host().loadTake(rack, p);
@@ -646,6 +729,19 @@ Java_com_rm_acidulous_engine_EngineNative_nativeLoadEffectFormula(JNIEnv *env, j
         return out;
     };
     return env->NewStringUTF(host().loadEffectFormula(rack, str(unit), str(formula)).c_str());
+}
+
+JNIEXPORT jstring JNICALL
+Java_com_rm_acidulous_engine_EngineNative_nativeLoadImpulse(JNIEnv *env, jobject, jint rack, jstring unit, jstring path,
+                                                            jfloat length01, jfloat decay01, jfloat stretch01) {
+    auto str = [&](jstring s) {
+        if (s == nullptr) return std::string();
+        const char *p = env->GetStringUTFChars(s, nullptr);
+        std::string out(p);
+        env->ReleaseStringUTFChars(s, p);
+        return out;
+    };
+    return env->NewStringUTF(host().loadImpulse(rack, str(unit), str(path), length01, decay01, stretch01).c_str());
 }
 
 JNIEXPORT jstring JNICALL

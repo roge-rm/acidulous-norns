@@ -15,26 +15,29 @@
 # gap, `tone` how bright, `swell` beats from wave to wave, `fade` how long
 # it takes to come and go. Pressure and the mod wheel thicken it.
 #
-# Ninety patches in eight families, plainest first:
+# Ninety-four patches in eight families, plainest first:
 #
-#   water    Init, bubbles, drips and below the surface (13)
-#   stream   brooks, rivers, waterfalls and splashes (12)
+#   water    Init, bubbles, drips and below the surface (15)
+#   stream   brooks, rivers, waterfalls and splashes (13)
 #   sea      surf, shore and swells (9)
-#   rain     rain, hail and rainsticks (14)
+#   rain     rain, hail and rainsticks (15)
 #   weather  wind and thunder (12)
 #   fire     fires, pans and steam (10)
 #   winter   snow, ice, sleet and blizzards (10)
 #   kit      sixteen pads each: a scene on one track (10)
 #
 # Bubble Notes, Drip Notes, Bubble Melody, Whistling Wind, Moaning Wind and
-# Wind Whistle play the note, for tunes on the keys. The far patches (Distant
-# River, Far Surf, Sea Cave, Distant Rain, Rolling Thunder, Frozen Lake and
-# Cave Kit) carry a reverb send; Near Surf is dry and wide.
+# Wind Whistle play the note, for tunes on the keys. Bubble Chords, Tuned
+# Drips and Rain in the Key snap their bubbles onto the chord you hold, and
+# Pentatonic Brook onto a scale (`snap`, `snap_to`, `scale`, `key`). The
+# far patches (Distant River, Far Surf, Sea Cave, Distant Rain, Rolling
+# Thunder, Frozen Lake and Cave Kit) carry a reverb send; Near Surf is dry
+# and wide.
 #
 # Every patch but Init carries eight named macros. Destinations are
 # numbered as in Fathom.h's MacroDest: #1 density, #2 size, #3 rise, #4
 # decay, #5 gust, #6 whistle, #7 tone, #8 swell, #9 spread, #10 fade, #12
-# volume, #13 pitch (24 semitones a unit). Each sound gets the eight that
+# volume, #13 pitch (24 semitones a unit), #14 snap. Each sound gets the eight that
 # move it: bubbles More, Bigger, Rise, Ring, Deep, High, Wide and Calm;
 # surf Foam, Waves, Bright, Dark, Long, Quick, Bigger and Still; wind
 # Gusts, Lull, Whistle, Bright, Dark, Low, High and Slow; and so on for
@@ -491,6 +494,86 @@ patch "Bubble Melody" family=water note=60 range=48..84 role=tune
   spread         0.2
   volume         1
 
+patch "Bubble Chords" family=water note=48 range=36..72
+  # Bubbles on the chord you hold: play chords and they follow.
+  set macro1 "More"
+  set macro2 "Bigger"
+  set macro3 "Rise"
+  set macro4 "Ring"
+  set macro5 "Deep"
+  set macro6 "High"
+  set macro7 "Wide"
+  set macro8 "Calm"
+  mac1_d1  #1
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.353
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.5
+  mac4_d1  #4
+  mac4_a1  0.4
+  mac4_d2  #12
+  mac4_a2  -0.138
+  mac5_d1  #13
+  mac5_a1  -0.5
+  mac5_d2  #12
+  mac5_a2  -0.138
+  mac6_d1  #13
+  mac6_a1  0.25
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #1
+  mac8_a1  -0.206
+  mac8_d2  #12
+  mac8_a2  0.216
+  density        0.6
+  size           12 st
+  rise           0.08
+  decay          0.8
+  snap           1
+  volume         0.47
+
+patch "Tuned Drips" family=water note=55 range=43..79
+  # Slow drips that land on the held notes.
+  set macro1 "More"
+  set macro2 "Bigger"
+  set macro3 "Rise"
+  set macro4 "Ring"
+  set macro5 "Deep"
+  set macro6 "High"
+  set macro7 "Wide"
+  set macro8 "Calm"
+  mac1_d1  #1
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.217
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.5
+  mac4_d1  #4
+  mac4_a1  0.4
+  mac4_d2  #12
+  mac4_a2  -0.124
+  mac5_d1  #13
+  mac5_a1  -0.5
+  mac6_d1  #13
+  mac6_a1  0.25
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #1
+  mac8_a1  -0.281
+  mac8_d2  #12
+  mac8_a2  0.221
+  model          #1
+  density        0.6
+  size           12 st
+  rise           0.1
+  decay          0.9
+  snap           1
+
 # --- stream -------------------------------------------------------------------
 
 patch Trickle family=stream note=52 range=40..64
@@ -921,6 +1004,48 @@ patch "Big Splash" family=stream note=40 range=31..52
   mac8_a2  0.19
   model          #13
   size           12 st
+
+patch "Pentatonic Brook" family=stream note=60 range=48..72
+  # A brook in C minor pentatonic: set the key and scale to the song.
+  set macro1 "More"
+  set macro2 "Bigger"
+  set macro3 "Rise"
+  set macro4 "Ring"
+  set macro5 "Deep"
+  set macro6 "High"
+  set macro7 "Wide"
+  set macro8 "Calm"
+  mac1_d1  #1
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.369
+  mac2_d1  #2
+  mac2_a1  0.3
+  mac3_d1  #3
+  mac3_a1  0.5
+  mac4_d1  #4
+  mac4_a1  0.4
+  mac4_d2  #12
+  mac4_a2  -0.138
+  mac5_d1  #13
+  mac5_a1  -0.5
+  mac6_d1  #13
+  mac6_a1  0.25
+  mac7_d1  #9
+  mac7_a1  0.4
+  mac8_d1  #1
+  mac8_a1  -0.206
+  mac8_d2  #12
+  mac8_a2  0.237
+  model          #3
+  density        0.4
+  size           12 st
+  rise           0.1
+  decay          0.7
+  snap           0.85
+  snap_to        #1
+  scale          #10
+  key            #0
 
 # --- sea ----------------------------------------------------------------------
 
@@ -1841,6 +1966,51 @@ patch "Long Rainstick" family=rain note=48 range=36..60
   mac8_a1  0.25
   model          #15
   decay          0.9
+
+patch "Rain in the Key" family=rain note=60 range=48..72
+  # Rain on water, its bubbles on the chord you hold.
+  set macro1 "More"
+  set macro2 "Calm"
+  set macro3 "Bright"
+  set macro4 "Dark"
+  set macro5 "Bigger"
+  set macro6 "Ring"
+  set macro7 "Deep"
+  set macro8 "Wide"
+  mac1_d1  #1
+  mac1_a1  0.35
+  mac1_d2  #12
+  mac1_a2  -0.311
+  mac2_d1  #1
+  mac2_a1  -0.169
+  mac2_d2  #12
+  mac2_a2  0.283
+  mac3_d1  #7
+  mac3_a1  0.4
+  mac4_d1  #7
+  mac4_a1  -0.3
+  mac4_d2  #12
+  mac4_a2  0.127
+  mac5_d1  #2
+  mac5_a1  0.3
+  mac6_d1  #4
+  mac6_a1  0.4
+  mac6_d2  #12
+  mac6_a2  -0.105
+  mac7_d1  #13
+  mac7_a1  -0.5
+  mac7_d2  #12
+  mac7_a2  -0.026
+  mac8_d1  #9
+  mac8_a1  0.4
+  model          #2
+  density        0.45
+  size           12 st
+  rise           0.05
+  decay          0.8
+  tone           0.4
+  snap           1
+  volume         0.53
 
 # --- weather ------------------------------------------------------------------
 

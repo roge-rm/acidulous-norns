@@ -306,9 +306,7 @@ void Tongue::reset() {
     pick.clear();
     pickOn = false;
     follower.reset();
-    pendingCount = saidCount = saidAt = 0;
-    saidLeft = 0;
-    saying = false;
+    speech.reset();
     hissBands[0].clear();
     hissBands[1].clear();
     hissLevel = 0.0f;
@@ -385,11 +383,11 @@ void Tongue::noteOn(uint8_t note, uint8_t velocity) {
     const float vel = static_cast<float>(velocity) / 127.0f;
     lastVelocity = vel;
     // A note with words says them; one without goes back to the vowel knob.
-    if (pendingCount > 0) {
-        planWords();
-        pendingCount = 0;
+    if (speech.hasPending()) {
+        speech.plan(sampleRate);
+        if (speech.saying) startSaid();
     } else {
-        saying = false;
+        speech.saying = false;
     }
     if (steppedTargetOf(Play) == MouthKeys) {
         // One harp on the drone; the key moves the mouth.
@@ -658,70 +656,10 @@ void Tongue::repluckHeld(float velocity) {
     }
 }
 
-void Tongue::lyric(const uint8_t *phones, int32_t count) {
-    pendingCount = std::clamp(count, 0, kMaxPhones);
-    for (int i = 0; i < pendingCount; ++i) pending[i] = phones[i];
-}
-
-void Tongue::planWords() {
-    int32_t tableSize = 0;
-    const diction::Phone *table = diction::phoneTable(tableSize);
-    // The held sound: the last vowel, or failing one the last sound.
-    int held = -1;
-    for (int i = 0; i < pendingCount; ++i) {
-        const int c = pending[i];
-        if (c <= 0 || c >= tableSize) continue;
-        const diction::Kind kind = table[c].kind;
-        if (kind == diction::Kind::Vowel || kind == diction::Kind::Diphthong || held < 0) held = i;
-    }
-    saidCount = 0;
-    heldStep = 0;
-    const auto add = [&](const diction::Phone &ph, const float *f, float seconds) {
-        if (saidCount == kSaid) return;
-        Said &s = said[saidCount++];
-        for (int k = 0; k < 3; ++k) s.f[k] = harpFormant(k, f[k]);
-        s.noise = ph.noise;
-        for (int b = 0; b < 2; ++b) {
-            for (int k = 0; k < 3; ++k) s.band[b][k] = ph.band[b][k];
-        }
-        s.samples = seconds < 0.0f ? -1 : std::max(1, static_cast<int32_t>(seconds * sampleRate));
-    };
-    for (int i = 0; i < pendingCount; ++i) {
-        const int c = pending[i];
-        if (c <= 0 || c >= tableSize) continue;
-        const diction::Phone &ph = table[c];
-        const bool last = i == held;
-        if (last) heldStep = ph.kind == diction::Kind::Diphthong ? saidCount + 1 : saidCount;
-        if (ph.kind == diction::Kind::Diphthong) {
-            add(ph, ph.f, last ? 0.12f : ph.length * 0.5f);
-            add(ph, ph.to, last ? -1.0f : ph.length * 0.5f);
-        } else {
-            // Most consonants are quicker on a harp than in a song: the mouth
-            // only passes through them. A hiss keeps its length, to be heard.
-            const bool vowel = ph.kind == diction::Kind::Vowel;
-            const bool hissing = ph.kind == diction::Kind::Fricative || ph.kind == diction::Kind::Affricate;
-            add(ph, ph.f, last ? -1.0f : std::fmax(0.015f, ph.length * (vowel ? 0.8f : hissing ? 1.0f : 0.6f)));
-        }
-    }
-    // The sounds after the held one are the note's end, said when it's let go;
-    // the mouth stays on the last.
-    if (saidCount > 0) said[saidCount - 1].samples = -1;
-    heldStep = std::min(heldStep, saidCount - 1);
-    saidAt = 0;
-    saidLeft = saidCount > 0 ? said[0].samples : 0;
-    saying = saidCount > 0;
-    if (saying) startSaid();
-}
-
-void Tongue::endWords() {
-    if (!saying || saidAt != heldStep || heldStep + 1 >= saidCount) return;
-    ++saidAt;
-    startSaid();
-    saidLeft = said[saidAt].samples;
-}
+void Tongue::lyric(const uint8_t *phones, int32_t count) { speech.take(phones, count); }
 
 void Tongue::startSaid() {
-    const Said &s = said[saidAt];
+    const diction::Words::Step &s = speech.now();
     for (int b = 0; b < 2; ++b) {
         hissBands[b].set(s.band[b][0], s.band[b][1], sampleRate);
         hissShare[b] = s.band[b][2];
@@ -772,11 +710,11 @@ void Tongue::moveMouth(bool jump) {
     for (int k = 0; k < 3; ++k) target[k] = kMouths[lo][k] + (kMouths[lo + 1][k] - kMouths[lo][k]) * t;
     // A note's words take the mouth where they say, as far as the words knob goes.
     const float words = clampf(knob(Words), 0.0f, 1.0f);
-    if (saying && words > 0.0f) {
-        for (int k = 0; k < 3; ++k) target[k] += (said[saidAt].f[k] - target[k]) * words;
+    if (speech.saying && words > 0.0f) {
+        for (int k = 0; k < 3; ++k) target[k] += (harpFormant(k, speech.now().f[k]) - target[k]) * words;
     }
     for (int k = 0; k < 3; ++k) mouthGoal[k] = target[k];
-    float seconds = saying && words > 0.0f ? kSayGlide : knob(Glide) * 0.001f;
+    float seconds = speech.saying && words > 0.0f ? kSayGlide : knob(Glide) * 0.001f;
     // The wah's glide is at most half its step, so a long glide sweeps rather than stopping it.
     // Smooth, the curve does the moving and the glide only takes off the corners.
     if (wahStep > 0.0f) seconds = std::fmin(seconds, (wahSmooth ? 0.125f : 0.5f) * wahStep);
@@ -851,17 +789,8 @@ bool Tongue::render(float *L, float *R, int32_t frames) {
     }
     schedulePattern(frames);
     // The words move on a step at a time; the held one stays.
-    if (saying && saidLeft >= 0) {
-        saidLeft -= frames;
-        while (saying && saidLeft < 0 && saidAt + 1 < saidCount) {
-            const int32_t over = -saidLeft;
-            ++saidAt;
-            startSaid();
-            saidLeft = said[saidAt].samples < 0 ? -1 : said[saidAt].samples - over;
-            if (said[saidAt].samples < 0) break;
-        }
-    }
-    const float wordsHiss = saying ? kSayHiss * hissLevel * clampf(paramOf(Words), 0.0f, 1.0f) * kHouse * lastVelocity : 0.0f;
+    if (speech.advance(frames)) startSaid();
+    const float wordsHiss = speech.saying ? kSayHiss * hissLevel * clampf(paramOf(Words), 0.0f, 1.0f) * kHouse * lastVelocity : 0.0f;
     // Following another track: a look at its pitch spread over four blocks;
     // sure, the mouth goes to it, and a while unsure, back to the keys.
     if (sidechainRack() >= 0 && key_ != nullptr) {

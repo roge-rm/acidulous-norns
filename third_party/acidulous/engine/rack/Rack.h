@@ -181,7 +181,7 @@ class Rack {
      * in the bar (see Machine::onBar).
      */
     void updateScene(int64_t sceneId, int64_t cycleTick, bool playing, bool rolling, int64_t tickStart,
-                     int64_t tickInBar, int32_t ticksPerBar, int64_t swingPair);
+                     int64_t tickInBar, int32_t ticksPerBar, int64_t swingPair, double countInTicks = 0.0);
     bool frozenActive() const { return frozenNow != nullptr; }
     /** The mounted frozen set, or null. Read off the audio thread under Engine::readLive. */
     const FrozenSet *currentFrozen() const { return frozenSet; }
@@ -363,6 +363,8 @@ class Rack {
     void setPedal(int32_t which, uint8_t value);
     bool machineTakesPedals() const { return machine != nullptr && machine->takesPedals(); }
     void releasePedalled();
+    /** A note-off as the machine got it, to the inserts. Audio thread. */
+    void offToInserts(uint8_t note);
     void resetPedals();
 
     const FrozenSet *frozenSet = nullptr;

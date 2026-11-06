@@ -47,9 +47,12 @@ struct PitchFinder {
     /**
      * The frequency in [mono], or 0 when there's no note.
      *
-     * If [clarity] is given it's set to the winning correlation.
+     * If [clarity] is given it's set to the winning correlation. [minHz]
+     * and [maxHz] narrow the search: a voice needs less of the window than
+     * a bass, so a take can be read in shorter windows.
      */
-    static float find(const float *mono, int32_t frames, float sampleRate, float *clarity = nullptr);
+    static float find(const float *mono, int32_t frames, float sampleRate, float *clarity = nullptr,
+                      float minHz = kMinHz, float maxHz = kMaxHz);
 };
 
 /**

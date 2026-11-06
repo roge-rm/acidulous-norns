@@ -1,9 +1,11 @@
 #include "Palm.h"
 #include <algorithm>
 #include <cmath>
+#include <cctype>
 #include <cstdio>
 #include <engine/dsp/Math.h>
 #include <engine/machine/Voices.h>
+#include <sequencer/Swing.h>
 
 namespace acidulous::machine {
 
@@ -175,6 +177,81 @@ float shapeAt(int m, int n, float r) {
     return across * (0.15f + 0.85f * along);
 }
 
+/**
+ * A cycle's pattern: one bar of [steps] strokes ([perBeat] to a beat), the
+ * bar it plays, and two fills for a cycle's last bar.
+ *
+ *   .  rest              O o  open, loud or soft
+ *   S s  slap            M m  muted
+ *   B b  bass            R r  rim
+ *   L l  open, on the low drum
+ *   P    open, then the second hand presses the head up
+ *   D    open with a bass stroke on the low drum under it
+ *   X    the second hand laid on the head, stopping it
+ */
+struct CycleDef {
+    int steps, perBeat;
+    const char *bar, *fills[2];
+};
+constexpr CycleDef kCycles[Palm::CycleCount] = {
+    {16, 4, "................", {"................", "................"}},
+    // Heel and toe, a slap on two, open tones on four.
+    {16, 4, "b.m.S.m.b.m.O.L.", {"S.S.S.SSO.OLL.L.", "SmSmS.S.O.OOL.L."}},
+    // A djembe's accompaniment, the slaps in pairs.
+    {16, 4, "B.mSS.OOB.mSS.O.", {"SSS.SSS.SSS.B.B.", "S.SSO.OOS.SSB.BB"}},
+    // Doum doum tek doum tek, with soft kas between.
+    {16, 4, "B.B.r.R.B.r.R.r.", {"B.B.RrRrB.RrRrRr", "RrRrB.RrRrB.R.R."}},
+    // Doum tek tek doum tek.
+    {16, 4, "B.R.r.R.B.r.R.r.", {"B.R.RrRrB.RrRrRR", "B.RrR.RrB.RrRRRR"}},
+    // Eight beats of open, pressed, rim and muted strokes, a phrase thrice to end.
+    {16, 4, "D.P.R.M.R.m.D.R.", {"DRM.DRM.DRM.D...", "RrRrD.RrRrD.D.D."}},
+    // Twelve in a bar, in threes.
+    {12, 3, "B.mO.mB.mO.S", {"S.SS.SS.SB.B", "SSSOOOSSSB.B"}},
+    // Bass on one and three, slaps on two and four.
+    {16, 4, "B...S.mmB.B.S.m.", {"SmSmS.SmB.B.SSSS", "B.B.S.SSB.SSS.S."}},
+    // Open and pressed, the head stopped between.
+    {16, 4, "O..P..O.O.P.X...", {"OPOPOP..OPOPP.P.", "P.P.P.OOP.P.PPPP"}},
+};
+
+/** Bars in a cycle, by the bars param's step. */
+constexpr int kCycleBars[4] = {1, 2, 4, 8};
+/** A soft stroke's level against a loud one's. */
+constexpr float kGhost = 0.38f;
+/** How far a low tone sits under the note with one drum held, semitones. */
+constexpr float kLowTone = -5.0f;
+/** How quickly the second hand presses, seconds. */
+constexpr float kPressTakes = 0.07f;
+
+/** A number from a bar and step that's the same every time it's asked for. */
+uint32_t mix(uint32_t a, uint32_t b) {
+    uint32_t h = a * 0x9e3779b1u ^ (b + 0x7f4a7c15u + (a << 6) + (a >> 2));
+    h ^= h >> 16;
+    h *= 0x85ebca6bu;
+    h ^= h >> 13;
+    h *= 0xc2b2ae35u;
+    h ^= h >> 16;
+    return h;
+}
+float unit(uint32_t h) { return static_cast<float>(h >> 8) * (1.0f / 16777216.0f); }
+
+int64_t floorDiv(int64_t a, int64_t b) { return a >= 0 ? a / b : -((-a + b - 1) / b); }
+
+/**
+ * The pattern step played at step [i] of a bar [n] steps long, for a pattern
+ * of [steps] with [perBeat] to a beat, or -1 - the step for a filler stroke.
+ * A bar of another length keeps the pattern's start and its last half (at
+ * most), so the closing strokes stay at the bar's end; a shorter bar loses
+ * the middle, a longer one repeats the beat before the end as filler.
+ */
+int stepFor(int i, int n, int steps, int perBeat) {
+    if (n == steps) return i;
+    const int tail = std::min(n, steps) / 2 / perBeat * perBeat;
+    if (i >= n - tail) return steps - (n - i);
+    if (i < steps - tail) return i;
+    const int before = steps - tail - perBeat;
+    return -1 - (before + (i - (steps - tail)) % perBeat);
+}
+
 } // namespace
 
 Palm::Palm() { initParams(); }
@@ -273,6 +350,12 @@ const ParamDef *Palm::paramDefs(int32_t &count) const {
         {"p16_level", 0.0f, 1.0f, 0.75f, Curve::Linear, 0, ""},
         {"flam", 0.0f, 60.0f, 0.0f, Curve::Linear, 0, "ms"},
     };
+    static const ParamDef last[Count - Cycle] = {
+        {"cycle", 0.0f, static_cast<float>(CycleCount - 1), 0.0f, Curve::Stepped, CycleCount, ""}, // off, tumbao, kuku, baladi, maqsum, theka, 6/8, groove, talking
+        {"bars", 0.0f, 3.0f, 2.0f, Curve::Stepped, 4, ""}, // 1, 2, 4 or 8 bars a cycle
+        {"feel", 0.0f, 1.0f, 0.4f, Curve::Linear, 0, ""},
+        {"press", 0.0f, 12.0f, 3.0f, Curve::Linear, 0, "st"},
+    };
     static ParamDef defs[Count];
     static char names[kMacros * MacroParams][12];
     static bool built = false;
@@ -295,6 +378,7 @@ const ParamDef *Palm::paramDefs(int32_t &count) const {
                 put(b + 5 + r, n, -1.0f, 1.0f, 0.0f, Curve::Linear, 0);
             }
         }
+        for (int32_t i = Cycle; i < Count; ++i) defs[i] = last[i - Cycle];
         built = true;
     }
     count = Count;
@@ -313,6 +397,7 @@ struct DestMap {
             {P::Drop, P::McDrop}, {P::Squeeze, P::McSqueeze}, {P::Rattle, P::McRattle}, {P::Body, P::McBody},
             {P::Roll, P::McRoll}, {P::Spread, P::McSpread}, {P::VelocityAmount, P::McVelocity},
             {P::Volume, P::McVolume}, {P::Flam, P::McFlam},
+            {P::Feel, P::McFeel}, {P::Press, P::McPress},
         };
         for (const auto &pr : pairs) of[pr[0]] = static_cast<int8_t>(pr[1]);
     }
@@ -395,6 +480,9 @@ void Palm::reset() {
         v.flamVelocity = 0.0f;
         v.macAt = v.macNow = 0.0f;
         v.quietBlocks = 0;
+        v.noteVelocity = 0.8f;
+        v.hitCount = 0;
+        v.shift = v.hand2 = v.hand2Aim = 0.0f;
     }
     for (float &m : mac_) m = 0.0f;
     for (float &m : macGoal_) m = 0.0f;
@@ -404,6 +492,37 @@ void Palm::reset() {
     clock = 0;
     quietSamples = 0;
     asleep = true;
+    bpm = 120.0f;
+    songRolling = false;
+    songTick = barTick = blockTicks = 0;
+    barTicks = 0;
+    swingPercent = 50.0f;
+    swingPairTicks = 0;
+    freeTick = 0.0;
+    countLeft = 0.0;
+}
+
+void Palm::onBlock(int64_t tickStart, int64_t tickEnd, float tempo) {
+    bpm = tempo > 1.0f ? tempo : 120.0f;
+    blockTicks = std::max<int64_t>(0, tickEnd - tickStart);
+}
+
+void Palm::onTransport(bool rolling, int64_t tickStart) {
+    if (songRolling && !rolling) {
+        // Stopped with a key down: carry on from where the song was, and drop
+        // strokes still waiting to land.
+        if (barTicks > 0) freeTick = static_cast<double>(floorDiv(songTick - barTick, barTicks) * barTicks + barTick + blockTicks);
+        for (Voice &v : voices) v.hitCount = 0;
+    }
+    songRolling = rolling;
+    songTick = tickStart;
+}
+
+void Palm::onBar(int64_t tickInBar, int32_t ticksPerBar, float swing, int64_t swingPair) {
+    barTick = tickInBar;
+    barTicks = ticksPerBar;
+    swingPercent = swing;
+    swingPairTicks = swingPair;
 }
 
 int Palm::activeVoices() const {
@@ -441,7 +560,7 @@ void Palm::build(Voice &v) {
     const int kind = v.kind;
     const Make &k = kMakes[kind];
     const StrokeDef &s = kStrokes[v.stroke];
-    const float f = noteHz(v.pitch);
+    const float f = noteHz(v.pitch + v.shift);
     const float where = clampf(s.where + clampf(goalOf(Position), 0.0f, 1.0f) - 0.5f, 0.0f, 1.0f);
     const float damp = 1.0f - 0.9f * clampf(goalOf(Damp), 0.0f, 1.0f);
     const float t60 = clampf(k.t60 * std::pow(4.0f, goalOf(Decay) - 0.5f) * std::pow(kRefHz / f, k.pitchFall), 0.01f, 10.0f) * damp;
@@ -478,7 +597,7 @@ void Palm::build(Voice &v) {
 }
 
 void Palm::retune(Voice &v) {
-    const float pitch = pitchNow(v) + v.drop + v.squeezed;
+    const float pitch = pitchNow(v) + v.drop + v.squeezed + v.hand2;
     if (std::fabs(pitch - v.builtPitch) < 0.002f && v.press == v.builtPress) return;
     v.builtPitch = pitch;
     // A finger sliding onto the head (MPE slide) damps it as it rings.
@@ -496,7 +615,7 @@ void Palm::retune(Voice &v) {
     }
 }
 
-void Palm::strike(Voice &v, float velocity) {
+void Palm::strike(Voice &v, float velocity, int stroke) {
     const Make &k = kMakes[v.kind];
     // Over about 3 ms, not at once: a step in a ringing mode is a click. Only
     // when something's ringing, so a fresh note isn't kept waiting.
@@ -504,7 +623,7 @@ void Palm::strike(Voice &v, float velocity) {
     for (int m = 0; m < v.modeCount; ++m) ringing = ringing || std::fabs(v.modes[m].y1) > 1e-6f;
     v.settleLeft = ringing ? std::max(1, static_cast<int32_t>(kSettleSeconds * sampleRate)) : 0;
     v.settle = ringing ? std::pow(kRestrikeKeeps, 1.0f / static_cast<float>(v.settleLeft)) : 1.0f;
-    v.stroke = strokeFor(v, velocity);
+    v.stroke = stroke >= 0 ? stroke : strokeFor(v, velocity);
     v.velocity = velocity;
     build(v);
     const StrokeDef &s = kStrokes[v.stroke];
@@ -512,7 +631,7 @@ void Palm::strike(Voice &v, float velocity) {
     // leaves sooner. Never longer than half the head's period.
     const float hand = clampf(goalOf(Hand), 0.0f, 1.0f);
     float seconds = s.contact * std::pow(3.0f, 0.5f - hand) * (1.3f - 0.6f * velocity);
-    seconds = std::fmin(seconds, 0.5f / noteHz(v.pitch));
+    seconds = std::fmin(seconds, 0.5f / noteHz(v.pitch + v.shift));
     const int len = std::clamp(static_cast<int>(seconds * sampleRate), 2, static_cast<int>(v.strike.size()));
     const float peak = 3.14159265f / (2.0f * static_cast<float>(len));
     for (int i = 0; i < len; ++i) {
@@ -532,7 +651,18 @@ void Palm::noteOn(uint8_t note, uint8_t velocity) {
     const int kind = std::clamp(steppedTargetOf(kit ? padParam(pad, PadModel) : static_cast<int32_t>(Model)), 0, KindCount - 1);
     const Make &k = kMakes[kind];
     Voice *v = voiceFor(note);
+    // A cycle starts its bar with the first held note while the song is stopped.
+    const bool cycling = steppedTargetOf(Cycle) != CycleOff;
+    if (cycling) {
+        // A held voice being taken for another note still counts.
+        bool others = false;
+        for (const Voice &u : voices) others = others || ((&u != v || u.note != note) && u.used && u.held);
+        if (!others) freeTick = 0.0;
+    }
+    v->hitCount = 0;
     const bool fresh = !v->used || v->note != note || v->kind != kind;
+    // A drum still ringing keeps its low tone and press until the cycle's next stroke.
+    if (fresh || !cycling) v->shift = v->hand2 = v->hand2Aim = 0.0f;
     v->note = note;
     v->kind = kind;
     v->pad = kit ? pad : -1;
@@ -547,6 +677,7 @@ void Palm::noteOn(uint8_t note, uint8_t velocity) {
     v->press = 0.0f;
     v->builtPress = -1.0f;
     const float vel = static_cast<float>(velocity) / 127.0f;
+    v->noteVelocity = vel;
     v->gain = kHouse * k.level * velocityGain(vel, goalOf(VelocityAmount));
     // A pad's level is 0.75 for as loud as the drum played on its own.
     if (kit) v->gain *= clampf(targetOf(padParam(pad, PadLevel)), 0.0f, 1.0f) / 0.75f;
@@ -559,7 +690,15 @@ void Palm::noteOn(uint8_t note, uint8_t velocity) {
         v->rubPhase = 0.0f;
     }
     const float flam = goalOf(Flam);
-    if (flam > 0.0f) {
+    if (cycling) {
+        // The cycle plays the strokes, from its next step. A fresh drum is
+        // built now so a cuíca rubbed before then drives its own modes.
+        v->flamLeft = 0;
+        if (fresh) {
+            v->stroke = Open;
+            build(*v);
+        }
+    } else if (flam > 0.0f) {
         // The grace stroke now, softer and quieter; the stroke itself in render.
         strike(*v, kGrace * vel);
         for (int32_t i = 0; i < v->strikeLength; ++i) v->strike[static_cast<size_t>(i)] *= kGrace;
@@ -591,7 +730,10 @@ void Palm::noteOff(uint8_t note) {
 }
 
 void Palm::allNotesOff() {
-    for (Voice &v : voices) v.held = false;
+    for (Voice &v : voices) {
+        v.held = false;
+        v.hitCount = 0;
+    }
 }
 
 void Palm::controlChange(uint8_t cc, uint8_t value) {
@@ -621,11 +763,154 @@ void Palm::noteTimbre(uint8_t note, uint8_t value) {
     }
 }
 
+void Palm::cycleStep(int32_t frames) {
+    const int kind = std::clamp(steppedTargetOf(Cycle), 0, CycleCount - 1);
+    const CycleDef &c = kCycles[kind];
+    // Where the block is: the song's bar while it rolls, or else bars of the
+    // song's length on the free clock, which a count-in sets so its downbeat
+    // is the song's. Stopped, the clock is fractional so strokes land on
+    // their own samples.
+    int64_t bar = 0, barLen = 0;
+    double from = 0.0, to = 0.0;
+    if (songRolling && barTicks > 0) {
+        barLen = barTicks;
+        from = static_cast<double>(barTick);
+        to = static_cast<double>(barTick + blockTicks);
+        bar = floorDiv(songTick - barTick, barLen);
+    } else {
+        barLen = barTicks > 0 ? barTicks : 4 * kPPQN;
+        if (countLeft > 0.0) freeTick = -countLeft;
+        const double adv = static_cast<double>(frames) * static_cast<double>(bpm) * kPPQN / (60.0 * static_cast<double>(sampleRate));
+        bar = floorDiv(static_cast<int64_t>(std::floor(freeTick)), barLen);
+        from = freeTick - static_cast<double>(bar * barLen);
+        to = from + adv;
+        freeTick += adv;
+    }
+    Voice *lo = nullptr, *hi = nullptr;
+    int held = 0;
+    for (Voice &v : voices) {
+        if (!v.used || !v.held) continue;
+        ++held;
+        if (lo == nullptr || v.pitch < lo->pitch) lo = &v;
+        if (hi == nullptr || v.pitch >= hi->pitch) hi = &v;
+    }
+    if (held == 0 || to <= from || kind == CycleOff) return;
+
+    const int bars = kCycleBars[std::clamp(steppedTargetOf(Bars), 0, 3)];
+    const float feel = clampf(goalOf(Feel), 0.0f, 1.0f);
+    const int64_t stepTicks = kPPQN / c.perBeat;
+    // Sixteenths swing like the track's notes; threes are already uneven.
+    const bool swung = c.perBeat == 4;
+    // The soft stroke a player adds between: the pattern's own, or a muted tip.
+    char ghost = 'm';
+    for (int i = 0; i < c.steps; ++i) {
+        if (c.bar[i] == 'r' || c.bar[i] == 'm' || c.bar[i] == 'o') {
+            ghost = c.bar[i];
+            break;
+        }
+    }
+    const double span = to - from;
+    for (int64_t b = 0; static_cast<double>(b * barLen) < to; ++b) {
+        const int64_t barNo = bar + b;
+        const auto barSeed = mix(static_cast<uint32_t>(barNo), 0x5a17u);
+        const int inCycle = static_cast<int>(barNo - floorDiv(barNo, bars) * bars);
+        const bool fill = bars > 1 && inCycle == bars - 1;
+        const int pick = feel > 0.0f && unit(mix(static_cast<uint32_t>(floorDiv(barNo, bars)), 0xf111u)) < 0.5f ? 1 : 0;
+        // How this bar breathes: as written, busier, sparer, or with tones and slaps swapped.
+        const uint32_t mood = feel > 0.0f && !fill ? mix(barSeed, 77u) & 3u : 0u;
+        const float lean = feel * 0.004f * unit(mix(barSeed, 9u));
+        for (int64_t st = 0; st * stepTicks < barLen; ++st) {
+            const int64_t cIn = st * stepTicks;
+            const auto at = static_cast<double>(b * barLen + (swung ? seq::Swing::at(cIn, swingPercent, swingPairTicks) : cIn));
+            if (at < from || at >= to) continue;
+            const int n = static_cast<int>((barLen + stepTicks - 1) / stepTicks);
+            const int at0 = stepFor(static_cast<int>(st), n, c.steps, c.perBeat);
+            const bool filler = at0 < 0;
+            const int idx = filler ? -1 - at0 : at0;
+            char ch = fill ? c.fills[pick][idx] : c.bar[idx];
+            // Filler beats are played soft.
+            if (filler) ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
+            const uint32_t h = mix(barSeed, static_cast<uint32_t>(idx + 1));
+            const float u1 = unit(h), u3 = unit(mix(h, 2u)), u4 = unit(mix(h, 3u));
+            const bool onBeat = idx % c.perBeat == 0;
+            if (!fill && feel > 0.0f) {
+                const float add = feel * (mood == 1 ? 0.45f : mood == 2 ? 0.04f : 0.16f) * (onBeat ? 0.3f : 1.0f);
+                const float drop = feel * (mood == 2 ? 0.6f : 0.15f);
+                if (ch == '.' && u1 < add) ch = ghost;
+                else if (std::islower(static_cast<unsigned char>(ch)) && u1 < drop) ch = '.';
+                else if (mood == 3 && !onBeat && u1 < 0.4f * feel) ch = ch == 'O' ? 'S' : ch == 'S' ? 'O' : ch;
+            }
+            if (ch == '.') continue;
+            const bool loud = std::isupper(static_cast<unsigned char>(ch)) != 0;
+            float vm = loud ? 1.0f : kGhost;
+            vm *= idx == 0 ? 1.05f : onBeat ? 1.0f : 0.86f;
+            // The cycle builds a little to its fill, and the fill to the next bar.
+            if (bars > 1) vm *= 0.92f + 0.08f * static_cast<float>(inCycle) / static_cast<float>(bars - 1);
+            if (fill) vm *= 0.85f + 0.3f * static_cast<float>(idx) / static_cast<float>(c.steps);
+            vm *= 1.0f + 0.16f * feel * (2.0f * u3 - 1.0f);
+            vm = clampf(vm, 0.05f, 1.25f);
+            // A hand lands a hair behind, slaps a little more.
+            float late = feel * 0.006f * u4 + lean;
+            if (ch == 'S' || ch == 's') late += 0.002f * feel;
+            const int32_t wait = static_cast<int32_t>((at - from) / span * frames + 0.5) +
+                                 static_cast<int32_t>(late * sampleRate);
+            auto queue = [&](Voice *v, int stroke, float shift, bool press) {
+                if (v == nullptr || v->hitCount >= kHits) return;
+                Hit &q = v->hits[v->hitCount++];
+                q.wait = wait;
+                q.velocity = clampf(v->noteVelocity * vm, 0.03f, 1.0f);
+                q.level = vm;
+                q.shift = shift;
+                q.stroke = static_cast<int8_t>(stroke);
+                q.press = press;
+            };
+            const bool two = held > 1;
+            switch (std::toupper(static_cast<unsigned char>(ch))) {
+            case 'O': queue(hi, Open, 0.0f, false); break;
+            case 'S': queue(hi, Slap, 0.0f, false); break;
+            case 'M': queue(hi, Muted, 0.0f, false); break;
+            case 'R': queue(hi, Rim, 0.0f, false); break;
+            case 'B': queue(lo, Bass, 0.0f, false); break;
+            case 'L': queue(lo, Open, two ? 0.0f : kLowTone, false); break;
+            case 'P': queue(lo, Open, 0.0f, true); break;
+            case 'D':
+                queue(hi, Open, 0.0f, false);
+                if (two) queue(lo, Bass, 0.0f, false);
+                break;
+            case 'X':
+                for (Voice &v : voices) {
+                    if (v.used && v.held) queue(&v, -1, 0.0f, false);
+                }
+                break;
+            default: break;
+            }
+        }
+    }
+}
+
+void Palm::land(Voice &v, const Hit &h) {
+    if (h.stroke < 0) {
+        // The second hand laid flat on the head stops it over about 12 ms.
+        const auto len = std::max<int32_t>(1, static_cast<int32_t>(0.012f * sampleRate));
+        v.settleLeft = len;
+        v.settle = std::pow(0.02f, 1.0f / static_cast<float>(len));
+        v.hand2Aim = 0.0f;
+        return;
+    }
+    v.shift = h.shift;
+    v.hand2 = 0.0f;
+    v.hand2Aim = h.press ? clampf(goalOf(Press), 0.0f, 12.0f) : 0.0f;
+    strike(v, h.velocity, h.stroke);
+    for (int32_t i = 0; i < v.strikeLength; ++i) v.strike[static_cast<size_t>(i)] *= h.level;
+}
+
 bool Palm::render(float *L, float *R, int32_t frames) {
     params_.tick();
     updateMacros();
     for (int32_t i = 0; i < frames; ++i) L[i] = R[i] = 0.0f;
     if (asleep) return true;
+    const bool cycling = steppedTargetOf(Cycle) != CycleOff;
+    if (cycling) cycleStep(frames);
 
     const float squeeze = paramOf(Squeeze);
     const float rattleAmount = clampf(paramOf(Rattle), 0.0f, 1.0f);
@@ -634,6 +919,7 @@ bool Palm::render(float *L, float *R, int32_t frames) {
     const float crackFall = std::exp(-1.0f / (0.004f * sampleRate));
     const float dropFall = std::exp(-static_cast<float>(kRetuneEvery) / (kDropSettles * sampleRate));
     const float shakeFall = std::exp(-1.0f / (0.02f * sampleRate));
+    const float pressRate = 1.0f - std::exp(-static_cast<float>(kRetuneEvery) / (kPressTakes * sampleRate));
     bool any = false;
 
     for (Voice &v : voices) {
@@ -650,15 +936,30 @@ bool Palm::render(float *L, float *R, int32_t frames) {
                 const float press = v.held ? (v.pressure >= 0.0f ? v.pressure : channelPressure_) : 0.0f;
                 const float aim = squeeze * std::fmax(press, wheel);
                 v.squeezed += (aim - v.squeezed) * 0.08f;
+                // The second hand pressing the head, or letting go.
+                if (v.hand2 != v.hand2Aim) {
+                    v.hand2 += (v.hand2Aim - v.hand2) * pressRate;
+                    if (std::fabs(v.hand2Aim - v.hand2) < 1e-3f) v.hand2 = v.hand2Aim;
+                }
                 retune(v);
                 if (v.kind == Cuica) v.rubStep = noteHz(pitchNow(v) + v.squeezed) / sampleRate;
+            }
+            for (int k = 0; k < v.hitCount;) {
+                if (v.hits[k].wait <= 0) {
+                    const Hit h = v.hits[k];
+                    v.hits[k] = v.hits[--v.hitCount];
+                    land(v, h);
+                } else {
+                    --v.hits[k].wait;
+                    ++k;
+                }
             }
             if (v.flamLeft > 0 && --v.flamLeft == 0) {
                 strike(v, v.flamVelocity);
                 // The flam's stroke takes the place of a roll stroke.
                 if (roll > 0.0f) v.rollLeft = static_cast<int32_t>(sampleRate / roll);
             }
-            if (v.held && roll > 0.0f && v.flamLeft == 0 && --v.rollLeft <= 0) {
+            if (v.held && roll > 0.0f && !cycling && v.flamLeft == 0 && --v.rollLeft <= 0) {
                 strike(v, clampf(v.velocity * (0.8f + 0.15f * white()), 0.05f, 1.0f));
                 v.rollLeft = static_cast<int32_t>(sampleRate / roll * (1.0f + 0.08f * white()));
             }
@@ -705,7 +1006,7 @@ bool Palm::render(float *L, float *R, int32_t frames) {
             peak = std::fmax(peak, std::fabs(y));
         }
         v.level = peak;
-        const bool keeps = v.held && roll > 0.0f;
+        const bool keeps = (v.held && (roll > 0.0f || cycling)) || v.hitCount > 0;
         if (peak < kSilent && v.strikeAt >= v.strikeLength && v.flamLeft == 0 && !keeps) {
             if (++v.quietBlocks > 4) v.used = false;
         } else {

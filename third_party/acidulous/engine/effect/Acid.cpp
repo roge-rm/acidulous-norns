@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cmath>
 #include <engine/dsp/Math.h>
+#include <engine/inputmod/Scales.h>
 
 namespace acidulous::effect {
 
@@ -26,6 +27,52 @@ constexpr uint8_t kSteps[Acid::kPatterns][16] = {
     {1, 0, 2, 1, 0, 1, 2, 0, 1, 0, 2, 1, 0, 1, 2, 2}, // syncopated
     {2, 0, 1, 1, 0, 1, 0, 1, 2, 1, 0, 1, 1, 0, 2, 0}, // rolling
 };
+
+/**
+ * The note each step sings when `from` is a scale, in steps of the scale
+ * above the key: the track's hits first, then a line for each pattern.
+ * Mostly the root, as a bass line is, with the octave and a few others.
+ */
+constexpr int8_t kDegrees[Acid::kPatterns + 1][16] = {
+    {0, 0, 2, 0, 4, 0, 7, 3, 0, 0, 5, 0, 2, 4, 0, -1}, // the track's hits
+    {0, 0, 0, 0, 7, 0, 0, 0, 3, 0, 0, 0, 4, 0, 2, 0},
+    {0, 0, 7, 0, 0, 2, 0, 3, 0, 0, 7, 0, 4, 3, 2, -1},
+    {0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 4, 0, 0, 0, 3, 7},
+    {0, 0, 0, 7, 0, 0, 3, 0, 0, 0, 0, 4, 0, 2, 0, 0},
+    {0, 7, 0, 0, 3, 0, 0, 0, 4, 2, 0, 0, 0, 0, 7, 5},
+    {0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 7, 3, 0, 0, 4, 0, 2, 0, 7, 5, 0, 0, 3, 0},
+    {0, 0, 0, 7, 0, 3, 0, 4, 0, 0, 0, 2, 7, 0, 0, 0},
+};
+/** The steps that slide first in each line, a bit a step: as a bass line's slide steps. */
+constexpr uint16_t kSlideSteps[Acid::kPatterns + 1] = {
+    (1 << 7) | (1 << 13),
+    (1 << 6) | (1 << 14),
+    (1 << 3) | (1 << 7) | (1 << 13),
+    (1 << 6) | (1 << 14),
+    (1 << 3) | (1 << 9),
+    (1 << 1) | (1 << 9) | (1 << 15),
+    (1 << 8),
+    (1 << 3) | (1 << 11) | (1 << 15),
+    (1 << 3) | (1 << 7) | (1 << 12),
+};
+
+/**
+ * Each step's place in the order steps start to slide as `slides` goes up:
+ * a line's own slide steps, then the rest spread over the bar.
+ */
+struct SlideRanks {
+    uint8_t rank[Acid::kPatterns + 1][16]{};
+    constexpr SlideRanks() {
+        constexpr uint8_t spread[16] = {15, 7, 11, 3, 13, 5, 9, 1, 14, 6, 10, 2, 12, 4, 8, 0};
+        for (int r = 0; r <= Acid::kPatterns; ++r) {
+            uint8_t next = 0;
+            for (int i = 0; i < 16; ++i) if ((kSlideSteps[r] >> i) & 1) rank[r][i] = next++;
+            for (int i : spread) if (!((kSlideSteps[r] >> i) & 1)) rank[r][i] = next++;
+        }
+    }
+};
+constexpr SlideRanks kRanks;
 } // namespace
 
 const ParamDef *Acid::paramDefs(int32_t &count) const {
@@ -40,6 +87,13 @@ const ParamDef *Acid::paramDefs(int32_t &count) const {
         {"mode", 0.0f, 1.0f, 0.0f, Curve::Stepped, 2, ""}, // low pass, band pass
         {"mix", 0.0f, 1.0f, 1.0f, Curve::Linear, 0, ""},
         {"gain", -24.0f, 24.0f, 0.0f, Curve::Linear, 0, "dB"},
+        {"follow", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
+        {"from", 0.0f, 1.0f, 0.0f, Curve::Stepped, 2, ""}, // a scale, the track's notes
+        {"key", 0.0f, 11.0f, 9.0f, Curve::Stepped, 12, ""}, // C to B, A by default
+        {"scale", 0.0f, 32.0f, 5.0f, Curve::Stepped, music::kScaleCount, ""}, // minor by default
+        {"octave", -2.0f, 3.0f, 1.0f, Curve::Stepped, 6, ""},
+        {"glide", 10.0f, 1000.0f, 80.0f, Curve::Exponential, 0, "ms"},
+        {"slides", 0.0f, 1.0f, 0.25f, Curve::Linear, 0, ""},
     };
     count = Count;
     return defs;
@@ -66,6 +120,82 @@ void Acid::reset() {
     armed = true;
     lastStep = -1;
     countdown = 0;
+    for (int n = 0; n < 128; ++n) { held[n] = false; heldHz[n] = 0.0f; }
+    heldCount = 0;
+    keySet = false;
+    keyAt = keyTo = 0.0f;
+    keyCoef = 1.0f;
+    hits = notes = cycle = 0;
+}
+
+bool Acid::slides(int32_t row, int32_t index) const {
+    const auto count = static_cast<int32_t>(std::lround(std::clamp(params_.target(Slides), 0.0f, 1.0f) * 16.0f));
+    return kRanks.rank[row][index & 15] < count;
+}
+
+void Acid::aimAt(float hz, bool slide) {
+    if (!(hz > 0.0f)) return;
+    keyTo = std::log2(hz);
+    if (!keySet || !slide) {
+        keyAt = keyTo;
+        keyCoef = 1.0f;
+        keySet = true;
+        return;
+    }
+    // A slide gets most of the way there in the glide time. The key moves
+    // with the filter, every fourth sample.
+    keyCoef = dsp::onePoleCoeff(params_.target(Glide) * 0.001f / 3.0f, sr * 0.25f);
+}
+
+void Acid::pickNote(int32_t row, int32_t index) {
+    const int octave = std::clamp(steppedTarget(Octave), -2, 3);
+    if (fromNotes()) {
+        // On a pattern each step takes the next held note up; with the
+        // track's hits the notes themselves move it (see onNote).
+        if (row == 0 || heldCount == 0) return;
+        const int32_t pick = cycle % heldCount;
+        cycle = pick + 1;
+        int32_t seen = 0;
+        for (int n = 0; n < 128; ++n) {
+            if (!held[n]) continue;
+            if (seen++ == pick) {
+                aimAt(heldHz[n] * std::exp2(static_cast<float>(octave)), slides(row, index));
+                return;
+            }
+        }
+        return;
+    }
+    const music::ScaleDef &d = music::kScales[std::clamp(steppedTarget(Scale), 0, music::kScaleCount - 1)];
+    const int degree = kDegrees[row][index & 15];
+    const int up = degree >= 0 ? degree / d.count : -((-degree + d.count - 1) / d.count);
+    const int step = degree - up * d.count;
+    const int note = 48 + std::clamp(steppedTarget(Key), 0, 11) + 12 * (octave + up) + d.intervals[step];
+    aimAt(noteHz(note), slides(row, index));
+}
+
+void Acid::onNote(int32_t note, float hz) {
+    if (note < 0 || note > 127) return;
+    const bool legato = heldCount > 0;
+    if (!held[note]) ++heldCount;
+    held[note] = true;
+    heldHz[note] = hz;
+    if (!fromNotes() || steppedTarget(Pattern) != 0) return;
+    // Played straight: the note itself, gliding when it's tied to the last one.
+    const int32_t index = notes;
+    notes = (notes + 1) & 15;
+    const int octave = std::clamp(steppedTarget(Octave), -2, 3);
+    aimAt(hz * std::exp2(static_cast<float>(octave)), legato || slides(0, index));
+}
+
+void Acid::onNoteOff(int32_t note) {
+    if (note < 0 || note > 127 || !held[note]) return;
+    held[note] = false;
+    --heldCount;
+}
+
+void Acid::onAllNotesOff() {
+    for (bool &h : held) h = false;
+    heldCount = 0;
 }
 
 void Acid::hit(bool accent) {
@@ -80,6 +210,7 @@ bool Acid::process(float *L, float *R, int32_t frames, bool stereoIn) {
     const auto &p = params_;
     const float cutoff = p.get(Cutoff), resonance = p.get(Resonance), env = p.get(Env);
     const float accentAmt = p.get(Accent), mix = p.get(Mix);
+    const float follow = std::clamp(p.get(Follow), 0.0f, 1.0f), logCutoff = std::log2(cutoff);
     const int pattern = std::clamp(static_cast<int>(p.get(Pattern) + 0.5f), 0, kPatterns);
     const bool bandpass = p.get(Mode) >= 0.5f;
     const float driveGain = 1.0f + p.get(Drive) * 7.0f;
@@ -98,6 +229,8 @@ bool Acid::process(float *L, float *R, int32_t frames, bool stereoIn) {
             loud += (a - loud) * slowCoef * 0.05f;
             if (armed && fast > 0.01f && fast > slow * 2.0f) {
                 hit(fast > loud * 3.0f);
+                pickNote(0, hits);
+                hits = (hits + 1) & 15;
                 armed = false;
             } else if (!armed && fast < slow * 1.2f) {
                 armed = true;
@@ -108,7 +241,10 @@ bool Acid::process(float *L, float *R, int32_t frames, bool stereoIn) {
             if (step != lastStep) {
                 lastStep = step;
                 const uint8_t s = kSteps[pattern - 1][step % 16];
-                if (s != 0) hit(s == 2);
+                if (s != 0) {
+                    hit(s == 2);
+                    pickNote(pattern, static_cast<int32_t>(step & 15));
+                }
             }
         }
 
@@ -117,7 +253,15 @@ bool Acid::process(float *L, float *R, int32_t frames, bool stereoIn) {
         if (countdown-- <= 0) {
             // In octaves, as Reflux's: up to four, and half again on an accent.
             const float octaves = fenv * env * 4.0f * (1.0f + (accented ? accentAmt * 1.5f : 0.0f));
-            const float fc = cutoff * std::exp2(octaves);
+            float fc;
+            if (follow > 0.0f && keySet) {
+                // From the knob toward the note, in octaves, and the sweep on top.
+                keyAt += (keyTo - keyAt) * keyCoef;
+                fc = std::exp2(logCutoff + (keyAt - logCutoff) * follow + octaves);
+            } else {
+                keyAt = keyTo;
+                fc = cutoff * std::exp2(octaves);
+            }
             for (int c = 0; c < 2; ++c) {
                 first[c].set(fc, resonance);
                 second[c].set(fc, resonance * 0.3f);

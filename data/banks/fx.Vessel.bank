@@ -1,0 +1,206 @@
+# Vessel - the track through a body: a box, a drumhead, a stone, a sheet of
+# metal, a glass, a bell or a tube, struck by whatever plays and heard from a
+# pickup on it.
+#
+# `material` picks the body: #0 glass, #1 wood, #2 metal, #3 skin, #4 stone,
+# #5 bell, #6 plate, #7 tube. `size` is its lowest note (48 is C3). `decay` is
+# how long that note rings and `damp` how much sooner the higher ones die.
+# `strike` is where the track lands on the body and `pickup` where it's
+# heard; a mode with a node at either is quiet. `drive` pushes the track into
+# the body through a soft clip, so loud hits bark.
+#
+# `key` and `scale` snap the size to the nearest note of a scale (#0 off,
+# #1 C to #12 B). The extra is `follow` (#1 on), which tunes the body to the
+# track's last note instead. It only works on a track's own insert.
+#
+# Families: wood, skin, stone, metal, glass, bell, tuned.
+
+machine fx.Vessel
+
+patch Init family=wood
+
+patch Box family=wood
+  # A small wooden box around the track: a short, hollow knock.
+  size           55 st
+  decay          0.5 s
+  damp           0.5
+  mix            0.45
+
+patch Log family=wood
+  # A big hollow log, low and woody.
+  size           38 st
+  decay          1 s
+  damp           0.3
+  strike         0.2
+  mix            0.5
+  gain           1.5 dB
+
+patch Block family=wood
+  # A hard little block: a high click on every hit.
+  size           70 st
+  decay          0.3 s
+  damp           0.7
+  strike         0.15
+  mix            0.4
+  gain           1.5 dB
+
+patch Drumhead family=skin
+  # A loose drumhead the track hits.
+  material       #3
+  size           43 st
+  decay          0.8 s
+  mix            0.45
+  gain           1.5 dB
+
+patch "Frame Drum" family=skin
+  # A wide, thin skin with a long, low boom.
+  material       #3
+  size           36 st
+  decay          1.6 s
+  damp           0.6
+  strike         0.12
+  mix            0.5
+
+patch "Tight Head" family=skin
+  # A small, tight head, hit hard: it barks.
+  material       #3
+  size           52 st
+  decay          0.4 s
+  drive          12 dB
+  mix            0.45
+  gain           1 dB
+
+patch Slate family=stone
+  # A slab of slate: a dull, dry knock.
+  material       #4
+  size           50 st
+  decay          0.6 s
+  mix            0.45
+  gain           2 dB
+
+patch Pebbles family=stone
+  # Small stones, short and bright.
+  material       #4
+  size           72 st
+  decay          0.3 s
+  damp           0.2
+  strike         0.4
+  mix            0.4
+
+patch Boulder family=stone
+  # A big stone, low and heavy.
+  material       #4
+  size           33 st
+  decay          1.2 s
+  damp           0.5
+  mix            0.5
+  gain           3.5 dB
+
+patch "Metal Bar" family=metal
+  # A steel bar, inharmonic and long.
+  material       #2
+  size           57 st
+  decay          2 s
+  mix            0.35
+  gain           -1 dB
+
+patch Sheet family=metal
+  # A thin sheet of metal, close-packed and shimmering.
+  material       #6
+  size           45 st
+  decay          3 s
+  damp           0.3
+  pickup         0.25
+  mix            0.35
+
+patch Pipe family=metal
+  # A length of pipe, ringing in harmonics.
+  material       #7
+  size           50 st
+  decay          1.5 s
+  damp           0.5
+  mix            0.4
+
+patch "Driven Pan" family=metal
+  # A pan hit hard: the drive makes every hit clang.
+  material       #2
+  size           62 st
+  decay          1.2 s
+  drive          18 dB
+  strike         0.45
+  mix            0.4
+
+patch Bowl family=glass
+  # A glass bowl, singing a long time.
+  material       #0
+  size           64 st
+  decay          4 s
+  damp           0.2
+  mix            0.3
+
+patch Bottle family=glass
+  # Blowing across a bottle: a hollow, airy note.
+  material       #7
+  size           67 st
+  decay          0.8 s
+  damp           0.8
+  strike         0.5
+  mix            0.35
+
+patch Ice family=glass
+  # Small glass, high and short, like ice in a glass.
+  material       #0
+  size           84 st
+  decay          0.6 s
+  strike         0.37
+  mix            0.35
+
+patch Bell family=bell
+  # A hand bell rung by every hit.
+  material       #5
+  size           72 st
+  decay          3 s
+  mix            0.3
+
+patch Gong family=bell
+  # A big plate hung up and hit: low, dense and long.
+  material       #6
+  size           31 st
+  decay          8 s
+  damp           0.15
+  strike         0.42
+  mix            0.35
+  gain           1 dB
+
+patch Chime family=bell
+  # A small bell, high and glassy.
+  material       #5
+  size           84 st
+  decay          2 s
+  damp           0.3
+  mix            0.3
+  gain           1 dB
+
+patch "Following Glass" family=tuned
+  # A glass that tunes to each note the track plays, so it rings along.
+  material       #0
+  follow         #1
+  decay          2 s
+  mix            0.3
+
+patch "Keyed Tube" family=tuned
+  # A tube snapped to A minor pentatonic, ringing only notes of the key.
+  material       #7
+  size           57 st
+  key            #10
+  scale          #10
+  decay          2 s
+  mix            0.35
+
+patch "Sympathy Bell" family=tuned
+  # A bell that follows the track and rings on under it.
+  material       #5
+  follow         #1
+  decay          5 s
+  damp           0.4
+  mix            0.25
