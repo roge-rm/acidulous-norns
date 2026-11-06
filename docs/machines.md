@@ -197,3 +197,18 @@ g++ -O3 -ffast-math -fno-finite-math-only -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -
 `--patch` only works with `paired`, unless you move its parsing up to where `--rate` is read, as was done for the table above. It reads `tools/banks` under `$ACIDULOUS_ROOT`.
 
 There is no Pi 3 to test on yet.
+
+## Squelch on the Pi 4
+
+The app's Squelch song (9 tracks: Genesis, Hexbeat, 2 Reflux, Ratio, 2 Trinity, Cumulus, Nexus) played for 10 minutes on the norns through the plugin, all notes, no frozen clips in its zip. The plugin's load readout, 4 times a second, in %:
+
+| Scene | Mean | Highest mean | Worst block | Worst blocks over 70 |
+|---|---|---|---|---|
+| 1 | 21.4 | 25.8 | 43.9 | 0 of 390 |
+| 2 | 28.0 | 39.9 | 63.7 | 0 of 793 |
+| 3 | 44.3 | 60.9 | 92.7 | 21 of 390 |
+| 4 | 30.4 | 35.1 | 56.3 | 0 of 195 |
+| 5 | 44.2 | 58.3 | 89.2 | 13 of 793 |
+| 6 | 28.6 | 47.0 | 63.8 | 0 of 387 |
+
+scsynth took 20-48% of one core in top, matron about 6%. jack logged no xruns while it played. Scenes 3 and 5 show the overload readout now and then.
