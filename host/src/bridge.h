@@ -60,7 +60,7 @@
 //        SoundFonts over 64 MB are refused, and so is a load that would take
 //        the decoded samples of every part past 320 MB, or a path with | in it.
 //        "zones" (Mosaic, path a .acpreset, arg its patch index) loads the
-//        patch's zones, its files found as /preset_load does with the
+//        patch's zones, its files found and unpacked as /preset_load does with the
 //        s:root args after arg.
 //   /preset_save i:part s:path s:name i:nroots s:root... (s:key s:value)...
 //        writes the part's sound as a .acpreset the app can read, making its
@@ -77,7 +77,12 @@
 //        /patch does, mounting its machine, with tag as the patch name in its
 //        replies. files 1 loads the files it names too: "label:path" under
 //        that root, a plain relative path from the first unlabelled root that
-//        has it, then the file's own folder. A patch from before version 3 is
+//        has it, then the file's own folder. A "media/x" path in a file with
+//        the app's packed files is unpacked to <first unlabelled root>
+//        acidulous/presets/<machine>/<file stem>/x and loaded from there (a
+//        file already there at its size is kept; 64 MB unpacked at most, else
+//        an /error "too big"); one that can't be is an /error naming it and
+//        the rest of the patch still loads. A patch from before version 3 is
 //        refused; a version 3 Trinity patch has its destinations moved, and
 //        below version 6 a Delay insert's pingpong becomes mode. When
 //        it fails the part still gets machine, as does a /patch that can't be

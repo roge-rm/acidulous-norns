@@ -13,6 +13,9 @@
 //   0-1 with their mods
 // - Dice's sample and Mosaic's folder saved as relative paths and found again,
 //   and a missing file that leaves the rest loaded
+// - the app's packed media/ files unpacked (Forage pad from hit.acpreset,
+//   Mosaic zones and SoundFont), kept on a second load, a ../ name refused
+//   and over 64 MB refused, the patch still loading
 // - /preset_scan and /preset_delete
 // Usage: acidulous-preset-test BANK_DIR SCRATCH_DIR MATERIAL_DIR FIXTURE_DIR
 #include "core.h"
@@ -554,6 +557,75 @@ int main(int argc, char** argv)
           "save with a missing file");
     check(load(1, scratch + "/Dice/gone.acpreset", 0, 1, r) && r.args[3].str.empty() && log.count("/error") == 1,
           "a missing file is an /error, the patch still loads");
+
+    // The app's packed media/ files, unpacked under the first unlabelled root.
+    {
+        const std::string audio = scratch + "/audio/";
+        const auto load_packed = [&](int part, const std::string& file, const std::string& machine, Reply& rr) {
+            log.clear();
+            cmd("/preset_load", {Value::i(part), Value::s(fixtures + "/" + file), Value::i(0), Value::s("@t"),
+                                 Value::i(1), Value::s(machine), Value::s(""), Value::s(audio), Value::s(mat + "/")});
+            const bool ok = log.wait("/preset_loaded", rr) && rr.args.size() > 4;
+            c->drain();
+            return ok;
+        };
+        const auto loaded = [&](const std::string& kind, const std::string& path) {
+            for(const auto& x : log.all("/loaded"))
+                if(x.args[1].str == kind && x.args[2].str == path)
+                    return true;
+            return false;
+        };
+        const auto error_has = [&](const std::string& text) {
+            for(const auto& x : log.all("/error"))
+                if(x.args[0].str.find(text) != std::string::npos)
+                    return true;
+            return false;
+        };
+        const auto inode = [](const std::string& path) {
+            struct stat st{};
+            return stat(path.c_str(), &st) == 0 ? st.st_ino : ino_t(0);
+        };
+
+        // Forage's pad from hit.acpreset, then a second load keeping the file.
+        const std::string hit = audio + "acidulous/presets/Forage/hit/samples/hit.wav";
+        check(load_packed(3, "hit.acpreset", "Forage", r) && r.args[3].str.empty() && loaded("pad", hit) &&
+                  log.count("/error") == 0,
+              "Forage's packed pad unpacked and loaded");
+        const ino_t first = inode(hit);
+        check(first != 0 && load_packed(3, "hit.acpreset", "Forage", r) && loaded("pad", hit) && inode(hit) == first,
+              "a second load keeps the unpacked file");
+        check(save(3, scratch + "/Forage/hit.acpreset", "Hit",
+                   {Value::i(1), Value::s(audio), Value::s("p00_sample"), Value::s(hit)}) == "ok",
+              "save the unpacked pad");
+        if(read_file(scratch + "/Forage/hit.acpreset", p) && !p.patches.empty())
+            check(setting(p.patches[0], "p00_sample") == "acidulous/presets/Forage/hit/samples/hit.wav",
+                  "saved relative to the root");
+
+        // A name with .. in it is refused, the patch still loads.
+        check(load_packed(1, "bad-name.acpreset", "Dice", r) && r.args[3].str.empty() && error_has("bad name") &&
+                  !exists(audio + "acidulous/presets/Dice/evil.wav"),
+              "a ../ entry refused");
+
+        // Over 64 MB unpacked: "too big", the patch still loads.
+        check(load_packed(1, "big.acpreset", "Dice", r) && r.args[3].str.empty() && r.args[2].str == "Big" &&
+                  error_has("too big") && !exists(audio + "acidulous/presets/Dice/big/big.wav"),
+              "over the cap is too big");
+
+        // Mosaic's zones and SoundFont.
+        const std::string keys = audio + "acidulous/presets/Mosaic/zones-packed/keys/";
+        check(load_packed(2, "zones-packed.acpreset", "Mosaic", r) && r.args[3].str.empty() &&
+                  log.count("/error") == 0 && exists(keys + "Keys C3.wav") && exists(keys + "Keys C5.wav"),
+              "Mosaic's packed zones unpacked");
+        {
+            bool found = false;
+            for(const auto& x : log.all("/loaded"))
+                found = found || x.args[1].str == "zones";
+            check(found, "Mosaic's packed zones loaded");
+        }
+        check(load_packed(2, "sf2-packed.acpreset", "Mosaic", r) && r.args[3].str.empty() && log.count("/error") == 0 &&
+                  loaded("sf2", audio + "acidulous/presets/Mosaic/sf2-packed/sf/tiny.sf2"),
+              "Mosaic's packed SoundFont unpacked and loaded");
+    }
 
     // Listing and deleting.
     std::system(("cp '" + fixtures + "/app-bank.acpreset' '" + scratch + "/Trinity/'").c_str());

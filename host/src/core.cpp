@@ -3088,6 +3088,174 @@ bool write_file(const std::string& path, const std::vector<uint8_t>& bytes, std:
     return true;
 }
 
+// The most a preset's packed files can unpack to at once, inflated.
+constexpr size_t kMaxMediaBytes = size_t(64) << 20;
+
+// A zip entry's name that can be written under a folder: relative, no "..",
+// nothing odd.
+bool safe_name(const std::string& name)
+{
+    if(name.empty() || name[0] == '/' || name.back() == '/' || name.find('\\') != std::string::npos ||
+       name.find('\0') != std::string::npos)
+        return false;
+    size_t at = 0;
+    while(at <= name.size())
+    {
+        size_t end = name.find('/', at);
+        if(end == std::string::npos)
+            end = name.size();
+        const std::string part = name.substr(at, end - at);
+        if(part.empty() || part == "." || part == "..")
+            return false;
+        at = end + 1;
+    }
+    return true;
+}
+
+// Each file in a zip with its inflated size, from the central directory.
+// False if that can't be read.
+bool zip_sizes(const std::vector<uint8_t>& zip, std::map<std::string, uint64_t>& out)
+{
+    const auto u16 = [&](size_t at) { return uint32_t(zip[at]) | uint32_t(zip[at + 1]) << 8; };
+    const auto u32 = [&](size_t at) { return u16(at) | u16(at + 2) << 16; };
+    const size_t n = zip.size();
+    if(n < 22)
+        return false;
+    size_t       end  = n - 22;
+    const size_t stop = n > 22 + 0xffff ? n - 22 - 0xffff : 0;
+    while(u32(end) != 0x06054b50u)
+    {
+        if(end == stop)
+            return false;
+        --end;
+    }
+    const uint32_t count = u16(end + 10);
+    size_t         at    = u32(end + 16);
+    for(uint32_t k = 0; k < count; ++k)
+    {
+        if(at + 46 > end || u32(at) != 0x02014b50u)
+            return false;
+        const size_t len = u16(at + 28);
+        if(at + 46 + len > end)
+            return false;
+        out[std::string(reinterpret_cast<const char*>(zip.data() + at + 46), len)] = u32(at + 24);
+        at += 46 + len + u16(at + 30) + u16(at + 32);
+    }
+    return true;
+}
+
+// Unpacks the entries [names] of the preset zip at [path] into
+// <first unlabelled root>acidulous/presets/<unit>/<file stem>/, "media/x" as
+// x there and any other entry by its own name. Returns that folder, or "" if
+// there's no root to put it under. A file already there with the entry's size
+// is kept. Entries that can't be unpacked are in [failed] with why; the rest
+// are still written. Holds the file and the inflated entries in memory, at
+// most kMaxMediaBytes of them. Worker only.
+std::string unpack_media(const std::string& path, const std::string& unit, const std::set<std::string>& names,
+                         const std::vector<std::string>& roots, std::map<std::string, std::string>& failed)
+{
+    std::string root;
+    for(const auto& r : roots)
+    {
+        const Root pr = parse_root(r);
+        if(pr.label.empty() && !pr.dir.empty())
+        {
+            root = pr.dir;
+            break;
+        }
+    }
+    const std::string name = stem(path);
+    const auto fail_all = [&](const std::string& why) {
+        for(const auto& e : names)
+            failed[e] = why;
+    };
+    if(root.empty() || !safe_name(unit) || unit.find('/') != std::string::npos || !safe_name(name))
+    {
+        fail_all("nowhere to unpack it");
+        return "";
+    }
+    const std::string dir = root + "acidulous/presets/" + unit + "/" + name + "/";
+    const auto dest = [&](const std::string& e) { return dir + (e.rfind("media/", 0) == 0 ? e.substr(6) : e); };
+
+    std::vector<uint8_t> zip;
+    {
+        FILE* f = std::fopen(path.c_str(), "rb");
+        if(!f)
+        {
+            fail_all("can't read the preset");
+            return dir;
+        }
+        std::fseek(f, 0, SEEK_END);
+        const long size = std::ftell(f);
+        std::fseek(f, 0, SEEK_SET);
+        bool ok = size > 0 && size <= kMaxPresetFile;
+        if(ok)
+        {
+            zip.resize(size_t(size));
+            ok = std::fread(zip.data(), 1, zip.size(), f) == zip.size();
+        }
+        std::fclose(f);
+        if(!ok)
+        {
+            fail_all(size > kMaxPresetFile ? "too big" : "can't read the preset");
+            return dir;
+        }
+    }
+    std::map<std::string, uint64_t> sizes;
+    if(!zip_sizes(zip, sizes))
+    {
+        fail_all("not a zip");
+        return dir;
+    }
+    std::set<std::string> need;
+    uint64_t              total = 0;
+    for(const auto& e : names)
+    {
+        const auto it = sizes.find(e);
+        if(!safe_name(e))
+            failed[e] = "a bad name";
+        else if(it == sizes.end())
+            failed[e] = "not in the preset";
+        else
+        {
+            struct stat st{};
+            if(stat(dest(e).c_str(), &st) == 0 && S_ISREG(st.st_mode) && uint64_t(st.st_size) == it->second)
+                continue;
+            need.insert(e);
+            total += it->second;
+        }
+    }
+    if(need.empty())
+        return dir;
+    std::vector<std::pair<std::string, std::vector<uint8_t>>> entries;
+    std::string                                               why;
+    if(total > kMaxMediaBytes || !presetfile::unzip(zip.data(), zip.size(), entries, why, kMaxMediaBytes))
+    {
+        const std::string what = total > kMaxMediaBytes || why == "too big to be a preset file" ? "too big" : why;
+        for(const auto& e : need)
+            failed[e] = what;
+        return dir;
+    }
+    zip = {};
+    zip.shrink_to_fit();
+    for(auto& kv : entries)
+    {
+        if(!need.count(kv.first))
+            continue;
+        if(!write_file(dest(kv.first), kv.second, why))
+            failed[kv.first] = why;
+        need.erase(kv.first);
+        kv.second = {};
+        kv.second.shrink_to_fit();
+    }
+    for(const auto& e : need)
+        failed[e] = "not in the preset";
+    return dir;
+}
+
+// Whether a path in a preset names one of the files packed in it.
+bool packed_path(const std::string& p) { return p.rfind("media/", 0) == 0; }
+
 } // namespace
 
 // Saves the part's sound as a preset at [path], with [settings] (the files
@@ -3264,25 +3432,51 @@ void Core::load_preset_files(int part, const std::string& path, int index,
 {
     const std::string  own = dir_of(path);
     const std::string& m   = parts[part].machine;
-    std::string        sf2;
-    int                sf2preset = 0;
-    bool               zones     = false;
+    const auto is_pad = [&](const std::string& k) {
+        return m == "Forage" && k.size() == 10 && k[0] == 'p' && std::isdigit((unsigned char)k[1]) &&
+               std::isdigit((unsigned char)k[2]) && k.compare(3, 7, "_sample") == 0;
+    };
+    const auto is_sample = [&](const std::string& k) {
+        return k == "sample" && (m == "Dice" || m == "Pollen" || m == "Molt");
+    };
+    // The app's packed files these settings name are unpacked first.
+    std::set<std::string> packed;
+    for(const auto& kv : settings)
+        if(packed_path(kv.second) && (is_pad(kv.first) || is_sample(kv.first) || (kv.first == "sf2" && m == "Mosaic")))
+            packed.insert(kv.second);
+    std::map<std::string, std::string> failed;
+    std::string                        media;
+    if(!packed.empty() && has_packed_entries(path))
+        media = unpack_media(path, m, packed, roots, failed);
+    else
+        packed.clear();
+    // Loads [file] as [kind], or says why its packed copy couldn't be unpacked.
+    const auto load_file = [&](const std::string& kind, const std::string& file, int arg) {
+        if(!packed.count(file))
+            return load(part, kind, resolve(file, roots, own), arg, roots);
+        const auto it = failed.find(file);
+        if(it != failed.end())
+            return load_error(part, kind, file, arg, it->second);
+        load(part, kind, media + file.substr(6), arg, roots);
+    };
+    std::string sf2;
+    int         sf2preset = 0;
+    bool        zones     = false;
     for(const auto& kv : settings)
     {
         const std::string& k = kv.first;
         if(kv.second.empty())
             continue;
-        if(m == "Forage" && k.size() == 10 && k[0] == 'p' && std::isdigit((unsigned char)k[1]) &&
-           std::isdigit((unsigned char)k[2]) && k.compare(3, 7, "_sample") == 0)
+        if(is_pad(k))
         {
             const int pad = (k[1] - '0') * 10 + (k[2] - '0');
             if(pad < kForagePads)
-                load(part, "pad", resolve(kv.second, roots, own), pad, roots);
+                load_file("pad", kv.second, pad);
         }
         else if(m == "Forage" && k == "slice_sample")
             load_error(part, "slices", kv.second, 0, "slices can't be loaded here");
-        else if(k == "sample" && (m == "Dice" || m == "Pollen" || m == "Molt"))
-            load(part, "sample", resolve(kv.second, roots, own), 0, roots);
+        else if(is_sample(k))
+            load_file("sample", kv.second, 0);
         else if(k == "sf2" && m == "Mosaic")
             sf2 = kv.second;
         else if(k == "sf2preset")
@@ -3291,7 +3485,7 @@ void Core::load_preset_files(int part, const std::string& path, int index,
             zones = true;
     }
     if(!sf2.empty())
-        load(part, "sf2", resolve(sf2, roots, own), sf2preset, roots);
+        load_file("sf2", sf2, sf2preset);
     else if(zones)
         load(part, "zones", path, index, roots);
 }
@@ -3316,8 +3510,30 @@ std::string Core::load_zones(int part, const std::string& path, int index, const
     std::string       spec;
     int64_t           need = 0;
     missing                = 0;
+    // The app's packed files the zones name are unpacked first; one that
+    // can't be is left out, as a missing one is, with an /error.
+    std::set<std::string> packed;
+    map_paths("zones", text, [&](const std::string& f) {
+        if(packed_path(f))
+            packed.insert(f);
+        return f;
+    });
+    std::map<std::string, std::string> failed;
+    std::string                        media;
+    if(!packed.empty() && has_packed_entries(path))
+        media = unpack_media(path, "Mosaic", packed, roots, failed);
+    else
+        packed.clear();
+    if(!failed.empty())
+        load_error(part, "zones", path, index,
+                   base_name(failed.begin()->first) + ": " + failed.begin()->second +
+                       (failed.size() > 1 ? " (and " + std::to_string(failed.size() - 1) + " more)" : ""));
     // the zones whose file is there, one per line
-    const std::string all = map_paths("zones", text, [&](const std::string& f) { return resolve(f, roots, own); });
+    const std::string all = map_paths("zones", text, [&](const std::string& f) {
+        if(!packed.count(f))
+            return resolve(f, roots, own);
+        return failed.count(f) ? std::string() : media + f.substr(6);
+    });
     size_t            at  = 0;
     while(at < all.size())
     {
