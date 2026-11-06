@@ -1279,6 +1279,12 @@ int main(int argc, char** argv)
         log.clear();
         cmd("/preset_scan", {Value::s(fxdir)});
         check(log.wait("/preset_scan", r) && r.args.size() == 1, "a shallow scan doesn't look in folders");
+        // one file: its rows only, the reply naming the path
+        log.clear();
+        cmd("/preset_scan", {Value::s(fxdir + "Delay/mine.acpreset")});
+        check(log.wait("/preset_scan", r) && r.args.size() == 7 && r.args[0].str == fxdir + "Delay/mine.acpreset" &&
+                  r.args[1].str == "mine.acpreset" && r.args[3].str == "Mine" && r.args[4].str == "fx.Delay",
+              "a scan of one file gives its row");
         log.clear();
         cmd("/preset_delete", {Value::s(fxdir + "Chorus/wide.acpreset"), Value::i(0)});
         check(log.wait("/preset_deleted", r) && r.args[2].str == "ok" && !exists(fxdir + "Chorus/wide.acpreset"),

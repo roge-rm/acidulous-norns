@@ -15,6 +15,7 @@ lib.COPIES = _path.audio .. "acidulous"
 local function work() return norns.state.data .. "library" end
 
 lib.AUDIO_EXT = {wav = true, aif = true, aiff = true, flac = true}
+lib.PRESET_EXT = {acpreset = true}
 
 lib.device = nil -- the stick's partition while it's mounted
 
@@ -191,7 +192,21 @@ end
 -- the stick, so two folders with the same name don't mix.
 function lib.copy_target(path)
   local rel = path == lib.MOUNT and "" or path:sub(#lib.MOUNT + 2)
-  return lib.COPIES .. "/usb" .. (rel ~= "" and ("/" .. rel) or "")
+  -- Copies one file to dest, through a temporary name so a half copy is never
+-- taken for a preset, and checks it has the file's size. In the background,
+-- so a large preset doesn't hold up the screen. done(ok, why).
+function lib.copy_file(path, dest, done)
+  local tmp = dest .. ".part"
+  local cmd = "mkdir -p " .. q(lib.parent(dest)) .. " && cp " .. q(path) .. " " .. q(tmp)
+    .. " && [ \"$(stat -c %s " .. q(path) .. ")\" = \"$(stat -c %s " .. q(tmp) .. ")\" ]"
+    .. " && mv " .. q(tmp) .. " " .. q(dest)
+    .. " || { rm -f " .. q(tmp) .. "; echo \"it didn't copy\"; exit 1; }"
+  run(cmd, function(ok, text)
+    done(ok, (text:gsub("\n.*", "")))
+  end)
+end
+
+return lib.COPIES .. "/usb" .. (rel ~= "" and ("/" .. rel) or "")
 end
 
 local PATTERNS = "\\( -iname '*.wav' -o -iname '*.aif' -o -iname '*.aiff' -o -iname '*.flac' \\)"
@@ -217,6 +232,20 @@ function lib.import(path, is_dir, done)
   end
   run(cmd, function(ok, text)
     done(ok, dest, (text:gsub("\n.*", "")))
+  end)
+end
+
+-- Copies one file to dest, through a temporary name so a half copy is never
+-- taken for a preset, and checks it has the file's size. In the background,
+-- so a large preset doesn't hold up the screen. done(ok, why).
+function lib.copy_file(path, dest, done)
+  local tmp = dest .. ".part"
+  local cmd = "mkdir -p " .. q(lib.parent(dest)) .. " && cp " .. q(path) .. " " .. q(tmp)
+    .. " && [ \"$(stat -c %s " .. q(path) .. ")\" = \"$(stat -c %s " .. q(tmp) .. ")\" ]"
+    .. " && mv " .. q(tmp) .. " " .. q(dest)
+    .. " || { rm -f " .. q(tmp) .. "; echo \"it didn't copy\"; exit 1; }"
+  run(cmd, function(ok, text)
+    done(ok, (text:gsub("\n.*", "")))
   end)
 end
 

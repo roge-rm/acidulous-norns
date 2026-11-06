@@ -4689,10 +4689,15 @@ void Core::save_mod_preset(int part, int slot, const std::string& path, const st
 // for every patch of every .acpreset in [folder], by file name; with [deep]
 // the ones in its folders too, file as "folder/name". An effect preset's unit
 // is "fx.<type>" and a modifier preset's "mod.<type>", as the app keys them.
-// Files that can't be read are left out.
+// Files that can't be read are left out. [folder] can be one .acpreset file
+// instead, which gives just its rows, the reply naming that path.
 void Core::scan_presets(const std::string& folder, bool deep)
 {
-    const std::string        dir = folder.empty() || folder.back() == '/' ? folder : folder + "/";
+    struct stat one{};
+    const bool  is_file = !folder.empty() && folder.back() != '/' && stat(folder.c_str(), &one) == 0 && S_ISREG(one.st_mode);
+    const size_t cut    = is_file ? folder.rfind('/') : std::string::npos;
+    const std::string dir = is_file ? (cut == std::string::npos ? "" : folder.substr(0, cut + 1))
+                            : folder.empty() || folder.back() == '/' ? folder : folder + "/";
     std::vector<std::string> names;
     const auto               list = [&](const std::string& sub) {
         DIR* d = opendir((dir + sub).c_str());
@@ -4714,8 +4719,11 @@ void Core::scan_presets(const std::string& folder, bool deep)
         }
         closedir(d);
     };
-    list("");
-    if(deep)
+    if(is_file)
+        names.push_back(folder.substr(cut == std::string::npos ? 0 : cut + 1));
+    else
+        list("");
+    if(deep && !is_file)
     {
         std::vector<std::string> subs;
         for(const auto& n : names)

@@ -19,7 +19,8 @@
 -- Forage, Mosaic, Dice, Pollen
 -- or Molt, from dust/audio or
 -- a USB stick: K3 hears or opens,
--- K1 held + K3 loads, K2 back,
+-- K1 held + K3 loads or imports a
+-- .acpreset, K2 back,
 -- E3 pad on Forage
 -- K1 held + K3 on Nexus: scope,
 -- E2 module, K2 close
@@ -653,6 +654,7 @@ local function ready()
   end
   parts.on_presets = picker.presets
   parts.on_shape = picker.shape
+  parts.on_scanned_file = picker.scanned
   parts.on_hear = picker.heard
   parts.on_scope = function(path, args) scope.osc(parts, path, args) end
   parts.on_resend = function() scope.resend(parts) end

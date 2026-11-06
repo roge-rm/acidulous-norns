@@ -8,6 +8,9 @@
 --   Dice, Pollen, Molt: a file. Pollen's first list also has "live input",
 --     which empties the part (K3 or K1 + K3).
 -- Files on the USB stick are copied to dust/audio/acidulous when loaded.
+-- .acpreset files (the app's presets) show in every folder, on any part with a
+-- machine. K1 + K3 on one copies it into the saved presets of its machine
+-- (the patch list's "saved" tab), or the fx 3 and 4 or the mods card lists.
 
 local lib = include("lib/library")
 local timer = include("lib/timer")
@@ -35,6 +38,10 @@ local shape_count = 0
 local heard = nil -- {path, at, seconds} while a file plays
 
 function P.takes(machine) return P.TAKES[machine] end
+
+local function is_preset(row)
+  return row and row.path and not row.dir and lib.PRESET_EXT[lib.ext(row.path)] ~= nil
+end
 function P.active() return st ~= nil end
 
 local function stop_hearing()
@@ -83,7 +90,7 @@ local function fill()
     end
   else
     if st.t.folder then st.rows[1] = {label = "use this folder", this = true} end
-    for _, e in ipairs(lib.list(st.dir, st.t.exts)) do
+    for _, e in ipairs(lib.list(st.dir, st.exts)) do
       st.rows[#st.rows + 1] = {label = e.dir and (e.name .. "/") or e.name, path = e.path, dir = e.dir}
     end
     if #st.rows == 0 then st.rows[1] = {label = "nothing here", none = true} end
@@ -171,14 +178,74 @@ local function pick(path, is_dir)
   end)
 end
 
+-- Where a preset with this unit from /preset_scan goes: the folder, what to
+-- rescan and the words for the message, or nil and why not.
+local function preset_home(unit)
+  local safe = unit:match("^[%w _%-]+$")
+  local kind, type = unit:match("^(%a+)%.(.+)$")
+  if kind == "fx" then
+    if not type:match("^[%w _%-]+$") or (#parts.effects > 0 and not tab.contains(parts.effects, type)) then
+      return nil, "no " .. type .. " here"
+    end
+    return parts.fx_preset_dir(type), "fx 3 and 4 presets", parts.scan_fx_presets
+  elseif kind == "mod" then
+    if not parts.MOD_PRESET_TYPES[type] then return nil, "no " .. type .. " presets" end
+    return parts.mod_preset_dir(type), "mods card presets", parts.scan_mod_presets
+  end
+  if not safe or not parts.defs[unit] then return nil, "no " .. unit .. " here" end
+  return parts.preset_dir(unit), unit .. " saved presets", function() parts.scan_presets(unit) end
+end
+
+-- A name for the file in dir that isn't taken: "name", "name 2", "name 3"...
+local function free_name(dir, stem)
+  local name, n = stem, 1
+  while util.file_exists(dir .. name .. ".acpreset") and n < 1000 do
+    n = n + 1
+    name = stem .. " " .. n
+  end
+  return name
+end
+
+-- Asks the plugin what the preset is, then copies it to its folder.
+local function import(path)
+  st.mode, st.busy = "busy", "reading " .. lib.base(path)
+  st.importing = path
+  parts.send("/preset_scan", {path})
+end
+
+-- /preset_scan of the file: {name, unit, count}, or nil if it can't be read.
+function P.scanned(path, info)
+  if not st or st.importing ~= path then return end
+  local was = st
+  local function fail(text)
+    was.importing, was.mode = nil, "browse"
+    say(text)
+  end
+  if not info then return fail("not a preset") end
+  local dir, where, rescan = preset_home(info.unit)
+  if not dir then return fail(where) end
+  local name = free_name(dir, lib.stem(path))
+  st.busy = "copying " .. lib.base(path)
+  lib.copy_file(path, dir .. name .. ".acpreset", function(ok, why)
+    if st ~= was then return end
+    was.importing, was.mode = nil, "browse"
+    if not ok then return say("copy failed" .. (why ~= "" and (": " .. why) or "")) end
+    rescan()
+    say(name == lib.stem(path) and ("in " .. where) or (name .. ", in " .. where))
+  end)
+end
+
 -- Opens the picker for part i, in the folder of what it has loaded if that's
 -- still there. False if the part's machine takes no files.
 function P.open(the_parts, i)
   parts = the_parts
   local part = parts.list[i]
-  local t = part.machine and P.TAKES[part.machine]
-  if not t then return false end
-  st = {i = i, machine = part.machine, t = t, mode = "browse", cursor = 1, pad = 1}
+  if not part.machine then return false end
+  -- a machine that takes no files still lists presets
+  local t = P.TAKES[part.machine] or {exts = {}}
+  local exts = {acpreset = true}
+  for e in pairs(t.exts) do exts[e] = true end
+  st = {i = i, machine = part.machine, t = t, exts = exts, mode = "browse", cursor = 1, pad = 1}
   if t.file == "pad" then
     local names = parts.pad_names(i)
     for pad = 1, 13 do
@@ -255,6 +322,8 @@ function P.key(n, z, k1)
         pick(st.dir, true)
       elseif row.dir then
         enter(row.path)
+      elseif is_preset(row) then
+        if k1 then import(row.path) else say("k1+k3 imports it") end
       elseif k1 or not is_audio(row) then
         stop_hearing()
         pick(row.path, false)
@@ -312,6 +381,7 @@ function P.screen()
   if not st.dir or st.t.exts ~= AUDIO then return out end
   out.short = true
   local row = st.rows[st.cursor]
+  if is_preset(row) then out.right = "k1+k3 import" end
   if is_audio(row) then
     out.right = "k3 hear"
     local s = shapes[row.path]

@@ -2978,6 +2978,12 @@ function P.osc(path, args)
     P.patch_macros[args[2]] = P.patch_macros[args[2]] or {}
     P.patch_macros[args[2]][args[3]] = list
 
+  elseif path == "/preset_scan" and tostring(args[1] or ""):lower():match("%.acpreset$") then
+    -- one file asked about for an import: {name, unit, count} of its first
+    -- patch, or nil when it can't be read
+    if P.on_scanned_file then
+      P.on_scanned_file(args[1], args[4] and {name = args[4], unit = args[5], count = args[6]} or nil)
+    end
   elseif path == "/preset_scan" and (args[1] or "") == P.FX_PRESETS then
     local list = {}
     for k = 2, #args - 5, 6 do

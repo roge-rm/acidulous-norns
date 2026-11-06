@@ -1,6 +1,6 @@
 local here = arg[0]:match("^(.*)/[^/]+$")
 local which = arg[2]
-local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17"}
+local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18"}
 if not which then
   -- every case, each in a fresh run
   local failed = 0
@@ -530,6 +530,111 @@ elseif which == "16" then
   CHECK(FIND("/preset_scan", function(a) return a[1] == dir end) ~= nil, "then rescans the fx folder")
   L.key(P, 2, 1, false)
   CHECK(not L.active(P), "K2 closes it")
+elseif which == "18" then
+  -- .acpreset import from the file picker
+  local picker = include("lib/picker")
+  local lib = picker.lib
+  local copies, taken, listing = {}, {}, {}
+  util.file_exists = function(p) return taken[p] == true end
+  lib.list = function(dir, exts)
+    local out = {}
+    for _, name in ipairs(listing) do
+      if exts[lib.ext(name)] then out[#out + 1] = {name = name, path = dir .. "/" .. name} end
+    end
+    return out
+  end
+  local copy_ok = true
+  lib.copy_file = function(src, dest, done) copies[#copies + 1] = {src = src, dest = dest, done = done} end
+  P.effects = {"Delay", "Chorus"}
+  P.MOD_PRESET_TYPES = {Arp = true, Chord = true}
+  -- sends the file's scan reply, then finishes the copy
+  local function import(file, info, finish)
+    local msg = {file, file:match("([^/]+)$"), 0}
+    if info then for _, v in ipairs({info.name, info.unit, 1, 0}) do msg[#msg + 1] = v end end
+    SENT_CLEAR()
+    picker.key(3, 1, true)
+    CHECK(FIND("/preset_scan", function(a) return a[1] == file end) ~= nil, "K1+K3 asks the plugin about " .. file)
+    copies = {}
+    P.osc("/preset_scan", msg)
+    if finish and copies[1] then copies[1].done(true, "") end
+    return copies[1]
+  end
+  local function pick_row(name)
+    for k, row in ipairs(picker.screen().rows) do if row == name then
+      while picker.screen().cursor < k do picker.enc(2, 1) end
+      return
+    end end
+    error("no row " .. name)
+  end
+
+  listing = {"bass.acpreset", "kick.wav", "note.txt", "d.acpreset", "e.acpreset", "f.acpreset"}
+  P.on_scanned_file = picker.scanned
+  CHECK(picker.open(P, 3), "the picker opens on Forage")
+  -- the roots: dust/audio. Enter it.
+  picker.key(3, 1, false)
+  local rows = picker.screen().rows
+  CHECK(rows[2] == "bass.acpreset" and rows[3] == "kick.wav" and #rows == 6, "presets list with audio, other files not")
+  pick_row("bass.acpreset")
+  CHECK(picker.screen().right == "k1+k3 import", "the hint on a preset")
+  SENT_CLEAR()
+  picker.key(3, 1, false)
+  CHECK(FIND("/preset_scan") == nil and FIND("/load") == nil and FIND("/hear") == nil, "K3 alone does nothing to it")
+
+  -- a machine preset into its folder
+  local c = import("/a/bass.acpreset", {name = "Bass", unit = "Hexbeat"}, false)
+  CHECK(c and c.dest == "/d/acidulous/presets/Hexbeat/bass.acpreset" and c.src == "/a/bass.acpreset",
+    "a machine preset is copied to presets/<machine>/")
+  CHECK(picker.screen().busy ~= nil, "the screen says it is copying")
+  SENT_CLEAR()
+  c.done(true, "")
+  CHECK(FIND("/preset_scan", function(a) return a[1] == "/d/acidulous/presets/Hexbeat/" end) ~= nil,
+    "then the machine's presets are scanned again")
+  CHECK(picker.screen().title == "in Hexbeat saved presets" and not picker.screen().busy, "and it says where it went")
+
+  -- a name taken
+  taken["/d/acidulous/presets/Hexbeat/bass.acpreset"] = true
+  taken["/d/acidulous/presets/Hexbeat/bass 2.acpreset"] = true
+  c = import("/a/bass.acpreset", {name = "Bass", unit = "Hexbeat"}, false)
+  CHECK(c and c.dest == "/d/acidulous/presets/Hexbeat/bass 3.acpreset", "a name taken gets 3 after 2")
+  c.done(true, "")
+  CHECK(picker.screen().title:find("bass 3", 1, true) ~= nil, "the new name shows")
+
+  -- an effect and a modifier preset
+  c = import("/a/bass.acpreset", {name = "Wide", unit = "fx.Chorus"}, false)
+  CHECK(c and c.dest == "/d/acidulous/presets/fx/Chorus/bass.acpreset", "an effect preset goes to presets/fx/<type>/")
+  SENT_CLEAR()
+  c.done(true, "")
+  CHECK(FIND("/preset_scan", function(a) return a[1] == "/d/acidulous/presets/fx/" and a[2] == 1 end) ~= nil,
+    "the fx folders are scanned again")
+  pick_row("d.acpreset")
+  c = import("/a/d.acpreset", {name = "Up", unit = "mod.Arp"}, false)
+  CHECK(c and c.dest == "/d/acidulous/presets/mod/Arp/d.acpreset", "a modifier preset goes to presets/mod/<type>/")
+  c.done(false, "no space")
+  CHECK(picker.screen().title == "copy failed: no space", "a failed copy says so")
+
+  -- refused
+  local function refused(file, info, text, what)
+    SENT_CLEAR()
+    copies = {}
+    picker.key(3, 1, true)
+    local msg = {file, file:match("([^/]+)$"), 0}
+    if info then for _, v in ipairs({info.name, info.unit, 1, 0}) do msg[#msg + 1] = v end end
+    P.osc("/preset_scan", info and msg or {file})
+    CHECK(#copies == 0 and picker.screen().title == text and not picker.screen().busy, what)
+  end
+  pick_row("e.acpreset")
+  refused("/a/e.acpreset", nil, "not a preset", "an unreadable file is refused")
+  refused("/a/e.acpreset", {name = "S", unit = "mod.Scale"}, "no Scale presets", "a Scale preset is refused")
+  refused("/a/e.acpreset", {name = "S", unit = "fx.Nope"}, "no Nope here", "an unknown effect is refused")
+  refused("/a/e.acpreset", {name = "S", unit = "Nowhere"}, "no Nowhere here", "an unknown machine is refused")
+  refused("/a/e.acpreset", {name = "S", unit = "../x"}, "no ../x here", "a path in a unit is refused")
+
+  -- a part with a machine that takes no files lists presets too
+  picker.close()
+  CHECK(picker.open(P, 1), "the picker opens on Reflux")
+  picker.key(3, 1, false)
+  CHECK(#picker.screen().rows == 4 and picker.screen().rows[1] == "bass.acpreset", "with presets only")
+  picker.close()
 elseif which == "17" then
   -- the modifier preset list: scan, a preset of another type put back in
   -- order, the mods param, save, a load into the slot of its type, delete

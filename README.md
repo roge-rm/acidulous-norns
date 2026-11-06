@@ -213,6 +213,7 @@ Picking one on a part loads a sound to start with: the 808 kit from dust/audio/c
 - **Forage** is a drum kit with 13 pads. **E3** picks the pad a file goes on, and it moves to the next pad after each one so you can build a kit. **use this folder** puts the folder's first 13 files, by name, on the pads.
 - **Mosaic** plays a SoundFont: pick the .sf2, then one of its presets with **K3**. Or **use this folder** on a folder of WAVs. Files named with a note, like `piano C4.wav` or `pad F#3.wav`, go on that note, and files without one are spread across the keys.
 - **Dice**, **Pollen** and **Molt** take one file each. Pollen with nothing loaded, as in a PSET saved that way, plays the norns input, and **live input** at the top of the file list empties it again.
+- The file list also shows the app's .acpreset files, on any part. **K1** + **K3** on one copies it to the saved presets of its machine, or the effect presets of fx 3 and 4 or the mods card for an effect or modifier preset. A name already there gets " 2", " 3" and so on. Files that aren't presets, and Scale presets, are refused with a short message.
 
 WAV, AIFF and FLAC are supported. MP3 files cannot be loaded. Dice, Pollen, Molt and Forage's pads use the first 30 seconds of a file. Samples across all parts can use 320 MB, with a 64 MB limit per SoundFont. Loads past either limit show an error.
 
