@@ -1074,7 +1074,29 @@ bool Core::command(const std::string& path, const Args& a)
     }
     if(path == "/preset_scan" && a.size() >= 1)
     {
-        post([this, f = to_str(a[0])] { scan_presets(f); });
+        post([this, f = to_str(a[0]), deep = a.size() > 1 && to_int(a[1]) != 0] { scan_presets(f, deep); });
+        return true;
+    }
+    if(path == "/fx_preset_load" && a.size() >= 5)
+    {
+        // i:part i:slot s:path i:index s:name
+        const int part = to_int(a[0]), slot = to_int(a[1]);
+        if(part_ok(part) && slot >= kPatchInsertSlots && slot < kEffectSlots)
+            post_part(part, [this, part, slot, p = to_str(a[2]), index = to_int(a[3]), n = to_str(a[4])] {
+                load_fx_preset(part, slot, p, index, n);
+            });
+        else if(part_ok(part))
+            error("insert slot " + std::to_string(slot) + " is a patch's");
+        return true;
+    }
+    if(path == "/fx_preset_save" && a.size() >= 4)
+    {
+        // i:part i:slot s:path s:name
+        const int part = to_int(a[0]), slot = to_int(a[1]);
+        if(part_ok(part) && slot >= kPatchInsertSlots && slot < kEffectSlots)
+            post_part(part, [this, part, slot, p = to_str(a[2]), n = to_str(a[3])] { save_fx_preset(part, slot, p, n); });
+        else if(part_ok(part))
+            error("insert slot " + std::to_string(slot) + " is a patch's");
         return true;
     }
     if(path == "/preset_delete" && a.size() >= 2)
@@ -4189,26 +4211,216 @@ std::string Core::load_zones(int part, const std::string& path, int index, const
     return "";
 }
 
-// "/preset_scan s:folder (s:file i:index s:name s:unit i:count i:packed)..."
-// for every patch
-// of every .acpreset in [folder], by file name. Files that can't be read are
-// left out.
-void Core::scan_presets(const std::string& folder)
+// Puts patch [index] (or the one called [want_name]) of the effect preset at
+// [path] in the part's own insert slot 2 or 3, as the app's slot picker does:
+// a new effect when the slot has another type, the preset's params and the
+// rest at their defaults. The slot's mod stays, as an effect preset has none.
+// Replies "/fx_preset_loaded i:part i:slot s:type s:name s:error (s:param
+// f:value01 f:default01)..." with the slot's type and values, then /inserts
+// as /insert does.
+void Core::load_fx_preset(int part, int slot, const std::string& path, int index, const std::string& want_name)
 {
-    std::vector<std::string> names;
-    if(DIR* d = opendir(folder.c_str()))
+    const char* unit = kInsertUnits[slot];
+    const auto  done = [&](const std::string& name, const std::string& why) {
+        if(!why.empty())
+            std::fprintf(stderr, "acidulous: %s: %s\n", path.c_str(), why.c_str());
+        const std::string type = host.mountedEffect(part, slot);
+        Args              out{Value::i(part), Value::i(slot), Value::s(type), Value::s(name), Value::s(why)};
+        int32_t           count = 0;
+        const ParamDef*   defs  = type.empty() ? nullptr : EffectRegistry::paramDefs(type.c_str(), count);
+        for(int32_t i = 0; defs && i < count; ++i)
+        {
+            const float v = host.paramNormalized(part, unit, defs[i].name);
+            out.push_back(Value::s(defs[i].name));
+            out.push_back(Value::f(v < 0.f ? defs[i].unmap(defs[i].def) : v));
+            out.push_back(Value::f(defs[i].unmap(defs[i].def)));
+        }
+        reply("/fx_preset_loaded", out);
+        const acidulous::PatchInsert* none[kEffectSlots] = {};
+        send_inserts(part, none, true);
+    };
+    Preset      preset;
+    std::string why;
+    if(!read_preset(path, preset, why))
+        return done("", why);
+    if(preset.kind != "effect")
+        return done("", "not an effect preset");
+    if(!want_name.empty() && !(index >= 0 && size_t(index) < preset.patches.size() &&
+                               preset.patches[size_t(index)].name == want_name))
+        for(size_t k = 0; k < preset.patches.size(); ++k)
+            if(preset.patches[k].name == want_name)
+            {
+                index = int(k);
+                break;
+            }
+    if(index < 0 || size_t(index) >= preset.patches.size())
+        return done("", "no patch " + std::to_string(index + 1));
+    const PresetPatch& pp = preset.patches[size_t(index)];
+    if(pp.version < 3)
+        return done("", "from an older app, save it again there");
+    int32_t e = 0;
+    while(e < EffectRegistry::count() && !lower_equal(EffectRegistry::name(e), preset.unit))
+        ++e;
+    if(e == EffectRegistry::count())
+        return done("", "no effect " + preset.unit);
+    const std::string type  = EffectRegistry::name(e);
+    int32_t           count = 0;
+    const ParamDef*   defs  = EffectRegistry::paramDefs(type.c_str(), count);
+    if(!defs || count <= 0)
+        return done("", "no effect " + preset.unit);
+    // Below version 6 a Delay has the old pingpong switch.
+    acidulous::PatchChain chain;
+    chain.inserts.push_back({type, pp.params, {}, false});
+    if(pp.version < 6)
+        upgrade_delay_mode(chain);
+    const auto& params = chain.inserts[0].params;
+
+    settle();
+    if(type != host.mountedEffect(part, slot))
     {
+        mounts_queued = true;
+        if(!host.mountEffect(part, slot, type))
+        {
+            host.mountEffect(part, slot, "");
+            settle();
+            return done("", "can't mount effect " + type);
+        }
+        settle();
+    }
+    int unknown = 0;
+    for(const auto& kv : params)
+    {
+        int32_t i = 0;
+        while(i < count && kv.first != defs[i].name)
+            ++i;
+        // the slot's mod isn't a preset's to set
+        if(i == count && slotModIndexOf(kv.first.c_str()) == -1)
+            ++unknown;
+    }
+    if(unknown > 0)
+        std::fprintf(stderr, "acidulous: %s: %d param(s) %s hasn't got\n", path.c_str(), unknown, type.c_str());
+    for(int32_t i = 0; i < count; ++i)
+    {
+        float v = defs[i].unmap(defs[i].def);
+        for(const auto& kv : params)
+            if(kv.first == defs[i].name)
+                v = kv.second;
+        push_param(part, unit, defs[i].name, v);
+    }
+    // A Formula's formula comes with its preset, none for its default.
+    if(type == "Formula")
+    {
+        std::string formula;
+        for(const auto& kv : pp.settings)
+            if(kv.first == "formula")
+                formula = kv.second;
+        const std::string error = host.loadEffectFormula(part, unit, formula);
+        if(!error.empty())
+            std::fprintf(stderr, "acidulous: %s: formula: %s\n", path.c_str(), error.c_str());
+    }
+    mounts_queued = true;
+    settle();
+    done(pp.name, "");
+}
+
+// Saves the effect in the part's own insert slot 2 or 3 as an effect preset
+// at [path] called [name], as the app's slot picker saves one: its params
+// without the slot's mod. A Formula's formula isn't saved. Replies
+// "/fx_preset_saved i:part i:slot s:path s:ok|error".
+void Core::save_fx_preset(int part, int slot, const std::string& path, const std::string& name)
+{
+    const auto done = [&](const std::string& why) {
+        if(!why.empty())
+            std::fprintf(stderr, "acidulous: saving %s: %s\n", path.c_str(), why.c_str());
+        reply("/fx_preset_saved", {Value::i(part), Value::i(slot), Value::s(path), Value::s(why.empty() ? "ok" : why)});
+    };
+    if(song_on.load())
+        return done("not while a song is loaded");
+    if(name.empty())
+        return done("no name");
+    const std::string type = host.mountedEffect(part, slot);
+    if(type.empty())
+        return done("no effect in fx " + std::to_string(slot + 1));
+    int32_t         count = 0;
+    const ParamDef* defs  = EffectRegistry::paramDefs(type.c_str(), count);
+    PresetPatch     pp;
+    pp.machine = type;
+    pp.name    = name;
+    // The values come from the engine, once a queued mount has landed.
+    for(int tries = 0; tries < 10 && !stopping && int32_t(pp.params.size()) < count; ++tries)
+    {
+        mounts_queued = true;
+        settle();
+        pp.params.clear();
+        for(int32_t i = 0; i < count; ++i)
+        {
+            const float v = host.paramNormalized(part, kInsertUnits[slot], defs[i].name);
+            if(v < 0.f)
+                break;
+            pp.params.emplace_back(defs[i].name, v);
+        }
+    }
+    if(count <= 0 || int32_t(pp.params.size()) < count)
+        return done("busy");
+    Preset preset;
+    preset.kind = "effect";
+    preset.unit = type;
+    preset.patches.push_back(pp);
+    std::string why;
+    // Only a file of one patch is replaced, so a bank's other patches stay.
+    {
+        Preset      old;
+        std::string ignore;
+        if(exists(path) && (!read_preset(path, old, ignore) || old.patches.size() > 1 || has_engine_lines(path)))
+            return done("would replace more than one patch");
+    }
+    if(!write_file(path, presetfile::write(preset), why))
+        return done(why);
+    done("");
+}
+
+// "/preset_scan s:folder (s:file i:index s:name s:unit i:count i:packed)..."
+// for every patch of every .acpreset in [folder], by file name; with [deep]
+// the ones in its folders too, file as "folder/name". An effect preset's unit
+// is "fx.<type>", as the app keys it. Files that can't be read are left out.
+void Core::scan_presets(const std::string& folder, bool deep)
+{
+    const std::string        dir = folder.empty() || folder.back() == '/' ? folder : folder + "/";
+    std::vector<std::string> names;
+    const auto               list = [&](const std::string& sub) {
+        DIR* d = opendir((dir + sub).c_str());
+        if(!d)
+            return;
         while(const dirent* e = readdir(d))
         {
             const std::string n = e->d_name;
-            if(n.size() > 9 && n[0] != '.' && lower(n.substr(n.size() - 9)) == ".acpreset")
-                names.push_back(n);
+            if(n.empty() || n[0] == '.')
+                continue;
+            if(n.size() > 9 && lower(n.substr(n.size() - 9)) == ".acpreset")
+                names.push_back(sub + n);
+            else if(deep && sub.empty())
+            {
+                struct stat st{};
+                if(stat((dir + n).c_str(), &st) == 0 && S_ISDIR(st.st_mode))
+                    names.push_back(n + "/");
+            }
         }
         closedir(d);
+    };
+    list("");
+    if(deep)
+    {
+        std::vector<std::string> subs;
+        for(const auto& n : names)
+            if(n.back() == '/')
+                subs.push_back(n);
+        names.erase(std::remove_if(names.begin(), names.end(), [](const std::string& n) { return n.back() == '/'; }),
+                    names.end());
+        for(const auto& sub : subs)
+            list(sub);
     }
     std::sort(names.begin(), names.end(), [](const std::string& a, const std::string& b) { return lower(a) < lower(b); });
-    const std::string dir = folder.empty() || folder.back() == '/' ? folder : folder + "/";
-    Args              out{Value::s(folder)};
+    Args out{Value::s(folder)};
     // one UDP message: a few hundred rows fit
     constexpr size_t kMaxRows = 300;
     for(const auto& n : names)
@@ -4220,8 +4432,7 @@ void Core::scan_presets(const std::string& folder)
             std::fprintf(stderr, "acidulous: %s: %s\n", (dir + n).c_str(), why.c_str());
             continue;
         }
-        if(preset.kind != "machine")
-            continue;
+        const std::string unit = preset.kind == "effect" ? "fx." + preset.unit : preset.unit;
         // what a rewrite would lose: the app's engine lines, or another patch's files
         const bool packed = has_engine_lines(dir + n) || (preset.patches.size() > 1 && has_packed_entries(dir + n));
         for(size_t k = 0; k < preset.patches.size() && out.size() < 1 + 6 * kMaxRows; ++k)
@@ -4229,7 +4440,7 @@ void Core::scan_presets(const std::string& folder)
             out.push_back(Value::s(n));
             out.push_back(Value::i(int(k)));
             out.push_back(Value::s(preset.patches[k].name));
-            out.push_back(Value::s(preset.unit));
+            out.push_back(Value::s(unit));
             out.push_back(Value::i(int(preset.patches.size())));
             out.push_back(Value::i(packed ? 1 : 0));
         }

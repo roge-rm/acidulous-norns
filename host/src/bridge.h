@@ -98,7 +98,19 @@
 //        below version 6 a Delay insert's pingpong becomes mode. When
 //        it fails the part still gets machine, as does a /patch that can't be
 //        found, with /values of what it has
-//   /preset_scan s:folder              the patches of the .acpreset files in it
+//   /preset_scan s:folder [i:deep]     the patches of the .acpreset files in
+//        it, with deep 1 those in its folders too
+//   /fx_preset_load i:part i:slot s:path i:index s:name   puts the effect
+//        preset's patch called name (or at index) in the part's own slot 2
+//        or 3: a new effect if the slot has another type, the preset's
+//        params and the rest at defaults; the slot's mod stays. A Formula
+//        takes its formula. Below version 6 a Delay's pingpong becomes mode,
+//        below 3 it's refused. Replies /fx_preset_loaded, then /inserts as
+//        /insert does
+//   /fx_preset_save i:part i:slot s:path s:name   writes the effect in the
+//        part's slot 2 or 3 as an effect preset the app can read, its params
+//        without the slot's mod (no Formula formula), making its folder.
+//        Replaces only a file of one patch without the app's engine lines
 //   /preset_delete s:path i:index      takes the patch out of the file, or
 //        deletes the file when it's the last or index is -1. A file with the
 //        app's samples (media/ or engine/) isn't rewritten
@@ -245,11 +257,17 @@
 //        and the /loaded for its files; error "" when it loaded. A missing
 //        file is an /error of its own and the rest still loads
 //   /preset_scan s:folder (s:file i:index s:name s:unit i:count i:packed)...
-//        by file name, unit the machine, count the file's patches, packed 1
+//        by file name, unit the machine or "fx.<type>" for an effect
+//        preset, count the file's patches, packed 1
 //        when a rewrite would lose something: the app's engine lines, or the
 //        packed files of a file of more than one patch; files that can't be
 //        read are left out
 //   /preset_deleted s:path i:index s:result   "ok" or what went wrong
+//   /fx_preset_loaded i:part i:slot s:type s:name s:error (s:param
+//        f:value01 f:default01)...   just before its /inserts: the slot's type ("" if
+//        empty) and its effect's params as the engine holds them, error ""
+//        when it loaded
+//   /fx_preset_saved i:part i:slot s:path s:result   "ok" or what went wrong
 #pragma once
 #include <string>
 

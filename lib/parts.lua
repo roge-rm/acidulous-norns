@@ -135,6 +135,9 @@ local function new_part(i, song)
     -- slot -> type; saved in the "fx" param. insert_sent is what the plugin
     -- was last sent for them, insert_pending a pick waiting to be sent.
     inserts = {}, insert_sent = {}, insert_pending = {},
+    -- the effect preset each user slot last loaded or saved, slot ->
+    -- {path, index}, for the list; not saved
+    fx_presets = {},
     -- /patch, /unmount and /insert sent and not yet answered by /inserts,
     -- and when the last went, so only the newest one's /inserts is shown
     fx_wait = 0, fx_asked = 0,
@@ -191,7 +194,7 @@ local HELD_BY_SONG = {
   ["/patch"] = true, ["/unmount"] = true, ["/preset_load"] = true, ["/mount"] = true, ["/param"] = true,
   ["/load"] = true, ["/channel"] = true, ["/fx"] = true, ["/mod"] = true, ["/mod_bypass"] = true,
   ["/mod_param"] = true, ["/send"] = true, ["/master"] = true, ["/mods_off"] = true, ["/preset_save"] = true,
-  ["/insert"] = true,
+  ["/insert"] = true, ["/fx_preset_load"] = true, ["/fx_preset_save"] = true,
 }
 
 local function send(path, args)
@@ -1030,6 +1033,7 @@ end
 local function set_insert(part, slot, type, wait)
   if part.song or not is_user_slot(slot) or part.inserts[slot] == type then return end
   part.inserts[slot] = type
+  part.fx_presets[slot] = nil
   for k in pairs(part.fx_edits) do
     if k:match("^(%d)") == tostring(slot) then part.fx_edits[k] = nil end
   end
@@ -1642,6 +1646,7 @@ local function apply(part)
   end
   send_strip(part)
   part.fx_edits, part.inserts = decode_fx(params:get(id(i, "fx")))
+  part.fx_presets = {}
   -- the user's slots go again: the racks may have been emptied meanwhile.
   -- A slot the PSET leaves empty is emptied only if it was sent something.
   for _, slot in ipairs(P.USER_SLOTS) do
@@ -2403,6 +2408,48 @@ function P.delete_preset(s)
   send("/preset_delete", {s.path, s.index})
 end
 
+-- ---- effect presets ---------------------------------------------------------------
+
+-- An effect's presets go in fx/<type>/ under P.PRESETS, as the app keeps
+-- them in patches/fx/<type>/. P.saved_fx lists all of them, from one
+-- /preset_scan of that folder and its folders: {file, path, index, name,
+-- type, count, packed}.
+P.FX_PRESETS = P.PRESETS .. "fx/"
+P.saved_fx = {}
+
+function P.fx_preset_dir(type) return P.FX_PRESETS .. type .. "/" end
+
+function P.scan_fx_presets() send("/preset_scan", {P.FX_PRESETS, 1}) end
+
+-- Puts effect preset s (from P.saved_fx) in part i's user slot, which takes
+-- its type. /inserts and /fx_preset_loaded answer.
+function P.load_fx_preset(i, slot, s)
+  local part = P.part(i)
+  if part.song or not is_user_slot(slot) or not part.machine or held(part) then return end
+  if part.insert_pending[slot] then
+    timer.cancel(part.insert_pending[slot])
+    part.insert_pending[slot] = nil
+  end
+  local now = util.time()
+  part.fx_wait = (now - part.fx_asked > 2) and 1 or part.fx_wait + 1
+  part.fx_asked = now
+  part.fx_presets[slot] = {path = s.path, index = s.index}
+  psend(part, "/fx_preset_load", {i - 1, slot, s.path, s.index, s.name})
+end
+
+-- Saves the effect in part i's user slot as the effect preset at path,
+-- called name. /fx_preset_saved answers.
+function P.save_fx_preset(i, slot, path, name)
+  local part = P.part(i)
+  if part.song or P.song_holds then
+    if P.on_preset_note then P.on_preset_note("not in a song") end
+    return
+  end
+  if not is_user_slot(slot) or not part.inserts[slot] then return end
+  part.fx_saving = {slot = slot, path = path}
+  psend(part, "/fx_preset_save", {i - 1, slot, path, name})
+end
+
 -- Sends a part's volume and machine with its patch, which fills the slots
 -- with the patch's values when it's applied.
 function P.start_part(i)
@@ -2851,6 +2898,51 @@ function P.osc(path, args)
     P.patch_macros[args[2]] = P.patch_macros[args[2]] or {}
     P.patch_macros[args[2]][args[3]] = list
 
+  elseif path == "/preset_scan" and (args[1] or "") == P.FX_PRESETS then
+    local list = {}
+    for k = 2, #args - 5, 6 do
+      local type = tostring(args[k + 3]):match("^fx%.(.+)$")
+      if type then
+        list[#list + 1] = {file = args[k], path = P.FX_PRESETS .. args[k], index = args[k + 1], name = args[k + 2],
+          type = type, count = args[k + 4], packed = args[k + 5] == 1}
+      end
+    end
+    P.saved_fx = list
+    if P.on_saved_fx then P.on_saved_fx() end
+  elseif path == "/fx_preset_loaded" then
+    -- the slot's type and values, kept in the part's "fx" param as edits
+    -- so a PSET puts them back
+    local part = rpart((args[1] or -1) + 1)
+    local slot, type, err = args[2], args[3] or "", args[5] or ""
+    if not part or part.song or not is_user_slot(slot) then return end
+    if err ~= "" then print("acidulous: effect preset: " .. err) end
+    if P.on_preset_note then P.on_preset_note(err == "" and "loaded" or err) end
+    if err ~= "" then part.fx_presets[slot] = nil end
+    if type == "" then return end
+    local same = part.inserts[slot] == type
+    part.inserts[slot] = type
+    part.insert_sent[slot] = type
+    for k in pairs(part.fx_edits) do
+      local s, name = k:match("^(%d):(.+)$")
+      -- a slot's mod stays when its type does
+      if tonumber(s) == slot and not (same and name:match("^mod_")) then part.fx_edits[k] = nil end
+    end
+    -- the /inserts after this shows them
+    for k = 6, #args - 2, 3 do
+      local name, v, default = args[k], args[k + 1], args[k + 2]
+      if math.abs(v - default) > 1e-5 then part.fx_edits[slot .. ":" .. name] = v end
+    end
+    save_fx(part)
+  elseif path == "/fx_preset_saved" then
+    local part = rpart((args[1] or -1) + 1)
+    if not part then return end
+    local ok = args[4] == "ok"
+    if not ok then print("acidulous: saving " .. tostring(args[3]) .. ": " .. tostring(args[4])) end
+    local saving = part.fx_saving
+    part.fx_saving = nil
+    if ok and saving and saving.path == args[3] then part.fx_presets[saving.slot] = {path = saving.path, index = 0} end
+    if P.on_preset_note then P.on_preset_note(ok and "saved" or args[4]) end
+    P.scan_fx_presets()
   elseif path == "/preset_scan" then
     local folder = args[1] or ""
     local machine = folder:match("([^/]+)/*$")
@@ -2919,6 +3011,15 @@ function P.osc(path, args)
       end
     end
     if P.on_preset_note then P.on_preset_note(ok and "deleted" or args[3]) end
+    if file:sub(1, #P.FX_PRESETS) == P.FX_PRESETS then
+      for _, part in ipairs(all) do
+        for slot, at in pairs(part.fx_presets or {}) do
+          if at.path == file then part.fx_presets[slot] = nil end
+        end
+      end
+      P.scan_fx_presets()
+      return
+    end
     local machine = args[1]:match("([^/]+)/[^/]+$")
     P.scan_presets(machine)
   elseif path == "/preset_loaded" then

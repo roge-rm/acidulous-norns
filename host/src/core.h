@@ -227,7 +227,9 @@ class Core
                            const std::vector<std::string>& roots);
     void save_preset(int part, const std::string& path, const std::string& name,
                      std::vector<std::pair<std::string, std::string>> settings, const std::vector<std::string>& roots);
-    void scan_presets(const std::string& folder);
+    void load_fx_preset(int part, int slot, const std::string& path, int index, const std::string& want_name);
+    void save_fx_preset(int part, int slot, const std::string& path, const std::string& name);
+    void scan_presets(const std::string& folder, bool deep = false);
     void delete_preset(const std::string& path, int index);
     std::string load_zones(int part, const std::string& path, int index, const std::vector<std::string>& roots,
                            int& missing);

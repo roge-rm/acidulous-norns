@@ -23,7 +23,10 @@
 // - every machine's files (Forage pads and slices, Dice, Pollen and Molt
 //   samples, Mosaic's SoundFont and zones) packed as media/<path>, two of one
 //   name made distinct, loaded back the same, saved over, past 64 MB a path
-// - the app's machine presets loaded as their engine lines load them
+// - the app's machine presets loaded as their engine lines load them, and
+//   its effect presets into a part's own slot as theirs load them
+// - effect presets: the slot's mod kept, another type switching the slot,
+//   an old pingpong, refusals, a save round trip and the deep scan
 // - /preset_scan and /preset_delete
 // Usage: acidulous-preset-test BANK_DIR SCRATCH_DIR MATERIAL_DIR FIXTURE_DIR
 #include "core.h"
@@ -960,7 +963,6 @@ int main(int argc, char** argv)
     // The app's machine presets: /preset_load on part 6 against the preset's
     // engine/1.txt replayed onto rack 7, its zip unpacked for the zip: paths.
     // Machine params, macro names, inserts and sends match within 1e-4.
-    // Effect presets (delay, delay2) aren't loaded by /preset_load yet.
     {
         auto&             host  = acidulous::EngineHost::instance();
         const std::string audio = scratch + "/audio/";
@@ -1072,6 +1074,217 @@ int main(int argc, char** argv)
             c->drain();
             blocks(4);
         }
+    }
+
+    // The app's effect presets: /fx_preset_load into part 6's own slot
+    // against the preset's engine/1.txt replayed onto rack 7's other own
+    // slot. Every Delay param matches within 1e-4.
+    {
+        auto&      host   = acidulous::EngineHost::instance();
+        const int  native = 6, lines = 7;
+        const auto blocks = [&](int n) {
+            const int64_t until = host.framesRendered() + 64 * n;
+            for(int k = 0; k < 2000 && host.framesRendered() < until; ++k)
+                std::this_thread::sleep_for(200us);
+        };
+        int at = 0;
+        for(const char* name : {"delay", "delay2"})
+        {
+            const int            mine = at == 0 ? 2 : 3, theirs = at == 0 ? 3 : 2;
+            const std::string    file = fixtures + "/" + name + ".acpreset";
+            std::ifstream        f(file, std::ios::binary);
+            std::vector<uint8_t> bytes((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+            std::vector<std::pair<std::string, std::vector<uint8_t>>> entries;
+            std::string                                               why, text;
+            acidulous::presetfile::unzip(bytes.data(), bytes.size(), entries, why);
+            for(const auto& e : entries)
+                if(e.first == "engine/1.txt")
+                    text.assign(e.second.begin(), e.second.end());
+            ++at;
+
+            log.clear();
+            cmd("/fx_preset_load", {Value::i(native), Value::i(mine), Value::s(file), Value::i(0), Value::s("")});
+            const bool loaded = log.wait("/fx_preset_loaded", r) && r.args[4].str.empty() && r.args[2].str == "Delay";
+            c->drain();
+
+            static JNIEnv            env;
+            acidulous::lines::Replay replay;
+            std::vector<std::string> problems;
+            replay.env        = &env;
+            replay.root       = scratch + "/replay/" + name + "/";
+            replay.targetRack = lines;
+            replay.targetSlot = theirs;
+            replay.log        = [&](const std::string& p) { problems.push_back(p); };
+            replay.afterLine  = [&](int) { blocks(2); };
+            const bool replayed = !text.empty() && acidulous::lines::replay(text, replay);
+            jniweb::arena().clear();
+            for(const auto& p : problems)
+                std::printf("  %s lines: %s\n", name, p.c_str());
+            blocks(4);
+
+            const std::string ua = "effect" + std::to_string(mine + 1), ub = "effect" + std::to_string(theirs + 1);
+            int32_t           count = 0, differ = 0;
+            const auto*       defs  = acidulous::EffectRegistry::paramDefs("Delay", count);
+            for(int32_t i = 0; i < count; ++i)
+            {
+                const float a = host.paramNormalized(native, ua, defs[i].name);
+                const float b = host.paramNormalized(lines, ub, defs[i].name);
+                if(a < 0.f || b < 0.f || std::fabs(a - b) > 1e-4f)
+                {
+                    std::printf("  %s: %s native %f, lines %f\n", name, defs[i].name, a, b);
+                    ++differ;
+                }
+            }
+            const bool mix = std::fabs(host.paramNormalized(native, ua, "mix") - 0.5f) < 1e-4f;
+            std::printf("  %s: %d params compared\n", name, int(count));
+            check(loaded && replayed && mix && host.mountedEffect(lines, theirs) == std::string("Delay") &&
+                      count > 5 && differ == 0,
+                  std::string(name) + ": /fx_preset_load matches its engine lines");
+            cmd("/insert", {Value::i(native), Value::i(mine), Value::s("")});
+            host.mountEffect(lines, theirs, "");
+            c->drain();
+            blocks(4);
+        }
+    }
+
+    // Effect presets: load, the mod kept, another type switching the slot,
+    // an old pingpong, refusals, a save round trip, the deep scan.
+    {
+        const std::string fxdir = scratch + "/fx/";
+        const auto        fx_load = [&](int part, int slot, const std::string& path, int index, const std::string& name,
+                                 Reply& out) {
+            log.clear();
+            cmd("/fx_preset_load", {Value::i(part), Value::i(slot), Value::s(path), Value::i(index), Value::s(name)});
+            return log.wait("/fx_preset_loaded", out) && out.args.size() >= 5;
+        };
+        const auto fx_save = [&](int part, int slot, const std::string& path, const std::string& name) {
+            log.clear();
+            cmd("/fx_preset_save", {Value::i(part), Value::i(slot), Value::s(path), Value::s(name)});
+            Reply out;
+            return log.wait("/fx_preset_saved", out) && out.args.size() > 3 ? out.args[3].str : std::string("no reply");
+        };
+        const auto value_of = [](const Reply& out, const std::string& name) {
+            for(size_t k = 5; k + 2 < out.args.size(); k += 3)
+                if(out.args[k].str == name)
+                    return float(out.args[k + 1].num);
+            return -1.f;
+        };
+        cmd("/patch", {Value::i(4), Value::s("Trinity"), Value::s("Saw Lead")});
+        cmd("/insert", {Value::i(4), Value::i(2), Value::s("Delay")});
+        cmd("/fx", {Value::i(4), Value::i(2), Value::s("mod_source"), Value::f(0.5f)});
+        cmd("/fx", {Value::i(4), Value::i(2), Value::s("feedback"), Value::f(0.9f)});
+        c->drain();
+        log.clear();
+        Reply ins;
+        check(fx_load(4, 2, fixtures + "/delay.acpreset", 0, "D", r) && r.args[4].str.empty() &&
+                  r.args[3].str == "D" && std::fabs(value_of(r, "mix") - 0.5f) < 1e-4f,
+              "an effect preset loads into fx 3");
+        const auto slots = log.wait("/inserts", ins) ? inserts_of(ins) : std::map<int, Slot>{};
+        const auto slot2 = slots.count(2) ? slots.at(2) : Slot{};
+        check(slot2.type == "Delay" && slot2.values.count("mod_source") && slot2.values.at("mod_source") > 0.f,
+              "its /inserts, the slot's mod kept");
+        int32_t     count = 0;
+        const auto* defs  = acidulous::EffectRegistry::paramDefs("Delay", count);
+        float       fb    = -1.f;
+        for(int32_t i = 0; i < count; ++i)
+            if(!std::strcmp(defs[i].name, "feedback"))
+                fb = defs[i].unmap(defs[i].def);
+        check(std::fabs(value_of(r, "feedback") - fb) < 1e-4f, "a param it doesn't name back at its default");
+        log.clear();
+        cmd("/fx_preset_load", {Value::i(4), Value::i(1), Value::s(fixtures + "/delay.acpreset"), Value::i(0), Value::s("")});
+        check(log.wait("/error", r) && log.count("/fx_preset_loaded") == 0, "a patch's slot is refused");
+        check(fx_load(4, 3, fixtures + "/reflux.acpreset", 0, "", r) && r.args[4].str == "not an effect preset" &&
+                  r.args[2].str.empty(),
+              "a machine preset is refused, the slot left empty");
+        check(fx_load(4, 3, scratch + "/nowhere.acpreset", 0, "", r) && !r.args[4].str.empty(), "a missing file");
+
+        // An old Delay's pingpong as mode, and a Chorus preset switching the slot's effect.
+        {
+            acidulous::Preset v;
+            v.kind = "effect";
+            v.unit = "Delay";
+            acidulous::PresetPatch pp;
+            pp.machine = "Delay";
+            pp.name    = "Old";
+            pp.version = 5;
+            pp.params  = {{"pingpong", 1.f}, {"feedback", 0.7f}};
+            v.patches.push_back(pp);
+            pp.name    = "Older";
+            pp.version = 2;
+            v.patches.push_back(pp);
+            const auto bytes = acidulous::presetfile::write(v);
+            std::system(("mkdir -p '" + fxdir + "Delay'").c_str());
+            std::ofstream(fxdir + "Delay/old.acpreset", std::ios::binary)
+                .write(reinterpret_cast<const char*>(bytes.data()), std::streamsize(bytes.size()));
+        }
+        check(fx_load(4, 3, fxdir + "Delay/old.acpreset", 0, "", r) && r.args[4].str.empty() &&
+                  std::fabs(value_of(r, "mode") - 1.f / 3.f) < 1e-4f && std::fabs(value_of(r, "feedback") - 0.7f) < 1e-4f,
+              "version 5: pingpong moved to mode");
+        check(fx_load(4, 3, fxdir + "Delay/old.acpreset", 1, "", r) && !r.args[4].str.empty(), "version 2 refused");
+        check(fx_load(4, 3, fxdir + "Delay/old.acpreset", 0, "Older", r) && !r.args[4].str.empty() &&
+                  r.args[2].str == "Delay",
+              "found by name, and a refusal leaves the slot");
+        cmd("/fx", {Value::i(4), Value::i(3), Value::s("feedback"), Value::f(0.25f)});
+        check(fx_save(4, 3, fxdir + "Delay/mine.acpreset", "Mine") == "ok", "save fx 4");
+        acidulous::Preset back;
+        if(read_file(fxdir + "Delay/mine.acpreset", back) && back.patches.size() == 1)
+        {
+            const auto& pp = back.patches[0];
+            check(back.kind == "effect" && back.unit == "Delay" && pp.name == "Mine" &&
+                      std::fabs(param(pp, "feedback") - 0.25f) < 1e-4f && param(pp, "mode") >= 0.f &&
+                      param(pp, "mod_source") < 0.f && pp.version == acidulous::kPatchVersion,
+                  "saved as the app's effect preset, without the mod");
+            std::ifstream        f(fxdir + "Delay/mine.acpreset", std::ios::binary);
+            std::vector<uint8_t> bytes((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+            std::vector<std::pair<std::string, std::vector<uint8_t>>> entries;
+            std::string                                               why;
+            acidulous::presetfile::unzip(bytes.data(), bytes.size(), entries, why);
+            std::string json;
+            for(const auto& e : entries)
+                if(e.first == "patches/1.json")
+                    json.assign(e.second.begin(), e.second.end());
+            check(json.find("\"fx.Delay\"") != std::string::npos, "its patch keyed fx.Delay as the app keys it");
+        }
+        else
+            check(false, "read the saved effect preset");
+        check(fx_save(4, 3, fxdir + "Delay/old.acpreset", "Over") != "ok", "a file of two patches isn't replaced");
+        check(fx_save(4, 2, fixtures + "/../nowhere/x.acpreset", "") == "no name", "no name");
+        cmd("/insert", {Value::i(4), Value::i(3), Value::s("")});
+        c->drain();
+        check(fx_save(4, 3, fxdir + "Delay/empty.acpreset", "E") != "ok", "an empty slot isn't saved");
+
+        // A Chorus preset into fx 3, which has the Delay: a new Chorus.
+        cmd("/insert", {Value::i(4), Value::i(3), Value::s("Chorus")});
+        c->drain();
+        check(fx_save(4, 3, fxdir + "Chorus/wide.acpreset", "Wide") == "ok", "save a Chorus");
+        check(fx_load(4, 2, fxdir + "Chorus/wide.acpreset", 0, "Wide", r) && r.args[4].str.empty() &&
+                  r.args[2].str == "Chorus",
+              "a Chorus preset switches fx 3 to a Chorus");
+        check(fx_load(4, 3, fxdir + "Delay/mine.acpreset", 0, "Mine", r) && r.args[2].str == "Delay" &&
+                  std::fabs(value_of(r, "feedback") - 0.25f) < 1e-4f,
+              "the saved Delay back into fx 4");
+
+        // The deep scan lists both folders' effect presets as fx.<type>; a
+        // machine folder's scan lists an effect preset in it as fx.Delay.
+        log.clear();
+        cmd("/preset_scan", {Value::s(fxdir), Value::i(1)});
+        std::set<std::string> rows;
+        if(log.wait("/preset_scan", r))
+            for(size_t k = 1; k + 5 < r.args.size(); k += 6)
+                rows.insert(r.args[k].str + "|" + r.args[k + 2].str + "|" + r.args[k + 3].str);
+        check(rows.count("Chorus/wide.acpreset|Wide|fx.Chorus") && rows.count("Delay/mine.acpreset|Mine|fx.Delay") &&
+                  rows.count("Delay/old.acpreset|Older|fx.Delay") && rows.size() == 4,
+              "deep scan: 4 rows with their types");
+        log.clear();
+        cmd("/preset_scan", {Value::s(fxdir)});
+        check(log.wait("/preset_scan", r) && r.args.size() == 1, "a shallow scan doesn't look in folders");
+        log.clear();
+        cmd("/preset_delete", {Value::s(fxdir + "Chorus/wide.acpreset"), Value::i(0)});
+        check(log.wait("/preset_deleted", r) && r.args[2].str == "ok" && !exists(fxdir + "Chorus/wide.acpreset"),
+              "delete an effect preset");
+        cmd("/insert", {Value::i(4), Value::i(2), Value::s("")});
+        cmd("/insert", {Value::i(4), Value::i(3), Value::s("")});
+        c->drain();
     }
 
     // Listing and deleting.

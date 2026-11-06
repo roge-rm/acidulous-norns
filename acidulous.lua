@@ -698,6 +698,7 @@ function init()
   parts.on_song = song.osc
   parts.on_read = song.read
   parts.on_saved = function(machine) lists.refresh(parts, machine) end
+  parts.on_saved_fx = function() lists.refresh(parts, nil) end
   parts.on_preset_note = function(text) lists.note(text) end
   -- text entry takes the keys, so K1's release never comes here
   lists.before_text = function() state.k1 = false end
@@ -1025,6 +1026,18 @@ local function set_encoders()
   end
 end
 
+-- The user insert slot (2 or 3) the card page shows: the card's, or on the
+-- inserts card the picked control's. nil on others and on a song's track.
+local function card_fx_slot()
+  if parts.list[state.sel].song then return nil end
+  local ps, cards = part_cards()
+  local card = cards[ps.card]
+  local ctl = card and (card.controls[ps.knob] or card.controls[1])
+  local slot = ctl and ctl.mod == nil and ctl.fx
+  if slot == 2 or slot == 3 then return slot end
+  return nil
+end
+
 local function handle_key(n, z)
   if not parts.ready then return end
   if n == 1 then
@@ -1049,6 +1062,9 @@ local function handle_key(n, z)
   elseif n == 2 and z == 1 and (state.page == "parts" or state.page == "play") then
     -- the patch list, or the machine picker with K1 or on an empty part
     if state.k1 or not lists.open_patches(parts, state.sel) then lists.open_machines(parts, state.sel) end
+  elseif n == 2 and z == 1 and state.page == "card" and state.k1 and card_fx_slot() then
+    -- K1+K2 on a card of fx 3 or 4: that slot's effect presets
+    lists.open_fx(parts, state.sel, card_fx_slot())
   elseif n == 2 and z == 1 and state.page == "card" then
     state.page = "play"
   elseif n == 3 then

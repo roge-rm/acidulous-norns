@@ -305,6 +305,7 @@ end
 
 -- s: from lists.screen. Family tabs, scrolled so the current one shows, then
 -- a row per patch with "k3" on the cursor's; the part's patch is brighter.
+-- An effect preset list has its own title.
 function view.patches(parts, s)
   screen.clear()
   screen.font_face(1)
@@ -313,7 +314,7 @@ function view.patches(parts, s)
   text(127, 5, s.count, "right")
   local w_count = screen.text_extents(s.count) + 4
   screen.level(8)
-  text(0, 5, fit(s.part .. " " .. s.machine:lower() .. "  patch", 127 - w_count))
+  text(0, 5, fit(s.title or (s.part .. " " .. s.machine:lower() .. "  patch"), 127 - w_count))
   -- the tabs from first, up to 120 px, with < and > where more are
   local widths = {}
   for k, t in ipairs(s.tabs) do widths[k] = screen.text_extents(t.name) end

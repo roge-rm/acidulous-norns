@@ -1,6 +1,6 @@
 local here = arg[0]:match("^(.*)/[^/]+$")
 local which = arg[2]
-local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12", "13", "14", "15"}
+local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"}
 if not which then
   -- every case, each in a fresh run
   local failed = 0
@@ -456,6 +456,80 @@ elseif which == "15" then
   P.save_preset(1, "/p/y.acpreset", "Y")
   CHECK(FIND("/preset_save", function(a) return has(a, "slice_sample", "/a/break.wav") end) ~= nil,
     "saved as slice_sample")
+elseif which == "16" then
+  -- the effect preset list on fx 3: scan, load, another type, save, delete
+  local entered
+  package.preload.textentry = function() return {enter = function(cb, default, title) entered = {cb = cb, default = default, title = title} end} end
+  local L = include("lib/lists")
+  P.on_saved_fx = function() L.refresh(P, nil) end
+  P.on_preset_note = function(text) L.note(text) end
+  local part = P.own[1]
+  P.osc("/effects", {"Delay", "Chorus"})
+  P.set_insert(1, 2, "Delay")
+  P.osc("/inserts", {0})
+  part.fx_edits["2:mod_source"] = 0.5
+  part.fx_edits["2:time"] = 0.9
+  SENT_CLEAR()
+  local dir = "/d/acidulous/presets/fx/"
+  CHECK(L.open_fx(P, 1, 2) and FIND("/preset_scan", function(a) return a[1] == dir and a[2] == 1 end) ~= nil,
+    "opening it scans the fx folder and its folders")
+  P.osc("/preset_scan", {dir, "Chorus/wide.acpreset", 0, "Wide", "fx.Chorus", 1, 0,
+    "Delay/slap.acpreset", 0, "Slap", "fx.Delay", 1, 1, "Reflux.acpreset", 0, "R", "Reflux", 1, 0})
+  local sc = L.screen(P, false)
+  CHECK(#P.saved_fx == 2 and P.saved_fx[2].type == "Delay" and P.saved_fx[2].path == dir .. "Delay/slap.acpreset",
+    "effect rows kept with their type, a machine's left out")
+  CHECK(sc.tabs[1].name == "delay" and #sc.tabs[1].patches == 2 and sc.tabs[2].name == "all" and
+    #sc.tabs[2].patches == 2 and sc.title:find("fx 3 delay", 1, true) ~= nil, "a delay tab after new preset, then all")
+  CHECK(sc.hint == "k1+k3", "new preset hints k1+k3")
+  L.enc(P, 2, 1)
+  SENT_CLEAR()
+  L.key(P, 3, 1, false)
+  local m = FIND("/fx_preset_load")
+  CHECK(m and m.args[1] == 0 and m.args[2] == 2 and m.args[3] == dir .. "Delay/slap.acpreset" and m.args[5] == "Slap",
+    "K3 loads Slap into fx 3")
+  P.osc("/fx_preset_loaded", {0, 2, "Delay", "Slap", "", "time", 0.3, 0.5, "mix", 0.5, 0.5})
+  local fx = params:get("p1_fx")
+  CHECK(fx:find("2=Delay", 1, true) and fx:find("2,time,0.3000", 1, true) and not fx:find("mix", 1, true) and
+    fx:find("2,mod_source,0.5000", 1, true), "the fx param holds its type, its changed params and the slot's mod")
+  CHECK(L.screen(P, false).rows[2].current, "and the row shows as current")
+  -- a Chorus from the all tab switches the slot
+  L.enc(P, 1, 1)
+  SENT_CLEAR()
+  L.key(P, 3, 1, false)
+  CHECK(FIND("/fx_preset_load", function(a) return a[3] == dir .. "Chorus/wide.acpreset" end) ~= nil, "K3 on all loads Wide")
+  P.osc("/fx_preset_loaded", {0, 2, "Chorus", "Wide", "", "rate", 0.7, 0.2})
+  fx = params:get("p1_fx")
+  CHECK(part.inserts[2] == "Chorus" and fx:find("2=Chorus", 1, true) and not fx:find("mod_source", 1, true) and
+    not fx:find("time", 1, true), "the slot is a Chorus now, the Delay's edits and mod gone")
+  sc = L.screen(P, false)
+  CHECK(sc.tabs[1].name == "chorus" and sc.tabs[sc.tab].name == "all" and sc.rows[sc.cursor].name == "Chorus: Wide",
+    "the list follows the type and stays on the row")
+  -- K1+K3 on new preset: name entry, then /fx_preset_save in fx/Chorus/
+  L.enc(P, 1, -1)
+  L.enc(P, 2, -5)
+  SENT_CLEAR()
+  L.key(P, 3, 1, true)
+  CHECK(entered and entered.default == "Wide" and entered.title == "save chorus as", "K1+K3 asks a name, from the preset's")
+  entered.cb("Mine")
+  m = FIND("/fx_preset_save")
+  CHECK(m and m.args[2] == 2 and m.args[3] == dir .. "Chorus/Mine.acpreset" and m.args[4] == "Mine", "and saves it")
+  SENT_CLEAR()
+  P.osc("/fx_preset_saved", {0, 2, dir .. "Chorus/Mine.acpreset", "ok"})
+  CHECK(FIND("/preset_scan") ~= nil and part.fx_presets[2].path == dir .. "Chorus/Mine.acpreset", "saved: rescanned, current")
+  -- K1+K3 on a saved row asks, then deletes
+  L.enc(P, 2, 1)
+  L.key(P, 3, 1, true)
+  sc = L.screen(P, true)
+  CHECK(sc.confirm == "delete Wide?", "K1+K3 on a saved one asks")
+  SENT_CLEAR()
+  L.key(P, 3, 1, false)
+  CHECK(FIND("/preset_delete", function(a) return a[1] == dir .. "Chorus/wide.acpreset" and a[2] == 0 end) ~= nil,
+    "and deletes it")
+  SENT_CLEAR()
+  P.osc("/preset_deleted", {dir .. "Chorus/wide.acpreset", 0, "ok"})
+  CHECK(FIND("/preset_scan", function(a) return a[1] == dir end) ~= nil, "then rescans the fx folder")
+  L.key(P, 2, 1, false)
+  CHECK(not L.active(P), "K2 closes it")
 end
 print(FAILS == 0 and "all ok" or (FAILS .. " failed"))
 os.exit(FAILS == 0 and 0 or 1)
