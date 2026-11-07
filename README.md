@@ -3,9 +3,10 @@
 acidulous is a [norns](https://monome.org/docs/norns/) patch player based on the full app [Acidulous](https://github.com/roge-rm/Acidulous). 
 
 The full engine has been ported to the norns platform so patches will sound the same as they did when created on the app. 
-All of the app's presets are included and patches and songs exported from the full app and imported on the norns.
+All of the app's presets are included and patches and songs exported from the full app can be imported on the norns.
 
 Play one machine at a time via an attached MIDI/USB device, MPE included, or configure up to 16 machines at once to drive multitimbrally from an external source.
+Use the knobs on the norns to change patches live and save the results as new patches.
 
 I've tested it extensively on my [shieldXL](https://github.com/okyeron/shieldXL) with a Pi 4 2GB, it should run well on a Pi 3 as well but you won't be able to run
 as many machines at the same time.
