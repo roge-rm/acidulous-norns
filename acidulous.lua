@@ -1189,7 +1189,7 @@ local function handle_enc(n, d)
     local ps, cards = part_cards()
     if n == 1 then
       local c = util.clamp(ps.card + d, 1, math.max(1, #cards))
-      if c ~= ps.card then ps.card, ps.knob, ps.first = c, 1, 1 end
+      if c ~= ps.card then ps.card, ps.knob, ps.first, ps.shown_at = c, 1, 1, nil end
     elseif n == 2 and state.k1 then
       -- K1 held + E2: right to the amp envelope card, left back to the card
       -- you left, so a turn of several steps doesn't flip between them
@@ -1204,16 +1204,17 @@ local function handle_enc(n, d)
         elseif d < 0 and ps.card == env then
           to = util.clamp(ps.back or 1, 1, #cards)
         end
-        if to and to ~= ps.card then ps.card, ps.knob, ps.first = to, 1, 1 end
+        if to and to ~= ps.card then ps.card, ps.knob, ps.first, ps.shown_at = to, 1, 1, nil end
       end
     elseif n == 2 then
+      -- the card's title bar shows the control and its value for a while
       local card = cards[ps.card]
-      ps.knob = util.clamp(ps.knob + d, 1, card and #card.controls or 1)
+      local knob = util.clamp(ps.knob + d, 1, card and #card.controls or 1)
+      if knob ~= ps.knob then ps.knob, ps.shown_at = knob, util.time() end
     elseif n == 3 then
       turn_control(d)
+      ps.shown_at = util.time()
     end
-    -- the card's title bar shows the control and its value for a while
-    if n >= 2 then ps.shown_at = util.time() end
   elseif n == 1 then
     state.sel = util.clamp(i + d, 1, parts.active)
   elseif state.page ~= "parts" then
