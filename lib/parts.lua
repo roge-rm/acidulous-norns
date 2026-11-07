@@ -469,12 +469,13 @@ end
 
 -- What the plugin last said the part's patches put in, as the "patchfx" param
 -- holds it: "owned,sendsHeld,heldReverb,heldDelay,patchReverb,patchDelay", or
--- "" for none. Sent back after a restart or a PSET load.
+-- "" for none. Sent back after a restart or a PSET load, after the patch's
+-- /patch; with none saved the state that /patch set stays.
 local function send_patch_fx(part)
   if part.song then return end
   local v = {}
   for n in (params:get(id(part.n, "patchfx")) or ""):gmatch("[^,]+") do v[#v + 1] = tonumber(n) end
-  if #v ~= 6 then v = {0, 0, 0, 0, 0, 0} end
+  if #v ~= 6 then return end
   psend(part, "/patch_fx", {part.n - 1, v[1], v[2], v[3], v[4], v[5], v[6]})
 end
 
@@ -1759,6 +1760,7 @@ local function apply(part)
   if part.fresh then
     part.fresh = false
     load_fresh(part)
+    send_patch_fx(part)
     return
   end
   send_strip(part)

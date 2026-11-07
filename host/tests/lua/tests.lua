@@ -1,6 +1,6 @@
 local here = arg[0]:match("^(.*)/[^/]+$")
 local which = arg[2]
-local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"}
+local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"}
 if not which then
   -- every case, each in a fresh run
   local failed = 0
@@ -913,6 +913,53 @@ elseif which == "20" then
     "the delay's feedback moves as before")
   P.osc("/song_unloaded", {1})
   CHECK(P.out_room("rev_size") == nil and next(P.song_send_impulses) == nil, "the unload forgets the send's room")
+elseif which == "21" then
+  -- the patchfx param goes after the patch's /patch, and not at all with none saved
+  local function pset(lines)
+    local name = os.tmpname()
+    local f = io.open(name, "w")
+    f:write(table.concat(lines, "\n") .. "\n")
+    f:close()
+    return name
+  end
+  local function index(path)
+    for k, m in ipairs(SENT) do if m.path == path and m.args[1] == 0 then return k end end
+  end
+  P.machines = {{name = "Reflux"}}
+  P.defs.Reflux = {{name = "k1", min = 0, max = 1, default = 0.5, unit = "", steps = 0, curve = "lin"}}
+  P.patches.Reflux = {"Init"}
+  params:set("p1_machine_name", "Reflux", true)
+  params:set("p1_machine", 1, true)
+  params:set("p1_patchfx", "1,1,0,0,0,0", true)
+  -- a PSET from before patchfx
+  local name = pset({'"parts": 1', '"p1_machine": 1', '"p1_machine_name": "Reflux"'})
+  SENT_CLEAR()
+  P.after_read(name)
+  os.remove(name)
+  ADVANCE(0.5)
+  CHECK(index("/patch") ~= nil, "an old PSET sends the patch")
+  CHECK(index("/patch_fx") == nil and params:get("p1_patchfx") == "", "and no /patch_fx over what /patch set")
+  SENT_CLEAR()
+  P.resend()
+  ADVANCE(0.5)
+  CHECK(index("/patch") ~= nil and index("/patch_fx") == nil, "nor after a restart")
+  -- a PSET with it
+  params:set("p1_patchfx", "1,1,0,0,0,0", true)
+  name = pset({'"parts": 1', '"p1_machine": 1', '"p1_machine_name": "Reflux"', '"p1_patchfx": "1,1,0,0,0,0"'})
+  SENT_CLEAR()
+  P.after_read(name)
+  ADVANCE(0.5)
+  local at = index("/patch_fx")
+  CHECK(at and index("/patch") and index("/patch") < at and SENT[at].args[2] == 1 and SENT[at].args[3] == 1,
+    "a saved patchfx goes after the patch")
+  os.remove(name)
+  -- a part picked fresh while a song held the racks, sent when they're back
+  P.own[1].owed, P.own[1].fresh = true, true
+  SENT_CLEAR()
+  P.pay_owed()
+  ADVANCE(0.5)
+  at = index("/patch_fx")
+  CHECK(at and index("/patch") and index("/patch") < at, "and on a fresh part's load")
 end
 print(FAILS == 0 and "all ok" or (FAILS .. " failed"))
 os.exit(FAILS == 0 and 0 or 1)
