@@ -1041,6 +1041,17 @@ local function card_fx_slot()
   return nil
 end
 
+-- The insert slot of the Venue the card page shows, or nil. Not on a song's
+-- track.
+local function card_venue_slot()
+  if parts.list[state.sel].song then return nil end
+  local ps, cards = part_cards()
+  local card = cards[ps.card]
+  local ctl = card and (card.controls[ps.knob] or card.controls[1])
+  local e = ctl and ctl.mod == nil and ctl.fx and parts.list[state.sel].fx[ctl.fx]
+  return e and e.type == "Venue" and ctl.fx or nil
+end
+
 -- The modifier slot (0 to 2) the card page shows: on the mods card the
 -- picked control's, on a modifier's own card its slot. nil on others and on
 -- a song's track.
@@ -1070,7 +1081,14 @@ local function handle_key(n, z)
     if z == 1 then scope.close(parts) end
   elseif n == 3 and state.k1 and not scope.active() then
     -- the Nexus scope or the sample picker, by machine
-    if z == 1 and not scope.open(parts, state.sel) then picker.open(parts, state.sel) end
+    if z == 1 then
+      local venue = state.page == "card" and card_venue_slot()
+      if venue then
+        picker.open(parts, state.sel, venue)
+      elseif not scope.open(parts, state.sel) then
+        picker.open(parts, state.sel)
+      end
+    end
   elseif state.page == "mixer" and not scope.active() and (n == 2 or n == 3) then
     if z == 1 and not state.out then toggle(state.sel, n == 2 and "mute" or "solo") end
   elseif n == 2 and z == 1 and (state.page == "parts" or state.page == "play") then

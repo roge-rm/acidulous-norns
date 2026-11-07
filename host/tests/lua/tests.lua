@@ -1,6 +1,6 @@
 local here = arg[0]:match("^(.*)/[^/]+$")
 local which = arg[2]
-local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18"}
+local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"}
 if not which then
   -- every case, each in a fresh run
   local failed = 0
@@ -724,6 +724,140 @@ elseif which == "17" then
   CHECK(not L.screen(P, true).confirm, "an empty all tab: nothing to save or delete")
   L.key(P, 2, 1, false)
   CHECK(not L.active(P), "K2 closes it")
+elseif which == "19" then
+  -- Divisi in an old PSET, the macro destinations, a Venue's room
+  local LAYOUT = include("lib/layout")
+  local function pset(lines)
+    local name = os.tmpname()
+    local f = io.open(name, "w")
+    f:write(table.concat(lines, "\n") .. "\n")
+    f:close()
+    return name
+  end
+  CHECK(include("lib/machines").about.Divisi ~= nil, "Divisi is in the picker")
+  local has = false
+  for _, m in ipairs(include("lib/parts").MACHINES) do has = has or m.name == "Divisi" end
+  CHECK(has, "and in the machines offered")
+  P.machines = {{name = "Divisi"}, {name = "Reflux"}, {name = "Hexbeat"}, {name = "Forage"}}
+  P.defs.Divisi = {}
+  for j = 1, 4 do P.defs.Divisi[j] = {name = "k" .. j, min = 0, max = 1, default = 0.5, unit = "", steps = 0, curve = "lin"} end
+  P.patches.Divisi = {"Init"}
+  -- indexes from before Divisi: the old order, less machines the plugin lacks
+  params:set("p1_machine", 2, true)
+  params:set("p2_machine", 3, true)
+  local name = pset({'"parts": 1', '"p1_machine": 2', '"p2_machine": 3'})
+  P.after_read(name)
+  os.remove(name)
+  CHECK(P.own[1].machine == "Reflux" and P.own[2].machine == "Hexbeat", "an old PSET keeps Reflux and Hexbeat")
+  params:set("p1_machine_name", "Divisi", true)
+  params:set("p1_machine", 1, true)
+  name = pset({'"parts": 1', '"p1_machine": 1', '"p1_machine_name": "Divisi"'})
+  P.after_read(name)
+  os.remove(name)
+  CHECK(P.own[1].machine == "Divisi", "a PSET with the machine's name lands on Divisi")
+
+  -- macro destinations: the same destination on more steps, in old PSETs only
+  local function tine_defs(extra)
+    local d = {}
+    for j = 1, 92 do d[j] = {name = "k" .. j, min = 0, max = 1, default = 0, unit = "", steps = 0, curve = "lin"} end
+    d[10].name, d[11].name = "mac1_d1", "mac8_d4"
+    d[10].steps, d[10].curve, d[10].max = 17, "step", 16
+    for j = 93, 92 + extra do d[j] = {name = "n" .. j, min = 0, max = 1, default = 0.5, unit = "", steps = 0, curve = "lin"} end
+    return d
+  end
+  local d = tine_defs(4)
+  local v = {}
+  for j = 1, #d - 4 do v[j] = 0 end
+  v[10], v[11], v[12] = 3 / 16, 1, 0.3
+  LAYOUT.migrate("Tine", v, d, P.unmap, 2)
+  CHECK(math.abs(v[10] - 3 / 17) < 1e-9 and math.abs(v[11] - 16 / 17) < 1e-9, "Tine's destination 3 of 17 steps is 3 of 18, 16 is 16")
+  CHECK(v[12] == 0.3, "other params stay")
+  CHECK(v[93] == 0.5 and v[96] == 0.5, "the new params take their defaults")
+  for _, c in ipairs({{"Palm", 15, 17, 156}, {"Chanter", 14, 17, 91}, {"Fathom", 14, 15, 154}}) do
+    local n = c[4]
+    local dd = {}
+    for j = 1, n + 2 do dd[j] = {name = "k" .. j, min = 0, max = 1, default = 0, unit = "", steps = 0, curve = "lin"} end
+    dd[5].name = "mac3_d2"
+    local vv = {}
+    for j = 1, n do vv[j] = 0 end
+    vv[5] = 2 / (c[2] - 1)
+    LAYOUT.migrate(c[1], vv, dd, P.unmap, 2)
+    CHECK(math.abs(vv[5] - 2 / (c[3] - 1)) < 1e-9, c[1] .. ": destination 2 stays 2")
+  end
+  -- a layout 1 PSET has no macros: they come as defaults, not rescaled
+  v = {}
+  for j = 1, 19 do v[j] = 0 end
+  LAYOUT.migrate("Tine", v, d, P.unmap, 1)
+  CHECK(v[10] == 0 and v[93] == 0.5, "a layout 1 PSET gets defaults, not a rescale")
+
+  -- a Venue: room and file in the fx param
+  P.effects = {"Delay", "Venue"}
+  local part = P.own[1]
+  P.set_insert(1, 2, "Venue", false)
+  CHECK(FIND("/insert", function(a) return a[2] == 2 and a[3] == "Venue" end) ~= nil, "Venue goes to slot 3")
+  local venue = {0, 2, "Venue", 3, "length", 0, 1, 0.5, "", 0, "lin", 0.5, "decay", 0, 1, 0.5, "", 0, "lin", 0.5,
+    "stretch", 0, 1, 0.5, "", 0, "lin", 0.5, 0}
+  local reply = {0}
+  for k, x in ipairs(venue) do reply[k + 1] = x end
+  reply[2] = 2
+  P.own[1].fx_wait = 1
+  P.osc("/inserts", {0, 2, "Venue", 3, "length", 0, 1, 0.5, "", 0, "lin", 0.5, "decay", 0, 1, 0.5, "", 0, "lin", 0.5,
+    "stretch", 0, 1, 0.5, "", 0, "lin", 0.5, 0})
+  CHECK(part.fx[2] and part.fx[2].type == "Venue", "the reply shows the Venue")
+  P.osc("/impulse_loaded", {0, 2, "factory:wooden-hall", ""})
+  local panel = include("lib/panel")
+  local function room()
+    for _, c in ipairs(panel.fx_cards(part.fx, P.effects)) do
+      for _, ctl in ipairs(c.controls) do if ctl.what == "room" then return ctl end end
+    end
+  end
+  local ctl = room()
+  CHECK(ctl and math.abs(P.fx_value(1, ctl) - 1 / 5) < 1e-9 and panel.option(ctl, 1 / 5) == "wooden hall",
+    "the room control shows the wooden hall")
+  CHECK(params:get("p1_fx") == "2=Venue", "the default room isn't saved")
+  SENT_CLEAR()
+  P.set_fx(1, ctl, 4 / 5)
+  local m = FIND("/impulse")
+  CHECK(m and m.args[1] == 0 and m.args[2] == 2 and m.args[3] == "factory:closet" and m.args[4] ~= nil,
+    "turning to closet sends /impulse with the roots")
+  CHECK(params:get("p1_fx") == "2=Venue|2@factory:closet", "and the pick is saved: " .. params:get("p1_fx"))
+  P.osc("/impulse_loaded", {0, 2, "factory:closet", ""})
+  CHECK(panel.option(room(), 4 / 5) == "closet" and math.abs(P.fx_value(1, room()) - 4 / 5) < 1e-9, "the card shows closet")
+  SENT_CLEAR()
+  P.set_impulse(1, 2, "/d/audio/my hall.wav")
+  P.osc("/impulse_loaded", {0, 2, "/d/audio/my hall.wav", ""})
+  CHECK(params:get("p1_fx") == "2=Venue|2@/d/audio/my hall.wav", "a file is saved")
+  ctl = room()
+  CHECK(ctl.opts[6] == "my hall" and P.fx_value(1, ctl) == 1 and P.impulse_path(1, 2) == "/d/audio/my hall.wav",
+    "the card names the file")
+  SENT_CLEAR()
+  P.set_fx(1, ctl, 1)
+  CHECK(not FIND("/impulse"), "the file step sends nothing")
+  P.set_impulse(1, 2, "/d/a|b.wav")
+  CHECK(not FIND("/impulse"), "a name with | is refused")
+  -- read back from a PSET: sent after the insert
+  local edits, inserts, impulses = P.decode_fx("2=Venue|2,length,0.5000|2@factory:stone-church|3@")
+  CHECK(impulses[2] == "factory:stone-church" and impulses[3] == "" and inserts[2] == "Venue", "decoded")
+  CHECK(P.encode_fx(edits, inserts, impulses) == "2=Venue|2,length,0.5000|2@factory:stone-church|3@", "and encoded again")
+  params:set("p1_fx", "2=Venue|2@factory:stone-church", true)
+  name = pset({'"parts": 1', '"p1_fx": "2=Venue|2@factory:stone-church"', '"p1_machine_name": "Divisi"', '"p1_machine": 1'})
+  SENT_CLEAR()
+  P.after_read(name)
+  os.remove(name)
+  ADVANCE(0.5)
+  P.osc("/effects", {"Delay", "Venue"})
+  CHECK(part.impulse_pick[2] == "factory:stone-church", "the PSET's room is the part's pick")
+  CHECK(FIND("/impulse", function(a) return a[2] == 2 and a[3] == "factory:stone-church" end) ~= nil,
+    "and goes to the plugin after the insert")
+  -- a preset brings its own impulse
+  SENT_CLEAR()
+  P.load_fx_preset(1, 2, {path = "/d/p.acpreset", index = 0, name = "Hall"})
+  CHECK(FIND("/fx_preset_load", function(a) return #a > 5 end) ~= nil, "an effect preset is sent with the roots")
+  P.osc("/impulse_loaded", {0, 2, "factory:metal-plate", ""})
+  CHECK(part.impulse_pick[2] == "factory:metal-plate" and params:get("p1_fx"):find("2@factory:metal-plate", 1, true),
+    "its impulse is the pick")
+  P.osc("/fx_preset_loaded", {0, 2, "Delay", "Echo", ""})
+  CHECK(part.impulse_pick[2] == nil, "another effect's preset drops it")
 end
 print(FAILS == 0 and "all ok" or (FAILS .. " failed"))
 os.exit(FAILS == 0 and 0 or 1)

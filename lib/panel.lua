@@ -173,7 +173,21 @@ end
 
 -- The effect's cards: its groups (the reverb's model knobs after the
 -- first), then a "more" card for anything not in them.
-local function effect_cards(e, slot)
+-- A Venue's room control, first on its first card: the five rooms, then the
+-- impulse file's name (or none). The last step is set from the file picker.
+local ROOM_DEF = {name = "room", min = 0, max = 1, default = 0.2, unit = "", steps = 6, curve = "step"}
+local ROOMS = {"small room", "wooden hall", "stone church", "metal plate", "closet"}
+
+local function room_control(e, slot)
+  local opts = {table.unpack(ROOMS)}
+  local imp = e.impulse
+  local name = imp and imp[1] or ""
+  opts[6] = (name == "" or name:match("^factory:")) and "none" or (name:match("([^/]+)$") or name):gsub("%.%w+$", "")
+  if imp and imp[2] ~= "" then opts[6] = "error" end
+  return {label = "room", kind = "step", fx = slot, what = "room", def = ROOM_DEF, opts = opts}
+end
+
+local function effect_cards(e, slot, user)
   local type = e.type
   local title = type:lower()
   local model = type == "Reverb" and reverb_model(e) or nil
@@ -213,6 +227,7 @@ local function effect_cards(e, slot)
     if not taken[d.name] then rest[#rest + 1] = d.name end
   end
   add("more", rest)
+  if type == "Venue" and user and cards[1] then table.insert(cards[1].controls, 1, room_control(e, slot)) end
   return cards
 end
 
@@ -293,7 +308,8 @@ local function fx_key(fx, picks)
     if e then
       local m = e.mods_by or {}
       local function at(d) return d and tostring(math.floor(d.value * 64 + 0.5)) or "" end
-      key[#key + 1] = table.concat({e.type, at(e.by and e.by.model), at(m.mod_source), at(m.mod_length)}, ":")
+      key[#key + 1] = table.concat({e.type, at(e.by and e.by.model), at(m.mod_source), at(m.mod_length),
+        e.impulse and (e.impulse[1] .. e.impulse[2]) or ""}, ":")
     else
       key[#key + 1] = ""
     end
@@ -327,7 +343,7 @@ function M.fx_cards(fx, picks)
     local e = fx[slot]
     if e and #e.params > 0 then
       e.by, e.mods_by = e.by or {}, e.mods_by or {}
-      for _, c in ipairs(effect_cards(e, slot)) do cards[#cards + 1] = c end
+      for _, c in ipairs(effect_cards(e, slot, picks ~= nil)) do cards[#cards + 1] = c end
       for _, c in ipairs(mod_cards(e, slot)) do cards[#cards + 1] = c end
     end
   end

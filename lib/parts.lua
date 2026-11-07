@@ -54,6 +54,7 @@ P.MACHINES = {
   {name = "Dice", short = "Dice", note = 36},
   {name = "Pollen", short = "Polln", note = 60},
   {name = "Molt", short = "Molt", note = 57},
+  {name = "Divisi", short = "Divis", note = 60},
   {name = "Bias", short = "Bias", song_only = true},
 }
 
@@ -138,6 +139,10 @@ local function new_part(i, song)
     -- the effect preset each user slot last loaded or saved, slot ->
     -- {path, index}, for the list; not saved
     fx_presets = {},
+    -- a Venue's impulse by slot: the one picked (nil for the default room, ""
+    -- for none), saved in the "fx" param; what the plugin last built, {impulse,
+    -- error}; and the slots waiting for an effect preset's impulse
+    impulse_pick = {}, impulses = {}, impulse_expect = {},
     -- /patch, /unmount and /insert sent and not yet answered by /inserts,
     -- and when the last went, so only the newest one's /inserts is shown
     fx_wait = 0, fx_asked = 0,
@@ -945,10 +950,18 @@ end
 -- ---- insert effects --------------------------------------------------------------
 
 -- The part's insert edits and the user's slot types as the "fx" param holds
--- them: "slot=type" per user slot, then "slot,name,value" per edit, joined
--- with "|". PSETs from before 4 slots have edits for slots 0-1 only.
+-- them: "slot=type" per user slot, then "slot,name,value" per edit, then
+-- "slot@impulse" per Venue impulse picked, joined with "|". PSETs from
+-- before 4 slots have edits for slots 0-1 only.
 P.USER_SLOTS = {2, 3}
-local function encode_fx(edits, inserts)
+
+-- A Venue's impulse is "factory:<room>" or a path, "" for none. The rooms
+-- are the app's, in its order.
+P.ROOMS = {"small-room", "wooden-hall", "stone-church", "metal-plate", "closet"}
+P.ROOM_NAMES = {"small room", "wooden hall", "stone church", "metal plate", "closet"}
+P.DEFAULT_ROOM = "factory:wooden-hall"
+
+local function encode_fx(edits, inserts, impulses)
   local out = {}
   for _, slot in ipairs(P.USER_SLOTS) do
     if inserts[slot] then out[#out + 1] = slot .. "=" .. inserts[slot] end
@@ -960,16 +973,24 @@ local function encode_fx(edits, inserts)
     local slot, name = k:match("^(%d):(.+)$")
     out[#out + 1] = string.format("%s,%s,%.4f", slot, name, edits[k])
   end
+  for slot = 0, 3 do
+    local pick = impulses and impulses[slot]
+    if pick and not pick:find("|", 1, true) then out[#out + 1] = slot .. "@" .. pick end
+  end
   return table.concat(out, "|")
 end
 
--- The edits and the user's slot types. An edit of the Delay's old pingpong
--- switch becomes its mode: on is ping-pong (1/3), off normal.
+-- The edits, the user's slot types and the impulses picked. An edit of the
+-- Delay's old pingpong switch becomes its mode: on is ping-pong (1/3), off
+-- normal.
 local function decode_fx(s)
-  local edits, inserts = {}, {}
+  local edits, inserts, impulses = {}, {}, {}
   for entry in (s or ""):gmatch("[^|]+") do
+    local at, impulse = entry:match("^([0-3])@(.*)$")
     local slot, name, v = entry:match("^([0-3]),([^,]+),([%d%.eE+-]+)$")
-    if slot and tonumber(v) then
+    if at then
+      impulses[tonumber(at)] = impulse
+    elseif slot and tonumber(v) then
       v = util.clamp(tonumber(v), 0, 1)
       if name == "pingpong" then name, v = "mode", v >= 0.5 and 1 / 3 or 0 end
       edits[slot .. ":" .. name] = v
@@ -978,13 +999,13 @@ local function decode_fx(s)
       if at then inserts[tonumber(at)] = type end
     end
   end
-  return edits, inserts
+  return edits, inserts, impulses
 end
 P.encode_fx, P.decode_fx = encode_fx, decode_fx
 
 local function save_fx(part)
   if part.song then return end
-  params:set(id(part.n, "fx"), encode_fx(part.fx_edits, part.inserts), true)
+  params:set(id(part.n, "fx"), encode_fx(part.fx_edits, part.inserts, part.impulse_pick), true)
 end
 
 -- Drops the edits of the patch's inserts, for a newly picked patch. The
@@ -993,6 +1014,7 @@ local function clear_fx(part)
   for k in pairs(part.fx_edits) do
     if tonumber(k:match("^(%d)")) < P.USER_SLOTS[1] then part.fx_edits[k] = nil end
   end
+  for slot = 0, P.USER_SLOTS[1] - 1 do part.impulse_pick[slot] = nil end
   save_fx(part)
 end
 
@@ -1038,6 +1060,7 @@ local function set_insert(part, slot, type, wait)
   if part.song or not is_user_slot(slot) or part.inserts[slot] == type then return end
   part.inserts[slot] = type
   part.fx_presets[slot] = nil
+  part.impulse_pick[slot], part.impulses[slot], part.impulse_expect[slot] = nil, nil, nil
   for k in pairs(part.fx_edits) do
     if k:match("^(%d)") == tostring(slot) then part.fx_edits[k] = nil end
   end
@@ -1070,6 +1093,11 @@ end
 -- setting, by name, or the user slot's type on the "inserts" card.
 function P.fx_value(i, ctl)
   local part = P.part(i)
+  if ctl.what == "room" then
+    local imp = part.impulses[ctl.fx]
+    local room = imp and imp[1]:match("^factory:(.+)$")
+    return ((tab.key(P.ROOMS, room) or #P.ROOMS + 1) - 1) / #P.ROOMS
+  end
   if ctl.what == "type" then
     local at = tab.key(P.effects, part.inserts[ctl.fx]) or 0
     return #P.effects > 0 and at / #P.effects or 0
@@ -1081,8 +1109,37 @@ function P.fx_value(i, ctl)
   return d.value
 end
 
+-- Picks a Venue's impulse in the slot: "factory:<room>", a file's path, or
+-- "" for none. /impulse_loaded answers. A path with | in it is refused, as
+-- the "fx" param joins its entries with |.
+function P.set_impulse(i, slot, impulse)
+  local part = P.part(i)
+  if part.song or P.song_holds or not part.machine then return end
+  if impulse:find("|", 1, true) then
+    if P.on_preset_note then P.on_preset_note("names with | can't be loaded") end
+    return
+  end
+  part.impulse_pick[slot] = impulse ~= P.DEFAULT_ROOM and impulse or nil
+  save_fx(part)
+  psend(part, "/impulse", {i - 1, slot, impulse, table.unpack(P.ROOTS)})
+end
+
+-- The file the slot's Venue last built its impulse from, or nil for a room.
+function P.impulse_path(i, slot)
+  local imp = P.part(i).impulses[slot]
+  local name = imp and imp[1] or ""
+  if name == "" or name:match("^factory:") then return nil end
+  return name
+end
+
 function P.set_fx(i, ctl, v)
   local part = P.part(i)
+  if ctl.what == "room" then
+    -- the last step is the file (or none), which the picker sets
+    local at = math.floor(v * #P.ROOMS + 0.5) + 1
+    if P.ROOMS[at] then P.set_impulse(i, ctl.fx, "factory:" .. P.ROOMS[at]) end
+    return
+  end
   if ctl.what == "type" then
     local at = math.floor(v * #P.effects + 0.5)
     set_insert(part, ctl.fx, P.effects[at], true)
@@ -1113,6 +1170,10 @@ local function send_fx_edits(part, user_only)
     -- a user slot's only once its effect is there
     local ok = is_user_slot(slot) and part.insert_sent[slot] or not (user_only or is_user_slot(slot))
     if ok then psend(part, "/fx", {part.n - 1, slot, name, v}) end
+  end
+  for slot, pick in pairs(part.impulse_pick) do
+    local ok = is_user_slot(slot) and part.insert_sent[slot] == "Venue" or not (user_only or is_user_slot(slot))
+    if ok then psend(part, "/impulse", {part.n - 1, slot, pick, table.unpack(P.ROOTS)}) end
   end
 end
 
@@ -1650,8 +1711,8 @@ local function apply(part)
     return
   end
   send_strip(part)
-  part.fx_edits, part.inserts = decode_fx(params:get(id(i, "fx")))
-  part.fx_presets = {}
+  part.fx_edits, part.inserts, part.impulse_pick = decode_fx(params:get(id(i, "fx")))
+  part.fx_presets, part.impulses, part.impulse_expect = {}, {}, {}
   -- the user's slots go again: the racks may have been emptied meanwhile.
   -- A slot the PSET leaves empty is emptied only if it was sent something.
   for _, slot in ipairs(P.USER_SLOTS) do
@@ -2056,13 +2117,13 @@ end
 -- Moves a part's saved machine params from a PSET made with an older param
 -- layout (lib/layout.lua). The new params take their defaults, and new
 -- macros come from the part's patch when it has one, as reset_macros does.
-local function migrate_layout(i)
+local function migrate_layout(i, from)
   local part = own[i]
   local defs = part.machine and P.defs[part.machine]
   if not defs then return end
   local values = {}
   for j = 1, #defs do values[j] = params:get(id(i, "s" .. j)) end
-  if LAYOUT.migrate(part.machine, values, defs, P.unmap) and patch_name(own[i]) then
+  if LAYOUT.migrate(part.machine, values, defs, P.unmap, from) and patch_name(own[i]) then
     part.macs_from_patch = true
   end
   for j = 1, #defs do params:set(id(i, "s" .. j), values[j], true) end
@@ -2210,8 +2271,9 @@ function P.after_read(filename)
     for i = 1, P.COUNT do reset_macros(i) end
   end
   params:set("macro_params", 1, true)
-  if saved_count(filename, "param_layout", 1, LAYOUT.NOW) < LAYOUT.NOW then
-    for i = 1, P.COUNT do migrate_layout(i) end
+  local layout = saved_count(filename, "param_layout", 1, LAYOUT.NOW)
+  if layout < LAYOUT.NOW then
+    for i = 1, P.COUNT do migrate_layout(i, layout) end
   end
   params:set("param_layout", LAYOUT.NOW, true)
   -- a PSET from before the delay's modes has its ping pong switch: on is
@@ -2440,7 +2502,8 @@ function P.load_fx_preset(i, slot, s)
   part.fx_wait = (now - part.fx_asked > 2) and 1 or part.fx_wait + 1
   part.fx_asked = now
   part.fx_presets[slot] = {path = s.path, index = s.index}
-  psend(part, "/fx_preset_load", {i - 1, slot, s.path, s.index, s.name})
+  part.impulse_expect[slot] = true
+  psend(part, "/fx_preset_load", {i - 1, slot, s.path, s.index, s.name, table.unpack(P.ROOTS)})
 end
 
 -- Saves the effect in part i's user slot as the effect preset at path,
@@ -2453,7 +2516,7 @@ function P.save_fx_preset(i, slot, path, name)
   end
   if not is_user_slot(slot) or not part.inserts[slot] then return end
   part.fx_saving = {slot = slot, path = path}
-  psend(part, "/fx_preset_save", {i - 1, slot, path, name})
+  psend(part, "/fx_preset_save", {i - 1, slot, path, name, table.unpack(P.ROOTS)})
 end
 
 -- ---- modifier presets -------------------------------------------------------------
@@ -2955,8 +3018,28 @@ function P.osc(path, args)
       for _, d in ipairs(list) do by[d.name] = d end
       for _, d in ipairs(mods) do mods_by[d.name] = d end
       fx[slot] = {type = type, params = list, mods = mods, by = by, mods_by = mods_by}
+      if type == "Venue" then
+        fx[slot].impulse = part.impulses[slot]
+      else
+        part.impulses[slot] = nil
+      end
     end
     part.fx = fx
+  elseif path == "/impulse_loaded" then
+    -- a Venue's impulse was built, or not: shown on its card. One an effect
+    -- preset brought is the part's pick, so a PSET puts it back.
+    local part = rpart((args[1] or -1) + 1)
+    local slot, impulse, err = args[2], args[3] or "", args[4] or ""
+    if not part or part.song or not slot then return end
+    if err ~= "" then print("acidulous: Venue: " .. err) end
+    part.impulses[slot] = {impulse, err}
+    local e = part.fx[slot]
+    if e and e.type == "Venue" then e.impulse = part.impulses[slot] end
+    if part.impulse_expect[slot] then
+      part.impulse_expect[slot] = nil
+      part.impulse_pick[slot] = impulse ~= P.DEFAULT_ROOM and impulse or nil
+      save_fx(part)
+    end
   elseif path == "/macro_names" then
     local part = rpart((args[1] or -1) + 1)
     if not part then return end
@@ -3006,6 +3089,9 @@ function P.osc(path, args)
     if err ~= "" then part.fx_presets[slot] = nil end
     if type == "" then return end
     local same = part.inserts[slot] == type
+    if type ~= "Venue" then
+      part.impulse_pick[slot], part.impulses[slot], part.impulse_expect[slot] = nil, nil, nil
+    end
     part.inserts[slot] = type
     part.insert_sent[slot] = type
     for k in pairs(part.fx_edits) do

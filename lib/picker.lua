@@ -7,6 +7,8 @@
 --   Mosaic: a SoundFont and then its preset, or a folder of WAVs
 --   Dice, Pollen, Molt: a file. Pollen's first list also has "live input",
 --     which empties the part (K3 or K1 + K3).
+-- A Venue's card opens it too (K1 + K3 on the card) for an impulse file;
+-- K1 + K3 or K3 on a file picks it.
 -- Files on the USB stick are copied to dust/audio/acidulous when loaded.
 -- .acpreset files (the app's presets) show in every folder, on any part with a
 -- machine. K1 + K3 on one copies it into the saved presets of its machine
@@ -142,7 +144,10 @@ end
 -- After the copy, if it was on the stick.
 local function load(path, is_dir)
   local i = st.i
-  if is_dir then
+  if st.slot then
+    parts.set_impulse(i, st.slot, path)
+    close()
+  elseif is_dir then
     parts.load_file(i, st.t.folder, path, 0)
     close()
   elseif st.t.file == "pad" then
@@ -237,22 +242,23 @@ end
 
 -- Opens the picker for part i, in the folder of what it has loaded if that's
 -- still there. False if the part's machine takes no files.
-function P.open(the_parts, i)
+function P.open(the_parts, i, slot)
   parts = the_parts
   local part = parts.list[i]
   if not part.machine then return false end
   -- a machine that takes no files still lists presets
-  local t = P.TAKES[part.machine] or {exts = {}}
+  local t = slot and {file = "impulse", exts = AUDIO} or P.TAKES[part.machine] or {exts = {}}
   local exts = {acpreset = true}
   for e in pairs(t.exts) do exts[e] = true end
-  st = {i = i, machine = part.machine, t = t, exts = exts, mode = "browse", cursor = 1, pad = 1}
+  st = {i = i, machine = slot and "Venue" or part.machine, t = t, exts = exts, mode = "browse", cursor = 1, pad = 1,
+    slot = slot}
   if t.file == "pad" then
     local names = parts.pad_names(i)
     for pad = 1, 13 do
       if not names[pad] then st.pad = pad; break end
     end
   end
-  local from = parts.loaded_path(i)
+  local from = slot and parts.impulse_path(i, slot) or not slot and parts.loaded_path(i)
   local dir = from and lib.parent(from)
   if dir and root_of(dir) and util.file_exists(dir) then
     enter(dir, from)
