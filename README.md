@@ -55,6 +55,8 @@ Dan
 2. Load it from **SELECT**.
 3. The first time, it installs its SuperCollider plugin and restarts SuperCollider, which takes about 20 seconds.
 
+<img src="docs/images/splash.png" width="384" alt="The splash screen">
+
 To update, press **update** in maiden and load it again. If the plugin changed it gets installed the same way.
 
 If SuperCollider won't start after you've been logged in over ssh, restart the norns.
@@ -70,9 +72,22 @@ The selected part's machine, patch and five macros, with a little picture of the
 - **E1** machine, **E2** patch or a macro, **E3** changes it.
 - **K2** patches, **K1** + **K2** machines, **K3** plays a note.
 
+| | |
+|---|---|
+| <img src="docs/images/play-ratio.png" width="384" alt="Ratio's six operators"><br>Ratio's six operators | <img src="docs/images/play-genesis.png" width="384" alt="Genesis's kick drum"><br>Genesis's kick drum |
+| <img src="docs/images/play-hammer.png" width="384" alt="Hammer's piano"><br>Hammer's piano | <img src="docs/images/play-sympath.png" width="384" alt="Sympath's sitar"><br>Sympath's sitar |
+| <img src="docs/images/play-chanter.png" width="384" alt="Chanter's bagpipe"><br>Chanter's bagpipe | <img src="docs/images/play-fathom.png" width="384" alt="Fathom's waves"><br>Fathom's waves |
+
+- Each machine has its own little picture. Aviary's bird opens its beak and sings, Genesis's kick drum pushes out on each hit, Hammer's hammer strikes the string and Brazen's valves go down.
+- Chanter's bag swells as it plays, Sympath's strings shake and Fathom's waves rise.
+- Left alone they still move a little: the bird blinks, a glint goes round the drum's rim and one of Tine's tines hums.
+- Each group has its own look, with its own font for the name and its own way of drawing the macros.
+
 ### Parts
 
 Each part's machine, patch and meter.
+
+<img src="docs/images/parts.png" width="384" alt="The parts page with 8 parts playing">
 
 | | |
 |---|---|
@@ -87,13 +102,23 @@ Each part's machine, patch and meter.
 
 In the patch list and machine picker, **E1** changes tab, **E2** moves, **K3** loads and **K2** closes. Loading the patch you're on again resets it.
 
+| | |
+|---|---|
+| <img src="docs/images/patches.png" width="384" alt="Tine's patches by family"><br>Tine's patches by family | <img src="docs/images/machines.png" width="384" alt="The machine picker"><br>The machine picker |
+
 ### Cards
 
 The machine's controls, grouped as in the app. **E1** card, **E2** control, **E3** value, **K2** back to play. **K1** + **E2** right jumps to the amp envelope and left back.
 
+| | |
+|---|---|
+| <img src="docs/images/card.png" width="384" alt="Reflux's filter card"><br>Reflux's filter card | <img src="docs/images/env.png" width="384" alt="Mosaic's amp envelope"><br>Mosaic's amp envelope |
+
 After the machine's cards come the effects. A patch's own effects go in inserts 1 and 2, and fx 3 and 4 on the inserts card are yours, kept when you change patch or machine. Each effect has a mod card with a source (LFO, steps, follow or another track) and up to two knobs to move. A Venue's room knob picks one of the app's five rooms, or **K1** + **K3** for an impulse file.
 
 The mods card has three slots for Scale, Chord and Arp, played in that order. Scale and Chord share a key and scale. They stay when you change patch or machine.
+
+<img src="docs/images/mods.png" width="384" alt="The mods card with Scale, Chord and Arp">
 
 The arp, synced LFOs and delay follow the norns clock.
 
@@ -102,6 +127,10 @@ Pan and anything else that crosses zero stops in the centre for three detents.
 ### Mixer and sends
 
 A meter, fader and pan for each part, with mute and solo, then out with the master level and limiter. Loudness in LUFS is at the top right.
+
+| | |
+|---|---|
+| <img src="docs/images/mixer.png" width="384" alt="The mixer"><br>The mixer | <img src="docs/images/sends.png" width="384" alt="Sends, with Squelch loaded"><br>Sends, with Squelch loaded |
 
 | Mixer | |
 |---|---|
@@ -123,6 +152,8 @@ On out, hold **K1** for the reverb's model and the delay's mode. The rest of the
 
 Plays songs exported from the app as a zip. Put them in dust/data/acidulous/songs, or anywhere in dust/audio. Loading one replaces the parts with its tracks until you unload it.
 
+<img src="docs/images/song.png" width="384" alt="Squelch playing its groove scene">
+
 | Song | |
 |---|---|
 | **K1** + **K2** | song list (**K3** loads, none unloads) |
@@ -136,7 +167,16 @@ The norns clock follows the song's tempo. Track 1 plays from channel 1 and so on
 
 The Nexus scope shows its modules and what the selected one puts out. **E2** module, **K3** plays a note, **K2** closes.
 
+<img src="docs/images/scope.png" width="384" alt="The Nexus scope on a filter">
+
 Every part's settings are in **PARAMETERS > EDIT**. After three minutes with nothing played, the screensaver comes on; set **screensaver after** to change it.
+
+<img src="docs/images/saver.png" width="384" alt="The screensaver with a drop falling in">
+
+- The screensaver is an acid bath. Lines of a 303 wave roll slowly towards you, going from a soft saw to a squelchy ringing wave and back.
+- Each part with a machine raises a hump in the lines, higher while it plays.
+- Now and then a drop from the app's icon falls in and ripples the front lines.
+- On an OMX-27 it plays on its screen too, and the lines roll down its keys.
 
 ## Parts and MIDI
 
@@ -160,6 +200,8 @@ Both zones work.
 
 Plug it in by USB and it goes into REMOTE mode.
 
+![The OMX-27 with acidulous's controls on it](docs/images/omx-controls.png)
+
 - The keys play the selected part, and the encoder picks the patch. Hold and turn it for the machine, tap it to swap the parts and card pages.
 - The five pots are the macros. A pot takes over once it passes the macro's value.
 - **AUX** + top left keys: octave down and up.
@@ -168,6 +210,8 @@ Plug it in by USB and it goes into REMOTE mode.
 - Hold **AUX** + key 3: keys pick the root, the encoder the scale, and a tap swaps snap and degree.
 - Hold **AUX** + key 4: the encoder picks the chord.
 - With **AUX** held the pots are the arp's rate, gate, mode and octaves and the chord type.
+
+![The keys with AUX held](docs/images/omx-shift.png)
 
 **omx velocity** in **PARAMETERS > EDIT** sets how hard the keys play.
 
@@ -219,6 +263,8 @@ In the picker's order. Parts is about how many can play at once on a Pi 4. Mixin
 
 Forage, Mosaic, Dice, Pollen and Molt play samples. On one of those parts press **K1** + **K3** for the file list, in dust/audio and on a USB stick if one's in. Each starts with a sound of its own when you pick it.
 
+<img src="docs/images/picker.png" width="384" alt="The file list in an 808 folder">
+
 | | |
 |---|---|
 | **E2** | move |
@@ -237,6 +283,8 @@ WAV, AIFF and FLAC, up to 30 seconds except on Mosaic. All parts together can ho
 PSETs save each part's machine, patch, edits and samples. The samples aren't copied, so keep them where they were.
 
 To save a part's sound as a patch, press **K1** + **K3** in the patch list and type a name. It goes in a **saved** tab at the start of the list, and the app can open it too. **K1** + **K3** on a saved one deletes it.
+
+<img src="docs/images/saved.png" width="384" alt="Reflux's saved tab">
 
 Presets from the app (.acpreset) go in dust/data/acidulous/presets, or load one from the file list with **K1** + **K3**. Their samples are unpacked to dust/audio/acidulous/presets and deleted with the preset, unless something still uses them.
 
