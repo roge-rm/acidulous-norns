@@ -33,6 +33,7 @@ old_files = [f for f in git("ls-tree", "--name-only", commit, "data/banks/").spl
 changed = {}
 for f in sorted(old_files):
     machine = os.path.basename(f)[:-5]
+    if "." in machine: continue  # effect and modifier banks: PSETs never saved their index
     before = names(git("show", commit + ":" + f))
     path = os.path.join(ROOT, f)
     now = names(open(path).read()) if os.path.exists(path) else []

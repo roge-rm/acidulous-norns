@@ -108,11 +108,34 @@ return {
       },
     },
     Smash = {
+      g = {
+        {"smash", {"depth", "time", "threshold", "down", "up"}},
+        {"bands", {"low", "mid", "high", "in"}},
+        {"beat", {"lowduck", "midduck", "highduck", "sidechain"}},
+        {"duck", {"lowdepth", "middepth", "highdepth", "recover"}},
+        {"out", {"gain"}},
+      },
+      o = {
+        lowduck = {"off", "sidechain", "beats", "offbeat", "8ths", "16ths", "2 & 4", "halves", "3-3-2", "dotted"},
+        midduck = {"off", "sidechain", "beats", "offbeat", "8ths", "16ths", "2 & 4", "halves", "3-3-2", "dotted"},
+        highduck = {"off", "sidechain", "beats", "offbeat", "8ths", "16ths", "2 & 4", "halves", "3-3-2", "dotted"},
+      },
     },
     Acid = {
+      g = {
+        {"filter", {"cutoff", "resonance", "mode", "drive"}},
+        {"sweep", {"env", "decay", "accent", "pattern"}},
+        {"key", {"follow", "from", "key", "scale", "octave"}},
+        {"slide", {"glide", "slides"}},
+        {"out", {"mix", "gain"}},
+      },
       o = {
         pattern = {"track", "8ths", "16ths", "offbeat", "push", "busy", "halves", "synco", "rolling"},
         mode = {"lp", "bp"},
+        from = {"scale", "notes"},
+        key = {"c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"},
+        scale = {"ionian (major)", "dorian", "phrygian", "lydian", "mixolydian", "aeolian (minor)", "locrian", "harmonic minor", "melodic minor", "major pentatonic", "minor pentatonic", "major blues", "minor blues", "egyptian", "hungarian minor", "byzantine", "persian", "hirajoshi", "in sen", "iwato", "enigmatic", "phrygian dominant", "neapolitan minor", "neapolitan major", "altered", "lydian dominant", "lydian augmented", "locrian nat2", "bebop dominant", "bebop major", "whole tone", "dim whole-half", "dim half-whole"},
+        octave = {"-2", "-1", "0", "+1", "+2", "+3"},
       },
     },
     Mouth = {
@@ -145,8 +168,18 @@ return {
       },
     },
     Spectral = {
+      g = {
+        {"spectrum", {"freeze", "blur", "smear", "robot", "peaks", "tilt"}},
+        {"stutter", {"stutter", "grid", "length", "order", "fade", "renew"}},
+        {"out", {"mix", "gain"}},
+      },
       o = {
         freeze = {"run", "hold"},
+        stutter = {"run", "loop"},
+        grid = {"1/4", "1/4t", "1/8", "1/8t", "1/16", "1/16t", "1/32"},
+        length = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"},
+        order = {"forward", "reverse", "bounce", "random"},
+        renew = {"never", "1 lap", "2 laps", "4 laps", "8 laps"},
       },
     },
     Formula = {
@@ -155,7 +188,12 @@ return {
       g = {
         {"shape", {"attack", "sustain", "time"}},
         {"extra", {"split"}},
+        {"grid", {"grid", "depth", "rate", "length"}},
         {"out", {"gain"}},
+      },
+      o = {
+        rate = {"1/16t", "1/16", "1/8"},
+        length = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"},
       },
     },
     Midside = {
@@ -170,15 +208,36 @@ return {
       g = {
         {"band", {"freq", "threshold", "range"}},
         {"how", {"mode", "listen", "relative"}},
+        {"throw", {"throw", "time", "feedback"}},
         {"out", {"gain"}},
       },
       o = {
         mode = {"split", "wide"},
+        time = {"1/16", "1/8", "1/8.", "1/4", "1/4.", "1/2"},
+      },
+    },
+    Venue = {
+      g = {
+        {"tail", {"predelay", "length", "decay", "stretch"}},
+        {"tone", {"lowcut", "highcut"}},
+        {"out", {"width", "mix", "gain"}},
+      },
+    },
+    Vessel = {
+      g = {
+        {"body", {"material", "size", "key", "scale", "follow"}},
+        {"touch", {"strike", "pickup", "drive"}},
+        {"out", {"mix", "gain"}},
+      },
+      o = {
+        material = {"glass", "wood", "metal", "skin", "stone", "bell", "plate", "tube"},
+        key = {"off", "c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"},
+        scale = {"ionian (major)", "dorian", "phrygian", "lydian", "mixolydian", "aeolian (minor)", "locrian", "harmonic minor", "melodic minor", "major pentatonic", "minor pentatonic", "major blues", "minor blues", "egyptian", "hungarian minor", "byzantine", "persian", "hirajoshi", "in sen", "iwato", "enigmatic", "phrygian dominant", "neapolitan minor", "neapolitan major", "altered", "lydian dominant", "lydian augmented", "locrian nat2", "bebop dominant", "bebop major", "whole tone", "dim whole-half", "dim half-whole"},
       },
     },
   },
   -- the effects in the engine's order
-  order = {"Delay", "Reverb", "Eq", "Distortion", "Compressor", "Filter", "Bitcrusher", "Phaser", "Flanger", "Chorus", "Tremolo", "Width", "Shifter", "Harmonizer", "Amp", "Gate", "Swell", "Rotary", "Grain", "Resonator", "Smash", "Acid", "Mouth", "Tape", "Slicer", "Magneto", "Horn", "Spectral", "Formula", "Transient", "Midside", "Deesser"},
+  order = {"Delay", "Reverb", "Eq", "Distortion", "Compressor", "Filter", "Bitcrusher", "Phaser", "Flanger", "Chorus", "Tremolo", "Width", "Shifter", "Harmonizer", "Amp", "Gate", "Swell", "Rotary", "Grain", "Resonator", "Smash", "Acid", "Mouth", "Tape", "Slicer", "Magneto", "Horn", "Spectral", "Formula", "Transient", "Midside", "Deesser", "Venue", "Vessel"},
   -- the reverb's models, in the engine's order, and each one's own knobs
   reverb_models = {"room", "plate", "hall", "spring", "early", "space", "tube", "string", "drumhead", "thunder", "howl", "flutter"},
   reverb_knobs = {

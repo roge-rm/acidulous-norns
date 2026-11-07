@@ -33,7 +33,7 @@ SHORT = {
     "Timber": "woodwinds", "Tongue": "jaw harp",
     "Aviary": "birdsong", "Fathom": "water, weather",
     "Mosaic": "multisamples", "Pollen": "granular clouds", "Molt": "sung takes",
-    "Cipher": "vocoder", "Nexus": "modular", "Diction": "vocal synth", "Bias": "four-track",
+    "Divisi": "string ensemble", "Cipher": "vocoder", "Nexus": "modular", "Diction": "vocal synth", "Bias": "four-track",
 }
 
 

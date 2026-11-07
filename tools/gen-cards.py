@@ -316,6 +316,8 @@ class Evaluator:
         if m == "coerceIn": return v
         if m in ("lowercase", "toString", "trim"): return v if isinstance(v, Pad) else str(v).lower() if m == "lowercase" else str(v)
         if m == "uppercase": return str(v).upper()
+        if m == "endsWith": return str(v).endswith(args[0])
+        if m == "startsWith": return str(v).startswith(args[0])
         if m == "replace": return v.replace(args[0], args[1])
         if m == "size": return len(v)
         if m in ("first",): return v[0]
@@ -623,6 +625,9 @@ def test(ev, toks, a, b, env):
     if toks[a].v == "(" and match_close(toks, a) == b - 1: return test(ev, toks, a + 1, b - 1, env)
     if toks[a].k == "id" and toks[a].v in ("true", "false") and a + 1 == b: return toks[a].v == "true"
     if toks[a].k == "id" and toks[a].v == "else": return True
+    if any(t.v == "." for t in toks[a:b]):
+        v = ev.eval(toks, a, b, env)
+        if isinstance(v, bool): return v
     raise Fail("condition " + " ".join(t.v for t in toks[a:b]))
 
 
@@ -807,14 +812,20 @@ def effect_defs():
         except ValueError: return float(consts.get(v, 0))
 
     by_class = {}
-    for text in srcs.values():
+    for path, text in srcs.items():
+        # constants of the effect's own .h and .cpp come first: kModes is in several
+        stem = os.path.splitext(path)[0]
+        own = {}
+        for ext in (".h", ".cpp"):
+            for m in re.finditer(r"constexpr int(?:32_t)? (\w+)\s*=\s*(\d+)\s*[,;]", srcs.get(stem + ext, "")):
+                own[m.group(1)] = int(m.group(2))
         for m in re.finditer(r"const ParamDef \*(\w+)::paramDefs\(int32_t &count\) const \{", text):
             body = text[m.end():text.index("count =", m.end())]
             defs = []
             for d in re.finditer(r'\{"(\w+)",\s*([^,]+),\s*([^,]+),\s*([^,]+),\s*Curve::(\w+),\s*([^,]+),\s*"([^"]*)"\}', body):
                 n, lo, hi, de, curve, steps, unit = d.groups()
                 steps = steps.strip()
-                st = int(steps) if steps.isdigit() else consts.get(steps, 0)
+                st = int(steps) if steps.isdigit() else own.get(steps, consts.get(steps, 0))
                 defs.append((n, num(lo), num(hi), num(de), curve, st, unit))
             by_class[m.group(1)] = defs
     reg = open(os.path.join(EFFECTS_DIR, "EffectRegistry.cpp"), encoding="utf-8").read()

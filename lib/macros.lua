@@ -48,6 +48,7 @@ M.table = {
   Mosaic = m({"start", "start"}, {"gpos", "gpos"}, {"f_freq", "cutoff"}, {"f_res", "reso"}, {"a_release", "rel"}),
   Dice = m({"swap", "swap"}, {"reverse", "rev"}, {"stutter", "stuttr"}, {"drop", "drop"}, {"jump", "jump"}),
   Pollen = m({"position", "pos"}, {"size", "size"}, {"density", "dense"}, {"spread", "spread"}, {"bloom", "bloom"}),
+  Divisi = m({"violin", "violin"}, {"cello", "cello"}, {"choir", "choir"}, {"attack", "attack"}, {"ensemble", "ensmbl"}),
   Molt = m({"tune", "tune"}, {"rate", "rate"}, {"formant", "formnt"}, {"robot", "robot"}, {"amprelease", "rel"}),
 }
 
