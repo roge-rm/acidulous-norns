@@ -86,6 +86,22 @@ Listening, Talking and Sing to the Piano play the audio input, and there was non
 
 Nexus is the heavy one: two parts of most patches, one of Wall Pad. Cumulus's cloud is rebuilt on its own thread 50 ms after a spectrum param stops changing, which takes about 260 ms on the Pi 4 (Nimbus). Notes and other messages don't wait for it: while builds ran, replies from the plugin's worker came back in 2 to 6 ms. Diction without words sings the vowel param's vowel.
 
+## Divisi
+
+Played on the norns as above, 4-note chords (C3, G3, C4, E4) with Hexbeat on another part doing nothing. Everything (strings, choir and brass) and Brass and Strings are the heaviest, and the strings alone cost about the same as Init.
+
+| Machine | Patch | Load % | Highest % | Worst % | scsynth CPU % |
+|---|---|---|---|---|---|
+| Divisi | Everything | 15.4 | 17.4 | 29.5 | 18 |
+| Divisi | Brass and Strings | 15.0 | 17.5 | 27.3 | 17 |
+| Divisi | Choir and Strings | 13.6 | 14.3 | 25.9 | |
+| Divisi | Big Choir | 12.8 | 13.6 | 22.5 | |
+| Divisi | Old Box | 6.6 | 7.2 | 13.8 | |
+| Divisi | Full Strings | 5.7 | 6.4 | 13.3 | |
+| Divisi | Init | 5.6 | 6.8 | 14.7 | 7 |
+
+Everything with a Venue insert (wooden hall) reads load 27.0, highest 28.7 and worst 43.3, so a Venue adds about 11% load. A Vessel adds about 2%.
+
 ## The sample machines
 
 Played on the norns the same way, with the test files from `host/tests/make_material.py` loaded (a 13-pad kit, test.sf2, short WAV and FLAC files). Bias plays in songs only (its takes come from the song's folder), so it isn't in the machine picker.
