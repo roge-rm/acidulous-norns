@@ -17,7 +17,7 @@ local FALLBACK = "https://github.com/Quixotic7/OMX-27/releases/download/v1.15.7/
 local ASSETS = {rp2040 = "RP2040_FormSeq.uf2", teensy40 = "T4_FormSeq.hex", teensy32 = "T31_FormSeq.hex"}
 local MCU = {teensy40 = "TEENSY40", teensy32 = "TEENSY32"}
 local WORK = _path.data .. "acidulous/omx-update"
-local LOADER = _path.code .. "acidulous/bin/teensy_loader_cli"
+local LOADER = norns.state.path .. "bin/teensy_loader_cli"
 
 up.status = nil -- progress text while updating
 

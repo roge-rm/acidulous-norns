@@ -41,7 +41,7 @@ Dan
 
 ## Installing
 
-1. In maiden, find acidulous in the project list and press **install**. Or over ssh, `git clone https://github.com/roge-rm/acidulous-norns ~/dust/code/acidulous`. Keep the folder name acidulous.
+1. Over ssh, `git clone https://github.com/roge-rm/acidulous-norns ~/dust/code/acidulous`. The folder name makes it show as acidulous in **SELECT**.
 2. Load it from **SELECT**.
 3. The first time, it installs its SuperCollider plugin and restarts SuperCollider, which takes about 20 seconds.
 
