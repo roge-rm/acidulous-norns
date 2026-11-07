@@ -1332,6 +1332,76 @@ int main(int argc, char** argv)
         c->drain();
     }
 
+    // Venue's impulse: the default room on a fresh Venue, a room or a file
+    // chosen by /impulse, an error for one that isn't there, a rebuild when
+    // the length moves, and the impulse in an effect preset: a room by name,
+    // a file packed as media/ and unpacked again under another root.
+    {
+        const std::string vdir = scratch + "/venue/";
+        const std::string user = vdir + "user/", other = vdir + "other/";
+        std::system(("mkdir -p '" + user + "impulses' '" + other + "' '" + vdir + "Venue'").c_str());
+        std::system(("cp '" + banks + "/../rooms/impulse-closet.wav' '" + user + "impulses/hall.wav'").c_str());
+        Reply r;
+        const auto loaded = [&](const std::string& impulse, bool ok) {
+            return log.wait("/impulse_loaded", r) && r.args[2].str == impulse && r.args[3].str.empty() == ok;
+        };
+        const auto saved = [&](const std::string& file, const std::string& root) {
+            log.clear();
+            core::Args a{Value::i(4), Value::i(2), Value::s(file), Value::s("V")};
+            if(!root.empty())
+                a.push_back(Value::s(root));
+            cmd("/fx_preset_save", a);
+            Reply out;
+            return log.wait("/fx_preset_saved", out) && out.args.size() > 3 ? out.args[3].str : std::string("no reply");
+        };
+        const auto impulse_of = [&](const std::string& file) {
+            acidulous::Preset got;
+            return read_file(file, got) && got.patches.size() == 1 ? setting(got.patches[0], "impulse") : std::string("?");
+        };
+        log.clear();
+        cmd("/insert", {Value::i(4), Value::i(2), Value::s("Venue")});
+        check(loaded("factory:wooden-hall", true), "a fresh Venue builds the default room");
+        check(saved(vdir + "Venue/a.acpreset", "") == "ok" && impulse_of(vdir + "Venue/a.acpreset") == "factory:wooden-hall",
+              "its preset names the room");
+        log.clear();
+        cmd("/impulse", {Value::i(4), Value::i(2), Value::s("metal-plate")});
+        check(loaded("factory:metal-plate", true), "a room by its id");
+        log.clear();
+        cmd("/impulse", {Value::i(4), Value::i(2), Value::s("factory:nowhere")});
+        check(loaded("factory:nowhere", false), "a room that isn't there is an error");
+        log.clear();
+        cmd("/impulse", {Value::i(4), Value::i(2), Value::s("impulses/hall.wav"), Value::s(user)});
+        check(loaded(user + "impulses/hall.wav", true), "a file under a root");
+        log.clear();
+        cmd("/fx", {Value::i(4), Value::i(2), Value::s("length"), Value::f(0.3f)});
+        check(loaded(user + "impulses/hall.wav", true), "the length moving builds it again");
+        check(saved(vdir + "Venue/b.acpreset", user) == "ok" && impulse_of(vdir + "Venue/b.acpreset") == "media/impulses/hall.wav" &&
+                  exists(vdir + "Venue/b.acpreset"),
+              "its file is packed in the preset");
+        // Loaded into slot 3 with another root: unpacked there, built from it.
+        log.clear();
+        cmd("/fx_preset_load", {Value::i(4), Value::i(3), Value::s(vdir + "Venue/b.acpreset"), Value::i(0), Value::s(""),
+                                Value::s(other)});
+        Reply fl;
+        check(log.wait("/fx_preset_loaded", fl) && fl.args[2].str == "Venue" && fl.args[4].str.empty() &&
+                  loaded(other + "acidulous/presets/Venue/b/impulses/hall.wav", true) &&
+                  exists(other + "acidulous/presets/Venue/b/impulses/hall.wav"),
+              "unpacked under another root and built");
+        log.clear();
+        cmd("/insert", {Value::i(4), Value::i(3), Value::s("Delay")});
+        cmd("/fx", {Value::i(4), Value::i(2), Value::s("decay"), Value::f(0.5f)});
+        check(loaded(user + "impulses/hall.wav", true), "slot 2 still builds after slot 3 changed type");
+        cmd("/impulse", {Value::i(4), Value::i(3), Value::s("closet")});
+        c->drain();
+        check(log.count("/error") >= 1, "/impulse on a slot with no Venue is an error");
+        cmd("/impulse", {Value::i(4), Value::i(2), Value::s("")});
+        check(saved(vdir + "Venue/c.acpreset", user) == "ok" && impulse_of(vdir + "Venue/c.acpreset").empty(),
+              "no impulse saved as none");
+        cmd("/insert", {Value::i(4), Value::i(2), Value::s("")});
+        cmd("/insert", {Value::i(4), Value::i(3), Value::s("")});
+        c->drain();
+    }
+
     // Modifier presets: the app's Arp and Chord presets into a part's
     // modifier slots, what a load keeps, another type switching the slot,
     // refusals, a save the app can read, the deep scan and a delete.

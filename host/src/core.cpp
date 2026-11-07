@@ -530,8 +530,13 @@ Core::~Core()
         {
             const char* fx = host.mountedEffect(p, s);
             if(fx && *fx)
+            {
+                if(std::strcmp(fx, "Venue") == 0)
+                    host.loadImpulse(p, kInsertUnits[s], "", 1.f, 1.f, 1.f);
                 host.mountEffect(p, s, "");
+            }
             fx_formula[p][s].clear();
+            impulse_on[p][s] = false;
         }
         pull(1);
     }
@@ -1080,22 +1085,34 @@ bool Core::command(const std::string& path, const Args& a)
     }
     if(path == "/fx_preset_load" && a.size() >= 5)
     {
-        // i:part i:slot s:path i:index s:name
+        // i:part i:slot s:path i:index s:name s:root...
         const int part = to_int(a[0]), slot = to_int(a[1]);
         if(part_ok(part) && slot >= kPatchInsertSlots && slot < kEffectSlots)
-            post_part(part, [this, part, slot, p = to_str(a[2]), index = to_int(a[3]), n = to_str(a[4])] {
-                load_fx_preset(part, slot, p, index, n);
+        {
+            std::vector<std::string> roots;
+            for(size_t k = 5; k < a.size(); ++k)
+                roots.push_back(to_str(a[k]));
+            post_part(part, [this, part, slot, p = to_str(a[2]), index = to_int(a[3]), n = to_str(a[4]), roots] {
+                load_fx_preset(part, slot, p, index, n, roots);
             });
+        }
         else if(part_ok(part))
             error("insert slot " + std::to_string(slot) + " is a patch's");
         return true;
     }
     if(path == "/fx_preset_save" && a.size() >= 4)
     {
-        // i:part i:slot s:path s:name
+        // i:part i:slot s:path s:name s:root...
         const int part = to_int(a[0]), slot = to_int(a[1]);
         if(part_ok(part) && slot >= kPatchInsertSlots && slot < kEffectSlots)
-            post_part(part, [this, part, slot, p = to_str(a[2]), n = to_str(a[3])] { save_fx_preset(part, slot, p, n); });
+        {
+            std::vector<std::string> roots;
+            for(size_t k = 4; k < a.size(); ++k)
+                roots.push_back(to_str(a[k]));
+            post_part(part, [this, part, slot, p = to_str(a[2]), n = to_str(a[3]), roots] {
+                save_fx_preset(part, slot, p, n, roots);
+            });
+        }
         else if(part_ok(part))
             error("insert slot " + std::to_string(slot) + " is a patch's");
         return true;
@@ -1181,6 +1198,19 @@ bool Core::command(const std::string& path, const Args& a)
         const int part = to_int(a[0]), slot = to_int(a[1]);
         if(part_ok(part) && slot >= 0 && slot < kEffectSlots)
             post_part(part, [this, part, slot, n = to_str(a[2]), v = to_float(a[3])] { set_fx(part, slot, n, v); });
+        return true;
+    }
+    if(path == "/impulse" && a.size() >= 3)
+    {
+        // i:part i:slot s:impulse s:root...
+        const int part = to_int(a[0]), slot = to_int(a[1]);
+        if(part_ok(part) && slot >= 0 && slot < kEffectSlots)
+        {
+            std::vector<std::string> roots;
+            for(size_t k = 3; k < a.size(); ++k)
+                roots.push_back(to_str(a[k]));
+            post_part(part, [this, part, slot, i = to_str(a[2]), roots] { set_impulse(part, slot, i, roots); });
+        }
         return true;
     }
     if(path == "/insert" && a.size() >= 3)
@@ -1529,19 +1559,35 @@ void Core::cloud_loop()
     {
         if(cloud_quit || stopping)
             return;
-        int  next = -1;
+        // The earliest request, a cloud's or an impulse's.
+        int  next = -1, ip = -1, is = -1;
         auto now  = std::chrono::steady_clock::now();
         for(int p = 0; p < kParts; ++p)
             if(clouds[p].want && (next < 0 || clouds[p].due < clouds[next].due))
                 next = p;
-        if(next < 0)
+        for(int p = 0; p < kParts; ++p)
+            for(int s = 0; s < kEffectSlots; ++s)
+                if(impulse_req[p][s].want && (ip < 0 || impulse_req[p][s].due < impulse_req[ip][is].due))
+                    ip = p, is = s;
+        if(next < 0 && ip < 0)
         {
             cloud_cv.wait(l);
             continue;
         }
-        if(clouds[next].due > now)
+        const bool cloud = ip < 0 || (next >= 0 && clouds[next].due <= impulse_req[ip][is].due);
+        const auto due   = cloud ? clouds[next].due : impulse_req[ip][is].due;
+        if(due > now)
         {
-            cloud_cv.wait_until(l, clouds[next].due);
+            cloud_cv.wait_until(l, due);
+            continue;
+        }
+        if(!cloud)
+        {
+            ImpulseRequest r = impulse_req[ip][is];
+            impulse_req[ip][is].want = false;
+            l.unlock();
+            build_impulse(ip, is, r.impulse, r.shape);
+            l.lock();
             continue;
         }
         CloudRequest&      c      = clouds[next];
@@ -1664,6 +1710,7 @@ void Core::apply_chain(int part, const acidulous::PatchChain& chain, const std::
         std::fprintf(stderr, "acidulous: %s: %d insert(s) found no free slot\n", what.c_str(), int(skipped));
     if(unknown > 0)
         std::fprintf(stderr, "acidulous: %s: %d insert(s) name no effect this build has\n", what.c_str(), int(unknown));
+    sync_impulses(part, at);
     send_inserts(part, at);
     if(!plan.set)
         return;
@@ -1751,7 +1798,18 @@ void Core::set_fx(int part, int slot, const std::string& name, float v01)
         error("no " + type + " param " + name);
         return;
     }
-    push_param(part, kInsertUnits[slot], name, v01);
+    if(!push_param(part, kInsertUnits[slot], name, v01))
+        return;
+    // Venue's shape knobs are built into its impulse, so they build it again.
+    if(type == "Venue" && impulse_on[part][slot])
+    {
+        const int k = name == "length" ? 0 : name == "decay" ? 1 : name == "stretch" ? 2 : -1;
+        if(k >= 0)
+        {
+            fx_shape[part][slot][k] = v01 < 0.f ? 0.f : v01 > 1.f ? 1.f : v01;
+            request_impulse(part, slot, true);
+        }
+    }
 }
 
 // Mounts a new effect with its defaults in one of the part's own insert slots
@@ -1770,12 +1828,14 @@ void Core::set_insert(int part, int slot, const std::string& type)
     settle();
     mounts_queued = true;
     fx_formula[part][slot].clear();
+    impulse_on[part][slot] = false;
     if(!host.mountEffect(part, slot, type))
     {
         error("can't mount effect " + type);
         host.mountEffect(part, slot, "");
     }
     settle();
+    sync_impulses(part);
     const acidulous::PatchInsert* none[kEffectSlots] = {};
     send_inserts(part, none, true);
 }
@@ -3012,6 +3072,7 @@ namespace
 bool media_key(const std::string& k)
 {
     return k == "sample" || k == "slice_sample" || k == "sf2" || k == "zones" || k == "voice" || k == "morphvoice" ||
+           k == "impulse" ||
            (k.size() > 7 && k.compare(k.size() - 7, 7, "_sample") == 0);
 }
 
@@ -3295,11 +3356,9 @@ constexpr long kMaxPresetFile = 64L << 20;
 // The most a preset's manifest and patches may take, packed.
 constexpr size_t kMaxPatchBytes = size_t(16) << 20;
 
-bool read_modifier_preset(const std::vector<uint8_t>& data, Preset& out, std::string& why);
-
 // Reads the manifest and patches of the preset at [path], only those
 // entries, so the app's packed files can be any size. A modifier preset
-// too, its kind "modifier".
+// has the kind "modifier".
 bool read_preset(const std::string& path, Preset& out, std::string& why)
 {
     FILE* f = std::fopen(path.c_str(), "rb");
@@ -3344,10 +3403,7 @@ bool read_preset(const std::string& path, Preset& out, std::string& why)
         why = "can't be read";
         return false;
     }
-    if(EngineHost::readPreset(data.data(), data.size(), out, why))
-        return true;
-    std::string ignore;
-    return read_modifier_preset(data, out, ignore);
+    return EngineHost::readPreset(data.data(), data.size(), out, why);
 }
 
 // A patch from before version 6 has the Delay's old pingpong switch, which
@@ -3587,129 +3643,6 @@ uint32_t crc32_add(uint32_t c, const uint8_t* data, size_t n)
     return c ^ 0xffffffffu;
 }
 
-// [entries] as a zip of stored entries.
-std::vector<uint8_t> stored_zip(const std::vector<std::pair<std::string, std::vector<uint8_t>>>& entries)
-{
-    std::vector<uint8_t> out, dir;
-    for(const auto& e : entries)
-    {
-        const uint32_t at  = uint32_t(out.size());
-        const uint32_t crc = crc32_add(0, e.second.data(), e.second.size());
-        const auto     common = [&](std::vector<uint8_t>& o) {
-            put16(o, 20);
-            put16(o, 0);
-            put16(o, 0);
-            put16(o, 0);
-            put16(o, 0x21);
-            put32(o, crc);
-            put32(o, uint32_t(e.second.size()));
-            put32(o, uint32_t(e.second.size()));
-            put16(o, uint32_t(e.first.size()));
-            put16(o, 0);
-        };
-        put32(out, 0x04034b50u);
-        common(out);
-        out.insert(out.end(), e.first.begin(), e.first.end());
-        out.insert(out.end(), e.second.begin(), e.second.end());
-        put32(dir, 0x02014b50u);
-        put16(dir, 20);
-        common(dir);
-        put16(dir, 0);
-        put16(dir, 0);
-        put16(dir, 0);
-        put32(dir, 0);
-        put32(dir, at);
-        dir.insert(dir.end(), e.first.begin(), e.first.end());
-    }
-    const uint32_t dir_at = uint32_t(out.size());
-    out.insert(out.end(), dir.begin(), dir.end());
-    put32(out, 0x06054b50u);
-    put16(out, 0);
-    put16(out, 0);
-    put16(out, uint32_t(entries.size()));
-    put16(out, uint32_t(entries.size()));
-    put32(out, uint32_t(dir.size()));
-    put32(out, dir_at);
-    put16(out, 0);
-    return out;
-}
-
-// In the JSON [text], the string value of the first [key] changed from
-// [from] to [to]. False if it isn't [from].
-bool swap_json_string(std::string& text, const std::string& key, const std::string& from, const std::string& to)
-{
-    const size_t k = text.find("\"" + key + "\"");
-    if(k == std::string::npos)
-        return false;
-    size_t at = k + key.size() + 2;
-    while(at < text.size() && std::isspace(static_cast<unsigned char>(text[at])))
-        ++at;
-    if(at >= text.size() || text[at] != ':')
-        return false;
-    ++at;
-    while(at < text.size() && std::isspace(static_cast<unsigned char>(text[at])))
-        ++at;
-    const std::string want = "\"" + from + "\"";
-    if(text.compare(at, want.size(), want) != 0)
-        return false;
-    text.replace(at, want.size(), "\"" + to + "\"");
-    return true;
-}
-
-// presetfile reads and writes only machine and effect presets, so the app's
-// modifier presets (kind "modifier", patches keyed "mod.<type>") go through
-// it as effect presets: their manifest's kind is swapped on the way in and
-// back on the way out.
-
-// Reads the modifier preset in the zip [data] into [out], kind "modifier".
-// False with [why] set if it isn't one or can't be read.
-bool read_modifier_preset(const std::vector<uint8_t>& data, Preset& out, std::string& why)
-{
-    std::vector<std::pair<std::string, std::vector<uint8_t>>> entries;
-    if(!presetfile::unzip(data.data(), data.size(), entries, why))
-        return false;
-    bool found = false;
-    for(auto& e : entries)
-        if(e.first == "preset.json")
-        {
-            std::string text(e.second.begin(), e.second.end());
-            found = swap_json_string(text, "kind", "modifier", "effect");
-            e.second.assign(text.begin(), text.end());
-        }
-    if(!found)
-        return false;
-    const std::vector<uint8_t> zip = stored_zip(entries);
-    if(!EngineHost::readPreset(zip.data(), zip.size(), out, why))
-        return false;
-    out.kind = "modifier";
-    return true;
-}
-
-// [preset] as .acpreset bytes, as presetfile::write makes them, a modifier
-// preset too.
-std::vector<uint8_t> preset_bytes(const Preset& preset)
-{
-    if(preset.kind != "modifier")
-        return presetfile::write(preset);
-    Preset as_effect = preset;
-    as_effect.kind   = "effect";
-    std::vector<std::pair<std::string, std::vector<uint8_t>>> entries;
-    std::string                                               why;
-    const std::vector<uint8_t>                                bytes = presetfile::write(as_effect);
-    if(!presetfile::unzip(bytes.data(), bytes.size(), entries, why))
-        return {};
-    for(auto& e : entries)
-    {
-        std::string text(e.second.begin(), e.second.end());
-        if(e.first == "preset.json")
-            swap_json_string(text, "kind", "effect", "modifier");
-        else
-            swap_json_string(text, "machine", "fx." + preset.unit, "mod." + preset.unit);
-        e.second.assign(text.begin(), text.end());
-    }
-    return stored_zip(entries);
-}
-
 // A file going into a saved preset as [entry]: [data] if [source] is empty,
 // else read from [source] while writing, [size] bytes.
 struct Packed
@@ -3805,7 +3738,7 @@ void pack_files(std::vector<std::pair<std::string, std::string>>& settings, cons
 {
     std::map<std::string, std::string> done; // file -> its entry
     const auto pack = [&](const std::string& path) -> std::string {
-        if(path.empty() || packed_path(path))
+        if(path.empty() || packed_path(path) || path.rfind("factory:", 0) == 0)
             return path;
         const std::string p  = squash(path);
         const auto        at = done.find(p);
@@ -4176,6 +4109,30 @@ void Core::load_preset(int part, const std::string& path, int index, const std::
     src.chain    = pp.chain;
     if(pp.version < 6)
         upgrade_delay_mode(src.chain);
+    // A Venue in the patch's inserts: its impulse file is unpacked or found.
+    for(auto& fx : src.chain.inserts)
+    {
+        if(fx.type != "Venue")
+            continue;
+        for(auto& kv : fx.settings)
+        {
+            std::string& impulse = kv.second;
+            if(kv.first != "impulse" || impulse.empty() || impulse.rfind("factory:", 0) == 0)
+                continue;
+            if(packed_path(impulse))
+            {
+                std::map<std::string, std::string> failed;
+                uint64_t                           used = 0;
+                const std::string dir = unpack_media(path, "Venue", {impulse}, roots, failed, used);
+                if(failed.count(impulse))
+                    std::fprintf(stderr, "acidulous: %s: %s: %s\n", path.c_str(), impulse.c_str(), failed[impulse].c_str());
+                if(!dir.empty())
+                    impulse = dir + impulse.substr(6);
+            }
+            else
+                impulse = resolve(impulse, roots, dir_of(path));
+        }
+    }
     src.low      = pp.low;
     src.high     = pp.high;
     if(!apply_patch(part, machine, src, tag))
@@ -4360,6 +4317,176 @@ std::string Core::load_zones(int part, const std::string& path, int index, const
     return "";
 }
 
+// --- Venue impulses -------------------------------------------------------
+
+namespace
+{
+constexpr const char* kFactory     = "factory:";
+constexpr const char* kDefaultRoom = "factory:wooden-hall";
+// How long a shape knob rests before the impulse is built again.
+constexpr int kImpulseSettleMs = 150;
+
+bool starts_with(const std::string& s, const char* prefix) { return s.rfind(prefix, 0) == 0; }
+} // namespace
+
+// Where the app's rooms are: data/rooms beside the banks.
+std::string Core::rooms_dir() const
+{
+    std::string d = bank_dir;
+    while(d.size() > 1 && d.back() == '/')
+        d.pop_back();
+    const size_t slash = d.find_last_of('/');
+    return (slash == std::string::npos ? std::string() : d.substr(0, slash + 1)) + "rooms";
+}
+
+// The file an impulse setting names: a room's as "factory:<id>", else the path
+// as it is. "" with [why] set if it isn't there.
+std::string Core::impulse_file(const std::string& impulse, std::string& why) const
+{
+    std::string file = impulse;
+    if(starts_with(impulse, kFactory))
+    {
+        const std::string id = impulse.substr(8);
+        if(id.empty() || !safe_name(id) || id.find('/') != std::string::npos)
+        {
+            why = "no room " + id;
+            return "";
+        }
+        file = rooms_dir() + "/impulse-" + id + ".wav";
+    }
+    if(!exists(file))
+    {
+        why = starts_with(impulse, kFactory) ? "no room " + impulse.substr(8) : "not found";
+        return "";
+    }
+    return file;
+}
+
+// Asks for the slot's impulse to be built from fx_impulse and fx_shape, now
+// or once the knobs have rested. Worker thread. Inline (the render tool) it
+// builds now.
+void Core::request_impulse(int part, int slot, bool settle_first)
+{
+    if(inline_jobs)
+    {
+        settle();
+        build_impulse(part, slot, fx_impulse[part][slot], fx_shape[part][slot]);
+        return;
+    }
+    {
+        std::lock_guard<std::mutex> l(cloud_lock);
+        ImpulseRequest& r = impulse_req[part][slot];
+        r.want            = true;
+        r.impulse         = fx_impulse[part][slot];
+        std::copy(fx_shape[part][slot], fx_shape[part][slot] + 3, r.shape);
+        r.due = std::chrono::steady_clock::now() + std::chrono::milliseconds(settle_first ? kImpulseSettleMs : 0);
+    }
+    cloud_cv.notify_one();
+}
+
+// Cloud thread, or the render tool's main loop: reads, shapes and builds the
+// impulse and hands it to the Venue. The engine refuses it if the slot has
+// another effect by then. Replies "/impulse_loaded i:part i:slot s:impulse
+// s:error".
+void Core::build_impulse(int part, int slot, const std::string& impulse, const float* shape)
+{
+    std::string why;
+    {
+        std::lock_guard<std::mutex> m(mount_locks[part]);
+        if(stopping)
+            return;
+        std::string file;
+        if(!impulse.empty())
+            file = impulse_file(impulse, why);
+        if(why.empty())
+            why = host.loadImpulse(part, kInsertUnits[slot], file, shape[0], shape[1], shape[2]);
+    }
+    if(!why.empty())
+        error("Venue: " + (impulse.empty() ? std::string("no impulse") : base_name(impulse)) + ": " + why);
+    reply("/impulse_loaded", {Value::i(part), Value::i(slot), Value::s(impulse), Value::s(why)});
+}
+
+// Worker thread. /impulse: names the slot's Venue impulse, "factory:<room>",
+// a room's bare id, a file (read against [roots] if relative) or "" for none.
+void Core::set_impulse(int part, int slot, const std::string& impulse, const std::vector<std::string>& roots)
+{
+    if(!impulse_on[part][slot])
+    {
+        error("no Venue in slot " + std::to_string(slot));
+        return;
+    }
+    std::string setting = impulse;
+    if(!impulse.empty() && !starts_with(impulse, kFactory))
+    {
+        std::string ignore;
+        if(impulse.find('/') == std::string::npos && !impulse_file(kFactory + impulse, ignore).empty())
+            setting = kFactory + impulse;
+        else
+            setting = resolve(impulse, roots, "");
+    }
+    fx_impulse[part][slot] = setting;
+    request_impulse(part, slot, false);
+}
+
+// Takes the slot's impulse out of the host and forgets it. Worker thread.
+void Core::drop_impulse(int part, int slot)
+{
+    {
+        std::lock_guard<std::mutex> l(cloud_lock);
+        impulse_req[part][slot].want = false;
+    }
+    if(std::strcmp(host.mountedEffect(part, slot), "Venue") == 0)
+    {
+        std::lock_guard<std::mutex> m(mount_locks[part]);
+        host.loadImpulse(part, kInsertUnits[slot], "", 1.f, 1.f, 1.f);
+    }
+    impulse_on[part][slot]  = false;
+    fx_impulse[part][slot].clear();
+}
+
+// After mounts: a Venue in a slot that had none starts with the default room
+// and its knobs at their defaults, or the patch's [at] insert's; a slot that
+// stopped being a Venue lets its impulse go. With [request] false the caller
+// asks for the build itself. Worker thread.
+void Core::sync_impulses(int part, const acidulous::PatchInsert* const at[acidulous::kEffectSlots], bool request)
+{
+    for(int slot = 0; slot < kEffectSlots; ++slot)
+    {
+        const bool venue = std::strcmp(host.mountedEffect(part, slot), "Venue") == 0;
+        if(!venue)
+        {
+            if(impulse_on[part][slot])
+                drop_impulse(part, slot);
+            continue;
+        }
+        const acidulous::PatchInsert* fx = at && at[slot] && at[slot]->type == "Venue" ? at[slot] : nullptr;
+        if(impulse_on[part][slot] && !fx)
+            continue;
+        impulse_on[part][slot]  = true;
+        fx_impulse[part][slot]  = kDefaultRoom;
+        int32_t         count   = 0;
+        const ParamDef* defs    = EffectRegistry::paramDefs("Venue", count);
+        static const char* const names[3] = {"length", "decay", "stretch"};
+        for(int k = 0; k < 3; ++k)
+        {
+            fx_shape[part][slot][k] = 1.f;
+            for(int32_t i = 0; defs && i < count; ++i)
+                if(std::strcmp(defs[i].name, names[k]) == 0)
+                    fx_shape[part][slot][k] = defs[i].unmap(defs[i].def);
+            if(fx)
+                for(const auto& kv : fx->params)
+                    if(kv.first == names[k])
+                        fx_shape[part][slot][k] = kv.second < 0.f ? 0.f : kv.second > 1.f ? 1.f : kv.second;
+        }
+        if(fx)
+            for(const auto& kv : fx->settings)
+                if(kv.first == "impulse")
+                    fx_impulse[part][slot] = kv.second;
+        if(request)
+            request_impulse(part, slot, false);
+    }
+}
+
 // Puts patch [index] (or the one called [want_name]) of the effect preset at
 // [path] in the part's own insert slot 2 or 3, as the app's slot picker does:
 // a new effect when the slot has another type, the preset's params and the
@@ -4367,7 +4494,8 @@ std::string Core::load_zones(int part, const std::string& path, int index, const
 // Replies "/fx_preset_loaded i:part i:slot s:type s:name s:error (s:param
 // f:value01 f:default01)..." with the slot's type and values, then /inserts
 // as /insert does.
-void Core::load_fx_preset(int part, int slot, const std::string& path, int index, const std::string& want_name)
+void Core::load_fx_preset(int part, int slot, const std::string& path, int index, const std::string& want_name,
+                          const std::vector<std::string>& roots)
 {
     const char* unit = kInsertUnits[slot];
     const auto  done = [&](const std::string& name, const std::string& why) {
@@ -4433,9 +4561,11 @@ void Core::load_fx_preset(int part, int slot, const std::string& path, int index
         {
             host.mountEffect(part, slot, "");
             settle();
+            sync_impulses(part);
             return done("", "can't mount effect " + type);
         }
         settle();
+        sync_impulses(part, nullptr, false);
     }
     int unknown = 0;
     for(const auto& kv : params)
@@ -4469,6 +4599,42 @@ void Core::load_fx_preset(int part, int slot, const std::string& path, int index
             std::fprintf(stderr, "acidulous: %s: formula: %s\n", path.c_str(), error.c_str());
         fx_formula[part][slot] = error.empty() ? formula : "";
     }
+    // A Venue's impulse comes with its preset, the default room without one.
+    if(type == "Venue" && impulse_on[part][slot])
+    {
+        static const char* const names[3] = {"length", "decay", "stretch"};
+        for(int k = 0; k < 3; ++k)
+            for(int32_t i = 0; i < count; ++i)
+                if(std::strcmp(defs[i].name, names[k]) == 0)
+                {
+                    float v = defs[i].unmap(defs[i].def);
+                    for(const auto& kv : params)
+                        if(kv.first == names[k])
+                            v = kv.second;
+                    fx_shape[part][slot][k] = v < 0.f ? 0.f : v > 1.f ? 1.f : v;
+                }
+        std::string impulse = kDefaultRoom;
+        for(const auto& kv : pp.settings)
+            if(kv.first == "impulse")
+                impulse = kv.second;
+        if(!impulse.empty() && !starts_with(impulse, kFactory))
+        {
+            if(packed_path(impulse))
+            {
+                std::map<std::string, std::string> failed;
+                uint64_t                           used = 0;
+                const std::string                  dir  = unpack_media(path, "Venue", {impulse}, roots, failed, used);
+                if(failed.count(impulse))
+                    std::fprintf(stderr, "acidulous: %s: %s: %s\n", path.c_str(), impulse.c_str(),
+                                 failed[impulse].c_str());
+                impulse = dir.empty() ? impulse : dir + impulse.substr(6);
+            }
+            else
+                impulse = resolve(impulse, roots, dir_of(path));
+        }
+        fx_impulse[part][slot] = impulse;
+        request_impulse(part, slot, false);
+    }
     mounts_queued = true;
     settle();
     done(pp.name, "");
@@ -4478,7 +4644,8 @@ void Core::load_fx_preset(int part, int slot, const std::string& path, int index
 // at [path] called [name], as the app's slot picker saves one: its params
 // without the slot's mod, and a Formula's formula as last loaded. Replies
 // "/fx_preset_saved i:part i:slot s:path s:ok|error".
-void Core::save_fx_preset(int part, int slot, const std::string& path, const std::string& name)
+void Core::save_fx_preset(int part, int slot, const std::string& path, const std::string& name,
+                          const std::vector<std::string>& roots)
 {
     const auto done = [&](const std::string& why) {
         if(!why.empty())
@@ -4515,6 +4682,17 @@ void Core::save_fx_preset(int part, int slot, const std::string& path, const std
         return done("busy");
     if(type == "Formula" && !fx_formula[part][slot].empty())
         pp.settings.emplace_back("formula", fx_formula[part][slot]);
+    // A Venue's room, or its file packed in the preset.
+    std::vector<Packed>   media;
+    std::set<std::string> taken;
+    uint64_t              packed = 0;
+    if(type == "Venue")
+    {
+        pp.settings.emplace_back("impulse", impulse_on[part][slot] ? fx_impulse[part][slot] : std::string(kDefaultRoom));
+        pack_files(pp.settings, roots, media, taken, packed);
+        for(auto& kv : pp.settings)
+            kv.second = map_paths(kv.first, kv.second, [&](const std::string& f) { return relative_to(f, roots); });
+    }
     Preset preset;
     preset.kind = "effect";
     preset.unit = type;
@@ -4527,7 +4705,7 @@ void Core::save_fx_preset(int part, int slot, const std::string& path, const std
         if(exists(path) && (!read_preset(path, old, ignore) || old.patches.size() > 1 || has_engine_lines(path)))
             return done("would replace more than one patch");
     }
-    if(!write_file(path, presetfile::write(preset), why))
+    if(!write_with_files(path, presetfile::write(preset), media, why))
         return done(why);
     done("");
 }
@@ -4677,7 +4855,7 @@ void Core::save_mod_preset(int part, int slot, const std::string& path, const st
         if(exists(path) && (!read_preset(path, old, ignore) || old.patches.size() > 1 || has_engine_lines(path)))
             return done("would replace more than one patch");
     }
-    const std::vector<uint8_t> bytes = preset_bytes(preset);
+    const std::vector<uint8_t> bytes = presetfile::write(preset);
     if(bytes.empty())
         return done("can't be written");
     if(!write_file(path, bytes, why))
@@ -4787,7 +4965,7 @@ void Core::delete_preset(const std::string& path, int index)
     if(preset.patches.size() == 1)
         return done(std::remove(path.c_str()) == 0 ? "" : std::string("can't delete it: ") + std::strerror(errno));
     preset.patches.erase(preset.patches.begin() + index);
-    if(!write_file(path, preset_bytes(preset), why))
+    if(!write_file(path, presetfile::write(preset), why))
         return done(why);
     done("");
 }

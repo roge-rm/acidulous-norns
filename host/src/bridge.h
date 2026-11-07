@@ -22,6 +22,13 @@
 //        /inserts with what the engine holds. Patch and machine changes keep
 //        it; a song load or unload empties it
 //   /effects                           the insert effects there are
+//   /impulse i:part i:slot s:impulse s:root...   a Venue's impulse in the
+//        slot (any of 0 to 3): a room's id ("wooden-hall") or "factory:<id>",
+//        one of closet, small-room, wooden-hall, stone-church, metal-plate;
+//        a file, absolute or read against the roots; "" for none. A Venue
+//        starts with wooden-hall, and its length, decay and stretch build the
+//        impulse again 150 ms after they last move (/fx). The rooms are the
+//        app's, in data/rooms beside data/banks. Replies /impulse_loaded
 //   /mod i:part i:slot s:type          mounts a modifier ("Scale", "Chord",
 //        "Arp") in the part's slot 0 to 2, on and with its defaults, or
 //        empties the slot with "". Notes go through slot 0, then 1, then 2.
@@ -100,17 +107,20 @@
 //        found, with /values of what it has
 //   /preset_scan s:folder [i:deep]     the patches of the .acpreset files in
 //        it, with deep 1 those in its folders too
-//   /fx_preset_load i:part i:slot s:path i:index s:name   puts the effect
-//        preset's patch called name (or at index) in the part's own slot 2
-//        or 3: a new effect if the slot has another type, the preset's
-//        params and the rest at defaults; the slot's mod stays. A Formula
-//        takes its formula. Below version 6 a Delay's pingpong becomes mode,
+//   /fx_preset_load i:part i:slot s:path i:index s:name s:root...   puts the
+//        effect preset's patch called name (or at index) in the part's own
+//        slot 2 or 3: a new effect if the slot has another type, the
+//        preset's params and the rest at defaults; the slot's mod stays. A
+//        Formula takes its formula, a Venue its impulse (a file packed in the
+//        preset is unpacked under the first unlabelled root, as a machine
+//        preset's files are, then built as /impulse does). Below version 6 a Delay's pingpong becomes mode,
 //        below 3 it's refused. Replies /fx_preset_loaded, then /inserts as
 //        /insert does
-//   /fx_preset_save i:part i:slot s:path s:name   writes the effect in the
-//        part's slot 2 or 3 as an effect preset the app can read, its params
-//        without the slot's mod, a Formula with the formula it last loaded,
-//        making its folder.
+//   /fx_preset_save i:part i:slot s:path s:name s:root...   writes the effect
+//        in the part's slot 2 or 3 as an effect preset the app can read, its
+//        params without the slot's mod, a Formula with the formula it last
+//        loaded, a Venue with its impulse (a room as "factory:<id>", a file
+//        packed as media/, found against the roots), making its folder.
 //        Replaces only a file of one patch without the app's engine lines
 //   /mod_preset_load i:part i:slot s:path i:index s:name   puts the app's
 //        Arp or Chord preset called name (or at index) in the part's
@@ -277,6 +287,9 @@
 //        empty) and its effect's params as the engine holds them, error ""
 //        when it loaded
 //   /fx_preset_saved i:part i:slot s:path s:result   "ok" or what went wrong
+//   /impulse_loaded i:part i:slot s:impulse s:error   a Venue's impulse built
+//        or not (error "" when it did), when it is mounted, chosen with
+//        /impulse or loaded with a preset or patch, and after a shape change
 //   /mod_preset_loaded i:part i:slot s:type s:name s:error (s:param
 //        f:value01)...   the slot's type ("" if empty) and its params as the
 //        engine holds them, error "" when it loaded

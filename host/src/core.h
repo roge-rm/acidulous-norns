@@ -214,6 +214,15 @@ class Core
     Args nexus_macros(const acidulous::machine::nexus::Graph& g, const std::vector<std::string>& named);
     void cloud_loop();
     void build_cloud(int part, const std::vector<float>& values, uint64_t epoch);
+    // Venue impulses: kept per insert slot, built on the cloud thread.
+    std::string rooms_dir() const;
+    std::string impulse_file(const std::string& impulse, std::string& why) const;
+    void request_impulse(int part, int slot, bool settle);
+    void build_impulse(int part, int slot, const std::string& impulse, const float* shape);
+    void set_impulse(int part, int slot, const std::string& impulse, const std::vector<std::string>& roots);
+    void drop_impulse(int part, int slot);
+    void sync_impulses(int part, const acidulous::PatchInsert* const at[acidulous::kEffectSlots] = nullptr,
+                       bool request = true);
     void unmount(int part);
     void load_patch(int part, const std::string& machine, const std::string& name);
     void patch_failed(int part, const std::string& what);
@@ -227,8 +236,10 @@ class Core
                            const std::vector<std::string>& roots);
     void save_preset(int part, const std::string& path, const std::string& name,
                      std::vector<std::pair<std::string, std::string>> settings, const std::vector<std::string>& roots);
-    void load_fx_preset(int part, int slot, const std::string& path, int index, const std::string& want_name);
-    void save_fx_preset(int part, int slot, const std::string& path, const std::string& name);
+    void load_fx_preset(int part, int slot, const std::string& path, int index, const std::string& want_name,
+                        const std::vector<std::string>& roots = {});
+    void save_fx_preset(int part, int slot, const std::string& path, const std::string& name,
+                        const std::vector<std::string>& roots = {});
     void load_mod_preset(int part, int slot, const std::string& path, int index, const std::string& want_name);
     void save_mod_preset(int part, int slot, const std::string& path, const std::string& name);
     void scan_presets(const std::string& folder, bool deep = false);
@@ -302,10 +313,19 @@ class Core
         uint64_t                              epoch = 0; // bumped on each mount
         std::vector<float>                    built;     // what the cloud was last built from
     };
+    // A Venue's impulse waits for its shape knobs to rest, then builds.
+    struct ImpulseRequest
+    {
+        bool                                  want = false;
+        std::string                           impulse;
+        float                                 shape[3] = {1.f, 1.f, 1.f}; // length, decay, stretch, 0-1
+        std::chrono::steady_clock::time_point due;
+    };
     std::thread             cloud_thread;
     std::mutex              cloud_lock;
     std::condition_variable cloud_cv;
     CloudRequest            clouds[kParts];
+    ImpulseRequest          impulse_req[kParts][acidulous::kEffectSlots];
     // Held across a cloud build, across a /load and around queuing a part's
     // mount or unmount. Taken before cloud_lock.
     std::mutex              mount_locks[kParts];
@@ -338,6 +358,12 @@ class Core
     // Worker only: the formula last loaded into each insert slot's Formula,
     // for saving its preset; cleared when the slot is mounted again.
     std::string                 fx_formula[kParts][acidulous::kEffectSlots];
+    // Worker only: each insert slot's Venue impulse as set ("factory:<room>",
+    // a file, or "" for none) and its length, decay and stretch, 0-1. Valid
+    // while impulse_on is set, which is while the slot holds a Venue.
+    std::string                 fx_impulse[kParts][acidulous::kEffectSlots];
+    float                       fx_shape[kParts][acidulous::kEffectSlots][3] = {};
+    bool                        impulse_on[kParts][acidulous::kEffectSlots] = {};
     bool                        mod_bypass[kParts][kModSlots] = {}; // on the worker
     // Worker only: the loaded song's folder, "" for none, and the path it
     // was loaded from (a zip, or the folder).

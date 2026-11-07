@@ -38,5 +38,7 @@ Ratio keys Bell Piano
 Ratio keys Bell
 Formulate chip Pulse Lead
 Formulate chip Major Arp
+Divisi pad Full Strings
+Divisi pad Big Section
 LIST
 exit $failed

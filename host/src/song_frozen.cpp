@@ -31,6 +31,8 @@ double machine_cost(const std::string& machine)
         {"Resonance", 5.8}, {"Draw", 5.6},      {"Chanter", 3.7},  {"Fret", 2.8},     {"Tine", 2.3},
         {"Genesis", 2.2},   {"Palm", 1.9},      {"Tongue", 1.8},   {"Timber", 1.7},   {"Aviary", 1.7},
         {"Bias", 2.0},
+        // Divisi: a guess from the desktop load (a quarter of Ratio's), to measure on the Pi.
+        {"Divisi", 12.0},
     };
     const auto it = cost.find(machine);
     return it == cost.end() ? 10.0 : it->second;

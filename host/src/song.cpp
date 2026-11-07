@@ -560,8 +560,11 @@ void Core::clear_song(bool quiet)
         // The song's inserts go first, so the unmount's /inserts shows the
         // slots empty.
         for(int s = 0; s < kEffectSlots; ++s)
+        {
+            drop_impulse(p, s);
             if(*host.mountedEffect(p, s))
                 host.mountEffect(p, s, "");
+        }
         patch_fx[p]      = PatchTrackState{};
         part_sends[p][0] = part_sends[p][1] = 0.f;
         clear_mods(p);
@@ -644,8 +647,11 @@ void Core::resync_teardown()
         if(!parts[p].machine.empty())
             continue;
         for(int s = 0; s < kEffectSlots; ++s)
+        {
+            drop_impulse(p, s);
             if(*host.mountedEffect(p, s))
                 host.mountEffect(p, s, "");
+        }
         for(int s = 0; s < kModSlots; ++s)
             if(mod_types[p][s].empty() && *host.mountedModifier(p, s))
                 host.mountInputMod(p, s, "");
