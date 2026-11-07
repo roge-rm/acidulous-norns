@@ -1249,4 +1249,53 @@ function M.Molt(x, y, w, h, t, e, held)
   screen.fill()
 end
 
+-- Divisi: a string ensemble on a stage, the choir on the back riser,
+-- violins in the middle and cellos at the front. Still when idle; on a note
+-- the players come in one after another, lighting with the level, and bow
+-- together.
+local DIVISI_CHOIR = {3, 8, 13, 18, 23, 28, 33}
+local DIVISI_VIOLIN = {3, 12, 21, 30}
+local DIVISI_CELLO = {3, 16, 29}
+local function player(px, py, lv)
+  fill_rect(px, py, 2, 2, lv)
+  fill_rect(px - 1, py + 2, 4, 2, lv * 0.65)
+end
+function M.Divisi(x, y, w, h, t, e, held)
+  e = max(e, held > 0 and 0.6 or 0)
+  local since = since_on("Divisi", held, t)
+  local seat = 0
+  -- a player's level, each coming in a little after the last on a note
+  local function lv(base)
+    seat = seat + 1
+    local d = held > 0 and util.clamp((since - 0.25 * hash(seat)) / 0.15, 0, 1) or 1
+    return base + 9 * e * d
+  end
+  -- the risers
+  lit(3)
+  rect(x, y + 6, w, 1)
+  rect(x, y + 13, w, 1)
+  screen.fill()
+  for _, px in ipairs(DIVISI_CHOIR) do player(x + px, y + 1, lv(5)) end
+  -- the bows' stroke, all together
+  local bow = e > 0.1 and rnd(1.2 * sin(t * 2.2)) or 0
+  -- violins, a bow over the right shoulder
+  for _, px in ipairs(DIVISI_VIOLIN) do
+    local l = lv(6)
+    player(x + px, y + 8, l)
+    local b = max(0, bow)
+    lit(l)
+    line(x + px + 2 + b, y + 11 - b, x + px + 5 + b, y + 8 - b)
+    screen.fill()
+  end
+  -- cellos, the instrument beside the player and the bow across it
+  for _, px in ipairs(DIVISI_CELLO) do
+    local l = lv(7)
+    player(x + px, y + 15, l)
+    fill_rect(x + px + 5, y + 14, 1, 2, l * 0.6)
+    fill_rect(x + px + 4, y + 16, 3, 5, l * 0.7)
+    fill_rect(x + px + 5, y + 21, 1, 1, l * 0.6)
+    fill_rect(x + px + 3 + bow, y + 18, 5, 1, l + 2)
+  end
+end
+
 return M
