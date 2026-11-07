@@ -100,6 +100,22 @@ Played on the norns as above, 4-note chords (C3, G3, C4, E4) with Hexbeat on ano
 | Divisi | Full Strings | 5.7 | 6.4 | 13.3 | |
 | Divisi | Init | 5.6 | 6.8 | 14.7 | 7 |
 
+Several parts at once, each holding the same chord, read off the plugin over 6 seconds (load, highest load, worst block):
+
+| Patch | Parts | Load % | Highest % | Worst % |
+|---|---|---|---|---|
+| Everything | 1 | 15.4 | 15.9 | 26.4 |
+| Everything | 2 | 29.5 | 29.9 | 48.1 |
+| Everything | 3 | 43.8 | 44.3 | 57.7 |
+| Everything | 4 | 58.6 | 61.2 | 73.1 |
+| Init | 1 | 5.7 | 6.1 | 12.0 |
+| Init | 2 | 9.8 | 9.9 | 17.3 |
+| Init | 4 | 17.9 | 18.1 | 27.3 |
+| Init | 6 | 26.2 | 28.7 | 43.5 |
+| Init | 8 | 34.4 | 34.8 | 49.6 |
+
+So 2 parts of the choir and brass patches (3 is right at 60% with nothing else playing), and 8 of the strings alone, Old Box or Init.
+
 Everything with a Venue insert (wooden hall) reads load 27.0, highest 28.7 and worst 43.3, so a Venue adds about 11% load. A Vessel adds about 2%.
 
 ## The sample machines
