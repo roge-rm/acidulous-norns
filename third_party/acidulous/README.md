@@ -1,7 +1,7 @@
 # Acidulous engine
 
 Copied from the Acidulous app, https://github.com/roge-rm/Acidulous, at commit
-8ded5657bb33238bcd1ed6f129f6fe184a30c47e (see VERSION), by tools/vendor-acidulous.sh:
+583fc8ee8cabbdd98aec9a1d6a55f3591e974229 (see VERSION), by tools/vendor-acidulous.sh:
 
 - engine/, sequencer/ and EngineHost.cpp/.h from app/src/main/cpp
 - from app/src/main/cpp/platform: android/jni_bridge.cpp, web/jni.h (a fake
