@@ -1212,6 +1212,8 @@ local function handle_enc(n, d)
     elseif n == 3 then
       turn_control(d)
     end
+    -- the card's title bar shows the control and its value for a while
+    if n >= 2 then ps.shown_at = util.time() end
   elseif n == 1 then
     state.sel = util.clamp(i + d, 1, parts.active)
   elseif state.page ~= "parts" then

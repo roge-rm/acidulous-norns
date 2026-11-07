@@ -138,7 +138,34 @@ local function draw_switch(parts, ctl, x, w, v, sel)
   end
 end
 
--- ps: the part's card state {card, knob, first, tab_first, pad}.
+-- Seconds the title bar shows the control last turned or picked.
+local SHOW_SECS = 1.5
+
+-- The "label: value" for the title bar, the value alone if that's too wide
+-- for w, or nil with no control.
+local function control_text(parts, state, ctl, v, pads, ps, panel, w)
+  local label, value
+  if ctl.kind == "pad" then
+    local at = 1
+    for j, p in ipairs(pads or {}) do if p == ps.pad then at = j end end
+    label, value = "pad", tostring(at)
+  else
+    label = ctl.label
+    if ctl.kind == "onoff" then
+      value = v >= 0.5 and "on" or "off"
+    elseif ctl.opts then
+      value = ctl.opts[math.floor(v * (#ctl.opts - 1) + 0.5) + 1]
+    else
+      value = panel.option(ctl, v) or short_value(parts, ctl.def, v)
+    end
+  end
+  value = tostring(value or "")
+  local full = label and (label .. ": " .. value) or value
+  if screen.text_extents(full) <= w then return full end
+  return draw.cut(value, w)
+end
+
+-- ps: the part's card state {card, knob, first, tab_first, pad, shown_at}.
 -- cards: from panel.cards. pads: from panel.pads, or nil.
 function view.card(parts, state, cards, ps, pads, panel, note)
   screen.clear()
@@ -175,9 +202,24 @@ function view.card(parts, state, cards, ps, pads, panel, note)
   local card = cards[ps.card]
   frame(0, 18, CARD_W, 46, 4)
   fill_rect(0, 18, CARD_W, 7, 4)
-  screen.level(0)
-  text(3, 24, card.title)
   local list = card.controls
+  local title_text = card.title
+  local picked = list[ps.knob]
+  if picked and ps.shown_at and util.time() - ps.shown_at < SHOW_SECS then
+    local pv
+    if picked.kind == "pad" then
+      pv = 0
+    elseif picked.mod then
+      pv = parts.mod_value(state.sel, picked)
+    elseif picked.fx then
+      pv = parts.fx_value(state.sel, picked)
+    else
+      pv = parts.get(state.sel, "s" .. picked.slot) or 0
+    end
+    title_text = control_text(parts, state, picked, pv, pads, ps, panel, CARD_W - 6)
+  end
+  screen.level(0)
+  text(3, 24, title_text)
   if ps.knob < ps.first then ps.first = ps.knob end
   local function cw(a, b)
     local w = 0
