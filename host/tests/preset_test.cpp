@@ -630,6 +630,68 @@ int main(int argc, char** argv)
                   !exists(audio + "acidulous/presets/Dice/evil.wav"),
               "a ../ entry refused");
 
+        // Deleting a preset removes its unpacked folder, only that one.
+        {
+            const auto del = [&](const std::string& file) {
+                log.clear();
+                cmd("/preset_delete", {Value::s(file), Value::i(0), Value::s(audio), Value::s(mat + "/")});
+                return log.wait("/preset_deleted", r) && r.args[2].str == "ok" && !exists(file);
+            };
+            const auto copy_load = [&](const std::string& stem) {
+                std::system(("mkdir -p '" + scratch + "/Forage' && cp '" + fixtures + "/hit.acpreset' '" + scratch +
+                             "/Forage/" + stem + ".acpreset'").c_str());
+                log.clear();
+                cmd("/preset_load", {Value::i(3), Value::s(scratch + "/Forage/" + stem + ".acpreset"), Value::i(0),
+                                     Value::s("@t"), Value::i(1), Value::s("Forage"), Value::s(""), Value::s(audio),
+                                     Value::s(mat + "/")});
+                const bool ok = log.wait("/preset_loaded", r);
+                c->drain();
+                return ok;
+            };
+            const std::string gone = audio + "acidulous/presets/Forage/gone/";
+            check(copy_load("gone") && exists(gone + "samples/hit.wav"), "a copy of the pad preset unpacked");
+            check(del(scratch + "/Forage/gone.acpreset") && !exists(gone + "samples/hit.wav") && !exists(gone) &&
+                      exists(hit) && exists(audio + "acidulous/presets/Forage/"),
+                  "delete removes the unpacked folder and leaves the others");
+
+            // another preset beside it that names files there keeps the folder
+            const std::string kept = audio + "acidulous/presets/Forage/kept/";
+            check(copy_load("kept"), "another copy unpacked");
+            {
+                acidulous::Preset np;
+                bool              ok = read_file(fixtures + "/hit.acpreset", np) && !np.patches.empty();
+                if(ok)
+                {
+                    for(auto& kv : np.patches[0].settings)
+                        if(kv.first == "p00_sample")
+                            kv.second = "acidulous/presets/Forage/kept/samples/hit.wav";
+                    const auto bytes = acidulous::presetfile::write(np);
+                    std::ofstream(scratch + "/Forage/other.acpreset", std::ios::binary)
+                        .write(reinterpret_cast<const char*>(bytes.data()), std::streamsize(bytes.size()));
+                }
+                check(ok, "write a neighbour naming the folder");
+            }
+            const bool names_it = read_file(scratch + "/Forage/other.acpreset", p) && !p.patches.empty() &&
+                                  setting(p.patches[0], "p00_sample").find("acidulous/presets/Forage/kept/") != std::string::npos;
+            check(names_it && del(scratch + "/Forage/kept.acpreset") && exists(kept + "samples/hit.wav"),
+                  "a folder another preset names is kept");
+
+            // a path that climbs out of presets/ removes nothing outside it
+            const std::string victim = audio + "acidulous/esc/";
+            std::system(("mkdir -p '" + victim + "' && echo x > '" + victim + "keep.txt' && cp '" + fixtures +
+                         "/hit.acpreset' '" + scratch + "/esc.acpreset'").c_str());
+            check(del(scratch + "/Forage/../esc.acpreset") && exists(victim + "keep.txt"),
+                  "a path that would escape removes no folder");
+            // no root given: the file goes, no folder is touched
+            std::system(("cp '" + fixtures + "/hit.acpreset' '" + scratch + "/Forage/noroot.acpreset'").c_str());
+            std::system(("mkdir -p '" + audio + "acidulous/presets/Forage/noroot' && touch '" + audio +
+                         "acidulous/presets/Forage/noroot/a'").c_str());
+            log.clear();
+            cmd("/preset_delete", {Value::s(scratch + "/Forage/noroot.acpreset"), Value::i(0)});
+            check(log.wait("/preset_deleted", r) && r.args[2].str == "ok" && exists(audio + "acidulous/presets/Forage/noroot/a"),
+                  "no root, no folder removed");
+        }
+
         // Over 64 MB unpacked: "too big", the patch still loads.
         check(load_packed(1, "big.acpreset", "Dice", r) && r.args[3].str.empty() && r.args[2].str == "Big" &&
                   error_has("too big") && !exists(audio + "acidulous/presets/Dice/big/big.wav"),

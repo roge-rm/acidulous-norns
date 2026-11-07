@@ -2473,7 +2473,9 @@ end
 
 -- Takes saved preset s out of its file; /preset_deleted answers.
 function P.delete_preset(s)
-  send("/preset_delete", {s.path, s.index})
+  local args = {s.path, s.index}
+  for _, r in ipairs(P.ROOTS) do args[#args + 1] = r end
+  send("/preset_delete", args)
 end
 
 -- ---- effect presets ---------------------------------------------------------------

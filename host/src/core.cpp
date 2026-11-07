@@ -1137,7 +1137,10 @@ bool Core::command(const std::string& path, const Args& a)
     }
     if(path == "/preset_delete" && a.size() >= 2)
     {
-        post([this, p = to_str(a[0]), index = to_int(a[1])] { delete_preset(p, index); });
+        std::vector<std::string> roots;
+        for(size_t k = 2; k < a.size(); ++k)
+            roots.push_back(to_str(a[k]));
+        post([this, p = to_str(a[0]), index = to_int(a[1]), roots] { delete_preset(p, index, roots); });
         return true;
     }
     if(path == "/shape" && a.size() >= 1)
@@ -5016,18 +5019,110 @@ void Core::scan_presets(const std::string& folder, bool deep)
     reply("/preset_scan", out);
 }
 
+// Removes [dir] and what's in it, without following links. Only for folders
+// made by unpack_media.
+void remove_tree(const std::string& dir)
+{
+    DIR* d = opendir(dir.c_str());
+    if(d)
+    {
+        while(const dirent* e = readdir(d))
+        {
+            const std::string n = e->d_name;
+            if(n == "." || n == "..")
+                continue;
+            struct stat st{};
+            const std::string p = dir + "/" + n;
+            if(lstat(p.c_str(), &st) == 0 && S_ISDIR(st.st_mode))
+                remove_tree(p);
+            else
+                std::remove(p.c_str());
+        }
+        closedir(d);
+    }
+    rmdir(dir.c_str());
+}
+
+// Whether another .acpreset next to [path] has a setting naming files under [marker].
+bool neighbour_uses(const std::string& path, const std::string& marker)
+{
+    const size_t cut = path.rfind('/');
+    if(cut == std::string::npos)
+        return false;
+    const std::string dir = path.substr(0, cut + 1);
+    DIR*              d   = opendir(dir.c_str());
+    if(!d)
+        return false;
+    std::vector<std::string> files;
+    while(const dirent* e = readdir(d))
+    {
+        const std::string n = e->d_name;
+        if(n.size() > 9 && lower(n.substr(n.size() - 9)) == ".acpreset")
+            files.push_back(dir + n);
+    }
+    closedir(d);
+    for(const auto& f : files)
+    {
+        Preset      other;
+        std::string why;
+        if(f == path || !read_preset(f, other, why))
+            continue;
+        for(const auto& pp : other.patches)
+            for(const auto& kv : pp.settings)
+                if(kv.second.find(marker) != std::string::npos)
+                    return true;
+    }
+    return false;
+}
+
+// Deletes the folder unpack_media made for the preset at [path]
+// (<unlabelled root>acidulous/presets/<its folder's name>/<its stem>/), unless
+// another preset beside it names files in it. Nothing else is touched.
+void remove_unpacked(const std::string& path, const std::vector<std::string>& roots)
+{
+    const size_t cut = path.rfind('/');
+    if(cut == std::string::npos || cut == 0)
+        return;
+    const size_t      up   = path.rfind('/', cut - 1);
+    const std::string unit = path.substr(up == std::string::npos ? 0 : up + 1, cut - (up == std::string::npos ? 0 : up + 1));
+    const std::string name = stem(path);
+    if(!safe_name(unit) || !safe_name(name))
+        return;
+    const std::string rel = "acidulous/presets/" + unit + "/" + name;
+    for(const auto& r : roots)
+    {
+        const Root pr = parse_root(r);
+        if(!pr.label.empty() || pr.dir.empty())
+            continue;
+        const std::string dir = pr.dir + rel;
+        struct stat       st{};
+        if(lstat(dir.c_str(), &st) != 0 || !S_ISDIR(st.st_mode))
+            continue;
+        if(neighbour_uses(path, rel + "/"))
+            continue;
+        remove_tree(dir);
+    }
+}
+
 // Takes patch [index] out of the preset at [path], or deletes the file when
-// it's the only one. Replies "/preset_deleted s:path i:index s:ok|error".
-void Core::delete_preset(const std::string& path, int index)
+// it's the only one, with the files unpacked from it. Replies
+// "/preset_deleted s:path i:index s:ok|error".
+void Core::delete_preset(const std::string& path, int index, const std::vector<std::string>& roots)
 {
     const auto done = [&](const std::string& why) {
         reply("/preset_deleted", {Value::s(path), Value::i(index), Value::s(why.empty() ? "ok" : why)});
+    };
+    const auto remove_file = [&] {
+        if(std::remove(path.c_str()) != 0)
+            return std::string("can't delete it: ") + std::strerror(errno);
+        remove_unpacked(path, roots);
+        return std::string();
     };
     Preset      preset;
     std::string why;
     // index -1 deletes the whole file, whatever is in it
     if(index < 0)
-        return done(std::remove(path.c_str()) == 0 ? "" : std::string("can't delete it: ") + std::strerror(errno));
+        return done(remove_file());
     if(!read_preset(path, preset, why))
         return done(why);
     if(size_t(index) >= preset.patches.size())
@@ -5036,7 +5131,7 @@ void Core::delete_preset(const std::string& path, int index)
     if(preset.patches.size() > 1 && has_packed_entries(path))
         return done("it has samples, delete the whole file");
     if(preset.patches.size() == 1)
-        return done(std::remove(path.c_str()) == 0 ? "" : std::string("can't delete it: ") + std::strerror(errno));
+        return done(remove_file());
     preset.patches.erase(preset.patches.begin() + index);
     if(!write_file(path, presetfile::write(preset), why))
         return done(why);

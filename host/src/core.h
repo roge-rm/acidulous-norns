@@ -245,7 +245,7 @@ class Core
     void load_mod_preset(int part, int slot, const std::string& path, int index, const std::string& want_name);
     void save_mod_preset(int part, int slot, const std::string& path, const std::string& name);
     void scan_presets(const std::string& folder, bool deep = false);
-    void delete_preset(const std::string& path, int index);
+    void delete_preset(const std::string& path, int index, const std::vector<std::string>& roots = {});
     std::string load_zones(int part, const std::string& path, int index, const std::vector<std::string>& roots,
                            int& missing);
     void send_defs(const std::string& machine);

@@ -78,7 +78,7 @@ The parts page shows each machine, patch and level meter. The bar on the left li
 | **K1** held + **E2** | machine |
 | **E3** | the part's volume |
 | **K2** | patch list |
-| **K1** held + **K2** | machine picker |
+| **K1** held + **K2** | machine picker, or on a card of fx 3 or 4 or on a mods card, that slot's saved presets |
 | **K3** | play a note on the part |
 | **K1** held + **K3** | load samples, see [Samples](#samples), or the scope on a Nexus part |
 
@@ -225,7 +225,11 @@ Machines, patches, any changed params and the samples each part has loaded save 
 
 You can save a part's sound as a patch of your own, which the Acidulous app can open too. In the patch list press **K1** + **K3**, type a name and pick **OK**. It's saved with its edits, macros and effects in dust/data/acidulous/presets/ under the machine's name, and shows in a **saved** tab at the start of the list. **K3** loads it like any patch, and **K1** + **K3** on it deletes it after asking. A PSET remembers a saved patch a part was playing.
 
-Presets copied over from the app go in the same folder and show up the next time you open the list. Sample paths are saved relative to dust/audio, so put the files there in the same place. The samples inside an app preset aren't read, so a file that isn't there shows as not found and the rest still loads.
+Presets from the app go in the same folder, or pick the .acpreset in the file picker, see [Samples](#samples). They load with their samples, voices and slices. The files they carry are unpacked to dust/audio/acidulous/presets/, in a folder named after the machine and the preset. Deleting the preset deletes that folder too.
+
+Effect and modifier presets work the same way. On a card of fx 3 or 4 or on the mods card, **K1** + **K2** opens that slot's list, **K3** loads one, **K1** + **K3** saves the slot or deletes the one you're on.
+
+**K1** + **K3** saving a patch packs the files it uses into the preset, up to 64 MB. Past that, the files stay paths relative to dust/audio, so put them in the same place on another norns.
 
 ## Credits
 
