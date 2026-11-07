@@ -1,8 +1,19 @@
 # acidulous
 
-acidulous puts the machines from my [Acidulous](https://github.com/roge-rm/Acidulous) app on [norns](https://monome.org/docs/norns/). It runs the app's own engine, so the patches sound the same as they do there.
+acidulous is a [norns](https://monome.org/docs/norns/) patch player based on the full app [Acidulous](https://github.com/roge-rm/Acidulous). 
 
-There are 8 parts, or 16. Each plays a machine and patch on its own MIDI channel, so you can play a bassline, a beat and a pad from one keyboard or sequencer. One part at a time can take MPE. It also plays songs from the app and loads its presets.
+The full engine has been ported to the norns platform so patches will sound the same as they did when created on the app. 
+All of the app's presets are included and patches and songs exported from the full app and imported on the norns.
+
+Play one machine at a time via an attached MIDI/USB device, MPE included, or configure up to 16 machines at once to drive multitimbrally from an external source.
+
+I've tested it extensively on my [shieldXL](https://github.com/okyeron/shieldXL) with a Pi 4 2GB, it should run well on a Pi 3 as well but you won't be able to run
+as many machines at the same time.
+
+If you'd like to talk about this please come talk to me in the #acidulous channel [on my discord](https://discord.gg/9Wun47jGC6).
+
+Enjoy!<br>
+Dan
 
 ![The play page with Reflux, Hexbeat, Tine, Fret, Brazen, Aviary, Mosaic and Diction playing in turn](docs/images/play.gif)
 
@@ -16,11 +27,6 @@ There are 8 parts, or 16. Each plays a machine and patch on its own MIDI channel
 <img src="docs/images/machines.png" alt="The machine picker" width="400">
 <img src="docs/images/splash.png" alt="The splash screen" width="400">
 </p>
-
-I've tested it on my [shieldXL](https://github.com/okyeron/shieldXL) with a Pi 4. It should run on a Pi 3 too, with fewer heavy machines at once. If you try one let me know how it goes, or open an issue here.
-
-Enjoy!<br>
-Dan
 
 ---
 
