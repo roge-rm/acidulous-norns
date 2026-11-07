@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1064 140" width="1064" height="140">
+<!-- The OMX-27 keys with AUX held. Render with: inkscape omx-shift.svg --export-type=png --export-filename=images/omx-shift.png --export-width=2128 -->
+<style>
+text { font-family: 'DejaVu Sans Mono', monospace; fill: #e8ecee; }
+.lbl { fill: #e6eaec; font-size: 12.5px; }
+.sub { fill: #9aa4aa; font-size: 10.5px; }
+.hw { fill: #9aa4aa; font-size: 10px; letter-spacing: 0.06em; }
+.t { font-size: 11px; font-weight: bold; }
+.s { font-size: 9.5px; }
+</style>
+<rect x="0" y="0" width="1064" height="140" rx="10" fill="#15191b"/>
+<g transform="translate(10,12)"><rect width="62" height="80" rx="6" fill="#4a3420" stroke="#6c767c" stroke-width="1"/><text x="31.0" y="24" text-anchor="middle" class="t">down</text></g>
+
+<g transform="translate(78,12)"><rect width="62" height="80" rx="6" fill="#4a3420" stroke="#6c767c" stroke-width="1"/><text x="31.0" y="24" text-anchor="middle" class="t">up</text></g>
+
+<text x="75.0" y="112" text-anchor="middle" class="lbl">octave</text>
+<text x="75.0" y="128" text-anchor="middle" class="sub">top keys 1-2</text>
+<g transform="translate(160,12)"><rect width="62" height="80" rx="6" fill="#4a3420" stroke="#00c03c" stroke-width="2.5"/><text x="31.0" y="24" text-anchor="middle" class="t">scale</text><text x="31.0" y="44" text-anchor="middle" class="s">on/off</text><text x="31.0" y="56" text-anchor="middle" class="s">hold: root</text><text x="31.0" y="68" text-anchor="middle" class="s">and scale</text></g>
+
+<g transform="translate(228,12)"><rect width="62" height="80" rx="6" fill="#4a3420" stroke="#00a0d0" stroke-width="2.5"/><text x="31.0" y="24" text-anchor="middle" class="t">chord</text><text x="31.0" y="44" text-anchor="middle" class="s">on/off</text><text x="31.0" y="56" text-anchor="middle" class="s">hold: type</text></g>
+
+<g transform="translate(296,12)"><rect width="62" height="80" rx="6" fill="#4a3420" stroke="#e07000" stroke-width="2.5"/><text x="31.0" y="24" text-anchor="middle" class="t">arp</text><text x="31.0" y="44" text-anchor="middle" class="s">on/off</text></g>
+
+<g transform="translate(364,12)"><rect width="62" height="80" rx="6" fill="#4a3420" stroke="#a000e0" stroke-width="2.5"/><text x="31.0" y="24" text-anchor="middle" class="t">latch</text><text x="31.0" y="44" text-anchor="middle" class="s">on/off</text></g>
+
+<text x="293.0" y="112" text-anchor="middle" class="lbl">scale, chord, arp, latch</text>
+<text x="293.0" y="128" text-anchor="middle" class="sub">top keys 3-6</text>
+<g transform="translate(446,12)"><rect width="62" height="80" rx="6" fill="#4a3420" stroke="#e02020" stroke-width="2.5"/><text x="31.0" y="24" text-anchor="middle" class="t">1</text><text x="31.0" y="44" text-anchor="middle" class="s">or 9</text></g>
+
+<g transform="translate(514,12)"><rect width="62" height="80" rx="6" fill="#4a3420" stroke="#e06a00" stroke-width="2.5"/><text x="31.0" y="24" text-anchor="middle" class="t">2</text><text x="31.0" y="44" text-anchor="middle" class="s">or 10</text></g>
+
+<g transform="translate(582,12)"><rect width="62" height="80" rx="6" fill="#4a3420" stroke="#d8c000" stroke-width="2.5"/><text x="31.0" y="24" text-anchor="middle" class="t">3</text><text x="31.0" y="44" text-anchor="middle" class="s">or 11</text></g>
+
+<g transform="translate(650,12)"><rect width="62" height="80" rx="6" fill="#4a3420" stroke="#00c030" stroke-width="2.5"/><text x="31.0" y="24" text-anchor="middle" class="t">4</text><text x="31.0" y="44" text-anchor="middle" class="s">or 12</text></g>
+
+<g transform="translate(718,12)"><rect width="62" height="80" rx="6" fill="#4a3420" stroke="#00b0d8" stroke-width="2.5"/><text x="31.0" y="24" text-anchor="middle" class="t">5</text><text x="31.0" y="44" text-anchor="middle" class="s">or 13</text></g>
+
+<g transform="translate(786,12)"><rect width="62" height="80" rx="6" fill="#4a3420" stroke="#2050ff" stroke-width="2.5"/><text x="31.0" y="24" text-anchor="middle" class="t">6</text><text x="31.0" y="44" text-anchor="middle" class="s">or 14</text></g>
+
+<g transform="translate(854,12)"><rect width="62" height="80" rx="6" fill="#4a3420" stroke="#9a30ff" stroke-width="2.5"/><text x="31.0" y="24" text-anchor="middle" class="t">7</text><text x="31.0" y="44" text-anchor="middle" class="s">or 15</text></g>
+
+<g transform="translate(922,12)"><rect width="62" height="80" rx="6" fill="#4a3420" stroke="#e0208a" stroke-width="2.5"/><text x="31.0" y="24" text-anchor="middle" class="t">8</text><text x="31.0" y="44" text-anchor="middle" class="s">or 16</text></g>
+
+<g transform="translate(990,12)"><rect width="62" height="80" rx="6" fill="#4a3420" stroke="#c8c8c8" stroke-width="2.5"/><text x="31.0" y="24" text-anchor="middle" class="t">9-16</text><text x="31.0" y="44" text-anchor="middle" class="s">flip</text></g>
+
+<text x="749.0" y="112" text-anchor="middle" class="lbl">parts</text>
+<text x="749.0" y="128" text-anchor="middle" class="sub">bottom keys 1-9</text>
+</svg>

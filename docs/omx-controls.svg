@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 330" width="1000" height="330">
+<!-- The OMX-27 with acidulous on it. Render with: inkscape omx-controls.svg --export-type=png --export-filename=images/omx-controls.png --export-width=2000 -->
+<style>
+text { font-family: 'DejaVu Sans Mono', monospace; fill: #e8ecee; }
+.lbl { fill: #e6eaec; font-size: 12.5px; }
+.sub { fill: #9aa4aa; font-size: 10.5px; }
+.hw { fill: #9aa4aa; font-size: 10px; letter-spacing: 0.06em; }
+.t { font-size: 11px; font-weight: bold; }
+.s { font-size: 9.5px; }
+</style>
+<rect x="4" y="4" width="992" height="322" rx="10" fill="#1f2427" stroke="#6c767c"/>
+<text x="52" y="30" text-anchor="middle" class="hw">AUX</text>
+<g transform="translate(20,40)"><rect width="64" height="64" rx="6" fill="#3a2a4d" stroke="#6c767c" stroke-width="1"/><text x="32.0" y="28" text-anchor="middle" class="t">shift</text><text x="32.0" y="46" text-anchor="middle" class="s">hold it</text></g>
+
+<circle cx="215" cy="104" r="16" fill="#22402a" stroke="#6c767c"/>
+<text x="215" y="52" text-anchor="middle" class="lbl">macro 1</text>
+<text x="215" y="67" text-anchor="middle" class="sub">arp rate</text>
+<circle cx="305" cy="104" r="16" fill="#22402a" stroke="#6c767c"/>
+<text x="305" y="52" text-anchor="middle" class="lbl">macro 2</text>
+<text x="305" y="67" text-anchor="middle" class="sub">arp gate</text>
+<circle cx="395" cy="104" r="16" fill="#22402a" stroke="#6c767c"/>
+<text x="395" y="52" text-anchor="middle" class="lbl">macro 3</text>
+<text x="395" y="67" text-anchor="middle" class="sub">arp mode</text>
+<circle cx="485" cy="104" r="16" fill="#22402a" stroke="#6c767c"/>
+<text x="485" y="52" text-anchor="middle" class="lbl">macro 4</text>
+<text x="485" y="67" text-anchor="middle" class="sub">arp octaves</text>
+<circle cx="810" cy="104" r="16" fill="#22402a" stroke="#6c767c"/>
+<text x="810" y="52" text-anchor="middle" class="lbl">macro 5</text>
+<text x="810" y="67" text-anchor="middle" class="sub">chord type</text>
+<rect x="525" y="90" width="112" height="30" rx="2" fill="#05080a" stroke="#6c767c"/>
+<text x="581" y="109" text-anchor="middle" font-size="10.5" style="fill:#8fd8f0">part · patch</text>
+<polygon points="693,104 699,92 711,92 717,104 711,116 699,116" fill="#3a2a4d" stroke="#6c767c"/>
+<text x="705" y="52" text-anchor="middle" class="lbl">patch</text>
+<text x="705" y="67" text-anchor="middle" class="sub">held: machine</text>
+<text x="705" y="80" text-anchor="middle" class="sub">tap: page</text>
+<text x="350" y="137" text-anchor="middle" class="sub">second line is with AUX held</text>
+<g transform="translate(110,148)"><rect width="54" height="62" rx="6" fill="#4a3420" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="22" text-anchor="middle" class="t">C#</text></g>
+
+<g transform="translate(170,148)"><rect width="54" height="62" rx="6" fill="#4a3420" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="22" text-anchor="middle" class="t">D#</text></g>
+
+<g transform="translate(290,148)"><rect width="54" height="62" rx="6" fill="#4a3420" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="22" text-anchor="middle" class="t">F#</text></g>
+
+<g transform="translate(350,148)"><rect width="54" height="62" rx="6" fill="#4a3420" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="22" text-anchor="middle" class="t">G#</text></g>
+
+<g transform="translate(410,148)"><rect width="54" height="62" rx="6" fill="#4a3420" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="22" text-anchor="middle" class="t">A#</text></g>
+
+<g transform="translate(530,148)"><rect width="54" height="62" rx="6" fill="#4a3420" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="22" text-anchor="middle" class="t">C#</text></g>
+
+<g transform="translate(590,148)"><rect width="54" height="62" rx="6" fill="#4a3420" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="22" text-anchor="middle" class="t">D#</text></g>
+
+<g transform="translate(710,148)"><rect width="54" height="62" rx="6" fill="#4a3420" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="22" text-anchor="middle" class="t">F#</text></g>
+
+<g transform="translate(770,148)"><rect width="54" height="62" rx="6" fill="#4a3420" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="22" text-anchor="middle" class="t">G#</text></g>
+
+<g transform="translate(830,148)"><rect width="54" height="62" rx="6" fill="#4a3420" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="22" text-anchor="middle" class="t">A#</text></g>
+
+<g transform="translate(20,222)"><rect width="54" height="80" rx="6" fill="#24394d" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="30" text-anchor="middle" class="t">B</text><text x="27.0" y="62" text-anchor="middle" class="s">B2</text></g>
+
+<g transform="translate(80,222)"><rect width="54" height="80" rx="6" fill="#24394d" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="30" text-anchor="middle" class="t">C</text><text x="27.0" y="62" text-anchor="middle" class="s">C3</text></g>
+
+<g transform="translate(140,222)"><rect width="54" height="80" rx="6" fill="#24394d" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="30" text-anchor="middle" class="t">D</text></g>
+
+<g transform="translate(200,222)"><rect width="54" height="80" rx="6" fill="#24394d" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="30" text-anchor="middle" class="t">E</text></g>
+
+<g transform="translate(260,222)"><rect width="54" height="80" rx="6" fill="#24394d" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="30" text-anchor="middle" class="t">F</text></g>
+
+<g transform="translate(320,222)"><rect width="54" height="80" rx="6" fill="#24394d" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="30" text-anchor="middle" class="t">G</text></g>
+
+<g transform="translate(380,222)"><rect width="54" height="80" rx="6" fill="#24394d" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="30" text-anchor="middle" class="t">A</text></g>
+
+<g transform="translate(440,222)"><rect width="54" height="80" rx="6" fill="#24394d" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="30" text-anchor="middle" class="t">B</text></g>
+
+<g transform="translate(500,222)"><rect width="54" height="80" rx="6" fill="#24394d" stroke="#c49af0" stroke-width="2"/><text x="27.0" y="30" text-anchor="middle" class="t">C</text><text x="27.0" y="52" text-anchor="middle" class="s">middle C</text><text x="27.0" y="64" text-anchor="middle" class="s">C4</text></g>
+
+<g transform="translate(560,222)"><rect width="54" height="80" rx="6" fill="#24394d" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="30" text-anchor="middle" class="t">D</text></g>
+
+<g transform="translate(620,222)"><rect width="54" height="80" rx="6" fill="#24394d" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="30" text-anchor="middle" class="t">E</text></g>
+
+<g transform="translate(680,222)"><rect width="54" height="80" rx="6" fill="#24394d" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="30" text-anchor="middle" class="t">F</text></g>
+
+<g transform="translate(740,222)"><rect width="54" height="80" rx="6" fill="#24394d" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="30" text-anchor="middle" class="t">G</text></g>
+
+<g transform="translate(800,222)"><rect width="54" height="80" rx="6" fill="#24394d" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="30" text-anchor="middle" class="t">A</text></g>
+
+<g transform="translate(860,222)"><rect width="54" height="80" rx="6" fill="#24394d" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="30" text-anchor="middle" class="t">B</text></g>
+
+<g transform="translate(920,222)"><rect width="54" height="80" rx="6" fill="#24394d" stroke="#6c767c" stroke-width="1"/><text x="27.0" y="30" text-anchor="middle" class="t">C</text><text x="27.0" y="62" text-anchor="middle" class="s">C5</text></g>
+
+</svg>
