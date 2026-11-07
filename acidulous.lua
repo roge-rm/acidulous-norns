@@ -78,7 +78,6 @@ local PAGES = {"play", "parts", "card", "mixer", "sends", "song"}
 local state = {sel = 1, k1 = false, page = "play", cards = {}, play = {}, out = false}
 local auditioning = nil -- the part K3 is playing
 local update_prompt = nil -- the OMX-27 firmware update offer, see view.omx_update
-local omx_problem = nil  -- {text, at}: the OMX-27 can't do REMOTE mode
 
 -- For the REPL: acid.midi(port, bytes) plays as if from MIDI port `port`,
 -- acid.omx is the OMX-27 surface (call its key, pot, enc and enc_btn),
@@ -873,7 +872,7 @@ function redraw()
   state.mpe_missing = not present and params:get("mpe_part") > 2
   surfaces.frame()
   surfaces.screens()
-  local note = omx_problem and util.time() - omx_problem.at < 10 and omx_problem.text or nil
+  local note = nil -- a short note for the page's corner, none at the moment
   scope.check(parts)
   update_energy()
   if saver.active() then
