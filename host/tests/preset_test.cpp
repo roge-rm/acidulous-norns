@@ -814,6 +814,25 @@ int main(int argc, char** argv)
                   "the voice's spec is the app's");
         }
 
+        // The app's own exports: Forage slices and a Diction voice with six
+        // vowels, long enough for the engine.
+        check(load_packed(3, "forage-slice.acpreset", "Forage", r) && r.args[3].str.empty() &&
+                  log.count("/error") == 0 &&
+                  loaded("slices", audio + "acidulous/presets/Forage/forage-slice/samples/loop.wav"),
+              "the app's Forage slices unpacked and loaded");
+        {
+            const std::string sing = audio + "acidulous/presets/Diction/sing-voice/voices/Sing/";
+            check(load_packed(4, "sing-voice.acpreset", "Diction", r) && r.args[3].str.empty() &&
+                      log.count("/error") == 0 && loaded("voice", sing + "bank.json") && !error_has("too short"),
+                  "the app's Diction voice unpacked and loaded");
+            std::vector<std::string> files;
+            int                      missing = 0;
+            std::string              why;
+            const std::string        spec = core::voice_spec(sing + "bank.json", files, missing, why);
+            check(missing == 0 && files.size() == 6 && spec.find(sing + "iy.wav|8000|56000") != std::string::npos,
+                  "its six takes, cut as the app cuts them");
+        }
+
         // A voice sung in and one to morph to; a take with a problem isn't unpacked.
         const std::string bo = audio + "acidulous/presets/Diction/voices/voices/Bo/";
         const std::string cy = audio + "acidulous/presets/Diction/voices/voices/Cy/";
@@ -1109,7 +1128,7 @@ int main(int argc, char** argv)
             for(int k = 0; k < 2000 && host.framesRendered() < until; ++k)
                 std::this_thread::sleep_for(200us);
         };
-        for(const char* name : {"reflux", "hit", "sing"})
+        for(const char* name : {"reflux", "hit", "sing", "sing-voice", "forage-slice"})
         {
             const std::string file = fixtures + "/" + name + ".acpreset";
             const std::string root = scratch + "/replay/" + name + "/";
