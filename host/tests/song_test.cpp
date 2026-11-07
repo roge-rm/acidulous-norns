@@ -917,6 +917,70 @@ int main(int argc, char** argv)
         }
     }
 
+    // The app writes a factory room as its own cache path: a room we have
+    // loads from data/rooms and says factory:<id>, one we don't says so.
+    {
+        const std::string cache = "/data/user/0/com.rm.acidulous/cache/rooms/";
+        write_zip(scratch + "/rooms.zip",
+                  {{"engine.txt", "acidulous-engine 4\nMountMachine 0 \"Trinity\"\nMountEffect 0 1 \"Venue\"\n"
+                                  "LoadImpulse 0 \"effect2\" \"" + cache + "impulse-closet.wav\" 0.5 1.0 1.0\n"
+                                  "MountEffect 0 2 \"Venue\"\n"
+                                  "LoadImpulse 0 \"effect3\" \"" + cache + "impulse-nowhere.wav\" 0.5 1.0 1.0\n"
+                                  "MountSend 0 \"Venue\"\n"
+                                  "LoadImpulse 0 \"send1\" \"" + cache + "impulse-closet.wav\" 1.0 1.0 1.0\n"}});
+        const auto venue_files = [&](int rack) {
+            std::vector<std::string> out;
+            std::string why;
+            for(const auto& fx : host.rackPatch(rack, "x", why, true, nullptr).chain.inserts)
+                if(fx.type == "Venue")
+                    for(const auto& kv : fx.settings)
+                        if(kv.first == "impulse")
+                            out.push_back(kv.second);
+            return out;
+        };
+        const auto ends = [](const std::string& s, const std::string& tail) {
+            return s.size() >= tail.size() && s.compare(s.size() - tail.size(), tail.size(), tail) == 0;
+        };
+        Reply r, imp, send_imp;
+        const bool ok = load(scratch + "/rooms.zip", r);
+        check(ok && str(r, 2).empty(), "the rooms song loads: " + str(r, 2));
+        const auto files = venue_files(0);
+        check(!files.empty() && ends(files[0], "data/rooms/impulse-closet.wav"),
+              "the song's closet loads from data/rooms: " + (files.empty() ? std::string() : files[0]));
+        Reply first, second;
+        const bool got1 = log.wait_nth("/impulse_loaded", 1, first, 1s);
+        const bool got2 = log.wait_nth("/impulse_loaded", 2, second, 1s);
+        if(got1 && got2 && first.args.size() >= 4 && first.args[1].num != 1)
+            std::swap(first, second);
+        check(got1 && first.args.size() >= 4 && first.args[1].num == 1 && str(first, 2) == "factory:closet" &&
+                  str(first, 3).empty(),
+              "the track's Venue says factory:closet: " + str(first, 2) + " " + str(first, 3));
+        check(got2 && second.args.size() >= 4 && second.args[1].num == 2 && !str(second, 3).empty(),
+              "a room we don't have says why: " + str(second, 2) + " " + str(second, 3));
+        {
+            const bool got = log.wait("/send_impulse_loaded", send_imp, 1s);
+            check(got && send_imp.args.size() >= 3 && str(send_imp, 1) == "factory:closet" && str(send_imp, 2).empty(),
+                  "the send's Venue says factory:closet: " + str(send_imp, 1) + " " + str(send_imp, 2));
+        }
+        log.clear();
+        cmd("/fx", {Value::i(0), Value::i(1), Value::s("length"), Value::f(0.3f)});
+        {
+            const bool got = log.wait("/impulse_loaded", imp, 5s);
+            check(got && str(imp, 2) == "factory:closet" && str(imp, 3).empty() && log.index("/error") < 0,
+                  "a shape change on the track builds the closet: " + str(imp, 2) + " " + str(imp, 3));
+        }
+        log.clear();
+        cmd("/send", {Value::i(0), Value::s("decay"), Value::f(0.4f)});
+        {
+            const bool got = log.wait("/send_impulse_loaded", send_imp, 5s);
+            check(got && str(send_imp, 1) == "factory:closet" && str(send_imp, 2).empty() && log.index("/error") < 0,
+                  "a shape change on the send builds the closet: " + str(send_imp, 1) + " " + str(send_imp, 2));
+        }
+        log.clear();
+        cmd("/song_unload", {});
+        check(log.wait("/song_unloaded", r), "the rooms song unloads");
+    }
+
     // A song's Mosaic zones are the part's, with absolute paths.
     {
         write_zip(scratch + "/zones.zip",

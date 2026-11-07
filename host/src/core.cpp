@@ -4631,8 +4631,9 @@ void Core::set_send_impulse(int slot, const std::string& impulse, const std::vec
 // Worker thread, after a song's replay: the Venue the song put in an insert
 // slot (or a send, in row kSendRow) takes /impulse, keeping the song's
 // [impulse] file ("" for none) and its knobs as the song left them, so a
-// shape change builds from the song's file. Replies as a build does.
-void Core::song_venue(int part, int slot, const std::string& impulse)
+// shape change builds from the song's file. Replies as a build does, with
+// [why] the song's load failed (or "not found" if the file is gone).
+void Core::song_venue(int part, int slot, const std::string& impulse, const std::string& why_in)
 {
     const bool send = part == kSendRow;
     {
@@ -4656,10 +4657,15 @@ void Core::song_venue(int part, int slot, const std::string& impulse)
         }
         fx_shape[part][slot][k] = v > 1.f ? 1.f : v;
     }
+    std::string why = why_in;
+    if(why.empty() && !impulse.empty() && !exists(impulse))
+        why = "not found";
+    if(!why.empty())
+        error("Venue: " + base_name(impulse) + ": " + why);
     if(send)
-        reply("/send_impulse_loaded", {Value::i(slot), Value::s(fx_impulse[part][slot]), Value::s("")});
+        reply("/send_impulse_loaded", {Value::i(slot), Value::s(fx_impulse[part][slot]), Value::s(why)});
     else
-        reply("/impulse_loaded", {Value::i(part), Value::i(slot), Value::s(fx_impulse[part][slot]), Value::s("")});
+        reply("/impulse_loaded", {Value::i(part), Value::i(slot), Value::s(fx_impulse[part][slot]), Value::s(why)});
 }
 
 // Takes the slot's impulse out of the host and forgets it. Worker thread.

@@ -228,7 +228,7 @@ class Core
     void set_impulse(int part, int slot, const std::string& impulse, const std::vector<std::string>& roots);
     void drop_impulse(int part, int slot);
     void set_send_impulse(int slot, const std::string& impulse, const std::vector<std::string>& roots);
-    void song_venue(int part, int slot, const std::string& impulse);
+    void song_venue(int part, int slot, const std::string& impulse, const std::string& why);
     std::string room_to_file(const std::string& impulse) const;
     std::string file_to_room(const std::string& file) const;
     void sync_impulses(int part, const acidulous::PatchInsert* const at[acidulous::kEffectSlots] = nullptr,
@@ -298,7 +298,7 @@ class Core
     void song_defaults(bool now);
     void master_defaults(bool now, bool own = true);
     void restore_sends();
-    void note_song_mount(const std::string& line);
+    void note_song_mount(const std::string& line, const std::string& why = "");
     void read_back(int part, const void* track);
     void read_scenes(const std::string& text, const void* song);
     void send_scenes();
@@ -413,6 +413,8 @@ class Core
     // by rack and unit ("effect1" ...), rack -1 for a send ("send1" ...).
     // A mount in the slot after it drops it.
     std::map<std::pair<int, std::string>, std::string> song_impulses;
+    // Worker only: what each of those loads said back, for the ones that failed.
+    std::map<std::pair<int, std::string>, std::string> song_impulse_errors;
     // Worker only: a teardown ran without blocks, so the engine may still
     // hold some of the song; resync_teardown finishes it, and puts the
     // sends back if the song had any mounted.

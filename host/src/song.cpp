@@ -204,6 +204,74 @@ std::vector<std::string> words(const std::string& line)
     return out;
 }
 
+// [text] with each LoadImpulse that names one of our rooms by the app's file
+// name, impulse-<id>.wav anywhere but in the song (the app writes its own
+// cache path), reading [rooms]/impulse-<id>.wav in its place.
+std::string with_our_rooms(const std::string& text, const std::string& rooms)
+{
+    std::string out;
+    out.reserve(text.size());
+    for(size_t at = 0; at < text.size();)
+    {
+        size_t end = text.find('\n', at);
+        end        = end == std::string::npos ? text.size() : end + 1;
+        std::string line = text.substr(at, end - at);
+        at               = end;
+        if(line.compare(0, 12, "LoadImpulse ") != 0)
+        {
+            out += line;
+            continue;
+        }
+        // The fourth word's span, a quoted string skipped past its escapes.
+        size_t i = 0, from = 0, to = 0;
+        for(int k = 0; k < 4 && i < line.size(); ++k)
+        {
+            while(i < line.size() && line[i] == ' ')
+                ++i;
+            from = i;
+            if(i < line.size() && line[i] == '"')
+            {
+                for(++i; i < line.size() && line[i] != '"'; ++i)
+                    if(line[i] == '\\')
+                        ++i;
+                if(i < line.size())
+                    ++i;
+            }
+            else
+                while(i < line.size() && line[i] != ' ' && line[i] != '\n')
+                    ++i;
+            to = i;
+        }
+        const auto        w    = words(line.substr(0, line.find('\n')));
+        const std::string path = w.size() >= 4 ? w[3] : std::string();
+        const size_t      cut  = path.find_last_of('/');
+        const std::string name = cut == std::string::npos ? path : path.substr(cut + 1);
+        std::string       id;
+        if(path.compare(0, 4, "zip:") != 0 && name.size() > 12 && name.compare(0, 8, "impulse-") == 0 &&
+           name.compare(name.size() - 4, 4, ".wav") == 0)
+            id = name.substr(8, name.size() - 12);
+        bool safe = !id.empty();
+        for(const char c : id)
+            safe = safe && (std::isalnum(static_cast<unsigned char>(c)) || c == '-' || c == '_');
+        const std::string file = rooms + "/impulse-" + id + ".wav";
+        struct stat       st{};
+        if(!safe || to <= from || stat(file.c_str(), &st) != 0)
+        {
+            out += line;
+            continue;
+        }
+        std::string quoted = "\"";
+        for(const char c : file)
+        {
+            if(c == '"' || c == '\\')
+                quoted += '\\';
+            quoted += c;
+        }
+        out += line.substr(0, from) + quoted + "\"" + line.substr(to);
+    }
+    return out;
+}
+
 std::string mb(int64_t bytes)
 {
     char text[32];
@@ -476,7 +544,7 @@ bool write_file(const std::string& path, const std::vector<uint8_t>& bytes, std:
 // Notes what a line the engine took put in place that EngineHost doesn't
 // say back: Mosaic's zones and the Venues' impulse files. The last line for
 // a rack or slot wins.
-void Core::note_song_mount(const std::string& line)
+void Core::note_song_mount(const std::string& line, const std::string& why)
 {
     if(line.compare(0, 5, "Mount") != 0 && line.compare(0, 4, "Load") != 0)
         return;
@@ -490,17 +558,24 @@ void Core::note_song_mount(const std::string& line)
     if(w.size() >= 4 && w[0] == "LoadImpulse")
     {
         const bool send = w[2].compare(0, 4, "send") == 0;
-        song_impulses[{send ? -1 : n(1), w[2]}] = from_zip(w[3]);
+        const std::pair<int, std::string> at{send ? -1 : n(1), w[2]};
+        song_impulses[at] = from_zip(w[3]);
+        if(why.empty())
+            song_impulse_errors.erase(at);
+        else
+            song_impulse_errors[at] = why;
         return;
     }
     if(w.size() >= 3 && w[0] == "MountEffect")
     {
         song_impulses.erase({n(1), "effect" + std::to_string(n(2) + 1)});
+        song_impulse_errors.erase({n(1), "effect" + std::to_string(n(2) + 1)});
         return;
     }
     if(w.size() >= 2 && w[0] == "MountSend")
     {
         song_impulses.erase({-1, "send" + std::to_string(n(1) + 1)});
+        song_impulse_errors.erase({-1, "send" + std::to_string(n(1) + 1)});
         return;
     }
     // Mosaic's zones as Part::zones holds them: the spec with zip: paths
@@ -610,6 +685,7 @@ void Core::clear_song(bool quiet)
     song_scenes.clear();
     song_zones.clear();
     song_impulses.clear();
+    song_impulse_errors.clear();
     for(bool& b : song_standin)
         b = false;
     song_on.store(false);
@@ -814,6 +890,7 @@ void Core::drop_song()
     song_scenes.clear();
     song_zones.clear();
     song_impulses.clear();
+    song_impulse_errors.clear();
     song_on.store(false);
 }
 
@@ -964,7 +1041,8 @@ bool Core::load_song(const std::string& path, const std::string& songs_dir_in, c
     std::vector<uint8_t> bytes;
     if(!read_all(from + "/engine.txt", bytes, kMaxSongBytes, why))
         return fail("no engine.txt in " + folder);
-    const std::string whole(bytes.begin(), bytes.end());
+    // The app's factory rooms are read from ours.
+    const std::string whole = with_our_rooms(std::string(bytes.begin(), bytes.end()), rooms_dir());
     bytes = {};
     if(!engine_lines(whole))
         return fail("not engine lines");
@@ -1066,12 +1144,16 @@ bool Core::load_song(const std::string& path, const std::string& songs_dir_in, c
     static JNIEnv            env;
     lines::Replay            replay;
     std::vector<std::string> problems;
+    std::string              impulse_why; // what the line's LoadImpulse said back
     replay.env  = &env;
     replay.root = folder;
     replay.log  = [&](const std::string& p) {
         std::fprintf(stderr, "acidulous: song: %s\n", p.c_str());
         if(problems.size() < 8)
             problems.push_back(p);
+        const size_t at = p.find(": LoadImpulse: ");
+        if(at != std::string::npos)
+            impulse_why = p.substr(at + 15);
     };
     // A block after every line, as acidulous-song does: mounts apply at the
     // top of a block, LoadNexusPatch and BuildCloud want their machine in
@@ -1080,7 +1162,8 @@ bool Core::load_song(const std::string& path, const std::string& songs_dir_in, c
     int refused = 0, skipped = 0;
     replay.afterLine = [&](int n) {
         if(replay.refused == refused && replay.skipped == skipped && n >= 1 && size_t(n) <= line_at.size())
-            note_song_mount(text.substr(line_at[size_t(n) - 1].first, line_at[size_t(n) - 1].second));
+            note_song_mount(text.substr(line_at[size_t(n) - 1].first, line_at[size_t(n) - 1].second), impulse_why);
+        impulse_why.clear();
         refused = replay.refused;
         skipped = replay.skipped;
         if(!next_block())
@@ -1209,8 +1292,11 @@ bool Core::load_song(const std::string& path, const std::string& songs_dir_in, c
     for(int s = 0; s < kSends; ++s)
         if(std::strcmp(host.mountedSend(s), "Venue") == 0)
         {
-            const auto it = song_impulses.find({-1, std::string("send") + std::to_string(s + 1)});
-            song_venue(kSendRow, s, it == song_impulses.end() ? std::string() : it->second);
+            const std::pair<int, std::string> at{-1, std::string("send") + std::to_string(s + 1)};
+            const auto it = song_impulses.find(at);
+            const auto no = song_impulse_errors.find(at);
+            song_venue(kSendRow, s, it == song_impulses.end() ? std::string() : it->second,
+                       no == song_impulse_errors.end() ? std::string() : no->second);
         }
     reply("/song_loaded", out);
     return true;
@@ -1414,8 +1500,11 @@ void Core::read_back(int r, const void* track_ptr)
     for(int s = 0; s < kEffectSlots; ++s)
         if(std::strcmp(host.mountedEffect(r, s), "Venue") == 0)
         {
-            const auto it = song_impulses.find({r, std::string("effect") + std::to_string(s + 1)});
-            song_venue(r, s, it == song_impulses.end() ? std::string() : it->second);
+            const std::pair<int, std::string> at{r, std::string("effect") + std::to_string(s + 1)};
+            const auto it = song_impulses.find(at);
+            const auto no = song_impulse_errors.find(at);
+            song_venue(r, s, it == song_impulses.end() ? std::string() : it->second,
+                       no == song_impulse_errors.end() ? std::string() : no->second);
         }
     send_mods(r);
 }
