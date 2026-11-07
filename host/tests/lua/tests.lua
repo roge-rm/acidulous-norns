@@ -1,6 +1,6 @@
 local here = arg[0]:match("^(.*)/[^/]+$")
 local which = arg[2]
-local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"}
+local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"}
 if not which then
   -- every case, each in a fresh run
   local failed = 0
@@ -866,6 +866,53 @@ elseif which == "19" then
     "its impulse is the pick")
   P.osc("/fx_preset_loaded", {0, 2, "Delay", "Echo", ""})
   CHECK(part.impulse_pick[2] == nil, "another effect's preset drops it")
+elseif which == "20" then
+  -- a song's Venues: the track's room control and the out strip's send room
+  P.effects = {"Delay", "Venue"}
+  local before = params:get("p1_fx")
+  S.load("V")
+  local hall = "/d/acidulous/songs/V/media/hall.wav"
+  P.osc("/mounted", {0, "Reflux"})
+  P.osc("/inserts", {0, 1, "Venue", 3, "length", 0, 1, 0.5, "", 0, "lin", 0.5, "decay", 0, 1, 0.5, "", 0, "lin", 0.5,
+    "stretch", 0, 1, 0.5, "", 0, "lin", 0.5, 0})
+  P.osc("/impulse_loaded", {0, 1, hall, ""})
+  P.osc("/song_sends", {-1, 0.5})
+  P.osc("/send_impulse_loaded", {0, hall, ""})
+  P.osc("/song_loaded", {"V", "/d/acidulous/songs/V", "", 0, 1, 0, "Reflux", "", "lead"})
+  local part = P.part(1)
+  CHECK(part.song and part.fx[1] and part.fx[1].type == "Venue", "the song's track shows its Venue")
+  local panel = include("lib/panel")
+  local function room()
+    for _, c in ipairs(panel.fx_cards(part.fx, P.effects)) do
+      for _, ctl in ipairs(c.controls) do if ctl.what == "room" then return ctl end end
+    end
+  end
+  local ctl = room()
+  CHECK(ctl and ctl.opts[6] == "hall" and P.fx_value(1, ctl) == 1, "the room control shows the song's file")
+  SENT_CLEAR()
+  P.set_fx(1, ctl, 4 / 5)
+  local m = FIND("/impulse")
+  CHECK(m and m.args[1] == 0 and m.args[2] == 1 and m.args[3] == "factory:closet", "turning it sends /impulse")
+  CHECK(params:get("p1_fx") == before, "and saves nothing")
+  P.osc("/impulse_loaded", {0, 1, "factory:closet", ""})
+  CHECK(panel.option(room(), 4 / 5) == "closet", "the card shows closet")
+  -- the send
+  CHECK(P.out_room("rev_size") == "hall" and P.out_room("dly_feedback") == nil, "the out strip names the send's file")
+  CHECK(P.out_room_01("rev_size") == 1, "at the file's step")
+  SENT_CLEAR()
+  P.delta_out_send("rev_size", 1)
+  m = FIND("/send_impulse")
+  CHECK(m and m.args[1] == 0 and m.args[2] == "factory:small-room", "turning it sends /send_impulse")
+  P.osc("/send_impulse_loaded", {0, "factory:small-room", ""})
+  CHECK(P.out_room("rev_size") == "small room" and P.out_room_01("rev_size") == 0, "and shows the room")
+  SENT_CLEAR()
+  P.delta_out_send("rev_size", -1)
+  CHECK(not FIND("/send_impulse"), "nothing below the first room")
+  P.delta_out_send("dly_feedback", 1)
+  CHECK(not FIND("/send_impulse") and FIND("/send", function(a) return a[1] == 1 and a[2] == "feedback" end) ~= nil,
+    "the delay's feedback moves as before")
+  P.osc("/song_unloaded", {1})
+  CHECK(P.out_room("rev_size") == nil and next(P.song_send_impulses) == nil, "the unload forgets the send's room")
 end
 print(FAILS == 0 and "all ok" or (FAILS .. " failed"))
 os.exit(FAILS == 0 and 0 or 1)

@@ -96,6 +96,7 @@ reset = function()
   loaded, folder, loading, scenes, sent_mode = nil, nil, nil, {}, nil
   pos = {playing = false, scene = 0, pass = 0, queued = -1, bpm = nil}
   parts.song_master, parts.song_sends = nil, nil
+  parts.song_send_impulses = {}
   quiet_unload, parts_owed = false, false
   cancel_pending()
   hold(false, false)
@@ -236,6 +237,8 @@ function S.osc(path, args)
     -- Delay feedback, nil for a send the song doesn't have
     local size, fdbk = args[1] or -1, args[2] or -1
     parts.song_sends = {size = size >= 0 and size or nil, feedback = fdbk >= 0 and fdbk or nil}
+    -- its Venue sends' rooms come after
+    parts.song_send_impulses = {}
   elseif path == "/song_master" then
     -- the out strip shows the song's master; moving it moves the song's
     local v = args[1] or 1
@@ -244,6 +247,7 @@ function S.osc(path, args)
     loaded, folder, scenes, sent_mode = nil, nil, {}, nil
     pos = {playing = false, scene = 0, pass = 0, queued = -1, bpm = nil}
     parts.song_master, parts.song_sends = nil, nil
+    parts.song_send_impulses = {}
     parts.song_gone(loading ~= nil)
     give_back_tempo()
 

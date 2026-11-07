@@ -59,6 +59,9 @@ static_assert(sizeof(kModUnits) / sizeof(kModUnits[0]) == kModSlots, "a unit nam
 // The engine units of the part's insert slots.
 static const char* const kInsertUnits[] = {"effect1", "effect2", "effect3", "effect4"};
 static_assert(sizeof(kInsertUnits) / sizeof(kInsertUnits[0]) == kEffectSlots, "a unit name per insert slot");
+static const char* const kSendUnits[] = {"send1", "send2"};
+static_assert(sizeof(kSendUnits) / sizeof(kSendUnits[0]) == kSends, "a unit name per send");
+static_assert(kSends <= kEffectSlots, "the sends fit in an impulse row");
 
 // Forage's 13 pads and the shared sample above them.
 constexpr int kForagePads  = 13;
@@ -542,7 +545,11 @@ Core::~Core()
     }
     for(int s = 0; s < kSends; ++s)
         if(send_mounted[s])
+        {
+            if(std::strcmp(host.mountedSend(s), "Venue") == 0)
+                host.loadImpulse(0, kSendUnits[s], "", 1.f, 1.f, 1.f);
             host.mountSend(s, "");
+        }
     host.setMpeZone(0, 15, 48);
     // What's left in the queue: 64 entries at most, 8 a block.
     pull(10);
@@ -1242,6 +1249,19 @@ bool Core::command(const std::string& path, const Args& a)
         }
         return true;
     }
+    if(path == "/send_impulse" && a.size() >= 2)
+    {
+        // i:slot s:impulse s:root...
+        const int slot = to_int(a[0]);
+        if(slot >= 0 && slot < kSends)
+        {
+            std::vector<std::string> roots;
+            for(size_t k = 2; k < a.size(); ++k)
+                roots.push_back(to_str(a[k]));
+            post([this, slot, i = to_str(a[1]), roots] { set_send_impulse(slot, i, roots); });
+        }
+        return true;
+    }
     if(path == "/insert" && a.size() >= 3)
     {
         const int part = to_int(a[0]), slot = to_int(a[1]);
@@ -1594,7 +1614,7 @@ void Core::cloud_loop()
         for(int p = 0; p < kParts; ++p)
             if(clouds[p].want && (next < 0 || clouds[p].due < clouds[next].due))
                 next = p;
-        for(int p = 0; p < kParts; ++p)
+        for(int p = 0; p <= kSendRow; ++p)
             for(int s = 0; s < kEffectSlots; ++s)
                 if(impulse_req[p][s].want && (ip < 0 || impulse_req[p][s].due < impulse_req[ip][is].due))
                     ip = p, is = s;
@@ -1676,7 +1696,6 @@ static int64_t now_ms()
 
 // The two send buses, as the app starts them.
 static const char* const kSendTypes[] = {"Reverb", "Delay"};
-static const char* const kSendUnits[] = {"send1", "send2"};
 
 static bool send_has(int slot, const std::string& name)
 {
@@ -2013,16 +2032,40 @@ void Core::clear_mods(int part)
 // A send effect's param, kept for when it's mounted.
 void Core::set_send(int slot, const std::string& name, float v01)
 {
+    // With a song loaded it moves the song's send, whatever effect the song
+    // put there, and the script's values stay for when the song goes.
+    const std::string song_type = song_folder.empty() ? std::string() : host.mountedSend(slot);
+    if(!song_type.empty() && song_type != kSendTypes[slot])
+    {
+        int32_t         n     = 0;
+        const ParamDef* defs  = EffectRegistry::paramDefs(song_type.c_str(), n);
+        bool            found = false;
+        for(int32_t i = 0; defs && i < n && !found; ++i)
+            found = name == defs[i].name;
+        if(name == "mix" || !found)
+        {
+            error("no " + song_type + " param " + name);
+            return;
+        }
+        if(!push_param(0, kSendUnits[slot], name, v01))
+            return;
+        // A Venue's shape knobs build its impulse again, as an insert's do.
+        const int k = name == "length" ? 0 : name == "decay" ? 1 : name == "stretch" ? 2 : -1;
+        if(song_type == "Venue" && impulse_on[kSendRow][slot] && k >= 0)
+        {
+            fx_shape[kSendRow][slot][k] = v01 < 0.f ? 0.f : v01 > 1.f ? 1.f : v01;
+            request_impulse(kSendRow, slot, true);
+        }
+        return;
+    }
     if(name == "mix" || !send_has(slot, name))
     {
         error("no send param " + name);
         return;
     }
-    // With a song loaded it moves the song's send, and the script's values
-    // stay for when the song goes.
     if(!song_folder.empty())
     {
-        if(send_mounted[slot] && std::string(host.mountedSend(slot)) == kSendTypes[slot])
+        if(send_mounted[slot] && song_type == kSendTypes[slot])
             push_param(0, kSendUnits[slot], name, v01);
         return;
     }
@@ -4535,6 +4578,7 @@ void Core::request_impulse(int part, int slot, bool settle_first)
 // s:error".
 void Core::build_impulse(int part, int slot, const std::string& impulse, const float* shape)
 {
+    const bool  send = part == kSendRow;
     std::string why;
     {
         std::lock_guard<std::mutex> m(mount_locks[part]);
@@ -4544,11 +4588,15 @@ void Core::build_impulse(int part, int slot, const std::string& impulse, const f
         if(!impulse.empty())
             file = impulse_file(impulse, why);
         if(why.empty())
-            why = host.loadImpulse(part, kInsertUnits[slot], file, shape[0], shape[1], shape[2]);
+            why = host.loadImpulse(send ? 0 : part, send ? kSendUnits[slot] : kInsertUnits[slot], file, shape[0],
+                                   shape[1], shape[2]);
     }
     if(!why.empty())
         error("Venue: " + (impulse.empty() ? std::string("no impulse") : base_name(impulse)) + ": " + why);
-    reply("/impulse_loaded", {Value::i(part), Value::i(slot), Value::s(impulse), Value::s(why)});
+    if(send)
+        reply("/send_impulse_loaded", {Value::i(slot), Value::s(impulse), Value::s(why)});
+    else
+        reply("/impulse_loaded", {Value::i(part), Value::i(slot), Value::s(impulse), Value::s(why)});
 }
 
 // Worker thread. /impulse: names the slot's Venue impulse, "factory:<room>",
@@ -4557,7 +4605,7 @@ void Core::set_impulse(int part, int slot, const std::string& impulse, const std
 {
     if(!impulse_on[part][slot])
     {
-        error("no Venue in slot " + std::to_string(slot));
+        error(part == kSendRow ? "no Venue on send " + std::to_string(slot) : "no Venue in slot " + std::to_string(slot));
         return;
     }
     std::string setting = impulse;
@@ -4573,6 +4621,47 @@ void Core::set_impulse(int part, int slot, const std::string& impulse, const std
     request_impulse(part, slot, false);
 }
 
+// Worker thread. /send_impulse: a song's Venue send's impulse, as /impulse
+// takes it. Only a song puts a Venue on a send.
+void Core::set_send_impulse(int slot, const std::string& impulse, const std::vector<std::string>& roots)
+{
+    set_impulse(kSendRow, slot, impulse, roots);
+}
+
+// Worker thread, after a song's replay: the Venue the song put in an insert
+// slot (or a send, in row kSendRow) takes /impulse, keeping the song's
+// [impulse] file ("" for none) and its knobs as the song left them, so a
+// shape change builds from the song's file. Replies as a build does.
+void Core::song_venue(int part, int slot, const std::string& impulse)
+{
+    const bool send = part == kSendRow;
+    {
+        std::lock_guard<std::mutex> l(cloud_lock);
+        impulse_req[part][slot].want = false;
+    }
+    impulse_on[part][slot] = true;
+    fx_impulse[part][slot] = file_to_room(impulse);
+    int32_t                  count    = 0;
+    const ParamDef*          defs     = EffectRegistry::paramDefs("Venue", count);
+    static const char* const names[3] = {"length", "decay", "stretch"};
+    for(int k = 0; k < 3; ++k)
+    {
+        float v = send ? host.sendParamNormalized(slot, names[k]) : host.paramNormalized(part, kInsertUnits[slot], names[k]);
+        if(v < 0.f)
+        {
+            v = 1.f;
+            for(int32_t i = 0; defs && i < count; ++i)
+                if(std::strcmp(defs[i].name, names[k]) == 0)
+                    v = defs[i].unmap(defs[i].def);
+        }
+        fx_shape[part][slot][k] = v > 1.f ? 1.f : v;
+    }
+    if(send)
+        reply("/send_impulse_loaded", {Value::i(slot), Value::s(fx_impulse[part][slot]), Value::s("")});
+    else
+        reply("/impulse_loaded", {Value::i(part), Value::i(slot), Value::s(fx_impulse[part][slot]), Value::s("")});
+}
+
 // Takes the slot's impulse out of the host and forgets it. Worker thread.
 void Core::drop_impulse(int part, int slot)
 {
@@ -4580,10 +4669,14 @@ void Core::drop_impulse(int part, int slot)
         std::lock_guard<std::mutex> l(cloud_lock);
         impulse_req[part][slot].want = false;
     }
-    if(std::strcmp(host.mountedEffect(part, slot), "Venue") == 0)
+    if(part == kSendRow ? std::strcmp(host.mountedSend(slot), "Venue") == 0
+                        : std::strcmp(host.mountedEffect(part, slot), "Venue") == 0)
     {
         std::lock_guard<std::mutex> m(mount_locks[part]);
-        host.loadImpulse(part, kInsertUnits[slot], "", 1.f, 1.f, 1.f);
+        if(part == kSendRow)
+            host.loadImpulse(0, kSendUnits[slot], "", 1.f, 1.f, 1.f);
+        else
+            host.loadImpulse(part, kInsertUnits[slot], "", 1.f, 1.f, 1.f);
     }
     impulse_on[part][slot]  = false;
     fx_impulse[part][slot].clear();

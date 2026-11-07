@@ -794,6 +794,129 @@ int main(int argc, char** argv)
         }
     }
 
+    // A song's Venues, on a track's insert and on a send, take /impulse and
+    // /send_impulse; their shape knobs build from what was picked, the song's
+    // file until then, and the unload lets them go.
+    {
+        write_zip(scratch + "/venue.zip",
+                  {{"engine.txt", "acidulous-engine 4\nMountMachine 0 \"Trinity\"\nMountEffect 0 1 \"Venue\"\n"
+                                  "LoadImpulse 0 \"effect2\" \"zip:media/hall.wav\" 0.5 1.0 1.0\n"
+                                  "MountSend 0 \"Venue\"\n"
+                                  "LoadImpulse 0 \"send1\" \"zip:media/hall.wav\" 1.0 1.0 1.0\n"},
+                   {"media/hall.wav", wav(9600)}});
+        // The impulse the engine holds for the rack's Venue (only slot 1 has one).
+        const auto impulse_of = [&](int rack, int) {
+            std::string why;
+            for(const auto& fx : host.rackPatch(rack, "x", why, true, nullptr).chain.inserts)
+                if(fx.type == "Venue")
+                    for(const auto& kv : fx.settings)
+                        if(kv.first == "impulse")
+                            return kv.second;
+            return std::string();
+        };
+        const auto ends = [](const std::string& s, const std::string& tail) {
+            return s.size() >= tail.size() && s.compare(s.size() - tail.size(), tail.size(), tail) == 0;
+        };
+        const std::string hall = songs + "/venue/media/hall.wav";
+        Reply r, imp, send_imp;
+        const bool ok = load(scratch + "/venue.zip", r);
+        check(ok && str(r, 2).empty(), "the Venue song loads: " + str(r, 2));
+        {
+            const bool got = log.wait("/impulse_loaded", imp, 1s);
+            check(got && imp.args.size() >= 4 && imp.args[0].num == 0 &&
+                      imp.args[1].num == 1 && str(imp, 2) == hall && str(imp, 3).empty() &&
+                      log.index("/impulse_loaded") < log.index("/song_loaded"),
+                  "the track's Venue says the song's file: " + str(imp, 2));
+        }
+        {
+            const bool got = log.wait("/send_impulse_loaded", send_imp, 1s);
+            check(got && send_imp.args.size() >= 3 && send_imp.args[0].num == 0 &&
+                      str(send_imp, 1) == hall && str(send_imp, 2).empty() &&
+                      log.index("/song_sends") < log.index("/send_impulse_loaded") &&
+                      log.index("/send_impulse_loaded") < log.index("/song_loaded"),
+                  "the send's Venue says the song's file: " + str(send_imp, 1));
+        }
+
+        // A shape change on the track's Venue builds from the song's file.
+        log.clear();
+        cmd("/fx", {Value::i(0), Value::i(1), Value::s("length"), Value::f(0.3f)});
+        {
+            const bool got = log.wait("/impulse_loaded", imp, 5s);
+            check(got && str(imp, 2) == hall && str(imp, 3).empty() &&
+                      impulse_of(0, 1) == hall,
+                  "a shape change keeps the song's file: " + str(imp, 2) + " " + str(imp, 3));
+        }
+        // A factory room, then a shape change keeps it.
+        log.clear();
+        cmd("/impulse", {Value::i(0), Value::i(1), Value::s("closet")});
+        {
+            const bool got = log.wait("/impulse_loaded", imp, 5s);
+            check(got && str(imp, 2) == "factory:closet" && str(imp, 3).empty() &&
+                      ends(impulse_of(0, 1), "/impulse-closet.wav"),
+                  "/impulse loads a room on the song's Venue: " + str(imp, 2) + " " + str(imp, 3) + " " + impulse_of(0, 1));
+        }
+        log.clear();
+        cmd("/fx", {Value::i(0), Value::i(1), Value::s("decay"), Value::f(0.4f)});
+        {
+            const bool got = log.wait("/impulse_loaded", imp, 5s);
+            check(got && str(imp, 2) == "factory:closet" && str(imp, 3).empty() &&
+                      ends(impulse_of(0, 1), "/impulse-closet.wav"),
+                  "a shape change keeps the room: " + str(imp, 2) + " " + impulse_of(0, 1));
+        }
+
+        // The send's.
+        log.clear();
+        cmd("/send", {Value::i(0), Value::s("decay"), Value::f(0.4f)});
+        {
+            const bool got = log.wait("/send_impulse_loaded", send_imp, 5s);
+            check(got && str(send_imp, 1) == hall && str(send_imp, 2).empty() &&
+                      log.index("/error") < 0,
+                  "a shape change on the send keeps the song's file: " + str(send_imp, 1) + " " + str(send_imp, 2));
+        }
+        log.clear();
+        cmd("/send_impulse", {Value::i(0), Value::s("factory:small-room")});
+        {
+            const bool got = log.wait("/send_impulse_loaded", send_imp, 5s);
+            check(got && str(send_imp, 1) == "factory:small-room" &&
+                      str(send_imp, 2).empty(),
+                  "/send_impulse loads a room on the song's send: " + str(send_imp, 1) + " " + str(send_imp, 2));
+        }
+        log.clear();
+        cmd("/send", {Value::i(0), Value::s("length"), Value::f(0.6f)});
+        {
+            const bool got = log.wait("/send_impulse_loaded", send_imp, 5s);
+            check(got && str(send_imp, 1) == "factory:small-room",
+                  "a shape change on the send keeps the room: " + str(send_imp, 1));
+        }
+        log.clear();
+        cmd("/send_impulse", {Value::i(1), Value::s("closet")});
+        Reply e;
+        {
+            const bool got = log.wait("/error", e, 5s);
+            check(got && str(e, 0) == "no Venue on send 1" && log.index("/send_impulse_loaded") < 0,
+                  "/send_impulse on a send without a Venue: " + str(e, 0));
+        }
+
+        // The unload lets them go.
+        log.clear();
+        cmd("/song_unload", {});
+        {
+            const bool got = log.wait("/song_unloaded", r);
+            check(got, "the Venue song unloads");
+        }
+        check(std::strcmp(host.mountedSend(0), "Venue") != 0 && !*host.mountedEffect(0, 1), "its Venues are gone");
+        log.clear();
+        cmd("/impulse", {Value::i(0), Value::i(1), Value::s("closet")});
+        cmd("/send_impulse", {Value::i(0), Value::s("closet")});
+        Reply e2;
+        {
+            const bool got = log.wait_nth("/error", 2, e2, 5s);
+            check(got && log.index("/impulse_loaded") < 0 &&
+                      log.index("/send_impulse_loaded") < 0,
+                  "no /impulse or /send_impulse after the unload");
+        }
+    }
+
     // A song's Mosaic zones are the part's, with absolute paths.
     {
         write_zip(scratch + "/zones.zip",

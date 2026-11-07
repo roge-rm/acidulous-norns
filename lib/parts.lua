@@ -612,7 +612,43 @@ function P.out_send_01(pid)
   return P.song_sends[OUT_SENDS[pid]] or 0
 end
 
+-- A song's Venue sends, slot 0 or 1 -> {impulse, error} from
+-- /send_impulse_loaded. The out strip shows and steps their room in place of
+-- the size or feedback. lib/song.lua empties it when a song goes.
+P.song_send_impulses = {}
+local OUT_SLOTS = {rev_size = 0, dly_feedback = 1}
+
+-- The song's Venue send's room for pid's knob as its name, or nil when the
+-- send isn't one.
+function P.out_room(pid)
+  local imp = P.song_sends and P.song_send_impulses[OUT_SLOTS[pid]]
+  if not imp then return nil end
+  if imp[2] ~= "" then return "error" end
+  local name = imp[1]
+  local room = name:match("^factory:(.+)$")
+  if room then return P.ROOM_NAMES[tab.key(P.ROOMS, room)] or room end
+  if name == "" then return "none" end
+  return ((name:match("([^/]+)$") or name):gsub("%.%w+$", ""))
+end
+
+-- The room's place in P.ROOMS, 0-1, a file or none after the last.
+function P.out_room_01(pid)
+  local imp = P.song_send_impulses[OUT_SLOTS[pid]]
+  local room = imp and imp[2] == "" and imp[1]:match("^factory:(.+)$")
+  return ((tab.key(P.ROOMS, room) or #P.ROOMS + 1) - 1) / #P.ROOMS
+end
+
 function P.delta_out_send(pid, d)
+  if P.out_room(pid) then
+    local slot = OUT_SLOTS[pid]
+    local imp = P.song_send_impulses[slot]
+    local room = imp[2] == "" and imp[1]:match("^factory:(.+)$")
+    local at = tab.key(P.ROOMS, room)
+    -- from a file or none, down goes to the last room and up to the first
+    at = at and util.clamp(at + (d > 0 and 1 or -1), 1, #P.ROOMS) or (d > 0 and 1 or #P.ROOMS)
+    if P.ROOMS[at] ~= room then P.send_to_song("/send_impulse", {slot, "factory:" .. P.ROOMS[at]}) end
+    return
+  end
   if not P.song_sends then
     if pid == "rev_size" and not P.reverb_sized() then return end
     params:delta(pid, d)
@@ -1126,10 +1162,10 @@ end
 
 -- Picks a Venue's impulse in the slot: "factory:<room>", a file's path, or
 -- "" for none. /impulse_loaded answers. A path with | in it is refused, as
--- the "fx" param joins its entries with |.
+-- the "fx" param joins its entries with |. A song track's pick isn't saved.
 function P.set_impulse(i, slot, impulse)
   local part = P.part(i)
-  if part.song or P.song_holds or not part.machine then return end
+  if not part.song and (P.song_holds or not part.machine) then return end
   if impulse:find("|", 1, true) then
     if P.on_preset_note then P.on_preset_note("names with | can't be loaded") end
     return
@@ -3064,7 +3100,7 @@ function P.osc(path, args)
     -- preset brought is the part's pick, so a PSET puts it back.
     local part = rpart((args[1] or -1) + 1)
     local slot, impulse, err = args[2], args[3] or "", args[4] or ""
-    if not part or part.song or not slot then return end
+    if not part or not slot then return end
     if err ~= "" then print("acidulous: Venue: " .. err) end
     part.impulses[slot] = {impulse, err}
     local e = part.fx[slot]
@@ -3074,6 +3110,12 @@ function P.osc(path, args)
       part.impulse_pick[slot] = impulse ~= P.DEFAULT_ROOM and impulse or nil
       save_fx(part)
     end
+  elseif path == "/send_impulse_loaded" then
+    -- a song's Venue send's impulse, picked on the sends page's out strip
+    local slot, impulse, err = args[1], args[2] or "", args[3] or ""
+    if not slot or not P.song_sends then return end
+    if err ~= "" then print("acidulous: Venue: " .. err) end
+    P.song_send_impulses[slot] = {impulse, err}
   elseif path == "/macro_names" then
     local part = rpart((args[1] or -1) + 1)
     if not part then return end

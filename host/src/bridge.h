@@ -13,7 +13,8 @@
 //   /send i:slot s:name f:value01      a send effect's param: slot 0 the
 //        Reverb (size, damp, tone, predelay ...), 1 the Delay (time, feedback,
 //        tone, mode ...). Kept until the effect is mounted. With a song
-//        loaded it moves the song's send and the script's values stay
+//        loaded it moves the song's send, whatever effect the song put
+//        there, and the script's values stay
 //   /fx i:part i:slot s:name f:value01  a param of the part's insert in slot
 //        0 to 3, or of its mod slot ("mod_source" ...), by name, as /inserts
 //        lists them. A patch's inserts go in slots 0-1; 2-3 are the script's
@@ -28,7 +29,11 @@
 //        a file, absolute or read against the roots; "" for none. A Venue
 //        starts with wooden-hall, and its length, decay and stretch build the
 //        impulse again 150 ms after they last move (/fx). The rooms are the
-//        app's, in data/rooms beside data/banks. Replies /impulse_loaded
+//        app's, in data/rooms beside data/banks. A song's Venue keeps the
+//        song's file and knobs until picked. Replies /impulse_loaded
+//   /send_impulse i:slot s:impulse s:root...   the same for a song's Venue
+//        on send slot 0 or 1; its length, decay and stretch go with /send.
+//        Replies /send_impulse_loaded
 //   /patch_fx i:part i:owned i:sendsHeld f:heldReverb f:heldDelay
 //        f:patchReverb f:patchDelay   sets the part's patch state as the reply
 //        of that name has it, for after the plugin restarted: send it once the
@@ -300,7 +305,11 @@
 //   /fx_preset_saved i:part i:slot s:path s:result   "ok" or what went wrong
 //   /impulse_loaded i:part i:slot s:impulse s:error   a Venue's impulse built
 //        or not (error "" when it did), when it is mounted, chosen with
-//        /impulse or loaded with a preset or patch, and after a shape change
+//        /impulse or loaded with a preset or patch, and after a shape change.
+//        A song's Venue's comes after the part's /inserts with the song's
+//        file, "" for none
+//   /send_impulse_loaded i:slot s:impulse s:error   the same for a song's
+//        Venue send; a song's own comes after /song_sends
 //   /mod_preset_loaded i:part i:slot s:type s:name s:error (s:param
 //        f:value01)...   the slot's type ("" if empty) and its params as the
 //        engine holds them, error "" when it loaded

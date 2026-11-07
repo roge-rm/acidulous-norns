@@ -513,7 +513,8 @@ function view.mixer(parts, state, note)
 end
 
 -- A rev and a dly knob per part, and the reverb's size and the delay's
--- feedback on the out strip, or with K1 held its model and mode.
+-- feedback on the out strip, or with K1 held its model and mode. A song's
+-- Venue send shows its room there instead.
 function view.sends(parts, state, note)
   screen.clear()
   screen.font_face(1)
@@ -522,15 +523,17 @@ function view.sends(parts, state, note)
   local right
   if state.out then
     -- the song's while one is loaded, "-" for a send it doesn't have
-    local function pc(pid)
+    local function pc(pid, label)
+      local room = parts.out_room(pid)
+      if room then return "room " .. room end
       local v = parts.out_send(pid)
-      return v and tostring(math.floor(v * 100 + 0.5)) or "-"
+      return label .. " " .. (v and tostring(math.floor(v * 100 + 0.5)) or "-")
     end
     if state.k1 then
       -- K1 held: the reverb's model and the delay's mode
       right = (parts.out_choice("rev_model") or "-") .. "  " .. (parts.out_choice("dly_mode") or "-")
     else
-      right = "size " .. pc("rev_size") .. "  fdbk " .. pc("dly_feedback")
+      right = pc("rev_size", "size") .. "  " .. pc("dly_feedback", "fdbk")
     end
   else
     right = string.format("rev %d  dly %d", math.floor(parts.get(i, "rev") * 100 + 0.5),
@@ -549,14 +552,17 @@ function view.sends(parts, state, note)
   end
   screen.level(state.out and 15 or 6)
   text(116, 21, "rev", "center")
-  if parts.out_send("rev_size") then
+  if parts.out_room("rev_size") then
+    knob(116, 30, 6, parts.out_room_01("rev_size"), 3, state.out and 15 or 10)
+  elseif parts.out_send("rev_size") then
     knob(116, 30, 6, parts.out_send_01("rev_size"), 3, state.out and 15 or 10)
   else
     text(116, 32, "-", "center")
   end
   screen.level(state.out and 15 or 6)
   text(116, 46, "dly", "center")
-  knob(116, 55, 6, parts.out_send_01("dly_feedback"), 3, state.out and 15 or 10)
+  local dly01 = parts.out_room("dly_feedback") and parts.out_room_01("dly_feedback") or parts.out_send_01("dly_feedback")
+  knob(116, 55, 6, dly01, 3, state.out and 15 or 10)
   screen.update()
 end
 

@@ -474,13 +474,35 @@ bool write_file(const std::string& path, const std::vector<uint8_t>& bytes, std:
 } // namespace
 
 // Notes what a line the engine took put in place that EngineHost doesn't
-// say back: Mosaic's zones. The last line for a rack wins.
+// say back: Mosaic's zones and the Venues' impulse files. The last line for
+// a rack or slot wins.
 void Core::note_song_mount(const std::string& line)
 {
-    if(line.compare(0, 12, "MountMachine") != 0 && line.compare(0, 4, "Load") != 0)
+    if(line.compare(0, 5, "Mount") != 0 && line.compare(0, 4, "Load") != 0)
         return;
     const auto w = words(line);
     const auto n = [&](size_t k) { return k < w.size() ? std::atoi(w[k].c_str()) : -1; };
+    const auto from_zip = [&](const std::string& p) {
+        return p.compare(0, 4, "zip:") == 0 ? song_folder + "/" + p.substr(4) : p;
+    };
+    // LoadImpulse rack unit path length decay stretch; a send's rack is
+    // ignored. A mount in the slot takes its impulse away.
+    if(w.size() >= 4 && w[0] == "LoadImpulse")
+    {
+        const bool send = w[2].compare(0, 4, "send") == 0;
+        song_impulses[{send ? -1 : n(1), w[2]}] = from_zip(w[3]);
+        return;
+    }
+    if(w.size() >= 3 && w[0] == "MountEffect")
+    {
+        song_impulses.erase({n(1), "effect" + std::to_string(n(2) + 1)});
+        return;
+    }
+    if(w.size() >= 2 && w[0] == "MountSend")
+    {
+        song_impulses.erase({-1, "send" + std::to_string(n(1) + 1)});
+        return;
+    }
     // Mosaic's zones as Part::zones holds them: the spec with zip: paths
     // made absolute. A machine or SoundFont after them replaces them.
     if(w.size() >= 3 && w[0] == "LoadZoneMap" && n(1) >= 0 && n(1) < kParts)
@@ -495,7 +517,7 @@ void Core::note_song_mount(const std::string& line)
                 continue;
             }
             if(!row.empty())
-                spec += (row.compare(0, 4, "zip:") == 0 ? song_folder + "/" + row.substr(4) : row) + "\n";
+                spec += from_zip(row) + "\n";
             row.clear();
         }
         song_zones[n(1)] = spec;
@@ -575,6 +597,8 @@ void Core::clear_song(bool quiet)
     // Without blocks the param queue doesn't drain, so the defaults go in
     // without waiting and resync_teardown sets them again.
     song_defaults(!moving);
+    for(int s = 0; s < kSends; ++s)
+        drop_impulse(kSendRow, s);
     if(had_song)
         restore_sends();
     {
@@ -585,6 +609,7 @@ void Core::clear_song(bool quiet)
     song_from.clear();
     song_scenes.clear();
     song_zones.clear();
+    song_impulses.clear();
     for(bool& b : song_standin)
         b = false;
     song_on.store(false);
@@ -788,6 +813,7 @@ void Core::drop_song()
     song_from.clear();
     song_scenes.clear();
     song_zones.clear();
+    song_impulses.clear();
     song_on.store(false);
 }
 
@@ -1178,6 +1204,14 @@ bool Core::load_song(const std::string& path, const std::string& songs_dir_in, c
     // The song's Reverb size and Delay feedback, 0-1, or -1 for a send it
     // doesn't have.
     reply("/song_sends", {Value::f(host.sendParamNormalized(0, "size")), Value::f(host.sendParamNormalized(1, "feedback"))});
+    // A Venue send takes /send_impulse, after /song_sends so the script
+    // starts the song's sends afresh first.
+    for(int s = 0; s < kSends; ++s)
+        if(std::strcmp(host.mountedSend(s), "Venue") == 0)
+        {
+            const auto it = song_impulses.find({-1, std::string("send") + std::to_string(s + 1)});
+            song_venue(kSendRow, s, it == song_impulses.end() ? std::string() : it->second);
+        }
     reply("/song_loaded", out);
     return true;
 }
@@ -1376,6 +1410,13 @@ void Core::read_back(int r, const void* track_ptr)
     }
     const PatchInsert* none[kEffectSlots] = {};
     send_inserts(r, none, true);
+    // The song's Venues take /impulse, after /inserts shows them.
+    for(int s = 0; s < kEffectSlots; ++s)
+        if(std::strcmp(host.mountedEffect(r, s), "Venue") == 0)
+        {
+            const auto it = song_impulses.find({r, std::string("effect") + std::to_string(s + 1)});
+            song_venue(r, s, it == song_impulses.end() ? std::string() : it->second);
+        }
     send_mods(r);
 }
 

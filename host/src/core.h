@@ -74,6 +74,9 @@ struct Replier
 constexpr int kParts = acidulous::kRackCount;
 // Send buses: 0 reverb, 1 delay.
 constexpr int kSends = 2;
+// The Venue impulse row for the sends: impulse state is kept per part and
+// insert slot, with one more row after the parts whose slots are the sends.
+constexpr int kSendRow = kParts;
 // Modifier slots a part has.
 constexpr int kModSlots = acidulous::kInputModSlots;
 
@@ -216,13 +219,16 @@ class Core
     Args nexus_macros(const acidulous::machine::nexus::Graph& g, const std::vector<std::string>& named);
     void cloud_loop();
     void build_cloud(int part, const std::vector<float>& values, uint64_t epoch);
-    // Venue impulses: kept per insert slot, built on the cloud thread.
+    // Venue impulses: kept per insert slot, and per send in row kSendRow,
+    // built on the cloud thread.
     std::string rooms_dir() const;
     std::string impulse_file(const std::string& impulse, std::string& why) const;
     void request_impulse(int part, int slot, bool settle);
     void build_impulse(int part, int slot, const std::string& impulse, const float* shape);
     void set_impulse(int part, int slot, const std::string& impulse, const std::vector<std::string>& roots);
     void drop_impulse(int part, int slot);
+    void set_send_impulse(int slot, const std::string& impulse, const std::vector<std::string>& roots);
+    void song_venue(int part, int slot, const std::string& impulse);
     std::string room_to_file(const std::string& impulse) const;
     std::string file_to_room(const std::string& file) const;
     void sync_impulses(int part, const acidulous::PatchInsert* const at[acidulous::kEffectSlots] = nullptr,
@@ -332,10 +338,11 @@ class Core
     std::mutex              cloud_lock;
     std::condition_variable cloud_cv;
     CloudRequest            clouds[kParts];
-    ImpulseRequest          impulse_req[kParts][acidulous::kEffectSlots];
+    ImpulseRequest          impulse_req[kParts + 1][acidulous::kEffectSlots];
     // Held across a cloud build, across a /load and around queuing a part's
-    // mount or unmount. Taken before cloud_lock.
-    std::mutex              mount_locks[kParts];
+    // mount or unmount; the last is the sends', held across their impulse
+    // builds. Taken before cloud_lock.
+    std::mutex              mount_locks[kParts + 1];
     // Decoded bytes of samples each part's slots hold, for the sample budget,
     // and a loaded song's that belong to no part (frozen clips).
     std::mutex              held_lock;
@@ -367,10 +374,11 @@ class Core
     std::string                 fx_formula[kParts][acidulous::kEffectSlots];
     // Worker only: each insert slot's Venue impulse as set ("factory:<room>",
     // a file, or "" for none) and its length, decay and stretch, 0-1. Valid
-    // while impulse_on is set, which is while the slot holds a Venue.
-    std::string                 fx_impulse[kParts][acidulous::kEffectSlots];
-    float                       fx_shape[kParts][acidulous::kEffectSlots][3] = {};
-    bool                        impulse_on[kParts][acidulous::kEffectSlots] = {};
+    // while impulse_on is set, which is while the slot holds a Venue. Row
+    // kSendRow is a song's Venue sends, slots 0 and 1.
+    std::string                 fx_impulse[kParts + 1][acidulous::kEffectSlots];
+    float                       fx_shape[kParts + 1][acidulous::kEffectSlots][3] = {};
+    bool                        impulse_on[kParts + 1][acidulous::kEffectSlots] = {};
     bool                        mod_bypass[kParts][kModSlots] = {}; // on the worker
     // Worker only: the loaded song's folder, "" for none, and the path it
     // was loaded from (a zip, or the folder).
@@ -401,6 +409,10 @@ class Core
     // Worker only: Mosaic zones per rack from the song's LoadZoneMap lines,
     // as Part::zones holds them.
     std::map<int, std::string> song_zones;
+    // Worker only: the file each of the song's LoadImpulse lines built from,
+    // by rack and unit ("effect1" ...), rack -1 for a send ("send1" ...).
+    // A mount in the slot after it drops it.
+    std::map<std::pair<int, std::string>, std::string> song_impulses;
     // Worker only: a teardown ran without blocks, so the engine may still
     // hold some of the song; resync_teardown finishes it, and puts the
     // sends back if the song had any mounted.
