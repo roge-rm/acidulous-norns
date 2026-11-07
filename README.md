@@ -1,8 +1,8 @@
 # acidulous
 
-acidulous puts the machines from my [Acidulous](https://github.com/roge-rm/Acidulous) app on [norns](https://monome.org/docs/norns/) as a multitimbral patch player. It runs the app's own engine, so the patches sound the same as they do there. The app is on [my F-Droid repo](https://hunke.ws/fdroid/repo).
+acidulous puts the machines from my [Acidulous](https://github.com/roge-rm/Acidulous) app on [norns](https://monome.org/docs/norns/). It runs the app's own engine, so the patches sound the same as they do there.
 
-There are 8 parts, or 16 if you set **parts** to 16. Each one plays a machine and patch on its own MIDI channel, so you can play a bassline, a beat and a pad from one keyboard or sequencer. One part at a time can take MPE.
+There are 8 parts, or 16. Each plays a machine and patch on its own MIDI channel, so you can play a bassline, a beat and a pad from one keyboard or sequencer. One part at a time can take MPE. It also plays songs from the app and loads its presets.
 
 ![The play page with Reflux, Hexbeat, Tine, Fret, Brazen, Aviary, Mosaic and Diction playing in turn](docs/images/play.gif)
 
@@ -17,7 +17,7 @@ There are 8 parts, or 16 if you set **parts** to 16. Each one plays a machine an
 <img src="docs/images/splash.png" alt="The splash screen" width="400">
 </p>
 
-This has been tested on my [shieldXL](https://github.com/okyeron/shieldXL) with a Pi 4 inside. It should run on a Pi 3 norns too, with fewer of the heavy machines at once. If you try it on one please let me know how it goes, or open an issue here.
+I've tested it on my [shieldXL](https://github.com/okyeron/shieldXL) with a Pi 4. It should run on a Pi 3 too, with fewer heavy machines at once. If you try one let me know how it goes, or open an issue here.
 
 Enjoy!<br>
 Dan
@@ -26,7 +26,6 @@ Dan
 
 - [What you need](#what-you-need)
 - [Installing](#installing)
-- [Updating](#updating)
 - [On the norns](#on-the-norns)
 - [Parts and MIDI](#parts-and-midi)
 - [MPE](#mpe)
@@ -39,201 +38,206 @@ Dan
 ## What you need
 
 - A [norns](https://monome.org/docs/norns/) or [norns shield](https://github.com/okyeron/shieldXL).
-- A MIDI keyboard or sequencer, by USB.
-- Optional: an [OMX-27](https://github.com/okyeron/OMX-27) with [Quixotic7's firmware](https://github.com/Quixotic7/OMX-27) 1.15.4 or newer, which has REMOTE mode.
-- Optional, for MPE: an Exquis or a QuNexus, or any MPE controller.
+- A USB MIDI keyboard or sequencer.
+- Optional: an [OMX-27](https://github.com/okyeron/OMX-27) with [Quixotic7's firmware](https://github.com/Quixotic7/OMX-27) 1.15.4 or newer.
+- Optional: an MPE controller, like an Exquis or QuNexus.
 
 ## Installing
 
-1. In maiden, open the project list, find acidulous and press **install**. Or over ssh, `git clone https://github.com/roge-rm/acidulous-norns ~/dust/code/acidulous`. The folder needs to be called acidulous for it to show as acidulous in **SELECT**.
-2. Load acidulous from **SELECT**.
-3. The first time, it installs its SuperCollider plugin and restarts SuperCollider, then loads by itself. This takes about 20 seconds. After that, the acidulous icon shows while it starts.
+1. In maiden, find acidulous in the project list and press **install**. Or over ssh, `git clone https://github.com/roge-rm/acidulous-norns ~/dust/code/acidulous`. Keep the folder name acidulous.
+2. Load it from **SELECT**.
+3. The first time, it installs its SuperCollider plugin and restarts SuperCollider, which takes about 20 seconds.
+
+To update, press **update** in maiden and load it again. If the plugin changed it gets installed the same way.
 
 If SuperCollider won't start after you've been logged in over ssh, restart the norns.
 
-## Updating
-
-1. In maiden, open the project list, find acidulous and press **update**.
-2. Load acidulous again. If the plugin has changed it installs it and restarts SuperCollider, then loads by itself.
-
 ## On the norns
+
+Hold **K1** and turn **E1** to change pages: play, parts, card, mixer, sends and song. Holding **K1** gives fine steps when changing values.
 
 ### Play
 
-The play page shows the selected part's machine, patch and five macros, with a little picture of the machine that moves as it plays. Each machine group has its own look. The bottom line shows the part number, the MPE mark and keys, the part's key and scale when it has a Scale, and the load when it's busy. The macros match the OMX-27's pots.
+The selected part's machine, patch and five macros, with a little picture of the machine that moves as it plays. The bottom line has the part, the MPE and keys marks, the part's scale and the load when it's busy.
 
-- E1 changes machine, E2 picks the patch or a macro and E3 changes it. Hold K1 for fine steps.
-- K2 opens patches, K1 + K2 opens machines and K3 plays a note.
-- Hold K1 and turn E1 to change pages: play, parts, card, mixer, sends and song.
+- **E1** machine, **E2** patch or a macro, **E3** changes it.
+- **K2** patches, **K1** + **K2** machines, **K3** plays a note.
 
-### Parts and patches
+### Parts
 
-The parts page shows each machine, patch and level meter. The bar on the left lights when the part plays.
+Each part's machine, patch and meter.
 
 | | |
 |---|---|
-| **K1** held + **E1** | page: play, parts, card, mixer, sends, song, a few detents a page |
-| **E1** | pick a part |
+| **E1** | part |
 | **E2** | patch |
-| **K1** held + **E2** | machine |
-| **E3** | the part's volume |
+| **K1** + **E2** | machine |
+| **E3** | volume |
 | **K2** | patch list |
-| **K1** held + **K2** | machine picker, or on a card of fx 3 or 4 or on a mods card, that slot's saved presets |
-| **K3** | play a note on the part |
-| **K1** held + **K3** | load samples, see [Samples](#samples), or the scope on a Nexus part |
+| **K1** + **K2** | machine picker, or the saved presets on an effect or mods card |
+| **K3** | play a note |
+| **K1** + **K3** | load samples, or the scope on a Nexus part |
 
-Patches are grouped into families and machines into the app's groups. In either picker, E1 changes tab, E2 selects, K3 loads and K2 closes. Loading the current patch again restores its values.
+In the patch list and machine picker, **E1** changes tab, **E2** moves, **K3** loads and **K2** closes. Loading the patch you're on again resets it.
 
 ### Cards
 
-Cards group the machine's controls as in the app. E1 picks a card, E2 a control and E3 changes it. Hold K1 for fine steps. Hold K1 and turn E2 right to jump to the amp envelope, or left to return. Kit cards start with a pad selector. K2 returns to play.
+The machine's controls, grouped as in the app. **E1** card, **E2** control, **E3** value, **K2** back to play. **K1** + **E2** right jumps to the amp envelope and left back.
 
-Effect cards follow the machine's. A patch's effects fill inserts 1 and 2; on the inserts card, fx 3 and fx 4 pick effects of your own, which stay when you change patches or machines. Each effect has a mod card: pick a source (LFO, steps, follow or another track) and up to two of its knobs to move, each with a depth. Edits and your effects save in PSETs, and edits to a patch's effects reset when you choose a different patch. A Venue has a room knob first: the app's five rooms, or K1+K3 on its card to pick an impulse file.
+After the machine's cards come the effects. A patch's own effects go in inserts 1 and 2, and fx 3 and 4 on the inserts card are yours, kept when you change patch or machine. Each effect has a mod card with a source (LFO, steps, follow or another track) and up to two knobs to move. A Venue's room knob picks one of the app's five rooms, or **K1** + **K3** for an impulse file.
 
-Each part has three note modifier slots for Scale, Chord or Arp. Set them on the mods card, then use their cards to change settings. Notes pass through slot 1, then 2, then 3. Scale and Chord share key and scale. Modifiers stay when you change patches or machines and save in PSETs. An active Scale shows its key and scale on the play page.
+The mods card has three slots for Scale, Chord and Arp, played in that order. Scale and Chord share a key and scale. They stay when you change patch or machine.
 
-The arp, synced LFOs and delay follow PARAMETERS > CLOCK, from any clock source. Arp sync free follows clock beats; restart begins with the first key.
+The arp, synced LFOs and delay follow the norns clock.
 
-Pan and other controls that cross zero stop at the centre. Turn three more detents to pass it.
+Pan and anything else that crosses zero stops in the centre for three detents.
 
 ### Mixer and sends
 
-The mixer has a meter, fader and pan for each part, with m for mute and s for solo. The out strip has master level and a lim indicator when the limiter is active. Loudness at the top right covers the last three seconds in LUFS.
+A meter, fader and pan for each part, with mute and solo, then out with the master level and limiter. Loudness in LUFS is at the top right.
 
 | Mixer | |
 |---|---|
-| **E1** | pick a part, or out after the last part |
+| **E1** | part, or out after the last one |
 | **E2** | pan |
-| **E3** | level, or the master level on out |
+| **E3** | level |
 | **K2** | mute |
 | **K3** | solo |
 
-The sends page has reverb and delay sends for each part. On out, E2 and E3 change reverb size and delay feedback, or with K1 held the reverb's model and the delay's mode. The space model has no size, so it shows a dash.
-
 | Sends | |
 |---|---|
-| **E1** | pick a part, or out after the last part |
-| **E2** | reverb send |
-| **E3** | delay send |
+| **E1** | part, or out after the last one |
+| **E2** | reverb send, or reverb size on out |
+| **E3** | delay send, or delay feedback on out |
 
-Reverb and delay start when first used. Other settings are under PARAMETERS > EDIT > sends and master, with the knobs of the reverb's model, and taps and spacing for the delay's multi-tap mode. Delay time is in notes at the norns tempo.
+On out, hold **K1** for the reverb's model and the delay's mode. The rest of their settings are in **PARAMETERS > EDIT**. Delay time is in notes.
 
 ### Songs
 
-The song page plays a song exported from the app as a zip. Put zips in `dust/data/acidulous/songs`, or in `dust/audio` up to three folders down. Loading one unpacks it into `dust/data/acidulous/songs/<name>/` and replaces the parts. The page shows the scene playing, its pass and the tempo, and a row per scene: the bar on the left lights on the one playing and next marks the queued one.
+Plays songs exported from the app as a zip. Put them in dust/data/acidulous/songs, or anywhere in dust/audio. Loading one replaces the parts with its tracks until you unload it.
 
 | Song | |
 |---|---|
-| **K1** held + **K2** | songs, or **K2** when none is loaded. K3 loads, none unloads, K2 closes |
+| **K1** + **K2** | song list (**K3** loads, none unloads) |
 | **K2** | play or stop |
-| **E2** | pick a scene |
-| **K3** | play from that scene, or queue it to follow the one playing |
+| **E2** | scene |
+| **K3** | play from that scene, or queue it next |
 
-A song plays at its own tempo, and norns' clock follows it while its source is internal. While a song is loaded its tracks are the parts: the parts page shows each track's name with its patch, and the play, card, mixer and sends pages, the patch list and the machine picker work on them. Track n plays from MIDI channel n, and a song with more than 8 tracks shows 16 parts. Your edits to a song stay until it's unloaded and aren't saved into the song, and a song's tracks can't be saved as presets. The out strip on the mixer moves the song's master, and the one on the sends page its reverb size and delay feedback. Your own parts, master level, sends and tempo are kept for when it's unloaded, and unloading puts them back. A PSET saved with a song loaded saves your own parts and the song's name, and edits to the song's tracks stay out of it. PSETs keep the loaded song: one saved with the same song leaves it playing, one with another song loads that one, and one without a song unloads it and loads its parts.
+The norns clock follows the song's tempo. Track 1 plays from channel 1 and so on, and the other pages work on the tracks. Edits to a song stay until you unload it and don't save into the song. Unloading puts your own parts, sends and tempo back. A PSET saves your own parts and which song was loaded.
 
 ### Scope and settings
 
-The Nexus scope shows its modules and the selected module's output. E2 selects, K3 plays a note and K2 closes. Changing modules briefly dips the sound.
+The Nexus scope shows its modules and what the selected one puts out. **E2** module, **K3** plays a note, **K2** closes.
 
-PARAMETERS > EDIT has every part's settings. After three minutes without input, both screens show the acid bath screensaver. Norns keys and encoders wake it without acting; notes and OMX-27 controls wake it and play normally. Set screensaver after to another time or off.
+Every part's settings are in **PARAMETERS > EDIT**. After three minutes with nothing played, the screensaver comes on; set **screensaver after** to change it.
 
 ## Parts and MIDI
 
-Part 1 listens on channel 1, part 2 on channel 2 and so on. To change it, set **channel** in the part's group. Two parts on the same channel play together, and **off** leaves a part silent.
+Part 1 listens on channel 1, part 2 on channel 2 and so on. Change it with the part's **channel**, or **off** to silence it.
 
-**parts** in PARAMETERS > EDIT is 8 or 16. With 16, parts 9 to 16 listen on channels 9 to 16, and the parts, mixer and sends pages show 8 at a time: turn E1 past part 8 to get to 9-16, and the header shows which 8. Setting it back to 8 stops parts 9-16 and frees their CPU, and setting 16 again brings them back as they were. PSETs save it, and older ones load as 8. More parts use more CPU, so the overload warning comes sooner with more than 8 machines.
+**parts** is 8 or 16. With 16 the pages show 8 at a time, turn **E1** past part 8 for the rest. More parts use more CPU.
 
-**midi from** picks the MIDI device, or **all** to listen to every one.
+**midi from** picks the MIDI device, or **all**.
 
 ## MPE
 
-Plug in your MPE controller, pick a part and play. The selected part gets every channel of the controller, with per-note bend, pressure and timbre, and the parts page marks it with three little bars before its meter. If **mpe part** is set to a part and the controller isn't plugged in, that part shows **mpe: no device**. Notes you're holding stop when you pick another part.
+Plug in an MPE controller and play. The selected part gets every channel of it, with per-note bend, pressure and timbre, and shows three little bars on the parts page.
 
-- **mpe part** is **follow** by default, for the selected part. Set it to a part number to keep MPE on that part, or **off**.
-- **mpe from** is **auto** by default. It finds an Exquis or QuNexus by name, a controller that sends the MPE configuration message, or one that plays notes on more than one channel with bend or pressure on each. Until then its first note plays as normal MIDI. If yours isn't found, pick its port.
-- **mpe bend** in each part's group is the bend range, 48 semitones by default. It's set by itself from a controller that sends its range (RPN 0), and to 2 for a QuNexus. Otherwise set it to match your controller.
+- **mpe part**: **follow** for the selected part, a part number to keep it on one, or **off**.
+- **mpe from**: **auto** finds an Exquis, a QuNexus or anything that plays like MPE. Otherwise pick its port.
+- **mpe bend**: the bend range, 48 by default, 2 for a QuNexus. It's set by itself if the controller sends its range.
 
-The lower and upper zones both work. The MPE part still plays from **midi from** on its own channel, and so do the other parts.
+Both zones work.
 
 ## OMX-27
 
-Plug it in by USB and acidulous puts it in REMOTE mode.
+Plug it in by USB and it goes into REMOTE mode.
 
-- The keys play the selected part.
-- **AUX** + the two top left keys: octave down and up.
-- **AUX** + the first 8 bottom keys: pick parts 1 to 8, or 9 to 16 when those are showing.
-- **AUX** + the 9th bottom key: with 16 parts, switch between parts 1-8 and 9-16. It's lit while 9-16 show.
-- **AUX** + the top keys 3 to 6 turn the part's scale, chord, arp and latch on and off, lit while on. Latch is the arp's, or the chord's when there's no arp. A part has 3 modifier slots; with all of them taken the screen says **slots full**. Off keeps the modifier's settings.
-- **AUX** + key 3 held: a key picks the root and the encoder the scale, and tapping the encoder swaps snap and degree. In degree mode the white keys play the scale, starting from the root.
-- **AUX** + key 4 held: the encoder picks the chord type.
-- With **AUX** held the pots are the arp's rate, gate, mode and octaves and the chord type, picked up the same way as the macros.
-- The five pots are the part's macros. A pot takes over once you sweep it past where the macro is set.
-- The encoder picks the patch. Hold it and turn for the machine, and tap it to swap the parts and card pages, or close the patch list or machine picker.
-- The little screen shows the part, the patch and the macro you're turning, or the scale, chord or arp you've changed.
+- The keys play the selected part, and the encoder picks the patch. Hold and turn it for the machine, tap it to swap the parts and card pages.
+- The five pots are the macros. A pot takes over once it passes the macro's value.
+- **AUX** + top left keys: octave down and up.
+- **AUX** + the first 8 bottom keys: parts 1 to 8, or 9 to 16. **AUX** + the 9th switches between them.
+- **AUX** + top keys 3 to 6: scale, chord, arp and latch on and off.
+- Hold **AUX** + key 3: keys pick the root, the encoder the scale, and a tap swaps snap and degree.
+- Hold **AUX** + key 4: the encoder picks the chord.
+- With **AUX** held the pots are the arp's rate, gate, mode and octaves and the chord type.
 
-**omx velocity** in **PARAMETERS > EDIT** sets how hard its keys play.
+**omx velocity** in **PARAMETERS > EDIT** sets how hard the keys play.
 
 ## Machines
 
-How many parts of each machine can play at once on a Pi 4. When you mix machines it adds up, so a Trinity or Ratio part leaves less room for the rest.
+In the picker's order. Parts is about how many can play at once on a Pi 4. Mixing machines adds up, so a Trinity or Ratio leaves less room for the rest. The measurements are in [docs/machines.md](docs/machines.md).
 
-| Machine | Parts | Machine | Parts |
+| | Machine | What it does | Parts |
 |---|---|---|---|
-| Reflux | 8 | Chanter | 8 |
-| Hexbeat | 8 | Brazen | 8 |
-| Trinity | 2 | Fathom | 8 |
-| Ratio | 2 | Resonance | 8 |
-| Formulate | 8 | Draw | 8 |
-| Genesis | 8 | Sympath | 6 |
-| Tine | 8 | Filament | 5 |
-| Palm | 8 | Manual | 5 |
-| Tongue | 8 | Hammer | 5 |
-| Timber | 8 | Cipher | 5 |
-| Aviary | 8 | Cumulus | 4 |
-| Fret | 8 | Nexus | 1 to 2 |
-| Diction | 8 | Forage | 8 |
-| Mosaic | 4 | Dice | 8 |
-| Pollen | 2 to 4 | Molt | 8 |
+| synths | Cumulus | Pads made from a spectrum of partials | 4 |
+| | Divisi | Strings, choir and brass ensemble | |
+| | Formulate | 8-bit chip synth with formula waves | 8 |
+| | Ratio | Six-operator FM | 2 |
+| | Reflux | Acid bass | 8 |
+| | Trinity | Three oscillators with wavetables and FM | 2 |
+| drums | Dice | Loop slicer | 8 |
+| | Forage | Sample drums, 13 pads | 8 |
+| | Genesis | Modelled drum machine | 8 |
+| | Hexbeat | 13 synth drums | 8 |
+| | Palm | Hand drums, hold a note for a pattern | 8 |
+| | Resonance | Struck objects | 8 |
+| keys | Hammer | Pianos and electric pianos | 5 |
+| | Manual | Organ with a rotary cabinet | 5 |
+| | Tine | Bars, tines, pans and bells | 8 |
+| strings | Filament | Plucked, bowed and hammered strings | 5 |
+| | Fret | Guitars and basses with an amp | 8 |
+| | Sympath | Sitar, tanpura and the like | 6 |
+| winds | Brazen | Brass | 8 |
+| | Chanter | Bagpipes and hurdy-gurdy | 8 |
+| | Draw | Harmonicas and accordions | 8 |
+| | Timber | Woodwinds | 8 |
+| | Tongue | Jaw harp | 8 |
+| nature | Aviary | Birdsong | 8 |
+| | Fathom | Water and weather | 8 |
+| samples | Molt | Sings a take at the notes you play | 8 |
+| | Mosaic | SoundFonts and multisamples | 4 |
+| | Pollen | Grains from a file or the input | 2 to 4 |
+| beyond | Bias | Audio tracks, in songs only | |
+| | Cipher | Vocoder | 5 |
+| | Diction | Vocal synth | 8 |
+| | Nexus | Modular, built from the other machines | 1 to 2 |
 
-The measurements are in [docs/machines.md](docs/machines.md). Diction sings a vowel with its built-in voice; the vowel macro picks which. Nexus's Listening, Talking and Sing to the Piano patches play the norns input, so they're silent without one. Changing one of Cumulus's spectrum params (partials to bodd in the params menu) rebuilds its sound, which cuts the notes that are held, so none of them are macros. A Nexus patch's macros are the knobs the patch sets, then the knobs of its modules. Bias isn't here yet.
+- Divisi isn't counted yet. One part of Everything, its heaviest patch, takes about 15%.
+- Diction sings a vowel with its built-in voice, picked with the vowel macro.
+- Nexus's Listening, Talking and Sing to the Piano play the norns input, so they're silent without one.
+- Changing Cumulus's spectrum params (partials to bodd) rebuilds its sound and cuts held notes, so none of them are macros.
 
 ## Samples
 
-Forage, Mosaic, Dice, Pollen and Molt play your samples. Pick one of them on a part and press **K1** + **K3** to open the file list, starting in dust/audio, with a USB stick as a second place when one is in.
-
-Picking one on a part loads a sound to start with: the 808 kit from dust/audio/common on Forage, a soft horn made with Trinity on Mosaic, and drumev, hermit_leaves and whirl1 from dust/audio on Dice, Pollen and Molt. If that file isn't there the part shows **empty, k1+k3**. A PSET keeps the files it was saved with, or none.
+Forage, Mosaic, Dice, Pollen and Molt play samples. On one of those parts press **K1** + **K3** for the file list, in dust/audio and on a USB stick if one's in. Each starts with a sound of its own when you pick it.
 
 | | |
 |---|---|
 | **E2** | move |
 | **K3** | open a folder, or hear the file |
-| **K1** held + **K3** | load the file |
-| **K2** | back, and close at the top |
+| **K1** + **K3** | load it |
+| **K2** | back |
 
-- **Forage** is a drum kit with 13 pads. **E3** picks the pad a file goes on, and it moves to the next pad after each one so you can build a kit. **use this folder** puts the folder's first 13 files, by name, on the pads.
-- **Mosaic** plays a SoundFont: pick the .sf2, then one of its presets with **K3**. Or **use this folder** on a folder of WAVs. Files named with a note, like `piano C4.wav` or `pad F#3.wav`, go on that note, and files without one are spread across the keys.
-- **Dice**, **Pollen** and **Molt** take one file each. Pollen with nothing loaded, as in a PSET saved that way, plays the norns input, and **live input** at the top of the file list empties it again.
-- The file list also shows the app's .acpreset files, on any part. **K1** + **K3** on one copies it to the saved presets of its machine, or the effect presets of fx 3 and 4 or the mods card for an effect or modifier preset. A name already there gets " 2", " 3" and so on. Files that aren't presets, and Scale presets, are refused with a short message.
+- **Forage**: **E3** picks the pad, and it moves on after each file so you can build a kit. **use this folder** loads the first 13 files.
+- **Mosaic**: an .sf2 and one of its presets, or **use this folder** on a folder of WAVs. A note in the file name, like `piano C4.wav`, puts it on that note.
+- **Dice**, **Pollen** and **Molt** take one file. Pollen with none, or **live input**, plays the norns input.
 
-WAV, AIFF and FLAC are supported. MP3 files cannot be loaded. Dice, Pollen, Molt and Forage's pads use the first 30 seconds of a file. Samples across all parts can use 320 MB, with a 64 MB limit per SoundFont. Loads past either limit show an error.
-
-USB files are copied to dust/audio/acidulous/usb, so they stay available after the stick is removed. File names containing `|` cannot be loaded.
+WAV, AIFF and FLAC, up to 30 seconds except on Mosaic. All parts together can hold 320 MB, 64 MB per SoundFont. Files from USB are copied to dust/audio/acidulous/usb.
 
 ## Saving
 
-Machines, patches, any changed params and the samples each part has loaded save with norns PSETs, in **PARAMETERS > PSET**. The samples stay where they are, so a PSET needs them in the same place to load them again.
+PSETs save each part's machine, patch, edits and samples. The samples aren't copied, so keep them where they were.
 
-You can save a part's sound as a patch of your own, which the Acidulous app can open too. In the patch list press **K1** + **K3**, type a name and pick **OK**. It's saved with its edits, macros and effects in dust/data/acidulous/presets/ under the machine's name, and shows in a **saved** tab at the start of the list. **K3** loads it like any patch, and **K1** + **K3** on it deletes it after asking. A PSET remembers a saved patch a part was playing.
+To save a part's sound as a patch, press **K1** + **K3** in the patch list and type a name. It goes in a **saved** tab at the start of the list, and the app can open it too. **K1** + **K3** on a saved one deletes it.
 
-Presets from the app go in the same folder, or pick the .acpreset in the file picker, see [Samples](#samples). They load with their samples, voices and slices. The files they carry are unpacked to dust/audio/acidulous/presets/, in a folder named after the machine and the preset. Deleting the preset deletes that folder too, unless a part or a PSET still uses it, and media nothing uses is cleared later.
+Presets from the app (.acpreset) go in dust/data/acidulous/presets, or load one from the file list with **K1** + **K3**. Their samples are unpacked to dust/audio/acidulous/presets and deleted with the preset, unless something still uses them.
 
-Effect and modifier presets work the same way. On a card of fx 3 or 4 or on the mods card, **K1** + **K2** opens that slot's list, **K3** loads one, **K1** + **K3** saves the slot or deletes the one you're on.
-
-**K1** + **K3** saving a patch packs the files it uses into the preset, up to 64 MB. Past that, the files stay paths relative to dust/audio, so put them in the same place on another norns.
+Effect and modifier presets work the same way: **K1** + **K2** on an effect or mods card for the list, **K3** loads, **K1** + **K3** saves or deletes.
 
 ## Credits
 
-acidulous is GPL-3.0, see [LICENSE](LICENSE). The engine in `third_party/acidulous` is copied from the Acidulous app, see [its README](third_party/acidulous/README.md).
+acidulous is GPL-3.0, see [LICENSE](LICENSE). The engine in `third_party/acidulous` is from the Acidulous app, see [its README](third_party/acidulous/README.md).
 
 The OMX-27 is by Denki Oto, with firmware by okyeron and Quixotic7.
 
