@@ -18,17 +18,6 @@ Dan
 
 ![The play page with Reflux, Hexbeat, Tine, Fret, Brazen, Aviary, Mosaic and Diction playing in turn](docs/images/play.gif)
 
-<p>
-<img src="docs/images/parts.png" alt="The parts page with 8 parts playing" width="400">
-<img src="docs/images/mixer.png" alt="The mixer" width="400">
-<img src="docs/images/card.png" alt="Reflux's filter card" width="400">
-<img src="docs/images/env.png" alt="Mosaic's amp envelope card" width="400">
-<img src="docs/images/mods.png" alt="The mods card with Scale, Chord and Arp" width="400">
-<img src="docs/images/patches.png" alt="Tine's patch list with its family tabs" width="400">
-<img src="docs/images/machines.png" alt="The machine picker" width="400">
-<img src="docs/images/splash.png" alt="The splash screen" width="400">
-</p>
-
 ---
 
 - [What you need](#what-you-need)
@@ -170,13 +159,6 @@ The Nexus scope shows its modules and what the selected one puts out. **E2** mod
 <img src="docs/images/scope.png" width="384" alt="The Nexus scope on a filter">
 
 Every part's settings are in **PARAMETERS > EDIT**. After three minutes with nothing played, the screensaver comes on; set **screensaver after** to change it.
-
-<img src="docs/images/saver.png" width="384" alt="The screensaver with a drop falling in">
-
-- The screensaver is an acid bath. Lines of a 303 wave roll slowly towards you, going from a soft saw to a squelchy ringing wave and back.
-- Each part with a machine raises a hump in the lines, higher while it plays.
-- Now and then a drop from the app's icon falls in and ripples the front lines.
-- On an OMX-27 it plays on its screen too, and the lines roll down its keys.
 
 ## Parts and MIDI
 
