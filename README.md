@@ -41,7 +41,7 @@ Dan
 
 ## Installing
 
-1. Over ssh, `git clone https://github.com/roge-rm/acidulous-norns ~/dust/code/acidulous`. The folder name makes it show as acidulous in **SELECT**.
+1. In maiden, type `;install https://github.com/roge-rm/acidulous-norns` into the REPL. It shows as acidulous-norns in **SELECT**. To have it show as acidulous, install it over ssh instead with `git clone https://github.com/roge-rm/acidulous-norns ~/dust/code/acidulous`.
 2. Load it from **SELECT**.
 3. The first time, it installs its SuperCollider plugin and restarts SuperCollider, which takes about 20 seconds.
 
