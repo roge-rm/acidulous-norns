@@ -36,6 +36,7 @@ Dan
 - A [norns](https://monome.org/docs/norns/) or [norns shield](https://github.com/okyeron/shieldXL).
 - A USB MIDI keyboard or sequencer.
 - Optional: an [OMX-27](https://github.com/okyeron/OMX-27) with [Quixotic7's firmware](https://github.com/Quixotic7/OMX-27) 1.15.4 or newer.
+  With older firmware, acidulous offers an update: K3 updates and K2 skips. Updating clears the OMX-27's saved patterns. On a Teensy unit, press the Teensy's button if asked. To update or repair it later, choose update OMX-27 under PARAMETERS > EDIT. If you skip, the OMX-27 plays as a plain MIDI keyboard.
 - Optional: an MPE controller, like an Exquis or QuNexus.
 
 ## Installing
