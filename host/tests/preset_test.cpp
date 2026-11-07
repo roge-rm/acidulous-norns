@@ -1830,6 +1830,9 @@ int main(int argc, char** argv)
     cmd("/patch", {Value::i(0), Value::s("Trinity"), Value::s("Saw Lead")});
     check(save(0, scratch + "/Trinity/packed-bank.acpreset", "Over", no_roots) != "ok", "nor saved over");
     check(save(0, lead, "Over", no_roots) == "ok", "a one-patch file is saved over");
+    std::system(("cp '" + fixtures + "/hit.acpreset' '" + scratch + "/Trinity/hit.acpreset'").c_str());
+    check(save(0, scratch + "/Trinity/hit.acpreset", "Over", no_roots) == "an app file, use a new name",
+          "a file with engine lines isn't saved over, and says why");
     log.clear();
     cmd("/preset_delete", {Value::s(scratch + "/Trinity/packed-bank.acpreset"), Value::i(-1)});
     check(log.wait("/preset_deleted", r) && r.args[2].str == "ok" && !exists(scratch + "/Trinity/packed-bank.acpreset"),

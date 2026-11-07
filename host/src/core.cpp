@@ -3989,6 +3989,24 @@ bool has_engine_lines(const std::string& path)
     return app;
 }
 
+// Why the preset at [path] can't be replaced by a save, or "" when it can.
+// Only a file of one patch with no engine lines is replaced, so a bank's other
+// patches and the app's lines stay.
+std::string why_kept(const std::string& path)
+{
+    if(!exists(path))
+        return "";
+    Preset      old;
+    std::string ignore;
+    if(!read_preset(path, old, ignore))
+        return "can't read the file there";
+    if(old.patches.size() > 1)
+        return "would replace more than one patch";
+    if(has_engine_lines(path))
+        return "an app file, use a new name";
+    return "";
+}
+
 } // namespace
 
 // Saves the part's sound as a preset at [path], with [settings] (the files
@@ -4086,13 +4104,8 @@ void Core::save_preset(int part, const std::string& path, const std::string& nam
     }
     if(bytes.empty())
         return done(why.empty() ? "busy" : why);
-    // Only a file of one patch is replaced, so a bank's other patches stay.
-    {
-        Preset      old;
-        std::string ignore;
-        if(exists(path) && (!read_preset(path, old, ignore) || old.patches.size() > 1 || has_engine_lines(path)))
-            return done("would replace more than one patch");
-    }
+    if(std::string kept = why_kept(path); !kept.empty())
+        return done(kept);
     if(!write_with_files(path, bytes, media, why))
         return done(why);
     done("");
@@ -4812,13 +4825,8 @@ void Core::save_fx_preset(int part, int slot, const std::string& path, const std
     preset.unit = type;
     preset.patches.push_back(pp);
     std::string why;
-    // Only a file of one patch is replaced, so a bank's other patches stay.
-    {
-        Preset      old;
-        std::string ignore;
-        if(exists(path) && (!read_preset(path, old, ignore) || old.patches.size() > 1 || has_engine_lines(path)))
-            return done("would replace more than one patch");
-    }
+    if(std::string kept = why_kept(path); !kept.empty())
+        return done(kept);
     if(!write_with_files(path, presetfile::write(preset), media, why))
         return done(why);
     done("");
@@ -4962,13 +4970,8 @@ void Core::save_mod_preset(int part, int slot, const std::string& path, const st
     preset.unit = type;
     preset.patches.push_back(pp);
     std::string why;
-    // Only a file of one patch is replaced, so a bank's other patches stay.
-    {
-        Preset      old;
-        std::string ignore;
-        if(exists(path) && (!read_preset(path, old, ignore) || old.patches.size() > 1 || has_engine_lines(path)))
-            return done("would replace more than one patch");
-    }
+    if(std::string kept = why_kept(path); !kept.empty())
+        return done(kept);
     const std::vector<uint8_t> bytes = presetfile::write(preset);
     if(bytes.empty())
         return done("can't be written");
