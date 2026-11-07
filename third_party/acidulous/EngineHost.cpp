@@ -330,9 +330,28 @@ bool EngineHost::mountEffect(int rack, int slot, const std::string &typeName) {
     mountedEffectType[rack][slot] = typeName;
     queuedEffect_[rack][slot] = fx;
     effectFormula_[rack][slot].clear();
+    {
+        std::lock_guard<std::mutex> lock(impulseMtx_);
+        effectImpulse_[rack][slot].clear();
+    }
     LOGI("queued effect '%s' for rack %d slot %d", typeName.c_str(), rack, slot);
     return true;
 }
+
+namespace {
+// A Venue insert's shape knob 0..1 as the patch saved it, or its default.
+float venueShape(const PatchInsert &fx, const char *name) {
+    for (const auto &kv : fx.params) {
+        if (kv.first == name) return kv.second;
+    }
+    int32_t count = 0;
+    const ParamDef *defs = EffectRegistry::paramDefs("Venue", count);
+    for (int32_t i = 0; i < count; ++i) {
+        if (std::strcmp(defs[i].name, name) == 0) return defs[i].unmap(defs[i].def);
+    }
+    return 1.0f;
+}
+} // namespace
 
 SendPlan EngineHost::applyPatchChain(int rack, const PatchChain &chain, PatchTrackState &state, float sendReverbNow,
                                      float sendDelayNow, int32_t *skipped, int32_t *unknown) {
@@ -388,9 +407,14 @@ SendPlan EngineHost::applyPatchChain(int rack, const PatchChain &chain, PatchTra
         for (const auto &kv : fx.params) set(fx.type, unit, kv.first, kv.second);
         if (fx.bypass) set(fx.type, unit, "bypass", 1.0f);
         for (const auto &kv : fx.settings) {
-            if (kv.first != "formula") continue;
-            const std::string error = loadEffectFormula(rack, unit, kv.second);
-            if (!error.empty()) LOGE("patch formula on rack %d: %s", rack, error.c_str());
+            if (kv.first == "formula") {
+                const std::string error = loadEffectFormula(rack, unit, kv.second);
+                if (!error.empty()) LOGE("patch formula on rack %d: %s", rack, error.c_str());
+            } else if (kv.first == "impulse" && fx.type == "Venue") {
+                const std::string error = loadImpulse(rack, unit, kv.second, venueShape(fx, "length"),
+                                                      venueShape(fx, "decay"), venueShape(fx, "stretch"));
+                if (!error.empty()) LOGE("patch impulse on rack %d: %s", rack, error.c_str());
+            }
         }
     }
     const SendPlan sends = planPatchSends(chain, sendReverbNow, sendDelayNow, state);
@@ -468,6 +492,10 @@ PresetPatch EngineHost::rackPatch(int rack, const std::string &name, std::string
         }
         fx.bypass = paramNormalized(rack, unit, "bypass") >= 0.5f;
         if (!effectFormula_[rack][s].empty()) fx.settings.emplace_back("formula", effectFormula_[rack][s]);
+        {
+            std::lock_guard<std::mutex> lock(impulseMtx_);
+            if (type == "Venue" && !effectImpulse_[rack][s].empty()) fx.settings.emplace_back("impulse", effectImpulse_[rack][s]);
+        }
         p.chain.inserts.push_back(std::move(fx));
     }
     // As the app's PatchChain.withEffectsOf: sends the patch still holds, even
@@ -2571,7 +2599,12 @@ std::string EngineHost::loadImpulse(int rack, const std::string &unit, const std
             impulses_.erase(key);
         }
         mount.object = nullptr;
-        return mountObjectWithRetry(mount) ? "" : "mount queue full";
+        if (!mountObjectWithRetry(mount)) return "mount queue full";
+        if (track) {
+            std::lock_guard<std::mutex> lock(impulseMtx_);
+            effectImpulse_[rack][trackInsertSlot(u)].clear();
+        }
+        return "";
     }
     std::shared_ptr<const SampleData> data;
     {
@@ -2602,6 +2635,10 @@ std::string EngineHost::loadImpulse(int rack, const std::string &unit, const std
     // Handed over before the mount: on failure the retry deletes it.
     mount.object = built.release();
     if (!mountObjectWithRetry(mount)) return "mount queue full";
+    if (track) {
+        std::lock_guard<std::mutex> lock(impulseMtx_);
+        effectImpulse_[rack][trackInsertSlot(u)] = path;
+    }
     return "";
 }
 

@@ -105,7 +105,8 @@ class EngineHost {
     /**
      * [rack]'s machine as it is now, as a patch called [name]: its type, every
      * parameter by name normalised 0..1 and its macro names (macro1..8). With
-     * [withEffects], the inserts in its first kPatchInsertSlots slots (parameters, bypass, a Formula's formula) and
+     * [withEffects], the inserts in its first kPatchInsertSlots slots (parameters, bypass, a Formula's formula,
+     * a Venue's impulse path) and
      * its send levels when either is up or [state] (the track's, from
      * applyPatchChain) says the patch still holds them, as the app saves a
      * patch with effects. Settings only the host knows, like file paths or a
@@ -767,8 +768,10 @@ class EngineHost {
         std::string path;
         std::shared_ptr<const SampleData> data;
     };
-    std::mutex impulseMtx_;
+    mutable std::mutex impulseMtx_;
     std::map<std::pair<int, int>, ImpulseSource> impulses_;
+    /** The impulse path last loaded into each track insert, kept for rackPatch. Cleared when the slot is mounted again. Under impulseMtx_. */
+    std::string effectImpulse_[kRackCount][kEffectSlots];
     /** The last machine and inserts queued per rack, to tell when the audio thread has them. Never dereferenced. */
     const void *queuedMachine_[16] = {};
     const void *queuedEffect_[kRackCount][kEffectSlots] = {};
