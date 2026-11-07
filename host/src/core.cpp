@@ -1703,8 +1703,15 @@ void Core::apply_chain(int part, const acidulous::PatchChain& chain, const std::
         if(slots.slotOf[i] >= 0)
             at[slots.slotOf[i]] = known[i];
 
+    // The engine can't resolve the app's "factory:<id>", so a Venue's room goes in as its file.
+    acidulous::PatchChain mapped = chain;
+    for(auto& fx : mapped.inserts)
+        if(fx.type == "Venue")
+            for(auto& kv : fx.settings)
+                if(kv.first == "impulse")
+                    kv.second = room_to_file(kv.second);
     int32_t                   skipped = 0, unknown = 0;
-    const acidulous::SendPlan plan    = host.applyPatchChain(part, chain, patch_fx[part], part_sends[part][0],
+    const acidulous::SendPlan plan    = host.applyPatchChain(part, mapped, patch_fx[part], part_sends[part][0],
                                                              part_sends[part][1], &skipped, &unknown);
     if(skipped > 0)
         std::fprintf(stderr, "acidulous: %s: %d insert(s) found no free slot\n", what.c_str(), int(skipped));
@@ -4000,7 +4007,42 @@ void Core::save_preset(int part, const std::string& path, const std::string& nam
     {
         mounts_queued = true;
         settle();
-        bytes = host.writePreset(part, name, why, settings, p.low, p.high, true, &patch_fx[part]);
+        PresetPatch patch = host.rackPatch(part, name, why, true, &patch_fx[part]);
+        if(patch.machine.empty())
+            continue;
+        for(const auto& kv : settings)
+        {
+            bool replaced = false;
+            for(auto& have : patch.settings)
+                if(have.first == kv.first)
+                {
+                    have.second = kv.second;
+                    replaced    = true;
+                }
+            if(!replaced)
+                patch.settings.push_back(kv);
+        }
+        // A Venue insert's room goes back to the app's id, its own file is packed.
+        std::vector<std::pair<std::string, std::string>> impulses;
+        std::vector<std::string*>                        where;
+        for(auto& fx : patch.chain.inserts)
+            if(fx.type == "Venue")
+                for(auto& kv : fx.settings)
+                    if(kv.first == "impulse")
+                    {
+                        kv.second = file_to_room(kv.second);
+                        impulses.emplace_back("impulse", kv.second);
+                        where.push_back(&kv.second);
+                    }
+        pack_files(impulses, roots, media, taken, packed);
+        for(size_t i = 0; i < impulses.size(); ++i)
+            *where[i] = map_paths("impulse", impulses[i].second, [&](const std::string& f) { return relative_to(f, roots); });
+        patch.low  = p.low;
+        patch.high = p.high;
+        Preset preset;
+        preset.unit = patch.machine;
+        preset.patches.push_back(std::move(patch));
+        bytes = presetfile::write(preset);
     }
     if(bytes.empty())
         return done(why.empty() ? "busy" : why);
@@ -4362,6 +4404,23 @@ std::string Core::impulse_file(const std::string& impulse, std::string& why) con
     return file;
 }
 
+// A "factory:<id>" setting as its room file, anything else as it is.
+std::string Core::room_to_file(const std::string& impulse) const
+{
+    std::string why;
+    const std::string file = starts_with(impulse, kFactory) ? impulse_file(impulse, why) : std::string();
+    return file.empty() ? impulse : file;
+}
+
+// A room's file as "factory:<id>", anything else as it is.
+std::string Core::file_to_room(const std::string& file) const
+{
+    const std::string dir = rooms_dir() + "/impulse-";
+    if(file.size() > dir.size() + 4 && file.compare(0, dir.size(), dir) == 0 && file.compare(file.size() - 4, 4, ".wav") == 0)
+        return kFactory + file.substr(dir.size(), file.size() - dir.size() - 4);
+    return file;
+}
+
 // Asks for the slot's impulse to be built from fx_impulse and fx_shape, now
 // or once the knobs have rested. Worker thread. Inline (the render tool) it
 // builds now.
@@ -4478,11 +4537,16 @@ void Core::sync_impulses(int part, const acidulous::PatchInsert* const at[acidul
                     if(kv.first == names[k])
                         fx_shape[part][slot][k] = kv.second < 0.f ? 0.f : kv.second > 1.f ? 1.f : kv.second;
         }
+        // applyPatchChain loads the patch's own impulse, so only a patch without one asks.
+        bool loaded = false;
         if(fx)
             for(const auto& kv : fx->settings)
-                if(kv.first == "impulse")
-                    fx_impulse[part][slot] = kv.second;
-        if(request)
+                if(kv.first == "impulse" && !kv.second.empty())
+                {
+                    fx_impulse[part][slot] = file_to_room(kv.second);
+                    loaded                 = true;
+                }
+        if(request && !loaded)
             request_impulse(part, slot, false);
     }
 }

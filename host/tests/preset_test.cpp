@@ -145,6 +145,14 @@ std::string setting(const acidulous::PresetPatch& p, const std::string& key)
     return "";
 }
 
+std::string setting_of(const acidulous::PatchInsert& fx, const std::string& key)
+{
+    for(const auto& kv : fx.settings)
+        if(kv.first == key)
+            return kv.second;
+    return "";
+}
+
 float param(const acidulous::PresetPatch& p, const std::string& key)
 {
     for(const auto& kv : p.params)
@@ -1399,6 +1407,96 @@ int main(int argc, char** argv)
               "no impulse saved as none");
         cmd("/insert", {Value::i(4), Value::i(2), Value::s("")});
         cmd("/insert", {Value::i(4), Value::i(3), Value::s("")});
+        c->drain();
+    }
+
+    // A machine preset with two Venue inserts: the app's "factory:<id>" and a
+    // packed file load as the engine's own impulse and save back the same way.
+    {
+        auto&             host = acidulous::EngineHost::instance();
+        const std::string vdir = scratch + "/venue2/";
+        const std::string user = vdir + "user/", other = vdir + "other/";
+        std::system(("mkdir -p '" + user + "impulses' '" + other + "' '" + vdir + "Trinity'").c_str());
+        std::system(("cp '" + banks + "/../rooms/impulse-closet.wav' '" + user + "impulses/hall.wav'").c_str());
+        const auto write_app = [&](const std::string& f, const std::string& a, const std::string& b) {
+            acidulous::Preset v;
+            v.unit = "Trinity";
+            acidulous::PresetPatch pp;
+            pp.machine = "Trinity";
+            pp.name    = "Rooms";
+            for(const std::string& i : {a, b})
+            {
+                acidulous::PatchInsert fx;
+                fx.type = "Venue";
+                fx.params.emplace_back("length", 0.5f);
+                fx.settings.emplace_back("impulse", i);
+                pp.chain.inserts.push_back(fx);
+            }
+            v.patches.push_back(pp);
+            const auto bytes = acidulous::presetfile::write(v);
+            std::ofstream(f, std::ios::binary).write(reinterpret_cast<const char*>(bytes.data()), std::streamsize(bytes.size()));
+        };
+        // The impulses the part's two Venue inserts hold, waiting for the mounts to land.
+        const auto impulses = [&](size_t want) {
+            std::vector<std::string> out;
+            for(int k = 0; k < 400 && out.size() < want; ++k)
+            {
+                c->drain();
+                std::string why;
+                out.clear();
+                for(const auto& fx : host.rackPatch(4, "x", why, true, nullptr).chain.inserts)
+                    for(const auto& kv : fx.settings)
+                        if(fx.type == "Venue" && kv.first == "impulse")
+                            out.push_back(kv.second);
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+            return out;
+        };
+        const auto load_roots = [&](const std::string& f) {
+            log.clear();
+            cmd("/preset_load", {Value::i(4), Value::s(f), Value::i(0), Value::s("@t"), Value::i(1), Value::s("Trinity"),
+                                 Value::s(""), Value::s(user), Value::s(other)});
+            Reply r;
+            return log.wait("/preset_loaded", r) && r.args.size() > 3 && r.args[3].str.empty();
+        };
+        const std::string app = vdir + "Trinity/app.acpreset";
+        write_app(app, "factory:stone-church", "factory:closet");
+        check(load_roots(app), "an app file with factory rooms loads");
+        auto got = impulses(2);
+        check(got.size() == 2 && got[0].find("impulse-stone-church.wav") != std::string::npos &&
+                  got[0].rfind("factory:", 0) != 0 && got[1].find("impulse-closet.wav") != std::string::npos,
+              "factory:stone-church is the room's file in the engine");
+        log.clear();
+        cmd("/preset_save", {Value::i(4), Value::s(vdir + "Trinity/a.acpreset"), Value::s("A"), Value::i(0)});
+        Reply sr;
+        acidulous::Preset back;
+        check(log.wait("/preset_saved", sr) && sr.args[2].str == "ok" && read_file(vdir + "Trinity/a.acpreset", back) &&
+                  back.patches[0].chain.inserts.size() == 2 &&
+                  setting_of(back.patches[0].chain.inserts[0], "impulse") == "factory:stone-church" &&
+                  setting_of(back.patches[0].chain.inserts[1], "impulse") == "factory:closet",
+              "saved back as factory ids");
+        // A file under a root: packed on save, unpacked under another root on load.
+        write_app(app, "factory:stone-church", "impulses/hall.wav");
+        check(load_roots(app), "an app file with a user impulse loads");
+        got = impulses(2);
+        check(got.size() == 2 && got[1] == user + "impulses/hall.wav", "a user path resolves under the root");
+        log.clear();
+        cmd("/preset_save", {Value::i(4), Value::s(vdir + "Trinity/b.acpreset"), Value::s("B"), Value::i(1), Value::s(user)});
+        check(log.wait("/preset_saved", sr) && sr.args[2].str == "ok" && read_file(vdir + "Trinity/b.acpreset", back) &&
+                  back.patches[0].chain.inserts.size() == 2 &&
+                  setting_of(back.patches[0].chain.inserts[0], "impulse") == "factory:stone-church" &&
+                  setting_of(back.patches[0].chain.inserts[1], "impulse") == "media/impulses/hall.wav",
+              "a user file is packed");
+        log.clear();
+        cmd("/preset_load", {Value::i(4), Value::s(vdir + "Trinity/b.acpreset"), Value::i(0), Value::s("@t"), Value::i(1),
+                             Value::s("Trinity"), Value::s(""), Value::s(other)});
+        Reply lr;
+        check(log.wait("/preset_loaded", lr) && lr.args[3].str.empty(), "the saved preset loads");
+        got = impulses(2);
+        check(got.size() == 2 && got[0].find("impulse-stone-church.wav") != std::string::npos &&
+                  got[1] == other + "acidulous/presets/Venue/b/impulses/hall.wav" && exists(got[1]),
+              "the packed file is unpacked and loaded, the room is the same");
+        cmd("/patch", {Value::i(4), Value::s("Trinity"), Value::s("Saw Lead")});
         c->drain();
     }
 

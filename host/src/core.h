@@ -221,6 +221,8 @@ class Core
     void build_impulse(int part, int slot, const std::string& impulse, const float* shape);
     void set_impulse(int part, int slot, const std::string& impulse, const std::vector<std::string>& roots);
     void drop_impulse(int part, int slot);
+    std::string room_to_file(const std::string& impulse) const;
+    std::string file_to_room(const std::string& file) const;
     void sync_impulses(int part, const acidulous::PatchInsert* const at[acidulous::kEffectSlots] = nullptr,
                        bool request = true);
     void unmount(int part);
