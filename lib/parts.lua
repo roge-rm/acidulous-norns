@@ -1095,7 +1095,7 @@ function P.fx_value(i, ctl)
   local part = P.part(i)
   if ctl.what == "room" then
     local imp = part.impulses[ctl.fx]
-    local room = imp and imp[1]:match("^factory:(.+)$")
+    local room = imp and imp[2] == "" and imp[1]:match("^factory:(.+)$")
     return ((tab.key(P.ROOMS, room) or #P.ROOMS + 1) - 1) / #P.ROOMS
   end
   if ctl.what == "type" then

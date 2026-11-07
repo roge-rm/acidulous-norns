@@ -183,7 +183,8 @@ local function room_control(e, slot)
   local imp = e.impulse
   local name = imp and imp[1] or ""
   opts[6] = (name == "" or name:match("^factory:")) and "none" or (name:match("([^/]+)$") or name):gsub("%.%w+$", "")
-  if imp and imp[2] ~= "" then opts[6] = "error" end
+  local failed = imp and imp[2] ~= ""
+  if failed then opts[6] = "error" end
   return {label = "room", kind = "step", fx = slot, what = "room", def = ROOM_DEF, opts = opts}
 end
 

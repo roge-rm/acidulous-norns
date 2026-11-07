@@ -1463,6 +1463,22 @@ int main(int argc, char** argv)
         write_app(app, "factory:stone-church", "factory:closet");
         check(load_roots(app), "an app file with factory rooms loads");
         auto got = impulses(2);
+        {
+            // each Venue the patch brought reports its impulse
+            bool first = false, second = false;
+            for(int k = 0; k < 100 && !(first && second); ++k)
+            {
+                c->drain();
+                first = second = false;
+                for(const auto& r : log.all("/impulse_loaded"))
+                    if(r.args.size() > 3 && r.args[3].str.empty())
+                    {
+                        first  = first || (r.args[1].num == 0 && r.args[2].str == "factory:stone-church");
+                        second = second || (r.args[1].num == 1 && r.args[2].str == "factory:closet");
+                    }
+            }
+            check(first && second, "a patch's own Venue impulses are reported");
+        }
         check(got.size() == 2 && got[0].find("impulse-stone-church.wav") != std::string::npos &&
                   got[0].rfind("factory:", 0) != 0 && got[1].find("impulse-closet.wav") != std::string::npos,
               "factory:stone-church is the room's file in the engine");

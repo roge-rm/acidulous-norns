@@ -4546,7 +4546,16 @@ void Core::sync_impulses(int part, const acidulous::PatchInsert* const at[acidul
                     fx_impulse[part][slot] = file_to_room(kv.second);
                     loaded                 = true;
                 }
-        if(request && !loaded)
+        if(loaded)
+        {
+            // A rebuild queued for the old Venue must not shape into this one.
+            {
+                std::lock_guard<std::mutex> l(cloud_lock);
+                impulse_req[part][slot].want = false;
+            }
+            reply("/impulse_loaded", {Value::i(part), Value::i(slot), Value::s(fx_impulse[part][slot]), Value::s("")});
+        }
+        else if(request)
             request_impulse(part, slot, false);
     }
 }
