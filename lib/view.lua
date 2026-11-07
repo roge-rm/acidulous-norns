@@ -865,4 +865,45 @@ function view.starting(msg)
   screen.update()
 end
 
+-- The OMX-27 firmware update offer: u = {state, version, found, board, forced},
+-- status = progress text while updating.
+function view.omx_update(u, status)
+  local names = {rp2040 = "RP2040 (v3)", teensy40 = "Teensy 4.0 (v2)", teensy32 = "Teensy 3.2 (v1)"}
+  screen.clear()
+  screen.level(15)
+  text(64, 10, "OMX-27 firmware", "center")
+  if u.state == "none" then
+    screen.level(8)
+    text(64, 30, "no OMX-27 plugged in", "center")
+    screen.level(15)
+    text(64, 50, "K2 back", "center")
+    screen.update()
+    return
+  end
+  screen.level(8)
+  if u.forced then
+    text(64, 21, "update to the latest release?", "center")
+  elseif u.version then
+    text(64, 21, string.format("is %d.%d.%d, needs 1.15.4", u.version[1], u.version[2], u.version[3]), "center")
+  else
+    text(64, 21, "didn't answer, may be too old", "center")
+  end
+  text(64, 31, names[u.board] .. (u.found.teensy and u.state == "ask" and "  (E2)" or ""), "center")
+  screen.level(15)
+  if u.state == "ask" then
+    text(64, 46, "K3 update    K2 skip", "center")
+    screen.level(5)
+    text(64, 58, "clears its saved patterns", "center")
+  elseif u.state == "updating" then
+    text(64, 46, status or "updating", "center")
+  elseif u.state == "done" then
+    text(64, 46, "updated", "center")
+  else
+    text(64, 46, "update failed", "center")
+    screen.level(5)
+    text(64, 58, "see data/acidulous/omx-update/log", "center")
+  end
+  screen.update()
+end
+
 return view

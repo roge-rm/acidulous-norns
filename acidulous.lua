@@ -66,6 +66,7 @@ local lists = include("lib/lists")
 local scope = include("lib/scope")
 local draw = include("lib/draw")
 local saver = include("lib/saver")
+local omxupdate = include("lib/omxupdate")
 local song = include("lib/song")
 -- the picker's own copy, so it sees the stick the watcher mounts
 local library = picker.lib
@@ -76,6 +77,7 @@ local PAGES = {"play", "parts", "card", "mixer", "sends", "song"}
 -- out: the out strip is selected on the mixer and sends pages
 local state = {sel = 1, k1 = false, page = "play", cards = {}, play = {}, out = false}
 local auditioning = nil -- the part K3 is playing
+local update_prompt = nil -- the OMX-27 firmware update offer, see view.omx_update
 local omx_problem = nil  -- {text, at}: the OMX-27 can't do REMOTE mode
 
 -- For the REPL: acid.midi(port, bytes) plays as if from MIDI port `port`,
@@ -570,11 +572,12 @@ local function start_surfaces()
   -- the OMX-27's port is a regular MIDI port again
   a.port_freed = function(port) if port then listen(port) end end
   a.old_firmware = function(version)
-    local v = version and string.format("%d.%d.%d", version[1], version[2], version[3]) or "no answer"
-    omx_problem = {text = "OMX-27 firmware too old", at = util.time()}
-    print("acidulous: OMX-27 firmware " .. v .. " has no REMOTE mode, needs 1.15.4")
+    local found = omxupdate.find() or {}
+    update_prompt = {version = version, found = found, board = found.board or "teensy40", state = "ask"}
   end
-  a.answered = function() omx_problem = nil end
+  a.answered = function()
+    if update_prompt and update_prompt.state == "ask" then update_prompt = nil end
+  end
   a.draw = function(surf)
     if saver.active() then saver.draw(parts, true) else view.omx(parts, state, part_macros(), surf) end
   end
@@ -640,6 +643,17 @@ local function ready()
     save_settings()
   end)
   params:set_save("saver", false)
+  params:add_trigger("update_omx", "update OMX-27")
+  params:set_action("update_omx", function()
+    -- the same update as for old firmware, for any OMX-27: to repair or refresh it
+    local found = omxupdate.find()
+    if found then
+      update_prompt = {forced = true, found = found, board = found.board or "teensy40", state = "ask"}
+    else
+      update_prompt = {state = "none"}
+    end
+    if _menu and _menu.set_mode then _menu.set_mode(false) end
+  end)
   load_settings()
   parts.add_params()
   song.add_params()
@@ -845,6 +859,10 @@ function redraw()
     return
   end
   if draw_splash() then return end
+  if update_prompt then
+    view.omx_update(update_prompt, omxupdate.status)
+    return
+  end
   if not parts.ready then
     view.starting()
     return
@@ -1215,9 +1233,36 @@ end
 -- it is let go without doing anything either.
 local woke_by = {}
 
+local function update_key(n, z)
+  if z == 0 then return end
+  local u = update_prompt
+  if u.state == "ask" then
+    if n == 3 then
+      u.state = "updating"
+      omxupdate.start({board = u.board, tty = u.found.tty}, function(ok)
+        u.state = ok and "done" or "failed"
+        if ok then
+          clock.run(function()
+            clock.sleep(3)
+            if update_prompt == u then update_prompt = nil end
+          end)
+        end
+      end)
+    elseif n == 2 then
+      update_prompt = nil
+    end
+  elseif u.state ~= "updating" then
+    update_prompt = nil
+  end
+end
+
 function key(n, z)
   local asleep = saver.active()
   saver.touch()
+  if update_prompt then
+    update_key(n, z)
+    return
+  end
   if z == 1 and asleep then
     woke_by[n] = true
     return
@@ -1237,6 +1282,14 @@ local enc_woke = {}
 function enc(n, d)
   local asleep = saver.active()
   saver.touch()
+  if update_prompt then
+    -- a Teensy's model, in case the guess is wrong
+    local u = update_prompt
+    if u.state == "ask" and u.found.teensy and n == 2 then
+      u.board = d > 0 and "teensy40" or "teensy32"
+    end
+    return
+  end
   if asleep then
     enc_woke[n] = util.time()
     return
