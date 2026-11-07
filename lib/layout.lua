@@ -1,11 +1,12 @@
 -- Moves a part's saved machine params from a PSET written with the engine at
--- 5a75dc18 (layout 1) onto the engine now (layout 2). No param moved: the
--- new ones all come after the old, and a few old ones changed range or what
--- they do. A PSET saves the layout in "param_layout"; one without it is 1.
+-- 5a75dc18 (layout 1) or 8d1ab328 (layout 2) onto the engine now (layout 3).
+-- No param moved: the new ones all come after the old, and a few old ones
+-- changed range or what they do. A PSET saves the layout in "param_layout";
+-- one without it is 1.
 
 local L = {}
 
-L.NOW = 2
+L.NOW = 3
 
 -- Each machine's param count in layout 1. The params after these are new.
 L.COUNTS_1 = {
@@ -16,6 +17,13 @@ L.COUNTS_1 = {
   Hammer = 58, Tongue = 32, Draw = 27, Fret = 25, Tine = 19, Sympath = 21,
   Palm = 83, Chanter = 18, Aviary = 83, Fathom = 82,
 }
+
+-- Each machine's param count in layout 2, for the ones that got params after
+-- the macros, and the steps of their macro destinations (macN_dK) in layouts
+-- 2 and 3.
+L.COUNTS_2 = {Tine = 92, Palm = 156, Chanter = 91, Fathom = 154, Sympath = 93}
+L.DESTS_2 = {Tine = 17, Palm = 15, Chanter = 14, Fathom = 14}
+L.DESTS_3 = {Tine = 18, Palm = 17, Chanter = 17, Fathom = 15}
 
 local function clamp01(v)
   return v < 0 and 0 or (v > 1 and 1 or v)
@@ -72,14 +80,32 @@ local FIX = {
 }
 
 -- Moves values (slot j -> 0-1 value, for every one of defs) of a machine
--- from layout 1 in place. defs are the machine's defs now, unmap(d, x) maps
--- a default to 0-1. The new params take their defaults, which play as
+-- from layout `from` in place. defs are the machine's defs now, unmap(d, x)
+-- maps a default to 0-1. The new params take their defaults, which play as
 -- before. Returns true when the machine has new macros, which a part with a
 -- patch should take from it.
-function L.migrate(machine, values, defs, unmap)
+function L.migrate(machine, values, defs, unmap, from)
+  from = from or 1
+  local macros = false
+  if from >= 2 then
+    local before = L.COUNTS_2[machine]
+    if not before then return false end
+    for j = before + 1, #defs do
+      values[j] = unmap(defs[j], defs[j].default)
+    end
+    -- more macro destinations: the same destination, so a new step
+    local was, now = L.DESTS_2[machine], L.DESTS_3[machine]
+    if was then
+      for j = 1, math.min(before, #defs) do
+        if defs[j].name:match("^mac[1-8]_d[1-4]$") then
+          values[j] = restep(values[j], was, now)
+        end
+      end
+    end
+    return false
+  end
   local before = L.COUNTS_1[machine]
   if not before then return false end
-  local macros = false
   for j = before + 1, #defs do
     local d = defs[j]
     values[j] = unmap(d, d.default)
