@@ -259,6 +259,7 @@ class Core
     void set_channel(int part, const Value& which, float v01);
     void ensure_send(int slot);
     void apply_chain(int part, const acidulous::PatchChain& chain, const std::string& what);
+    void send_patch_fx(int part);
     // live: values from the engine for slots no patch filled, else defaults.
     void send_inserts(int part, const acidulous::PatchInsert* const at[acidulous::kEffectSlots], bool live = false);
     void set_fx(int part, int slot, const std::string& name, float v01);

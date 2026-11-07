@@ -29,6 +29,11 @@
 //        starts with wooden-hall, and its length, decay and stretch build the
 //        impulse again 150 ms after they last move (/fx). The rooms are the
 //        app's, in data/rooms beside data/banks. Replies /impulse_loaded
+//   /patch_fx i:part i:owned i:sendsHeld f:heldReverb f:heldDelay
+//        f:patchReverb f:patchDelay   sets the part's patch state as the reply
+//        of that name has it, for after the plugin restarted: send it once the
+//        part's patch and inserts are back. Levels 0-1, owned limited to the
+//        patch insert slots. Replies /patch_fx with what it holds
 //   /mod i:part i:slot s:type          mounts a modifier ("Scale", "Chord",
 //        "Arp") in the part's slot 0 to 2, on and with its defaults, or
 //        empties the slot with "". Notes go through slot 0, then 1, then 2.
@@ -211,6 +216,12 @@
 //        when it has none. Params as /def has them, then the slot's mod
 //        params ("~mod": mod_source, mod_shape ... mod_step16); values are
 //        the patch's, or the defaults
+//   /patch_fx i:part i:owned i:sendsHeld f:heldReverb f:heldDelay
+//        f:patchReverb f:patchDelay   what the part's patches put in: owned is
+//        a bit per insert slot they filled, sendsHeld 1 when they own the sends
+//        and held* are the player's levels from before; patch* are the levels
+//        the patch set. After each /patch, /unmount and failed load, with
+//        /sends and /inserts
 //   /mods i:part (i:slot s:type i:bypass i:count (s:name f:value01)*count)*
 //        both slots as the engine holds them once everything sent before
 //        has landed; an empty slot has type "" and count 0

@@ -928,6 +928,24 @@ bool Core::command(const std::string& path, const Args& a)
             });
         return true;
     }
+    if(path == "/patch_fx" && a.size() >= 7)
+    {
+        const int part = to_int(a[0]);
+        if(part_ok(part))
+            post_part(part, [this, part, owned = to_int(a[1]), held = to_int(a[2]), hr = to_float(a[3]),
+                             hd = to_float(a[4]), pr = to_float(a[5]), pd = to_float(a[6])] {
+                acidulous::PatchTrackState s;
+                s.owned      = uint32_t(owned) & ((1u << acidulous::kPatchInsertSlots) - 1u);
+                s.sendsHeld  = held != 0;
+                s.heldReverb = std::max(0.f, std::min(1.f, hr));
+                s.heldDelay  = std::max(0.f, std::min(1.f, hd));
+                s.patchReverb = std::max(0.f, std::min(1.f, pr));
+                s.patchDelay  = std::max(0.f, std::min(1.f, pd));
+                patch_fx[part] = s;
+                send_patch_fx(part);
+            });
+        return true;
+    }
     if(path == "/unmount" && a.size() >= 1)
     {
         const int part = to_int(a[0]);
@@ -1731,13 +1749,27 @@ void Core::apply_chain(int part, const acidulous::PatchChain& chain, const std::
     sync_impulses(part, at);
     send_inserts(part, at);
     if(!plan.set)
+    {
+        send_patch_fx(part);
         return;
+    }
     part_sends[part][0] = plan.reverb;
     part_sends[part][1] = plan.delay;
     for(int s = 0; s < kSends; ++s)
         if(part_sends[part][s] > 0.f)
             ensure_send(s);
     reply("/sends", {Value::i(part), Value::f(plan.reverb), Value::f(plan.delay)});
+    send_patch_fx(part);
+}
+
+// "/patch_fx i:part i:owned i:sendsHeld f:heldReverb f:heldDelay f:patchReverb
+// f:patchDelay": what the part's patches put in and hold, for the script to
+// keep and send back after a restart.
+void Core::send_patch_fx(int part)
+{
+    const acidulous::PatchTrackState& s = patch_fx[part];
+    reply("/patch_fx", {Value::i(part), Value::i(int(s.owned)), Value::i(s.sendsHeld ? 1 : 0), Value::f(s.heldReverb),
+                        Value::f(s.heldDelay), Value::f(s.patchReverb), Value::f(s.patchDelay)});
 }
 
 // "/inserts i:part" and per mounted insert slot "i:slot s:type i:count" and

@@ -27,6 +27,9 @@
 //   its effect presets into a part's own slot as theirs load them
 // - effect presets: the slot's mod kept, another type switching the slot,
 //   an old pingpong, refusals, a save round trip and the deep scan
+// - /patch_fx: a patch's inserts and held sends reported, set back after the
+//   state was lost (as a plugin restart does), and the next patch replacing
+//   the inserts as it would have without the restart
 // - /preset_scan and /preset_delete
 // Usage: acidulous-preset-test BANK_DIR SCRATCH_DIR MATERIAL_DIR FIXTURE_DIR
 #include "core.h"
@@ -303,6 +306,73 @@ int main(int argc, char** argv)
     check(load_as(0, fixtures + "/app-bank.acpreset", 0, 1, "Trinity", "Fixture Init", r) &&
               r.args[2].str == "Fixture Init" && r.args[4].num == 1,
           "found by name before index");
+
+    // The state the patches left, reported and set back as the script does
+    // after the plugin starts again.
+    {
+        // the last /patch_fx so far: a load can report once for each step it takes
+        const auto fx_of = [&](Reply& out) {
+            if(!log.wait("/patch_fx", out))
+                return false;
+            std::this_thread::sleep_for(200ms);
+            const auto all = log.all("/patch_fx");
+            out            = all.back();
+            return out.args.size() >= 7;
+        };
+        const auto same  = [&](const Reply& a, const Reply& b) {
+            for(size_t k = 0; k < 7; ++k)
+                if(std::fabs(a.args[k].num - b.args[k].num) > 1e-6)
+                    return false;
+            return true;
+        };
+        const auto zero = [&](int part) {
+            return core::Args{Value::i(part), Value::i(0), Value::i(0), Value::f(0), Value::f(0), Value::f(0),
+                              Value::f(0)};
+        };
+        for(const bool restore : {true, false})
+        {
+            const std::string what = restore ? "restored" : "lost";
+            cmd("/unmount", {Value::i(5)});
+            std::this_thread::sleep_for(500ms);
+            Reply held, ins;
+            check(load(5, fixtures + "/app-bank.acpreset", 0, 1, r) && r.args[3].str.empty(), what + ": fixture loads");
+            check(fx_of(held) && held.args[1].num != 0, what + ": it reports the slots its inserts took");
+            // the plugin starts again with no state, the inserts as the engine has them
+            log.clear();
+            cmd("/patch_fx", zero(5));
+            Reply none;
+            check(fx_of(none) && none.args[1].num == 0 && none.args[2].num == 0, what + ": the state is set empty");
+            if(restore)
+            {
+                log.clear();
+                core::Args back = zero(5);
+                for(size_t k = 1; k < 7; ++k)
+                    back[k] = held.args[k];
+                cmd("/patch_fx", back);
+                Reply got;
+                check(fx_of(got) && same(got, held), "restored: the state reads back as it was sent");
+            }
+            // the next patch has no inserts: the first patch's go only if the state came back
+            check(load(5, fixtures + "/app-bank.acpreset", 1, 1, r) && r.args[3].str.empty(), what + ": next patch loads");
+            auto slots = log.wait("/inserts", ins) ? inserts_of(ins) : std::map<int, Slot>{};
+            check(slots.empty() == restore, what + ": the old patch's inserts " + (restore ? "go" : "stay"));
+            Reply after;
+            check(fx_of(after) && after.args[1].num == 0, what + ": no slots owned after");
+            if(restore)
+                check(after.args[2].num == 0, "restored: the player's sends are back");
+        }
+        // the lost case left its inserts as the player's; take them off
+        cmd("/patch_fx", {Value::i(5), Value::i(3), Value::i(0), Value::f(0), Value::f(0), Value::f(0), Value::f(0)});
+        cmd("/unmount", {Value::i(5)});
+        std::this_thread::sleep_for(500ms);
+        // out of range is cut to the patch slots and levels
+        log.clear();
+        cmd("/patch_fx", {Value::i(5), Value::i(255), Value::i(1), Value::f(5), Value::f(-1), Value::f(0.5), Value::f(2)});
+        Reply wide;
+        check(fx_of(wide) && wide.args[1].num == 3 && wide.args[3].num == 1 && wide.args[4].num == 0 && wide.args[6].num == 1,
+              "/patch_fx is cut to the slots and levels");
+        cmd("/unmount", {Value::i(5)});
+    }
 
     // A failed load still gives the part the script's machine, with its values.
     cmd("/unmount", {Value::i(3)});

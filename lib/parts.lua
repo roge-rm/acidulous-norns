@@ -467,6 +467,17 @@ local function strip_value(part, what)
   return v
 end
 
+-- What the plugin last said the part's patches put in, as the "patchfx" param
+-- holds it: "owned,sendsHeld,heldReverb,heldDelay,patchReverb,patchDelay", or
+-- "" for none. Sent back after a restart or a PSET load.
+local function send_patch_fx(part)
+  if part.song then return end
+  local v = {}
+  for n in (params:get(id(part.n, "patchfx")) or ""):gmatch("[^,]+") do v[#v + 1] = tonumber(n) end
+  if #v ~= 6 then v = {0, 0, 0, 0, 0, 0} end
+  psend(part, "/patch_fx", {part.n - 1, v[1], v[2], v[3], v[4], v[5], v[6]})
+end
+
 local function send_strip_param(part, what)
   -- a send moved after a /patch keeps its level when the patch's /sends comes back
   if what == "rev" or what == "dly" then part.sends_moved[what] = true end
@@ -1743,6 +1754,7 @@ local function apply(part)
   part.mods = decode_mods(params:get(id(i, "mods")))
   part.mod_presets = {}
   send_mods(part)
+  send_patch_fx(part)
 end
 
 -- The script's own parts on: the "parts" param's 8 or 16, which a song
@@ -1931,6 +1943,8 @@ local function add_part(i)
 
   -- the files loaded into the machine, for PSETs; never shown
   params:add_text(id(i, "files"), "files", "")
+  -- what the patches put in and hold, from /patch_fx, for PSETs; never shown
+  params:add_text(id(i, "patchfx"), "patchfx", "")
   -- insert params moved by hand, for PSETs; never shown
   params:add_text(id(i, "fx"), "fx", "")
   -- the saved preset the part plays, "index|path", for PSETs; never shown
@@ -1985,6 +1999,7 @@ function P.add_params()
     params:hide(id(i, "mpe"))
     show_machine(own[i], nil, true)
     params:hide(id(i, "files"))
+    params:hide(id(i, "patchfx"))
     params:hide(id(i, "fx"))
     params:hide(id(i, "preset"))
     params:hide(id(i, "mods"))
@@ -2270,6 +2285,7 @@ function P.after_read(filename)
     if filename and not saved_has(filename, id(i, "preset")) then params:set(id(i, "preset"), "", true) end
     -- a PSET from before modifiers has none
     if filename and not saved_has(filename, id(i, "mods")) then params:set(id(i, "mods"), "", true) end
+    if filename and not saved_has(filename, id(i, "patchfx")) then params:set(id(i, "patchfx"), "", true) end
   end
   if filename and not saved_has(filename, "macro_params") then
     for i = 1, P.COUNT do reset_macros(i) end
@@ -2360,10 +2376,12 @@ function P.resend()
       send_strip(part) -- the pending patch mounts the machine
       part.resend_files = next(part.files) ~= nil
       send_mods(part)
+      send_patch_fx(part)
     elseif part.want_values or part.fresh then
       -- the slots don't hold this patch's values yet, so ask for them again
       part.fresh, part.owed = false, false
       load_fresh(part)
+      send_patch_fx(part)
     else
       apply(part)
     end
@@ -2978,6 +2996,16 @@ function P.osc(path, args)
     if not part or not (part.song or params.lookup[id(i, "rev")]) then return end
     if not part.sends_moved.rev then put(part, "rev", args[2]) end
     if not part.sends_moved.dly then put(part, "dly", args[3]) end
+  elseif path == "/patch_fx" then
+    local i = (args[1] or -1) + 1
+    local part = own[i]
+    if part and not P.song_racks and params.lookup[id(i, "patchfx")] then
+      local t = {}
+      for k = 2, 7 do t[#t + 1] = string.format("%.9g", args[k] or 0) end
+      local v = table.concat(t, ",")
+      if v == "0,0,0,0,0,0" then v = "" end
+      params:set(id(i, "patchfx"), v, true)
+    end
   elseif path == "/effects" then
     P.effects = {}
     for k, name in ipairs(args) do P.effects[k] = name end
