@@ -1501,7 +1501,7 @@ P.DEFAULTS = {
   Mosaic = {kind = "sf2", path = norns.state.path .. "data/samples/acidulous-soft-horn.sf2"},
   Dice = {kind = "sample", path = _path.audio .. "tehn/drumev.wav"},
   Pollen = {kind = "sample", path = _path.audio .. "hermit_leaves.wav"},
-  Molt = {kind = "sample", path = _path.audio .. "tehn/whirl1.aif"},
+  Molt = {kind = "sample", path = _path.audio .. "tehn/mancini1.wav"},
 }
 
 -- Loads the machine's default if the part has no files and it's there.
