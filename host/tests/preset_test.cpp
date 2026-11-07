@@ -637,11 +637,15 @@ int main(int argc, char** argv)
                 cmd("/preset_delete", {Value::s(file), Value::i(0), Value::s(audio), Value::s(mat + "/")});
                 return log.wait("/preset_deleted", r) && r.args[2].str == "ok" && !exists(file);
             };
+            const std::string fdir = scratch + "/data/acidulous/presets/Forage/";
+            const auto        clear3 = [&] {
+                cmd("/load", {Value::i(3), Value::s("clear"), Value::s("")});
+                c->drain();
+            };
             const auto copy_load = [&](const std::string& stem) {
-                std::system(("mkdir -p '" + scratch + "/Forage' && cp '" + fixtures + "/hit.acpreset' '" + scratch +
-                             "/Forage/" + stem + ".acpreset'").c_str());
+                std::system(("mkdir -p '" + fdir + "' && cp '" + fixtures + "/hit.acpreset' '" + fdir + stem + ".acpreset'").c_str());
                 log.clear();
-                cmd("/preset_load", {Value::i(3), Value::s(scratch + "/Forage/" + stem + ".acpreset"), Value::i(0),
+                cmd("/preset_load", {Value::i(3), Value::s(fdir + stem + ".acpreset"), Value::i(0),
                                      Value::s("@t"), Value::i(1), Value::s("Forage"), Value::s(""), Value::s(audio),
                                      Value::s(mat + "/")});
                 const bool ok = log.wait("/preset_loaded", r);
@@ -650,8 +654,9 @@ int main(int argc, char** argv)
             };
             const std::string gone = audio + "acidulous/presets/Forage/gone/";
             check(copy_load("gone") && exists(gone + "samples/hit.wav"), "a copy of the pad preset unpacked");
-            check(del(scratch + "/Forage/gone.acpreset") && !exists(gone + "samples/hit.wav") && !exists(gone) &&
-                      exists(hit) && exists(audio + "acidulous/presets/Forage/"),
+            clear3();
+            check(del(fdir + "gone.acpreset") && !exists(gone + "samples/hit.wav") && !exists(gone) &&
+                      exists(audio + "acidulous/presets/Forage/"),
                   "delete removes the unpacked folder and leaves the others");
 
             // another preset beside it that names files there keeps the folder
@@ -666,15 +671,64 @@ int main(int argc, char** argv)
                         if(kv.first == "p00_sample")
                             kv.second = "acidulous/presets/Forage/kept/samples/hit.wav";
                     const auto bytes = acidulous::presetfile::write(np);
-                    std::ofstream(scratch + "/Forage/other.acpreset", std::ios::binary)
+                    std::ofstream(fdir + "other.acpreset", std::ios::binary)
                         .write(reinterpret_cast<const char*>(bytes.data()), std::streamsize(bytes.size()));
                 }
                 check(ok, "write a neighbour naming the folder");
             }
-            const bool names_it = read_file(scratch + "/Forage/other.acpreset", p) && !p.patches.empty() &&
+            const bool names_it = read_file(fdir + "other.acpreset", p) && !p.patches.empty() &&
                                   setting(p.patches[0], "p00_sample").find("acidulous/presets/Forage/kept/") != std::string::npos;
-            check(names_it && del(scratch + "/Forage/kept.acpreset") && exists(kept + "samples/hit.wav"),
+            clear3();
+            check(names_it && del(fdir + "kept.acpreset") && exists(kept + "samples/hit.wav"),
                   "a folder another preset names is kept");
+
+            // a part still using the folder keeps it
+            const std::string inuse = audio + "acidulous/presets/Forage/inuse/";
+            check(copy_load("inuse") && del(fdir + "inuse.acpreset") && exists(inuse + "samples/hit.wav") &&
+                      r.args.size() > 3 && r.args[3].str == "kept",
+                  "a folder a part uses is kept, the reply says so");
+            clear3();
+
+            // a PSET naming it keeps it; once the PSET is gone the sweep removes it
+            const std::string psets = scratch + "/data/acidulous/";
+            const std::string pfile = psets + "acidulous-01.pset";
+            const std::string pdir  = audio + "acidulous/presets/Forage/pset/";
+            const auto        sweep = [&] {
+                cmd("/media_sweep", {Value::s(audio)});
+                c->drain();
+                std::this_thread::sleep_for(std::chrono::milliseconds(300));
+            };
+            std::system(("mkdir -p '" + psets + "'").c_str());
+            check(copy_load("pset"), "a copy for the PSET case unpacked");
+            clear3();
+            std::ofstream(pfile) << "-- PSET\nset(\"p1_files\", \"pad,0," << pdir << "samples/hit.wav\")\n";
+            check(del(fdir + "pset.acpreset") && exists(pdir + "samples/hit.wav") && r.args.size() > 3 && r.args[3].str == "kept",
+                  "a folder a PSET names is kept");
+            std::remove(pfile.c_str());
+            sweep();
+            check(!exists(pdir) && exists(audio + "acidulous/presets/Forage/"), "the sweep removes it once nothing names it");
+
+            // a folder with its .acpreset beside stays; one named by a PSET stays
+            check(copy_load("alive"), "a copy that stays");
+            clear3();
+            std::system(("mkdir -p '" + audio + "acidulous/presets/Forage/orphan' && touch '" + audio +
+                         "acidulous/presets/Forage/orphan/a' && mkdir -p '" + audio + "acidulous/presets/Forage/named' && touch '" +
+                         audio + "acidulous/presets/Forage/named/a'").c_str());
+            std::ofstream(pfile) << "pad,0," << audio << "acidulous/presets/Forage/named/a\n";
+            sweep();
+            check(exists(audio + "acidulous/presets/Forage/alive/samples/hit.wav") &&
+                      !exists(audio + "acidulous/presets/Forage/orphan") && exists(audio + "acidulous/presets/Forage/named/a"),
+                  "the sweep keeps a folder with its preset or named by a PSET, removes an orphan");
+            std::remove(pfile.c_str());
+
+            // same size, other content: replaced
+            {
+                const std::string f = audio + "acidulous/presets/Forage/alive/samples/hit.wav";
+                std::system(("cp '" + f + "' '" + scratch + "/hit.orig' && head -c $(stat -c %s '" + f + "') /dev/zero > '" + f +
+                             "'").c_str());
+                check(copy_load("alive") && std::system(("cmp -s '" + f + "' '" + scratch + "/hit.orig'").c_str()) == 0,
+                      "a same-size file with other content is replaced");
+            }
 
             // a path that climbs out of presets/ removes nothing outside it
             const std::string victim = audio + "acidulous/esc/";
@@ -1572,8 +1626,55 @@ int main(int argc, char** argv)
         check(log.wait("/preset_loaded", lr) && lr.args[3].str.empty(), "the saved preset loads");
         got = impulses(2);
         check(got.size() == 2 && got[0].find("impulse-stone-church.wav") != std::string::npos &&
-                  got[1] == other + "acidulous/presets/Venue/b/impulses/hall.wav" && exists(got[1]),
+                  got[1] == other + "acidulous/presets/Trinity/b/impulses/hall.wav" && exists(got[1]),
               "the packed file is unpacked and loaded, the room is the same");
+        // The impulse is under the machine preset's own folder, so a delete
+        // covers it, unless a part still has it.
+        {
+            const std::string bdir = other + "acidulous/presets/Trinity/b/";
+            const std::string ddir = other + "acidulous/presets/Trinity/d/";
+            const auto        del  = [&](const std::string& f) {
+                log.clear();
+                cmd("/preset_delete", {Value::s(f), Value::i(0), Value::s(other)});
+                Reply d;
+                return log.wait("/preset_deleted", d) && d.args[2].str == "ok" && d.args.size() > 3 && d.args[3].str == "kept";
+            };
+            const auto release = [&] {
+                write_app(app, "factory:closet", "factory:closet");
+                const bool ok = load_roots(app);
+                impulses(2);
+                return ok;
+            };
+            std::system(("cp '" + vdir + "Trinity/b.acpreset' '" + vdir + "Trinity/d.acpreset'").c_str());
+            check(release() && !del(vdir + "Trinity/b.acpreset") && !exists(bdir + "impulses/hall.wav") && !exists(bdir),
+                  "deleting a machine preset removes its Venue impulse");
+            log.clear();
+            cmd("/preset_load", {Value::i(4), Value::s(vdir + "Trinity/d.acpreset"), Value::i(0), Value::s("@t"), Value::i(1),
+                                 Value::s("Trinity"), Value::s(""), Value::s(other)});
+            Reply dl;
+            check(log.wait("/preset_loaded", dl) && impulses(2).size() == 2 && exists(ddir + "impulses/hall.wav"),
+                  "another copy unpacked");
+            check(del(vdir + "Trinity/d.acpreset") && exists(ddir + "impulses/hall.wav"), "a Venue a part has keeps the folder");
+            check(release(), "the part lets go of it");
+            cmd("/media_sweep", {Value::s(other)});
+            c->drain();
+            std::this_thread::sleep_for(std::chrono::milliseconds(300));
+            check(!exists(ddir), "and the sweep clears it");
+        }
+        // Over the cap in one insert: refused, and the next insert's small file still unpacks.
+        {
+            const std::string cap = vdir + "Trinity/cap.acpreset";
+            write_app(cap, "media/big.wav", "media/small.wav");
+            const std::string sc = vdir + "mk.py";
+            std::ofstream(sc) << "import zipfile,sys\nz=zipfile.ZipFile(sys.argv[1],'a',zipfile.ZIP_DEFLATED)\n"
+                                 "z.writestr('media/big.wav',bytes(68161536))\nz.write(sys.argv[2],'media/small.wav')\nz.close()\n";
+            std::system(("python3 -I '" + sc + "' '" + cap + "' '" + banks + "/../rooms/impulse-closet.wav'").c_str());
+            load_roots(cap);
+            c->drain();
+            check(!exists(user + "acidulous/presets/Trinity/cap/big.wav") &&
+                      exists(user + "acidulous/presets/Trinity/cap/small.wav"),
+                  "a refused batch doesn't count against the next one");
+        }
         cmd("/patch", {Value::i(4), Value::s("Trinity"), Value::s("Saw Lead")});
         c->drain();
     }

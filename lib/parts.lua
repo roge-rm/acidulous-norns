@@ -421,8 +421,12 @@ function P.start(ready)
   end)
   send("/machines", {})
   local effects_asked = 0
+  local ready_ticks = 0
   P.tempo_timer = timer.every(0.25, function()
     if P.ready then
+      -- once, after the parts have taken their files: unpacked media nothing uses goes
+      ready_ticks = ready_ticks + 1
+      if ready_ticks == 40 then send("/media_sweep", P.ROOTS) end
       P.send_tempo()
       P.send_beat()
       -- the effects for the user's insert slots, asked until they come
@@ -3225,7 +3229,7 @@ function P.osc(path, args)
         save_files(part)
       end
     end
-    if P.on_preset_note then P.on_preset_note(ok and "deleted" or args[3]) end
+    if P.on_preset_note then P.on_preset_note(not ok and args[3] or args[4] == "kept" and "media kept, in use" or "deleted") end
     if file:sub(1, #P.FX_PRESETS) == P.FX_PRESETS then
       for _, part in ipairs(all) do
         for slot, at in pairs(part.fx_presets or {}) do

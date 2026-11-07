@@ -225,7 +225,7 @@ Machines, patches, any changed params and the samples each part has loaded save 
 
 You can save a part's sound as a patch of your own, which the Acidulous app can open too. In the patch list press **K1** + **K3**, type a name and pick **OK**. It's saved with its edits, macros and effects in dust/data/acidulous/presets/ under the machine's name, and shows in a **saved** tab at the start of the list. **K3** loads it like any patch, and **K1** + **K3** on it deletes it after asking. A PSET remembers a saved patch a part was playing.
 
-Presets from the app go in the same folder, or pick the .acpreset in the file picker, see [Samples](#samples). They load with their samples, voices and slices. The files they carry are unpacked to dust/audio/acidulous/presets/, in a folder named after the machine and the preset. Deleting the preset deletes that folder too.
+Presets from the app go in the same folder, or pick the .acpreset in the file picker, see [Samples](#samples). They load with their samples, voices and slices. The files they carry are unpacked to dust/audio/acidulous/presets/, in a folder named after the machine and the preset. Deleting the preset deletes that folder too, unless a part or a PSET still uses it, and media nothing uses is cleared later.
 
 Effect and modifier presets work the same way. On a card of fx 3 or 4 or on the mods card, **K1** + **K2** opens that slot's list, **K3** loads one, **K1** + **K3** saves the slot or deletes the one you're on.
 

@@ -713,6 +713,11 @@ elseif which == "17" then
     "K1+K3 then K3 deletes it")
   SENT_CLEAR()
   P.osc("/preset_deleted", {dir .. "Arp/up.acpreset", 0, "ok"})
+  local said, was = nil, P.on_preset_note
+  P.on_preset_note = function(text) said = text end
+  P.osc("/preset_deleted", {dir .. "Arp/up.acpreset", 0, "ok", "kept"})
+  P.on_preset_note = was
+  CHECK(said == "media kept, in use", "a kept folder is said")
   CHECK(FIND("/preset_scan", function(a) return a[1] == dir end) ~= nil and part.mod_presets[1] == nil,
     "then rescans the mod folder, the slot's preset forgotten")
   -- a Scale's slot can't be saved from

@@ -1143,6 +1143,14 @@ bool Core::command(const std::string& path, const Args& a)
         post([this, p = to_str(a[0]), index = to_int(a[1]), roots] { delete_preset(p, index, roots); });
         return true;
     }
+    if(path == "/media_sweep")
+    {
+        std::vector<std::string> roots;
+        for(size_t k = 0; k < a.size(); ++k)
+            roots.push_back(to_str(a[k]));
+        post([this, roots] { sweep_unpacked(roots); });
+        return true;
+    }
     if(path == "/shape" && a.size() >= 1)
     {
         post([this, p = to_str(a[0])] { send_shape(p); });
@@ -2589,6 +2597,14 @@ void Core::send_patches(const std::string& machine)
 
 void Core::loaded(int part, const std::string& kind, const std::string& path, int arg, const std::string& name)
 {
+    if(part >= 0 && part < kParts)
+    {
+        const std::string key = kind + ":" + std::to_string(kind == "pad" || kind == "voice" ? arg : 0);
+        if(path.empty())
+            parts[part].files.erase(key);
+        else
+            parts[part].files[key] = path;
+    }
     reply("/loaded", {Value::i(part), Value::s(kind), Value::s(path), Value::i(arg), Value::s(name),
                       Value::s(part >= 0 ? parts[part].machine : "")});
 }
@@ -2676,6 +2692,7 @@ void Core::load_now(int part, const std::string& kind, const std::string& path, 
     if(kind == "clear")
     {
         parts[part].zones.clear();
+        parts[part].files.clear();
         clear_objects(part);
         loaded(part, kind, "", 0, "");
         return;
@@ -3513,11 +3530,31 @@ bool safe_name(const std::string& name)
     return true;
 }
 
+uint32_t crc32_add(uint32_t c, const uint8_t* data, size_t n);
+
+// Whether the file at [path] has [size] bytes and CRC-32 [crc].
+bool file_matches(const std::string& path, uint64_t size, uint32_t crc)
+{
+    struct stat st{};
+    if(stat(path.c_str(), &st) != 0 || !S_ISREG(st.st_mode) || uint64_t(st.st_size) != size)
+        return false;
+    FILE* f = std::fopen(path.c_str(), "rb");
+    if(!f)
+        return false;
+    uint32_t c = 0;
+    uint8_t  buf[1 << 15];
+    size_t   n;
+    while((n = std::fread(buf, 1, sizeof buf, f)) > 0)
+        c = crc32_add(c, buf, n);
+    std::fclose(f);
+    return c == crc;
+}
+
 // Unpacks the entries [names] of the preset zip at [path] into
 // <first unlabelled root>acidulous/presets/<unit>/<file stem>/, "media/x" as
 // x there and any other entry by its own name. Returns that folder, or "" if
 // there's no root to put it under. A file already there with the entry's size
-// is kept. Entries that can't be unpacked are in [failed] with why; the rest
+// and CRC-32 is kept. Entries that can't be unpacked are in [failed] with why; the rest
 // are still written. Only the named entries are read, one at a time, packed
 // and inflated, so a preset's other files can be any size. [used] counts what
 // was unpacked against kMaxMediaBytes over calls for one patch. Worker only.
@@ -3572,8 +3609,7 @@ std::string unpack_media(const std::string& path, const std::string& unit, const
             failed[e] = "not in the preset";
         else
         {
-            struct stat st{};
-            if(stat(dest(e).c_str(), &st) == 0 && S_ISREG(st.st_mode) && uint64_t(st.st_size) == it->second.size)
+            if(file_matches(dest(e), it->second.size, it->second.crc))
                 continue;
             need.push_back(e);
             total += it->second.size;
@@ -3585,7 +3621,8 @@ std::string unpack_media(const std::string& path, const std::string& unit, const
             failed[e] = "too big";
         need.clear();
     }
-    used += total;
+    else
+        used += total;
     for(const auto& e : need)
     {
         std::vector<uint8_t>                                      one;
@@ -4168,7 +4205,8 @@ void Core::load_preset(int part, const std::string& path, int index, const std::
             {
                 std::map<std::string, std::string> failed;
                 uint64_t                           used = 0;
-                const std::string dir = unpack_media(path, "Venue", {impulse}, roots, failed, used);
+                // under the machine preset's own folder, so deleting it covers the file
+                const std::string dir = unpack_media(path, machine, {impulse}, roots, failed, used);
                 if(failed.count(impulse))
                     std::fprintf(stderr, "acidulous: %s: %s: %s\n", path.c_str(), impulse.c_str(), failed[impulse].c_str());
                 if(!dir.empty())
@@ -5075,19 +5113,58 @@ bool neighbour_uses(const std::string& path, const std::string& marker)
     return false;
 }
 
+// dust/data/acidulous/ for the root dust/audio/, "" if it can't be told.
+std::string psets_dir(std::string root)
+{
+    if(root.size() < 2)
+        return "";
+    root.pop_back();
+    const size_t slash = root.rfind('/');
+    return slash == std::string::npos ? "" : root.substr(0, slash + 1) + "data/acidulous/";
+}
+
+// Whether a norns PSET file in [dir] (dust/data/acidulous/) mentions [marker].
+bool pset_uses(const std::string& dir, const std::string& marker)
+{
+    DIR* d = opendir(dir.c_str());
+    if(!d)
+        return false;
+    std::vector<std::string> files;
+    while(const dirent* e = readdir(d))
+    {
+        const std::string n = e->d_name;
+        if(n.size() > 5 && n.compare(n.size() - 5, 5, ".pset") == 0)
+            files.push_back(dir + n);
+    }
+    closedir(d);
+    for(const auto& f : files)
+    {
+        std::vector<uint8_t> text;
+        if(!read_bytes(f, size_t(16) << 20, text))
+            continue;
+        if(std::search(text.begin(), text.end(), marker.begin(), marker.end()) != text.end())
+            return true;
+    }
+    return false;
+}
+
 // Deletes the folder unpack_media made for the preset at [path]
 // (<unlabelled root>acidulous/presets/<its folder's name>/<its stem>/), unless
-// another preset beside it names files in it. Nothing else is touched.
-void remove_unpacked(const std::string& path, const std::vector<std::string>& roots)
+// another preset beside it, a part ([in_use] says) or a PSET under
+// <root>/../data/acidulous/ names files in it. Nothing else is touched.
+// Returns true if a folder was kept for being in use.
+bool remove_unpacked(const std::string& path, const std::vector<std::string>& roots,
+                     const std::function<bool(const std::string&)>& in_use)
 {
+    bool kept = false;
     const size_t cut = path.rfind('/');
     if(cut == std::string::npos || cut == 0)
-        return;
+        return false;
     const size_t      up   = path.rfind('/', cut - 1);
     const std::string unit = path.substr(up == std::string::npos ? 0 : up + 1, cut - (up == std::string::npos ? 0 : up + 1));
     const std::string name = stem(path);
     if(!safe_name(unit) || !safe_name(name))
-        return;
+        return false;
     const std::string rel = "acidulous/presets/" + unit + "/" + name;
     for(const auto& r : roots)
     {
@@ -5100,8 +5177,92 @@ void remove_unpacked(const std::string& path, const std::vector<std::string>& ro
             continue;
         if(neighbour_uses(path, rel + "/"))
             continue;
+        const std::string data = psets_dir(pr.dir);
+        if(in_use(rel + "/") || (!data.empty() && pset_uses(data, rel + "/")))
+        {
+            kept = true;
+            continue;
+        }
         remove_tree(dir);
     }
+    return kept;
+}
+
+// Subfolder names of [dir] that are real folders, not links.
+std::vector<std::string> subfolders(const std::string& dir)
+{
+    std::vector<std::string> out;
+    DIR*                     d = opendir(dir.c_str());
+    if(!d)
+        return out;
+    while(const dirent* e = readdir(d))
+    {
+        const std::string n = e->d_name;
+        struct stat       st{};
+        if(n != "." && n != ".." && lstat((dir + n).c_str(), &st) == 0 && S_ISDIR(st.st_mode))
+            out.push_back(n);
+    }
+    closedir(d);
+    return out;
+}
+
+// Removes the folders unpack_media made, presets/<unit>/<stem>/ under the
+// unlabelled root's acidulous/, whose <stem>.acpreset is gone from
+// dust/data/acidulous/presets/<unit>/ (or its fx/ or mod/ one) and which no
+// other preset, part or PSET names. Folders of any other shape are left alone.
+void Core::sweep_unpacked(const std::vector<std::string>& roots)
+{
+    for(const auto& r : roots)
+    {
+        const Root pr = parse_root(r);
+        if(!pr.label.empty() || pr.dir.empty())
+            continue;
+        const std::string data = psets_dir(pr.dir);
+        if(data.empty())
+            continue;
+        const std::string base = pr.dir + "acidulous/presets/";
+        for(const auto& unit : subfolders(base))
+        {
+            if(!safe_name(unit))
+                continue;
+            for(const auto& name : subfolders(base + unit + "/"))
+            {
+                if(!safe_name(name))
+                    continue;
+                bool kept = false;
+                for(const char* sub : {"", "fx/", "mod/"})
+                {
+                    const std::string file = data + "presets/" + sub + unit + "/" + name + ".acpreset";
+                    struct stat       st{};
+                    kept = kept || stat(file.c_str(), &st) == 0 || neighbour_uses(file, "acidulous/presets/" + unit + "/" + name + "/");
+                }
+                const std::string marker = "acidulous/presets/" + unit + "/" + name + "/";
+                if(kept || media_in_use(marker) || pset_uses(data, marker))
+                    continue;
+                remove_tree(base + unit + "/" + name);
+            }
+        }
+    }
+}
+
+// Whether a part has a file under [marker] loaded: a pad, sample, slices,
+// SoundFont, voice, Mosaic zone or Venue impulse. Worker only.
+bool Core::media_in_use(const std::string& marker) const
+{
+    const auto has = [&](const std::string& s) { return s.find(marker) != std::string::npos; };
+    for(int i = 0; i < kParts; ++i)
+    {
+        const Part& p = parts[i];
+        if(has(p.zones) || has(p.voice[0]) || has(p.voice[1]))
+            return true;
+        for(const auto& kv : p.files)
+            if(has(kv.second))
+                return true;
+        for(int s = 0; s < acidulous::kEffectSlots; ++s)
+            if(impulse_on[i][s] && has(fx_impulse[i][s]))
+                return true;
+    }
+    return false;
 }
 
 // Takes patch [index] out of the preset at [path], or deletes the file when
@@ -5109,13 +5270,18 @@ void remove_unpacked(const std::string& path, const std::vector<std::string>& ro
 // "/preset_deleted s:path i:index s:ok|error".
 void Core::delete_preset(const std::string& path, int index, const std::vector<std::string>& roots)
 {
+    bool       kept = false; // the unpacked folder stayed, something still uses it
     const auto done = [&](const std::string& why) {
-        reply("/preset_deleted", {Value::s(path), Value::i(index), Value::s(why.empty() ? "ok" : why)});
+        Args out{Value::s(path), Value::i(index), Value::s(why.empty() ? "ok" : why)};
+        if(kept)
+            out.push_back(Value::s("kept"));
+        reply("/preset_deleted", out);
     };
     const auto remove_file = [&] {
         if(std::remove(path.c_str()) != 0)
             return std::string("can't delete it: ") + std::strerror(errno);
-        remove_unpacked(path, roots);
+        kept = remove_unpacked(path, roots, [this](const std::string& m) { return media_in_use(m); });
+        sweep_unpacked(roots);
         return std::string();
     };
     Preset      preset;

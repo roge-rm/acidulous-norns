@@ -165,6 +165,8 @@ class Core
         // morphing.
         std::string voice[2];
         bool        voice_lsf[2] = {false, false};
+        // The files loaded into it, by kind and number, as /loaded said.
+        std::map<std::string, std::string> files;
     };
 
     // A patch to put on a part, from a bank or a preset file.
@@ -245,6 +247,8 @@ class Core
     void load_mod_preset(int part, int slot, const std::string& path, int index, const std::string& want_name);
     void save_mod_preset(int part, int slot, const std::string& path, const std::string& name);
     void scan_presets(const std::string& folder, bool deep = false);
+    void sweep_unpacked(const std::vector<std::string>& roots);
+    bool media_in_use(const std::string& marker) const;
     void delete_preset(const std::string& path, int index, const std::vector<std::string>& roots = {});
     std::string load_zones(int part, const std::string& path, int index, const std::vector<std::string>& roots,
                            int& missing);
