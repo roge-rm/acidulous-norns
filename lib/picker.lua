@@ -66,6 +66,21 @@ local function say(text)
   st.note, st.note_at = text, util.time()
 end
 
+-- A copy shows "copying" for at least this long, so it can be read.
+local MIN_BUSY = 0.5
+
+local function busy(text)
+  st.mode, st.busy, st.busy_at = "busy", text, util.time()
+end
+
+-- Runs fn once the busy screen has been up MIN_BUSY, unless the picker has
+-- closed or moved on by then.
+local function after_busy(was, fn)
+  local wait = MIN_BUSY - (util.time() - (was.busy_at or 0))
+  if wait <= 0 then return fn() end
+  timer.after(wait, function() if st == was then fn() end end)
+end
+
 local function is_audio(row)
   return row and row.path and not row.dir and AUDIO[lib.ext(row.path)]
 end
@@ -170,16 +185,18 @@ local function pick(path, is_dir)
     load(path, is_dir)
     return
   end
-  st.mode, st.busy = "busy", "copying " .. lib.base(path)
+  busy("copying " .. lib.base(path))
   local was = st
   lib.import(path, is_dir, function(ok, dest, why)
     if st ~= was then return end
-    st.mode = "browse"
-    if ok then
-      load(dest, is_dir)
-    else
-      say("copy failed" .. (why ~= "" and (": " .. why) or ""))
-    end
+    after_busy(was, function()
+      st.mode = "browse"
+      if ok then
+        load(dest, is_dir)
+      else
+        say("copy failed" .. (why ~= "" and (": " .. why) or ""))
+      end
+    end)
   end)
 end
 
@@ -230,14 +247,17 @@ function P.scanned(path, info)
   local dir, where, rescan = preset_home(info.unit)
   if not dir then return fail(where) end
   local name = free_name(dir, lib.stem(path))
-  st.busy = "copying " .. lib.base(path)
-  lib.copy_file(path, dir .. name .. ".acpreset", function(ok, why)
+  busy("copying " .. lib.base(path))
+  lib.copy_file(path, dir .. name .. ".acpreset", function(ok, why, same)
     if st ~= was then return end
-    was.importing, was.mode = nil, "browse"
-    if not ok then return say("copy failed" .. (why ~= "" and (": " .. why) or "")) end
-    rescan()
-    say(name == lib.stem(path) and ("in " .. where) or (name .. ", in " .. where))
-  end)
+    after_busy(was, function()
+      was.importing, was.mode = nil, "browse"
+      if not ok then return say("copy failed" .. (why ~= "" and (": " .. why) or "")) end
+      if same then return say("already in " .. where) end
+      rescan()
+      say(name == lib.stem(path) and ("in " .. where) or (name .. ", in " .. where))
+    end)
+  end, "acpreset")
 end
 
 -- Opens the picker for part i, in the folder of what it has loaded if that's

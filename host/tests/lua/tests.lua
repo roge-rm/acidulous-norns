@@ -556,7 +556,7 @@ elseif which == "18" then
     CHECK(FIND("/preset_scan", function(a) return a[1] == file end) ~= nil, "K1+K3 asks the plugin about " .. file)
     copies = {}
     P.osc("/preset_scan", msg)
-    if finish and copies[1] then copies[1].done(true, "") end
+    if finish and copies[1] then copies[1].done(true, ""); ADVANCE(0.5) end
     return copies[1]
   end
   local function pick_row(name)
@@ -587,6 +587,8 @@ elseif which == "18" then
   CHECK(picker.screen().busy ~= nil, "the screen says it is copying")
   SENT_CLEAR()
   c.done(true, "")
+  CHECK(picker.screen().busy ~= nil, "a quick copy still shows copying")
+  ADVANCE(0.5)
   CHECK(FIND("/preset_scan", function(a) return a[1] == "/d/acidulous/presets/Hexbeat/" end) ~= nil,
     "then the machine's presets are scanned again")
   CHECK(picker.screen().title == "in Hexbeat saved presets" and not picker.screen().busy, "and it says where it went")
@@ -596,20 +598,27 @@ elseif which == "18" then
   taken["/d/acidulous/presets/Hexbeat/bass 2.acpreset"] = true
   c = import("/a/bass.acpreset", {name = "Bass", unit = "Hexbeat"}, false)
   CHECK(c and c.dest == "/d/acidulous/presets/Hexbeat/bass 3.acpreset", "a name taken gets 3 after 2")
-  c.done(true, "")
+  c.done(true, ""); ADVANCE(0.5)
   CHECK(picker.screen().title:find("bass 3", 1, true) ~= nil, "the new name shows")
+
+  -- the same file already there
+  c = import("/a/bass.acpreset", {name = "Bass", unit = "Hexbeat"}, false)
+  SENT_CLEAR()
+  c.done(true, "", "bass.acpreset"); ADVANCE(0.5)
+  CHECK(picker.screen().title == "already in Hexbeat saved presets" and FIND("/preset_scan") == nil,
+    "a file already there says so and scans nothing")
 
   -- an effect and a modifier preset
   c = import("/a/bass.acpreset", {name = "Wide", unit = "fx.Chorus"}, false)
   CHECK(c and c.dest == "/d/acidulous/presets/fx/Chorus/bass.acpreset", "an effect preset goes to presets/fx/<type>/")
   SENT_CLEAR()
-  c.done(true, "")
+  c.done(true, ""); ADVANCE(0.5)
   CHECK(FIND("/preset_scan", function(a) return a[1] == "/d/acidulous/presets/fx/" and a[2] == 1 end) ~= nil,
     "the fx folders are scanned again")
   pick_row("d.acpreset")
   c = import("/a/d.acpreset", {name = "Up", unit = "mod.Arp"}, false)
   CHECK(c and c.dest == "/d/acidulous/presets/mod/Arp/d.acpreset", "a modifier preset goes to presets/mod/<type>/")
-  c.done(false, "no space")
+  c.done(false, "no space"); ADVANCE(0.5)
   CHECK(picker.screen().title == "copy failed: no space", "a failed copy says so")
 
   -- refused

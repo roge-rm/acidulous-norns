@@ -192,21 +192,7 @@ end
 -- the stick, so two folders with the same name don't mix.
 function lib.copy_target(path)
   local rel = path == lib.MOUNT and "" or path:sub(#lib.MOUNT + 2)
-  -- Copies one file to dest, through a temporary name so a half copy is never
--- taken for a preset, and checks it has the file's size. In the background,
--- so a large preset doesn't hold up the screen. done(ok, why).
-function lib.copy_file(path, dest, done)
-  local tmp = dest .. ".part"
-  local cmd = "mkdir -p " .. q(lib.parent(dest)) .. " && cp " .. q(path) .. " " .. q(tmp)
-    .. " && [ \"$(stat -c %s " .. q(path) .. ")\" = \"$(stat -c %s " .. q(tmp) .. ")\" ]"
-    .. " && mv " .. q(tmp) .. " " .. q(dest)
-    .. " || { rm -f " .. q(tmp) .. "; echo \"it didn't copy\"; exit 1; }"
-  run(cmd, function(ok, text)
-    done(ok, (text:gsub("\n.*", "")))
-  end)
-end
-
-return lib.COPIES .. "/usb" .. (rel ~= "" and ("/" .. rel) or "")
+  return lib.COPIES .. "/usb" .. (rel ~= "" and ("/" .. rel) or "")
 end
 
 local PATTERNS = "\\( -iname '*.wav' -o -iname '*.aif' -o -iname '*.aiff' -o -iname '*.flac' \\)"
@@ -237,15 +223,25 @@ end
 
 -- Copies one file to dest, through a temporary name so a half copy is never
 -- taken for a preset, and checks it has the file's size. In the background,
--- so a large preset doesn't hold up the screen. done(ok, why).
-function lib.copy_file(path, dest, done)
+-- so a large preset doesn't hold up the screen. With same_ext, a file with
+-- that extension in dest's folder that matches byte for byte is taken in
+-- place of a copy. done(ok, why, same), same being that file's name.
+function lib.copy_file(path, dest, done, same_ext)
   local tmp = dest .. ".part"
-  local cmd = "mkdir -p " .. q(lib.parent(dest)) .. " && cp " .. q(path) .. " " .. q(tmp)
+  local check = ""
+  if same_ext then
+    check = "for f in " .. q(lib.parent(dest)) .. "/*." .. same_ext
+      .. "; do [ -f \"$f\" ] && cmp -s " .. q(path) .. " \"$f\" && { echo \"same:${f##*/}\"; exit 0; }; done; "
+  end
+  local cmd = check .. "mkdir -p " .. q(lib.parent(dest)) .. " && cp " .. q(path) .. " " .. q(tmp)
     .. " && [ \"$(stat -c %s " .. q(path) .. ")\" = \"$(stat -c %s " .. q(tmp) .. ")\" ]"
     .. " && mv " .. q(tmp) .. " " .. q(dest)
     .. " || { rm -f " .. q(tmp) .. "; echo \"it didn't copy\"; exit 1; }"
   run(cmd, function(ok, text)
-    done(ok, (text:gsub("\n.*", "")))
+    local line = text:gsub("\n.*", "")
+    local same = line:match("^same:(.+)$")
+    if same then return done(true, "", same) end
+    done(ok, line)
   end)
 end
 
