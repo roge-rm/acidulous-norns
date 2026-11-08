@@ -61,6 +61,7 @@ bool start_stage2(World* world, void* data)
     if(core::Core* c = engine.load())
     {
         c->reset();
+        c->set_bank_dir(cmd->banks);
         if(!bridge::start(c, std::to_string(cmd->port), "10111"))
             std::fprintf(stderr, "acidulous: can't open OSC port %d\n", cmd->port);
         bridge::replier_for_core()->reply("/hello", {});

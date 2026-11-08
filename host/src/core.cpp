@@ -746,6 +746,16 @@ void Core::settle()
     blocks.fetch_add(1, std::memory_order_release);
 }
 
+void Core::set_bank_dir(const std::string& dir)
+{
+    post_all([this, dir] {
+        if(dir == bank_dir)
+            return;
+        bank_dir = dir;
+        banks.clear();
+    });
+    drain();
+}
 void Core::reset()
 {
     host.panic();

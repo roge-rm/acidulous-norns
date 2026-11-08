@@ -137,6 +137,9 @@ class Core
     // Control thread. Back to an empty engine: all notes off, every part
     // unmounted, MPE off. Returns once that has run.
     void reset();
+    // Reads banks and rooms from dir from now on, for a script that has moved
+    // folders while scsynth kept running. On the worker; waits for it.
+    void set_bank_dir(const std::string& dir);
 
     // Waits until every queued job has run.
     void drain();
