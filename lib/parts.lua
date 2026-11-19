@@ -970,7 +970,7 @@ local function encode(files)
   local out = {}
   for _, k in ipairs(keys) do
     local f = files[k]
-    out[#out + 1] = f.kind .. "," .. f.arg .. "," .. f.path
+    out[#out + 1] = f.kind .. "," .. f.arg .. "," .. (f.path ~= "" and f.path or "-")
   end
   return table.concat(out, "|")
 end
@@ -980,6 +980,7 @@ end
 local function file_key(kind, arg)
   if kind == "pad" or kind == "voice" then return kind .. arg end
   if kind == "slices" then return "slices" end
+  if kind == "none" then return "none" end
   return "main"
 end
 
@@ -989,6 +990,7 @@ local function decode(s)
     local kind, arg, path = entry:match("^(%a+),(%-?%d+),(.+)$")
     if kind then
       arg = tonumber(arg)
+      if kind == "none" then path = "" end
       files[file_key(kind, arg)] = {kind = kind, path = path, arg = arg}
     end
   end
@@ -1539,6 +1541,8 @@ function P.clear_files(i)
   local part = P.part(i)
   part.files, part.loading, part.problem, part.last_path = {}, nil, nil, nil
   part.song_files = false
+  -- Abacus's patch may name a voice, so its "no file" is kept for a reload
+  if part.machine == "Abacus" then part.files.none = {kind = "none", path = "", arg = 0} end
   psend(part, "/load", {i - 1, "clear", "", 0})
   save_files(part)
 end
@@ -1566,9 +1570,15 @@ local function send_files(part)
   part.resend_files = false
   if not part.machine then return end
   local list = {}
-  for _, f in pairs(part.files) do list[#list + 1] = f end
+  for _, f in pairs(part.files) do
+    if f.kind ~= "none" then list[#list + 1] = f end
+  end
   table.sort(list, function(a, b) return a.arg < b.arg end)
-  psend(part, "/load", {part.n - 1, "clear", "", 0})
+  -- Abacus's file replaces the one its patch loaded, so with one there is no
+  -- clear; a "no file" kept in the files still clears.
+  if not (part.machine == "Abacus" and #list > 0) then
+    psend(part, "/load", {part.n - 1, "clear", "", 0})
+  end
   for _, f in ipairs(list) do load_file(part, f.kind, f.path, f.arg) end
 end
 
@@ -1586,7 +1596,9 @@ end
 function P.loaded_path(i)
   local part = P.part(i)
   if part.last_path then return part.last_path end
-  for _, f in pairs(part.files) do return f.path end
+  for _, f in pairs(part.files) do
+    if f.path ~= "" then return f.path end
+  end
 end
 
 -- What the part's machine has loaded, for the screen: "loading ...", the
@@ -1594,7 +1606,7 @@ end
 -- machine that takes no files.
 function P.material(i)
   local part = P.part(i)
-  if part.loading then return "loading " .. part.loading.name end
+  if part.loading then return "loading " .. part.loading.name:gsub("^factory:", "") end
   if part.problem and util.time() - part.problem.at < 5 then return part.problem.text end
   local m = part.machine
   -- a song track plays the song's samples until something is loaded
@@ -3416,7 +3428,12 @@ function P.osc(path, args)
     if part.loading and part.loading.kind == kind then part.loading = nil end
     if kind == "pad" or kind == "slices" or kind == "voice" or kind == "sf2" or kind == "folder"
       or kind == "sample" or kind == "zones" then
-      part.files[file_key(kind, arg)] = fpath ~= "" and {kind = kind, path = fpath, arg = arg, name = name} or nil
+      if fpath ~= "" then part.files.none = nil end
+      local key = file_key(kind, arg)
+      -- the clear's reply keeps a "no file"
+      if fpath ~= "" or key ~= "none" then
+        part.files[key] = fpath ~= "" and {kind = kind, path = fpath, arg = arg, name = name} or nil
+      end
     end
     if fpath ~= "" and kind ~= "pad" then part.last_path = fpath
     elseif kind == "pad" and fpath ~= "" and not part.loading then part.last_path = fpath end

@@ -4610,13 +4610,16 @@ void Core::load_borrow(int part, const std::string& setting, int arg)
         clear_objects(part);
         return loaded(part, "sample", "", arg, "");
     }
+    // The patch's own voice, already mounted: not analysed again.
+    if(starts_with(setting, kFactory) && parts[part].files.count("sample:0") && parts[part].files["sample:0"] == setting)
+        return loaded(part, "sample", setting, arg, setting.substr(8));
     const std::string file = borrow_file(setting, why);
     if(file.empty())
         return load_error(part, "sample", setting, arg, why);
-    const int64_t need = decoded_bytes(file, kSampleRate, int(machine::abacus::kFileSeconds), false);
+    const int64_t need = decoded_bytes(file, kSampleRate, borrow_seconds(), false);
     if(!room_for(need, why))
         return load_error(part, "sample", setting, arg, why);
-    auto data = decodeAudio(file, kSampleRate, why, int(machine::abacus::kFileSeconds));
+    auto data = decodeAudio(file, kSampleRate, why, borrow_seconds());
     if(!data || data->frames <= 1)
         return load_error(part, "sample", setting, arg, why.empty() ? "that file couldn't be read" : why);
     std::vector<float> mono(size_t(data->frames));

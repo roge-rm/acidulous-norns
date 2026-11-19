@@ -511,7 +511,7 @@ SongAudio song_audio(const std::string& text, const std::string& root, int held_
             out.racks[rack][0] = sum;
         }
         else if(call == "LoadBorrowFile" && w.size() >= 3)
-            out.racks[rack][0] = decoded_bytes(resolve(w[2]), kSampleRate, int(machine::abacus::kFileSeconds), false);
+            out.racks[rack][0] = decoded_bytes(resolve(w[2]), kSampleRate, borrow_seconds(), false);
         else if((call == "LoadTake" || call == "LoadUtterance") && w.size() >= 3)
             out.racks[rack][0] = decoded_bytes(resolve(w[2]), kSampleRate, 0, true);
         else if(call == "LoadReel" && w.size() >= 3)

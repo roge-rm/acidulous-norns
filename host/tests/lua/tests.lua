@@ -1024,6 +1024,9 @@ elseif which == "22" then
   CHECK(not picker.active(), "and closes")
   P.osc("/loaded", {0, "sample", "factory:voice", 0, "voice", "Abacus"})
   CHECK(P.material(1) == "voice", "the file shows by its name")
+  P.part(1).loading = {kind = "sample", name = "factory:voice"}
+  CHECK(P.material(1) == "loading voice", "a load shows without factory:")
+  P.part(1).loading = nil
   -- a restart sends it again after the machine, as a file's path is
   SENT_CLEAR()
   P.resend()
@@ -1033,7 +1036,23 @@ elseif which == "22" then
   CHECK(picker.open(P, 1), "the picker opens again")
   SENT_CLEAR()
   picker.key(3, 1, false)
-  CHECK(FIND("/load", function(a) return a[2] == "clear" end) ~= nil and next(part.files) == nil, "no file empties the part")
+  CHECK(FIND("/load", function(a) return a[2] == "clear" end) ~= nil and next(part.files) == "none", "no file empties the part")
+  P.defs.Abacus = P.defs.Abacus or {}
+  CHECK(part.files.none ~= nil and params:get("p1_files"):find("none,0,-", 1, true) ~= nil, "and is kept in the files param")
+  P.osc("/loaded", {0, "sample", "", 0, "", "Abacus"})
+  CHECK(part.files.none ~= nil and P.material(1) == "no file", "the reply keeps it")
+  -- after a restart it clears again and loads nothing
+  SENT_CLEAR()
+  P.resend()
+  ADVANCE(0.5)
+  CHECK(FIND("/load", function(a) return a[2] == "clear" end) ~= nil, "a kept no file clears after a plugin restart")
+  CHECK(FIND("/load", function(a) return a[2] == "sample" end) == nil, "and loads nothing")
+  P.osc("/loaded", {0, "sample", "factory:voice", 0, "voice", "Abacus"})
+  CHECK(part.files.none == nil and part.files.main ~= nil, "a file loaded after it replaces it")
+  SENT_CLEAR()
+  P.resend()
+  ADVANCE(0.5)
+  CHECK(FIND("/load", function(a) return a[2] == "clear" end) == nil, "with a file there is no clear before it")
 end
 print(FAILS == 0 and "all ok" or (FAILS .. " failed"))
 os.exit(FAILS == 0 and 0 or 1)

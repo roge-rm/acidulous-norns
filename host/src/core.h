@@ -32,6 +32,8 @@
 
 #include <engine/core/Constants.h>
 #include <engine/core/PatchChain.h>
+#include <engine/format/Decoded.h>
+#include <engine/machine/abacus/Borrow.h>
 
 namespace acidulous
 {
@@ -84,6 +86,14 @@ constexpr int kModSlots = acidulous::kInputModSlots;
 // the first `max_seconds` (0 all of it), mono as one channel unless `both`.
 // From the header for WAV, AIFF and FLAC, otherwise eight times the file's size.
 int64_t decoded_bytes(const std::string& path, int to_rate, int max_seconds, bool both);
+// How much of an Abacus Borrow file is decoded and analysed: what the app's
+// loader keeps, its decode limit or the analysis length, whichever is less.
+constexpr int borrow_seconds()
+{
+    return acidulous::kMaxDecodeSeconds < int(acidulous::machine::abacus::kFileSeconds)
+               ? int(acidulous::kMaxDecodeSeconds)
+               : int(acidulous::machine::abacus::kFileSeconds);
+}
 // The most every part's decoded samples and a song's audio may take together.
 long long sample_budget_bytes();
 // Diction's spec for the recorded voice whose bank.json is at [bank], its
