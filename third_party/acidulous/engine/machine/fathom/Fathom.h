@@ -21,6 +21,8 @@ namespace acidulous::machine {
  */
 class Fathom final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+4.1 dB). */
+    static constexpr float kHouseTrim = 1.61f;
     enum P : int32_t {
         Model = 0, Tune, Density, Size, Rise, Decay, Surface,
         Gust, Whistle, Tone, Swell, Spread, Fade,

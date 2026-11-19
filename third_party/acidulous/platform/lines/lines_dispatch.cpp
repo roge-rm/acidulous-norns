@@ -9,6 +9,7 @@ extern "C" {
 jstring Java_com_rm_acidulous_engine_EngineNative_nativeLoadNexusPatch(JNIEnv *, jobject, jint, jstring);
 void Java_com_rm_acidulous_engine_EngineNative_nativeSetSwingUnit(JNIEnv *, jobject, jint);
 jstring Java_com_rm_acidulous_engine_EngineNative_nativeLoadUtterance(JNIEnv *, jobject, jint, jstring);
+jstring Java_com_rm_acidulous_engine_EngineNative_nativeLoadBorrowFile(JNIEnv *, jobject, jint, jstring);
 jstring Java_com_rm_acidulous_engine_EngineNative_nativeLoadVoice(JNIEnv *, jobject, jint, jint, jstring);
 jboolean Java_com_rm_acidulous_engine_EngineNative_nativeMountMachine(JNIEnv *, jobject, jint, jstring);
 void Java_com_rm_acidulous_engine_EngineNative_nativeUnmountMachine(JNIEnv *, jobject, jint);
@@ -66,6 +67,14 @@ bool callLoadUtterance(Reader &in, Replay &r) {
     const jstring path = in.path();
     if (!in.finish()) return false;
     r.said("LoadUtterance", Java_com_rm_acidulous_engine_EngineNative_nativeLoadUtterance(r.env, nullptr, rack, path));
+    return true;
+}
+
+bool callLoadBorrowFile(Reader &in, Replay &r) {
+    const jint rack = r.rack(in.i32());
+    const jstring path = in.path();
+    if (!in.finish()) return false;
+    r.said("LoadBorrowFile", Java_com_rm_acidulous_engine_EngineNative_nativeLoadBorrowFile(r.env, nullptr, rack, path));
     return true;
 }
 
@@ -373,6 +382,7 @@ const Call kCalls[] = {
     {"LoadNexusPatch", callLoadNexusPatch},
     {"SetSwingUnit", callSetSwingUnit},
     {"LoadUtterance", callLoadUtterance},
+    {"LoadBorrowFile", callLoadBorrowFile},
     {"LoadVoice", callLoadVoice},
     {"MountMachine", callMountMachine},
     {"UnmountMachine", callUnmountMachine},
@@ -406,6 +416,6 @@ const Call kCalls[] = {
     {"SnapshotCommit", callSnapshotCommit},
     {"SnapshotAbandon", callSnapshotAbandon},
 };
-const int kCallCount = 35;
+const int kCallCount = 36;
 
 } // namespace acidulous::lines

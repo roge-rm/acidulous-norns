@@ -77,7 +77,7 @@ const ParamDef *Dice::paramDefs(int32_t &count) const {
         defs[Resonance] = {"resonance", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""};
         defs[FilterType] = {"filtertype", 0.0f, 11.0f, 1.0f, Curve::Stepped, 12, ""};
         defs[Drive] = {"drive", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""};
-        defs[Volume] = {"volume", 0.0f, 1.5f, 0.9f, Curve::Linear, 0, ""};
+        defs[Volume] = {"volume", 0.0f, 1.5f, 0.35f, Curve::Linear, 0, ""}; // 13 dB under the top
         defs[MasterPan] = {"pan", -1.0f, 1.0f, 0.0f, Curve::Linear, 0, ""};
         defs[Accent] = {"accent", 0.0f, 1.0f, 1.0f, Curve::Linear, 0, ""};
         defs[Follow] = {"follow", 0.0f, 1.0f, 1.0f, Curve::Stepped, 2, ""};
@@ -491,7 +491,7 @@ bool Dice::render(float *L, float *R, int32_t frames) {
 
     const float cutoff = paramOf(Cutoff), reso = paramOf(Resonance);
     const int32_t ftype = steppedOf(FilterType);
-    const float drive = paramOf(Drive), volume = paramOf(Volume);
+    const float drive = paramOf(Drive), volume = paramOf(Volume) * kHouseTrim;
     const float masterPan = paramOf(MasterPan);
     const float panL = std::cos((masterPan + 1.0f) * 0.25f * 3.14159265f);
     const float panR = std::sin((masterPan + 1.0f) * 0.25f * 3.14159265f);

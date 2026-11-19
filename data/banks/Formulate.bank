@@ -35,6 +35,12 @@
 #
 # Values are in each parameter's own units; `audition params Formulate` lists
 # them. A patch names only what it changes.
+#
+# Every patch sits at -27.5 on `loud`, within 1 dB, Init included. Init gets
+# there through the machine's house trim, with `volume` at its default of
+# 0.22, 17 dB under the top. The patches are levelled by `volume`, never
+# higher than 6 dB under the top; Bit Bass and Crushed Pad take the rest from
+# the gain of their last insert.
 
 machine Formulate
 # Families in tab order: lead, bass, drum, pad, arp, shape, formula,
@@ -81,18 +87,19 @@ patch "Pulse Lead" note=64 range=48..88 family=lead
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0281
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
   duty           0.5
   mono           #1
+  cutoff         8000 Hz
   glide          0 s
   ampattack      0.001 s
   ampdecay       0.4 s
   ampsustain     0.7
   amprelease     0.05 s
-  volume         0.77
+  volume         0.2212
 
 # A quarter duty: thinner, and it leaves room under itself for a bass.
 # Three duty settings is most of what a pulse channel had.
@@ -129,7 +136,7 @@ patch "Quarter Pulse" note=64 range=48..88 family=lead
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.041
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -139,7 +146,7 @@ patch "Quarter Pulse" note=64 range=48..88 family=lead
   ampdecay       0.35 s
   ampsustain     0.7
   amprelease     0.05 s
-  volume         0.89
+  volume         0.2387
 
 # An eighth: nasal and small, the one that cuts through everything
 # because there is nothing else up there.
@@ -176,7 +183,7 @@ patch "Thin Pulse" note=67 range=52..91 family=lead
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0625
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -186,7 +193,7 @@ patch "Thin Pulse" note=67 range=52..91 family=lead
   ampdecay       0.3 s
   ampsustain     0.65
   amprelease     0.04 s
-  volume         1.13
+  volume         0.2961
 
 # Two frames an octave up and then the note, which is how a pulse
 # channel got an attack it did not have.
@@ -221,7 +228,7 @@ patch "Blip Lead" note=64 range=48..88 family=lead
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0391
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -232,7 +239,7 @@ patch "Blip Lead" note=64 range=48..88 family=lead
   ampsustain     0.7
   amprelease     0.05 s
   framerate      50 Hz
-  volume         0.86
+  volume         0.228
   set arp "12 12 0 |"
 
 # Faster and shallower, so it reads as a texture on a lead rather than
@@ -268,7 +275,7 @@ patch "Swirl Lead" note=64 range=48..88 family=lead
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0352
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -280,7 +287,7 @@ patch "Swirl Lead" note=64 range=48..88 family=lead
   ampdecay       0.4 s
   ampsustain     0.75
   amprelease     0.06 s
-  volume         0.78
+  volume         0.2165
 
 # Holds the note for half a second, then the arp table rocks it a
 # semitone either way. Delayed vibrato, done in a table.
@@ -315,7 +322,7 @@ patch "Vibrato Lead" note=64 range=48..88 family=lead
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0271
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -326,7 +333,7 @@ patch "Vibrato Lead" note=64 range=48..88 family=lead
   ampsustain     0.75
   amprelease     0.08 s
   framerate      25 Hz
-  volume         0.66
+  volume         0.1832
   set arp "0 0 0 0 0 0 0 0 0 0 0 0 | 0 1 0 -1"
   send reverb    0.1
 
@@ -363,7 +370,7 @@ patch "Duty Fall" note=64 range=48..88 family=lead
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0352
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -373,7 +380,7 @@ patch "Duty Fall" note=64 range=48..88 family=lead
   ampsustain     0.7
   amprelease     0.06 s
   framerate      30 Hz
-  volume         0.85
+  volume         0.2253
   set duty "128 112 96 80 64 48 40 32 |"
 
 # A quarter pulse into a ping-pong echo, the spare channel's old job.
@@ -410,7 +417,7 @@ patch "Echo Lead" note=64 range=48..88 family=lead
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0391
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -420,7 +427,7 @@ patch "Echo Lead" note=64 range=48..88 family=lead
   ampdecay       0.3 s
   ampsustain     0.6
   amprelease     0.05 s
-  volume         0.89
+  volume         0.2333
   insert Delay
     time         #3
     feedback     0.4
@@ -463,7 +470,7 @@ patch "Chip Saw" note=60 range=45..84 family=lead
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0508
   mac8_d1  #26
   mac8_a1  0.5
   wave           #2
@@ -473,7 +480,7 @@ patch "Chip Saw" note=60 range=45..84 family=lead
   ampdecay       0.5 s
   ampsustain     0.7
   amprelease     0.06 s
-  volume         1.33
+  volume         0.3692
 
 # Four levels. Everything quiet in the source becomes a staircase, and
 # the distortion is the quantiser rather than a clipper.
@@ -508,7 +515,7 @@ patch "Four Level" note=60 range=45..84 family=lead
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0275
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -519,7 +526,7 @@ patch "Four Level" note=60 range=45..84 family=lead
   ampdecay       0.6 s
   ampsustain     0.7
   amprelease     0.06 s
-  volume         0.99
+  volume         0.278
 
 # Two levels: on and off. Every patch in this bank passes through the
 # same quantiser and this is the far end of it.
@@ -552,7 +559,7 @@ patch "Single Bit" note=60 range=45..84 family=lead
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.043
   mac8_d1  #26
   mac8_a1  0.5
   wave           #1
@@ -563,7 +570,7 @@ patch "Single Bit" note=60 range=45..84 family=lead
   ampdecay       0.8 s
   ampsustain     0.8
   amprelease     0.06 s
-  volume         1.42
+  volume         0.4081
 
 # The sample clock divided by six, so the high notes fold back down
 # into tones that are not in the key.
@@ -596,7 +603,7 @@ patch "Alias Lead" note=64 range=48..88 family=lead
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0281
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -609,7 +616,7 @@ patch "Alias Lead" note=64 range=48..88 family=lead
   ampdecay       0.4 s
   ampsustain     0.7
   amprelease     0.05 s
-  volume         0.80
+  volume         0.2299
 
 # The noise register on its short loop. It stops being noise and starts
 # being a pitch - a very ugly one, which is the point.
@@ -644,7 +651,7 @@ patch "Metal Noise" note=55 range=40..79 family=lead
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0352
   mac8_d1  #26
   mac8_a1  0.5
   wave           #3
@@ -655,7 +662,7 @@ patch "Metal Noise" note=55 range=40..79 family=lead
   ampdecay       0.7 s
   ampsustain     0.4
   amprelease     0.1 s
-  volume         0.93
+  volume         0.2409
 
 # The triangle channel, which on the hardware had no volume control at
 # all - it was on or it was off, and that is why chip bass sounds the
@@ -685,7 +692,7 @@ patch "Triangle Bass" note=40 range=28..60 family=bass
   mac7_d1  #23
   mac7_a1  0.7
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0625
   mac8_d1  #26
   mac8_a1  -0.5
   wave           #1
@@ -695,7 +702,7 @@ patch "Triangle Bass" note=40 range=28..60 family=bass
   ampdecay       1.5 s
   ampsustain     0.9
   amprelease     0.08 s
-  volume         1.30
+  volume         0.3526
 
 # A square with the sub under it and the top taken off.
 patch "Fat Pulse" note=36 range=24..55 family=bass
@@ -723,7 +730,7 @@ patch "Fat Pulse" note=36 range=24..55 family=bass
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0625
   mac8_d1  #26
   mac8_a1  -0.5
   wave           #0
@@ -735,7 +742,7 @@ patch "Fat Pulse" note=36 range=24..55 family=bass
   ampdecay       1 s
   ampsustain     0.8
   amprelease     0.06 s
-  volume         1.35
+  volume         0.3538
 
 # Triangle with the sub octave under it. Nothing above the fourth
 # harmonic worth speaking of.
@@ -764,7 +771,7 @@ patch "Octave Sub" note=36 range=24..55 family=bass
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0625
   mac8_d1  #26
   mac8_a1  -0.5
   wave           #1
@@ -775,7 +782,7 @@ patch "Octave Sub" note=36 range=24..55 family=bass
   ampdecay       2 s
   ampsustain     0.9
   amprelease     0.1 s
-  volume         1.44
+  volume         0.3325
 
 # A quarter pulse whose volume table steps down to a hold, so every
 # note is plucked.
@@ -804,7 +811,7 @@ patch "Duty Pluck" note=36 range=24..55 family=bass
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0664
   mac8_d1  #26
   mac8_a1  -0.5
   wave           #0
@@ -816,7 +823,7 @@ patch "Duty Pluck" note=36 range=24..55 family=bass
   ampsustain     0.8
   amprelease     0.05 s
   framerate      50 Hz
-  volume         1.42
+  volume         0.3554
   set vol "255 235 215 195 180 170 160 |"
 
 # A saw under a low filter.
@@ -845,7 +852,7 @@ patch "Saw Bass" note=36 range=24..55 family=bass
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0625
   mac8_d1  #26
   mac8_a1  -0.5
   wave           #2
@@ -856,7 +863,7 @@ patch "Saw Bass" note=36 range=24..55 family=bass
   ampdecay       1 s
   ampsustain     0.8
   amprelease     0.06 s
-  volume         1.50
+  volume         0.4069
 
 # A saw under a low cutoff, opened four octaves at each note and closed
 # again in a fifth of a second. The filter envelope's own patch.
@@ -885,7 +892,7 @@ patch "Filter Bass" note=36 range=24..55 family=bass
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0625
   mac8_d1  #22
   mac8_a1  0.12
   wave           #2
@@ -901,7 +908,7 @@ patch "Filter Bass" note=36 range=24..55 family=bass
   ampdecay       0.6 s
   ampsustain     0.7
   amprelease     0.06 s
-  volume         1.50
+  volume         0.4361
 
 # The filter envelope with a slow attack, so the note opens after it
 # starts rather than at once.
@@ -930,7 +937,7 @@ patch "Wah Bass" note=36 range=24..55 family=bass
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0391
   mac8_d1  #22
   mac8_a1  0.12
   wave           #0
@@ -947,7 +954,7 @@ patch "Wah Bass" note=36 range=24..55 family=bass
   ampdecay       0.8 s
   ampsustain     0.75
   amprelease     0.06 s
-  volume         0.90
+  volume         0.2359
 
 # The duty table walks the pulse narrow and back, sixteen steps a
 # second. Stepped PWM, as a tracker wrote it.
@@ -976,7 +983,7 @@ patch "Sweep Bass" note=36 range=24..55 family=bass
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0625
   mac8_d1  #26
   mac8_a1  -0.5
   wave           #0
@@ -987,7 +994,7 @@ patch "Sweep Bass" note=36 range=24..55 family=bass
   ampsustain     0.8
   amprelease     0.06 s
   framerate      16 Hz
-  volume         1.0
+  volume         0.3262
   set duty "16 32 48 64 80 96 112 128 112 96 80 64 48 32"
 
 # Each note falls an octave into place over a tenth of a second.
@@ -1016,7 +1023,7 @@ patch "Drop Bass" note=36 range=24..55 family=bass
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0508
   mac8_d1  #26
   mac8_a1  -0.5
   wave           #0
@@ -1029,7 +1036,7 @@ patch "Drop Bass" note=36 range=24..55 family=bass
   ampsustain     0.75
   amprelease     0.06 s
   framerate      60 Hz
-  volume         1.24
+  volume         0.3287
   set arp "12 7 4 2 1 0 |"
 
 # The triangle drops three octaves in a twentieth of a second, so
@@ -1059,7 +1066,7 @@ patch "Kick Bass" note=36 range=24..55 family=bass
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0625
   mac8_d1  #26
   mac8_a1  -0.5
   wave           #1
@@ -1069,7 +1076,7 @@ patch "Kick Bass" note=36 range=24..55 family=bass
   ampsustain     0.75
   amprelease     0.08 s
   framerate      120 Hz
-  volume         1.50
+  volume         0.3886
   set arp "36 24 17 12 7 3 0 |"
 
 # A four-bit saw at a third of the sample rate, through a distortion.
@@ -1098,7 +1105,7 @@ patch "Bit Bass" note=36 range=24..55 family=bass
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0547
   mac8_d1  #26
   mac8_a1  -0.5
   wave           #2
@@ -1110,11 +1117,12 @@ patch "Bit Bass" note=36 range=24..55 family=bass
   ampdecay       1 s
   ampsustain     0.8
   amprelease     0.06 s
-  volume         1.22
+  volume         0.4144
   insert Distortion
     drive        3
     tone         4000 Hz
     mix          0.4
+    gain         -1.9 dB
 
 # The duty table jumps between six widths at 60 steps a second, so
 # the note rasps. The filter envelope closes over it.
@@ -1143,7 +1151,7 @@ patch "Rasp Bass" note=36 range=28..55 family=bass
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0508
   mac8_d1  #26
   mac8_a1  -0.5
   wave           #0
@@ -1159,7 +1167,7 @@ patch "Rasp Bass" note=36 range=28..55 family=bass
   ampsustain     0.75
   amprelease     0.06 s
   framerate      60 Hz
-  volume         1.01
+  volume         0.2772
   set duty "24 120 48 96 32 112"
 
 # Noise low enough to be a thump, with everything above 400 Hz taken
@@ -1193,7 +1201,7 @@ patch "Noise Kick" note=36 range=24..55 family=drum
   mac8_d1  #23
   mac8_a1  0.4
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0391
   wave           #3
   noiseshort     #1
   cutoff         420 Hz
@@ -1203,7 +1211,7 @@ patch "Noise Kick" note=36 range=24..55 family=drum
   ampsustain     0
   amprelease     0.04 s
   drive          0.4
-  volume         1.5
+  volume         0.2947
   insert Eq
     gain         5.6 dB
 
@@ -1238,7 +1246,7 @@ patch "Pitch Kick" note=36 range=24..55 family=drum
   mac8_d1  #23
   mac8_a1  0.5
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0391
   wave           #1
   ampattack      0.0005 s
   ampdecay       0.25 s
@@ -1246,7 +1254,7 @@ patch "Pitch Kick" note=36 range=24..55 family=drum
   amprelease     0.04 s
   framerate      120 Hz
   drive          0.3
-  volume         1.50
+  volume         0.2777
   set arp "36 28 22 17 13 10 7 5 3 2 1 0 |"
   insert Eq
     gain         6.7 dB
@@ -1281,7 +1289,7 @@ patch "Noise Snare" note=48 range=36..72 family=drum
   mac7_d1  #23
   mac7_a1  0.5
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0547
   mac8_d1  #13
   mac8_a1  0.2
   wave           #3
@@ -1290,7 +1298,7 @@ patch "Noise Snare" note=48 range=36..72 family=drum
   ampsustain     0
   amprelease     0.05 s
   framerate      60 Hz
-  volume         1.5
+  volume         0.3711
   set vol "255 190 120 70 40 20 8 0 |"
   insert Eq
     gain         1.5 dB
@@ -1325,7 +1333,7 @@ patch "Tight Snare" note=48 range=36..72 family=drum
   mac8_d1  #23
   mac8_a1  0.5
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0469
   wave           #3
   cutoff         7000 Hz
   resonance      0.2
@@ -1334,7 +1342,7 @@ patch "Tight Snare" note=48 range=36..72 family=drum
   ampsustain     0
   amprelease     0.04 s
   framerate      90 Hz
-  volume         1.50
+  volume         0.3424
   set arp "12 5 0 -5 -12 |"
   set vol "255 220 160 110 70 40 20 8 0 |"
   insert Eq
@@ -1371,7 +1379,7 @@ patch "Noise Hat" note=60 range=48..84 family=drum
   mac8_d1  #23
   mac8_a1  0.5
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0488
   wave           #3
   noiseshort     #1
   ampattack      0.0005 s
@@ -1379,7 +1387,7 @@ patch "Noise Hat" note=60 range=48..84 family=drum
   ampsustain     0
   amprelease     0.02 s
   cutoff         14000 Hz
-  volume         1.37
+  volume         0.6843
 
 # The metallic noise left to ring for half a second.
 patch "Open Hat" note=60 range=48..84 family=drum
@@ -1411,7 +1419,7 @@ patch "Open Hat" note=60 range=48..84 family=drum
   mac8_d1  #23
   mac8_a1  0.5
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0391
   wave           #3
   noiseshort     #1
   cutoff         13000 Hz
@@ -1419,7 +1427,7 @@ patch "Open Hat" note=60 range=48..84 family=drum
   ampdecay       0.45 s
   ampsustain     0
   amprelease     0.1 s
-  volume         1.25
+  volume         0.2821
 
 # A triangle falling an octave onto the note.
 patch "Rack Tom" note=50 range=40..64 family=drum
@@ -1451,14 +1459,14 @@ patch "Rack Tom" note=50 range=40..64 family=drum
   mac8_d1  #23
   mac8_a1  0.5
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0391
   wave           #1
   ampattack      0.0005 s
   ampdecay       0.35 s
   ampsustain     0
   amprelease     0.05 s
   framerate      60 Hz
-  volume         1.5
+  volume         0.3586
   set arp "12 9 7 5 3 2 1 0 |"
   insert Eq
     gain         3.6 dB
@@ -1493,7 +1501,7 @@ patch "Floor Tom" note=43 range=31..55 family=drum
   mac8_d1  #23
   mac8_a1  0.5
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0508
   wave           #1
   sub            0.3
   ampattack      0.0005 s
@@ -1501,7 +1509,7 @@ patch "Floor Tom" note=43 range=31..55 family=drum
   ampsustain     0
   amprelease     0.06 s
   framerate      50 Hz
-  volume         1.5
+  volume         0.426
   set arp "12 9 7 5 4 3 2 1 0 |"
   insert Eq
     gain         2.8 dB
@@ -1537,7 +1545,7 @@ patch Clap note=60 range=48..72 family=drum
   mac8_d1  #23
   mac8_a1  0.5
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0434
   wave           #3
   cutoff         2500 Hz
   resonance      0.4
@@ -1546,7 +1554,7 @@ patch Clap note=60 range=48..72 family=drum
   ampsustain     0
   amprelease     0.05 s
   framerate      120 Hz
-  volume         1.18
+  volume         0.5251
   set vol "255 0 0 230 0 0 210 150 110 80 55 35 20 10 0 |"
   send reverb    0.15
 
@@ -1580,7 +1588,7 @@ patch "Metal Hit" note=60 range=48..84 family=drum
   mac8_d1  #23
   mac8_a1  0.5
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0354
   wave           #3
   noiseshort     #1
   cutoff         3000 Hz
@@ -1589,7 +1597,7 @@ patch "Metal Hit" note=60 range=48..84 family=drum
   ampdecay       0.5 s
   ampsustain     0
   amprelease     0.08 s
-  volume         0.63
+  volume         0.2279
   send reverb    0.1
 
 # A quarter pulse falling three octaves in a tenth of a second.
@@ -1622,7 +1630,7 @@ patch "Laser Zap" note=60 range=48..84 family=drum
   mac8_d1  #23
   mac8_a1  0.5
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0547
   wave           #0
   duty           0.25
   ampattack      0.0005 s
@@ -1630,10 +1638,8 @@ patch "Laser Zap" note=60 range=48..84 family=drum
   ampsustain     0
   amprelease     0.04 s
   framerate      120 Hz
-  volume         1.5
+  volume         0.3503
   set arp "36 31 26 22 18 14 11 8 5 3 1 0 |"
-  insert Eq
-    gain         1.8 dB
 
 # Three-bit noise jumping between seven pitches at 120 steps a second.
 patch "Glitch Hit" note=60 range=48..72 family=drum
@@ -1665,7 +1671,7 @@ patch "Glitch Hit" note=60 range=48..72 family=drum
   mac8_d1  #23
   mac8_a1  0.5
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0469
   wave           #3
   bits           #2
   crush          3
@@ -1674,10 +1680,8 @@ patch "Glitch Hit" note=60 range=48..72 family=drum
   ampsustain     0
   amprelease     0.04 s
   framerate      120 Hz
-  volume         1.5
+  volume         0.3711
   set arp "24 -12 31 0 19 -7 12"
-  insert Eq
-    gain         2.2 dB
 
 # The triangle, slow in and out, with a chorus.
 patch "Triangle Pad" note=55 range=40..79 family=pad role=pad
@@ -1707,13 +1711,13 @@ patch "Triangle Pad" note=55 range=40..79 family=pad role=pad
   mac8_d1  #23
   mac8_a1  0.5
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0332
   wave           #1
   ampattack      0.4 s
   ampdecay       1.5 s
   ampsustain     0.85
   amprelease     0.8 s
-  volume         0.99
+  volume         0.1695
   insert Chorus
     voices       #1
     rate         #12
@@ -1752,7 +1756,7 @@ patch "Soft Square" note=55 range=40..79 family=pad role=pad
   mac8_d1  #23
   mac8_a1  0.5
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0273
   wave           #0
   duty           0.5
   smooth         0.3
@@ -1761,7 +1765,7 @@ patch "Soft Square" note=55 range=40..79 family=pad role=pad
   ampdecay       1.5 s
   ampsustain     0.85
   amprelease     0.7 s
-  volume         0.60
+  volume         0.1207
   send reverb    0.2
 
 # The duty swept slowly by the hardware's own modulator, which is the
@@ -1793,7 +1797,7 @@ patch "PWM Pad" note=55 range=40..79 family=pad role=pad
   mac8_d1  #23
   mac8_a1  0.5
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0293
   wave           #0
   duty           0.5
   pwmdepth       0.42
@@ -1803,7 +1807,7 @@ patch "PWM Pad" note=55 range=40..79 family=pad role=pad
   ampsustain     0.85
   amprelease     0.6 s
   cutoff         7000 Hz
-  volume         0.67
+  volume         0.1347
   send reverb    0.15
 
 # A saw whose filter opens over the first second of each note.
@@ -1834,7 +1838,7 @@ patch "Saw Strings" note=55 range=40..79 family=pad role=pad
   mac8_d1  #23
   mac8_a1  0.5
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0332
   wave           #2
   cutoff         1500 Hz
   fenv           1.5 oct
@@ -1846,7 +1850,7 @@ patch "Saw Strings" note=55 range=40..79 family=pad role=pad
   ampdecay       1.5 s
   ampsustain     0.85
   amprelease     1 s
-  volume         1.0
+  volume         0.1965
   insert Chorus
     voices       #2
     rate         #12
@@ -1883,7 +1887,7 @@ patch "Pulse Swell" note=55 range=40..79 family=pad role=pad
   mac8_d1  #23
   mac8_a1  0.5
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0312
   wave           #0
   duty           0.25
   cutoff         5000 Hz
@@ -1892,7 +1896,7 @@ patch "Pulse Swell" note=55 range=40..79 family=pad role=pad
   ampsustain     0.85
   amprelease     0.8 s
   framerate      12 Hz
-  volume         0.75
+  volume         0.1579
   set vol "120 150 180 210 240 255 240 210 180 150 120 100"
   insert Chorus
     voices       #1
@@ -1931,7 +1935,7 @@ patch "Step PWM" note=55 range=40..79 family=pad role=pad
   mac8_d1  #23
   mac8_a1  0.5
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0254
   wave           #0
   cutoff         4000 Hz
   ampattack      0.4 s
@@ -1939,7 +1943,7 @@ patch "Step PWM" note=55 range=40..79 family=pad role=pad
   ampsustain     0.85
   amprelease     0.8 s
   framerate      6 Hz
-  volume         0.65
+  volume         0.1152
   set duty "32 48 64 80 96 112 128 112 96 80 64 48"
   insert Chorus
     voices       #1
@@ -1978,7 +1982,7 @@ patch "Chord Haze" note=55 range=40..79 family=pad role=pad
   mac8_d1  #23
   mac8_a1  0.5
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0244
   wave           #0
   duty           0.5
   smooth         0.2
@@ -1988,7 +1992,7 @@ patch "Chord Haze" note=55 range=40..79 family=pad role=pad
   ampsustain     0.85
   amprelease     0.9 s
   framerate      50 Hz
-  volume         0.57
+  volume         0.1057
   set arp "0 7 12"
   insert Chorus
     voices       #1
@@ -2028,7 +2032,7 @@ patch "Crushed Pad" note=55 range=40..79 family=pad role=pad
   mac8_d1  #23
   mac8_a1  0.5
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0587
   wave           #0
   duty           0.5
   pwmdepth       0.3
@@ -2040,7 +2044,7 @@ patch "Crushed Pad" note=55 range=40..79 family=pad role=pad
   ampdecay       1.5 s
   ampsustain     0.85
   amprelease     0.9 s
-  volume         0.58
+  volume         0.3482
   insert Tape
     wow          0.3
     flutter      0.15
@@ -2048,6 +2052,7 @@ patch "Crushed Pad" note=55 range=40..79 family=pad role=pad
     tone         7000 Hz
     hiss         0
     age          0.4
+    gain         -9.6 dB
   send reverb    0.2
 
 # One voice playing a chord, fifty times a second. This is where
@@ -2080,7 +2085,7 @@ patch "Major Arp" note=60 range=45..84 family=arp
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0275
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -2091,7 +2096,7 @@ patch "Major Arp" note=60 range=45..84 family=arp
   ampdecay       0.5 s
   ampsustain     0.75
   amprelease     0.05 s
-  volume         0.72
+  volume         0.2022
   set arp "0 4 7"
 
 # The same with a flat third. One character changes the chord, which is
@@ -2125,7 +2130,7 @@ patch "Minor Arp" note=60 range=45..84 family=arp
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0391
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -2136,7 +2141,7 @@ patch "Minor Arp" note=60 range=45..84 family=arp
   ampdecay       0.5 s
   ampsustain     0.75
   amprelease     0.05 s
-  volume         0.82
+  volume         0.2276
   set arp "0 3 7"
 
 # Root, fifth and octave with no third, so it is neither major nor
@@ -2170,7 +2175,7 @@ patch "Power Arp" note=60 range=45..84 family=arp
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0274
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -2181,7 +2186,7 @@ patch "Power Arp" note=60 range=45..84 family=arp
   ampdecay       0.5 s
   ampsustain     0.75
   amprelease     0.05 s
-  volume         0.71
+  volume         0.1993
   set arp "0 7 12"
 
 # Four steps rather than three, so the cycle is slower and you start to
@@ -2215,7 +2220,7 @@ patch "Seventh Arp" note=60 range=45..84 family=arp
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0332
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -2226,7 +2231,7 @@ patch "Seventh Arp" note=60 range=45..84 family=arp
   ampdecay       0.6 s
   ampsustain     0.75
   amprelease     0.05 s
-  volume         0.73
+  volume         0.205
   set arp "0 4 7 10"
 
 # Two steps an octave apart at full rate: not a chord any more, a
@@ -2260,7 +2265,7 @@ patch "Octave Trill" note=60 range=45..84 family=arp
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0275
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -2271,7 +2276,7 @@ patch "Octave Trill" note=60 range=45..84 family=arp
   ampdecay       0.7 s
   ampsustain     0.8
   amprelease     0.05 s
-  volume         0.68
+  volume         0.191
   set arp "0 12"
 
 # The note and the tone above, sixteen times a second. Slow enough to
@@ -2303,7 +2308,7 @@ patch "Tone Trill" note=64 range=48..88 family=arp
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0352
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -2314,7 +2319,7 @@ patch "Tone Trill" note=64 range=48..88 family=arp
   ampdecay       0.6 s
   ampsustain     0.75
   amprelease     0.08 s
-  volume         0.70
+  volume         0.1921
   set arp "0 2"
   send reverb    0.15
 
@@ -2349,7 +2354,7 @@ patch "Frame Echo" note=60 range=45..84 family=arp
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.082
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -2359,7 +2364,7 @@ patch "Frame Echo" note=60 range=45..84 family=arp
   ampdecay       4 s
   ampsustain     1
   amprelease     0.05 s
-  volume         1.50
+  volume         0.3977
   set vol "255 90 0 0 200 60 0 0 150 40 0 0 100 25 0 0 60 12 0 0 |"
 
 # The chord arpeggio with its volume table stepping down, into a
@@ -2393,7 +2398,7 @@ patch "Echo Arp" note=60 range=45..84 family=arp
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0332
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -2403,7 +2408,7 @@ patch "Echo Arp" note=60 range=45..84 family=arp
   ampdecay       0.8 s
   ampsustain     0.5
   amprelease     0.1 s
-  volume         0.9
+  volume         0.2151
   set arp "0 4 7 12"
   set vol "255 240 225 210 195 180 165 150 |"
   insert Delay
@@ -2445,7 +2450,7 @@ patch "Duty Sweep" note=60 range=45..84 family=arp
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0371
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -2455,7 +2460,7 @@ patch "Duty Sweep" note=60 range=45..84 family=arp
   ampdecay       0.8 s
   ampsustain     0.8
   amprelease     0.06 s
-  volume         0.75
+  volume         0.2155
   set duty "32 64 96 128 160 192 160 128 96 64 |"
 
 # Arp, duty and volume tables all moving at once at the same rate: the
@@ -2490,7 +2495,7 @@ patch "Duty Arp" note=60 range=45..84 family=arp
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0391
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -2500,7 +2505,7 @@ patch "Duty Arp" note=60 range=45..84 family=arp
   ampdecay       1 s
   ampsustain     0.8
   amprelease     0.06 s
-  volume         0.91
+  volume         0.2497
   set arp "0 7 12 7"
   set duty "128 32 160 64"
   set vol "255 200 230 170 210 150 190 130 |"
@@ -2535,7 +2540,7 @@ patch "Slow Frame" note=60 range=45..84 family=arp
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0371
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -2546,7 +2551,7 @@ patch "Slow Frame" note=60 range=45..84 family=arp
   ampdecay       1.2 s
   ampsustain     0.85
   amprelease     0.05 s
-  volume         0.73
+  volume         0.2074
   set arp "0 7 12 7 3 7 12 19"
 
 # The note in three octaves, up and down, twenty steps a second.
@@ -2581,7 +2586,7 @@ patch "Octave Run" note=55 range=40..76 family=arp
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0469
   mac8_d1  #7
   mac8_a1  0.5
   wave           #1
@@ -2591,7 +2596,7 @@ patch "Octave Run" note=55 range=40..76 family=arp
   ampdecay       1 s
   ampsustain     0.8
   amprelease     0.06 s
-  volume         1.17
+  volume         0.3401
   set arp "-12 0 12 24 12 0"
 
 # The tables clocked from the transport rather than from a rate in
@@ -2628,7 +2633,7 @@ patch "Locked Arp" note=60 range=45..84 family=arp
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0281
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -2640,7 +2645,7 @@ patch "Locked Arp" note=60 range=45..84 family=arp
   ampdecay       0.8 s
   ampsustain     0.8
   amprelease     0.05 s
-  volume         0.68
+  volume         0.1954
   set arp "0 4 7 12 7 4"
 
 # A minor run up two octaves, locked to the song's sixteenths, with a
@@ -2679,7 +2684,7 @@ patch "Locked Run" note=57 range=45..81 family=arp
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0332
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -2690,7 +2695,7 @@ patch "Locked Run" note=57 range=45..81 family=arp
   ampdecay       1 s
   ampsustain     0.8
   amprelease     0.05 s
-  volume         0.8
+  volume         0.1979
   set arp "0 3 7 12 15 19 24 19"
   set duty "128 112 96 80 64 48 32 48"
   set vol "255 150 180 150 255 150 180 150"
@@ -2726,7 +2731,7 @@ patch "Ring Chip" note=60 range=45..84 family=shape
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.043
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -2738,7 +2743,7 @@ patch "Ring Chip" note=60 range=45..84 family=shape
   ampdecay       0.8 s
   ampsustain     0.6
   amprelease     0.1 s
-  volume         1.02
+  volume         0.2831
   set formula "sin(t) + 128"
 
 # The same ring, with the sine an octave above the note, so the chip
@@ -2770,7 +2775,7 @@ patch "Octave Ring" note=60 range=45..84 family=shape
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.043
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -2782,7 +2787,7 @@ patch "Octave Ring" note=60 range=45..84 family=shape
   ampdecay       0.8 s
   ampsustain     0.6
   amprelease     0.1 s
-  volume         0.98
+  volume         0.2598
   set formula "sin(t) + 128"
   send reverb    0.1
 
@@ -2816,7 +2821,7 @@ patch "Gated Grit" note=60 range=45..84 family=shape
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0391
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -2830,7 +2835,7 @@ patch "Gated Grit" note=60 range=45..84 family=shape
   ampdecay       0.5 s
   ampsustain     0.7
   amprelease     0.1 s
-  volume         0.98
+  volume         0.2539
   set formula "t & 64 ? 255 : 0"
   set arp "0 0 12 7"
   set vol "255 255 0 0 255 0 255 0"
@@ -2865,7 +2870,7 @@ patch "Pulse Gate" note=60 range=45..84 family=shape
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0625
   mac8_d1  #26
   mac8_a1  0.5
   wave           #2
@@ -2877,7 +2882,7 @@ patch "Pulse Gate" note=60 range=45..84 family=shape
   ampdecay       0.7 s
   ampsustain     0.7
   amprelease     0.08 s
-  volume         1.5
+  volume         0.4069
   set formula "(t & 255) < a ? 255 : 0"
 
 # The oscillator exclusive-ORed with a ramp. There is no analogue
@@ -2912,7 +2917,7 @@ patch "Xor Fold" note=60 range=45..84 family=shape
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0469
   mac8_d1  #26
   mac8_a1  0.5
   wave           #1
@@ -2924,7 +2929,7 @@ patch "Xor Fold" note=60 range=45..84 family=shape
   ampsustain     0.65
   amprelease     0.08 s
   cutoff         9000 Hz
-  volume         1.28
+  volume         0.3807
   set formula "t & 255"
 
 # The chip's sample with bits knocked out of it by the `a` macro, so
@@ -2945,7 +2950,7 @@ patch "Bit Mask" note=60 range=45..84 family=shape
   mac2_d1  #10
   mac2_a1  -0.4
   mac2_d2  #24
-  mac2_a2  0.15
+  mac2_a2  0.0412
   mac3_d1  #1
   mac3_a1  -0.3
   mac4_d1  #8
@@ -2959,7 +2964,7 @@ patch "Bit Mask" note=60 range=45..84 family=shape
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0275
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -2971,7 +2976,7 @@ patch "Bit Mask" note=60 range=45..84 family=shape
   ampdecay       0.9 s
   ampsustain     0.7
   amprelease     0.08 s
-  volume         0.88
+  volume         0.2471
   set formula "x & (a | 15)"
 
 # The triangle with everything under `a` held at `a`, then stretched
@@ -3004,7 +3009,7 @@ patch "Half Wave" note=60 range=45..84 family=shape
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0469
   mac8_d1  #26
   mac8_a1  0.5
   wave           #1
@@ -3015,7 +3020,7 @@ patch "Half Wave" note=60 range=45..84 family=shape
   ampdecay       0.8 s
   ampsustain     0.7
   amprelease     0.08 s
-  volume         1.10
+  volume         0.3089
   set formula "(max(x, a) - a) * 256 / (256 - a)"
 
 # Full-wave rectification, written as arithmetic: everything below the
@@ -3050,7 +3055,7 @@ patch "Fold Over" note=60 range=45..84 family=shape
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0391
   mac8_d1  #26
   mac8_a1  0.5
   wave           #1
@@ -3061,7 +3066,7 @@ patch "Fold Over" note=60 range=45..84 family=shape
   ampsustain     0.7
   amprelease     0.08 s
   cutoff         10000 Hz
-  volume         1.12
+  volume         0.3109
   set formula "abs(x - 128) * 2"
 
 # **The formula reading the tables.** `s` is the table's step counter,
@@ -3095,7 +3100,7 @@ patch "Step Ring" note=60 range=45..84 family=shape
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.043
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -3107,7 +3112,7 @@ patch "Step Ring" note=60 range=45..84 family=shape
   ampdecay       1 s
   ampsustain     0.7
   amprelease     0.1 s
-  volume         1.13
+  volume         0.3602
   set formula "(s * 40 + 80) & 255"
   set arp "0 3 7 10 12 10 7 3"
 
@@ -3141,7 +3146,7 @@ patch "Note Shape" note=60 range=36..84 family=shape
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0469
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -3153,7 +3158,7 @@ patch "Note Shape" note=60 range=36..84 family=shape
   ampdecay       0.8 s
   ampsustain     0.7
   amprelease     0.08 s
-  volume         1.29
+  volume         0.3499
   set formula "t >> (n >> 4) & 255"
 
 # How hard the key is hit decides how much of the chip survives. Not a
@@ -3187,7 +3192,7 @@ patch "Velocity Grit" note=60 range=45..84 family=shape
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0352
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -3199,7 +3204,7 @@ patch "Velocity Grit" note=60 range=45..84 family=shape
   ampdecay       0.7 s
   ampsustain     0.7
   amprelease     0.08 s
-  volume         0.85
+  volume         0.2253
   set formula "x * v >> 6"
 
 # Random low bits flipped in the chip's own sample. `c` is the mask,
@@ -3232,7 +3237,7 @@ patch "Static Mask" note=60 range=45..84 family=shape
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0352
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -3245,7 +3250,7 @@ patch "Static Mask" note=60 range=45..84 family=shape
   ampsustain     0.7
   amprelease     0.08 s
   cutoff         9000 Hz
-  volume         0.80
+  volume         0.2272
   set formula "rnd() & c"
 
 # A sine that no chip ever had, written in four characters and tuned to
@@ -3276,7 +3281,7 @@ patch "Pure Sine" note=60 range=36..84 family=formula role=pad
   mac6_d1  #23
   mac6_a1  0.6
   mac6_d2  #24
-  mac6_a2  -0.1
+  mac6_a2  -0.043
   mac7_d1  #26
   mac7_a1  0.5
   mac8_d1  #26
@@ -3289,7 +3294,7 @@ patch "Pure Sine" note=60 range=36..84 family=formula role=pad
   ampdecay       1 s
   ampsustain     0.85
   amprelease     0.2 s
-  volume         0.99
+  volume         0.1858
   set formula "sin(t) + 128"
 
 # A ramp up and back down, built from the counter. The cycle is 512,
@@ -3325,7 +3330,7 @@ patch "Formula Triangle" note=60 range=36..84 family=formula
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0508
   mac8_d1  #26
   mac8_a1  0.5
   wave           #4
@@ -3336,7 +3341,7 @@ patch "Formula Triangle" note=60 range=36..84 family=formula
   ampdecay       0.8 s
   ampsustain     0.75
   amprelease     0.1 s
-  volume         1.27
+  volume         0.3607
   set formula "(t & 256) ? 255 - (t & 255) : (t & 255)"
 
 # A square built out of a comparison rather than out of hardware. The
@@ -3371,7 +3376,7 @@ patch "Formula Square" note=60 range=45..84 family=formula
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0352
   mac8_d1  #26
   mac8_a1  0.5
   wave           #4
@@ -3383,7 +3388,7 @@ patch "Formula Square" note=60 range=45..84 family=formula
   ampdecay       0.6 s
   ampsustain     0.7
   amprelease     0.06 s
-  volume         0.77
+  volume         0.2137
   set formula "(t & 255) < b ? 255 : 0"
 
 # The square again, with its width walking up from an eighth to most
@@ -3418,7 +3423,7 @@ patch "Formula Sweep" note=60 range=45..84 family=formula
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0488
   mac8_d1  #26
   mac8_a1  0.5
   wave           #4
@@ -3430,7 +3435,7 @@ patch "Formula Sweep" note=60 range=45..84 family=formula
   ampdecay       0.8 s
   ampsustain     0.75
   amprelease     0.08 s
-  volume         0.86
+  volume         0.2558
   set formula "((t & 255) < ((((t >> 9) * a >> 9) & 191) + 32)) ? 255 : 0"
 
 # A sine stepped through the note's first four harmonics: root,
@@ -3465,7 +3470,7 @@ patch "Overtone Arp" note=60 range=45..79 family=formula
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0352
   mac8_d1  #26
   mac8_a1  0.5
   wave           #4
@@ -3477,7 +3482,7 @@ patch "Overtone Arp" note=60 range=45..79 family=formula
   ampdecay       1 s
   ampsustain     0.8
   amprelease     0.1 s
-  volume         0.87
+  volume         0.2388
   set formula "sin(t * ((((t >> 13) * a >> 7) & 3) + 1)) + 128"
   send reverb    0.12
 
@@ -3523,7 +3528,7 @@ patch Sierpinski note=60 range=45..84 family=formula
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0391
   mac8_d1  #26
   mac8_a1  0.5
   wave           #4
@@ -3535,7 +3540,7 @@ patch Sierpinski note=60 range=45..84 family=formula
   ampsustain     0.7
   amprelease     0.08 s
   cutoff         11000 Hz
-  volume         0.89
+  volume         0.274
   set formula "min((t & t >> 8) * 2, 255)"
 
 # A saw whose harmonic counts up, one, two, three, four, and starts
@@ -3569,7 +3574,7 @@ patch "Harmonic Walk" note=55 range=40..79 family=formula
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0469
   mac8_d1  #26
   mac8_a1  0.5
   wave           #4
@@ -3582,7 +3587,7 @@ patch "Harmonic Walk" note=55 range=40..79 family=formula
   ampsustain     0.75
   amprelease     0.1 s
   cutoff         8000 Hz
-  volume         1.22
+  volume         0.3426
   set formula "(t * (((t >> 14) & (c >> 3)) + 1)) & 255"
 
 # Shift, mask, multiply: the multiplier *is* the wave's rate of change,
@@ -3627,7 +3632,7 @@ patch "Byte Crunch" note=55 range=40..79 family=formula
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0469
   mac8_d1  #26
   mac8_a1  0.5
   wave           #4
@@ -3639,7 +3644,7 @@ patch "Byte Crunch" note=55 range=40..79 family=formula
   ampsustain     0.75
   amprelease     0.1 s
   cutoff         9000 Hz
-  volume         1.21
+  volume         0.3359
   set formula "(t * (((t >> 16 | t >> 14) & 7) | 1)) & 255"
 
 # An expression that writes its own tune: the shifts pick out different
@@ -3684,7 +3689,7 @@ patch "Bit Melody" note=60 range=45..84 family=formula
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.043
   mac8_d1  #26
   mac8_a1  0.5
   wave           #4
@@ -3697,7 +3702,7 @@ patch "Bit Melody" note=60 range=45..84 family=formula
   ampdecay       1.4 s
   ampsustain     0.8
   amprelease     0.1 s
-  volume         1.12
+  volume         0.3145
   set formula "(t >> 4) * ((t >> 18 & 6) + 2) & 255"
 
 # Eight values in a scrambled order, each held for thirty-two ticks, and
@@ -3743,7 +3748,7 @@ patch "Held Steps" note=60 range=45..84 family=formula
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0508
   mac8_d1  #26
   mac8_a1  0.5
   wave           #4
@@ -3756,7 +3761,7 @@ patch "Held Steps" note=60 range=45..84 family=formula
   amprelease     0.08 s
   cutoff         7000 Hz
   resonance      0.3
-  volume         1.50
+  volume         0.3797
   set formula "(((t >> 5) & 7) * 97) & 255"
 
 # A saw ORed with its own third harmonic, masked by a slower copy of
@@ -3792,7 +3797,7 @@ patch Flicker note=60 range=45..84 family=formula
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0469
   mac8_d1  #26
   mac8_a1  0.5
   wave           #4
@@ -3805,7 +3810,7 @@ patch Flicker note=60 range=45..84 family=formula
   ampsustain     0.75
   amprelease     0.1 s
   cutoff         8000 Hz
-  volume         1.21
+  volume         0.3437
   set formula "(t | ((t * 3) & (t * a >> 13))) & 255"
 
 # Additive synthesis in one line: a fundamental and its octave, added
@@ -3838,7 +3843,7 @@ patch "Two Sines" note=57 range=40..84 family=formula role=pad
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0586
   mac8_d1  #26
   mac8_a1  0.5
   wave           #4
@@ -3849,7 +3854,7 @@ patch "Two Sines" note=57 range=40..84 family=formula role=pad
   ampdecay       1.2 s
   ampsustain     0.8
   amprelease     0.25 s
-  volume         1.44
+  volume         0.2765
   set formula "(sin(t) * 5 >> 3) + (sin(t * 2) * 5 >> 4) + 128"
 
 # Three sines at the note, the octave and the twelfth, like an organ's
@@ -3880,7 +3885,7 @@ patch "Formula Organ" note=57 range=36..84 family=formula role=pad
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0586
   mac8_d1  #26
   mac8_a1  0.5
   wave           #4
@@ -3892,7 +3897,7 @@ patch "Formula Organ" note=57 range=36..84 family=formula role=pad
   ampdecay       1 s
   ampsustain     0.9
   amprelease     0.12 s
-  volume         1.45
+  volume         0.269
   set formula "min(max((sin(t) * 9 >> 4) + (sin(t * 2) * 9 >> 5) + (sin(t * 3) * b >> 9) + 128, 0), 255)"
   insert Rotary
     speed        #0
@@ -3931,7 +3936,7 @@ patch Stair note=60 range=45..84 family=formula
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.043
   mac8_d1  #26
   mac8_a1  0.5
   wave           #4
@@ -3943,7 +3948,7 @@ patch Stair note=60 range=45..84 family=formula
   ampdecay       1 s
   ampsustain     0.75
   amprelease     0.1 s
-  volume         1.02
+  volume         0.2898
   set formula "((sin(t) + 128) / max(c, 4)) * max(c, 4)"
 
 # A square and a sine at the note, mixed in the formula by `b`. The duty
@@ -3982,7 +3987,7 @@ patch "Sine Blend" note=60 range=45..84 family=hybrid
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.043
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -3996,7 +4001,7 @@ patch "Sine Blend" note=60 range=45..84 family=hybrid
   ampdecay       0.8 s
   ampsustain     0.7
   amprelease     0.15 s
-  volume         0.99
+  volume         0.3192
   set formula "(x * b + (sin(t) + 128) * (255 - b)) >> 8"
   set duty "128 112 96 80 64 48 |"
   send reverb    0.1
@@ -4034,7 +4039,7 @@ patch "Frame Octave" note=60 range=45..84 family=hybrid
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.043
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -4047,7 +4052,7 @@ patch "Frame Octave" note=60 range=45..84 family=hybrid
   ampdecay       0.6 s
   ampsustain     0.65
   amprelease     0.12 s
-  volume         1.08
+  volume         0.3176
   set formula "(x >> 1) + ((sin(t << (s & 1)) + 128) >> 1)"
   send reverb    0.12
 
@@ -4087,7 +4092,7 @@ patch "Table Ring" note=60 range=45..84 family=hybrid
   mac8_d1  #23
   mac8_a1  0.6
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0547
   wave           #0
   duty           0.5
   formula        1
@@ -4097,7 +4102,7 @@ patch "Table Ring" note=60 range=45..84 family=hybrid
   ampdecay       1.2 s
   ampsustain     0.7
   amprelease     0.1 s
-  volume         1.29
+  volume         0.3499
   set formula "((s & 3) * 60 + 90) & 255"
   set arp "0 4 7 12"
   set duty "64 96 128 160"
@@ -4132,7 +4137,7 @@ patch "Macro Morph" note=60 range=45..84 family=hybrid
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0391
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -4147,7 +4152,7 @@ patch "Macro Morph" note=60 range=45..84 family=hybrid
   ampdecay       1 s
   ampsustain     0.75
   amprelease     0.1 s
-  volume         1.02
+  volume         0.2735
   set formula "(x * b >> 8) + (sin(t * (a >> 5) + c) >> 1) & 255"
 
 # The triangle folded harder on every table step, so the note starts
@@ -4184,7 +4189,7 @@ patch "Fold Clock" note=55 range=40..79 family=hybrid
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0469
   mac8_d1  #26
   mac8_a1  0.5
   wave           #1
@@ -4196,7 +4201,7 @@ patch "Fold Clock" note=55 range=40..79 family=hybrid
   ampdecay       1.5 s
   ampsustain     0.8
   amprelease     0.15 s
-  volume         1.10
+  volume         0.3125
   set formula "min(abs((((x - 128) * (16 + (min(s, 48) * c >> 5)) >> 4) + 128 & 511) - 256), 255)"
 
 # A saw arpeggio three steps long, and a formula flipping its top two
@@ -4233,7 +4238,7 @@ patch "Three on Four" note=60 range=45..84 family=hybrid
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0469
   mac8_d1  #26
   mac8_a1  0.5
   wave           #2
@@ -4245,7 +4250,7 @@ patch "Three on Four" note=60 range=45..84 family=hybrid
   ampdecay       0.5 s
   ampsustain     0.6
   amprelease     0.1 s
-  volume         1.41
+  volume         0.3781
   set formula "x ^ ((s & 3) << 6)"
   set arp "0 7 12"
   insert Delay
@@ -4289,7 +4294,7 @@ patch "Overtone Ring" note=60 range=45..84 family=hybrid
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0508
   mac8_d1  #26
   mac8_a1  0.5
   wave           #0
@@ -4303,7 +4308,7 @@ patch "Overtone Ring" note=60 range=45..84 family=hybrid
   ampdecay       0.7 s
   ampsustain     0.6
   amprelease     0.1 s
-  volume         1.29
+  volume         0.3459
   set formula "(t * ((s >> 1) % 5 + 1)) & 255"
   set arp "0 7"
   send reverb    0.1
@@ -4344,7 +4349,7 @@ patch Dropout note=60 range=45..84 family=hybrid
   mac8_d1  #23
   mac8_a1  0.6
   mac8_d2  #24
-  mac8_a2  -0.1
+  mac8_a2  -0.0352
   wave           #0
   duty           0.5
   formula        1
@@ -4355,7 +4360,7 @@ patch Dropout note=60 range=45..84 family=hybrid
   ampsustain     0.5
   amprelease     0.12 s
   cutoff         8000 Hz
-  volume         0.93
+  volume         0.2611
   set formula "min(max(r + (a >> 1) + (s * 37 & 63) - 32, 0), 255)"
   send reverb    0.12
 
@@ -4396,7 +4401,7 @@ patch "Keyed Chaos" note=60 range=36..84 family=hybrid
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0469
   mac8_d1  #26
   mac8_a1  0.5
   wave           #4
@@ -4408,7 +4413,7 @@ patch "Keyed Chaos" note=60 range=36..84 family=hybrid
   ampsustain     0.7
   amprelease     0.1 s
   cutoff         10000 Hz
-  volume         1.22
+  volume         0.3426
   set formula "(t & 255) ^ (f & 255)"
 
 # Formula, then three bits, then the sample clock divided by twelve.
@@ -4450,7 +4455,7 @@ patch "Crush Formula" note=55 range=40..79 family=hybrid
   mac7_d1  #23
   mac7_a1  0.6
   mac7_d2  #24
-  mac7_a2  -0.1
+  mac7_a2  -0.0547
   mac8_d1  #26
   mac8_a1  0.5
   wave           #4
@@ -4465,5 +4470,5 @@ patch "Crush Formula" note=55 range=40..79 family=hybrid
   ampsustain     0.75
   amprelease     0.1 s
   drive          0.3
-  volume         1.23
+  volume         0.3576
   set formula "(t & 255) ^ (t >> 9 & 48)"

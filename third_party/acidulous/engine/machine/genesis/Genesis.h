@@ -17,6 +17,8 @@ namespace acidulous::machine {
 
 class Genesis final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (-0.5 dB). */
+    static constexpr float kHouseTrim = 0.9452f;
     enum Voice : int32_t {
         Kick, Snare, Clap, Rim, TomLo, TomMid, TomHi,
         HatClosed, HatOpen, Crash, Ride, Cowbell, VoiceCount

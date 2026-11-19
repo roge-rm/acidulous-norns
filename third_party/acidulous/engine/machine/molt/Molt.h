@@ -22,6 +22,8 @@ namespace acidulous::machine {
 
 class Molt final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+10.9 dB). */
+    static constexpr float kHouseTrim = 3.498f;
     static constexpr int kVoices = 4;
     /**
      * The overlap-add buffer, a power of two so the ring wraps by mask. Two

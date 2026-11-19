@@ -27,6 +27,8 @@ namespace acidulous::machine {
 
 class Diction final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+2.7 dB). */
+    static constexpr float kHouseTrim = 1.357f;
     /** Held keys remembered for legato, so letting go of one returns to the last still held. */
     static constexpr int kHeld = 16;
     /** The most sounds a note's words can have. */

@@ -86,7 +86,7 @@ const ParamDef *Pollen::paramDefs(int32_t &count) const {
         {"velocity", 0.0f, 1.0f, 1.0f, Curve::Linear, 0, ""},
         {"drive", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
         {"dry", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
-        {"volume", 0.0f, 1.5f, 0.8f, Curve::Linear, 0, ""},
+        {"volume", 0.0f, 1.5f, 0.24f, Curve::Linear, 0, ""}, // 16 dB under the top
         {"pan", -1.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
     };
     static ParamDef defs[Count];
@@ -590,7 +590,7 @@ bool Pollen::render(float *L, float *R, int32_t frames) {
 
     const int32_t bits = steppedOf(Bits);
     const float crush = paramOf(Crush);
-    const float width = paramOf(Width), drive = paramOf(Drive), volume = paramOf(Volume);
+    const float width = paramOf(Width), drive = paramOf(Drive), volume = paramOf(Volume) * kHouseTrim;
     const float dry = paramOf(Dry);
     const float panKnob = paramOf(Pan);
     const float panL = std::cos((panKnob + 1.0f) * 0.25f * 3.14159265f);

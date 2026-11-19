@@ -45,7 +45,7 @@ const ParamDef kBase[Hexbeat::MacroBase] = {
     {"clave_tune", 1200.0f, 4000.0f, 2500.0f, Curve::Exponential, 0, "Hz"},
     {"clave_level", 0.0f, 1.0f, 0.6f, Curve::Linear, 0, ""},
     {"accent", 0.0f, 1.0f, 0.6f, Curve::Linear, 0, ""},
-    {"volume", 0.0f, 1.5f, 0.9f, Curve::Linear, 0, ""},
+    {"volume", 0.0f, 1.5f, 0.29f, Curve::Linear, 0, ""}, // 14 dB under the top
     {"velocity", 0.0f, 1.0f, 1.0f, Curve::Linear, 0, ""},
     // Linear so the default is exactly the old fixed 0.375.
     {"drive", 0.125f, 2.125f, 0.375f, Curve::Linear, 0, ""},
@@ -357,7 +357,7 @@ void Hexbeat::renderVoice(int32_t v, float *out, int32_t frames) {
 bool Hexbeat::render(float *L, float * /*R*/, int32_t frames) {
     params_.tick();
     updateMacros();
-    const float volume = val(Volume), drive = val(Drive);
+    const float volume = val(Volume) * kHouseTrim, drive = val(Drive);
     for (int32_t i = 0; i < frames; ++i) L[i] = 0.0f;
     for (int32_t v = 0; v < VoiceCount; ++v) {
         if (amp[v].active || aux[v].active) renderVoice(v, L, frames);

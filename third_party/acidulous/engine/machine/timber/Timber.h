@@ -19,6 +19,8 @@ namespace acidulous::machine {
 
 class Timber final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+3.7 dB). */
+    static constexpr float kHouseTrim = 1.523f;
     static constexpr int kVoices = 8;
 
     enum Register : int32_t { Natural = 0, Octave, Twelfth, RegisterCount };

@@ -29,6 +29,8 @@ namespace acidulous::machine {
 
 class Cumulus final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+0.4 dB). */
+    static constexpr float kHouseTrim = 1.053f;
     static constexpr int kVoices = 12;
     static constexpr int kUnison = 3;
 

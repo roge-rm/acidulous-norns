@@ -19,6 +19,8 @@ namespace acidulous::machine {
 
 class Formulate final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+4.4 dB). */
+    static constexpr float kHouseTrim = 1.666f;
     static constexpr int kVoices = 8;
 
     enum Wave : int32_t { Pulse, Triangle, Saw, Noise, Silence, WaveCount };

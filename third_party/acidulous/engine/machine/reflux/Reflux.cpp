@@ -36,7 +36,7 @@ const ParamDef kBase[Reflux::MacroBase] = {
     {"drive", 0.0f, 1.0f, 0.1f, Curve::Linear, 0, ""},
     // Up to 1.5, like most machines, so patches with drive have room to
     // reach the bank's level.
-    {"volume", 0.0f, 1.5f, 0.8f, Curve::Linear, 0, ""},
+    {"volume", 0.0f, 1.5f, 0.2f, Curve::Linear, 0, ""}, // 18 dB under the top
     {"pw", 0.05f, 0.95f, 0.5f, Curve::Linear, 0, ""},          // pulse width, pulse wave only
     {"sub", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},           // square an octave down
     {"mode", 0.0f, 1.0f, 0.0f, Curve::Stepped, 2, ""},         // 0 lowpass, 1 bandpass
@@ -254,7 +254,7 @@ bool Reflux::render(float *L, float * /*R*/, int32_t frames) {
     const float envMod = value(DstEnvMod);
     const float accentAmt = value(DstAccent);
     const float drive = value(DstDrive);
-    const float volume = value(DstAmp);
+    const float volume = value(DstAmp) * kHouseTrim;
     const float pwKnob = value(DstPw);
     const float subLevel = value(DstSub);
     const float mix = value(DstMix);

@@ -703,6 +703,14 @@ Java_com_rm_acidulous_engine_EngineNative_nativeLoadUtterance(JNIEnv *env, jobje
     return env->NewStringUTF(out.c_str());
 }
 
+JNIEXPORT jstring JNICALL
+Java_com_rm_acidulous_engine_EngineNative_nativeLoadBorrowFile(JNIEnv *env, jobject, jint rack, jstring path) {
+    const char *p = path != nullptr ? env->GetStringUTFChars(path, nullptr) : "";
+    const std::string out = host().loadBorrowFile(rack, p);
+    if (path != nullptr) env->ReleaseStringUTFChars(path, p);
+    return env->NewStringUTF(out.c_str());
+}
+
 
 
 JNIEXPORT jstring JNICALL

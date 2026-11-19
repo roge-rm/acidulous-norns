@@ -18,6 +18,8 @@ namespace acidulous::machine {
 
 class Nexus final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+9.3 dB). */
+    static constexpr float kHouseTrim = 2.93f;
     static constexpr int kVoices = nexus::kVoices;
 
     enum P : int32_t {

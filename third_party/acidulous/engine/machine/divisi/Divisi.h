@@ -99,6 +99,8 @@ namespace acidulous::machine {
  */
 class Divisi final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+2.2 dB). */
+    static constexpr float kHouseTrim = 1.281f;
     enum P : int32_t {
         Violin = 0, Viola, Cello, Contrabass, Choir, Vowel, Brass, Sweep, BrassDecay, Blat,
         Tone, Mode, Attack, Release,

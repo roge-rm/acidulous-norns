@@ -188,7 +188,7 @@ const ParamDef *Manual::paramDefs(int32_t &count) const {
         // Goes up to 2.0 because a single soft stop is much quieter than full
         // organ and needs the extra range to reach the bank's level. Init is
         // on the mod wheel and plays open, so its default sits low.
-        lin(Volume, "volume", 0.0f, 2.0f, 0.1875f);
+        lin(Volume, "volume", 0.0f, 2.0f, 0.33f); // 16 dB under the top
         lin(Pan, "pan", -1.0f, 1.0f, 0.0f);
 
         exp_(AmpAttack, "attack", 0.0005f, 0.5f, 0.004f, "s");
@@ -813,7 +813,7 @@ bool Manual::render(float *L, float *R, int32_t frames) {
     const bool percSteal = steppedOf(PercSteal) != 0;
     const float drive = clampf(paramOf(Drive) + blockMod[DstDrive], 0.0f, 1.0f);
     const float bias = paramOf(Bias);
-    const float volume = clampf(paramOf(Volume) + blockMod[DstVolume], 0.0f, 2.5f);
+    const float volume = clampf(paramOf(Volume) + blockMod[DstVolume], 0.0f, 2.5f) * kHouseTrim;
     const float pan = clampf(paramOf(Pan) + blockMod[DstPan], -1.0f, 1.0f);
     const int32_t expr = steppedOf(Expression);
     // The pedal reads CC11, open until one arrives. The mod wheel is the

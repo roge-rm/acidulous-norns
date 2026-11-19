@@ -76,7 +76,7 @@ const ParamDef *Diction::paramDefs(int32_t &count) const {
         {"octave", -3.0f, 3.0f, 0.0f, Curve::Stepped, 7, ""},
         {"transpose", -12.0f, 12.0f, 0.0f, Curve::Stepped, 25, ""},
 
-        {"volume", 0.0f, 1.5f, 0.8f, Curve::Linear, 0, ""},
+        {"volume", 0.0f, 1.5f, 0.36f, Curve::Linear, 0, ""}, // 12 dB under the top
         {"pan", -1.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
 
         // A recorded voice's consonants against its vowels.
@@ -1617,7 +1617,7 @@ bool Diction::render(float *L, float *R, int32_t frames) {
 
     const float breath = clampf(paramOf(Breath), 0.0f, 1.0f);
     amp.set(0.0f, paramOf(Attack), 0.001f, 1.0f, paramOf(Release), false);
-    const float volume = paramOf(Volume);
+    const float volume = paramOf(Volume) * kHouseTrim;
     const float pan = paramOf(Pan);
     const float panL = std::cos((pan + 1.0f) * 0.25f * dsp::kPi);
     const float panR = std::sin((pan + 1.0f) * 0.25f * dsp::kPi);

@@ -14,6 +14,8 @@ namespace acidulous::machine {
 
 class Forage final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+8.7 dB). */
+    static constexpr float kHouseTrim = 2.709f;
     static constexpr int32_t kPads = 13;
     static constexpr uint8_t kBaseNote = 36;
     /**

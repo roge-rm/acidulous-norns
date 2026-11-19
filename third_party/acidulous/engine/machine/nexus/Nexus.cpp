@@ -50,7 +50,7 @@ const ParamDef *Nexus::paramDefs(int32_t &count) const {
         put(Octave, "octave", -3.0f, 3.0f, 0.0f, Curve::Linear, 0, "");
         put(Transpose, "transpose", -12.0f, 12.0f, 0.0f, Curve::Linear, 0, "");
         put(Fine, "fine", -50.0f, 50.0f, 0.0f, Curve::Linear, 0, "c");
-        put(Volume, "volume", 0.0f, 1.0f, 0.8f, Curve::Linear, 0, "");
+        put(Volume, "volume", 0.0f, 1.0f, 0.14f, Curve::Linear, 0, ""); // 17 dB under the top
         put(Pan, "pan", -1.0f, 1.0f, 0.0f, Curve::Linear, 0, "");
         put(Drive, "drive", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, "");
         put(Velocity, "velocity", 0.0f, 1.0f, 1.0f, Curve::Linear, 0, "");
@@ -235,7 +235,7 @@ bool Nexus::render(float *L, float *R, int32_t frames) {
     ctx.clockRunning = clockRunning;
     ctx.clockTick = clockCursor;
 
-    const float volume = paramOf(Volume) * kHouse;
+    const float volume = paramOf(Volume) * kHouse * kHouseTrim;
     const float pan = paramOf(Pan);
     const float drive = paramOf(Drive);
     const float angle = (pan + 1.0f) * 0.25f * 3.14159265f;

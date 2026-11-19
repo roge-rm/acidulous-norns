@@ -23,6 +23,8 @@ namespace acidulous::machine {
 
 class Pollen final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+9.8 dB). */
+    static constexpr float kHouseTrim = 3.081f;
     static constexpr int kVoices = 8;
     static constexpr int kGrains = 96;
     /** Extra slots that only hold stolen grains while they fade out. */

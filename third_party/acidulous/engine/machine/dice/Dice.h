@@ -19,6 +19,8 @@ namespace acidulous::machine {
 
 class Dice final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+4.5 dB). */
+    static constexpr float kHouseTrim = 1.679f;
     static constexpr int kSlices = 16;
     // One per pad, so every slice of a 16-slice loop can sound at once, and
     // four more so a voice that has to make way can fade out while the new

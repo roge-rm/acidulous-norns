@@ -25,6 +25,8 @@ namespace acidulous::machine {
  */
 class Draw final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+2.8 dB). */
+    static constexpr float kHouseTrim = 1.386f;
     enum P : int32_t {
         Model = 0, Tune, Pressure, Attack, Release, Set, Chamber, Air,
         Voices, VelocityAmount, BendRange, Octave, Volume,

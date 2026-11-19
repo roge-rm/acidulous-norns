@@ -30,6 +30,8 @@ namespace acidulous::machine {
  */
 class Sympath final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+1.7 dB). */
+    static constexpr float kHouseTrim = 1.221f;
     enum P : int32_t {
         Model = 0, Tune, Sa, Scale, Bridge, Curve,
         Pluck, Position, Sustain, Bright,

@@ -31,6 +31,8 @@ namespace acidulous::machine {
 
 class Manual final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (-9.3 dB). */
+    static constexpr float kHouseTrim = 0.3424f;
     static constexpr int kVoices = 32;
     static constexpr int kBars = 9;       // 16' 5⅓' 8' 4' 2⅔' 2' 1⅗' 1⅓' 1'
     static constexpr int kPedalBars = 2;  // 16' 8'

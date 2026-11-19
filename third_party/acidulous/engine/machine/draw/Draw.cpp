@@ -176,7 +176,7 @@ const ParamDef *Draw::paramDefs(int32_t &count) const {
         {"velocity", 0.0f, 1.0f, 0.6f, Curve::Linear, 0, ""},
         {"bend", 0.0f, 12.0f, 2.0f, Curve::Linear, 0, "st"},
         {"octave", -2.0f, 2.0f, 0.0f, Curve::Stepped, 5, ""},
-        {"volume", 0.0f, 1.0f, 0.7f, Curve::Linear, 0, ""},
+        {"volume", 0.0f, 1.0f, 0.2f, Curve::Linear, 0, ""}, // 14 dB under the top
         // 0 is auto: the kind's own (an accordion's two 8' reeds); then by footage, as kRegisters.
         {"register", 0.0f, static_cast<float>(kRegisterCount - 1), 0.0f, Curve::Stepped, kRegisterCount, ""},
         // How far a note's reeds are tuned apart: dry at 0, wet at 25 and more.
@@ -837,7 +837,7 @@ bool Draw::render(float *L, float *R, int32_t frames) {
     const float bb0 = alpha / a0, ba1 = -2.0f * std::cos(bw) / a0, ba2 = (1.0f - alpha) / a0;
     const float dcPole = 1.0f - 6.2831853f * 20.0f / sampleRate;
     const float airAmount = clampf(paramOf(Air), 0.0f, 1.0f);
-    const float volume = paramOf(Volume);
+    const float volume = paramOf(Volume) * kHouseTrim;
     const float attack = std::fmax(0.005f, goalOf(Attack) * 0.001f) * sampleRate;
     const float release = std::fmax(0.005f, goalOf(Release) * 0.001f) * sampleRate;
     const float squeezeFollow = 1.0f - std::exp(-1.0f / (0.02f * sampleRate));

@@ -29,9 +29,11 @@
 # Accordion and harmonium patches play the `chord` phrase, the others `tune`;
 # Drone Box plays `drone`. Values are in each parameter's own units;
 # `audition params Draw` lists them. A patch names only what it changes.
-# Every patch sits at -23.1 on `loud` at its own note within 2 dB (-21.1
-# Tierce Harmonium to -24.9 Sho Pipes); the cupped and low harps are the
-# quiet end, the hard-blown accordions and harmoniums the loud.
+# Every patch sits at -27.5 on `loud`, within 1 dB, Init included. Init gets
+# there through the machine's house trim, with `volume` at its default of 0.2,
+# 14 dB under the top. The patches are levelled by `volume`, never higher than
+# 6 dB under the top; Amped Harp takes the rest from the gain of its last
+# insert.
 #
 # The left hand: Polka Accordion, Bandoneon Both Hands and Pumping Bellows
 # set `bass` to 48, so the keys under C3 play the bass buttons (a bass
@@ -44,9 +46,7 @@
 # #4 set, #5 chamber, #6 air, #7 velocity, #8 volume, #9 detune, #10 cup,
 # #11 vibrato, #12 vib rate, #13 shake, #14 words, #15 bass level,
 # #16 pitch. Where a macro at full moves the level by more than 1.5 dB, a
-# volume route takes it back out, as far as the volume knob goes: Bright
-# and Hands on Low F Harp and Hands on Chord Harp stay 1.7-2.4 dB down, as
-# their volumes are at the top. Set, chamber, air and detune are read when
+# volume route takes it back out. Set, chamber, air and detune are read when
 # a note starts, so those macros change the next note.
 #
 # Word Harp needs words in the clip, and breath from a track needs another
@@ -83,6 +83,7 @@ role    tune
 patch Init family=accordion note=57 range=45..81 role=chord
 
 patch "Soft Accordion" family=accordion note=57 range=45..81 role=chord
+  volume         0.2308
   # The bellows drawn gently, the reeds slow to speak.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -95,7 +96,7 @@ patch "Soft Accordion" family=accordion note=57 range=45..81 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.175
+  mac1_a2  -0.064
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -146,9 +147,10 @@ patch "Pushed Accordion" family=accordion note=57 range=45..81 role=chord
   mac8_a1  0.6
   pressure       0.8
   attack         15
-  volume         0.62
+  volume         0.1551
 
 patch "Dry Accordion" family=accordion note=57 range=45..81 role=chord
+  volume         0.1812
   # Two reeds tuned together: no beat, as a concert accordion.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -163,7 +165,7 @@ patch "Dry Accordion" family=accordion note=57 range=45..81 role=chord
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #8
-  mac2_a2  0.244
+  mac2_a2  0.0701
   mac3_d1  #10
   mac3_a1  0.5
   mac4_d1  #9
@@ -171,22 +173,23 @@ patch "Dry Accordion" family=accordion note=57 range=45..81 role=chord
   mac5_d1  #13
   mac5_a1  0.5
   mac5_d2  #8
-  mac5_a2  0.191
+  mac5_a2  0.0548
   mac6_d1  #2
   mac6_a1  0.35
   mac6_d2  #3
   mac6_a2  0.25
   mac6_d3  #8
-  mac6_a3  0.171
+  mac6_a3  0.0491
   mac7_d1  #5
   mac7_a1  0.5
   mac7_d2  #8
-  mac7_a2  0.151
+  mac7_a2  0.0434
   mac8_d1  #6
   mac8_a1  0.6
   detune         0
 
 patch "Wet Accordion" family=accordion note=57 range=45..81 role=chord
+  volume         0.201
   # Two reeds 25 cents apart: the fast beat of an Irish musette.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -199,7 +202,7 @@ patch "Wet Accordion" family=accordion note=57 range=45..81 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.163
+  mac1_a2  -0.0519
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -219,6 +222,7 @@ patch "Wet Accordion" family=accordion note=57 range=45..81 role=chord
   detune         25
 
 patch Musette family=accordion note=57 range=45..81 role=chord
+  volume         0.2034
   # Three 8' reeds, one either side of the note.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -231,7 +235,7 @@ patch Musette family=accordion note=57 range=45..81 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.163
+  mac1_a2  -0.0525
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -252,6 +256,7 @@ patch Musette family=accordion note=57 range=45..81 role=chord
   detune         18
 
 patch "Master Register" family=accordion note=57 range=45..81 role=chord
+  volume         0.2473
   # Every rank, the low ones in the cassotto.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -264,7 +269,7 @@ patch "Master Register" family=accordion note=57 range=45..81 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.181
+  mac1_a2  -0.0709
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -286,6 +291,7 @@ patch "Master Register" family=accordion note=57 range=45..81 role=chord
   detune         12
 
 patch "Bassoon Register" family=accordion note=57 range=45..81 role=chord
+  volume         0.2081
   # The 16' reeds alone, in the cassotto.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -298,7 +304,7 @@ patch "Bassoon Register" family=accordion note=57 range=45..81 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.163
+  mac1_a2  -0.0538
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -306,7 +312,7 @@ patch "Bassoon Register" family=accordion note=57 range=45..81 role=chord
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.161
+  mac4_a2  0.053
   mac5_d1  #13
   mac5_a1  0.5
   mac6_d1  #2
@@ -321,6 +327,7 @@ patch "Bassoon Register" family=accordion note=57 range=45..81 role=chord
   cassotto       1
 
 patch "Oboe Register" family=accordion note=57 range=45..81 role=chord
+  volume         0.2445
   # An 8' reed and its octave, brighter and thinner.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -333,7 +340,7 @@ patch "Oboe Register" family=accordion note=57 range=45..81 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.181
+  mac1_a2  -0.0701
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -341,7 +348,7 @@ patch "Oboe Register" family=accordion note=57 range=45..81 role=chord
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.161
+  mac4_a2  0.0623
   mac5_d1  #13
   mac5_a1  0.5
   mac6_d1  #2
@@ -355,6 +362,7 @@ patch "Oboe Register" family=accordion note=57 range=45..81 role=chord
   register       7      # 8' 4'
 
 patch "Shaken Accordion" family=accordion note=57 range=45..81 role=chord
+  volume         0.2154
   # The bellows turned back and forth eight times a second.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -367,7 +375,7 @@ patch "Shaken Accordion" family=accordion note=57 range=45..81 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.163
+  mac1_a2  -0.0556
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -387,6 +395,7 @@ patch "Shaken Accordion" family=accordion note=57 range=45..81 role=chord
   shake          8
 
 patch "Shaken in Time" family=accordion note=57 range=45..81 role=chord
+  volume         0.2154
   # The bellows turned on the song's sixteenths.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -399,7 +408,7 @@ patch "Shaken in Time" family=accordion note=57 range=45..81 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.163
+  mac1_a2  -0.0556
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -409,7 +418,7 @@ patch "Shaken in Time" family=accordion note=57 range=45..81 role=chord
   mac5_d1  #7
   mac5_a1  0.4
   mac5_d2  #8
-  mac5_a2  0.181
+  mac5_a2  0.0617
   mac6_d1  #2
   mac6_a1  0.35
   mac6_d2  #3
@@ -452,9 +461,10 @@ patch "Cajun Accordion" family=accordion note=57 range=45..81 role=chord
   detune         22
   pressure       0.75
   attack         15
-  volume         0.62
+  volume         0.1662
 
 patch "Fifths Accordion" family=accordion note=57 range=45..81 role=chord
+  volume         0.253
   # The 4' rank moved down to a fifth: every note a bare fifth.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -467,7 +477,7 @@ patch "Fifths Accordion" family=accordion note=57 range=45..81 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.163
+  mac1_a2  -0.0653
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -475,7 +485,7 @@ patch "Fifths Accordion" family=accordion note=57 range=45..81 role=chord
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.171
+  mac4_a2  0.0685
   mac5_d1  #13
   mac5_a1  0.5
   mac6_d1  #2
@@ -490,6 +500,7 @@ patch "Fifths Accordion" family=accordion note=57 range=45..81 role=chord
   "high rank"    7
 
 patch "Polka Accordion" family=accordion note=60 range=36..84 role=squeeze
+  volume         0.2939
   # Both hands: three wet reeds on the right, the left hand's bass and
   # major chord on the keys under C3.
   set macro1 "Bellows"
@@ -503,7 +514,7 @@ patch "Polka Accordion" family=accordion note=60 range=36..84 role=squeeze
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.157
+  mac1_a2  -0.0731
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -530,6 +541,7 @@ patch "Polka Accordion" family=accordion note=60 range=36..84 role=squeeze
 # --- bandoneon and concertina ----------------------------------------------------
 
 patch Bandoneon family=button note=57 range=40..84
+  volume         0.2906
   # Two reeds an octave apart, dry, in a dark box.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -542,7 +554,7 @@ patch Bandoneon family=button note=57 range=40..84
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.181
+  mac1_a2  -0.0832
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -550,7 +562,7 @@ patch Bandoneon family=button note=57 range=40..84
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.171
+  mac4_a2  0.0787
   mac5_d1  #13
   mac5_a1  0.5
   mac6_d1  #2
@@ -564,6 +576,7 @@ patch Bandoneon family=button note=57 range=40..84
   model          5      # bandoneon
 
 patch "Tango Bandoneon" family=button note=57 range=40..84
+  volume         0.2389
   # Pushed hard and short.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -584,7 +597,7 @@ patch "Tango Bandoneon" family=button note=57 range=40..84
   mac5_d1  #13
   mac5_a1  0.5
   mac5_d2  #8
-  mac5_a2  0.212
+  mac5_a2  0.08
   mac6_d1  #2
   mac6_a1  0.35
   mac6_d2  #3
@@ -611,7 +624,7 @@ patch "Bandoneon Both Hands" family=button note=60 range=36..84 role=squeeze
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.284
+  mac1_a2  -0.135
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -619,7 +632,7 @@ patch "Bandoneon Both Hands" family=button note=60 range=36..84 role=squeeze
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.1
+  mac4_a2  0.0477
   mac5_d1  #13
   mac5_a1  0.5
   mac6_d1  #2
@@ -629,16 +642,17 @@ patch "Bandoneon Both Hands" family=button note=60 range=36..84 role=squeeze
   mac7_d1  #5
   mac7_a1  0.5
   mac7_d2  #8
-  mac7_a2  -0.151
+  mac7_a2  -0.0719
   mac8_d1  #15
   mac8_a1  0.3
   model          5      # bandoneon
   bass           48     # C3
   "bass chord"   4      # none
   "bass level"   0.8
-  volume         0.9
+  volume         0.3867
 
 patch "Slow Bandoneon" family=button note=57 range=40..84
+  volume         0.2839
   # Drawn slowly and softly, in a room, for a lament.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -651,7 +665,7 @@ patch "Slow Bandoneon" family=button note=57 range=40..84
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.175
+  mac1_a2  -0.0787
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -675,6 +689,7 @@ patch "Slow Bandoneon" family=button note=57 range=40..84
   send reverb    0.15
 
 patch Concertina family=button note=64 range=55..91
+  volume         0.2335
   # Small reeds in a short chamber, one a note.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -687,7 +702,7 @@ patch Concertina family=button note=64 range=55..91
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.157
+  mac1_a2  -0.0581
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -695,7 +710,7 @@ patch Concertina family=button note=64 range=55..91
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.171
+  mac4_a2  0.0633
   mac5_d1  #13
   mac5_a1  0.5
   mac6_d1  #2
@@ -709,6 +724,7 @@ patch Concertina family=button note=64 range=55..91
   model          6      # concertina
 
 patch "English Concertina" family=button note=64 range=55..91
+  volume         0.253
   # One dry reed a note, light and sweet.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -721,7 +737,7 @@ patch "English Concertina" family=button note=64 range=55..91
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.163
+  mac1_a2  -0.0653
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -729,7 +745,7 @@ patch "English Concertina" family=button note=64 range=55..91
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.171
+  mac4_a2  0.0685
   mac5_d1  #13
   mac5_a1  0.5
   mac6_d1  #2
@@ -745,6 +761,7 @@ patch "English Concertina" family=button note=64 range=55..91
   pressure       0.4
 
 patch "Anglo Concertina" family=button note=64 range=55..91
+  volume         0.259
   # Two reeds a note, a little apart, and the bellows shaken.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -757,7 +774,7 @@ patch "Anglo Concertina" family=button note=64 range=55..91
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.144
+  mac1_a2  -0.059
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -813,11 +830,12 @@ patch "Concertina Jig" family=button note=64 range=55..91
   pressure       0.7
   attack         10
   release        30
-  volume         0.52
+  volume         0.2038
 
 # --- harmonium -------------------------------------------------------------------
 
 patch Harmonium family=harmonium note=57 range=40..84 role=chord
+  volume         0.1919
   # An 8' and a 4' stop, slow to speak.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -830,7 +848,7 @@ patch Harmonium family=harmonium note=57 range=40..84 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.216
+  mac1_a2  -0.0657
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -842,7 +860,7 @@ patch Harmonium family=harmonium note=57 range=40..84 role=chord
   mac5_d2  #3
   mac5_a2  0.25
   mac5_d3  #8
-  mac5_a3  -0.118
+  mac5_a3  -0.0358
   mac6_d1  #2
   mac6_a1  -0.35
   mac6_d2  #3
@@ -856,6 +874,7 @@ patch Harmonium family=harmonium note=57 range=40..84 role=chord
   release        90
 
 patch "Soft Harmonium" family=harmonium note=57 range=40..84 role=chord
+  volume         0.1964
   set macro1 "Bellows"
   set macro2 "Bright"
   set macro3 "Dark"
@@ -867,7 +886,7 @@ patch "Soft Harmonium" family=harmonium note=57 range=40..84 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.187
+  mac1_a2  -0.0582
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -875,7 +894,7 @@ patch "Soft Harmonium" family=harmonium note=57 range=40..84 role=chord
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.181
+  mac4_a2  0.0563
   mac5_d1  #2
   mac5_a1  0.35
   mac5_d2  #3
@@ -907,7 +926,7 @@ patch "Full Harmonium" family=harmonium note=57 range=40..84 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.105
+  mac1_a2  -0.033
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -915,13 +934,13 @@ patch "Full Harmonium" family=harmonium note=57 range=40..84 role=chord
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.16
+  mac4_a2  0.0504
   mac5_d1  #2
   mac5_a1  0.35
   mac5_d2  #3
   mac5_a2  0.25
   mac5_d3  #8
-  mac5_a3  0.126
+  mac5_a3  0.0397
   mac6_d1  #2
   mac6_a1  -0.35
   mac6_d2  #3
@@ -931,14 +950,15 @@ patch "Full Harmonium" family=harmonium note=57 range=40..84 role=chord
   mac8_d1  #6
   mac8_a1  0.6
   mac8_d2  #8
-  mac8_a2  0.143
+  mac8_a2  0.045
   model          8      # harmonium
   register       9      # 16' 8' 4'
   attack         80
   release        90
-  volume         0.62
+  volume         0.176
 
 patch "Tierce Harmonium" family=harmonium note=57 range=40..84 role=chord
+  volume         0.1771
   # Every stop, the top one moved to a tenth, as an organ's tierce.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -957,25 +977,25 @@ patch "Tierce Harmonium" family=harmonium note=57 range=40..84 role=chord
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.223
+  mac4_a2  0.0626
   mac5_d1  #2
   mac5_a1  0.35
   mac5_d2  #3
   mac5_a2  0.25
   mac5_d3  #8
-  mac5_a3  0.142
+  mac5_a3  0.0398
   mac6_d1  #2
   mac6_a1  -0.35
   mac6_d2  #3
   mac6_a2  -0.25
   mac6_d3  #8
-  mac6_a3  0.142
+  mac6_a3  0.0398
   mac7_d1  #5
   mac7_a1  0.5
   mac8_d1  #6
   mac8_a1  0.6
   mac8_d2  #8
-  mac8_a2  0.142
+  mac8_a2  0.0398
   model          8      # harmonium
   register       9      # 16' 8' 4'
   "high rank"    16
@@ -983,6 +1003,7 @@ patch "Tierce Harmonium" family=harmonium note=57 range=40..84 role=chord
   release        90
 
 patch "Indian Harmonium" family=harmonium note=57 range=40..84 role=chord
+  volume         0.1876
   # The hand-pumped harmonium: an 8' and its octave, quick to speak, its bellows uneven.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -1001,7 +1022,7 @@ patch "Indian Harmonium" family=harmonium note=57 range=40..84 role=chord
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.266
+  mac4_a2  0.079
   mac5_d1  #2
   mac5_a1  0.35
   mac5_d2  #3
@@ -1020,6 +1041,7 @@ patch "Indian Harmonium" family=harmonium note=57 range=40..84 role=chord
   air            0.7
 
 patch "Celeste Harmonium" family=harmonium note=57 range=40..84 role=chord
+  volume         0.1812
   # Two 8' stops, one tuned a little sharp.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -1032,7 +1054,7 @@ patch "Celeste Harmonium" family=harmonium note=57 range=40..84 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.163
+  mac1_a2  -0.0468
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -1070,7 +1092,7 @@ patch "Drone Box" family=harmonium note=57 range=45..81 role=drone
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.094
+  mac1_a2  -0.0302
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -1078,7 +1100,7 @@ patch "Drone Box" family=harmonium note=57 range=45..81 role=drone
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.145
+  mac4_a2  0.0467
   mac5_d1  #2
   mac5_a1  0.35
   mac5_d2  #3
@@ -1096,7 +1118,7 @@ patch "Drone Box" family=harmonium note=57 range=45..81 role=drone
   air            0.6
   attack         120
   release        300
-  volume         0.56
+  volume         0.1626
 
 patch "Devotional Harmonium" family=harmonium note=57 range=40..84 role=chord
   # Every stop but the second 8' a little sharp, the breath heard, in a room.
@@ -1111,7 +1133,7 @@ patch "Devotional Harmonium" family=harmonium note=57 range=40..84 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.198
+  mac1_a2  -0.0566
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -1136,10 +1158,11 @@ patch "Devotional Harmonium" family=harmonium note=57 range=40..84 role=chord
   attack         60
   release        200
   air            0.65
-  volume         0.57
+  volume         0.1618
   send reverb    0.15
 
 patch "Parlour Harmonium" family=harmonium note=57 range=40..84 role=chord
+  volume         0.2308
   # Two 8' stops and a 4', blown softly into the chamber: round and quiet.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -1152,7 +1175,7 @@ patch "Parlour Harmonium" family=harmonium note=57 range=40..84 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.138
+  mac1_a2  -0.0505
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -1182,6 +1205,7 @@ patch "Parlour Harmonium" family=harmonium note=57 range=40..84 role=chord
 # --- melodica --------------------------------------------------------------------
 
 patch Melodica family=melodica note=64 range=53..77
+  volume         0.2335
   # Reeds in a body, blown through a tube.
   set macro1 "Breath"
   set macro2 "Bright"
@@ -1194,7 +1218,7 @@ patch Melodica family=melodica note=64 range=53..77
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.169
+  mac1_a2  -0.0626
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -1202,7 +1226,7 @@ patch Melodica family=melodica note=64 range=53..77
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.171
+  mac4_a2  0.0633
   mac5_d1  #2
   mac5_a1  0.35
   mac5_d2  #3
@@ -1236,7 +1260,7 @@ patch "Melodica Lead" family=melodica note=64 range=53..77
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.151
+  mac4_a2  0.0515
   mac5_d1  #2
   mac5_a1  0.35
   mac5_d2  #3
@@ -1254,9 +1278,10 @@ patch "Melodica Lead" family=melodica note=64 range=53..77
   attack         12
   vibrato        0.2
   "vib rate"     5.5
-  volume         0.62
+  volume         0.1908
 
 patch "Soft Melodica" family=melodica note=64 range=53..77
+  volume         0.2906
   set macro1 "Breath"
   set macro2 "Bright"
   set macro3 "Dark"
@@ -1268,7 +1293,7 @@ patch "Soft Melodica" family=melodica note=64 range=53..77
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.187
+  mac1_a2  -0.0864
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -1276,7 +1301,7 @@ patch "Soft Melodica" family=melodica note=64 range=53..77
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.181
+  mac4_a2  0.0832
   mac5_d1  #2
   mac5_a1  0.35
   mac5_d2  #3
@@ -1295,6 +1320,7 @@ patch "Soft Melodica" family=melodica note=64 range=53..77
   release        150
 
 patch "Breathy Melodica" family=melodica note=64 range=53..77
+  volume         0.2681
   # Blown softly, the breath heard.
   set macro1 "Breath"
   set macro2 "Bright"
@@ -1307,7 +1333,7 @@ patch "Breathy Melodica" family=melodica note=64 range=53..77
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.181
+  mac1_a2  -0.0769
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -1315,7 +1341,7 @@ patch "Breathy Melodica" family=melodica note=64 range=53..77
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.171
+  mac4_a2  0.0726
   mac5_d1  #2
   mac5_a1  0.35
   mac5_d2  #3
@@ -1346,7 +1372,7 @@ patch "Dub Melodica" family=melodica note=64 range=53..77
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.113
+  mac1_a2  -0.0458
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -1354,7 +1380,7 @@ patch "Dub Melodica" family=melodica note=64 range=53..77
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.142
+  mac4_a2  0.0576
   mac5_d1  #2
   mac5_a1  0.35
   mac5_d2  #3
@@ -1370,7 +1396,7 @@ patch "Dub Melodica" family=melodica note=64 range=53..77
   model          7      # melodica
   pressure       0.7
   attack         15
-  volume         0.47
+  volume         0.1719
   insert Delay
     time         #3
     feedback     0.5
@@ -1392,7 +1418,7 @@ patch "Bass Melodica" family=melodica note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.112
+  mac1_a2  -0.0476
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -1400,7 +1426,7 @@ patch "Bass Melodica" family=melodica note=48 range=36..60
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.127
+  mac4_a2  0.0539
   mac5_d1  #2
   mac5_a1  0.35
   mac5_d2  #3
@@ -1415,7 +1441,7 @@ patch "Bass Melodica" family=melodica note=48 range=36..60
   mac8_a1  0.6
   model          7      # melodica
   pressure       0.6
-  volume         0.52
+  volume         0.1992
 
 patch "Street Melodica" family=melodica note=64 range=53..77
   # Two reeds a note, out of tune with each other, the breath heard.
@@ -1430,7 +1456,7 @@ patch "Street Melodica" family=melodica note=64 range=53..77
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.135
+  mac1_a2  -0.056
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -1454,11 +1480,12 @@ patch "Street Melodica" family=melodica note=64 range=53..77
   detune         10
   air            0.65
   pressure       0.6
-  volume         0.58
+  volume         0.217
 
 # --- harmonica -------------------------------------------------------------------
 
 patch "C Harp" family=harmonica note=60 range=60..84
+  volume         0.2445
   # A C harp played like a player: notes off the harp bent or on a reed of their own.
   set macro1 "Breath"
   set macro2 "Bright"
@@ -1471,13 +1498,13 @@ patch "C Harp" family=harmonica note=60 range=60..84
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.157
+  mac1_a2  -0.0608
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
   mac3_a1  0.7
   mac3_d2  #8
-  mac3_a2  0.255
+  mac3_a2  0.0984
   mac4_d1  #11
   mac4_a1  0.6
   mac5_d1  #12
@@ -1507,13 +1534,13 @@ patch "Cupped Harp" family=harmonica note=60 range=60..84
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.196
+  mac1_a2  -0.0904
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
   mac3_a1  0.7
   mac3_d2  #8
-  mac3_a2  0.16
+  mac3_a2  0.0737
   mac4_d1  #11
   mac4_a1  0.6
   mac5_d1  #12
@@ -1532,7 +1559,7 @@ patch "Cupped Harp" family=harmonica note=60 range=60..84
   cup            0.55
   vibrato        0.35
   "vib rate"     5.5
-  volume         0.84
+  volume         0.3487
 
 patch "G Harp" family=harmonica note=55 range=55..84
   # The lowest of the usual keys, a fourth under the C harp.
@@ -1547,13 +1574,13 @@ patch "G Harp" family=harmonica note=55 range=55..84
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.138
+  mac1_a2  -0.0482
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
   mac3_a1  0.7
   mac3_d2  #8
-  mac3_a2  0.191
+  mac3_a2  0.0667
   mac4_d1  #11
   mac4_a1  0.6
   mac5_d1  #12
@@ -1570,7 +1597,7 @@ patch "G Harp" family=harmonica note=55 range=55..84
   mac8_a1  -0.042
   model          0      # diatonic
   "harp key"     0      # G
-  volume         0.78
+  volume         0.2456
 
 patch "Wah Harp" family=harmonica note=60 range=60..84
   # Hands half closed and a slow throat vibrato; the mod wheel opens and shuts them.
@@ -1585,13 +1612,13 @@ patch "Wah Harp" family=harmonica note=60 range=60..84
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.186
+  mac1_a2  -0.0808
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
   mac3_a1  0.7
   mac3_d2  #8
-  mac3_a2  0.23
+  mac3_a2  0.1
   mac4_d1  #11
   mac4_a1  0.6
   mac5_d1  #12
@@ -1610,9 +1637,10 @@ patch "Wah Harp" family=harmonica note=60 range=60..84
   cup            0.4
   vibrato        0.5
   "vib rate"     3.5
-  volume         0.77
+  volume         0.3018
 
 patch "Straight Harp" family=harmonica note=60 range=60..84
+  volume         0.3008
   # Every note on a reed of its own: no bends, every note as clean as the next.
   set macro1 "Breath"
   set macro2 "Bright"
@@ -1625,13 +1653,13 @@ patch "Straight Harp" family=harmonica note=60 range=60..84
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.199
+  mac1_a2  -0.0952
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
   mac3_a1  0.7
   mac3_d2  #8
-  mac3_a2  0.3
+  mac3_a2  0.143
   mac4_d1  #11
   mac4_a1  0.6
   mac5_d1  #12
@@ -1650,6 +1678,7 @@ patch "Straight Harp" family=harmonica note=60 range=60..84
   playing        1      # straight
 
 patch Chromatic family=harmonica note=60 range=60..84
+  volume         0.2906
   # A chromatic harmonica: every note on a valved reed, a light vibrato.
   set macro1 "Breath"
   set macro2 "Bright"
@@ -1662,13 +1691,13 @@ patch Chromatic family=harmonica note=60 range=60..84
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.204
+  mac1_a2  -0.0936
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
   mac3_a1  0.7
   mac3_d2  #8
-  mac3_a2  0.3
+  mac3_a2  0.138
   mac4_d1  #11
   mac4_a1  0.6
   mac5_d1  #12
@@ -1688,6 +1717,7 @@ patch Chromatic family=harmonica note=60 range=60..84
   "vib rate"     6
 
 patch "Tremolo Harp" family=harmonica note=60 range=60..84
+  volume         0.3223
   # Two reeds a note, 12 cents apart.
   set macro1 "Breath"
   set macro2 "Bright"
@@ -1700,13 +1730,13 @@ patch "Tremolo Harp" family=harmonica note=60 range=60..84
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.199
+  mac1_a2  -0.102
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
   mac3_a1  0.7
   mac3_d2  #8
-  mac3_a2  0.3
+  mac3_a2  0.153
   mac4_d1  #9
   mac4_a1  0.3
   mac5_d1  #11
@@ -1723,6 +1753,7 @@ patch "Tremolo Harp" family=harmonica note=60 range=60..84
   detune         12
 
 patch "Octave Harmonica" family=harmonica note=60 range=60..84
+  volume         0.3414
   # Each note with its octave, as an octave harmonica sounds.
   set macro1 "Breath"
   set macro2 "Bright"
@@ -1735,13 +1766,13 @@ patch "Octave Harmonica" family=harmonica note=60 range=60..84
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.163
+  mac1_a2  -0.088
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
   mac3_a1  0.7
   mac3_d2  #8
-  mac3_a2  0.3
+  mac3_a2  0.162
   mac4_d1  #11
   mac4_a1  0.6
   mac5_d1  #12
@@ -1791,7 +1822,7 @@ patch "Low F Harp" family=harmonica note=53 range=53..84
   model          0      # diatonic
   "harp key"     10     # F
   octave         -1
-  volume         1
+  volume         0.3574
 
 patch "Chord Harp" family=harmonica note=55 range=55..84 role=chord
   # Two reeds a note, a little apart, played in chords.
@@ -1806,13 +1837,13 @@ patch "Chord Harp" family=harmonica note=55 range=55..84 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.164
+  mac1_a2  -0.0304
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
   mac3_a1  0.7
   mac3_d2  #8
-  mac3_a2  0.08
+  mac3_a2  0.0148
   mac4_d1  #9
   mac4_a1  0.3
   mac5_d1  #11
@@ -1827,7 +1858,7 @@ patch "Chord Harp" family=harmonica note=55 range=55..84 role=chord
   mac8_a1  -0.042
   model          2      # tremolo harp
   detune         15
-  volume         0.92
+  volume         0.1538
 
 patch "Amped Harp" family=harmonica note=60 range=60..84
   # Cupped round a microphone into a small amp turned up, a throat vibrato.
@@ -1864,15 +1895,16 @@ patch "Amped Harp" family=harmonica note=60 range=60..84
   vibrato        0.3
   "vib rate"     5
   pressure       0.7
-  volume         0.5
+  volume         0.3607
   insert Amp
     drive        0.6
     bass         0.6
     treble       0.4
     master       0.4
-    gain         -2 dB
+    gain         -9.0 dB
 
 patch "Ballad Chromatic" family=harmonica note=60 range=60..84
+  volume         0.2775
   # A chromatic blown softly with a wide, slow vibrato, in a room.
   set macro1 "Breath"
   set macro2 "Bright"
@@ -1885,13 +1917,13 @@ patch "Ballad Chromatic" family=harmonica note=60 range=60..84
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.216
+  mac1_a2  -0.0952
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
   mac3_a1  0.7
   mac3_d2  #8
-  mac3_a2  0.3
+  mac3_a2  0.132
   mac4_d1  #11
   mac4_a1  0.6
   mac5_d1  #12
@@ -1916,6 +1948,7 @@ patch "Ballad Chromatic" family=harmonica note=60 range=60..84
 # --- pipes -----------------------------------------------------------------------
 
 patch Sheng family=pipes note=69 range=55..93
+  volume         0.265
   # Each reed in its pipe: nearly pure, the pipe ringing with it.
   set macro1 "Breath"
   set macro2 "Bright"
@@ -1934,7 +1967,7 @@ patch Sheng family=pipes note=69 range=55..93
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.151
+  mac4_a2  0.0634
   mac5_d1  #2
   mac5_a1  0.35
   mac5_d2  #3
@@ -1950,6 +1983,7 @@ patch Sheng family=pipes note=69 range=55..93
   model          9      # sheng
 
 patch "Sheng Octaves" family=pipes note=69 range=55..93
+  volume         0.2417
   # Two pipes a key, an octave apart, as a sheng player often doubles.
   set macro1 "Breath"
   set macro2 "Bright"
@@ -1968,7 +2002,7 @@ patch "Sheng Octaves" family=pipes note=69 range=55..93
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.151
+  mac4_a2  0.0578
   mac5_d1  #2
   mac5_a1  0.35
   mac5_d2  #3
@@ -1985,6 +2019,7 @@ patch "Sheng Octaves" family=pipes note=69 range=55..93
   register       7      # 8' 4'
 
 patch "Sheng Fifths" family=pipes note=69 range=55..93
+  volume         0.2389
   # A pipe a fifth above each note.
   set macro1 "Breath"
   set macro2 "Bright"
@@ -2003,7 +2038,7 @@ patch "Sheng Fifths" family=pipes note=69 range=55..93
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.151
+  mac4_a2  0.0571
   mac5_d1  #2
   mac5_a1  0.35
   mac5_d2  #3
@@ -2039,7 +2074,7 @@ patch "Festival Sheng" family=pipes note=69 range=55..93 role=chord
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.138
+  mac4_a2  0.0278
   mac5_d1  #2
   mac5_a1  0.35
   mac5_d2  #3
@@ -2056,9 +2091,10 @@ patch "Festival Sheng" family=pipes note=69 range=55..93 role=chord
   register       9      # 16' 8' 4'
   pressure       0.8
   attack         15
-  volume         0.6
+  volume         0.1087
 
 patch Sho family=pipes note=69 range=57..93 role=chord
+  volume         0.1008
   # Each key its chord (aitake) where the sho has one, in the sho's own tuning.
   set macro1 "Breath"
   set macro2 "Bright"
@@ -2071,7 +2107,7 @@ patch Sho family=pipes note=69 range=57..93 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.118
+  mac1_a2  -0.0189
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -2079,7 +2115,7 @@ patch Sho family=pipes note=69 range=57..93 role=chord
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.181
+  mac4_a2  0.0289
   mac5_d1  #2
   mac5_a1  0.35
   mac5_d2  #3
@@ -2097,6 +2133,7 @@ patch Sho family=pipes note=69 range=57..93 role=chord
   release        400
 
 patch "Sho Pipes" family=pipes note=81 range=69..90
+  volume         0.3078
   # The sho's pipes one at a time.
   set macro1 "Breath"
   set macro2 "Bright"
@@ -2109,7 +2146,7 @@ patch "Sho Pipes" family=pipes note=81 range=69..90
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.15
+  mac1_a2  -0.0731
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -2117,7 +2154,7 @@ patch "Sho Pipes" family=pipes note=81 range=69..90
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.171
+  mac4_a2  0.0832
   mac5_d1  #2
   mac5_a1  0.35
   mac5_d2  #3
@@ -2134,6 +2171,7 @@ patch "Sho Pipes" family=pipes note=81 range=69..90
   playing        1      # straight
 
 patch Khaen family=pipes note=57 range=45..81
+  volume         0.259
   # Its reeds heard in the wind chest as well as the pipes: buzzier.
   set macro1 "Breath"
   set macro2 "Bright"
@@ -2152,7 +2190,7 @@ patch Khaen family=pipes note=57 range=45..81
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.161
+  mac4_a2  0.0661
   mac5_d1  #2
   mac5_a1  0.35
   mac5_d2  #3
@@ -2182,29 +2220,29 @@ patch "Khaen Drone" family=pipes note=45 range=40..64
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #8
-  mac2_a2  0.318
+  mac2_a2  0.254
   mac3_d1  #10
   mac3_a1  0.5
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.246
+  mac4_a2  0.197
   mac5_d1  #2
   mac5_a1  0.35
   mac5_d2  #3
   mac5_a2  0.25
   mac5_d3  #8
-  mac5_a3  0.285
+  mac5_a3  0.228
   mac6_d1  #2
   mac6_a1  -0.35
   mac6_d2  #3
   mac6_a2  -0.25
   mac6_d3  #8
-  mac6_a3  0.208
+  mac6_a3  0.166
   mac7_d1  #5
   mac7_a1  0.5
   mac7_d2  #8
-  mac7_a2  0.091
+  mac7_a2  0.0728
   mac8_d1  #6
   mac8_a1  0.6
   model          11     # khaen
@@ -2212,9 +2250,10 @@ patch "Khaen Drone" family=pipes note=45 range=40..64
   detune         5
   attack         120
   release        200
-  volume         0.42
+  volume         0.303
 
 patch "Pitch Pipe" family=pipes note=69 range=60..84
+  volume         0.2712
   # One reed, as a pitch pipe gives a note to tune by.
   set macro1 "Breath"
   set macro2 "Bright"
@@ -2227,17 +2266,17 @@ patch "Pitch Pipe" family=pipes note=69 range=60..84
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.181
+  mac1_a2  -0.0778
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
   mac3_a1  0.5
   mac3_d2  #8
-  mac3_a2  0.223
+  mac3_a2  0.096
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.191
+  mac4_a2  0.0824
   mac5_d1  #2
   mac5_a1  0.35
   mac5_d2  #3
@@ -2255,6 +2294,7 @@ patch "Pitch Pipe" family=pipes note=69 range=60..84
 # --- odd -------------------------------------------------------------------------
 
 patch "Tritone Reeds" family=odd note=57 range=45..81 role=chord
+  volume         0.2282
   # Reeds no accordion has: a rank a tritone below and one a tritone above.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -2267,7 +2307,7 @@ patch "Tritone Reeds" family=odd note=57 range=45..81 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.181
+  mac1_a2  -0.0655
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -2275,7 +2315,7 @@ patch "Tritone Reeds" family=odd note=57 range=45..81 role=chord
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.191
+  mac4_a2  0.0691
   mac5_d1  #13
   mac5_a1  0.5
   mac6_d1  #2
@@ -2291,6 +2331,7 @@ patch "Tritone Reeds" family=odd note=57 range=45..81 role=chord
   "low rank"     -6
 
 patch "Word Harp" family=odd note=60 range=60..84
+  volume         0.2681
   # A talking harp: words in the clip shape the mouth and the hands.
   # Alone, without words, it's a harp with the hands a little round it.
   set macro1 "Breath"
@@ -2304,13 +2345,13 @@ patch "Word Harp" family=odd note=60 range=60..84
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.163
+  mac1_a2  -0.0692
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
   mac3_a1  0.7
   mac3_d2  #8
-  mac3_a2  0.289
+  mac3_a2  0.122
   mac4_d1  #11
   mac4_a1  0.6
   mac5_d1  #14
@@ -2328,6 +2369,7 @@ patch "Word Harp" family=odd note=60 range=60..84
   cup            0.2
 
 patch "Pumping Bellows" family=odd note=60 range=36..84 role=squeeze
+  volume         0.3534
   # Every rank, the bellows turned on the song's eighths, and the left hand.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -2348,7 +2390,7 @@ patch "Pumping Bellows" family=odd note=60 range=36..84 role=squeeze
   mac5_d1  #7
   mac5_a1  0.4
   mac5_d2  #8
-  mac5_a2  0.223
+  mac5_a2  0.125
   mac6_d1  #2
   mac6_a1  0.35
   mac6_d2  #3
@@ -2375,7 +2417,7 @@ patch "Giant Reeds" family=odd note=57 range=45..81 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.165
+  mac1_a2  -0.0458
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -2383,7 +2425,7 @@ patch "Giant Reeds" family=odd note=57 range=45..81 role=chord
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #8
-  mac4_a2  0.164
+  mac4_a2  0.0455
   mac5_d1  #13
   mac5_a1  0.5
   mac6_d1  #2
@@ -2397,7 +2439,7 @@ patch "Giant Reeds" family=odd note=57 range=45..81 role=chord
   register       6      # 16' 8'
   "low rank"     -24
   detune         20
-  volume         0.6
+  volume         0.1501
 
 patch "Mutation Harmonium" family=odd note=57 range=40..84 role=chord
   # A 16', an 8' and a twelfth: hollow and bell-like.
@@ -2412,7 +2454,7 @@ patch "Mutation Harmonium" family=odd note=57 range=40..84 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.195
+  mac1_a2  -0.06
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -2436,9 +2478,10 @@ patch "Mutation Harmonium" family=odd note=57 range=40..84 role=chord
   "high rank"    19
   attack         60
   release        150
-  volume         0.65
+  volume         0.1803
 
 patch "Seasick Accordion" family=odd note=57 range=45..81 role=chord
+  volume         0.2205
   # Three reeds far apart and the bellows rolling slowly.
   set macro1 "Bellows"
   set macro2 "Bright"
@@ -2451,7 +2494,7 @@ patch "Seasick Accordion" family=odd note=57 range=45..81 role=chord
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #8
-  mac1_a2  -0.169
+  mac1_a2  -0.059
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -2485,7 +2528,7 @@ patch "Gasping Reeds" family=odd note=57 range=45..81 role=chord
   mac1_d1  #1
   mac1_a1  -0.4
   mac1_d2  #8
-  mac1_a2  0.138
+  mac1_a2  0.042
   mac2_d1  #4
   mac2_a1  -0.4
   mac3_d1  #10
@@ -2506,4 +2549,4 @@ patch "Gasping Reeds" family=odd note=57 range=45..81 role=chord
   pressure       1
   air            1
   attack         8
-  volume         0.48
+  volume         0.1317

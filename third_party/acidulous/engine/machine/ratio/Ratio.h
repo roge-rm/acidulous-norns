@@ -21,6 +21,8 @@ namespace acidulous::machine {
 
 class Ratio final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+5.7 dB). */
+    static constexpr float kHouseTrim = 1.936f;
     static constexpr int kOps = 6;
     static constexpr int kModEgs = 3;
     static constexpr int kLfos = 3;

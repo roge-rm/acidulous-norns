@@ -21,6 +21,8 @@ namespace acidulous::machine {
 
 class Mosaic final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+3.5 dB). */
+    static constexpr float kHouseTrim = 1.492f;
     static constexpr int kVoices = 16;
     static constexpr int kZonesPerVoice = 4;
     static constexpr int kGrains = 8;

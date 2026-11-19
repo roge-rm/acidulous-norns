@@ -49,7 +49,11 @@
 # drive is normalised on the level a pad reaches, so it adds grit and
 # sustain at about the same peak.
 #
-# Every kit but Init peaks at about -11 dB.
+# Every patch sits at -25.8 on `loud`, the loudest 400 ms, within 1 dB, Init
+# included. Init gets there through the machine's house trim, with `volume` at
+# its default of 0.19, 18 dB under the top. The patches are levelled by
+# `volume`, never higher than 6 dB under the top; 39 of them take the rest
+# from an Eq insert.
 #
 # Values are in each parameter's own units; `audition params Resonance` lists
 # them. A patch names only what it changes.
@@ -143,7 +147,7 @@ patch Kit family=drum role=beat
   p07_level      1.5
   coupling       0.28
   humanise       0.15
-  volume         1.26
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.3
   mac2_d1  #1
@@ -184,6 +188,8 @@ patch Kit family=drum role=beat
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         7.0 dB
 
 # The same idea an octave down and left to ring. Long decays on
 # a kit are what a room does rather than what a drum does.
@@ -265,7 +271,7 @@ patch "Deep Kit" family=drum role=beat
   p07_level      1.17
   coupling       0.4
   humanise       0.18
-  volume         1.13
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.3
   mac2_d1  #1
@@ -300,6 +306,8 @@ patch "Deep Kit" family=drum role=beat
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         7.7 dB
 
 # Everything damped hard and gone inside a fifth of a second. A kit
 # with no tail is a different instrument, not a quieter one.
@@ -383,7 +391,7 @@ patch Tight family=drum role=beat
   p07_level      0.42
   coupling       0.12
   humanise       0.25
-  volume         0.89
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.3
   mac2_d1  #1
@@ -412,6 +420,8 @@ patch Tight family=drum role=beat
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         7.7 dB
 
 patch Brushes family=drum role=beat
   # A small kit played with brushes: soft strikes and a lot of noise, so
@@ -491,7 +501,7 @@ patch Brushes family=drum role=beat
   p07_level      0.36
   coupling       0.25
   humanise       0.3
-  volume         1.5
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.25
   mac2_d1  #6
@@ -528,6 +538,8 @@ patch Brushes family=drum role=beat
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         8.5 dB
 
 patch "Big Room" family=drum role=beat
   # Short, tight drums and a lot of the song's reverb, so the room is
@@ -607,7 +619,7 @@ patch "Big Room" family=drum role=beat
   p07_level      0.42
   coupling       0.3
   humanise       0.15
-  volume         0.88
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.3
   mac2_d1  #1
@@ -647,6 +659,8 @@ patch "Big Room" family=drum role=beat
   mac8_d2  #11
   mac8_a2  -0.3
   send reverb    0.35
+  insert Eq
+    gain         3.9 dB
 
 # Four kettles, tuned, with the modes pulled towards harmonic.
 # Struck a quarter of the way in, which is where a timpanist stands.
@@ -731,7 +745,7 @@ patch Timpani family=drum
   p07_level      0.82
   coupling       0.45
   humanise       0.12
-  volume         1.31
+  volume         0.7112
   mac1_d1  #8
   mac1_a1  0.25
   mac2_d1  #1
@@ -836,7 +850,7 @@ patch "Tom Rack" family=drum role=beat
   p07_level      0.8
   coupling       0.3
   humanise       0.15
-  volume         0.85
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.5
   mac1_d2  #1
@@ -880,9 +894,11 @@ patch "Tom Rack" family=drum role=beat
   mac8_d1  #7
   mac8_a1  0.6
   mac8_d2  #12
-  mac8_a2  -0.1
+  mac8_a2  -0.08632
   mac8_d3  #11
   mac8_a3  -0.3
+  insert Eq
+    gain         2.1 dB
 
 patch Marching family=drum role=beat
   # A drumline: three bass drums tuned apart, a field snare cranked high,
@@ -969,7 +985,7 @@ patch Marching family=drum role=beat
   p07_level      0.42
   coupling       0.2
   humanise       0.12
-  volume         1.5
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.3
   mac2_d1  #13
@@ -1001,11 +1017,13 @@ patch Marching family=drum role=beat
   mac7_d1  #5
   mac7_a1  -0.5
   mac7_d2  #12
-  mac7_a2  -0.05
+  mac7_a2  -0.02677
   mac8_d1  #10
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         8.1 dB
 
 patch "Bent Toms" family=drum role=beat
   # Every head drops in pitch as it is struck, by up to two octaves on the
@@ -1101,7 +1119,7 @@ patch "Bent Toms" family=drum role=beat
   p07_level      0.22
   coupling       0.2
   humanise       0.1
-  volume         1.5
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.35
   mac2_d1  #1
@@ -1134,6 +1152,8 @@ patch "Bent Toms" family=drum role=beat
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         6.8 dB
 
 # Hands, not sticks. A djembe's bass and slap are the same drum
 # struck in two places, which is what `hit` is for - one at a sixth of the
@@ -1217,7 +1237,7 @@ patch Skins family=hand role=beat
   p07_level      0.85
   coupling       0.35
   humanise       0.22
-  volume         0.9
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.25
   mac2_d1  #1
@@ -1250,6 +1270,8 @@ patch Skins family=hand role=beat
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         4.0 dB
 
 patch Bongos family=hand role=beat
   # Congas and bongos, open, slapped and muted, with the bongo player's
@@ -1337,7 +1359,7 @@ patch Bongos family=hand role=beat
   p07_pan        0.2
   coupling       0.3
   humanise       0.25
-  volume         0.77
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.25
   mac2_d1  #1
@@ -1370,6 +1392,8 @@ patch Bongos family=hand role=beat
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         3.2 dB
 
 patch Djembe family=hand role=beat
   # A djembe over three dunun and the bell played with them, and a talking
@@ -1458,7 +1482,7 @@ patch Djembe family=hand role=beat
   p07_pan        0.1
   coupling       0.3
   humanise       0.25
-  volume         0.75
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.25
   mac2_d1  #1
@@ -1489,6 +1513,8 @@ patch Djembe family=hand role=beat
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         3.1 dB
 
 # A box, struck in six places. The bass and the slap are one object
 # with the strike moved from the middle to the corner.
@@ -1569,7 +1595,7 @@ patch Cajon family=hand role=beat
   p07_level      0.8
   coupling       0.3
   humanise       0.28
-  volume         0.87
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.25
   mac2_d1  #1
@@ -1606,6 +1632,8 @@ patch Cajon family=hand role=beat
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         4.5 dB
 
 patch "Frame Drums" family=hand role=beat
   # Big shallow drums held in the hand: a deep frame drum and its rim, a
@@ -1687,7 +1715,7 @@ patch "Frame Drums" family=hand role=beat
   p07_level      0.5
   coupling       0.3
   humanise       0.25
-  volume         1.49
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.25
   mac2_d1  #1
@@ -1716,6 +1744,8 @@ patch "Frame Drums" family=hand role=beat
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         8.5 dB
 
 patch Darbuka family=hand role=beat
   # A goblet drum with a tight head, which rings closer to a note than
@@ -1804,7 +1834,7 @@ patch Darbuka family=hand role=beat
   p07_pan        0.3
   coupling       0.3
   humanise       0.22
-  volume         0.72
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.25
   mac2_d1  #1
@@ -1839,6 +1869,8 @@ patch Darbuka family=hand role=beat
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         4.3 dB
 
 # Two drums with the tuning paste on them: `inharm` slightly
 # negative pulls the modes *towards* harmonic, which is what the paste is
@@ -1924,7 +1956,7 @@ patch Tabla family=hand role=beat
   p07_level      0.8
   coupling       0.32
   humanise       0.2
-  volume         0.89
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.25
   mac2_d1  #1
@@ -1955,6 +1987,8 @@ patch Tabla family=hand role=beat
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         2.7 dB
 
 patch "Clay Pots" family=hand role=beat
   # Pots with a hole in the side. Slapping the hole gives a low note that
@@ -2042,7 +2076,7 @@ patch "Clay Pots" family=hand role=beat
   p07_level      0.53
   coupling       0.35
   humanise       0.25
-  volume         1.25
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.25
   mac2_d1  #1
@@ -2075,6 +2109,8 @@ patch "Clay Pots" family=hand role=beat
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         2.4 dB
 
 # Bars, free at both ends, whose second mode sits at 2.76 times
 # the first - which is why wood does not sound like a pitch even when it
@@ -2154,7 +2190,7 @@ patch Woodshop family=wood role=beat
   p07_level      0.8
   coupling       0.2
   humanise       0.22
-  volume         1.11
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.25
   mac2_d1  #1
@@ -2187,6 +2223,8 @@ patch Woodshop family=wood role=beat
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         4.6 dB
 
 patch Woodblocks family=wood
   # The same block cut to eight lengths up a pentatonic scale, so it plays
@@ -2265,7 +2303,7 @@ patch Woodblocks family=wood
   p07_level      0.94
   coupling       0.2
   humanise       0.15
-  volume         1.07
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -2294,6 +2332,8 @@ patch Woodblocks family=wood
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         1.7 dB
 
 patch Claves family=wood role=beat
   # Hard wood struck on hard wood: claves held halfway along so they ring,
@@ -2376,7 +2416,7 @@ patch Claves family=wood role=beat
   p07_pan        -0.2
   coupling       0.15
   humanise       0.2
-  volume         0.84
+  volume         0.5676
   mac1_d1  #8
   mac1_a1  0.25
   mac2_d1  #1
@@ -2486,7 +2526,7 @@ patch "Hollow Blocks" family=wood
   p07_level      0.96
   coupling       0.2
   humanise       0.15
-  volume         1.33
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -2517,6 +2557,8 @@ patch "Hollow Blocks" family=wood
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         2.7 dB
 
 # Slit drums: a bar with the strike moved off centre so the
 # second mode comes back.
@@ -2595,7 +2637,7 @@ patch "Log Drums" family=wood role=beat
   p07_level      0.8
   coupling       0.28
   humanise       0.2
-  volume         1.33
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -2624,6 +2666,8 @@ patch "Log Drums" family=wood role=beat
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         1.5 dB
 
 patch Crates family=wood role=beat
   # Boxes: a crate kicked and slapped on the corner, a tea chest, a drawer,
@@ -2703,7 +2747,7 @@ patch Crates family=wood role=beat
   p07_level      0.65
   coupling       0.3
   humanise       0.25
-  volume         1.01
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.25
   mac2_d1  #1
@@ -2738,6 +2782,8 @@ patch Crates family=wood role=beat
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         5.9 dB
 
 patch Bamboo family=wood role=beat
   # Tubes of bamboo, open at one end: two stamped on the ground, four
@@ -2821,7 +2867,7 @@ patch Bamboo family=wood role=beat
   p07_level      0.8
   coupling       0.3
   humanise       0.2
-  volume         1.34
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.25
   mac2_d1  #1
@@ -2854,6 +2900,8 @@ patch Bamboo family=wood role=beat
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         8.4 dB
 
 patch Floorboards family=wood role=beat
   # A wooden room played as a kit: a stomp on the floor, heels, a creaking
@@ -2936,7 +2984,7 @@ patch Floorboards family=wood role=beat
   p07_level      0.86
   coupling       0.45
   humanise       0.3
-  volume         0.91
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.25
   mac2_d1  #1
@@ -2970,6 +3018,8 @@ patch Floorboards family=wood role=beat
   mac8_d2  #11
   mac8_a2  -0.3
   send reverb    0.15
+  insert Eq
+    gain         5.1 dB
 
 # One bar up a major scale, struck softly in the middle where the
 # second mode is quietest.
@@ -3048,7 +3098,7 @@ patch Marimba family=mallet
   p07_level      0.8
   coupling       0.25
   humanise       0.1
-  volume         1.41
+  volume         0.5873
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -3156,7 +3206,7 @@ patch "Marimba Low" family=mallet
   p07_level      0.89
   coupling       0.3
   humanise       0.12
-  volume         1.49
+  volume         0.5997
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -3272,7 +3322,7 @@ patch Xylo family=mallet
   p07_level      0.98
   coupling       0.2
   humanise       0.1
-  volume         1.49
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -3301,6 +3351,8 @@ patch Xylo family=mallet
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         0.8 dB
 
 # Struck halfway along, which nulls the even modes and is why a
 # thumb piano is hollow.
@@ -3379,7 +3431,7 @@ patch Kalimba family=mallet
   p07_level      0.8
   coupling       0.35
   humanise       0.15
-  volume         1.37
+  volume         0.4692
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -3495,7 +3547,7 @@ patch "Steel Pan" family=mallet
   p07_level      0.8
   coupling       0.4
   humanise       0.14
-  volume         1.4
+  volume         0.5833
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -3600,7 +3652,7 @@ patch Vibraphone family=mallet
   p07_level      1.18
   coupling       0.4
   humanise       0.1
-  volume         1.5
+  volume         0.4323
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -3707,7 +3759,7 @@ patch Glockenspiel family=mallet
   p07_level      1.27
   coupling       0.3
   humanise       0.1
-  volume         1.49
+  volume         0.5727
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -3822,7 +3874,7 @@ patch Gourds family=mallet
   p07_level      1.15
   coupling       0.3
   humanise       0.15
-  volume         1.5
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -3847,6 +3899,8 @@ patch Gourds family=mallet
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         0.7 dB
 
 patch "Cattle Bells" family=metal role=beat
   # Hand-held metal: cowbells, agogo, a hand bell and a triangle.
@@ -3934,7 +3988,7 @@ patch "Cattle Bells" family=metal role=beat
   p07_pan        0.5
   coupling       0.2
   humanise       0.15
-  volume         0.75
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -3967,6 +4021,8 @@ patch "Cattle Bells" family=metal role=beat
   mac8_a1  0.6
   mac8_d2  #11
   mac8_a2  -0.3
+  insert Eq
+    gain         2.6 dB
 
 # Struck iron up a scale it does not really have. The square-root
 # modes mean every note is a chord of its own.
@@ -4053,7 +4109,7 @@ patch Anvils family=metal
   p07_level      1.5
   coupling       0.35
   humanise       0.16
-  volume         0.67
+  volume         0.3678
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -4152,7 +4208,7 @@ patch Tines family=metal
   p07_level      1.05
   coupling       0.3
   humanise       0.12
-  volume         1.5
+  volume         0.5568
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -4258,7 +4314,7 @@ patch Foundry family=metal role=beat
   p07_level      0.66
   coupling       0.4
   humanise       0.2
-  volume         1.3
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -4281,6 +4337,8 @@ patch Foundry family=metal role=beat
   mac8_a1  0.6
   mac8_d2  #9
   mac8_a2  0.3
+  insert Eq
+    gain         3.6 dB
 
 patch "Tam Tams" family=metal
   # Gongs: two flat tam tams that bloom after the hit, three bossed gongs
@@ -4375,7 +4433,7 @@ patch "Tam Tams" family=metal
   p07_pan        0.5
   coupling       0.45
   humanise       0.1
-  volume         1.42
+  volume         0.5152
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -4501,7 +4559,7 @@ patch "Brake Drums" family=metal role=beat
   p07_pan        0.5
   coupling       0.35
   humanise       0.2
-  volume         1.3
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -4532,6 +4590,8 @@ patch "Brake Drums" family=metal role=beat
   mac8_a1  0.6
   mac8_d2  #9
   mac8_a2  0.3
+  insert Eq
+    gain         7.7 dB
 
 patch Girders family=metal role=beat
   # A building site in steel: beams, a sheet that wobbles, a silo, chains
@@ -4632,7 +4692,7 @@ patch Girders family=metal role=beat
   p07_pan        0.1
   coupling       0.5
   humanise       0.2
-  volume         1.42
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -4663,6 +4723,8 @@ patch Girders family=metal role=beat
   mac8_a1  0.5
   mac8_d2  #10
   mac8_a2  0.4
+  insert Eq
+    gain         8.4 dB
 
 # Plates and metal together with the drive up and the damping
 # down. Half of this is the strike noise rather than the resonators.
@@ -4747,7 +4809,7 @@ patch Industrial family=metal role=beat
   p07_level      1.5
   coupling       0.55
   humanise       0.24
-  volume         1.5
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -4770,6 +4832,8 @@ patch Industrial family=metal role=beat
   mac7_a1  0.4
   mac8_d1  #10
   mac8_a1  0.6
+  insert Eq
+    gain         0.6 dB
 
 # Bowls, whose third mode at 3.01 is the minor third that bell
 # founders spent four centuries learning to tune out.
@@ -4850,7 +4914,7 @@ patch Bells family=bell
   p07_level      1.04
   coupling       0.45
   humanise       0.1
-  volume         1.44
+  volume         0.3007
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -4966,7 +5030,7 @@ patch "Tubular Bells" family=bell
   p07_pan        0.35
   coupling       0.3
   humanise       0.08
-  volume         1.5
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -4989,6 +5053,8 @@ patch "Tubular Bells" family=bell
   mac7_a1  0.5
   mac8_d1  #10
   mac8_a1  0.5
+  insert Eq
+    gain         0.6 dB
 
 # A steel bowl played with the hands: short, soft, and tuned, which
 # on this machine is a bowl with the mallet made gentle.
@@ -5067,7 +5133,7 @@ patch Hang family=bell
   p07_level      1.12
   coupling       0.5
   humanise       0.15
-  volume         1.5
+  volume         0.5078
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -5176,7 +5242,7 @@ patch "Temple Bowls" family=bell
   p07_pan        0.2
   coupling       0.45
   humanise       0.08
-  volume         1.39
+  volume         0.396
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -5283,7 +5349,7 @@ patch Gamelan family=bell
   p07_level      0.8
   coupling       0.55
   humanise       0.12
-  volume         1.35
+  volume         0.6383
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -5393,7 +5459,7 @@ patch "Door Bells" family=bell
   p07_pan        0.2
   coupling       0.3
   humanise       0.15
-  volume         1.5
+  volume         0.6248
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -5502,7 +5568,7 @@ patch Cathedral family=bell
   p07_level      1.16
   coupling       0.8
   humanise       0.08
-  volume         1.46
+  volume         0.4406
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -5601,7 +5667,7 @@ patch Ringing family=bell
   p07_level      1.02
   coupling       0.95
   humanise       0.1
-  volume         1.42
+  volume         0.314
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -5715,7 +5781,7 @@ patch "Wine Glasses" family=glass
   p07_pan        0.35
   coupling       0.3
   humanise       0.1
-  volume         1.46
+  volume         0.3048
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -5817,7 +5883,7 @@ patch Glassware family=glass
   p07_level      1.1
   coupling       0.35
   humanise       0.14
-  volume         1.28
+  volume         0.552
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -5925,7 +5991,7 @@ patch Bottles family=glass role=beat
   p07_pan        0.2
   coupling       0.3
   humanise       0.15
-  volume         1.22
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -5954,6 +6020,8 @@ patch Bottles family=glass role=beat
   mac8_a1  0.6
   mac8_d2  #9
   mac8_a2  0.3
+  insert Eq
+    gain         3.8 dB
 
 patch Jars family=glass role=beat
   # A pantry shelf: jars and their lids, a carafe and a wine glass.
@@ -6041,7 +6109,7 @@ patch Jars family=glass role=beat
   p07_pan        0.2
   coupling       0.3
   humanise       0.15
-  volume         1.2
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -6066,6 +6134,8 @@ patch Jars family=glass role=beat
   mac7_a2  0.3
   mac8_d1  #10
   mac8_a1  0.6
+  insert Eq
+    gain         4.4 dB
 
 patch "Glass Bowls" family=glass
   # Crystal singing bowls, struck soft and left to ring for a long time.
@@ -6161,7 +6231,7 @@ patch "Glass Bowls" family=glass
   p07_pan        0.35
   coupling       0.4
   humanise       0.08
-  volume         1.5
+  volume         0.4224
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -6270,7 +6340,7 @@ patch "Wind Chimes" family=glass
   p07_pan        -0.2
   coupling       0.65
   humanise       0.4
-  volume         1.5
+  volume         0.6694
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -6388,7 +6458,7 @@ patch Chandelier family=glass
   p07_pan        -0.2
   coupling       0.9
   humanise       0.1
-  volume         1.5
+  volume         0.4273
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -6504,7 +6574,7 @@ patch "Bin Lids" family=found role=beat
   p07_pan        0.2
   coupling       0.35
   humanise       0.25
-  volume         1.31
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -6533,6 +6603,8 @@ patch "Bin Lids" family=found role=beat
   mac8_a1  0.6
   mac8_d2  #9
   mac8_a2  0.3
+  insert Eq
+    gain         5.9 dB
 
 patch Kitchen family=found role=beat
   # Pots, pans and the cutlery drawer, with a mug and a kettle.
@@ -6625,7 +6697,7 @@ patch Kitchen family=found role=beat
   p07_pan        0.1
   coupling       0.3
   humanise       0.2
-  volume         1.17
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -6654,6 +6726,8 @@ patch Kitchen family=found role=beat
   mac7_a2  0.4
   mac8_d1  #3
   mac8_a1  0.3
+  insert Eq
+    gain         3.1 dB
 
 patch Toolbox family=found role=beat
   # A workbench: hammer on the anvil, spanners, a vice, a file and a saw
@@ -6749,7 +6823,7 @@ patch Toolbox family=found role=beat
   p07_pan        0.2
   coupling       0.3
   humanise       0.2
-  volume         1.05
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -6778,6 +6852,8 @@ patch Toolbox family=found role=beat
   mac8_a1  0.6
   mac8_d2  #9
   mac8_a2  0.3
+  insert Eq
+    gain         5.1 dB
 
 patch Scaffold family=found role=beat
   # Scaffold poles of different lengths, a long pole, a clamp and a
@@ -6870,7 +6946,7 @@ patch Scaffold family=found role=beat
   p07_pan        0.2
   coupling       0.4
   humanise       0.15
-  volume         1.5
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -6895,6 +6971,8 @@ patch Scaffold family=found role=beat
   mac7_a2  0.3
   mac8_d1  #10
   mac8_a1  0.6
+  insert Eq
+    gain         12.0 dB
 
 # The same, driven. Everything in here is hit too hard on
 # purpose, and the coupling is high enough that the whole pile answers.
@@ -6981,7 +7059,7 @@ patch Junkyard family=found role=beat
   p07_level      1.5
   coupling       0.65
   humanise       0.3
-  volume         0.57
+  volume         0.3677
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -7111,7 +7189,7 @@ patch Bedsprings family=found role=beat
   p07_pan        0.2
   coupling       0.4
   humanise       0.2
-  volume         1.39
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -7136,6 +7214,8 @@ patch Bedsprings family=found role=beat
   mac7_a1  0.5
   mac8_d1  #10
   mac8_a1  0.6
+  insert Eq
+    gain         6.3 dB
 
 patch Radiator family=found role=beat
   # An old heating system knocked with a spanner: the fins, the pipes and
@@ -7231,7 +7311,7 @@ patch Radiator family=found role=beat
   p07_pan        0.2
   coupling       0.85
   humanise       0.2
-  volume         1.36
+  volume         0.7432
   mac1_d1  #8
   mac1_a1  0.5
   mac2_d1  #1
@@ -7257,3 +7337,5 @@ patch Radiator family=found role=beat
   mac8_d1  #10
   mac8_a1  0.6
   send reverb    0.2
+  insert Eq
+    gain         3.7 dB

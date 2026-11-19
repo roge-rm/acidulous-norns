@@ -89,7 +89,7 @@ const ParamDef *Timber::paramDefs(int32_t &count) const {
         {"fine", -50.0f, 50.0f, 0.0f, Curve::Linear, 0, "cents"},
         {"velocity", 0.0f, 1.0f, 1.0f, Curve::Linear, 0, ""},
         {"drive", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
-        {"volume", 0.0f, 1.5f, 0.8f, Curve::Linear, 0, ""},
+        {"volume", 0.0f, 1.5f, 0.36f, Curve::Linear, 0, ""}, // 12 dB under the top
         {"pan", -1.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
         {"mpetimbre", 0.0f, 1.0f, 0.5f, Curve::Linear, 0, ""},
         {"swell", -1.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
@@ -387,7 +387,7 @@ bool Timber::render(float *L, float *R, int32_t frames) {
     const float tuneMul = std::pow(2.0f, (paramOf(Octave_) * 12.0f + paramOf(Transpose) +
                                           paramOf(Fine) * 0.01f + mac_[McPitch] * 24.0f) / 12.0f);
     const float velAmount = paramOf(VelocityAmount);
-    const float drive = paramOf(Drive), volume = paramOf(Volume);
+    const float drive = paramOf(Drive), volume = paramOf(Volume) * kHouseTrim;
     const float panKnob = paramOf(Pan);
     const float panL = std::cos((panKnob + 1.0f) * 0.25f * 3.14159265f);
     const float panR = std::sin((panKnob + 1.0f) * 0.25f * 3.14159265f);

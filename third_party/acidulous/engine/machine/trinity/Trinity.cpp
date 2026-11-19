@@ -163,7 +163,7 @@ const ParamDef *Trinity::paramDefs(int32_t &count) const {
         putN(BendRange, "bend", 0.0f, 24.0f, 2.0f, Curve::Stepped, 25, "st");
         putN(Octave, "octave", -3.0f, 3.0f, 0.0f, Curve::Stepped, 7, "");
         putN(Transpose, "transpose", -12.0f, 12.0f, 0.0f, Curve::Stepped, 25, "st");
-        putN(Volume, "volume", 0.0f, 1.0f, 0.7f, Curve::Linear, 0, "");
+        putN(Volume, "volume", 0.0f, 1.0f, 0.17f, Curve::Linear, 0, ""); // 15 dB under the top
         putN(Pan, "pan", -1.0f, 1.0f, 0.0f, Curve::Linear, 0, "");
         putN(VelocityAmount, "velamt", 0.0f, 1.0f, 1.0f, Curve::Linear, 0, "");
         // How far a finger's slide opens the filters. 0 by default so patches
@@ -469,7 +469,7 @@ void Trinity::updateVoiceMod(Voice &v, float blockSeconds) {
     const float prs = glidePressure(v.prsGlide, v.pressure, aftertouch) * paramOf(MpePressure);
     v.mod[DstF1Freq] += prs * 0.4f;
     v.mod[DstF2Freq] += prs * 0.4f;
-    v.mod[DstAmp] += prs * 0.4f;
+    v.mod[DstAmp] += prs * (0.4f / kHouseTrim); // the same level at any trim
     // The mod wheel opens both filters, up to about five octaves.
     const float wheel = modWheel * paramOf(WheelFilter) * 0.8f;
     v.mod[DstF1Freq] += wheel;
@@ -591,7 +591,7 @@ float Trinity::renderVoice(Voice &v, int32_t frames, float *out) {
     // The app's common level, so this machine's default is as loud as every
     // other machine's (see Reflux's kHouse).
     constexpr float kHouse = 0.61f;
-    const float volume = clampf(paramOf(Volume) + v.mod[DstAmp], 0.0f, 2.0f) * kHouse;
+    const float volume = clampf(paramOf(Volume) + v.mod[DstAmp], 0.0f, 2.0f) * kHouse * kHouseTrim;
     const float glideSeconds = paramOf(Glide);
     const float glideStep = glideSeconds > 0.001f ? 1.0f / (glideSeconds * sampleRate) : 1.0f;
     const float targetFreq = noteHz(static_cast<float>(v.note));

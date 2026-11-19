@@ -62,30 +62,59 @@ class PitchFollow {
      * look starts from what's been pushed when it starts; when it ends,
      * [pitch] and [sureness] change.
      */
-    void update(float share) {
+    void update(float share) { look(share, false); }
+
+    /** As update(), with four lags summed at once; each lag's sum comes out the same. */
+    void updateWide(float share) { look(share, true); }
+
+    /** The pitch found last, Hz, and how sure, 0 to 1 (0 when there's nothing to follow). */
+    float pitch() const { return hz; }
+    float sureness() const { return sure; }
+
+  private:
+    typedef float V4 __attribute__((vector_size(16)));
+    void look(float share, bool wide) {
         if (lag == 0) {
             if (level < 1e-4f) {
                 sure = 0.0f;
                 return;
             }
             // The ring in order, oldest first, so the sums below run straight.
-            for (int i = 0; i < kRing; ++i) line[i] = ring[(write + i) % kRing];
+            std::copy(ring + write, ring + kRing, line);
+            std::copy(ring, ring + write, line + kRing - write);
             running = 0.0f;
             found = 0.0f;
             foundDepth = 1.0f;
             d[0] = 1.0f;
             lag = 1;
+            quadFrom = 0;
         }
         const float *now = line + kRing - kWindow;
         const int last = std::min(maxLag, lag + static_cast<int>(std::ceil(share * static_cast<float>(maxLag))) - 1);
         // d(lag): how unlike the window is to itself [lag] samples back,
         // against the mean of the lags so far.
         for (; lag <= last; ++lag) {
-            const float *then = now - lag;
             float sum = 0.0f;
-            for (int j = 0; j < kWindow; ++j) {
-                const float e = now[j] - then[j];
-                sum += e * e;
+            if (wide && ((lag - 1) & 3) == 0 && lag + 3 <= kRing - kWindow) {
+                // Lags lag + 3 down to lag in the four lanes, one load a sample.
+                V4 acc = {0.0f, 0.0f, 0.0f, 0.0f};
+                for (int j = 0; j < kWindow; ++j) {
+                    V4 t;
+                    __builtin_memcpy(&t, now + j - lag - 3, sizeof(t));
+                    const V4 e = V4{now[j], now[j], now[j], now[j]} - t;
+                    acc += e * e;
+                }
+                for (int k = 0; k < 4; ++k) quad[k] = acc[3 - k];
+                quadFrom = lag;
+            }
+            if (wide && quadFrom > 0 && lag - quadFrom < 4) {
+                sum = quad[lag - quadFrom];
+            } else {
+                const float *then = now - lag;
+                for (int j = 0; j < kWindow; ++j) {
+                    const float e = now[j] - then[j];
+                    sum += e * e;
+                }
             }
             running += sum;
             d[lag] = running > 0.0f ? sum * static_cast<float>(lag) / running : 1.0f;
@@ -109,11 +138,6 @@ class PitchFollow {
         }
     }
 
-    /** The pitch found last, Hz, and how sure, 0 to 1 (0 when there's nothing to follow). */
-    float pitch() const { return hz; }
-    float sureness() const { return sure; }
-
-  private:
     static constexpr float kThreshold = 0.15f;
     float ring[kRing] = {};
     float line[kRing] = {};
@@ -124,6 +148,9 @@ class PitchFollow {
     /** A look under way: the next lag, the sums so far and what's been found. */
     int lag = 0;
     float running = 0.0f, found = 0.0f, foundDepth = 1.0f;
+    /** Four lags' sums from one wide pass, the first of them quadFrom (0 for none). */
+    float quad[4] = {};
+    int quadFrom = 0;
 };
 
 } // namespace acidulous::dsp

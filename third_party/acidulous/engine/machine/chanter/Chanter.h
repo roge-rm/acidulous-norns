@@ -32,6 +32,8 @@ namespace acidulous::machine {
  */
 class Chanter final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+2.5 dB). */
+    static constexpr float kHouseTrim = 1.33f;
     enum P : int32_t {
         Model = 0, Tune, Key, Drones, Bag, Reed, Grace, Drift, Air,
         Wheel, Rosin, Dog, Threshold, Coup,

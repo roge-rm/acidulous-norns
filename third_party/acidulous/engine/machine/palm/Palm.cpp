@@ -281,7 +281,7 @@ const ParamDef *Palm::paramDefs(int32_t &count) const {
         {"velocity", 0.0f, 1.0f, 0.7f, Curve::Linear, 0, ""},
         {"bend", 0.0f, 12.0f, 2.0f, Curve::Linear, 0, "st"},
         {"octave", -2.0f, 2.0f, 0.0f, Curve::Stepped, 5, ""},
-        {"volume", 0.0f, 1.0f, 0.7f, Curve::Linear, 0, ""},
+        {"volume", 0.0f, 1.0f, 0.17f, Curve::Linear, 0, ""}, // 15 dB under the top
         // Kit mode, and the default kit: djembe, cajon, tabla, bayan, frame and talking drum.
         {"kit", 0.0f, 1.0f, 0.0f, Curve::Stepped, 2, ""},
         {"p01_model", 0.0f, static_cast<float>(KindCount - 1), 2.0f, Curve::Stepped, KindCount, ""},
@@ -915,7 +915,7 @@ bool Palm::render(float *L, float *R, int32_t frames) {
     const float squeeze = paramOf(Squeeze);
     const float rattleAmount = clampf(paramOf(Rattle), 0.0f, 1.0f);
     const float roll = paramOf(Roll);
-    const float volume = paramOf(Volume);
+    const float volume = paramOf(Volume) * kHouseTrim;
     const float crackFall = std::exp(-1.0f / (0.004f * sampleRate));
     const float dropFall = std::exp(-static_cast<float>(kRetuneEvery) / (kDropSettles * sampleRate));
     const float shakeFall = std::exp(-1.0f / (0.02f * sampleRate));

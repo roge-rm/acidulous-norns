@@ -89,7 +89,7 @@ struct Table {
         defs[R::Coupling] = {"coupling", 0.0f, 1.0f, 0.25f, Curve::Linear, 0, ""};
         defs[R::Humanise] = {"humanise", 0.0f, 1.0f, 0.15f, Curve::Linear, 0, ""};
         defs[R::Accent] = {"accent", 0.0f, 1.0f, 1.0f, Curve::Linear, 0, ""};
-        defs[R::Volume] = {"volume", 0.0f, 1.5f, 0.5f, Curve::Linear, 0, ""}; // Init on the house line
+        defs[R::Volume] = {"volume", 0.0f, 1.5f, 0.19f, Curve::Linear, 0, ""}; // 18 dB under the top
         defs[R::MasterPan] = {"pan", -1.0f, 1.0f, 0.0f, Curve::Linear, 0, ""};
         defs[R::DriveCouple] = {"drivecouple", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""};
         for (int k = 0; k < R::kMacros; ++k) {
@@ -343,7 +343,7 @@ bool Resonance::render(float *L, float *R, int32_t frames) {
     for (int32_t i = 0; i < frames; ++i) L[i] = R[i] = 0.0f;
 
     const float coupling = val(Coupling);
-    const float volume = val(Volume);
+    const float volume = val(Volume) * kHouseTrim;
     const float masterPan = params_.get(MasterPan);
     const float driveCouple = val(DriveCouple);
     // Half the partials in lean mode, see `modesFor`. The ones dropped are the

@@ -527,7 +527,8 @@ class MachineMod final : public Module {
   public:
     static constexpr int kBlock = 32;
 
-    MachineMod(int32_t type, const char *machine) : type(type), machine(machine) {}
+    /** [level] is the volume the block plays at, in the host's units, with its house trim after it. */
+    MachineMod(int32_t type, const char *machine, float level) : type(type), machine(machine), level(level) {}
     ~MachineMod() override { delete host; }
 
     void prepare(float sr, int32_t) override;
@@ -573,12 +574,18 @@ class MachineMod final : public Module {
         std::fill(std::begin(outL), std::end(outL), 0.0f);
         std::fill(std::begin(outR), std::end(outR), 0.0f);
         if (!host->render(outL, outR, kBlock)) std::copy(std::begin(outL), std::end(outL), outR);
+        for (int i = 0; i < kBlock; ++i) {
+            outL[i] *= gain;
+            outR[i] *= gain;
+        }
     }
     bool monoCapable() const override { return true; }
     bool polyCapable() const override { return false; }
   private:
     int32_t type;
     const char *machine;
+    float level;
+    float gain = 1.0f; // level over the host's own volume and trim, set in prepare()
     Machine *host = nullptr;
     int32_t param[kKnobs]{};
     float knob[kKnobs]{};

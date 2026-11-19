@@ -78,7 +78,7 @@ const ParamDef *Aviary::paramDefs(int32_t &count) const {
         {"velocity", 0.0f, 1.0f, 0.5f, Curve::Linear, 0, ""},
         {"bend", 0.0f, 12.0f, 2.0f, Curve::Linear, 0, "st"},
         {"octave", -2.0f, 2.0f, 0.0f, Curve::Stepped, 5, ""},
-        {"volume", 0.0f, 1.0f, 0.7f, Curve::Linear, 0, ""},
+        {"volume", 0.0f, 1.0f, 0.17f, Curve::Linear, 0, ""}, // 15 dB under the top
         // Kit mode, and the default kit: whistles, chirps, trills, warbles, calls and choruses.
         {"kit", 0.0f, 1.0f, 0.0f, Curve::Stepped, 2, ""},
         {"p01_song", 0.0f, static_cast<float>(SongCount - 1), 0.0f, Curve::Stepped, SongCount, ""},
@@ -677,7 +677,7 @@ bool Aviary::render(float *L, float *R, int32_t frames) {
     const float breath = clampf(paramOf(Breath), 0.0f, 1.0f);
     const float throat = clampf(paramOf(Throat), 0.0f, 1.0f);
     const float beakOpen = clampf(paramOf(Beak), 0.0f, 1.0f);
-    const float volume = paramOf(Volume);
+    const float volume = paramOf(Volume) * kHouseTrim;
     const float space = clampf(paramOf(Space), 0.0f, 1.0f);
     // The pitch macro counts in octaves here, so a route of half matches the octave knob at +1.
     const float base = kAbove + 12.0f * (static_cast<float>(steppedTargetOf(Octave)) + 2.0f * mac_[McPitch]) +

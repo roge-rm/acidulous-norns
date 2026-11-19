@@ -259,7 +259,7 @@ const ParamDef *Chanter::paramDefs(int32_t &count) const {
         {"velocity", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
         {"bend", 0.0f, 12.0f, 2.0f, Curve::Linear, 0, "st"},
         {"octave", -2.0f, 2.0f, 0.0f, Curve::Stepped, 5, ""},
-        {"volume", 0.0f, 1.0f, 0.7f, Curve::Linear, 0, ""},
+        {"volume", 0.0f, 1.0f, 0.13f, Curve::Linear, 0, ""}, // 18 dB under the top
     };
     static ParamDef defs[Count];
     static char names[kMacros * MacroParams][12];
@@ -745,7 +745,7 @@ bool Chanter::render(float *L, float *R, int32_t frames) {
 
     const float keyNote = 57.0f + static_cast<float>(std::clamp(steppedTargetOf(Key), 0, 11) - 9) + targetOf(Tune) / 100.0f;
     const float dt = static_cast<float>(frames) / sampleRate;
-    const float volume = paramOf(Volume);
+    const float volume = paramOf(Volume) * kHouseTrim;
     const float droneLevel = clampf(paramOf(Drones), 0.0f, 1.0f) * k.droneLevel;
     const float press = std::fmax(notePress >= 0.0f ? notePress : channelPressure_, wheel);
     const float air = clampf(paramOf(Air), 0.0f, 1.0f);

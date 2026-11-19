@@ -32,8 +32,7 @@
 # #5 sustain, #6 bright, #7 buzz, #8 strum, #9 slide, #10 vibrato, #11 drive,
 # #12 feedback, #14 volume, #15 ring, #16 swell, #17 pitch (one semitone is
 # 0.0417). Where a macro at full moves the level by more than 1.5 dB, a
-# volume route takes it back out, as far as the volume knob goes. Palm drops
-# up to 3 dB where the knob runs out or a compressor sits after it, so Funk's
+# volume route takes it back out. Palm drops up to 3 dB where a compressor sits after it, so Funk's
 # Palm and Rattle also soften the pick. Through Chug's amp a volume route does
 # nothing, so Tight and Open trade mute against pick hardness instead.
 # Swell is left quiet on purpose: the note arrives later. Howl only goes on patches driven past 0.5, since feedback
@@ -42,6 +41,12 @@
 # `swell` fades each note in from silence over that many seconds, as a
 # volume knob rolled up after the pick. A note shorter than its swell never
 # reaches its level, so the swelled patches are slow ones.
+#
+# Every patch sits at -27.5 on `loud`, within 1 dB, Init included. Init gets
+# there through the machine's house trim, with `volume` at its default of
+# 0.19, 14 dB under the top. The patches are levelled by `volume`, never
+# higher than 6 dB under the top; Chug, Funk, Fuzz Rhythm, Fuzz Lead, Funk
+# Muted and Broken Radio take the rest from the gain of their last insert.
 
 machine Fret
 role tune
@@ -49,6 +54,7 @@ role tune
 patch Init family=clean note=52 range=40..88
 
 patch "Clean Neck" family=clean note=52 range=40..88
+  volume         0.2574
   # The neck pickup alone: round and warm.
   set macro1 "Dark"
   set macro2 "Bright"
@@ -69,11 +75,11 @@ patch "Clean Neck" family=clean note=52 range=40..88
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.3
+  mac3_a2  0.112
   mac4_d1  #4
   mac4_a1  0.35
   mac4_d2  #14
-  mac4_a2  0.3
+  mac4_a2  0.112
   mac5_d1  #5
   mac5_a1  0.35
   mac5_d2  #15
@@ -83,13 +89,14 @@ patch "Clean Neck" family=clean note=52 range=40..88
   mac7_d1  #11
   mac7_a1  0.3
   mac7_d2  #14
-  mac7_a2  0.266
+  mac7_a2  0.0988
   mac8_d1  #16
   mac8_a1  0.2
   pickup         #0
   tone           0.7
 
 patch "Clean Bridge" family=clean note=52 range=40..88
+  volume         0.1909
   # The bridge single coil: thin, bright and quick.
   set macro1 "Dark"
   set macro2 "Bright"
@@ -110,11 +117,11 @@ patch "Clean Bridge" family=clean note=52 range=40..88
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.3
+  mac3_a2  0.0828
   mac4_d1  #4
   mac4_a1  0.35
   mac4_d2  #14
-  mac4_a2  0.255
+  mac4_a2  0.0704
   mac5_d1  #5
   mac5_a1  0.35
   mac5_d2  #15
@@ -124,13 +131,14 @@ patch "Clean Bridge" family=clean note=52 range=40..88
   mac7_d1  #11
   mac7_a1  0.3
   mac7_d2  #14
-  mac7_a2  0.3
+  mac7_a2  0.0828
   mac8_d1  #16
   mac8_a1  0.2
   pickup         #2
   bright         0.6
 
 patch "Both Pickups" family=clean note=52 range=40..88
+  volume         0.2665
   # Neck and bridge together: hollow, the in-between sound.
   set macro1 "Dark"
   set macro2 "Bright"
@@ -151,11 +159,11 @@ patch "Both Pickups" family=clean note=52 range=40..88
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.3
+  mac3_a2  0.116
   mac4_d1  #4
   mac4_a1  0.35
   mac4_d2  #14
-  mac4_a2  0.3
+  mac4_a2  0.116
   mac5_d1  #5
   mac5_a1  0.35
   mac5_d2  #15
@@ -165,7 +173,7 @@ patch "Both Pickups" family=clean note=52 range=40..88
   mac7_d1  #11
   mac7_a1  0.3
   mac7_d2  #14
-  mac7_a2  0.233
+  mac7_a2  0.0897
   mac8_d1  #16
   mac8_a1  0.2
   pickup         #1
@@ -194,7 +202,7 @@ patch "Finger Style" family=clean note=52 range=40..84
   mac4_d1  #4
   mac4_a1  0.35
   mac4_d2  #14
-  mac4_a2  0.177
+  mac4_a2  0.0554
   mac5_d1  #5
   mac5_a1  0.35
   mac5_d2  #15
@@ -204,16 +212,17 @@ patch "Finger Style" family=clean note=52 range=40..84
   mac7_d1  #11
   mac7_a1  0.3
   mac7_d2  #14
-  mac7_a2  0.35
+  mac7_a2  0.109
   mac8_d1  #16
   mac8_a1  0.2
   stroke         #1
   pickup         #0
   hardness       0.4
   tone           0.6
-  volume         0.53
+  volume         0.164
 
 patch "Chorus Clean" family=clean note=55 range=40..88 role=chord
+  volume         0.1625
   # Both pickups through a slow, wide chorus, ringing on.
   set macro1 "Dark"
   set macro2 "Bright"
@@ -234,7 +243,7 @@ patch "Chorus Clean" family=clean note=55 range=40..88 role=chord
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.289
+  mac3_a2  0.0679
   mac4_d1  #3
   mac4_a1  0.5
   mac5_d1  #5
@@ -246,7 +255,7 @@ patch "Chorus Clean" family=clean note=55 range=40..88 role=chord
   mac7_d1  #11
   mac7_a1  0.3
   mac7_d2  #14
-  mac7_a2  0.255
+  mac7_a2  0.0599
   mac8_d1  #16
   mac8_a1  0.2
   pickup         #1
@@ -260,6 +269,7 @@ patch "Chorus Clean" family=clean note=55 range=40..88 role=chord
   send reverb    0.12
 
 patch Jangle family=clean note=57 range=40..88 role=chord
+  volume         0.1701
   # Twelve strings, both pickups, strummed lightly.
   set macro1 "Dark"
   set macro2 "Bright"
@@ -280,11 +290,11 @@ patch Jangle family=clean note=57 range=40..88 role=chord
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.266
+  mac3_a2  0.0654
   mac4_d1  #4
   mac4_a1  0.35
   mac4_d2  #14
-  mac4_a2  0.095
+  mac4_a2  0.0233
   mac5_d1  #5
   mac5_a1  0.35
   mac5_d2  #15
@@ -294,7 +304,7 @@ patch Jangle family=clean note=57 range=40..88 role=chord
   mac7_d1  #11
   mac7_a1  0.3
   mac7_d2  #14
-  mac7_a2  0.3
+  mac7_a2  0.0738
   mac8_d1  #16
   mac8_a1  0.2
   model          #1
@@ -323,11 +333,11 @@ patch Baritone family=clean note=47 range=35..80
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.15
+  mac3_a2  0.0492
   mac4_d1  #4
   mac4_a1  0.35
   mac4_d2  #14
-  mac4_a2  0.15
+  mac4_a2  0.0492
   mac5_d1  #5
   mac5_a1  0.35
   mac5_d2  #15
@@ -337,12 +347,12 @@ patch Baritone family=clean note=47 range=35..80
   mac7_d1  #11
   mac7_a1  0.3
   mac7_d2  #14
-  mac7_a2  0.15
+  mac7_a2  0.0492
   mac8_d1  #16
   mac8_a1  0.2
   model          #2
   pickup         #0
-  volume         0.85
+  volume         0.2755
 
 patch "Baritone Twang" family=clean note=47 range=35..80
   # The baritone's bridge pickup with a little drive.
@@ -365,11 +375,11 @@ patch "Baritone Twang" family=clean note=47 range=35..80
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.15
+  mac3_a2  0.0527
   mac4_d1  #4
   mac4_a1  0.35
   mac4_d2  #14
-  mac4_a2  0.15
+  mac4_a2  0.0527
   mac5_d1  #5
   mac5_a1  0.35
   mac5_d2  #15
@@ -383,9 +393,10 @@ patch "Baritone Twang" family=clean note=47 range=35..80
   model          #2
   drive          0.2
   bright         0.6
-  volume         0.85
+  volume         0.2951
 
 patch "Surf Baritone" family=clean note=52 range=35..84
+  volume         0.1866
   # A bright single coil and a fast vibrato.
   set macro1 "Dark"
   set macro2 "Bright"
@@ -406,11 +417,11 @@ patch "Surf Baritone" family=clean note=52 range=35..84
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.3
+  mac3_a2  0.0806
   mac4_d1  #4
   mac4_a1  0.35
   mac4_d2  #14
-  mac4_a2  0.289
+  mac4_a2  0.0783
   mac5_d1  #5
   mac5_a1  0.35
   mac5_d2  #15
@@ -420,7 +431,7 @@ patch "Surf Baritone" family=clean note=52 range=35..84
   mac7_d1  #11
   mac7_a1  0.3
   mac7_d2  #14
-  mac7_a2  0.3
+  mac7_a2  0.0806
   mac8_d1  #16
   mac8_a1  0.2
   model          #2
@@ -429,6 +440,7 @@ patch "Surf Baritone" family=clean note=52 range=35..84
   sustain        0.4
 
 patch Harmonics family=clean note=52 range=40..76
+  volume         0.1886
   # A finger at the 12th fret: bell-like octaves.
   set macro1 "Dark"
   set macro2 "Bright"
@@ -449,7 +461,7 @@ patch Harmonics family=clean note=52 range=40..76
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.3
+  mac3_a2  0.0821
   mac4_d1  #3
   mac4_a1  0.5
   mac5_d1  #5
@@ -461,7 +473,7 @@ patch Harmonics family=clean note=52 range=40..76
   mac7_d1  #11
   mac7_a1  0.3
   mac7_d2  #14
-  mac7_a2  0.3
+  mac7_a2  0.0821
   mac8_d1  #16
   mac8_a1  0.2
   harmonic       #1
@@ -469,6 +481,7 @@ patch Harmonics family=clean note=52 range=40..76
   sustain        0.7
 
 patch "Fifth Harmonics" family=clean note=48 range=40..72
+  volume         0.2459
   # The 7th fret: a twelfth up, glassier still.
   set macro1 "Dark"
   set macro2 "Bright"
@@ -483,7 +496,7 @@ patch "Fifth Harmonics" family=clean note=48 range=40..72
   mac1_d2  #6
   mac1_a2  -0.25
   mac1_d3  #14
-  mac1_a3  0.142
+  mac1_a3  0.0505
   mac2_d1  #6
   mac2_a1  0.35
   mac2_d2  #1
@@ -491,7 +504,7 @@ patch "Fifth Harmonics" family=clean note=48 range=40..72
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.3
+  mac3_a2  0.106
   mac4_d1  #3
   mac4_a1  0.5
   mac5_d1  #5
@@ -503,7 +516,7 @@ patch "Fifth Harmonics" family=clean note=48 range=40..72
   mac7_d1  #11
   mac7_a1  0.3
   mac7_d2  #14
-  mac7_a2  0.233
+  mac7_a2  0.0829
   mac8_d1  #16
   mac8_a1  0.2
   harmonic       #2
@@ -523,7 +536,7 @@ patch "Edge Crunch" family=crunch note=48 range=40..84 role=chord
   mac1_d1  #11
   mac1_a1  0.4
   mac1_d2  #14
-  mac1_a2  -0.183
+  mac1_a2  -0.0535
   mac2_d1  #1
   mac2_a1  -0.4
   mac2_d2  #6
@@ -531,11 +544,11 @@ patch "Edge Crunch" family=crunch note=48 range=40..84 role=chord
   mac3_d1  #4
   mac3_a1  0.35
   mac3_d2  #14
-  mac3_a2  0.15
+  mac3_a2  0.0439
   mac4_d1  #2
   mac4_a1  0.4
   mac4_d2  #14
-  mac4_a2  0.15
+  mac4_a2  0.0439
   mac5_d1  #5
   mac5_a1  0.35
   mac5_d2  #15
@@ -543,7 +556,7 @@ patch "Edge Crunch" family=crunch note=48 range=40..84 role=chord
   mac6_d1  #7
   mac6_a1  0.6
   mac6_d2  #14
-  mac6_a2  0.15
+  mac6_a2  0.0439
   mac7_d1  #3
   mac7_a1  0.5
   mac8_d1  #10
@@ -551,7 +564,7 @@ patch "Edge Crunch" family=crunch note=48 range=40..84 role=chord
   coil           #1
   drive          0.4
   bright         0.55
-  volume         0.85
+  volume         0.2455
 
 patch "Power Chords" family=crunch note=40 range=36..64 role=chord
   # Root and fifth on the low strings, a humbucker into a hot amp, let ring.
@@ -566,7 +579,7 @@ patch "Power Chords" family=crunch note=40 range=36..64 role=chord
   mac1_d1  #11
   mac1_a1  0.35
   mac1_d2  #14
-  mac1_a2  -0.284
+  mac1_a2  -0.0601
   mac2_d1  #1
   mac2_a1  -0.4
   mac2_d2  #6
@@ -586,14 +599,14 @@ patch "Power Chords" family=crunch note=40 range=36..64 role=chord
   mac7_d2  #5
   mac7_a2  0.2
   mac7_d3  #14
-  mac7_a3  -0.532
+  mac7_a3  -0.112
   mac8_d1  #10
   mac8_a1  0.4
   coil           #1
   drive          0.65
   hardness       0.7
   sustain        0.7
-  volume         1
+  volume         0.2092
   pickup         #1
   position       0.22
 
@@ -633,7 +646,7 @@ patch Chug family=crunch note=40 range=36..64 role=chug
   coil           #1
   mute           0.75
   hardness       0.8
-  volume         1
+  volume         0.3579
   insert Amp
     drive        0.9
     bass         0.9
@@ -646,7 +659,7 @@ patch Chug family=crunch note=40 range=36..64 role=chug
     size         0.8
     cone         0.7
     mic          0.2
-    gain         3.5 dB
+    gain         -8.4 dB
 
 patch "Neck Grit" family=crunch note=50 range=40..84
   # The neck humbucker, driven: thick and woolly.
@@ -661,7 +674,7 @@ patch "Neck Grit" family=crunch note=50 range=40..84
   mac1_d1  #11
   mac1_a1  0.4
   mac1_d2  #14
-  mac1_a2  -0.369
+  mac1_a2  -0.125
   mac2_d1  #1
   mac2_a1  -0.4
   mac2_d2  #6
@@ -685,7 +698,7 @@ patch "Neck Grit" family=crunch note=50 range=40..84
   drive          0.45
   tone           0.55
   sustain        0.65
-  volume         1
+  volume         0.3355
 
 patch Blues family=crunch note=52 range=40..84
   # The neck pickup, a little drive and a slow vibrato.
@@ -700,7 +713,7 @@ patch Blues family=crunch note=52 range=40..84
   mac1_d1  #11
   mac1_a1  0.4
   mac1_d2  #14
-  mac1_a2  -0.292
+  mac1_a2  -0.118
   mac2_d1  #1
   mac2_a1  -0.4
   mac2_d2  #6
@@ -708,11 +721,11 @@ patch Blues family=crunch note=52 range=40..84
   mac3_d1  #4
   mac3_a1  0.35
   mac3_d2  #14
-  mac3_a2  0.1
+  mac3_a2  0.0404
   mac4_d1  #2
   mac4_a1  0.4
   mac4_d2  #14
-  mac4_a2  0.1
+  mac4_a2  0.0404
   mac5_d1  #5
   mac5_a1  0.35
   mac5_d2  #15
@@ -720,7 +733,7 @@ patch Blues family=crunch note=52 range=40..84
   mac6_d1  #7
   mac6_a1  0.6
   mac6_d2  #14
-  mac6_a2  0.1
+  mac6_a2  0.0404
   mac7_d1  #3
   mac7_a1  0.5
   mac8_d1  #10
@@ -728,7 +741,7 @@ patch Blues family=crunch note=52 range=40..84
   pickup         #0
   drive          0.3
   vibrato        0.3
-  volume         0.9
+  volume         0.3588
 
 patch "Pulse Crunch" family=crunch note=52 range=40..84 role=chord
   # An amp just breaking up, its tremolo pulsing in eighths.
@@ -743,7 +756,7 @@ patch "Pulse Crunch" family=crunch note=52 range=40..84 role=chord
   mac1_d1  #11
   mac1_a1  0.4
   mac1_d2  #14
-  mac1_a2  -0.332
+  mac1_a2  -0.0935
   mac2_d1  #1
   mac2_a1  -0.4
   mac2_d2  #6
@@ -751,11 +764,11 @@ patch "Pulse Crunch" family=crunch note=52 range=40..84 role=chord
   mac3_d1  #4
   mac3_a1  0.35
   mac3_d2  #14
-  mac3_a2  0.1
+  mac3_a2  0.0283
   mac4_d1  #2
   mac4_a1  0.4
   mac4_d2  #14
-  mac4_a2  0.1
+  mac4_a2  0.0283
   mac5_d1  #5
   mac5_a1  0.35
   mac5_d2  #15
@@ -763,7 +776,7 @@ patch "Pulse Crunch" family=crunch note=52 range=40..84 role=chord
   mac6_d1  #7
   mac6_a1  0.6
   mac6_d2  #14
-  mac6_a2  0.1
+  mac6_a2  0.0283
   mac7_d1  #3
   mac7_a1  0.5
   mac8_d1  #10
@@ -771,7 +784,7 @@ patch "Pulse Crunch" family=crunch note=52 range=40..84 role=chord
   pickup         #1
   drive          0.3
   sustain        0.6
-  volume         0.9
+  volume         0.2511
   insert Tremolo
     rate         #5
     depth        0.5
@@ -792,7 +805,7 @@ patch Garage family=crunch note=48 range=40..80 role=chord
   mac1_d1  #11
   mac1_a1  0.4
   mac1_d2  #14
-  mac1_a2  -0.293
+  mac1_a2  -0.0958
   mac2_d1  #1
   mac2_a1  -0.4
   mac2_d2  #6
@@ -800,11 +813,11 @@ patch Garage family=crunch note=48 range=40..80 role=chord
   mac3_d1  #4
   mac3_a1  0.35
   mac3_d2  #14
-  mac3_a2  0.05
+  mac3_a2  0.0164
   mac4_d1  #2
   mac4_a1  0.2
   mac4_d2  #14
-  mac4_a2  0.05
+  mac4_a2  0.0164
   mac5_d1  #5
   mac5_a1  0.35
   mac5_d2  #15
@@ -812,19 +825,19 @@ patch Garage family=crunch note=48 range=40..80 role=chord
   mac6_d1  #7
   mac6_a1  0.6
   mac6_d2  #14
-  mac6_a2  0.05
+  mac6_a2  0.0164
   mac7_d1  #12
   mac7_a1  0.7
   mac7_d2  #5
   mac7_a2  0.2
   mac7_d3  #14
-  mac7_a3  0.05
+  mac7_a3  0.0164
   mac8_d1  #10
   mac8_a1  0.4
   drive          0.5
   buzz           0.4
   hardness       0.8
-  volume         0.95
+  volume         0.3078
 
 patch Funk family=crunch note=55 range=45..84 role=funk
   # The bridge single coil, bright and clean into a compressor, with an
@@ -854,7 +867,7 @@ patch Funk family=crunch note=55 range=45..84 role=funk
   mac6_d1  #7
   mac6_a1  0.6
   mac6_d2  #14
-  mac6_a2  0.15
+  mac6_a2  0.0639
   mac6_d3  #2
   mac6_a3  -0.2
   mac7_d1  #6
@@ -864,7 +877,7 @@ patch Funk family=crunch note=55 range=45..84 role=funk
   mac8_d1  #4
   mac8_a1  0.25
   mac8_d2  #14
-  mac8_a2  0.15
+  mac8_a2  0.0639
   mac8_d3  #2
   mac8_a3  -0.3
   mute           0.15
@@ -872,7 +885,7 @@ patch Funk family=crunch note=55 range=45..84 role=funk
   direction      #2
   bright         0.8
   hardness       0.85
-  volume         0.85
+  volume         0.3579
   insert Filter
     cutoff       1100 Hz
     reso         0.5
@@ -883,6 +896,7 @@ patch Funk family=crunch note=55 range=45..84 role=funk
     attack       2 ms
     release      80 ms
     makeup       6 dB
+    gain         -7.0 dB
 
 patch "Fuzz Rhythm" family=crunch note=45 range=36..72 role=chord
   # A fuzz box in front of a clean amp: square and buzzing.
@@ -903,11 +917,11 @@ patch "Fuzz Rhythm" family=crunch note=45 range=36..72 role=chord
   mac3_d1  #4
   mac3_a1  0.35
   mac3_d2  #14
-  mac3_a2  0.2
+  mac3_a2  0
   mac4_d1  #2
   mac4_a1  0.3
   mac4_d2  #14
-  mac4_a2  0.2
+  mac4_a2  0.0904
   mac5_d1  #5
   mac5_a1  0.3
   mac5_d2  #15
@@ -915,7 +929,7 @@ patch "Fuzz Rhythm" family=crunch note=45 range=36..72 role=chord
   mac6_d1  #7
   mac6_a1  0.6
   mac6_d2  #14
-  mac6_a2  0.2
+  mac6_a2  0.1719
   mac7_d1  #3
   mac7_a1  0.5
   mac8_d1  #10
@@ -923,15 +937,16 @@ patch "Fuzz Rhythm" family=crunch note=45 range=36..72 role=chord
   coil           #1
   hardness       0.7
   sustain        0.7
-  volume         0.8
+  volume         0.3579
   insert Distortion
     drive        14
     tone         3500 Hz
     mode         #1
     mix          1
-    gain         0 dB
+    gain         -8.1 dB
 
 patch Lead family=lead note=64 range=48..96 role=lead
+  volume         0.1701
   # A humbucker at the bridge, driven hard, with vibrato.
   set macro1 "Gain"
   set macro2 "Howl"
@@ -948,7 +963,7 @@ patch Lead family=lead note=64 range=48..96 role=lead
   mac2_d2  #5
   mac2_a2  0.2
   mac2_d3  #14
-  mac2_a3  -0.232
+  mac2_a3  -0.0571
   mac3_d1  #10
   mac3_a1  0.4
   mac4_d1  #1
@@ -971,6 +986,7 @@ patch Lead family=lead note=64 range=48..96 role=lead
   sustain        0.8
 
 patch "Neck Lead" family=lead note=62 range=48..91 role=lead
+  volume         0.1844
   # The neck humbucker driven hard, tone rolled back: dark and vocal.
   set macro1 "Gain"
   set macro2 "Howl"
@@ -987,7 +1003,7 @@ patch "Neck Lead" family=lead note=62 range=48..91 role=lead
   mac2_d2  #5
   mac2_a2  0.15
   mac2_d3  #14
-  mac2_a3  -0.131
+  mac2_a3  -0.0349
   mac3_d1  #10
   mac3_a1  0.4
   mac4_d1  #1
@@ -1005,7 +1021,7 @@ patch "Neck Lead" family=lead note=62 range=48..91 role=lead
   mac8_d1  #7
   mac8_a1  0.6
   mac8_d2  #14
-  mac8_a2  0.223
+  mac8_a2  0.0594
   pickup         #0
   coil           #1
   drive          0.75
@@ -1050,9 +1066,10 @@ patch "Singing Lead" family=lead note=64 range=48..96 role=lead
   drive          0.75
   feedback       0.7
   sustain        0.85
-  volume         0.5
+  volume         0.1187
 
 patch "Repeat Lead" family=lead note=64 range=48..96 role=lead
+  volume         0.1721
   # A driven lead with dotted-eighth echoes behind it.
   set macro1 "Gain"
   set macro2 "Howl"
@@ -1069,7 +1086,7 @@ patch "Repeat Lead" family=lead note=64 range=48..96 role=lead
   mac2_d2  #5
   mac2_a2  0.2
   mac2_d3  #14
-  mac2_a3  -0.232
+  mac2_a3  -0.0577
   mac3_d1  #10
   mac3_a1  0.4
   mac4_d1  #1
@@ -1087,7 +1104,7 @@ patch "Repeat Lead" family=lead note=64 range=48..96 role=lead
   mac8_d1  #7
   mac8_a1  0.6
   mac8_d2  #14
-  mac8_a2  0.212
+  mac8_a2  0.0528
   coil           #1
   drive          0.65
   vibrato        0.25
@@ -1101,6 +1118,7 @@ patch "Repeat Lead" family=lead note=64 range=48..96 role=lead
   send reverb    0.1
 
 patch "Slide Lead" family=lead note=60 range=45..90 role=lead
+  volume         0.2431
   # One voice, sliding from note to note.
   set macro1 "Gain"
   set macro2 "Howl"
@@ -1117,7 +1135,7 @@ patch "Slide Lead" family=lead note=60 range=45..90 role=lead
   mac2_d2  #5
   mac2_a2  0.2
   mac2_d3  #14
-  mac2_a3  -0.418
+  mac2_a3  -0.147
   mac3_d1  #10
   mac3_a1  0.4
   mac4_d1  #1
@@ -1135,13 +1153,14 @@ patch "Slide Lead" family=lead note=60 range=45..90 role=lead
   mac8_d1  #7
   mac8_a1  0.6
   mac8_d2  #14
-  mac8_a2  0.3
+  mac8_a2  0.106
   voices         #0
   slide          140 ms
   drive          0.5
   vibrato        0.2
 
 patch "Fuzz Lead" family=lead note=64 range=48..96 role=lead
+  volume         0.3579
   # The neck pickup into a fuzz box, thick and woolly, held long.
   set macro1 "Gain"
   set macro2 "Round"
@@ -1154,7 +1173,7 @@ patch "Fuzz Lead" family=lead note=64 range=48..96 role=lead
   mac1_d1  #11
   mac1_a1  0.4
   mac1_d2  #14
-  mac1_a2  -0.376
+  mac1_a2  -0.1641
   mac2_d1  #3
   mac2_a1  0.5
   mac3_d1  #10
@@ -1174,7 +1193,7 @@ patch "Fuzz Lead" family=lead note=64 range=48..96 role=lead
   mac8_d1  #7
   mac8_a1  0.6
   mac8_d2  #14
-  mac8_a2  0.3
+  mac8_a2  0.155
   pickup         #0
   coil           #1
   sustain        0.9
@@ -1185,9 +1204,10 @@ patch "Fuzz Lead" family=lead note=64 range=48..96 role=lead
     tone         3000 Hz
     mode         #1
     mix          1
-    gain         -1 dB
+    gain         -8.0 dB
 
 patch "Bridge Scream" family=lead note=67 range=52..96 role=lead
+  volume         0.1741
   # Bridge single coil, flat out, buzzing frets.
   set macro1 "Round"
   set macro2 "Howl"
@@ -1204,7 +1224,7 @@ patch "Bridge Scream" family=lead note=67 range=52..96 role=lead
   mac2_d2  #5
   mac2_a2  0.2
   mac2_d3  #14
-  mac2_a3  -0.341
+  mac2_a3  -0.0859
   mac3_d1  #10
   mac3_a1  0.4
   mac4_d1  #1
@@ -1261,7 +1281,7 @@ patch "Feedback Swell" family=lead note=57 range=45..88 role=lead
   drive          0.85
   feedback       1
   hardness       0.2
-  volume         0.55
+  volume         0.1262
 
 patch "Endless Lead" family=lead note=64 range=48..88 role=lead
   # Feedback all the way up: a held note never dies, and climbs.
@@ -1297,10 +1317,11 @@ patch "Endless Lead" family=lead note=64 range=48..88 role=lead
   sustain        1
   ring           0.4
   vibrato        0.15
-  volume         0.4
+  volume         0.1116
   position       0.2
 
 patch "Whammy Dive" family=lead note=64 range=52..88
+  volume         0.1931
   # Driven, the bar dived a whole octave: pull the bend wheel down.
   set macro1 "Gain"
   set macro2 "Howl"
@@ -1317,7 +1338,7 @@ patch "Whammy Dive" family=lead note=64 range=52..88
   mac2_d2  #5
   mac2_a2  0.2
   mac2_d3  #14
-  mac2_a3  -0.243
+  mac2_a3  -0.0679
   mac3_d1  #10
   mac3_a1  0.4
   mac4_d1  #1
@@ -1335,12 +1356,13 @@ patch "Whammy Dive" family=lead note=64 range=52..88
   mac8_d1  #7
   mac8_a1  0.6
   mac8_d2  #14
-  mac8_a2  0.212
+  mac8_a2  0.0592
   drive          0.7
   bend           12
   vibrato        0.3
 
 patch Strummed family=strum note=52 range=40..76 role=chord
+  volume         0.1994
   # Down and up in turn across the strings.
   set macro1 "Spread"
   set macro2 "Palm"
@@ -1355,7 +1377,7 @@ patch Strummed family=strum note=52 range=40..76 role=chord
   mac2_d1  #4
   mac2_a1  0.35
   mac2_d2  #14
-  mac2_a2  0.3
+  mac2_a2  0.0866
   mac3_d1  #1
   mac3_a1  -0.4
   mac3_d2  #6
@@ -1363,7 +1385,7 @@ patch Strummed family=strum note=52 range=40..76 role=chord
   mac4_d1  #2
   mac4_a1  0.4
   mac4_d2  #14
-  mac4_a2  0.3
+  mac4_a2  0.0866
   mac5_d1  #5
   mac5_a1  0.35
   mac5_d2  #15
@@ -1371,7 +1393,7 @@ patch Strummed family=strum note=52 range=40..76 role=chord
   mac6_d1  #11
   mac6_a1  0.3
   mac6_d2  #14
-  mac6_a2  0.233
+  mac6_a2  0.0672
   mac7_d1  #10
   mac7_a1  0.4
   mac8_d1  #16
@@ -1399,7 +1421,7 @@ patch "Up Strokes" family=strum note=55 range=40..76 role=chord
   mac3_d2  #6
   mac3_a2  -0.25
   mac3_d3  #14
-  mac3_a3  0.15
+  mac3_a3  0.0325
   mac4_d1  #2
   mac4_a1  0.4
   mac5_d1  #5
@@ -1409,7 +1431,7 @@ patch "Up Strokes" family=strum note=55 range=40..76 role=chord
   mac6_d1  #11
   mac6_a1  0.3
   mac6_d2  #14
-  mac6_a2  0.15
+  mac6_a2  0.0325
   mac7_d1  #10
   mac7_a1  0.4
   mac8_d1  #16
@@ -1418,9 +1440,10 @@ patch "Up Strokes" family=strum note=55 range=40..76 role=chord
   direction      #1
   mute           0.3
   bright         0.6
-  volume         0.73
+  volume         0.1563
 
 patch "Slow Strum" family=strum note=52 range=40..76 role=chord
+  volume         0.1465
   # Wide, slow strums on the neck pickup.
   set macro1 "Spread"
   set macro2 "Round"
@@ -1441,7 +1464,7 @@ patch "Slow Strum" family=strum note=52 range=40..76 role=chord
   mac4_d1  #2
   mac4_a1  0.4
   mac4_d2  #14
-  mac4_a2  0.3
+  mac4_a2  0.0636
   mac5_d1  #5
   mac5_a1  0.3
   mac5_d2  #15
@@ -1449,7 +1472,7 @@ patch "Slow Strum" family=strum note=52 range=40..76 role=chord
   mac6_d1  #11
   mac6_a1  0.3
   mac6_d2  #14
-  mac6_a2  0.277
+  mac6_a2  0.0587
   mac7_d1  #10
   mac7_a1  0.4
   mac8_d1  #16
@@ -1459,6 +1482,7 @@ patch "Slow Strum" family=strum note=52 range=40..76 role=chord
   sustain        0.7
 
 patch Ripple family=strum note=55 range=40..76 role=chord
+  volume         0.1663
   # The slowest strum, each string heard on its own, both ways in turn.
   set macro1 "Round"
   set macro2 "Bright"
@@ -1481,7 +1505,7 @@ patch Ripple family=strum note=55 range=40..76 role=chord
   mac4_d1  #2
   mac4_a1  0.4
   mac4_d2  #14
-  mac4_a2  0.3
+  mac4_a2  0.0721
   mac5_d1  #5
   mac5_a1  0.25
   mac5_d2  #15
@@ -1489,7 +1513,7 @@ patch Ripple family=strum note=55 range=40..76 role=chord
   mac6_d1  #11
   mac6_a1  0.3
   mac6_d2  #14
-  mac6_a2  0.255
+  mac6_a2  0.0613
   mac7_d1  #10
   mac7_a1  0.4
   mac8_d1  #16
@@ -1502,6 +1526,7 @@ patch Ripple family=strum note=55 range=40..76 role=chord
   send reverb    0.12
 
 patch "Twelve Strum" family=strum note=52 range=40..76 role=chord
+  volume         0.1702
   # Twelve strings strummed down.
   set macro1 "Spread"
   set macro2 "Palm"
@@ -1516,7 +1541,7 @@ patch "Twelve Strum" family=strum note=52 range=40..76 role=chord
   mac2_d1  #4
   mac2_a1  0.35
   mac2_d2  #14
-  mac2_a2  0.181
+  mac2_a2  0.0445
   mac3_d1  #1
   mac3_a1  -0.4
   mac3_d2  #6
@@ -1524,7 +1549,7 @@ patch "Twelve Strum" family=strum note=52 range=40..76 role=chord
   mac4_d1  #2
   mac4_a1  0.4
   mac4_d2  #14
-  mac4_a2  0.3
+  mac4_a2  0.0738
   mac5_d1  #5
   mac5_a1  0.35
   mac5_d2  #15
@@ -1532,7 +1557,7 @@ patch "Twelve Strum" family=strum note=52 range=40..76 role=chord
   mac6_d1  #11
   mac6_a1  0.3
   mac6_d2  #14
-  mac6_a2  0.3
+  mac6_a2  0.0738
   mac7_d1  #10
   mac7_a1  0.4
   mac8_d1  #16
@@ -1556,7 +1581,7 @@ patch "Twelve Ballad" family=strum note=57 range=40..76 role=chord
   mac2_d1  #4
   mac2_a1  0.35
   mac2_d2  #14
-  mac2_a2  0.086
+  mac2_a2  0.0248
   mac3_d1  #1
   mac3_a1  -0.4
   mac3_d2  #6
@@ -1564,7 +1589,7 @@ patch "Twelve Ballad" family=strum note=57 range=40..76 role=chord
   mac4_d1  #2
   mac4_a1  0.4
   mac4_d2  #14
-  mac4_a2  0.21
+  mac4_a2  0.0606
   mac5_d1  #5
   mac5_a1  0.3
   mac5_d2  #15
@@ -1572,7 +1597,7 @@ patch "Twelve Ballad" family=strum note=57 range=40..76 role=chord
   mac6_d1  #11
   mac6_a1  0.3
   mac6_d2  #14
-  mac6_a2  0.391
+  mac6_a2  0.113
   mac7_d1  #10
   mac7_a1  0.4
   mac8_d1  #16
@@ -1580,7 +1605,7 @@ patch "Twelve Ballad" family=strum note=57 range=40..76 role=chord
   model          #1
   strum          40
   sustain        0.7
-  volume         0.53
+  volume         0.1513
 
 patch "Chorus Twelve" family=strum note=55 range=40..76 role=chord
   # Twelve strings through a chorus: a wall of jangle.
@@ -1601,11 +1626,11 @@ patch "Chorus Twelve" family=strum note=55 range=40..76 role=chord
   mac3_d2  #6
   mac3_a2  -0.25
   mac3_d3  #14
-  mac3_a3  0.1
+  mac3_a3  0.0276
   mac4_d1  #2
   mac4_a1  0.4
   mac4_d2  #14
-  mac4_a2  0.244
+  mac4_a2  0.0673
   mac5_d1  #5
   mac5_a1  0.35
   mac5_d2  #15
@@ -1613,7 +1638,7 @@ patch "Chorus Twelve" family=strum note=55 range=40..76 role=chord
   mac6_d1  #11
   mac6_a1  0.3
   mac6_d2  #14
-  mac6_a2  0.3
+  mac6_a2  0.0829
   mac7_d1  #10
   mac7_a1  0.4
   mac8_d1  #16
@@ -1622,7 +1647,7 @@ patch "Chorus Twelve" family=strum note=55 range=40..76 role=chord
   strum          22 ms
   pickup         #1
   bright         0.6
-  volume         0.53
+  volume         0.1445
   insert Chorus
     rate         #12
     depth        0.4
@@ -1649,7 +1674,7 @@ patch "Funk Muted" family=strum note=64 range=52..76 role=funk
   mac3_d2  #6
   mac3_a2  -0.25
   mac3_d3  #14
-  mac3_a3  0.273
+  mac3_a3  0.0988
   mac4_d1  #2
   mac4_a1  0.2
   mac5_d1  #5
@@ -1659,7 +1684,7 @@ patch "Funk Muted" family=strum note=64 range=52..76 role=funk
   mac6_d1  #11
   mac6_a1  0.3
   mac6_d2  #14
-  mac6_a2  0.45
+  mac6_a2  0.0781
   mac7_d1  #10
   mac7_a1  0.4
   mac8_d1  #16
@@ -1670,13 +1695,14 @@ patch "Funk Muted" family=strum note=64 range=52..76 role=funk
   hardness       0.8
   strum          6 ms
   direction      #2
-  volume         1
+  volume         0.3579
   insert Compressor
     threshold      -16 dB
     ratio          6
     attack         0.5 ms
     release        80 ms
     makeup         6.5 dB
+    gain         -9.3 dB
 
 patch "Jazz Box" family=jazz note=57 range=40..76
   # An archtop on the neck pickup, tone rolled off.
@@ -1695,7 +1721,7 @@ patch "Jazz Box" family=jazz note=57 range=40..76
   mac2_d1  #2
   mac2_a1  -0.4
   mac2_d2  #14
-  mac2_a2  -0.224
+  mac2_a2  -0.0662
   mac3_d1  #3
   mac3_a1  0.5
   mac4_d1  #5
@@ -1715,9 +1741,10 @@ patch "Jazz Box" family=jazz note=57 range=40..76
   model          #5
   pickup         #0
   tone           0.4
-  volume         1
+  volume         0.2921
 
 patch "Jazz Comping" family=jazz note=57 range=40..76 role=chord
+  volume         0.2516
   # Fingers through soft chords, the way a rhythm player comps.
   set macro1 "Dark"
   set macro2 "Soft Pick"
@@ -1736,7 +1763,7 @@ patch "Jazz Comping" family=jazz note=57 range=40..76 role=chord
   mac3_d1  #3
   mac3_a1  0.5
   mac3_d2  #14
-  mac3_a2  -0.221
+  mac3_a2  -0.0806
   mac4_d1  #5
   mac4_a1  0.35
   mac4_d2  #15
@@ -1748,7 +1775,7 @@ patch "Jazz Comping" family=jazz note=57 range=40..76 role=chord
   mac7_d1  #11
   mac7_a1  0.3
   mac7_d2  #14
-  mac7_a2  0.3
+  mac7_a2  0.109
   mac8_d1  #16
   mac8_a1  0.2
   model          #5
@@ -1758,6 +1785,7 @@ patch "Jazz Comping" family=jazz note=57 range=40..76 role=chord
   strum          15
 
 patch "Chord Melody" family=jazz note=60 range=40..79 role=chord
+  volume         0.2574
   # Fingers on full chords, the melody on top, in a small room.
   set macro1 "Dark"
   set macro2 "Soft Pick"
@@ -1774,11 +1802,11 @@ patch "Chord Melody" family=jazz note=60 range=40..79 role=chord
   mac2_d1  #2
   mac2_a1  -0.4
   mac2_d2  #14
-  mac2_a2  0.142
+  mac2_a2  0.0528
   mac3_d1  #3
   mac3_a1  0.5
   mac3_d2  #14
-  mac3_a2  -0.273
+  mac3_a2  -0.102
   mac4_d1  #5
   mac4_a1  0.35
   mac4_d2  #15
@@ -1790,7 +1818,7 @@ patch "Chord Melody" family=jazz note=60 range=40..79 role=chord
   mac7_d1  #11
   mac7_a1  0.3
   mac7_d2  #14
-  mac7_a2  0.3
+  mac7_a2  0.112
   mac8_d1  #16
   mac8_a1  0.2
   model          #5
@@ -1803,6 +1831,7 @@ patch "Chord Melody" family=jazz note=60 range=40..79 role=chord
   send reverb    0.15
 
 patch "Jazz Octaves" family=jazz note=62 range=48..79
+  volume         0.2142
   # Thumb and octave shapes, warm and round.
   set macro1 "Dark"
   set macro2 "Soft Pick"
@@ -1821,7 +1850,7 @@ patch "Jazz Octaves" family=jazz note=62 range=48..79
   mac3_d1  #3
   mac3_a1  0.5
   mac3_d2  #14
-  mac3_a2  -0.306
+  mac3_a2  -0.095
   mac4_d1  #5
   mac4_a1  0.35
   mac4_d2  #15
@@ -1835,7 +1864,7 @@ patch "Jazz Octaves" family=jazz note=62 range=48..79
   mac7_d1  #11
   mac7_a1  0.3
   mac7_d2  #14
-  mac7_a2  0.3
+  mac7_a2  0.0927
   mac8_d1  #16
   mac8_a1  0.2
   model          #5
@@ -1844,6 +1873,7 @@ patch "Jazz Octaves" family=jazz note=62 range=48..79
   stroke         #1
 
 patch "Warm Octaves" family=jazz note=57 range=45..74 role=lead
+  volume         0.2269
   # An archtop's thumb on two strings an octave apart, played as a line.
   set macro1 "Dark"
   set macro2 "Soft Pick"
@@ -1862,7 +1892,7 @@ patch "Warm Octaves" family=jazz note=57 range=45..74 role=lead
   mac3_d1  #3
   mac3_a1  0.5
   mac3_d2  #14
-  mac3_a2  -0.248
+  mac3_a2  -0.0813
   mac4_d1  #5
   mac4_a1  0.35
   mac4_d2  #15
@@ -1876,7 +1906,7 @@ patch "Warm Octaves" family=jazz note=57 range=45..74 role=lead
   mac7_d1  #11
   mac7_a1  0.3
   mac7_d2  #14
-  mac7_a2  0.3
+  mac7_a2  0.0981
   mac8_d1  #16
   mac8_a1  0.2
   model          #5
@@ -1927,9 +1957,10 @@ patch "Bebop Pick" family=jazz note=62 range=45..84 role=lead
   hardness       0.7
   tone           0.55
   sustain        0.4
-  volume         1
+  volume         0.3203
 
 patch "Archtop Bright" family=jazz note=60 range=40..79
+  volume         0.2545
   # Both pickups, a little more cut.
   set macro1 "Dark"
   set macro2 "Soft Pick"
@@ -1944,7 +1975,7 @@ patch "Archtop Bright" family=jazz note=60 range=40..79
   mac1_d2  #6
   mac1_a2  -0.25
   mac1_d3  #14
-  mac1_a3  0.233
+  mac1_a3  0.0859
   mac2_d1  #2
   mac2_a1  -0.4
   mac3_d1  #3
@@ -1962,7 +1993,7 @@ patch "Archtop Bright" family=jazz note=60 range=40..79
   mac7_d1  #11
   mac7_a1  0.3
   mac7_d2  #14
-  mac7_a2  0.223
+  mac7_a2  0.0821
   mac8_d1  #16
   mac8_a1  0.2
   model          #5
@@ -1970,6 +2001,7 @@ patch "Archtop Bright" family=jazz note=60 range=40..79
   tone           0.7
 
 patch "Lap Steel" family=steel note=62 range=48..84
+  volume         0.1761
   # The bar slid between notes, played legato.
   set macro1 "Round"
   set macro2 "Vibrato"
@@ -1990,7 +2022,7 @@ patch "Lap Steel" family=steel note=62 range=48..84
   mac4_d2  #6
   mac4_a2  -0.25
   mac4_d3  #14
-  mac4_a3  0.142
+  mac4_a3  0.0362
   mac5_d1  #5
   mac5_a1  0.2
   mac5_d2  #15
@@ -1998,7 +2030,7 @@ patch "Lap Steel" family=steel note=62 range=48..84
   mac6_d1  #11
   mac6_a1  0.3
   mac6_d2  #14
-  mac6_a2  0.3
+  mac6_a2  0.076
   mac7_d1  #17
   mac7_a1  0.0833
   mac8_d1  #6
@@ -2010,6 +2042,7 @@ patch "Lap Steel" family=steel note=62 range=48..84
   sustain        0.8
 
 patch "Steel Swell" family=steel note=62 range=48..84
+  volume         0.1998
   # A soft pick and a warm tone, swelling under a song.
   set macro1 "Round"
   set macro2 "Vibrato"
@@ -2022,7 +2055,7 @@ patch "Steel Swell" family=steel note=62 range=48..84
   mac1_d1  #3
   mac1_a1  0.5
   mac1_d2  #14
-  mac1_a2  0.151
+  mac1_a2  0.0436
   mac2_d1  #10
   mac2_a1  0.4
   mac3_d1  #16
@@ -2032,7 +2065,7 @@ patch "Steel Swell" family=steel note=62 range=48..84
   mac4_d2  #6
   mac4_a2  -0.25
   mac4_d3  #14
-  mac4_a3  0.3
+  mac4_a3  0.0866
   mac5_d1  #5
   mac5_a1  0.35
   mac5_d2  #15
@@ -2040,7 +2073,7 @@ patch "Steel Swell" family=steel note=62 range=48..84
   mac6_d1  #11
   mac6_a1  0.3
   mac6_d2  #14
-  mac6_a2  0.3
+  mac6_a2  0.0866
   mac7_d1  #17
   mac7_a1  0.0833
   mac8_d1  #6
@@ -2053,6 +2086,7 @@ patch "Steel Swell" family=steel note=62 range=48..84
   hardness       0.2
 
 patch "Pedal Steel" family=steel note=62 range=48..84 role=chord
+  volume         0.2856
   # Slow bends and a shimmer, country ballad style.
   set macro1 "Spread"
   set macro2 "Vibrato"
@@ -2073,7 +2107,7 @@ patch "Pedal Steel" family=steel note=62 range=48..84 role=chord
   mac4_d2  #6
   mac4_a2  -0.25
   mac4_d3  #14
-  mac4_a3  0.151
+  mac4_a3  0.0623
   mac5_d1  #5
   mac5_a1  0.1
   mac5_d2  #15
@@ -2081,7 +2115,7 @@ patch "Pedal Steel" family=steel note=62 range=48..84 role=chord
   mac6_d1  #11
   mac6_a1  0.3
   mac6_d2  #14
-  mac6_a2  0.3
+  mac6_a2  0.124
   mac7_d1  #17
   mac7_a1  0.0833
   mac8_d1  #3
@@ -2093,6 +2127,7 @@ patch "Pedal Steel" family=steel note=62 range=48..84 role=chord
   strum          20
 
 patch "Country Swell" family=steel note=62 range=48..84 role=chord
+  volume         0.3897
   # Each chord fades in under the volume pedal, the bar sliding into it.
   set macro1 "Spread"
   set macro2 "Vibrato"
@@ -2119,7 +2154,7 @@ patch "Country Swell" family=steel note=62 range=48..84 role=chord
   mac6_d1  #11
   mac6_a1  0.3
   mac6_d2  #14
-  mac6_a2  0.202
+  mac6_a2  0.114
   mac7_d1  #17
   mac7_a1  0.0833
   mac8_d1  #3
@@ -2133,6 +2168,7 @@ patch "Country Swell" family=steel note=62 range=48..84 role=chord
   send reverb    0.12
 
 patch "Bright Bar" family=steel note=67 range=55..86 role=lead
+  volume         0.2269
   # The bridge pickup and a hard pick: bright, quick and twangy.
   set macro1 "Round"
   set macro2 "Vibrato"
@@ -2153,7 +2189,7 @@ patch "Bright Bar" family=steel note=67 range=55..86 role=lead
   mac4_d2  #6
   mac4_a2  -0.25
   mac4_d3  #14
-  mac4_a3  0.289
+  mac4_a3  0.095
   mac5_d1  #5
   mac5_a1  0.3
   mac5_d2  #15
@@ -2161,7 +2197,7 @@ patch "Bright Bar" family=steel note=67 range=55..86 role=lead
   mac6_d1  #11
   mac6_a1  0.3
   mac6_d2  #14
-  mac6_a2  0.212
+  mac6_a2  0.0696
   mac7_d1  #17
   mac7_a1  0.0833
   mac8_d1  #6
@@ -2176,6 +2212,7 @@ patch "Bright Bar" family=steel note=67 range=55..86 role=lead
   sustain        0.7
 
 patch "Hawaiian Steel" family=steel note=67 range=55..84
+  volume         0.2022
   # Wide vibrato, bright and sweet.
   set macro1 "Round"
   set macro2 "Vibrato"
@@ -2188,7 +2225,7 @@ patch "Hawaiian Steel" family=steel note=67 range=55..84
   mac1_d1  #3
   mac1_a1  0.5
   mac1_d2  #14
-  mac1_a2  0.151
+  mac1_a2  0.0442
   mac2_d1  #10
   mac2_a1  0.4
   mac3_d1  #16
@@ -2198,7 +2235,7 @@ patch "Hawaiian Steel" family=steel note=67 range=55..84
   mac4_d2  #6
   mac4_a2  -0.25
   mac4_d3  #14
-  mac4_a3  0.233
+  mac4_a3  0.0681
   mac5_d1  #5
   mac5_a1  0.35
   mac5_d2  #15
@@ -2206,7 +2243,7 @@ patch "Hawaiian Steel" family=steel note=67 range=55..84
   mac6_d1  #11
   mac6_a1  0.3
   mac6_d2  #14
-  mac6_a2  0.244
+  mac6_a2  0.0713
   mac7_d1  #17
   mac7_a1  0.0833
   mac8_d1  #6
@@ -2218,6 +2255,7 @@ patch "Hawaiian Steel" family=steel note=67 range=55..84
   vibrato        0.4
 
 patch "Swell Bar" family=steel note=64 range=50..84 role=lead
+  volume         0.2991
   # One voice, the bar gliding and every note swelled in: a slow, crying lead.
   set macro1 "Glide"
   set macro2 "Vibrato"
@@ -2238,7 +2276,7 @@ patch "Swell Bar" family=steel note=64 range=50..84 role=lead
   mac4_d2  #6
   mac4_a2  -0.25
   mac4_d3  #14
-  mac4_a3  0.171
+  mac4_a3  0.074
   mac5_d1  #5
   mac5_a1  0.1
   mac5_d2  #15
@@ -2246,7 +2284,7 @@ patch "Swell Bar" family=steel note=64 range=50..84 role=lead
   mac6_d1  #11
   mac6_a1  0.3
   mac6_d2  #14
-  mac6_a2  0.212
+  mac6_a2  0.092
   mac7_d1  #17
   mac7_a1  0.0833
   mac8_d1  #3
@@ -2260,6 +2298,7 @@ patch "Swell Bar" family=steel note=64 range=50..84 role=lead
   send reverb    0.12
 
 patch "Bass Finger" family=bass note=33 range=23..60 role=bass
+  volume         0.1415
   # Fingers on the neck pickup: the round, ordinary bass.
   set macro1 "Dark"
   set macro2 "Dig In"
@@ -2276,11 +2315,11 @@ patch "Bass Finger" family=bass note=33 range=23..60 role=bass
   mac2_d1  #2
   mac2_a1  0.4
   mac2_d2  #14
-  mac2_a2  0.223
+  mac2_a2  0.0456
   mac3_d1  #4
   mac3_a1  0.35
   mac3_d2  #14
-  mac3_a2  0.171
+  mac3_a2  0.035
   mac4_d1  #5
   mac4_a1  0.35
   mac4_d2  #15
@@ -2288,7 +2327,7 @@ patch "Bass Finger" family=bass note=33 range=23..60 role=bass
   mac5_d1  #11
   mac5_a1  0.3
   mac5_d2  #14
-  mac5_a2  0.289
+  mac5_a2  0.0591
   mac6_d1  #3
   mac6_a1  0.5
   mac7_d1  #10
@@ -2296,7 +2335,7 @@ patch "Bass Finger" family=bass note=33 range=23..60 role=bass
   mac8_d1  #7
   mac8_a1  0.45
   mac8_d2  #14
-  mac8_a2  0.3
+  mac8_a2  0.0614
   model          #3
   stroke         #1
   pickup         #0
@@ -2316,11 +2355,11 @@ patch "Bass Pick" family=bass note=33 range=23..60 role=bass
   mac1_d2  #6
   mac1_a2  -0.25
   mac1_d3  #14
-  mac1_a3  0.191
+  mac1_a3  0.0648
   mac2_d1  #2
   mac2_a1  0.3
   mac2_d2  #14
-  mac2_a2  0.3
+  mac2_a2  0.0547
   mac3_d1  #4
   mac3_a1  0.35
   mac4_d1  #5
@@ -2330,7 +2369,7 @@ patch "Bass Pick" family=bass note=33 range=23..60 role=bass
   mac5_d1  #11
   mac5_a1  0.3
   mac5_d2  #14
-  mac5_a2  0.266
+  mac5_a2  0.0547
   mac6_d1  #3
   mac6_a1  0.5
   mac7_d1  #10
@@ -2338,12 +2377,12 @@ patch "Bass Pick" family=bass note=33 range=23..60 role=bass
   mac8_d1  #7
   mac8_a1  0.45
   mac8_d2  #14
-  mac8_a2  0.17
+  mac8_a2  0.0577
   model          #3
   pickup         #2
   hardness       0.7
   buzz           0.2
-  volume         0.83
+  volume         0.2784
 
 patch "Muted Bass" family=bass note=33 range=23..60 role=bass
   # The palm on the strings: short, thumpy notes.
@@ -2372,7 +2411,7 @@ patch "Muted Bass" family=bass note=33 range=23..60 role=bass
   mac5_d1  #11
   mac5_a1  0.3
   mac5_d2  #14
-  mac5_a2  0.3
+  mac5_a2  0.0391
   mac6_d1  #3
   mac6_a1  0.5
   mac7_d1  #10
@@ -2380,14 +2419,15 @@ patch "Muted Bass" family=bass note=33 range=23..60 role=bass
   mac8_d1  #7
   mac8_a1  0.45
   mac8_d2  #14
-  mac8_a2  0.103
+  mac8_a2  0.0233
   model          #3
   stroke         #1
   mute           0.6
   pickup         #0
-  volume         0.84
+  volume         0.1883
 
 patch "Dub Bass" family=bass note=33 range=23..52 role=bass
+  volume         0.1336
   # Fingers on the neck pickup, the tone off and the treble gone: deep and round.
   set macro1 "Dark"
   set macro2 "Dig In"
@@ -2404,11 +2444,11 @@ patch "Dub Bass" family=bass note=33 range=23..52 role=bass
   mac2_d1  #2
   mac2_a1  0.4
   mac2_d2  #14
-  mac2_a2  0.161
+  mac2_a2  0.0311
   mac3_d1  #4
   mac3_a1  0.35
   mac3_d2  #14
-  mac3_a2  0.058
+  mac3_a2  0.0112
   mac4_d1  #5
   mac4_a1  0.3
   mac4_d2  #15
@@ -2416,7 +2456,7 @@ patch "Dub Bass" family=bass note=33 range=23..52 role=bass
   mac5_d1  #11
   mac5_a1  0.3
   mac5_d2  #14
-  mac5_a2  0.212
+  mac5_a2  0.041
   mac6_d1  #3
   mac6_a1  0.435
   mac7_d1  #10
@@ -2424,7 +2464,7 @@ patch "Dub Bass" family=bass note=33 range=23..52 role=bass
   mac8_d1  #7
   mac8_a1  0.45
   mac8_d2  #14
-  mac8_a2  0.3
+  mac8_a2  0.0579
   model          #3
   stroke         #1
   pickup         #0
@@ -2451,7 +2491,7 @@ patch "Driven Bass" family=bass note=33 range=23..60 role=bass
   mac2_d1  #2
   mac2_a1  0.4
   mac2_d2  #14
-  mac2_a2  0.05
+  mac2_a2  0.0178
   mac3_d1  #4
   mac3_a1  0.35
   mac4_d1  #5
@@ -2461,7 +2501,7 @@ patch "Driven Bass" family=bass note=33 range=23..60 role=bass
   mac5_d1  #11
   mac5_a1  0.3
   mac5_d2  #14
-  mac5_a2  -0.357
+  mac5_a2  -0.127
   mac6_d1  #3
   mac6_a1  0.5
   mac7_d1  #10
@@ -2469,13 +2509,14 @@ patch "Driven Bass" family=bass note=33 range=23..60 role=bass
   mac8_d1  #7
   mac8_a1  0.45
   mac8_d2  #14
-  mac8_a2  0.05
+  mac8_a2  0.0178
   model          #3
   coil           #1
   drive          0.45
-  volume         0.95
+  volume         0.3336
 
 patch "Five String" family=bass note=28 range=23..55 role=bass
+  volume         0.1701
   # A low B string, played with the fingers.
   set macro1 "Dark"
   set macro2 "Dig In"
@@ -2492,7 +2533,7 @@ patch "Five String" family=bass note=28 range=23..55 role=bass
   mac2_d1  #2
   mac2_a1  0.4
   mac2_d2  #14
-  mac2_a2  0.181
+  mac2_a2  0.0445
   mac3_d1  #4
   mac3_a1  0.35
   mac4_d1  #5
@@ -2502,7 +2543,7 @@ patch "Five String" family=bass note=28 range=23..55 role=bass
   mac5_d1  #11
   mac5_a1  0.3
   mac5_d2  #14
-  mac5_a2  0.3
+  mac5_a2  0.0738
   mac6_d1  #3
   mac6_a1  0.5
   mac7_d1  #10
@@ -2510,7 +2551,7 @@ patch "Five String" family=bass note=28 range=23..55 role=bass
   mac8_d1  #7
   mac8_a1  0.45
   mac8_d2  #14
-  mac8_a2  0.3
+  mac8_a2  0.0738
   model          #4
   stroke         #1
   pickup         #1
@@ -2532,7 +2573,7 @@ patch "Five String Deep" family=bass note=28 range=23..48
   mac2_d1  #2
   mac2_a1  0.4
   mac2_d2  #14
-  mac2_a2  0.175
+  mac2_a2  0.0426
   mac3_d1  #4
   mac3_a1  0.35
   mac4_d1  #5
@@ -2542,7 +2583,7 @@ patch "Five String Deep" family=bass note=28 range=23..48
   mac5_d1  #11
   mac5_a1  0.3
   mac5_d2  #14
-  mac5_a2  0.384
+  mac5_a2  0.0935
   mac6_d1  #3
   mac6_a1  0.5
   mac7_d1  #10
@@ -2550,13 +2591,14 @@ patch "Five String Deep" family=bass note=28 range=23..48
   mac8_d1  #7
   mac8_a1  0.45
   mac8_d2  #14
-  mac8_a2  0.263
+  mac8_a2  0.0639
   model          #4
   stroke         #1
   tone           0.6
-  volume         0.55
+  volume         0.1321
 
 patch "Slide Bass" family=bass note=33 range=23..60 role=bass
+  volume         0.1336
   # One voice gliding between notes, like a bass with no frets: dark and long.
   set macro1 "Dark"
   set macro2 "Dig In"
@@ -2573,11 +2615,11 @@ patch "Slide Bass" family=bass note=33 range=23..60 role=bass
   mac2_d1  #2
   mac2_a1  0.4
   mac2_d2  #14
-  mac2_a2  0.233
+  mac2_a2  0.045
   mac3_d1  #4
   mac3_a1  0.35
   mac3_d2  #14
-  mac3_a2  0.171
+  mac3_a2  0.0331
   mac4_d1  #5
   mac4_a1  0.25
   mac4_d2  #15
@@ -2585,7 +2627,7 @@ patch "Slide Bass" family=bass note=33 range=23..60 role=bass
   mac5_d1  #11
   mac5_a1  0.3
   mac5_d2  #14
-  mac5_a2  0.3
+  mac5_a2  0.0579
   mac6_d1  #3
   mac6_a1  0.5
   mac7_d1  #10
@@ -2593,7 +2635,7 @@ patch "Slide Bass" family=bass note=33 range=23..60 role=bass
   mac8_d1  #7
   mac8_a1  0.45
   mac8_d2  #14
-  mac8_a2  0.3
+  mac8_a2  0.0579
   model          #3
   stroke         #1
   voices         #0
@@ -2604,6 +2646,7 @@ patch "Slide Bass" family=bass note=33 range=23..60 role=bass
   tone           0.55
 
 patch "Fretless Glide" family=bass note=40 range=28..60
+  volume         0.1822
   # No frets: notes glide into each other.
   set macro1 "Dark"
   set macro2 "Dig In"
@@ -2620,11 +2663,11 @@ patch "Fretless Glide" family=bass note=40 range=28..60
   mac2_d1  #2
   mac2_a1  0.4
   mac2_d2  #14
-  mac2_a2  0.212
+  mac2_a2  0.0558
   mac3_d1  #4
   mac3_a1  0.35
   mac3_d2  #14
-  mac3_a2  0.095
+  mac3_a2  0.025
   mac4_d1  #5
   mac4_a1  0.35
   mac4_d2  #15
@@ -2632,11 +2675,11 @@ patch "Fretless Glide" family=bass note=40 range=28..60
   mac5_d1  #11
   mac5_a1  0.3
   mac5_d2  #14
-  mac5_a2  0.3
+  mac5_a2  0.079
   mac6_d1  #3
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  0.151
+  mac6_a2  0.0397
   mac7_d1  #10
   mac7_a1  0.4
   mac8_d1  #6
@@ -2683,7 +2726,7 @@ patch "Fretless Low" family=bass note=33 range=23..52
   pickup         #0
   tone           0.4
   stroke         #1
-  volume         1
+  volume         0.2956
 
 patch "Fretless Mwah" family=bass note=40 range=28..60
   # The bridge pickup and bright up: the vocal mwah of a fretless.
@@ -2702,11 +2745,11 @@ patch "Fretless Mwah" family=bass note=40 range=28..60
   mac2_d1  #2
   mac2_a1  0.4
   mac2_d2  #14
-  mac2_a2  0.212
+  mac2_a2  0.0504
   mac3_d1  #4
   mac3_a1  0.35
   mac3_d2  #14
-  mac3_a2  0.095
+  mac3_a2  0.0226
   mac4_d1  #5
   mac4_a1  0.35
   mac4_d2  #15
@@ -2714,11 +2757,11 @@ patch "Fretless Mwah" family=bass note=40 range=28..60
   mac5_d1  #11
   mac5_a1  0.3
   mac5_d2  #14
-  mac5_a2  0.3
+  mac5_a2  0.0713
   mac6_d1  #3
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  0.151
+  mac6_a2  0.0359
   mac7_d1  #10
   mac7_a1  0.4
   mac8_d1  #6
@@ -2726,12 +2769,12 @@ patch "Fretless Mwah" family=bass note=40 range=28..60
   mac8_d2  #2
   mac8_a2  0.25
   mac8_d3  #14
-  mac8_a3  0.1
+  mac8_a3  0.0238
   model          #7
   pickup         #2
   bright         0.9
   stroke         #1
-  volume         0.725
+  volume         0.1702
 
 patch "Slap Bass" family=bass note=33 range=23..60 role=bass
   # The thumb slapped against the strings, the frets ringing.
@@ -2748,7 +2791,7 @@ patch "Slap Bass" family=bass note=33 range=23..60 role=bass
   mac1_d2  #6
   mac1_a2  -0.25
   mac1_d3  #14
-  mac1_a3  0.3
+  mac1_a3  0.0938
   mac2_d1  #2
   mac2_a1  0.4
   mac3_d1  #6
@@ -2762,7 +2805,7 @@ patch "Slap Bass" family=bass note=33 range=23..60 role=bass
   mac5_d1  #11
   mac5_a1  0.3
   mac5_d2  #14
-  mac5_a2  0.212
+  mac5_a2  0.0894
   mac6_d1  #3
   mac6_a1  0.5
   mac7_d1  #10
@@ -2770,15 +2813,16 @@ patch "Slap Bass" family=bass note=33 range=23..60 role=bass
   mac8_d1  #7
   mac8_a1  0.45
   mac8_d2  #14
-  mac8_a2  0.23
+  mac8_a2  0.0969
   model          #3
   stroke         #2
   pickup         #1
   bright         0.65
   buzz           0.3
-  volume         0.77
+  volume         0.3215
 
 patch "Slap Thumb" family=bass note=40 range=28..60
+  volume         0.2634
   # Thumb slaps on the low strings.
   set macro1 "Dark"
   set macro2 "Dig In"
@@ -2793,7 +2837,7 @@ patch "Slap Thumb" family=bass note=40 range=28..60
   mac1_d2  #6
   mac1_a2  -0.25
   mac1_d3  #14
-  mac1_a3  0.3
+  mac1_a3  0.114
   mac2_d1  #2
   mac2_a1  0.4
   mac3_d1  #6
@@ -2807,7 +2851,7 @@ patch "Slap Thumb" family=bass note=40 range=28..60
   mac5_d1  #11
   mac5_a1  0.3
   mac5_d2  #14
-  mac5_a2  0.3
+  mac5_a2  0.114
   mac6_d1  #3
   mac6_a1  0.5
   mac7_d1  #10
@@ -2815,7 +2859,7 @@ patch "Slap Thumb" family=bass note=40 range=28..60
   mac8_d1  #7
   mac8_a1  0.45
   mac8_d2  #14
-  mac8_a2  0.151
+  mac8_a2  0.0575
   model          #3
   stroke         #2
   bright         0.7
@@ -2835,7 +2879,7 @@ patch "Slap Pop" family=bass note=45 range=28..64
   mac1_d2  #6
   mac1_a2  -0.25
   mac1_d3  #14
-  mac1_a3  0.3
+  mac1_a3  0.0859
   mac2_d1  #2
   mac2_a1  0.4
   mac3_d1  #6
@@ -2849,7 +2893,7 @@ patch "Slap Pop" family=bass note=45 range=28..64
   mac5_d1  #11
   mac5_a1  0.3
   mac5_d2  #14
-  mac5_a2  0.3
+  mac5_a2  0.0859
   mac6_d1  #3
   mac6_a1  0.5
   mac7_d1  #10
@@ -2857,15 +2901,16 @@ patch "Slap Pop" family=bass note=45 range=28..64
   mac8_d1  #7
   mac8_a1  0.45
   mac8_d2  #14
-  mac8_a2  0.188
+  mac8_a2  0.0692
   model          #3
   stroke         #2
   pickup         #2
   bright         0.8
   buzz           0.2
-  volume         0.766
+  volume         0.2785
 
 patch "Bell Harmonics" family=odd note=48 range=40..72
+  volume         0.2191
   # Only the harmonic over the 5th fret, two octaves up: chimes.
   set macro1 "Round"
   set macro2 "Swell"
@@ -2890,7 +2935,7 @@ patch "Bell Harmonics" family=odd note=48 range=40..72
   mac5_d2  #6
   mac5_a2  -0.25
   mac5_d3  #14
-  mac5_a3  0.181
+  mac5_a3  0.0573
   mac6_d1  #10
   mac6_a1  0.4
   mac7_d1  #5
@@ -2939,7 +2984,7 @@ patch "Buzzing Frets" family=odd note=45 range=36..76
   pickup         #1
   sustain        0.8
   ring           0.5
-  volume         1
+  volume         0.3636
   insert Eq
     midgain      4 dB
     midfreq      1200 Hz
@@ -2947,6 +2992,7 @@ patch "Buzzing Frets" family=odd note=45 range=36..76
     gain         1.5 dB
 
 patch "Drone Jangle" family=odd note=50 range=40..76 role=chord
+  volume         0.2375
   # Twelve strings, the frets buzzing and each chord strummed slowly.
   set macro1 "Round"
   set macro2 "Swell"
@@ -2984,6 +3030,7 @@ patch "Drone Jangle" family=odd note=50 range=40..76 role=chord
   pickup         #1
 
 patch "Broken Radio" family=odd note=57 range=40..84
+  volume         0.3579
   # A bridge pickup through a crushed, narrow speaker: lo-fi and fizzing.
   set macro1 "Round"
   set macro2 "Swell"
@@ -2996,17 +3043,17 @@ patch "Broken Radio" family=odd note=57 range=40..84
   mac1_d1  #3
   mac1_a1  0.5
   mac1_d2  #14
-  mac1_a2  -0.193
+  mac1_a2  -0.0996
   mac2_d1  #16
   mac2_a1  0.2
   mac3_d1  #11
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  -0.263
+  mac3_a2  -0.136
   mac4_d1  #7
   mac4_a1  0.6
   mac4_d2  #14
-  mac4_a2  0.3
+  mac4_a2  0.155
   mac5_d1  #1
   mac5_a1  -0.4
   mac5_d2  #6
@@ -3033,6 +3080,7 @@ patch "Broken Radio" family=odd note=57 range=40..84
     midfreq      1500 Hz
     midq         1.5
     highgain     -10 dB
+    gain         -4.1 dB
 
 patch "Howling Slide" family=odd note=57 range=45..80 role=lead
   # One voice sliding slowly, the amp feeding back on every held note.
@@ -3055,7 +3103,7 @@ patch "Howling Slide" family=odd note=57 range=45..80 role=lead
   mac4_d1  #7
   mac4_a1  0.6
   mac4_d2  #14
-  mac4_a2  0.086
+  mac4_a2  0.026
   mac5_d1  #1
   mac5_a1  -0.4
   mac5_d2  #6
@@ -3075,7 +3123,7 @@ patch "Howling Slide" family=odd note=57 range=45..80 role=lead
   feedback       0.9
   sustain        0.9
   vibrato        0.2
-  volume         0.4
+  volume         0.1195
   position       0.22
 
 patch "Feedback Drone" family=odd note=45 range=36..72 role=drone
@@ -3115,7 +3163,7 @@ patch "Feedback Drone" family=odd note=45 range=36..72 role=drone
   sustain        1
   hardness       0.1
   swell          0.6 s
-  volume         0.35
+  volume         0.1034
   send reverb    0.15
 
 patch "Ambient Swells" family=odd note=60 range=45..84 role=pad
@@ -3152,7 +3200,7 @@ patch "Ambient Swells" family=odd note=60 range=45..84 role=pad
   swell          0.6 s
   sustain        1
   ring           0.7
-  volume         1
+  volume         0.299
   insert Delay
     time         #5
     feedback     0.5

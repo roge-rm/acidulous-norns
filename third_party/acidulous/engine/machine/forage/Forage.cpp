@@ -40,7 +40,7 @@ struct Table {
         const ParamDef globals[Forage::GlobalCount] = {
             {"accent", 0.0f, 1.0f, 0.6f, Curve::Linear, 0, ""},
             // See kDrive below.
-            {"volume", 0.0f, 1.5f, 0.9f, Curve::Linear, 0, ""},
+            {"volume", 0.0f, 1.5f, 0.2f, Curve::Linear, 0, ""}, // 18 dB under the top
             // How much velocity sets the level, using the shared velocity curve.
             {"velocity", 0.0f, 1.0f, 1.0f, Curve::Linear, 0, ""},
         };
@@ -356,7 +356,7 @@ bool Forage::render(float *L, float *R, int32_t frames) {
     // The pads are turned down by kDrive before the tanh so a single accented
     // pad stays clean (about a third of full scale) and only several at once
     // start to saturate. Hexbeat does the same.
-    const float out = val(globalIndex(Volume)) * kHouse;
+    const float out = val(globalIndex(Volume)) * kHouse * kHouseTrim;
     for (int32_t n = 0; n < frames; ++n) {
         L[n] = dsp::fastTanh(L[n] * kDrive) * out;
         R[n] = dsp::fastTanh(R[n] * kDrive) * out;

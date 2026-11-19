@@ -24,12 +24,18 @@
 # whose knob has no room left goes the other way under the opposite name
 # (Smaller, Straight, Voiced...). Where a macro at full moves the level by
 # more than 1 dB, a volume route takes it back out.
+#
+# Every patch sits at -27.5 on `loud`, within 1 dB, Init included. Init gets
+# there through the machine's house trim, with `volume` at its default of
+# 0.36, 12 dB under the top. The patches are levelled by `volume`, never
+# higher than 6 dB under the top.
 
 machine Diction
 
 patch Init family=voices
 
 patch Deep family=voices
+  volume         0.394
   # A big, dark throat, sung a little soft. Best low.
   formant        -6 st
   effort         -0.2
@@ -42,7 +48,7 @@ patch Deep family=voices
   mac2_d1  #16
   mac2_a1  0.4
   mac2_d2  #13
-  mac2_a2  -0.115
+  mac2_a2  -0.0547
   set macro3 "Air"
   mac3_d1  #3
   mac3_a1  0.4
@@ -67,6 +73,7 @@ patch Deep family=voices
   mac8_a1  -0.5
 
 patch High family=voices
+  volume         0.3165
   formant        4 st
   effort         0.2
   vibrato        28 ct
@@ -77,7 +84,7 @@ patch High family=voices
   mac2_d1  #16
   mac2_a1  0.4
   mac2_d2  #13
-  mac2_a2  -0.226
+  mac2_a2  -0.0898
   set macro3 "Air"
   mac3_d1  #3
   mac3_a1  0.4
@@ -102,6 +109,7 @@ patch High family=voices
   mac8_a1  -0.5
 
 patch Child family=voices
+  volume         0.3471
   # A small throat that gets smaller as it goes up, and a little air.
   formant        7 st
   track          0.3
@@ -114,12 +122,12 @@ patch Child family=voices
   mac2_d1  #16
   mac2_a1  0.4
   mac2_d2  #13
-  mac2_a2  -0.201
+  mac2_a2  -0.0879
   set macro3 "Air"
   mac3_d1  #3
   mac3_a1  0.4
   mac3_d2  #13
-  mac3_a2  -0.074
+  mac3_a2  -0.0419
   set macro4 "Vibrato"
   mac4_d1  #5
   mac4_a1  0.35
@@ -141,6 +149,7 @@ patch Child family=voices
   mac8_a1  -0.5
 
 patch Neither family=voices
+  volume         0.3719
   # Between the two, with a steadier line than either.
   formant        1 st
   breath         0.3
@@ -153,12 +162,12 @@ patch Neither family=voices
   mac2_d1  #16
   mac2_a1  0.4
   mac2_d2  #13
-  mac2_a2  -0.177
+  mac2_a2  -0.082
   set macro3 "Air"
   mac3_d1  #3
   mac3_a1  0.4
   mac3_d2  #13
-  mac3_a2  -0.069
+  mac3_a2  -0.0418
   set macro4 "Vibrato"
   mac4_d1  #5
   mac4_a1  0.35
@@ -180,6 +189,7 @@ patch Neither family=voices
   mac8_a1  -0.5
 
 patch Giant family=voices
+  volume         0.3762
   # A throat twice the size, darker still on the high notes.
   formant        -10 st
   track          -0.3
@@ -193,12 +203,12 @@ patch Giant family=voices
   mac2_d1  #16
   mac2_a1  0.35
   mac2_d2  #13
-  mac2_a2  -0.142
+  mac2_a2  -0.0664
   set macro3 "Air"
   mac3_d1  #3
   mac3_a1  0.4
   mac3_d2  #13
-  mac3_a2  -0.069
+  mac3_a2  -0.0422
   set macro4 "Vibrato"
   mac4_d1  #5
   mac4_a1  0.35
@@ -225,7 +235,7 @@ patch Tenor family=voices
   effort         0.3
   vibrato        30 ct
   vibratorate    5.5 Hz
-  volume         0.755
+  volume         0.3351
   set macro1 "Bigger"
   mac1_d1  #2
   mac1_a1  -0.25
@@ -233,7 +243,7 @@ patch Tenor family=voices
   mac2_d1  #16
   mac2_a1  0.35
   mac2_d2  #13
-  mac2_a2  -0.171
+  mac2_a2  -0.0762
   set macro3 "Air"
   mac3_d1  #3
   mac3_a1  0.4
@@ -263,7 +273,7 @@ patch Alto family=voices
   effort         -0.1
   breath         0.2
   vibrato        22 ct
-  volume         0.838
+  volume         0.3763
   set macro1 "Bigger"
   mac1_d1  #2
   mac1_a1  -0.25
@@ -271,7 +281,7 @@ patch Alto family=voices
   mac2_d1  #16
   mac2_a1  0.4
   mac2_d2  #13
-  mac2_a2  -0.185
+  mac2_a2  -0.082
   set macro3 "Air"
   mac3_d1  #3
   mac3_a1  0.4
@@ -296,6 +306,7 @@ patch Alto family=voices
   mac8_a1  -0.5
 
 patch Soft family=colour
+  volume         0.385
   # Close and gentle: the top of the voice down, and some air.
   effort         -0.8
   breath         0.5
@@ -308,7 +319,7 @@ patch Soft family=colour
   mac2_d1  #3
   mac2_a1  0.4
   mac2_d2  #13
-  mac2_a2  -0.142
+  mac2_a2  -0.0664
   set macro3 "Rasp"
   mac3_d1  #17
   mac3_a1  0.4
@@ -319,12 +330,12 @@ patch Soft family=colour
   mac5_d1  #19
   mac5_a1  0.6
   mac5_d2  #13
-  mac5_a2  -0.193
+  mac5_a2  -0.0938
   set macro6 "Bigger"
   mac6_d1  #2
   mac6_a1  -0.25
   mac6_d2  #13
-  mac6_a2  0.086
+  mac6_a2  0.054
   set macro7 "Vibrato"
   mac7_d1  #5
   mac7_a1  0.35
@@ -334,9 +345,10 @@ patch Soft family=colour
   mac8_d1  #1
   mac8_a1  0.3
   mac8_d2  #13
-  mac8_a2  -0.09
+  mac8_a2  -0.043
 
 patch Belter family=colour
+  volume         0.202
   # Sung out: bright, pushed up into each note, a wide late vibrato.
   effort         1
   scoop          0.6 st
@@ -347,12 +359,12 @@ patch Belter family=colour
   mac1_d1  #16
   mac1_a1  -0.4
   mac1_d2  #13
-  mac1_a2  0.342
+  mac1_a2  0.0859
   set macro2 "Air"
   mac2_d1  #3
   mac2_a1  0.4
   mac2_d2  #13
-  mac2_a2  0.072
+  mac2_a2  0.0237
   set macro3 "Rasp"
   mac3_d1  #17
   mac3_a1  0.4
@@ -360,17 +372,17 @@ patch Belter family=colour
   mac4_d1  #18
   mac4_a1  0.5
   mac4_d2  #13
-  mac4_a2  0.093
+  mac4_a2  0.0195
   set macro5 "Whisper"
   mac5_d1  #19
   mac5_a1  0.6
   mac5_d2  #13
-  mac5_a2  0.256
+  mac5_a2  0.0664
   set macro6 "Bigger"
   mac6_d1  #2
   mac6_a1  -0.25
   mac6_d2  #13
-  mac6_a2  0.108
+  mac6_a2  0.0355
   set macro7 "Vibrato"
   mac7_d1  #5
   mac7_a1  0.35
@@ -380,9 +392,10 @@ patch Belter family=colour
   mac8_d1  #1
   mac8_a1  0.3
   mac8_d2  #13
-  mac8_a2  0.123
+  mac8_a2  0.0405
 
 patch Rasp family=colour
+  volume         0.292
   rasp           0.55
   effort         0.4
   drift          0.5
@@ -390,7 +403,7 @@ patch Rasp family=colour
   mac1_d1  #16
   mac1_a1  0.3
   mac1_d2  #13
-  mac1_a2  -0.177
+  mac1_a2  -0.0645
   set macro2 "Air"
   mac2_d1  #3
   mac2_a1  0.4
@@ -401,17 +414,17 @@ patch Rasp family=colour
   mac4_d1  #18
   mac4_a1  0.5
   mac4_d2  #13
-  mac4_a2  0.093
+  mac4_a2  0.0443
   set macro5 "Whisper"
   mac5_d1  #19
   mac5_a1  0.6
   mac5_d2  #13
-  mac5_a2  0.079
+  mac5_a2  0.0375
   set macro6 "Bigger"
   mac6_d1  #2
   mac6_a1  -0.25
   mac6_d2  #13
-  mac6_a2  0.079
+  mac6_a2  0.0375
   set macro7 "Vibrato"
   mac7_d1  #5
   mac7_a1  0.35
@@ -422,6 +435,7 @@ patch Rasp family=colour
   mac8_a1  0.3
 
 patch Growl family=colour
+  volume         0.3719
   growl          0.7
   effort         0.6
   formant        -2 st
@@ -430,7 +444,7 @@ patch Growl family=colour
   mac1_d1  #16
   mac1_a1  -0.4
   mac1_d2  #13
-  mac1_a2  0.186
+  mac1_a2  0.0859
   set macro2 "Air"
   mac2_d1  #3
   mac2_a1  0.4
@@ -444,7 +458,7 @@ patch Growl family=colour
   mac5_d1  #19
   mac5_a1  0.6
   mac5_d2  #13
-  mac5_a2  -0.063
+  mac5_a2  -0.0382
   set macro6 "Bigger"
   mac6_d1  #2
   mac6_a1  -0.25
@@ -462,7 +476,7 @@ patch Whisper family=colour
   attack         0.08 s
   vibrato        0 ct
   # A whisper is quieter than a voice; brought most of the way up.
-  volume         1.15
+  volume         0.2558
   set macro1 "Belt"
   mac1_d1  #16
   mac1_a1  0.4
@@ -470,7 +484,7 @@ patch Whisper family=colour
   mac2_d1  #3
   mac2_a1  0.4
   mac2_d2  #13
-  mac2_a2  -0.205
+  mac2_a2  -0.0469
   set macro3 "Rasp"
   mac3_d1  #17
   mac3_a1  0.4
@@ -481,12 +495,12 @@ patch Whisper family=colour
   mac5_d1  #19
   mac5_a1  -0.6
   mac5_d2  #13
-  mac5_a2  0.233
+  mac5_a2  0.0547
   set macro6 "Bigger"
   mac6_d1  #2
   mac6_a1  -0.25
   mac6_d2  #13
-  mac6_a2  0.233
+  mac6_a2  0.0508
   set macro7 "Vibrato"
   mac7_d1  #5
   mac7_a1  0.35
@@ -496,9 +510,10 @@ patch Whisper family=colour
   mac8_d1  #1
   mac8_a1  0.3
   mac8_d2  #13
-  mac8_a2  -0.236
+  mac8_a2  -0.0527
 
 patch Pure family=colour
+  volume         0.3431
   # No breath left: a recorded voice cleaned right through, the built-in
   # one with none, and hardly a waver.
   clean          1
@@ -509,7 +524,7 @@ patch Pure family=colour
   mac1_d1  #16
   mac1_a1  0.4
   mac1_d2  #13
-  mac1_a2  -0.185
+  mac1_a2  -0.0781
   set macro2 "Air"
   mac2_d1  #3
   mac2_a1  0.4
@@ -520,12 +535,12 @@ patch Pure family=colour
   mac4_d1  #18
   mac4_a1  0.5
   mac4_d2  #13
-  mac4_a2  0.101
+  mac4_a2  0.0564
   set macro5 "Whisper"
   mac5_d1  #19
   mac5_a1  0.6
   mac5_d2  #13
-  mac5_a2  0.086
+  mac5_a2  0.0481
   set macro6 "Bigger"
   mac6_d1  #2
   mac6_a1  -0.25
@@ -544,7 +559,7 @@ patch Breathy family=colour
   effort         -0.5
   attack         0.08 s
   vibrato        18 ct
-  volume         0.738
+  volume         0.3352
   set macro1 "Belt"
   mac1_d1  #16
   mac1_a1  0.4
@@ -552,7 +567,7 @@ patch Breathy family=colour
   mac2_d1  #3
   mac2_a1  0.3
   mac2_d2  #13
-  mac2_a2  -0.101
+  mac2_a2  -0.0469
   set macro3 "Rasp"
   mac3_d1  #17
   mac3_a1  0.4
@@ -563,12 +578,12 @@ patch Breathy family=colour
   mac5_d1  #19
   mac5_a1  0.6
   mac5_d2  #13
-  mac5_a2  -0.171
+  mac5_a2  -0.0781
   set macro6 "Bigger"
   mac6_d1  #2
   mac6_a1  -0.25
   mac6_d2  #13
-  mac6_a2  0.135
+  mac6_a2  0.0625
   set macro7 "Vibrato"
   mac7_d1  #5
   mac7_a1  0.35
@@ -578,7 +593,7 @@ patch Breathy family=colour
   mac8_d1  #1
   mac8_a1  0.3
   mac8_d2  #13
-  mac8_a2  -0.11
+  mac8_a2  -0.0508
 
 patch Edge family=colour
   # Bright and forward, a hard edge on the top of the voice.
@@ -587,12 +602,12 @@ patch Edge family=colour
   vowel          3
   rasp           0.05
   vibrato        30 ct
-  volume         0.635
+  volume         0.2819
   set macro1 "Hush"
   mac1_d1  #16
   mac1_a1  -0.4
   mac1_d2  #13
-  mac1_a2  0.128
+  mac1_a2  0.0586
   set macro2 "Air"
   mac2_d1  #3
   mac2_a1  0.4
@@ -603,7 +618,7 @@ patch Edge family=colour
   mac4_d1  #18
   mac4_a1  0.5
   mac4_d2  #13
-  mac4_a2  0.092
+  mac4_a2  0.0532
   set macro5 "Whisper"
   mac5_d1  #19
   mac5_a1  0.6
@@ -619,9 +634,10 @@ patch Edge family=colour
   mac8_d1  #1
   mac8_a1  0.25
   mac8_d2  #13
-  mac8_a2  0.092
+  mac8_a2  0.0532
 
 patch Chant family=style
+  volume         0.3719
   # Straight and steady: no vibrato, hardly any wander.
   vibrato        0 ct
   drift          0.05
@@ -645,7 +661,7 @@ patch Chant family=style
   mac5_d1  #16
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.133
+  mac5_a2  -0.0625
   set macro6 "Air"
   mac6_d1  #3
   mac6_a1  0.4
@@ -659,6 +675,7 @@ patch Chant family=style
   mac8_a2  0.15
 
 patch Ballad family=style
+  volume         0.3985
   # Late, gentle vibrato, an easy scoop into each note, sung soft and breathy.
   vibrato        25 ct
   vibratodelay   0.6 s
@@ -685,12 +702,12 @@ patch Ballad family=style
   mac5_d1  #16
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.119
+  mac5_a2  -0.0625
   set macro6 "Air"
   mac6_d1  #3
   mac6_a1  0.4
   mac6_d2  #13
-  mac6_a2  -0.105
+  mac6_a2  -0.0547
   set macro7 "Bigger"
   mac7_d1  #2
   mac7_a1  -0.25
@@ -701,6 +718,7 @@ patch Ballad family=style
   mac8_a2  0.15
 
 patch Opera family=style
+  volume         0.2757
   # Wide vibrato that comes in early, a darker throat, sung out, hardly any air.
   vibrato        70 ct
   vibratorate    6 Hz
@@ -726,7 +744,7 @@ patch Opera family=style
   mac5_d1  #16
   mac5_a1  0.25
   mac5_d2  #13
-  mac5_a2  -0.151
+  mac5_a2  -0.0527
   set macro6 "Air"
   mac6_d1  #3
   mac6_a1  0.4
@@ -740,6 +758,7 @@ patch Opera family=style
   mac8_a2  0.15
 
 patch Crooner family=style
+  volume         0.3985
   # Low and soft, sliding up into the notes.
   scoop          1 st
   glide          0.15 s
@@ -765,12 +784,12 @@ patch Crooner family=style
   mac5_d1  #16
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.11
+  mac5_a2  -0.0547
   set macro6 "Air"
   mac6_d1  #3
   mac6_a1  0.4
   mac6_d2  #13
-  mac6_a2  -0.063
+  mac6_a2  -0.0409
   set macro7 "Bigger"
   mac7_d1  #2
   mac7_a1  -0.25
@@ -781,6 +800,7 @@ patch Crooner family=style
   mac8_a2  0.15
 
 patch Lullaby family=style
+  volume         0.3985
   # Soft and close: a slow start, a little air and vibrato that waits.
   vowel          1
   attack         0.25 s
@@ -810,7 +830,7 @@ patch Lullaby family=style
   mac6_d1  #3
   mac6_a1  0.4
   mac6_d2  #13
-  mac6_a2  -0.119
+  mac6_a2  -0.0586
   set macro7 "Bigger"
   mac7_d1  #2
   mac7_a1  -0.25
@@ -821,6 +841,7 @@ patch Lullaby family=style
   mac8_a2  0.15
 
 patch Swoop family=style
+  volume         0.3592
   # Slides between notes and wanders on them.
   glide          0.25 s
   drift          0.6
@@ -843,7 +864,7 @@ patch Swoop family=style
   mac5_d1  #16
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.185
+  mac5_a2  -0.084
   set macro6 "Air"
   mac6_d1  #3
   mac6_a1  0.4
@@ -866,7 +887,7 @@ patch Robot family=style
   clean          1
   effort         0.3
   # The built-in folds' pulse peaks high for its level: 0.88 at full.
-  volume         0.5
+  volume         0.3172
   set macro1 "Vibrato"
   mac1_d1  #5
   mac1_a1  0.35
@@ -885,7 +906,7 @@ patch Robot family=style
   mac5_d1  #16
   mac5_a1  0.35
   mac5_d2  #13
-  mac5_a2  -0.121
+  mac5_a2  -0.0781
   set macro6 "Air"
   mac6_d1  #3
   mac6_a1  0.4
@@ -907,7 +928,7 @@ patch Folk family=style
   scoop          0.3 st
   glide          0.06 s
   effort         0.1
-  volume         0.782
+  volume         0.3471
   set macro1 "Vibrato"
   mac1_d1  #5
   mac1_a1  0.35
@@ -926,7 +947,7 @@ patch Folk family=style
   mac5_d1  #16
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.189
+  mac5_a2  -0.082
   set macro6 "Air"
   mac6_d1  #3
   mac6_a1  0.4
@@ -950,7 +971,7 @@ patch Soul family=style
   vibratodelay   0.4 s
   effort         0.4
   rasp           0.08
-  volume         0.665
+  volume         0.3021
   set macro1 "Vibrato"
   mac1_d1  #5
   mac1_a1  0.35
@@ -969,7 +990,7 @@ patch Soul family=style
   mac5_d1  #16
   mac5_a1  0.3
   mac5_d2  #13
-  mac5_a2  -0.144
+  mac5_a2  -0.0664
   set macro6 "Air"
   mac6_d1  #3
   mac6_a1  0.4
@@ -977,7 +998,7 @@ patch Soul family=style
   mac7_d1  #2
   mac7_a1  -0.25
   mac7_d2  #13
-  mac7_a2  0.06
+  mac7_a2  0.0355
   set macro8 "Slower"
   mac8_d1  #10
   mac8_a1  0.25
@@ -985,6 +1006,7 @@ patch Soul family=style
   mac8_a2  0.15
 
 patch Duo family=choir
+  volume         0.3239
   singers        2
   spread         0.3
   set macro1 "Spread"
@@ -1005,7 +1027,7 @@ patch Duo family=choir
   mac5_d1  #16
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.185
+  mac5_a2  -0.0742
   set macro6 "Slower"
   mac6_d1  #10
   mac6_a1  0.25
@@ -1019,6 +1041,7 @@ patch Duo family=choir
   mac8_a1  0.3
 
 patch Choir family=choir
+  volume         0.3276
   singers        6
   spread         0.5
   vibrato        20 ct
@@ -1031,7 +1054,7 @@ patch Choir family=choir
   mac2_d1  #3
   mac2_a1  0.4
   mac2_d2  #13
-  mac2_a2  0.093
+  mac2_a2  0.0496
   set macro3 "Vibrato"
   mac3_d1  #5
   mac3_a1  0.35
@@ -1044,14 +1067,14 @@ patch Choir family=choir
   mac5_d1  #16
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.177
+  mac5_a2  -0.0723
   set macro6 "Slower"
   mac6_d1  #10
   mac6_a1  0.25
   mac6_d2  #11
   mac6_a2  0.15
   mac6_d3  #13
-  mac6_a3  0.178
+  mac6_a3  0.0703
   set macro7 "Wander"
   mac7_d1  #8
   mac7_a1  0.4
@@ -1060,6 +1083,7 @@ patch Choir family=choir
   mac8_a1  0.3
 
 patch Chamber family=choir
+  volume         0.3058
   # Four, close together and clean.
   singers        4
   spread         0.25
@@ -1069,12 +1093,12 @@ patch Chamber family=choir
   mac1_d1  #22
   mac1_a1  0.4
   mac1_d2  #13
-  mac1_a2  0.108
+  mac1_a2  0.0538
   set macro2 "Air"
   mac2_d1  #3
   mac2_a1  0.4
   mac2_d2  #13
-  mac2_a2  0.086
+  mac2_a2  0.0428
   set macro3 "Vibrato"
   mac3_d1  #5
   mac3_a1  0.35
@@ -1087,7 +1111,7 @@ patch Chamber family=choir
   mac5_d1  #16
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.181
+  mac5_a2  -0.0703
   set macro6 "Slower"
   mac6_d1  #10
   mac6_a1  0.25
@@ -1101,6 +1125,7 @@ patch Chamber family=choir
   mac8_a1  0.3
 
 patch Crowd family=choir
+  volume         0.3353
   # Six who don't agree: late, out of tune, all over the place.
   singers        6
   spread         1
@@ -1113,7 +1138,7 @@ patch Crowd family=choir
   mac2_d1  #3
   mac2_a1  0.4
   mac2_d2  #13
-  mac2_a2  0.072
+  mac2_a2  0.0394
   set macro3 "Vibrato"
   mac3_d1  #5
   mac3_a1  0.35
@@ -1126,14 +1151,14 @@ patch Crowd family=choir
   mac5_d1  #16
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.173
+  mac5_a2  -0.0723
   set macro6 "Slower"
   mac6_d1  #10
   mac6_a1  0.25
   mac6_d2  #11
   mac6_a2  0.15
   mac6_d3  #13
-  mac6_a3  0.079
+  mac6_a3  0.0431
   set macro7 "Wander"
   mac7_d1  #8
   mac7_a1  0.4
@@ -1142,6 +1167,7 @@ patch Crowd family=choir
   mac8_a1  0.3
 
 patch Chorale family=choir
+  volume         0.3762
   # Three a note on every note of a chord.
   harmony        1
   singers        3
@@ -1167,14 +1193,14 @@ patch Chorale family=choir
   mac5_d1  #16
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.177
+  mac5_a2  -0.082
   set macro6 "Slower"
   mac6_d1  #10
   mac6_a1  0.25
   mac6_d2  #11
   mac6_a2  0.15
   mac6_d3  #13
-  mac6_a3  0.154
+  mac6_a3  0.0703
   set macro7 "Wander"
   mac7_d1  #8
   mac7_a1  0.4
@@ -1183,6 +1209,7 @@ patch Chorale family=choir
   mac8_a1  0.3
 
 patch Harmony family=choir
+  volume         0.3353
   # A chord sings the words on every note, a close pair on each.
   harmony        1
   singers        2
@@ -1205,7 +1232,7 @@ patch Harmony family=choir
   mac5_d1  #16
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.185
+  mac5_a2  -0.0781
   set macro6 "Slower"
   mac6_d1  #10
   mac6_a1  0.25
@@ -1223,17 +1250,17 @@ patch Unison family=choir
   singers        3
   spread         0.15
   vibrato        15 ct
-  volume         0.73
+  volume         0.2888
   set macro1 "Spread"
   mac1_d1  #22
   mac1_a1  0.4
   mac1_d2  #13
-  mac1_a2  0.085
+  mac1_a2  0.0438
   set macro2 "Air"
   mac2_d1  #3
   mac2_a1  0.4
   mac2_d2  #13
-  mac2_a2  0.072
+  mac2_a2  0.0372
   set macro3 "Vibrato"
   mac3_d1  #5
   mac3_a1  0.35
@@ -1246,7 +1273,7 @@ patch Unison family=choir
   mac5_d1  #16
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.165
+  mac5_a2  -0.0645
   set macro6 "Slower"
   mac6_d1  #10
   mac6_a1  0.25
@@ -1267,7 +1294,7 @@ patch "Far Choir" family=choir
   effort         -0.4
   attack         0.3 s
   release        0.8 s
-  volume         1.04
+  volume         0.3885
   set macro1 "Spread"
   mac1_d1  #22
   mac1_a1  0.3
@@ -1286,14 +1313,14 @@ patch "Far Choir" family=choir
   mac5_d1  #16
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.136
+  mac5_a2  -0.0508
   set macro6 "Slower"
   mac6_d1  #10
   mac6_a1  0.227
   mac6_d2  #11
   mac6_a2  0.15
   mac6_d3  #13
-  mac6_a3  0.14
+  mac6_a3  0.0682
   set macro7 "Wander"
   mac7_d1  #8
   mac7_a1  0.4
@@ -1301,13 +1328,13 @@ patch "Far Choir" family=choir
   mac8_d1  #1
   mac8_a1  0.3
   mac8_d2  #13
-  mac8_a2  -0.123
+  mac8_a2  -0.0469
 
 patch "Close Harmony" family=harmony role=chord
   # One singer a note: a chord sung by a small group.
   harmony        1
   vibrato        20 ct
-  volume         0.816
+  volume         0.2748
   set macro1 "Spread"
   mac1_d1  #22
   mac1_a1  0.4
@@ -1326,7 +1353,7 @@ patch "Close Harmony" family=harmony role=chord
   mac5_d1  #16
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.185
+  mac5_a2  -0.0625
   set macro6 "Slower"
   mac6_d1  #10
   mac6_a1  0.25
@@ -1346,7 +1373,7 @@ patch Barbershop family=harmony role=chord
   drift          0.1
   vibrato        10 ct
   glide          0.05 s
-  volume         0.722
+  volume         0.2403
   set macro1 "Spread"
   mac1_d1  #22
   mac1_a1  0.4
@@ -1365,7 +1392,7 @@ patch Barbershop family=harmony role=chord
   mac5_d1  #16
   mac5_a1  0.35
   mac5_d2  #13
-  mac5_a2  -0.174
+  mac5_a2  -0.0586
   set macro6 "Slower"
   mac6_d1  #10
   mac6_a1  0.25
@@ -1386,7 +1413,7 @@ patch Gospel family=harmony role=chord
   scoop          0.8 st
   vibrato        30 ct
   effort         0.5
-  volume         0.553
+  volume         0.2114
   set macro1 "Spread"
   mac1_d1  #22
   mac1_a1  0.4
@@ -1399,7 +1426,7 @@ patch Gospel family=harmony role=chord
   mac3_d1  #3
   mac3_a1  0.4
   mac3_d2  #13
-  mac3_a2  0.075
+  mac3_a2  0.0373
   set macro4 "Bigger"
   mac4_d1  #2
   mac4_a1  -0.25
@@ -1407,7 +1434,7 @@ patch Gospel family=harmony role=chord
   mac5_d1  #16
   mac5_a1  0.25
   mac5_d2  #13
-  mac5_a2  -0.108
+  mac5_a2  -0.041
   set macro6 "Slower"
   mac6_d1  #10
   mac6_a1  0.25
@@ -1430,7 +1457,7 @@ patch "Pad Voices" family=harmony role=chord
   attack         0.4 s
   release        1 s
   vibrato        12 ct
-  volume         0.984
+  volume         0.347
   set macro1 "Spread"
   mac1_d1  #22
   mac1_a1  0.4
@@ -1449,7 +1476,7 @@ patch "Pad Voices" family=harmony role=chord
   mac5_d1  #16
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.158
+  mac5_a2  -0.0547
   set macro6 "Slower"
   mac6_d1  #10
   mac6_a1  0.173
@@ -1472,12 +1499,12 @@ patch Hymn family=harmony role=chord
   effort         -0.2
   attack         0.15 s
   release        0.6 s
-  volume         0.764
+  volume         0.3165
   set macro1 "Spread"
   mac1_d1  #22
   mac1_a1  0.4
   mac1_d2  #13
-  mac1_a2  0.125
+  mac1_a2  0.0508
   set macro2 "Vibrato"
   mac2_d1  #5
   mac2_a1  0.35
@@ -1493,14 +1520,14 @@ patch Hymn family=harmony role=chord
   mac5_d1  #16
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.14
+  mac5_a2  -0.0586
   set macro6 "Slower"
   mac6_d1  #10
   mac6_a1  0.25
   mac6_d2  #11
   mac6_a2  0.15
   mac6_d3  #13
-  mac6_a3  0.125
+  mac6_a3  0.0547
   set macro7 "Glide"
   mac7_d1  #9
   mac7_a1  0.2
@@ -1509,6 +1536,7 @@ patch Hymn family=harmony role=chord
   mac8_a1  0.3
 
 patch Chipmunk family=strange
+  volume         0.3592
   track          1
   formant        3 st
   set macro1 "Against"
@@ -1518,7 +1546,7 @@ patch Chipmunk family=strange
   mac2_d1  #18
   mac2_a1  0.5
   mac2_d2  #13
-  mac2_a2  0.115
+  mac2_a2  0.0673
   set macro3 "Whisper"
   mac3_d1  #19
   mac3_a1  0.6
@@ -1539,6 +1567,7 @@ patch Chipmunk family=strange
   mac8_a1  0.3
 
 patch Undertow family=strange
+  volume         0.4221
   # The throat grows as the notes go up, and a growl under it.
   track          -1
   formant        -4 st
@@ -1551,12 +1580,12 @@ patch Undertow family=strange
   mac2_d1  #18
   mac2_a1  0.5
   mac2_d2  #13
-  mac2_a2  0.072
+  mac2_a2  0.0495
   set macro3 "Whisper"
   mac3_d1  #19
   mac3_a1  0.6
   mac3_d2  #13
-  mac3_a2  -0.11
+  mac3_a2  -0.0586
   set macro4 "Rasp"
   mac4_d1  #17
   mac4_a1  0.4
@@ -1570,12 +1599,13 @@ patch Undertow family=strange
   mac7_d1  #26
   mac7_a1  -0.5
   mac7_d2  #13
-  mac7_a2  -0.063
+  mac7_a2  -0.0433
   set macro8 "Brighter"
   mac8_d1  #1
   mac8_a1  0.3
 
 patch Fry family=strange
+  volume         0.4736
   # Down in the throat's crackle.
   growl          1
   effort         -0.3
@@ -1590,7 +1620,7 @@ patch Fry family=strange
   mac3_d1  #19
   mac3_a1  0.6
   mac3_d2  #13
-  mac3_a2  -0.138
+  mac3_a2  -0.082
   set macro4 "Rasp"
   mac4_d1  #17
   mac4_a1  0.4
@@ -1607,7 +1637,7 @@ patch Fry family=strange
   mac8_d1  #1
   mac8_a1  0.3
   mac8_d2  #13
-  mac8_a2  0.093
+  mac8_a2  0.0717
 
 patch Ghosts family=strange
   # Four whispering, far apart.
@@ -1615,7 +1645,7 @@ patch Ghosts family=strange
   singers        4
   spread         1
   release        0.8 s
-  volume         1.4
+  volume         0.3618
   set macro1 "Follow"
   mac1_d1  #21
   mac1_a1  0.3
@@ -1626,7 +1656,7 @@ patch Ghosts family=strange
   mac3_d1  #19
   mac3_a1  0.3
   mac3_d2  #13
-  mac3_a2  -0.241
+  mac3_a2  -0.0625
   set macro4 "Rasp"
   mac4_d1  #17
   mac4_a1  0.4
@@ -1634,7 +1664,7 @@ patch Ghosts family=strange
   mac5_d1  #2
   mac5_a1  -0.25
   mac5_d2  #13
-  mac5_a2  0.067
+  mac5_a2  0.0226
   set macro6 "Scoop"
   mac6_d1  #20
   mac6_a1  0.25
@@ -1645,7 +1675,7 @@ patch Ghosts family=strange
   mac8_d1  #1
   mac8_a1  0.3
   mac8_d2  #13
-  mac8_a2  -0.257
+  mac8_a2  -0.0664
 
 patch Buzz family=strange
   # Bright and hard. A recorded voice sings it through the built-in folds
@@ -1655,7 +1685,7 @@ patch Buzz family=strange
   source         1
   throat         0.5
   rasp           0.15
-  volume         0.5
+  volume         0.222
   set macro1 "Follow"
   mac1_d1  #21
   mac1_a1  0.3
@@ -1663,12 +1693,12 @@ patch Buzz family=strange
   mac2_d1  #18
   mac2_a1  0.5
   mac2_d2  #13
-  mac2_a2  0.067
+  mac2_a2  0.0388
   set macro3 "Whisper"
   mac3_d1  #19
   mac3_a1  0.6
   mac3_d2  #13
-  mac3_a2  0.207
+  mac3_a2  0.0938
   set macro4 "Rasp"
   mac4_d1  #17
   mac4_a1  0.4
@@ -1676,7 +1706,7 @@ patch Buzz family=strange
   mac5_d1  #2
   mac5_a1  -0.25
   mac5_d2  #13
-  mac5_a2  0.054
+  mac5_a2  0.0312
   set macro6 "Scoop"
   mac6_d1  #20
   mac6_a1  0.25
@@ -1687,7 +1717,7 @@ patch Buzz family=strange
   mac8_d1  #1
   mac8_a1  0.3
   mac8_d2  #13
-  mac8_a2  0.082
+  mac8_a2  0.0474
 
 patch Helium family=strange
   # A tiny throat that gets smaller as it goes up, with a fast wide vibrato.
@@ -1696,7 +1726,7 @@ patch Helium family=strange
   effort         0.2
   vibrato        40 ct
   vibratorate    7.5 Hz
-  volume         0.681
+  volume         0.3023
   set macro1 "Follow"
   mac1_d1  #21
   mac1_a1  0.25
@@ -1704,12 +1734,12 @@ patch Helium family=strange
   mac2_d1  #18
   mac2_a1  0.5
   mac2_d2  #13
-  mac2_a2  0.098
+  mac2_a2  0.0566
   set macro3 "Whisper"
   mac3_d1  #19
   mac3_a1  0.6
   mac3_d2  #13
-  mac3_a2  0.138
+  mac3_a2  0.0625
   set macro4 "Rasp"
   mac4_d1  #17
   mac4_a1  0.4
@@ -1726,7 +1756,7 @@ patch Helium family=strange
   mac8_d1  #1
   mac8_a1  0.3
   mac8_d2  #13
-  mac8_a2  0.067
+  mac8_a2  0.0388
 
 patch Monster family=strange
   # The biggest throat there is, an octave down and growling.
@@ -1735,12 +1765,12 @@ patch Monster family=strange
   track          -0.5
   octave         -1
   effort         0.5
-  volume         0.867
+  volume         0.403
   set macro1 "Follow"
   mac1_d1  #21
   mac1_a1  0.3
   mac1_d2  #13
-  mac1_a2  0.086
+  mac1_a2  0.0521
   set macro2 "Smooth"
   mac2_d1  #18
   mac2_a1  -0.5
@@ -1754,7 +1784,7 @@ patch Monster family=strange
   mac5_d1  #2
   mac5_a1  0.25
   mac5_d2  #13
-  mac5_a2  -0.069
+  mac5_a2  -0.0418
   set macro6 "Scoop"
   mac6_d1  #20
   mac6_a1  0.25
@@ -1762,7 +1792,7 @@ patch Monster family=strange
   mac7_d1  #26
   mac7_a1  0.5
   mac7_d2  #13
-  mac7_a2  0.101
+  mac7_a2  0.0612
   set macro8 "Brighter"
   mac8_d1  #1
   mac8_a1  0.3

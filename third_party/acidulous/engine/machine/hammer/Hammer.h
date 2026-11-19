@@ -23,6 +23,8 @@ namespace acidulous::machine {
 
 class Hammer final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+13.2 dB). */
+    static constexpr float kHouseTrim = 4.595f;
     enum P : int32_t {
         // The instrument.
         Model = 0, Size, Age, Seed,

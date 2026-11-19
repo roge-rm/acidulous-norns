@@ -128,7 +128,7 @@ const ParamDef *Tine::paramDefs(int32_t &count) const {
         {"velocity", 0.0f, 1.0f, 0.6f, Curve::Linear, 0, ""},
         {"bend", 0.0f, 12.0f, 2.0f, Curve::Linear, 0, "st"},
         {"octave", -2.0f, 2.0f, 0.0f, Curve::Stepped, 5, ""},
-        {"volume", 0.0f, 1.0f, 0.7f, Curve::Linear, 0, ""},
+        {"volume", 0.0f, 1.0f, 0.24f, Curve::Linear, 0, ""}, // 12 dB under the top
         {"pair", 0.0f, 50.0f, 0.0f, Curve::Linear, 0, "cents"},
     };
     static const ParamDef last[Count - Into] = {
@@ -895,7 +895,7 @@ bool Tine::render(float *L, float *R, int32_t frames) {
     const float bloom = clampf(paramOf(Bloom), 0.0f, 1.0f);
     const float buzz = clampf(paramOf(Buzz), 0.0f, 1.0f);
     const float roll = paramOf(Roll);
-    const float volume = paramOf(Volume);
+    const float volume = paramOf(Volume) * kHouseTrim;
     // The melt: how long one takes, how much a hit or pressure hurries it, and the macro's place.
     const float meltKnob = clampf(paramOf(Melt), 0.0f, 1.0f);
     // Per sample: a step moves the melt by the samples since the last.

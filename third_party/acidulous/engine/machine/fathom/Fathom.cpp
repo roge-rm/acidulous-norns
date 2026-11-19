@@ -60,7 +60,7 @@ const ParamDef *Fathom::paramDefs(int32_t &count) const {
         {"velocity", 0.0f, 1.0f, 0.6f, Curve::Linear, 0, ""},
         {"bend", 0.0f, 12.0f, 2.0f, Curve::Linear, 0, "st"},
         {"octave", -2.0f, 2.0f, 0.0f, Curve::Stepped, 5, ""},
-        {"volume", 0.0f, 1.0f, 0.7f, Curve::Linear, 0, ""},
+        {"volume", 0.0f, 1.0f, 0.15f, Curve::Linear, 0, ""}, // 16 dB under the top
         // Kit mode, and the default kit: fire, wind, rain, drips, bubbles, a stream and surf.
         {"kit", 0.0f, 1.0f, 0.0f, Curve::Stepped, 2, ""},
         {"p01_model", 0.0f, static_cast<float>(KindCount - 1), 6.0f, Curve::Stepped, KindCount, ""},
@@ -586,7 +586,7 @@ bool Fathom::render(float *L, float *R, int32_t frames) {
     const float whistleAmount = clampf(paramOf(Whistle), 0.0f, 1.0f);
     const float fade = paramOf(Fade);
     const float fadeCoef = 1.0f - std::exp(-1.0f / (fade * sampleRate * 0.3f));
-    const float volume = paramOf(Volume);
+    const float volume = paramOf(Volume) * kHouseTrim;
     const float dt = 1.0f / sampleRate;
     const float swellBeats = clampf(paramOf(Swell), 1.0f, 16.0f);
     const int surf = std::clamp(steppedTargetOf(Surface), 0, SurfaceCount - 1);

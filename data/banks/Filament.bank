@@ -113,7 +113,8 @@
 #
 # **What is still wrong.** `Spoken To` is played by the audio input and so
 # measures as silence here, which is correct and means it cannot be
-# auditioned without one. Steel String is three decibels under the rest of the bank
+# auditioned without one. Its level is set on a real voice, not the synthetic
+# phrase. Steel String is three decibels under the rest of the bank
 # at full volume, because its energy sits in high partials rather than at the
 # note. And `chiff` reads 1.0 whenever a patch's tail is under a twentieth of
 # its peak, which means "not measured" rather than "no chiff" - do not read
@@ -196,12 +197,12 @@
 # patches read up to forty at the odd note, where the jet's noise outweighs
 # the low partials.
 #
-# Plucks and picks are levelled on peak, at -8, and the sympathetic and
-# prepared plucks on whichever of that and -28 loudness comes first, since
-# their strings ring on after the note. The struck patches meet Hammered
-# half way between its peak and its loudness, since a hard short blow and a
-# long ring cannot match on both. Bowed and blown patches sit at -28.5
-# loudness.
+# Every patch sits at -27.5 on `loud`, within 1 dB, Init included. Init gets
+# there through the machine's house trim, with `volume` at its default of
+# 0.31, 14 dB under the top. The patches are levelled by `volume`, never
+# higher than 6 dB under the top. Spoken To
+# plays the audio input, so it measures as silence here. Its volume was set on
+# a real voice (`--input file:$ACIDULOUS_INPUT_FILE`), to -27.5 loud.
 #
 # Families in tab order: plucked (Init first), picked, struck, bowed, blown,
 # sympathetic, prepared. Every patch but Init carries eight named macros.
@@ -282,7 +283,7 @@ patch "Nylon String" family=plucked  note=52 range=40..76
   size           0.55
   sustain        0.727
   tone           0.4
-  volume         1.07
+  volume         0.3563
 
 patch Lute family=plucked  note=57 range=43..77
   set macro1 "Bridge"
@@ -336,7 +337,7 @@ patch Lute family=plucked  note=57 range=43..77
   size           0.68
   sustain        0.66
   tone           0.36
-  volume         1.21
+  volume         0.3936
 
 patch "Lever Harp" family=plucked  note=60 range=36..84
   set macro1 "Bridge"
@@ -356,7 +357,7 @@ patch "Lever Harp" family=plucked  note=60 range=36..84
   mac2_d2  #5
   mac2_a2  0.3
   mac2_d3  #27
-  mac2_a3  -0.05
+  mac2_a3  -0.01248
   mac3_d1  #8
   mac3_a1  0.12
   mac3_d2  #9
@@ -393,7 +394,7 @@ patch "Lever Harp" family=plucked  note=60 range=36..84
   sustain        0.82
   sustainkey     0.55
   tone           0.42
-  volume         0.93
+  volume         0.2322
   send reverb    0.2
 
 patch Pizz family=plucked  note=60 range=43..84
@@ -450,7 +451,7 @@ patch Pizz family=plucked  note=60 range=43..84
   sustain        0.46
   sustainkey     0.6
   tone           0.36
-  volume         0.99
+  volume         0.4057
   send reverb    0.15
 
 patch "Low Gut" family=plucked  note=40 range=28..55
@@ -507,7 +508,7 @@ patch "Low Gut" family=plucked  note=40 range=28..55
   sustainkey     0.3
   tension        0.25
   tone           0.18
-  volume         1.44
+  volume         0.4225
 
 patch Quill family=plucked  note=62 range=41..84
   set macro1 "Nasal"
@@ -563,7 +564,7 @@ patch Quill family=plucked  note=62 range=41..84
   stiffness      0.1
   sustain        0.75
   tone           0.62
-  volume         0.83
+  volume         0.2407
   send reverb    0.12
 
 patch "Silk Zither" family=plucked  note=62 range=50..86
@@ -584,7 +585,7 @@ patch "Silk Zither" family=plucked  note=62 range=50..86
   mac2_d2  #5
   mac2_a2  0.3
   mac2_d3  #27
-  mac2_a3  -0.05
+  mac2_a3  -0.01554
   mac3_d1  #8
   mac3_a1  0.2
   mac4_d1  #47
@@ -623,7 +624,7 @@ patch "Silk Zither" family=plucked  note=62 range=50..86
   vibrate        5.5 Hz
   vibdepth       12 c
   vibdelay       0.5 s
-  volume         0.89
+  volume         0.2766
   send reverb    0.15
 
 patch "Gourd Wire" family=plucked  note=67 range=55..84
@@ -676,7 +677,7 @@ patch "Gourd Wire" family=plucked  note=67 range=55..84
   stiffness      0.25
   sustain        0.62
   tone           0.36
-  volume         1.5
+  volume         0.2975
 
 patch "Tin Comb" family=plucked  note=79 range=60..96
   set macro1 "Softer"
@@ -733,7 +734,7 @@ patch "Tin Comb" family=plucked  note=79 range=60..96
   stiffness      0.5
   sustain        0.75
   tone           0.72
-  volume         0.94
+  volume         0.2989
   send reverb    0.2
 
 patch "Steel String" family=picked  note=52 range=40..79
@@ -796,7 +797,7 @@ patch "Steel String" family=picked  note=52 range=40..79
   # 0.62 made a loop bright enough that the eighth harmonic was the loudest
   # thing in the note. A steel string is bright and still has a fundamental.
   tone           0.5
-  volume         1.33
+  volume         0.48
 
 patch Mandolin family=picked  note=67 range=55..88
   set macro1 "Bridge"
@@ -848,13 +849,13 @@ patch Mandolin family=picked  note=67 range=55..88
   lfo1depth      0
   m1_src         #9
   m1_dst         #16
-  m1_amt         -0.5
+  m1_amt         -0.1956
   position       0.12
   size           0.3
   stiffness      0.12
   sustain        0.62
   tone           0.56
-  volume         0.82
+  volume         0.3208
   send reverb    0.12
 
 patch "Twelve Course" family=picked  note=55 range=40..79
@@ -915,7 +916,7 @@ patch "Twelve Course" family=picked  note=55 range=40..79
   symsustain     0.7
   symtune        #0
   tone           0.56
-  volume         1.19
+  volume         0.4198
   insert Chorus
   mix          0.35
 
@@ -972,7 +973,7 @@ patch Banjo family=picked  note=62 range=50..84
   sustain        0.52
   tension        0.35
   tone           0.68
-  volume         0.96
+  volume         0.3018
 
 patch Bottleneck family=picked  note=55 range=40..76
   set macro1 "Slide"
@@ -1036,7 +1037,7 @@ patch Bottleneck family=picked  note=55 range=40..76
   vibrate        5 Hz
   vibdepth       14 c
   vibdelay       0.3 s
-  volume         1.00
+  volume         0.3527
   send reverb    0.15
 
 patch "Picked Wire" family=picked  note=64 range=53..88
@@ -1089,7 +1090,7 @@ patch "Picked Wire" family=picked  note=64 range=53..88
   sustain        0.907
   tension        0.8
   tone           0.85
-  volume         0.86
+  volume         0.3483
 
 patch Hammered family=struck  note=60 range=36..84
   set macro1 "Harder"
@@ -1144,7 +1145,7 @@ patch Hammered family=struck  note=60 range=36..84
   symtune        #5
   tension        0.3
   tone           0.5
-  volume         0.32
+  volume         0.1281
 
 patch "Soft Hammers" family=struck  note=62 range=48..86
   set macro1 "Harder"
@@ -1160,7 +1161,7 @@ patch "Soft Hammers" family=struck  note=62 range=48..86
   mac1_d2  #10
   mac1_a2  0.15
   mac1_d3  #27
-  mac1_a3  -0.08
+  mac1_a3  -0.01605
   mac2_d1  #10
   mac2_a1  0.3
   mac3_d1  #8
@@ -1201,7 +1202,7 @@ patch "Soft Hammers" family=struck  note=62 range=48..86
   sustain        0.86
   sustainkey     0.6
   tone           0.42
-  volume         0.35
+  volume         0.07023
   send reverb    0.15
 
 patch "Wide Hammers" family=struck  note=62 range=40..86
@@ -1218,7 +1219,7 @@ patch "Wide Hammers" family=struck  note=62 range=40..86
   mac1_d2  #10
   mac1_a2  0.15
   mac1_d3  #27
-  mac1_a3  -0.1
+  mac1_a3  -0.03485
   mac2_d1  #6
   mac2_a1  0.2
   mac2_d2  #10
@@ -1267,7 +1268,7 @@ patch "Wide Hammers" family=struck  note=62 range=40..86
   symsustain     0.8
   symtune        #5
   tone           0.46
-  volume         0.47
+  volume         0.1638
   send reverb    0.12
 
 patch "Pressed Wire" family=struck  note=60 range=41..84
@@ -1327,7 +1328,7 @@ patch "Pressed Wire" family=struck  note=60 range=41..84
   vibrate        5.5 Hz
   vibdepth       6 c
   vibdelay       0.4 s
-  volume         0.57
+  volume         0.2712
 
 patch "Bare Wire" family=struck  note=60 range=36..88
   set macro1 "Harder"
@@ -1388,7 +1389,7 @@ patch "Bare Wire" family=struck  note=60 range=36..88
   symtune        #5
   tension        0.2
   tone           0.55
-  volume         0.25
+  volume         0.07418
   send reverb    0.12
 
 patch "Struck Bass" family=struck  note=38 range=28..55
@@ -1405,13 +1406,13 @@ patch "Struck Bass" family=struck  note=38 range=28..55
   mac1_d2  #10
   mac1_a2  0.15
   mac1_d3  #27
-  mac1_a3  -0.1
+  mac1_a3  -0.03569
   mac2_d1  #10
   mac2_a1  0.4
   mac2_d2  #6
   mac2_a2  -0.04
   mac2_d3  #27
-  mac2_a3  -0.05
+  mac2_a3  -0.01784
   mac3_d1  #1
   mac3_a1  0.25
   mac4_d1  #8
@@ -1450,7 +1451,7 @@ patch "Struck Bass" family=struck  note=38 range=28..55
   sustain        0.85
   tension        0.3
   tone           0.4
-  volume         1.31
+  volume         0.4675
 
 patch "Bell Wire" family=struck  note=67 range=55..83
   set macro1 "Softer"
@@ -1494,7 +1495,7 @@ patch "Bell Wire" family=struck  note=67 range=55..83
   lfo1depth      0
   m1_src         #9
   m1_dst         #16
-  m1_amt         -0.5
+  m1_amt         -0.1743
   length         0.0006 s
   position       0.22
   size           0.3
@@ -1506,7 +1507,7 @@ patch "Bell Wire" family=struck  note=67 range=55..83
   symsustain     0.85
   symtune        #4
   tone           0.8
-  volume         0.3
+  volume         0.1046
   send reverb    0.25
 
 patch Bowed family=bowed  note=55 range=36..76
@@ -1572,7 +1573,7 @@ patch Bowed family=bowed  note=55 range=36..76
   sustain        0.454
   tone           0.4
   velocity       0.4
-  volume         0.115
+  volume         0.09507
 
 patch "Low Bow" family=bowed  note=48 range=36..67
   set macro1 "Bow Harder"
@@ -1636,7 +1637,7 @@ patch "Low Bow" family=bowed  note=48 range=36..67
   sustain        0.5
   tone           0.36
   velocity       0.4
-  volume         0.144
+  volume         0.1415
   send reverb    0.12
 
 patch "Folk Fiddle" family=bowed  note=69 range=55..88 role=lead
@@ -1697,7 +1698,7 @@ patch "Folk Fiddle" family=bowed  note=69 range=55..88 role=lead
   symtune        #1
   tone           0.52
   velocity       0.4
-  volume         0.121
+  volume         0.04626
 
 patch "Massed Bows" family=bowed  note=55 range=36..79
   set macro1 "Bow Harder"
@@ -1753,7 +1754,7 @@ patch "Massed Bows" family=bowed  note=55 range=36..79
   sustain        0.5
   tone           0.42
   velocity       0.4
-  volume         0.133
+  volume         0.08153
   insert Chorus
   mix          0.4
   send reverb    0.2
@@ -1805,7 +1806,7 @@ patch "Tremolo Bow" family=bowed  note=57 range=43..76
   m1_amt         0.4
   m2_src         #9
   m2_dst         #16
-  m2_amt         0.05
+  m2_amt         0.04748
   bodymix        0.4
   exciter        #3
   grit           0.3
@@ -1814,7 +1815,7 @@ patch "Tremolo Bow" family=bowed  note=57 range=43..76
   sustain        0.454
   tone           0.42
   velocity       0.4
-  volume         0.117
+  volume         0.1111
 
 patch Ponticello family=bowed  note=60 range=43..81
   set macro1 "Glassier"
@@ -1870,7 +1871,7 @@ patch Ponticello family=bowed  note=60 range=43..81
   tone           0.82
   tonekey        0
   velocity       0.4
-  volume         0.148
+  volume         0.08663
 
 patch "Col Legno" family=bowed  note=57 range=40..79
   set macro1 "More Wood"
@@ -1918,7 +1919,7 @@ patch "Col Legno" family=bowed  note=57 range=40..79
   sustain        0.4
   tone           0.55
   velocity       0.4
-  volume         0.323
+  volume         0.1848
 
 # 48..82 rather than 84: at a kilohertz a string blown at rather than
 # struck is nine parts jet noise to one part note, and 84 measured 0.11 on
@@ -1966,7 +1967,7 @@ patch "Blown String" family=blown  note=67 range=48..82
   stiffness      0.1
   sustain        0.41
   tone           0.3
-  volume         0.602
+  volume         0.2051
 
 patch "Low Breath" family=blown  note=50 range=38..67
   set macro1 "Blow Harder"
@@ -2010,7 +2011,7 @@ patch "Low Breath" family=blown  note=50 range=38..67
   stiffness      0.05
   sustain        0.5
   tone           0.25
-  volume         1.07
+  volume         0.3999
 
 patch "Hard Breath" family=blown  note=62 range=48..79
   set macro1 "Blow Harder"
@@ -2053,7 +2054,7 @@ patch "Hard Breath" family=blown  note=62 range=48..79
   pressure       0.85
   sustain        0.5
   tone           0.8
-  volume         0.38
+  volume         0.1469
 
 patch "Wind Wire" family=blown  note=64 range=50..84
   set macro1 "Gusts"
@@ -2098,7 +2099,7 @@ patch "Wind Wire" family=blown  note=64 range=50..84
   sustain        0.7
   tension        0.6
   tone           0.6
-  volume         0.248
+  volume         0.1279
   send reverb    0.15
 
 patch "Aeolian Harp" family=blown  note=55 range=40..76
@@ -2156,7 +2157,7 @@ patch "Aeolian Harp" family=blown  note=55 range=40..76
   symsustain     0.85
   symtune        #4
   tone           0.45
-  volume         0.263
+  volume         0.1029
   send reverb    0.25
 
 patch "Sympathetic Strings" family=sympathetic  note=60 range=45..81
@@ -2201,7 +2202,7 @@ patch "Sympathetic Strings" family=sympathetic  note=60 range=45..81
   symtune        #4
   symwide        0.8
   tone           0.5
-  volume         0.68
+  volume         0.3198
 
 patch "Fifths Drone" family=sympathetic  note=55 range=40..76
   set macro1 "More Drone"
@@ -2247,7 +2248,7 @@ patch "Fifths Drone" family=sympathetic  note=55 range=40..76
   symsustain     0.82
   symtune        #1
   tone           0.45
-  volume         0.688
+  volume         0.263
   send reverb    0.12
 
 patch "Course Shimmer" family=sympathetic  note=60 range=45..84
@@ -2301,7 +2302,7 @@ patch "Course Shimmer" family=sympathetic  note=60 range=45..84
   symtune        #5
   symwide        1
   tone           0.55
-  volume         1.17
+  volume         0.5196
 
 patch "Buzzing Drone" family=sympathetic  note=57 range=45..79
   set macro1 "More Buzz"
@@ -2354,7 +2355,7 @@ patch "Buzzing Drone" family=sympathetic  note=57 range=45..79
   symsustain     0.88
   symtune        #2
   tone           0.6
-  volume         1.143
+  volume         0.5759
 
 patch "Bowed Sympathy" family=sympathetic  note=57 range=40..76
   set macro1 "Bow Harder"
@@ -2408,7 +2409,7 @@ patch "Bowed Sympathy" family=sympathetic  note=57 range=40..76
   symtune        #3
   tone           0.4
   velocity       0.4
-  volume         0.121
+  volume         0.111
 
 patch "Harmonic Halo" family=sympathetic  note=55 range=40..76 role=drone
   set macro1 "Brighter"
@@ -2457,7 +2458,7 @@ patch "Harmonic Halo" family=sympathetic  note=55 range=40..76 role=drone
   symtune        #4
   symwide        1
   tone           0.4
-  volume         0.353
+  volume         0.3164
   send reverb    0.3
 
 patch Prepared family=prepared  note=55 range=36..76
@@ -2508,7 +2509,7 @@ patch Prepared family=prepared  note=55 range=36..76
   stiffness      0.3
   sustain        0.727
   tone           0.6
-  volume         0.39
+  volume         0.1712
 
 patch "Rubber Wedges" family=prepared  note=55 range=36..76
   set macro1 "Harder"
@@ -2547,7 +2548,7 @@ patch "Rubber Wedges" family=prepared  note=55 range=36..76
   length         0.003 s
   sustain        0.3
   tone           0.35
-  volume         0.299
+  volume         0.1282
 
 patch "Paper Weave" family=prepared  note=55 range=36..76
   set macro1 "More Paper"
@@ -2588,7 +2589,7 @@ patch "Paper Weave" family=prepared  note=55 range=36..76
   "rattle at"    0.05
   sustain        0.6
   tone           0.5
-  volume         0.783
+  volume         0.3028
 
 patch "Loose Screws" family=prepared  note=57 range=40..79
   set macro1 "Looser"
@@ -2630,7 +2631,7 @@ patch "Loose Screws" family=prepared  note=57 range=40..79
   stiffness      0.3
   sustain        0.7
   tone           0.6
-  volume         0.999
+  volume         0.3327
 
 patch Bolted family=prepared  note=50 range=36..72
   set macro1 "Harder"
@@ -2675,7 +2676,7 @@ patch Bolted family=prepared  note=50 range=36..72
   sustain        0.85
   tension        0.5
   tone           0.6
-  volume         0.45
+  volume         0.1481
   send reverb    0.15
 
 patch "Broken Wire" family=prepared  note=52 range=40..76
@@ -2725,7 +2726,7 @@ patch "Broken Wire" family=prepared  note=52 range=40..76
   sustain        0.55
   tension        1
   tone           0.6
-  volume         1.347
+  volume         0.4233
 
 patch "Spoken To" family=prepared  note=55 range=36..72
   set macro1 "Louder In"
@@ -2766,4 +2767,4 @@ patch "Spoken To" family=prepared  note=55 range=36..72
   sympathy       #1
   symtune        #2
   tone           0.55
-  volume         1.50
+  volume         0.0354

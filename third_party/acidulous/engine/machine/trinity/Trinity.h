@@ -18,6 +18,8 @@ namespace acidulous::machine {
 
 class Trinity final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+3.1 dB). */
+    static constexpr float kHouseTrim = 1.437f;
     static constexpr int kOscs = 3;
     static constexpr int kDensity = 8;
     static constexpr int kEnvs = 6;

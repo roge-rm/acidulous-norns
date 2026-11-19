@@ -139,7 +139,7 @@ const ParamDef *Filament::paramDefs(int32_t &count) const {
         lin(Drive, "drive", 0.0f, 1.0f, 0.1f);
         // Goes up to 1.5 so quieter patches like Steel can reach the
         // standard level.
-        lin(Volume, "volume", 0.0f, 1.5f, 0.8f);
+        lin(Volume, "volume", 0.0f, 1.5f, 0.31f); // 14 dB under the top
         lin(Pan, "pan", -1.0f, 1.0f, 0.0f);
         lin(Dry, "exciter out", 0.0f, 1.0f, 0.0f);
 
@@ -612,6 +612,7 @@ bool Filament::render(float *L, float *R, int32_t frames) {
     const float driveK = 1.0f + drive * 8.0f;
     const float driveNorm = kNominal / std::tanh(kNominal * driveK);
     const float volume = paramOf(Volume);
+    const float outGain = volume * kHouseTrim;
     const float panBase = paramOf(Pan);
     const float dry = paramOf(Dry);
     // 30 Hz: below every note this machine plays and above the slow part of
@@ -706,7 +707,7 @@ bool Filament::render(float *L, float *R, int32_t frames) {
                 const float prs = glidePressure(v.prsGlide, v.pressure, pressure) * paramOf(MpePressure);
                 v.mod[DstPressure] += prs * 0.6f;
                 v.mod[DstBrightness] += prs * 0.5f;
-                v.mod[DstVolume] += prs * 0.4f;
+                v.mod[DstVolume] += prs * (0.4f / kHouseTrim); // the same level at any trim
             }
 
             // Damping, brightness and tuning per note. Higher notes can be
@@ -986,8 +987,8 @@ bool Filament::render(float *L, float *R, int32_t frames) {
             outL = std::tanh(outL * driveKNow) * driveNormNow;
             outR = std::tanh(outR * driveKNow) * driveNormNow;
         }
-        L[n] = outL * volume;
-        R[n] = outR * volume;
+        L[n] = outL * outGain;
+        R[n] = outR * outGain;
         stringLevel = loudest;
     }
     if (anyVoice) {

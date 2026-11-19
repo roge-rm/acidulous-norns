@@ -30,6 +30,8 @@ namespace acidulous::machine {
  */
 class Palm final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+10.6 dB). */
+    static constexpr float kHouseTrim = 3.369f;
     enum P : int32_t {
         Model = 0, Tune, Stroke, Position, Hand, Decay, Damp,
         Drop, Squeeze, Rattle, Body, Roll, Spread,

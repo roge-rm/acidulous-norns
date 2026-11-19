@@ -150,7 +150,7 @@ const ParamDef *Ratio::paramDefs(int32_t &count) const {
         putN(BendRange, "bend", 0.0f, 24.0f, 2.0f, Curve::Stepped, 25, "st");
         putN(Octave, "octave", -3.0f, 3.0f, 0.0f, Curve::Stepped, 7, "");
         putN(Transpose, "transpose", -12.0f, 12.0f, 0.0f, Curve::Stepped, 25, "st");
-        putN(Volume, "volume", 0.0f, 1.0f, 0.7f, Curve::Linear, 0, "");
+        putN(Volume, "volume", 0.0f, 1.0f, 0.14f, Curve::Linear, 0, ""); // 17 dB under the top
         putN(Pan, "pan", -1.0f, 1.0f, 0.0f, Curve::Linear, 0, "");
         putN(VelocityAmount, "velamt", 0.0f, 1.0f, 1.0f, Curve::Linear, 0, "");
         for (int k = 0; k < kMacros; ++k) {
@@ -423,7 +423,7 @@ void Ratio::updateVoiceMod(Voice &v, float blockSeconds) {
     // Pressure makes the note brighter and louder, on top of the matrix.
     const float prs = glidePressure(v.prsGlide, v.pressure, pressure) * paramOf(MpePressure);
     v.mod[DstFilterFreq] += prs * 0.4f;
-    v.mod[DstAmp] += prs * 0.4f;
+    v.mod[DstAmp] += prs * (0.4f / kHouseTrim); // the same level at any trim
 }
 
 // --- Render ----------------------------------------------------------------------
@@ -463,7 +463,7 @@ void Ratio::renderVoice(Voice &v, int32_t frames, float *out) {
     // The house level, so this machine's default matches the others. See
     // Reflux's kHouse.
     constexpr float kHouse = 0.55f;
-    const float volume = clampf(paramOf(Volume) + v.mod[DstAmp], 0.0f, 2.0f) * kHouse;
+    const float volume = clampf(paramOf(Volume) + v.mod[DstAmp], 0.0f, 2.0f) * kHouse * kHouseTrim;
     const float velAmp = velocityGain(vel, paramOf(VelocityAmount));
     // Slide opens the filter by the MpeTimbre amount.
     const float slide = v.timbre >= 0.0f ? v.timbre : 0.0f;

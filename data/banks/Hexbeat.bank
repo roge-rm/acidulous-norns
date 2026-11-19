@@ -28,7 +28,12 @@
 # the delay, Servo and Zapper echo through their own delay, Gleam has a
 # chorus, Zapper a phaser, Molasses a tape and Busted and Glitchy a crusher.
 #
-# Every kit peaks at about -11 dB, like Init.
+# Every patch sits at -25.8 on `loud`, the loudest 400 ms, within 1 dB, Init
+# included. Init gets there through the machine's house trim, with `volume` at
+# its default of 0.29, 14 dB under the top. The patches are levelled by
+# `volume`, never higher than 6 dB under the top; Worn, Grainy, Overloaded,
+# Shredded, Mangled, Molasses, Busted and Glitchy take the rest from the gain
+# of their last insert.
 #
 # Values are in each parameter's own units; `audition params Hexbeat` lists
 # them.
@@ -62,7 +67,7 @@ patch Squared family=classic
   cym_decay      1300 ms
   ride_decay     800 ms
   clap_decay     180 ms
-  volume         0.90
+  volume         0.3107
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #6
@@ -108,7 +113,7 @@ patch Squared family=classic
   mac7_d2  #32
   mac7_a2  0.3
   mac7_d3  #34
-  mac7_a3  -0.1
+  mac7_a3  -0.03327
   mac8_d1  #29
   mac8_a1  0.4
   mac8_d2  #28
@@ -142,7 +147,7 @@ patch Snug family=classic
   clap_decay     150 ms
   bell_decay     120 ms
   accent         0.7
-  volume         0.90
+  volume         0.3958
   mac1_d1  #2
   mac1_a1  0.3
   mac1_d2  #6
@@ -186,7 +191,7 @@ patch Snug family=classic
   mac7_d2  #32
   mac7_a2  0.3
   mac7_d3  #34
-  mac7_a3  -0.1
+  mac7_a3  -0.04495
   mac8_d1  #26
   mac8_a1  0.4
   mac8_d2  #25
@@ -220,7 +225,7 @@ patch Shuffle family=classic
   hat_level      0.72
   tom_decay      240 ms
   accent         0.75
-  volume         0.89
+  volume         0.3181
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #6
@@ -262,7 +267,7 @@ patch Shuffle family=classic
   mac7_d2  #32
   mac7_a2  0.3
   mac7_d3  #34
-  mac7_a3  -0.1
+  mac7_a3  -0.0366
   mac8_d1  #29
   mac8_a1  0.4
   mac8_d2  #28
@@ -296,7 +301,7 @@ patch Punchy family=classic
   hat_open_decay 320 ms
   clap_decay     130 ms
   accent         0.8
-  volume         0.82
+  volume         0.3104
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #6
@@ -342,7 +347,7 @@ patch Punchy family=classic
   mac7_d2  #32
   mac7_a2  0.3
   mac7_d3  #34
-  mac7_a3  -0.1
+  mac7_a3  -0.03763
   mac8_d1  #29
   mac8_a1  0.4
   mac8_d2  #28
@@ -376,7 +381,7 @@ patch Backbeat family=classic
   cym_decay      1400 ms
   ride_decay     850 ms
   clap_decay     190 ms
-  volume         0.90
+  volume         0.3037
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #6
@@ -422,7 +427,7 @@ patch Backbeat family=classic
   mac7_d2  #32
   mac7_a2  0.3
   mac7_d3  #34
-  mac7_a3  -0.1
+  mac7_a3  -0.03249
   mac8_d1  #29
   mac8_a1  0.4
   mac8_d2  #28
@@ -459,7 +464,7 @@ patch Laidback family=classic
   ride_level     0.7
   clap_level     0.5
   accent         0.4
-  volume         0.93
+  volume         0.3249
   mac1_d1  #2
   mac1_a1  0.3
   mac1_d2  #6
@@ -505,7 +510,7 @@ patch Laidback family=classic
   mac7_d2  #32
   mac7_a2  0.3
   mac7_d3  #34
-  mac7_a3  -0.1
+  mac7_a3  -0.03534
   mac8_d1  #26
   mac8_a1  0.4
   mac8_d2  #25
@@ -545,7 +550,7 @@ patch Crisp family=classic
   clap_tone      1800 Hz
   clap_decay     160 ms
   accent         0.7
-  volume         0.90
+  volume         0.3254
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #6
@@ -591,7 +596,7 @@ patch Crisp family=classic
   mac7_d2  #32
   mac7_a2  0.3
   mac7_d3  #34
-  mac7_a3  -0.1
+  mac7_a3  -0.03481
   mac8_d1  #29
   mac8_a1  0.4
   mac8_d2  #28
@@ -623,7 +628,7 @@ patch Boomy family=classic
   tom_hi_tune    160 Hz
   hat_open_decay 600 ms
   kick_level     0.95
-  volume         0.86
+  volume         0.2202
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #6
@@ -667,7 +672,7 @@ patch Boomy family=classic
   mac7_d2  #32
   mac7_a2  0.3
   mac7_d3  #34
-  mac7_a3  -0.1
+  mac7_a3  -0.02648
   mac8_d1  #4
   mac8_a1  -0.3
   mac8_d2  #12
@@ -703,7 +708,7 @@ patch Sunken family=classic
   cym_tone       2600 Hz
   bell_tune      380 Hz
   clave_tune     1600 Hz
-  volume         0.90
+  volume         0.29
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #6
@@ -755,7 +760,7 @@ patch Sunken family=classic
   mac7_d2  #32
   mac7_a2  0.3
   mac7_d3  #34
-  mac7_a3  -0.1
+  mac7_a3  -0.03288
   mac8_d1  #29
   mac8_a1  0.4
   mac8_d2  #28
@@ -790,7 +795,7 @@ patch Studio family=dry
   ride_decay     500 ms
   ride_level     0.42
   clap_decay     140 ms
-  volume         0.90
+  volume         0.3527
   mac1_d1  #2
   mac1_a1  0.3
   mac1_d2  #6
@@ -836,7 +841,7 @@ patch Studio family=dry
   mac7_d2  #32
   mac7_a2  0.3
   mac7_d3  #34
-  mac7_a3  -0.1
+  mac7_a3  -0.04002
   mac8_d1  #26
   mac8_a1  0.4
   mac8_d2  #25
@@ -873,7 +878,7 @@ patch Wooden family=dry
   clave_tune     2100 Hz
   clave_level    0.8
   bell_level     0.3
-  volume         0.90
+  volume         0.3823
   mac1_d1  #2
   mac1_a1  0.3
   mac1_d2  #6
@@ -917,7 +922,7 @@ patch Wooden family=dry
   mac7_d2  #32
   mac7_a2  0.3
   mac7_d3  #34
-  mac7_a3  -0.1
+  mac7_a3  -0.04338
   mac8_d1  #29
   mac8_a1  0.4
   mac8_d2  #28
@@ -954,7 +959,7 @@ patch Deadened family=dry
   clap_decay     70 ms
   bell_decay     45 ms
   accent         0.9
-  volume         0.89
+  volume         0.4705
   mac1_d1  #2
   mac1_a1  0.3
   mac1_d2  #6
@@ -998,7 +1003,7 @@ patch Deadened family=dry
   mac7_d2  #32
   mac7_a2  0.3
   mac7_d3  #34
-  mac7_a3  -0.1
+  mac7_a3  -0.05111
   mac8_d1  #29
   mac8_a1  0.4
   mac8_d2  #28
@@ -1041,7 +1046,7 @@ patch Padded family=dry
   rim_level      0.5
   bell_level     0.35
   accent         0.3
-  volume         0.99
+  volume         0.4998
   mac1_d1  #2
   mac1_a1  0.3
   mac1_d2  #6
@@ -1085,7 +1090,7 @@ patch Padded family=dry
   mac7_d2  #32
   mac7_a2  0.3
   mac7_d3  #34
-  mac7_a3  -0.1
+  mac7_a3  -0.05016
   mac8_d1  #29
   mac8_a1  0.4
   mac8_d2  #28
@@ -1128,7 +1133,7 @@ patch Ticker family=dry
   rim_tune       950 Hz
   rim_level      0.75
   clave_level    0.75
-  volume         0.94
+  volume         0.4585
   mac1_d1  #2
   mac1_a1  0.3
   mac1_d2  #6
@@ -1172,7 +1177,7 @@ patch Ticker family=dry
   mac7_d2  #32
   mac7_a2  0.3
   mac7_d3  #34
-  mac7_a3  -0.1
+  mac7_a3  -0.04916
   mac8_d1  #31
   mac8_a1  0.4
   mac8_d2  #30
@@ -1209,7 +1214,7 @@ patch Cardboard family=dry
   ride_level     0.35
   rim_tune       520 Hz
   clave_tune     1500 Hz
-  volume         0.90
+  volume         0.4597
   mac1_d1  #2
   mac1_a1  0.3
   mac1_d2  #6
@@ -1255,7 +1260,7 @@ patch Cardboard family=dry
   mac7_d2  #32
   mac7_a2  0.3
   mac7_d3  #34
-  mac7_a3  -0.1
+  mac7_a3  -0.04921
   mac8_d1  #29
   mac8_a1  0.4
   mac8_d2  #28
@@ -1301,7 +1306,7 @@ patch Paper family=dry
   rim_tune       1400 Hz
   clave_tune     3600 Hz
   bell_decay     35 ms
-  volume         0.99
+  volume         0.5056
   mac1_d1  #2
   mac1_a1  0.3
   mac1_d2  #6
@@ -1347,7 +1352,7 @@ patch Paper family=dry
   mac7_d2  #32
   mac7_a2  0.3
   mac7_d3  #34
-  mac7_a3  -0.1
+  mac7_a3  -0.05071
   mac8_d1  #29
   mac8_a1  0.4
   mac8_d2  #28
@@ -1392,7 +1397,7 @@ patch Tabletop family=dry
   clave_level    0.85
   bell_tune      1000 Hz
   bell_decay     60 ms
-  volume         0.90
+  volume         0.5991
   mac1_d1  #2
   mac1_a1  0.3
   mac1_d2  #6
@@ -1438,7 +1443,7 @@ patch Tabletop family=dry
   mac7_d2  #32
   mac7_a2  0.3
   mac7_d3  #34
-  mac7_a3  -0.1
+  mac7_a3  -0.06767
   mac8_d1  #31
   mac8_a1  0.4
   mac8_d2  #30
@@ -1472,7 +1477,7 @@ patch Ballroom family=room
   ride_level     0.6
   clap_decay     420 ms
   bell_decay     360 ms
-  volume         0.70
+  volume         0.1965
   mac1_d1  #2
   mac1_a1  -0.35
   mac1_d2  #6
@@ -1557,7 +1562,7 @@ patch Cloister family=room
   ride_decay     1400 ms
   clap_decay     560 ms
   clap_tone      2400 Hz
-  volume         0.62
+  volume         0.1382
   mac1_d1  #2
   mac1_a1  -0.35
   mac1_d2  #6
@@ -1650,7 +1655,7 @@ patch Faraway family=room
   rim_level      0.4
   clave_level    0.35
   bell_level     0.3
-  volume         0.83
+  volume         0.2384
   mac1_d1  #2
   mac1_a1  -0.35
   mac1_d2  #6
@@ -1735,7 +1740,7 @@ patch Parlour family=room
   ride_level     0.55
   clap_decay     360 ms
   bell_decay     300 ms
-  volume         0.90
+  volume         0.2707
   mac1_d1  #2
   mac1_a1  0.25
   mac1_d2  #6
@@ -1828,7 +1833,7 @@ patch Basement family=room
   ride_decay     1200 ms
   clap_tone      950 Hz
   clap_decay     380 ms
-  volume         0.70
+  volume         0.2205
   mac1_d1  #2
   mac1_a1  -0.35
   mac1_d2  #6
@@ -1915,7 +1920,7 @@ patch Stadium family=room
   clap_level     0.9
   hat_open_decay 900 ms
   cym_decay      2600 ms
-  volume         0.69
+  volume         0.2028
   mac1_d1  #2
   mac1_a1  -0.35
   mac1_d2  #6
@@ -1995,7 +2000,7 @@ patch Canyon family=room
   hat_open_decay 500 ms
   cym_decay      2600 ms
   clap_decay     260 ms
-  volume         0.57
+  volume         0.1837
   mac1_d1  #2
   mac1_a1  -0.35
   mac1_d2  #6
@@ -2080,7 +2085,7 @@ patch Enormous family=room
   ride_level     0.7
   clap_decay     700 ms
   accent         0.5
-  volume         0.61
+  volume         0.1441
   mac1_d1  #2
   mac1_a1  -0.35
   mac1_d2  #6
@@ -2167,7 +2172,7 @@ patch Clatter family=dirty
   bell_decay     90 ms
   bell_level     0.8
   accent         0.85
-  volume         0.88
+  volume         0.4146
   mac1_d1  #2
   mac1_a1  0.3
   mac1_d2  #6
@@ -2181,7 +2186,7 @@ patch Clatter family=dirty
   mac3_d1  #33
   mac3_a1  0.35
   mac3_d2  #34
-  mac3_a2  -0.15
+  mac3_a2  -0.07004
   mac4_d1  #19
   mac4_a1  0.3
   mac4_d2  #21
@@ -2211,7 +2216,7 @@ patch Clatter family=dirty
   mac7_d2  #32
   mac7_a2  0.3
   mac7_d3  #34
-  mac7_a3  -0.1
+  mac7_a3  -0.04834
   mac8_d1  #31
   mac8_a1  0.4
   mac8_d2  #30
@@ -2241,7 +2246,7 @@ patch Trashy family=dirty
   clap_tone      1950 Hz
   accent         0.9
   hat_level      0.7
-  volume         0.89
+  volume         0.2677
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #6
@@ -2255,7 +2260,7 @@ patch Trashy family=dirty
   mac3_d1  #33
   mac3_a1  0.35
   mac3_d2  #34
-  mac3_a2  -0.15
+  mac3_a2  -0.0444
   mac4_d1  #15
   mac4_a1  -0.5
   mac4_d2  #18
@@ -2318,7 +2323,7 @@ patch Worn family=dirty
   cym_decay      1200 ms
   ride_decay     700 ms
   drive          0.55
-  volume         0.52
+  volume         0.323
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #6
@@ -2332,7 +2337,7 @@ patch Worn family=dirty
   mac3_d1  #33
   mac3_a1  0.3
   mac3_d2  #34
-  mac3_a2  -0.12
+  mac3_a2  -0.07785
   mac3_d3  #32
   mac3_a3  0.2
   mac4_d1  #15
@@ -2380,6 +2385,7 @@ patch Worn family=dirty
     tone         7000 Hz
     hiss         0
     age          0.6
+    gain         -5.0 dB
 
 patch Grainy family=dirty
   # Twelve bits at a low rate: the hits keep their shape and gain a gritty
@@ -2406,7 +2412,7 @@ patch Grainy family=dirty
   ride_decay     650 ms
   clap_level     0.85
   drive          0.6
-  volume         0.57
+  volume         0.354
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #6
@@ -2420,7 +2426,7 @@ patch Grainy family=dirty
   mac3_d1  #33
   mac3_a1  0.35
   mac3_d2  #34
-  mac3_a2  -0.15
+  mac3_a2  -0.09338
   mac4_d1  #16
   mac4_a1  0.3
   mac4_d2  #15
@@ -2463,6 +2469,7 @@ patch Grainy family=dirty
     bits         12
     rate         26000 Hz
     mix          1
+    gain         -4.6 dB
 
 patch Gravel family=dirty
   # Short, hard and pushed into the clipper. Drive is a knob of its own, so
@@ -2488,11 +2495,11 @@ patch Gravel family=dirty
   ride_decay     600 ms
   clap_decay     160 ms
   drive          0.9
-  volume         0.43
+  volume         0.1628
   mac1_d1  #33
   mac1_a1  0.35
   mac1_d2  #34
-  mac1_a2  -0.15
+  mac1_a2  -0.05691
   mac1_d3  #32
   mac1_a3  0.2
   mac2_d1  #7
@@ -2568,7 +2575,7 @@ patch Overloaded family=dirty
   cym_decay      1200 ms
   ride_decay     700 ms
   drive          0.7
-  volume         0.90
+  volume         0.5463
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #6
@@ -2582,7 +2589,7 @@ patch Overloaded family=dirty
   mac3_d1  #33
   mac3_a1  0.4
   mac3_d2  #34
-  mac3_a2  -0.2
+  mac3_a2  -0.151
   mac3_d3  #2
   mac3_a3  0.2
   mac3_d4  #6
@@ -2614,7 +2621,7 @@ patch Overloaded family=dirty
   mac7_d1  #33
   mac7_a1  -0.4
   mac7_d2  #34
-  mac7_a2  0.1
+  mac7_a2  0.0756
   mac8_d1  #29
   mac8_a1  0.4
   mac8_d2  #28
@@ -2624,6 +2631,7 @@ patch Overloaded family=dirty
   insert Amp
     drive        0.6
     master       0.35
+    gain         -7.1 dB
 
 patch Shredded family=dirty
   # Six bits and a rate low enough to alias: short hits turned to buzz and
@@ -2648,7 +2656,7 @@ patch Shredded family=dirty
   ride_decay     500 ms
   clap_decay     120 ms
   drive          1
-  volume         0.39
+  volume         0.2423
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #6
@@ -2662,7 +2670,7 @@ patch Shredded family=dirty
   mac3_d1  #33
   mac3_a1  0.35
   mac3_d2  #34
-  mac3_a2  -0.15
+  mac3_a2  -0.0934
   mac4_d1  #16
   mac4_a1  0.3
   mac4_d2  #15
@@ -2688,7 +2696,7 @@ patch Shredded family=dirty
   mac7_d1  #33
   mac7_a1  -0.4
   mac7_d2  #34
-  mac7_a2  0.1
+  mac7_a2  0.06394
   mac8_d1  #29
   mac8_a1  0.4
   mac8_d2  #28
@@ -2701,6 +2709,7 @@ patch Shredded family=dirty
     bits         6
     rate         9000 Hz
     mix          0.7
+    gain         -3.8 dB
 
 patch Mangled family=dirty
   # Everything at once: hard distortion, then a crusher with a jittering
@@ -2726,7 +2735,7 @@ patch Mangled family=dirty
   ride_decay     500 ms
   clap_decay     130 ms
   drive          1.3
-  volume         0.72
+  volume         0.4472
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #6
@@ -2740,7 +2749,7 @@ patch Mangled family=dirty
   mac3_d1  #33
   mac3_a1  -0.4
   mac3_d2  #34
-  mac3_a2  0.1
+  mac3_a2  0.0773
   mac4_d1  #16
   mac4_a1  0.3
   mac4_d2  #15
@@ -2787,6 +2796,7 @@ patch Mangled family=dirty
     rate         6000 Hz
     jitter       0.3
     mix          0.5
+    gain         -8.2 dB
 
 patch Polished family=metal
   # A plain kit with the metal brought forward: bright, clean cymbals at a
@@ -2818,7 +2828,7 @@ patch Polished family=metal
   ride_decay     1600 ms
   ride_level     0.65
   clap_decay     190 ms
-  volume         0.90
+  volume         0.3107
   mac1_d1  #15
   mac1_a1  0.3
   mac1_d2  #18
@@ -2895,7 +2905,7 @@ patch Spatter family=metal
   snare_tone     3600 Hz
   tom_decay      190 ms
   accent         0.85
-  volume         0.90
+  volume         0.3407
   mac1_d1  #17
   mac1_a1  0.4
   mac1_d2  #20
@@ -2963,7 +2973,7 @@ patch Sizzle family=metal
   snare_tone     4400 Hz
   tom_decay      240 ms
   accent         0.7
-  volume         0.90
+  volume         0.3217
   mac1_d1  #14
   mac1_a1  -0.5
   mac1_d2  #20
@@ -3032,7 +3042,7 @@ patch Glassy family=metal
   rim_tune       1400 Hz
   rim_level      0.85
   kick_decay     260 ms
-  volume         0.90
+  volume         0.3487
   mac1_d1  #27
   mac1_a1  -0.4
   mac1_d2  #30
@@ -3111,7 +3121,7 @@ patch Gleam family=metal
   bell_level     0.5
   clave_tune     3200 Hz
   clave_level    0.5
-  volume         0.64
+  volume         0.221
   mac1_d1  #17
   mac1_a1  0.3
   mac1_d2  #20
@@ -3202,7 +3212,7 @@ patch Forge family=metal
   bell_level     0.85
   clave_tune     1500 Hz
   drive          0.6
-  volume         0.58
+  volume         0.2195
   mac1_d1  #29
   mac1_a1  0.3
   mac1_d2  #28
@@ -3283,7 +3293,7 @@ patch Ironworks family=metal
   kick_decay     480 ms
   snare_tone     1300 Hz
   snare_snappy   0.45
-  volume         0.90
+  volume         0.2834
   mac1_d1  #13
   mac1_a1  0.4
   mac1_d2  #15
@@ -3366,7 +3376,7 @@ patch Gongs family=metal
   bell_tune      300 Hz
   bell_decay     600 ms
   clave_tune     1300 Hz
-  volume         0.67
+  volume         0.1817
   mac1_d1  #32
   mac1_a1  0.3
   mac1_d2  #3
@@ -3447,7 +3457,7 @@ patch Throb family=electro
   clap_level     0.85
   bell_tune      540 Hz
   bell_decay     120 ms
-  volume         0.78
+  volume         0.2346
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #6
@@ -3526,7 +3536,7 @@ patch Circuitry family=electro
   bell_tune      1080 Hz
   bell_decay     70 ms
   accent         0.9
-  volume         0.89
+  volume         0.3781
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #6
@@ -3602,7 +3612,7 @@ patch Elastic family=electro
   clap_level     0.4
   bell_tune      420 Hz
   clave_tune     1400 Hz
-  volume         0.82
+  volume         0.2673
   mac1_d1  #2
   mac1_a1  0.3
   mac1_d2  #11
@@ -3678,7 +3688,7 @@ patch Lowdown family=electro
   clap_level     0.9
   rim_tune       900 Hz
   bell_decay     160 ms
-  volume         0.80
+  volume         0.1703
   mac1_d1  #2
   mac1_a1  -0.5
   mac1_d2  #11
@@ -3754,7 +3764,7 @@ patch Servo family=electro
   bell_tune      900 Hz
   bell_decay     40 ms
   clave_tune     3000 Hz
-  volume         0.90
+  volume         0.4544
   mac1_d1  #2
   mac1_a1  0.4
   mac1_d2  #6
@@ -3834,7 +3844,7 @@ patch Falling family=electro
   cym_level      0.42
   ride_level     0.42
   accent         0.55
-  volume         0.90
+  volume         0.2226
   mac1_d1  #11
   mac1_a1  -0.5
   mac1_d2  #2
@@ -3906,7 +3916,7 @@ patch Zapper family=electro
   bell_tune      1200 Hz
   bell_decay     60 ms
   clave_tune     4000 Hz
-  volume         0.61
+  volume         0.3152
   mac1_d1  #2
   mac1_a1  0.4
   mac1_d2  #11
@@ -3986,7 +3996,7 @@ patch Bleep family=electro
   ride_level     0.28
   clap_level     0.3
   accent         0.95
-  volume         0.79
+  volume         0.5079
   mac1_d1  #28
   mac1_a1  0.4
   mac1_d2  #2
@@ -4052,7 +4062,7 @@ patch Clappers family=perc
   ride_level     0.38
   bell_level     0.5
   rim_level      0.4
-  volume         0.82
+  volume         0.2931
   mac1_d1  #22
   mac1_a1  -0.4
   mac1_d2  #2
@@ -4113,7 +4123,7 @@ patch Clapback family=perc
   hat_tone       9600 Hz
   tom_decay      200 ms
   accent         0.85
-  volume         0.75
+  volume         0.3336
   mac1_d1  #22
   mac1_a1  0.5
   mac1_d2  #6
@@ -4181,7 +4191,7 @@ patch Sidestick family=perc
   bell_level     0.5
   clave_level    0.45
   tom_decay      320 ms
-  volume         0.82
+  volume         0.2965
   mac1_d1  #9
   mac1_a1  0.5
   mac1_d2  #7
@@ -4266,7 +4276,7 @@ patch Shakers family=perc
   bell_level     0.45
   clave_tune     2600 Hz
   clave_level    0.75
-  volume         1.08
+  volume         0.4484
   mac1_d1  #14
   mac1_a1  0.3
   mac1_d2  #16
@@ -4350,7 +4360,7 @@ patch Congas family=perc
   bell_level     0.55
   clave_tune     2300 Hz
   clave_level    0.75
-  volume         0.88
+  volume         0.3915
   mac1_d1  #11
   mac1_a1  0.3
   mac1_d2  #2
@@ -4431,7 +4441,7 @@ patch Blocks family=perc
   hat_level      0.45
   cym_level      0.42
   ride_level     0.42
-  volume         0.82
+  volume         0.4285
   mac1_d1  #11
   mac1_a1  0.4
   mac1_d2  #28
@@ -4508,7 +4518,7 @@ patch Timbales family=perc
   bell_level     0.85
   clave_tune     2800 Hz
   clave_level    0.7
-  volume         0.69
+  volume         0.3035
   mac1_d1  #11
   mac1_a1  0.3
   mac1_d2  #28
@@ -4581,7 +4591,7 @@ patch Cowbells family=perc
   cym_level      0.36
   ride_level     0.38
   clap_level     0.4
-  volume         1.01
+  volume         0.3694
   mac1_d1  #28
   mac1_a1  -0.6
   mac1_d2  #2
@@ -4657,7 +4667,7 @@ patch Chordal family=odd
   hat_level      0.5
   cym_level      0.36
   ride_level     0.38
-  volume         0.90
+  volume         0.2802
   mac1_d1  #11
   mac1_a1  0.3
   mac1_d2  #28
@@ -4729,7 +4739,7 @@ patch Bronzework family=odd
   tom_mid_tune   165 Hz
   tom_hi_tune    248 Hz
   tom_decay      600 ms
-  volume         0.90
+  volume         0.2968
   mac1_d1  #28
   mac1_a1  -0.6
   mac1_d2  #17
@@ -4810,7 +4820,7 @@ patch Windup family=odd
   bell_tune      1100 Hz
   bell_decay     90 ms
   clave_tune     3800 Hz
-  volume         0.90
+  volume         0.4704
   mac1_d1  #35
   mac1_a1  0.3
   mac2_d1  #10
@@ -4860,7 +4870,7 @@ patch Windup family=odd
   mac7_d3  #3
   mac7_a3  0.3
   mac8_d1  #34
-  mac8_a1  -0.2
+  mac8_a1  -0.1052
   mac8_d2  #15
   mac8_a2  -0.4
   mac8_d3  #8
@@ -4905,7 +4915,7 @@ patch Molasses family=odd
   bell_tune      300 Hz
   bell_decay     600 ms
   clave_tune     1200 Hz
-  volume         0.69
+  volume         0.4286
   mac1_d1  #35
   mac1_a1  0.5
   mac2_d1  #35
@@ -4947,6 +4957,7 @@ patch Molasses family=odd
     tone         6000 Hz
     hiss         0
     age          0.4
+    gain         -8.0 dB
 
 patch Busted family=odd
   # Wired up wrong: the closed hat never closes and the open one stops short,
@@ -4984,7 +4995,7 @@ patch Busted family=odd
   bell_decay     600 ms
   clave_tune     1200 Hz
   drive          1.2
-  volume         0.33
+  volume         0.205
   mac1_d1  #14
   mac1_a1  -0.6
   mac1_d2  #6
@@ -5022,7 +5033,7 @@ patch Busted family=odd
   mac7_d1  #35
   mac7_a1  0.25
   mac8_d1  #34
-  mac8_a1  -0.3
+  mac8_a1  -0.232
   mac8_d2  #33
   mac8_a2  -0.2
   insert Bitcrusher
@@ -5030,6 +5041,7 @@ patch Busted family=odd
     rate         7000 Hz
     jitter       0.6
     mix          0.5
+    gain         -8.4 dB
 
 patch Glitchy family=odd
   # Every voice cut down to a click or a blip, high and short, crushed and
@@ -5066,7 +5078,7 @@ patch Glitchy family=odd
   bell_tune      1200 Hz
   bell_decay     30 ms
   clave_tune     4000 Hz
-  volume         0.85
+  volume         0.528
   hat_level      0.75
   mac1_d1  #2
   mac1_a1  0.5
@@ -5101,7 +5113,7 @@ patch Glitchy family=odd
   mac7_d1  #35
   mac7_a1  0.3
   mac8_d1  #34
-  mac8_a1  -0.3
+  mac8_a1  -0.1864
   mac8_d2  #32
   mac8_a2  -0.3
   insert Bitcrusher
@@ -5114,3 +5126,4 @@ patch Glitchy family=odd
     feedback     0.6
     mode         #1
     mix          0.3
+    gain         2.8 dB

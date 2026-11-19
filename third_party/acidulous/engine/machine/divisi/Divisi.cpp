@@ -164,6 +164,8 @@ constexpr float kTideSpread = 0.5f;
 
 /** Age: the level a loud chord's wet sound reaches in the shared chorus, which the squeeze is centred on and the bucket's clip and noise are sized by. */
 constexpr float kAgeNominal = 0.15f;
+/** The volume (trim included) that kAgeNominal was voiced at. The nominal level follows the volume from there, so the noise keeps its place against the sound. */
+constexpr float kAgeVolume = 0.7f;
 /** The squeeze's followers, up and down, s; its floor, against the nominal level. */
 constexpr float kAgeUp = 0.008f, kAgeDown = 0.08f, kAgeFloor = 1e-3f;
 /** The hiss and whine come in fully once the input is this much of the nominal level. */
@@ -299,7 +301,7 @@ const ParamDef *Divisi::paramDefs(int32_t &count) const {
         {"octave", -2.0f, 2.0f, 0.0f, Curve::Stepped, 5, ""},
         {"bend", 0.0f, 12.0f, 2.0f, Curve::Linear, 0, "st"},
         {"velocity", 0.0f, 1.0f, 1.0f, Curve::Linear, 0, ""},
-        {"volume", 0.0f, 1.0f, 0.7f, Curve::Linear, 0, ""},
+        {"volume", 0.0f, 1.0f, 0.18f, Curve::Linear, 0, ""}, // 15 dB under the top
         // Each section's players, and how they differ: pitch drift, vibrato depth and rate, and how late each comes in.
         {"players", 1.0f, 16.0f, 1.0f, Curve::Stepped, 16, ""},
         {"drift", 0.0f, 25.0f, 0.0f, Curve::Linear, 0, "cents"},
@@ -1668,13 +1670,14 @@ bool Divisi::render(float *L, float *R, int32_t frames) {
     const float centre = std::round(kLineMs * msToSamples);
     const float phaser = clampf(paramOf(Phaser), 0.0f, 1.0f);
     const float feedback = clampf(paramOf(Feedback), 0.0f, 0.9f);
-    const float volume = paramOf(Volume);
+    const float volume = paramOf(Volume) * kHouseTrim;
     // Age, for the shared chorus (after the volume) and the sections' (before it).
     const float age = clampf(paramOf(Age), 0.0f, 1.0f);
     const bool aging = age > 0.0f;
     if (aging) {
-        ageSettings(age, kAgeNominal, 1.0f, ageShared);
-        ageSettings(age, kAgeNominal / std::fmax(volume, 0.05f), kAgeStageNoise, ageStage);
+        // The shared chorus is after the volume, so its nominal level goes with it. The sections' is before it, so it stays put.
+        ageSettings(age, kAgeNominal * std::fmax(volume, 0.05f) / kAgeVolume, 1.0f, ageShared);
+        ageSettings(age, kAgeNominal / kAgeVolume, kAgeStageNoise, ageStage);
     }
     const float wowSamples = age * kWowMs * msToSamples, warbleSamples = age * kWarbleMs * msToSamples;
     const float warbleStep = kWarbleHz / sampleRate;

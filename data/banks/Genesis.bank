@@ -33,7 +33,11 @@
 # through a tape, Overcooked an amp, Frayed a crusher and Fizz a chorus, and
 # Clang sends to the song's reverb.
 #
-# Every kit peaks at about -11 dB, like Init.
+# Every patch sits at -25.8 on `loud`, the loudest 400 ms, within 1 dB, Init
+# included. Init gets there through the machine's house trim, with `volume` at
+# its default of 0.33, 13 dB under the top. The patches are levelled by
+# `volume`, never higher than 6 dB under the top; Smoulder, Overcooked and
+# Frayed take the rest from the gain of their last insert.
 #
 # Values are in each parameter's own units - decays here are in *seconds* -
 # and `audition params Genesis` lists them.
@@ -70,7 +74,7 @@ patch Straight family=classic
   comp           0.3
   duck           0.25
   drift          0.18
-  volume         0.91
+  volume         0.3577
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -156,7 +160,7 @@ patch Handlebar family=classic
   claplevel      1.0
   clapdecay      0.3 s
   hattone        8000 Hz
-  volume         0.91
+  volume         0.3877
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -254,7 +258,7 @@ patch Cushion family=classic
   duck           0.15
   drift          0.15
   drive          0
-  volume         0.598
+  volume         0.2826
   crashlevel     0.8
   ridelevel      0.8
   belllevel      0.8
@@ -340,7 +344,7 @@ patch Boom family=classic
   hatclosed      0.05 s
   comp           0.15
   duck           0.1
-  volume         0.87
+  volume         0.2478
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -425,7 +429,7 @@ patch Tight family=classic
   comprelease    0.08 s
   duck           0.3
   accent         0.65
-  volume         0.91
+  volume         0.477
   mac1_d1  #2
   mac1_a1  0.25
   mac1_d2  #9
@@ -513,7 +517,7 @@ patch Snappy family=classic
   duck           0.25
   drift          0.1
   drive          0.2
-  volume         0.948
+  volume         0.3902
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -588,7 +592,7 @@ patch Clicky family=classic
   compattack     0.02 s
   comp           0.3
   accent         0.7
-  volume         0.96
+  volume         0.4234
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -677,7 +681,7 @@ patch Cruise family=classic
   duck           0.2
   drift          0.25
   accent         0.75
-  volume         0.9
+  volume         0.362
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -759,7 +763,7 @@ patch Deep family=classic
   belltune       480 Hz
   duck           0.4
   comp           0.3
-  volume         0.91
+  volume         0.308
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -839,7 +843,7 @@ patch Pump family=bus
   hatopen        0.6 s
   crashdecay     2.6 s
   drive          0.25
-  volume         0.93
+  volume         0.4149
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -917,7 +921,7 @@ patch Bounce family=bus
   clapdecay      0.3 s
   drive          0.15
   drift          0.1
-  volume         0.855
+  volume         0.5642
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -986,7 +990,7 @@ patch Glue family=bus
   snaresnap      0.55
   hatclosed      0.05 s
   drift          0.12
-  volume         0.90
+  volume         0.4772
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -1058,7 +1062,7 @@ patch Sidechain family=bus
   hatopen        0.8 s
   crashdecay     3.2 s
   ridedecay      2.4 s
-  volume         0.85
+  volume         0.2844
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -1132,7 +1136,7 @@ patch Breathing family=bus
   hatopen        0.7 s
   crashdecay     3.0 s
   drift          0.3
-  volume         0.91
+  volume         0.33
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -1206,7 +1210,7 @@ patch Sag family=bus
   ridelevel      0.75
   crashlevel     0.7
   accent         0.9
-  volume         0.926
+  volume         0.3358
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -1281,7 +1285,7 @@ patch Slam family=bus
   snaresnap      0.8
   hatclosed      0.03 s
   accent         0.8
-  volume         0.99
+  volume         0.2755
   mac1_d1  #2
   mac1_a1  0.25
   mac1_d2  #9
@@ -1361,7 +1365,7 @@ patch Flattened family=bus
   ridelevel      0.8
   crashlevel     0.8
   accent         0.2
-  volume         0.97
+  volume         0.3245
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -1438,7 +1442,7 @@ patch Dirty family=dirty
   comp           0.5
   duck           0.3
   drift          0.3
-  volume         0.99
+  volume         0.224
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -1521,7 +1525,7 @@ patch Smoulder family=dirty
   compattack     0.01 s
   duck           0.3
   drift          0.3
-  volume         0.775
+  volume         0.6216
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -1583,6 +1587,7 @@ patch Smoulder family=dirty
     tone         8000 Hz
     hiss         0.05
     age          0.4
+    gain         -9.6 dB
 
 patch Scorched family=dirty
   # Drive at the top of its travel. The kit stops being thirteen sounds and
@@ -1608,7 +1613,7 @@ patch Scorched family=dirty
   comp           0.4
   duck           0.35
   accent         0.85
-  volume         0.99
+  volume         0.1927
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -1696,7 +1701,7 @@ patch Overcooked family=dirty
   compattack     0.002 s
   duck           0.2
   accent         0.9
-  volume         0.815
+  volume         0.6216
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -1758,6 +1763,7 @@ patch Overcooked family=dirty
     treble       0.55
     presence     0.4
     master       0.35
+    gain         -8.5 dB
 
 patch Drifting family=dirty
   # Drift at its maximum: every hit lands a little off where the last one did.
@@ -1783,7 +1789,7 @@ patch Drifting family=dirty
   belldecay      0.5 s
   comp           0.25
   duck           0.2
-  volume         0.91
+  volume         0.3045
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -1859,7 +1865,7 @@ patch Grit family=dirty
   compattack     0.002 s
   accent         0.8
   drift          0.35
-  volume         0.99
+  volume         0.3891
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -1935,7 +1941,7 @@ patch Wobbler family=dirty
   snaredecay     0.25 s
   comp           0.2
   duck           0.15
-  volume         0.91
+  volume         0.301
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -2014,7 +2020,7 @@ patch Frayed family=dirty
   belllevel      0.7
   comp           0.4
   duck           0.3
-  volume         0.981
+  volume         0.6216
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -2069,6 +2075,7 @@ patch Frayed family=dirty
     jitter       0.35
     tone         9000 Hz
     mix          0.7
+    gain         -6.7 dB
 
 patch Cymbals family=metal
   # Built around the crash and the ride, both long and both up, with the ride
@@ -2094,7 +2101,7 @@ patch Cymbals family=metal
   snaredecay     0.2 s
   comp           0.25
   duck           0.35
-  volume         0.91
+  volume         0.4014
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -2170,7 +2177,7 @@ patch Splash family=metal
   snaredecay     0.14 s
   snaresnap      0.8
   accent         0.8
-  volume         0.91
+  volume         0.4401
   mac1_d1  #2
   mac1_a1  0.25
   mac1_d2  #9
@@ -2253,7 +2260,7 @@ patch Tarnish family=metal
   kickdecay      0.8 s
   snaretone      0.25
   comp           0.3
-  volume         0.91
+  volume         0.3536
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -2341,7 +2348,7 @@ patch Clang family=metal
   comp           0.3
   duck           0.35
   drift          0.15
-  volume         0.762
+  volume         0.3284
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -2424,7 +2431,7 @@ patch Shimmer family=metal
   snaredecay     0.17 s
   comp           0.2
   duck           0.45
-  volume         0.97
+  volume         0.4637
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -2499,7 +2506,7 @@ patch Hiss family=metal
   kickclick      0.5
   comp           0.4
   duck           0.4
-  volume         0.915
+  volume         0.4176
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -2590,7 +2597,7 @@ patch Fizz family=metal
   kicklevel      0.9
   comp           0.35
   duck           0.55
-  volume         0.656
+  volume         0.443
   ridelevel      0.9
   mac1_d1  #2
   mac1_a1  -0.3
@@ -2666,7 +2673,7 @@ patch Rimshot family=perc
   comp           0.35
   duck           0.3
   accent         0.7
-  volume         0.895
+  volume         0.36
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -2748,7 +2755,7 @@ patch Handclap family=perc
   ridelevel      0.5
   comp           0.4
   duck           0.4
-  volume         0.88
+  volume         0.375
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -2835,7 +2842,7 @@ patch Sticks family=perc
   comp           0.4
   accent         0.8
   drift          0.2
-  volume         0.948
+  volume         0.4532
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -2923,7 +2930,7 @@ patch Maraca family=perc
   duck           0.3
   accent         0.7
   drift          0.35
-  volume         0.948
+  volume         0.4086
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -3006,7 +3013,7 @@ patch Bellwork family=perc
   crashlevel     0.45
   ridelevel      0.45
   comp           0.3
-  volume         0.993
+  volume         0.4533
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -3099,7 +3106,7 @@ patch Knuckles family=perc
   comp           0.4
   drift          0.4
   accent         0.85
-  volume         0.959
+  volume         0.4746
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -3188,7 +3195,7 @@ patch Woodshop family=perc
   ridelevel      0.45
   comp           0.45
   drift          0.3
-  volume         0.91
+  volume         0.5291
   mac1_d1  #2
   mac1_a1  0.25
   mac1_d2  #9
@@ -3270,7 +3277,7 @@ patch Ghosts family=perc
   compattack     0.003 s
   duck           0.25
   drift          0.25
-  volume         0.91
+  volume         0.4881
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -3350,7 +3357,7 @@ patch Toms family=tone
   hatopen        0.6 s
   comp           0.3
   duck           0.4
-  volume         0.971
+  volume         0.3906
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -3432,7 +3439,7 @@ patch Descent family=tone
   comp           0.25
   duck           0.5
   drift          0.4
-  volume         0.916
+  volume         0.2669
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -3515,7 +3522,7 @@ patch Tuned family=tone
   hattune        392 Hz
   drift          0.05
   comp           0.3
-  volume         0.926
+  volume         0.3855
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -3609,7 +3616,7 @@ patch Rounded family=tone
   comp           0.25
   duck           0.3
   drift          0.1
-  volume         0.9
+  volume         0.3227
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -3696,7 +3703,7 @@ patch Subsonic family=tone
   ridelevel      0.5
   comp           0.2
   duck           0.1
-  volume         0.83
+  volume         0.2155
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -3780,7 +3787,7 @@ patch Hollow family=tone
   comp           0.35
   duck           0.3
   drift          0.25
-  volume         0.937
+  volume         0.3282
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9
@@ -3868,7 +3875,7 @@ patch Plunge family=tone
   drift          0.5
   comp           0.35
   duck           0.5
-  volume         0.926
+  volume         0.2858
   mac1_d1  #2
   mac1_a1  -0.3
   mac1_d2  #9

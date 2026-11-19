@@ -45,6 +45,11 @@
 # it, so the dice are heard against the loop they change. `material swing`
 # (92 bpm, swung, room tone ahead and a tail past the bar) is the check pass
 # for cutting and follow.
+#
+# Every patch sits at -25.8 on `loud`, the loudest 400 ms, within 1 dB, Init
+# included. Init gets there through the machine's house trim, with `volume` at
+# its default of 0.35, 13 dB under the top. The patches are levelled by
+# `volume`, never higher than 6 dB under the top.
 
 machine Dice
 
@@ -57,12 +62,12 @@ patch Straight family=straight
   # patch here is a departure from.
   slices         #14
   gate           1.0
-  volume         1.01
+  volume         0.3542
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
   mac1_d2  #15
-  mac1_a2  -0.08
+  mac1_a2  -0.0312
   set macro2 "Reverse"
   mac2_d1  #2
   mac2_a1  1.0
@@ -70,12 +75,12 @@ patch Straight family=straight
   mac3_d1  #3
   mac3_a1  1.0
   mac3_d2  #15
-  mac3_a2  -0.208
+  mac3_a2  -0.0742
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.6
   mac4_d2  #15
-  mac4_a2  0.158
+  mac4_a2  0.0547
   set macro5 "Jump"
   mac5_d1  #5
   mac5_a1  1.0
@@ -83,19 +88,19 @@ patch Straight family=straight
   mac6_d1  #10
   mac6_a1  -0.45
   mac6_d2  #15
-  mac6_a2  0.239
+  mac6_a2  0.0859
   set macro7 "Darker"
   mac7_d1  #12
   mac7_a1  -0.45
   mac7_d2  #13
   mac7_a2  0.15
   mac7_d3  #15
-  mac7_a3  0.083
+  mac7_a3  0.0312
   set macro8 "Dirt"
   mac8_d1  #14
   mac8_a1  0.6
   mac8_d2  #15
-  mac8_a2  -0.016
+  mac8_a2  -0.00879
 
 patch Grid family=straight
   # The same loop cut by the clock rather than by the music. Sixteen equal
@@ -106,7 +111,7 @@ patch Grid family=straight
   cut            #1
   slices         #14
   gate           1.0
-  volume         1.08
+  volume         0.3415
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
@@ -117,7 +122,7 @@ patch Grid family=straight
   mac3_d1  #3
   mac3_a1  1.0
   mac3_d2  #15
-  mac3_a2  -0.256
+  mac3_a2  -0.082
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.6
@@ -128,7 +133,7 @@ patch Grid family=straight
   mac6_d1  #10
   mac6_a1  -0.45
   mac6_d2  #15
-  mac6_a2  0.161
+  mac6_a2  0.0508
   set macro7 "Darker"
   mac7_d1  #12
   mac7_a1  -0.45
@@ -138,7 +143,7 @@ patch Grid family=straight
   mac8_d1  #14
   mac8_a1  0.6
   mac8_d2  #15
-  mac8_a2  0.056
+  mac8_a2  0.0277
 
 patch "Half Time" family=straight
   # Rate at a half: each slice plays at half speed, which is an octave down
@@ -147,17 +152,17 @@ patch "Half Time" family=straight
   slices         #6
   rate           0.5
   gate           1.0
-  volume         0.80
+  volume         0.2973
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
   mac1_d2  #15
-  mac1_a2  -0.07
+  mac1_a2  -0.0234
   set macro2 "Reverse"
   mac2_d1  #2
   mac2_a1  1.0
   mac2_d2  #15
-  mac2_a2  0.041
+  mac2_a2  0.0239
   set macro3 "Stutter"
   mac3_d1  #3
   mac3_a1  1.0
@@ -165,7 +170,7 @@ patch "Half Time" family=straight
   mac4_d1  #4
   mac4_a1  0.6
   mac4_d2  #15
-  mac4_a2  0.076
+  mac4_a2  0.0312
   set macro5 "Jump"
   mac5_d1  #5
   mac5_a1  1.0
@@ -173,19 +178,19 @@ patch "Half Time" family=straight
   mac6_d1  #10
   mac6_a1  -0.45
   mac6_d2  #15
-  mac6_a2  0.175
+  mac6_a2  0.0625
   set macro7 "Darker"
   mac7_d1  #12
   mac7_a1  -0.45
   mac7_d2  #13
   mac7_a2  0.15
   mac7_d3  #15
-  mac7_a3  0.075
+  mac7_a3  0.0273
   set macro8 "Dirt"
   mac8_d1  #14
   mac8_a1  0.6
   mac8_d2  #15
-  mac8_a2  0.114
+  mac8_a2  0.043
 
 patch "Double Time" family=straight
   # The other way: twice the speed, an octave up, each slice done in half the
@@ -193,12 +198,12 @@ patch "Double Time" family=straight
   slices         #14
   rate           2.0
   gate           1.0
-  volume         1.38
+  volume         0.3801
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
   mac1_d2  #15
-  mac1_a2  -0.091
+  mac1_a2  -0.0234
   set macro2 "Reverse"
   mac2_d1  #2
   mac2_a1  1.0
@@ -206,12 +211,12 @@ patch "Double Time" family=straight
   mac3_d1  #3
   mac3_a1  1.0
   mac3_d2  #15
-  mac3_a2  -0.308
+  mac3_a2  -0.0859
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.6
   mac4_d2  #15
-  mac4_a2  0.08
+  mac4_a2  0.0345
   set macro5 "Jump"
   mac5_d1  #5
   mac5_a1  1.0
@@ -219,7 +224,7 @@ patch "Double Time" family=straight
   mac6_d1  #10
   mac6_a1  -0.3
   mac6_d2  #15
-  mac6_a2  0.08
+  mac6_a2  0.0345
   set macro7 "Darker"
   mac7_d1  #12
   mac7_a1  -0.45
@@ -229,7 +234,7 @@ patch "Double Time" family=straight
   mac8_d1  #14
   mac8_a1  0.6
   mac8_d2  #15
-  mac8_a2  -0.027
+  mac8_a2  -0.0117
 
 patch "Back to Front" family=straight
   # Every slice played backwards, in order: the loop keeps its groove, but
@@ -239,12 +244,12 @@ patch "Back to Front" family=straight
   slices         #14
   reverse        1.0
   gate           1.0
-  volume         1.03
+  volume         0.3571
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
   mac1_d2  #15
-  mac1_a2  -0.066
+  mac1_a2  -0.0234
   set macro2 "Forwards"
   mac2_d1  #2
   mac2_a1  -1.0
@@ -252,12 +257,12 @@ patch "Back to Front" family=straight
   mac3_d1  #3
   mac3_a1  1.0
   mac3_d2  #15
-  mac3_a2  0.101
+  mac3_a2  0.0391
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.6
   mac4_d2  #15
-  mac4_a2  0.161
+  mac4_a2  0.0547
   set macro5 "Jump"
   mac5_d1  #5
   mac5_a1  1.0
@@ -265,19 +270,19 @@ patch "Back to Front" family=straight
   mac6_d1  #10
   mac6_a1  -0.3
   mac6_d2  #15
-  mac6_a2  0.29
+  mac6_a2  0.1016
   set macro7 "Darker"
   mac7_d1  #12
   mac7_a1  -0.45
   mac7_d2  #13
   mac7_a2  0.15
   mac7_d3  #15
-  mac7_a3  0.108
+  mac7_a3  0.0391
   set macro8 "Dirt"
   mac8_d1  #14
   mac8_a1  0.6
   mac8_d2  #15
-  mac8_a2  -0.013
+  mac8_a2  -0.00707
 
 patch Swap family=dice
   # Swap alone, at certainty. Every trigger plays *some* slice, never the one
@@ -286,12 +291,12 @@ patch Swap family=dice
   slices         #14
   swap           1.0
   gate           1.0
-  volume         1.01
+  volume         0.2781
   set macro1 "Settle"
   mac1_d1  #1
   mac1_a1  -1.0
   mac1_d2  #15
-  mac1_a2  0.091
+  mac1_a2  0.0273
   set macro2 "Reverse"
   mac2_d1  #2
   mac2_a1  1.0
@@ -299,12 +304,12 @@ patch Swap family=dice
   mac3_d1  #3
   mac3_a1  1.0
   mac3_d2  #15
-  mac3_a2  -0.203
+  mac3_a2  -0.0547
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.6
   mac4_d2  #15
-  mac4_a2  0.055
+  mac4_a2  0.0237
   set macro5 "Jump"
   mac5_d1  #5
   mac5_a1  1.0
@@ -316,19 +321,19 @@ patch Swap family=dice
   mac6_d3  #5
   mac6_a3  0.4
   mac6_d4  #15
-  mac6_a4  -0.184
+  mac6_a4  -0.0508
   set macro7 "Rolls"
   mac7_d1  #3
   mac7_a1  0.4
   mac7_d2  #6
   mac7_a2  0.67
   mac7_d3  #15
-  mac7_a3  -0.244
+  mac7_a3  -0.0664
   set macro8 "Tighter"
   mac8_d1  #10
   mac8_a1  -0.45
   mac8_d2  #15
-  mac8_a2  0.239
+  mac8_a2  0.0664
 
 patch Reverse family=dice
   # Reverse alone. Half the hits are played tail-first, so each one is a swell
@@ -337,12 +342,12 @@ patch Reverse family=dice
   slices         #14
   reverse        0.5
   gate           1.0
-  volume         1.01
+  volume         0.3383
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
   mac1_d2  #15
-  mac1_a2  -0.048
+  mac1_a2  -0.0252
   set macro2 "Reverse"
   mac2_d1  #2
   mac2_a1  0.5
@@ -350,17 +355,17 @@ patch Reverse family=dice
   mac3_d1  #3
   mac3_a1  1.0
   mac3_d2  #15
-  mac3_a2  -0.197
+  mac3_a2  -0.0664
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.6
   mac4_d2  #15
-  mac4_a2  0.176
+  mac4_a2  0.0586
   set macro5 "Jump"
   mac5_d1  #5
   mac5_a1  1.0
   mac5_d2  #15
-  mac5_a2  0.052
+  mac5_a2  0.0273
   set macro6 "Chaos"
   mac6_d1  #1
   mac6_a1  0.5
@@ -369,19 +374,19 @@ patch Reverse family=dice
   mac6_d3  #5
   mac6_a3  0.4
   mac6_d4  #15
-  mac6_a4  -0.221
+  mac6_a4  -0.0742
   set macro7 "Rolls"
   mac7_d1  #3
   mac7_a1  0.4
   mac7_d2  #6
   mac7_a2  0.67
   mac7_d3  #15
-  mac7_a3  -0.25
+  mac7_a3  -0.082
   set macro8 "Tighter"
   mac8_d1  #10
   mac8_a1  -0.45
   mac8_d2  #15
-  mac8_a2  0.228
+  mac8_a2  0.0781
 
 patch Stutter family=dice
   # Stutter alone: about half the hits repeat four times inside their own
@@ -391,17 +396,17 @@ patch Stutter family=dice
   stutter        0.55
   stutterdiv     #2
   gate           1.0
-  volume         0.68
+  volume         0.2498
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
   mac1_d2  #15
-  mac1_a2  -0.039
+  mac1_a2  -0.0224
   set macro2 "Reverse"
   mac2_d1  #2
   mac2_a1  1.0
   mac2_d2  #15
-  mac2_a2  0.216
+  mac2_a2  0.0781
   set macro3 "Stutter"
   mac3_d1  #3
   mac3_a1  0.45
@@ -409,7 +414,7 @@ patch Stutter family=dice
   mac4_d1  #4
   mac4_a1  0.6
   mac4_d2  #15
-  mac4_a2  0.114
+  mac4_a2  0.043
   set macro5 "Jump"
   mac5_d1  #5
   mac5_a1  1.0
@@ -426,12 +431,12 @@ patch Stutter family=dice
   mac7_d2  #6
   mac7_a2  0.67
   mac7_d3  #15
-  mac7_a3  -0.051
+  mac7_a3  -0.0195
   set macro8 "Tighter"
   mac8_d1  #10
   mac8_a1  -0.45
   mac8_d2  #15
-  mac8_a2  0.232
+  mac8_a2  0.0859
 
 patch Drop family=dice
   # Drop alone. Half the triggers play nothing at all, and because the roll is
@@ -445,12 +450,12 @@ patch Drop family=dice
   slices         #14
   drop           0.5
   gate           1.0
-  volume         1.01
+  volume         0.3625
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
   mac1_d2  #15
-  mac1_a2  -0.16
+  mac1_a2  -0.0586
   set macro2 "Reverse"
   mac2_d1  #2
   mac2_a1  1.0
@@ -458,17 +463,17 @@ patch Drop family=dice
   mac3_d1  #3
   mac3_a1  1.0
   mac3_d2  #15
-  mac3_a2  -0.215
+  mac3_a2  -0.0781
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.25
   mac4_d2  #15
-  mac4_a2  0.078
+  mac4_a2  0.02793
   set macro5 "Jump"
   mac5_d1  #5
   mac5_a1  1.0
   mac5_d2  #15
-  mac5_a2  -0.048
+  mac5_a2  -0.01688
   set macro6 "Chaos"
   mac6_d1  #1
   mac6_a1  0.5
@@ -477,19 +482,19 @@ patch Drop family=dice
   mac6_d3  #5
   mac6_a3  0.4
   mac6_d4  #15
-  mac6_a4  -0.209
+  mac6_a4  -0.0742
   set macro7 "Rolls"
   mac7_d1  #3
   mac7_a1  0.4
   mac7_d2  #6
   mac7_a2  0.67
   mac7_d3  #15
-  mac7_a3  -0.209
+  mac7_a3  -0.0742
   set macro8 "Tighter"
   mac8_d1  #10
   mac8_a1  -0.45
   mac8_d2  #15
-  mac8_a2  0.121
+  mac8_a2  0.043
 
 patch "Off Pitch" family=dice
   # Jump again, but only two semitones either way: hits come out a little
@@ -499,12 +504,12 @@ patch "Off Pitch" family=dice
   jump           0.6
   jumprange      #1
   gate           1.0
-  volume         1.02
+  volume         0.3495
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
   mac1_d2  #15
-  mac1_a2  -0.085
+  mac1_a2  -0.0312
   set macro2 "Reverse"
   mac2_d1  #2
   mac2_a1  1.0
@@ -512,17 +517,17 @@ patch "Off Pitch" family=dice
   mac3_d1  #3
   mac3_a1  1.0
   mac3_d2  #15
-  mac3_a2  -0.213
+  mac3_a2  -0.0742
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.6
   mac4_d2  #15
-  mac4_a2  0.169
+  mac4_a2  0.0547
   set macro5 "Jump"
   mac5_d1  #5
   mac5_a1  0.4
   mac5_d2  #15
-  mac5_a2  0.053
+  mac5_a2  0.0285
   set macro6 "Chaos"
   mac6_d1  #1
   mac6_a1  0.5
@@ -531,19 +536,19 @@ patch "Off Pitch" family=dice
   mac6_d3  #5
   mac6_a3  0.4
   mac6_d4  #15
-  mac6_a4  -0.246
+  mac6_a4  -0.084
   set macro7 "Rolls"
   mac7_d1  #3
   mac7_a1  0.4
   mac7_d2  #6
   mac7_a2  0.67
   mac7_d3  #15
-  mac7_a3  -0.264
+  mac7_a3  -0.0898
   set macro8 "Tighter"
   mac8_d1  #10
   mac8_a1  -0.45
   mac8_d2  #15
-  mac8_a2  0.222
+  mac8_a2  0.0781
 
 patch Jump family=dice
   # Jump alone, a full octave either way. Half the hits arrive transposed, so
@@ -554,12 +559,12 @@ patch Jump family=dice
   jump           0.5
   jumprange      #11
   gate           1.0
-  volume         1.02
+  volume         0.33
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
   mac1_d2  #15
-  mac1_a2  -0.056
+  mac1_a2  -0.0284
   set macro2 "Reverse"
   mac2_d1  #2
   mac2_a1  1.0
@@ -567,12 +572,12 @@ patch Jump family=dice
   mac3_d1  #3
   mac3_a1  1.0
   mac3_d2  #15
-  mac3_a2  -0.193
+  mac3_a2  -0.0625
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.6
   mac4_d2  #15
-  mac4_a2  0.208
+  mac4_a2  0.0703
   set macro5 "Jump"
   mac5_d1  #5
   mac5_a1  0.5
@@ -584,19 +589,19 @@ patch Jump family=dice
   mac6_d3  #5
   mac6_a3  0.4
   mac6_d4  #15
-  mac6_a4  -0.22
+  mac6_a4  -0.0703
   set macro7 "Rolls"
   mac7_d1  #3
   mac7_a1  0.4
   mac7_d2  #6
   mac7_a2  0.67
   mac7_d3  #15
-  mac7_a3  -0.23
+  mac7_a3  -0.0742
   set macro8 "Tighter"
   mac8_d1  #10
   mac8_a1  -0.45
   mac8_d2  #15
-  mac8_a2  0.275
+  mac8_a2  0.0938
 
 patch Fill family=perform
   # The end of a bar. Three dice at once and the gate short, which is the
@@ -610,7 +615,7 @@ patch Fill family=perform
   jumprange      #6
   gate           0.7
   drive          0.2
-  volume         0.90
+  volume         0.2781
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  0.4
@@ -618,7 +623,7 @@ patch Fill family=perform
   mac2_d1  #2
   mac2_a1  0.6
   mac2_d2  #15
-  mac2_a2  0.09
+  mac2_a2  0.0273
   set macro3 "Stutter"
   mac3_d1  #3
   mac3_a1  0.5
@@ -629,7 +634,7 @@ patch Fill family=perform
   mac5_d1  #5
   mac5_a1  0.7
   mac5_d2  #15
-  mac5_a2  0.094
+  mac5_a2  0.0312
   set macro6 "Chaos"
   mac6_d1  #1
   mac6_a1  0.5
@@ -638,7 +643,7 @@ patch Fill family=perform
   mac6_d3  #5
   mac6_a3  0.4
   mac6_d4  #15
-  mac6_a4  0.043
+  mac6_a4  0.0208
   set macro7 "Rolls"
   mac7_d1  #3
   mac7_a1  0.4
@@ -648,7 +653,7 @@ patch Fill family=perform
   mac8_d1  #11
   mac8_a1  0.25
   mac8_d2  #15
-  mac8_a2  0.057
+  mac8_a2  0.0276
 
 patch Roll family=perform
   # Every hit an eight-stroke roll. Stutter at certainty with the division at
@@ -659,27 +664,27 @@ patch Roll family=perform
   stutterdiv     #6
   gate           0.6
   drive          0.15
-  volume         0.82
+  volume         0.3227
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
   mac1_d2  #15
-  mac1_a2  -0.057
+  mac1_a2  -0.0234
   set macro2 "Reverse"
   mac2_d1  #2
   mac2_a1  0.6
   mac2_d2  #15
-  mac2_a2  0.016
+  mac2_a2  0.00989
   set macro3 "Smooth"
   mac3_d1  #3
   mac3_a1  -1.0
   mac3_d2  #15
-  mac3_a2  0.179
+  mac3_a2  0.0703
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.6
   mac4_d2  #15
-  mac4_a2  0.021
+  mac4_a2  0.013
   set macro5 "Jump"
   mac5_d1  #5
   mac5_a1  1.0
@@ -699,7 +704,7 @@ patch Roll family=perform
   mac8_d1  #11
   mac8_a1  0.25
   mac8_d2  #15
-  mac8_a2  0.111
+  mac8_a2  0.043
 
 patch Ghost family=perform
   # The loop as ghost notes: the gate low enough that a slice is its attack
@@ -709,12 +714,12 @@ patch Ghost family=perform
   slices         #14
   gate           0.4
   drop           0.2
-  volume         1.50
+  volume         0.5322
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
   mac1_d2  #15
-  mac1_a2  -0.221
+  mac1_a2  -0.0781
   set macro2 "Reverse"
   mac2_d1  #2
   mac2_a1  0.6
@@ -722,7 +727,7 @@ patch Ghost family=perform
   mac3_d1  #3
   mac3_a1  1.0
   mac3_d2  #15
-  mac3_a2  -0.132
+  mac3_a2  -0.0469
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.4
@@ -730,7 +735,7 @@ patch Ghost family=perform
   mac5_d1  #5
   mac5_a1  1.0
   mac5_d2  #15
-  mac5_a2  -0.139
+  mac5_a2  -0.0508
   set macro6 "Chaos"
   mac6_d1  #1
   mac6_a1  0.5
@@ -739,7 +744,7 @@ patch Ghost family=perform
   mac6_d3  #5
   mac6_a3  0.4
   mac6_d4  #15
-  mac6_a4  -0.34
+  mac6_a4  -0.1172
   set macro7 "Rolls"
   mac7_d1  #3
   mac7_a1  0.4
@@ -761,7 +766,7 @@ patch Held family=perform
   reverse        0.25
   stutter        0.3
   gate           1.0
-  volume         0.79
+  volume         0.3073
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  0.55
@@ -769,22 +774,22 @@ patch Held family=perform
   mac2_d1  #2
   mac2_a1  0.35
   mac2_d2  #15
-  mac2_a2  0.085
+  mac2_a2  0.0312
   set macro3 "Stutter"
   mac3_d1  #3
   mac3_a1  0.7
   mac3_d2  #15
-  mac3_a2  -0.078
+  mac3_a2  -0.0312
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.6
   mac4_d2  #15
-  mac4_a2  0.071
+  mac4_a2  0.0312
   set macro5 "Jump"
   mac5_d1  #5
   mac5_a1  1.0
   mac5_d2  #15
-  mac5_a2  -0.083
+  mac5_a2  -0.0312
   set macro6 "Chaos"
   mac6_d1  #1
   mac6_a1  0.5
@@ -793,19 +798,19 @@ patch Held family=perform
   mac6_d3  #5
   mac6_a3  0.4
   mac6_d4  #15
-  mac6_a4  -0.078
+  mac6_a4  -0.0312
   set macro7 "Rolls"
   mac7_d1  #3
   mac7_a1  0.4
   mac7_d2  #6
   mac7_a2  0.67
   mac7_d3  #15
-  mac7_a3  -0.124
+  mac7_a3  -0.0469
   set macro8 "Faster"
   mac8_d1  #11
   mac8_a1  0.25
   mac8_d2  #15
-  mac8_a2  0.147
+  mac8_a2  0.0547
 
 patch "Triplet Feel" family=perform
   # Eight slices on the grid, a beat each, and every one stuttered three
@@ -816,7 +821,7 @@ patch "Triplet Feel" family=perform
   stutter        1.0
   stutterdiv     #1
   gate           1.0
-  volume         0.74
+  volume         0.2656
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
@@ -824,12 +829,12 @@ patch "Triplet Feel" family=perform
   mac2_d1  #2
   mac2_a1  1.0
   mac2_d2  #15
-  mac2_a2  0.278
+  mac2_a2  0.1016
   set macro3 "Smooth"
   mac3_d1  #3
   mac3_a1  -1.0
   mac3_d2  #15
-  mac3_a2  0.156
+  mac3_a2  0.0547
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.6
@@ -849,12 +854,12 @@ patch "Triplet Feel" family=perform
   mac7_d2  #6
   mac7_a2  0.67
   mac7_d3  #15
-  mac7_a3  -0.107
+  mac7_a3  -0.0391
   set macro8 "Faster"
   mac8_d1  #11
   mac8_a1  0.25
   mac8_d2  #15
-  mac8_a2  0.099
+  mac8_a2  0.0352
 
 patch Scratch family=perform
   # Half the hits backwards, half of them a few semitones off, a few doubled
@@ -868,7 +873,7 @@ patch Scratch family=perform
   stutterdiv     #0
   gate           0.55
   drive          0.15
-  volume         1.22
+  volume         0.448
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
@@ -876,7 +881,7 @@ patch Scratch family=perform
   mac2_d1  #2
   mac2_a1  0.2
   mac2_d2  #15
-  mac2_a2  0.26
+  mac2_a2  0.0703
   set macro3 "Stutter"
   mac3_d1  #3
   mac3_a1  0.75
@@ -884,7 +889,7 @@ patch Scratch family=perform
   mac4_d1  #4
   mac4_a1  0.6
   mac4_d2  #15
-  mac4_a2  0.26
+  mac4_a2  0.0703
   set macro5 "Jump"
   mac5_d1  #5
   mac5_a1  0.5
@@ -896,19 +901,19 @@ patch Scratch family=perform
   mac6_d3  #5
   mac6_a3  0.4
   mac6_d4  #15
-  mac6_a4  -0.086
+  mac6_a4  -0.0312
   set macro7 "Rolls"
   mac7_d1  #3
   mac7_a1  0.4
   mac7_d2  #6
   mac7_a2  0.67
   mac7_d3  #15
-  mac7_a3  -0.131
+  mac7_a3  -0.0469
   set macro8 "Faster"
   mac8_d1  #11
   mac8_a1  0.25
   mac8_d2  #15
-  mac8_a2  0.26
+  mac8_a2  0.0703
 
 patch Dust family=tone
   # Low-passed hard and resonant, with a third of the hits dropped: the loop
@@ -923,7 +928,7 @@ patch Dust family=tone
   swap           0.35
   reverse        0.2
   gate           1.0
-  volume         1.07
+  volume         0.4162
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  0.65
@@ -934,7 +939,7 @@ patch Dust family=tone
   mac3_d1  #3
   mac3_a1  1.0
   mac3_d2  #15
-  mac3_a2  -0.231
+  mac3_a2  -0.0898
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.3
@@ -951,7 +956,7 @@ patch Dust family=tone
   mac8_d1  #14
   mac8_a1  0.6
   mac8_d2  #15
-  mac8_a2  0.071
+  mac8_a2  0.0433
 
 patch Driven family=tone
   # The drive stage hard. The drive holds the loop's level as it turns, so
@@ -960,7 +965,7 @@ patch Driven family=tone
   drive          0.7
   cutoff         9000 Hz
   gate           1.0
-  volume         1.21
+  volume         0.3915
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
@@ -971,12 +976,12 @@ patch Driven family=tone
   mac3_d1  #3
   mac3_a1  1.0
   mac3_d2  #15
-  mac3_a2  -0.228
+  mac3_a2  -0.0742
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.6
   mac4_d2  #15
-  mac4_a2  0.193
+  mac4_a2  0.0625
   set macro5 "Jump"
   mac5_d1  #5
   mac5_a1  1.0
@@ -987,12 +992,12 @@ patch Driven family=tone
   mac7_d1  #13
   mac7_a1  0.5
   mac7_d2  #15
-  mac7_a2  -0.162
+  mac7_a2  -0.0508
   set macro8 "Dirt"
   mac8_d1  #14
   mac8_a1  0.3
   mac8_d2  #15
-  mac8_a2  -0.086
+  mac8_a2  -0.0273
 
 patch Pitched family=tone
   # The whole loop down a fourth, and a few cents under, without touching the
@@ -1003,27 +1008,27 @@ patch Pitched family=tone
   pitch          -5
   fine           -8 cents
   gate           1.0
-  volume         1.03
+  volume         0.3739
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
   mac1_d2  #15
-  mac1_a2  -0.069
+  mac1_a2  -0.0273
   set macro2 "Reverse"
   mac2_d1  #2
   mac2_a1  1.0
   mac2_d2  #15
-  mac2_a2  -0.068
+  mac2_a2  -0.0234
   set macro3 "Stutter"
   mac3_d1  #3
   mac3_a1  1.0
   mac3_d2  #15
-  mac3_a2  -0.23
+  mac3_a2  -0.082
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.6
   mac4_d2  #15
-  mac4_a2  0.165
+  mac4_a2  0.0625
   set macro5 "Jump"
   mac5_d1  #5
   mac5_a1  1.0
@@ -1037,7 +1042,7 @@ patch Pitched family=tone
   mac8_d1  #14
   mac8_a1  0.6
   mac8_d2  #15
-  mac8_a2  -0.015
+  mac8_a2  -0.00853
 
 patch "Small Speaker" family=tone
   # A band-pass round 1.8 kHz with some drive: no low end and no air, the
@@ -1049,12 +1054,12 @@ patch "Small Speaker" family=tone
   drive          0.5
   gate           1.0
   accent         0.5
-  volume         1.40
+  volume         0.5446
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
   mac1_d2  #15
-  mac1_a2  0.007
+  mac1_a2  0.00427
   set macro2 "Reverse"
   mac2_d1  #2
   mac2_a1  1.0
@@ -1062,12 +1067,12 @@ patch "Small Speaker" family=tone
   mac3_d1  #3
   mac3_a1  1.0
   mac3_d2  #15
-  mac3_a2  -0.161
+  mac3_a2  -0.0625
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.6
   mac4_d2  #15
-  mac4_a2  0.067
+  mac4_a2  0.0409
   set macro5 "Jump"
   mac5_d1  #5
   mac5_a1  1.0
@@ -1075,17 +1080,17 @@ patch "Small Speaker" family=tone
   mac6_d1  #12
   mac6_a1  -0.3
   mac6_d2  #15
-  mac6_a2  -0.106
+  mac6_a2  -0.0391
   set macro7 "Peak"
   mac7_d1  #13
   mac7_a1  0.3
   mac7_d2  #15
-  mac7_a2  0.067
+  mac7_a2  0.0409
   set macro8 "Dirt"
   mac8_d1  #14
   mac8_a1  0.5
   mac8_d2  #15
-  mac8_a2  -0.107
+  mac8_a2  -0.0391
 
 patch "Tops Only" family=tone
   # A steep high-pass at 600 Hz: the kick and the body of the snare go and
@@ -1095,12 +1100,12 @@ patch "Tops Only" family=tone
   cutoff         600 Hz
   resonance      0.1
   gate           1.0
-  volume         1.0
+  volume         0.3549
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
   mac1_d2  #15
-  mac1_a2  -0.097
+  mac1_a2  -0.0352
   set macro2 "Reverse"
   mac2_d1  #2
   mac2_a1  1.0
@@ -1108,17 +1113,17 @@ patch "Tops Only" family=tone
   mac3_d1  #3
   mac3_a1  1.0
   mac3_d2  #15
-  mac3_a2  -0.248
+  mac3_a2  -0.0898
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.6
   mac4_d2  #15
-  mac4_a2  0.099
+  mac4_a2  0.0352
   set macro5 "Jump"
   mac5_d1  #5
   mac5_a1  1.0
   mac5_d2  #15
-  mac5_a2  0.091
+  mac5_a2  0.0312
   set macro6 "Darker"
   mac6_d1  #12
   mac6_a1  -0.3
@@ -1129,7 +1134,7 @@ patch "Tops Only" family=tone
   mac8_d1  #14
   mac8_a1  0.6
   mac8_d2  #15
-  mac8_a2  -0.029
+  mac8_a2  -0.0161
 
 patch Scattered family=slice
   # The per-slice settings, which is the one thing in this machine that does
@@ -1148,27 +1153,27 @@ patch Scattered family=slice
   s05_pitch      -5
   s06_pan        -0.5
   s07_pan        0.5
-  volume         0.98
+  volume         0.3517
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
   mac1_d2  #15
-  mac1_a2  -0.103
+  mac1_a2  -0.0391
   set macro2 "Reverse"
   mac2_d1  #2
   mac2_a1  1.0
   mac2_d2  #15
-  mac2_a2  -0.046
+  mac2_a2  -0.0259
   set macro3 "Stutter"
   mac3_d1  #3
   mac3_a1  1.0
   mac3_d2  #15
-  mac3_a2  -0.117
+  mac3_a2  -0.043
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.6
   mac4_d2  #15
-  mac4_a2  0.131
+  mac4_a2  0.0469
   set macro5 "Jump"
   mac5_d1  #5
   mac5_a1  1.0
@@ -1180,17 +1185,17 @@ patch Scattered family=slice
   mac6_d3  #5
   mac6_a3  0.4
   mac6_d4  #15
-  mac6_a4  -0.167
+  mac6_a4  -0.0586
   set macro7 "Tighter"
   mac7_d1  #10
   mac7_a1  -0.45
   mac7_d2  #15
-  mac7_a2  0.238
+  mac7_a2  0.0859
   set macro8 "Lower"
   mac8_d1  #18
   mac8_a1  -0.5
   mac8_d2  #15
-  mac8_a2  0.055
+  mac8_a2  0.0309
 
 patch "Tuned Slices" family=slice
   # Each of eight slices tuned to a step of a minor pentatonic, so the loop
@@ -1205,22 +1210,22 @@ patch "Tuned Slices" family=slice
   s05_pitch      7
   s06_pitch      5
   s07_pitch      -2
-  volume         0.9
+  volume         0.312
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
   mac1_d2  #15
-  mac1_a2  -0.08
+  mac1_a2  -0.0273
   set macro2 "Reverse"
   mac2_d1  #2
   mac2_a1  1.0
   mac2_d2  #15
-  mac2_a2  0.047
+  mac2_a2  0.0256
   set macro3 "Stutter"
   mac3_d1  #3
   mac3_a1  1.0
   mac3_d2  #15
-  mac3_a2  -0.2
+  mac3_a2  -0.0684
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.6
@@ -1235,17 +1240,17 @@ patch "Tuned Slices" family=slice
   mac6_d3  #5
   mac6_a3  0.4
   mac6_d4  #15
-  mac6_a4  -0.205
+  mac6_a4  -0.0703
   set macro7 "Tighter"
   mac7_d1  #10
   mac7_a1  -0.45
   mac7_d2  #15
-  mac7_a2  0.093
+  mac7_a2  0.0312
   set macro8 "Lower"
   mac8_d1  #18
   mac8_a1  -0.5
   mac8_d2  #15
-  mac8_a2  0.108
+  mac8_a2  0.0391
 
 patch Backspin family=slice
   # The last two of eight slices reversed, every time, so the end of the bar
@@ -1255,7 +1260,7 @@ patch Backspin family=slice
   gate           1.0
   s06_dir        #1
   s07_dir        #1
-  volume         0.9
+  volume         0.312
   set macro1 "Swap"
   mac1_d1  #1
   mac1_a1  1.0
@@ -1266,17 +1271,17 @@ patch Backspin family=slice
   mac3_d1  #3
   mac3_a1  1.0
   mac3_d2  #15
-  mac3_a2  -0.142
+  mac3_a2  -0.0508
   set macro4 "Drop"
   mac4_d1  #4
   mac4_a1  0.6
   mac4_d2  #15
-  mac4_a2  0.114
+  mac4_a2  0.0391
   set macro5 "Jump"
   mac5_d1  #5
   mac5_a1  1.0
   mac5_d2  #15
-  mac5_a2  0.084
+  mac5_a2  0.0273
   set macro6 "Chaos"
   mac6_d1  #1
   mac6_a1  0.5
@@ -1285,12 +1290,12 @@ patch Backspin family=slice
   mac6_d3  #5
   mac6_a3  0.4
   mac6_d4  #15
-  mac6_a4  -0.154
+  mac6_a4  -0.0547
   set macro7 "Tighter"
   mac7_d1  #10
   mac7_a1  -0.45
   mac7_d2  #15
-  mac7_a2  0.194
+  mac7_a2  0.0703
   set macro8 "Lower"
   mac8_d1  #18
   mac8_a1  -0.5

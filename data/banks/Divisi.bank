@@ -16,9 +16,13 @@
 # ones. They sit within the effect-level rule; the patch's volume levels the
 # patch with them on.
 #
-# Levels: every patch is levelled by `volume` to about -29.5 on `loud`, one
-# note at its own note, with its inserts. A chord of four reads about 6 dB
-# louder. Slow patches are levelled with a quick attack and swell patches
+# Levels: every patch sits at -27.5 on `loud`, within 1 dB, Init included.
+# Init gets there through the machine's house trim, with `volume` at its
+# default of 0.18, 15 dB under the top. The patches are levelled by `volume`,
+# never higher than 6 dB under the top; Worn Strings, Cassette, Faded Choir
+# and Dusty Brass take the rest from the gain of their last insert.
+# A chord of four reads about 6 dB louder. Slow
+# patches are levelled with a quick attack and swell patches
 # with the motion off (the top of the breath), so they hold the same level
 # as the rest once they get there. Violin and viola peak about 15 dB over
 # their rms, so a big chord at full velocity can still peak near full scale;
@@ -70,17 +74,17 @@ patch "Full Strings" family=strings note=60 range=36..84
   mac3_d1  #14
   mac3_a1  -0.5
   mac3_d2  #20
-  mac3_a2  -0.192
+  mac3_a2  -0.049
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.112
+  mac4_a2  -0.0287
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.189
+  mac6_a2  0.0483
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -88,7 +92,7 @@ patch "Full Strings" family=strings note=60 range=36..84
   viola          0.7
   cello          0.6
   ensemble       0.8
-  volume         0.543
+  volume         0.1504
 
 patch "Bright Violins" family=strings note=60 range=36..84
   # Violins alone, opened up, one player and the chorus.
@@ -113,13 +117,13 @@ patch "Bright Violins" family=strings note=60 range=36..84
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.221
+  mac4_a2  -0.0564
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.239
+  mac6_a2  0.0611
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -128,7 +132,7 @@ patch "Bright Violins" family=strings note=60 range=36..84
   viola          0.2
   cello          0
   tone           0.75
-  volume         0.716
+  volume         0.1982
 
 patch "Big Section" family=strings note=60 range=36..84
   # Sixteen players a section, each drifting and singing on its own, the chorus turned down.
@@ -151,7 +155,7 @@ patch "Big Section" family=strings note=60 range=36..84
   mac3_d2  #15
   mac3_a2  0.15
   mac3_d3  #20
-  mac3_a3  0.086
+  mac3_a3  0.0287
   mac4_d1  #5
   mac4_a1  0.5
   mac5_d1  #7
@@ -159,7 +163,7 @@ patch "Big Section" family=strings note=60 range=36..84
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.157
+  mac6_a2  0.0523
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -167,7 +171,7 @@ patch "Big Section" family=strings note=60 range=36..84
   viola          0.7
   cello          0.6
   ensemble       0.45
-  volume         0.396
+  volume         0.1429
   players        16
   drift          15
   vibrato        30
@@ -203,13 +207,13 @@ patch "Warm Section" family=strings note=60 range=36..84
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.144
+  mac4_a2  -0.0427
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.277
+  mac6_a2  0.0821
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -218,7 +222,7 @@ patch "Warm Section" family=strings note=60 range=36..84
   viola          0.8
   cello          0.6
   tone           0.35
-  volume         0.7
+  volume         0.2251
   players        8
   drift          8
   vibrato        14
@@ -254,20 +258,20 @@ patch "Slow Strings" family=strings note=60 range=36..84
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.25
+  mac4_a2  -0.0617
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.285
+  mac6_a2  0.0703
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
   mac8_a1  0.6
   attack         1.5
   release        4
-  volume         0.692
+  volume         0.1851
   players        12
   drift          10
   vibrato        20
@@ -303,23 +307,23 @@ patch "Quick Strings" family=strings note=60 range=36..84
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.313
+  mac4_a2  -0.0713
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.209
+  mac6_a2  0.0476
   mac7_d1  #4
   mac7_a1  0.5
   mac7_d2  #20
-  mac7_a2  -0.101
+  mac7_a2  -0.023
   mac8_d1  #27
   mac8_a1  0.6
   mode           1
   attack         0.02
   release        0.6
-  volume         0.725
+  volume         0.1789
   players        4
   drift          5
   vibrato        10
@@ -353,17 +357,17 @@ patch Soloists family=strings note=60 range=36..84
   mac3_d2  #15
   mac3_a2  0.15
   mac3_d3  #20
-  mac3_a3  0.122
+  mac3_a3  0.0435
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.062
+  mac4_a2  -0.0221
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.111
+  mac6_a2  0.0396
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -371,7 +375,7 @@ patch Soloists family=strings note=60 range=36..84
   viola          0.6
   cello          0.5
   ensemble       0.15
-  volume         0.349
+  volume         0.1349
   players        2
   drift          4
   vibrato        35
@@ -411,17 +415,17 @@ patch Silk family=strings note=60 range=36..84
   mac3_d1  #14
   mac3_a1  -0.5
   mac3_d2  #20
-  mac3_a2  -0.143
+  mac3_a2  -0.0337
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.149
+  mac4_a2  -0.0351
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.276
+  mac6_a2  0.065
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -430,7 +434,7 @@ patch Silk family=strings note=60 range=36..84
   tone           0.3
   ensemble       0.9
   speed          0.3
-  volume         0.668
+  volume         0.1706
   players        8
   drift          8
   vibrato        14
@@ -464,17 +468,17 @@ patch "High Octave" family=strings note=60 range=36..84
   mac3_d2  #15
   mac3_a2  0.15
   mac3_d3  #20
-  mac3_a3  -0.16
+  mac3_a3  -0.0377
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.257
+  mac4_a2  -0.0605
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.187
+  mac6_a2  0.0441
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -483,7 +487,7 @@ patch "High Octave" family=strings note=60 range=36..84
   viola          0.3
   cello          0
   tone           0.6
-  volume         0.813
+  volume         0.2076
   players        10
   drift          8
   vibrato        20
@@ -521,13 +525,13 @@ patch Orchestra family=stage note=60 range=36..84 role=stage
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.112
+  mac4_a2  -0.0307
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.181
+  mac6_a2  0.0495
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -536,7 +540,7 @@ patch Orchestra family=stage note=60 range=36..84 role=stage
   viola          0.6
   cello          0.7
   contrabass     0.4
-  volume         0.628
+  volume         0.1863
   players        12
   drift          10
   vibrato        20
@@ -574,23 +578,23 @@ patch "Front Row" family=stage note=60 range=36..84 role=stage
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.129
+  mac4_a2  -0.0439
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.173
+  mac6_a2  0.059
   mac7_d1  #4
   mac7_a1  0.5
   mac7_d2  #20
-  mac7_a2  -0.101
+  mac7_a2  -0.0344
   mac8_d1  #27
   mac8_a1  0.6
   violin         0.8
   viola          0.6
   cello          0.6
-  volume         0.6
+  volume         0.2215
   players        8
   drift          8
   vibrato        14
@@ -628,26 +632,26 @@ patch "Wide Stage" family=stage note=60 range=36..84 role=stage
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.089
+  mac4_a2  -0.0297
   mac5_d1  #7
   mac5_a1  0.5
   mac5_d2  #20
-  mac5_a2  -0.084
+  mac5_a2  -0.0279
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.174
+  mac6_a2  0.058
   mac7_d1  #4
   mac7_a1  0.5
   mac7_d2  #20
-  mac7_a2  -0.079
+  mac7_a2  -0.0263
   mac8_d1  #27
   mac8_a1  0.6
   viola          0.6
   cello          0.7
   contrabass     0.3
   ensemble       0.5
-  volume         0.499
+  volume         0.1801
   players        16
   drift          15
   vibrato        30
@@ -687,11 +691,11 @@ patch Divided family=stage note=60 range=36..84 role=stage
   mac5_d1  #7
   mac5_a1  0.5
   mac5_d2  #20
-  mac5_a2  0.097
+  mac5_a2  0.0263
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.168
+  mac6_a2  0.0454
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -700,7 +704,7 @@ patch Divided family=stage note=60 range=36..84 role=stage
   viola          0.7
   cello          0.8
   contrabass     0.6
-  volume         0.554
+  volume         0.1625
   players        12
   drift          10
   vibrato        20
@@ -739,13 +743,13 @@ patch Everything family=stage note=60 range=36..84 role=stage
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.239
+  mac4_a2  -0.0694
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.319
+  mac6_a2  0.0922
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -754,7 +758,7 @@ patch Everything family=stage note=60 range=36..84 role=stage
   contrabass     0.4
   choir          0.5
   brass          0.5
-  volume         0.582
+  volume         0.183
   players        12
   drift          10
   vibrato        20
@@ -791,27 +795,27 @@ patch "Back of the Hall" family=stage note=60 range=36..84 role=stage
   mac3_d2  #15
   mac3_a2  0.15
   mac3_d3  #20
-  mac3_a3  -0.152
+  mac3_a3  -0.0393
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.229
+  mac4_a2  -0.0592
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.143
+  mac6_a2  0.0369
   mac7_d1  #4
   mac7_a1  0.5
   mac7_d2  #20
-  mac7_a2  -0.152
+  mac7_a2  -0.0393
   mac8_d1  #27
   mac8_a1  0.6
   tone           0.4
   attack         0.8
   release        4
-  volume         0.857
+  volume         0.24
   players        12
   drift          10
   vibrato        20
@@ -847,17 +851,17 @@ patch Chamber family=stage note=60 range=36..84 role=stage
   mac3_d2  #15
   mac3_a2  0.15
   mac3_d3  #20
-  mac3_a3  0.111
+  mac3_a3  0.042
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.091
+  mac4_a2  -0.0344
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.14
+  mac6_a2  0.0529
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -866,7 +870,7 @@ patch Chamber family=stage note=60 range=36..84 role=stage
   viola          0.6
   cello          0.6
   ensemble       0.3
-  volume         0.513
+  volume         0.2101
   players        3
   drift          5
   vibrato        18
@@ -905,13 +909,13 @@ patch Lento family=stage note=60 range=36..84 role=stage
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.246
+  mac4_a2  -0.0806
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.214
+  mac6_a2  0.0704
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -920,7 +924,7 @@ patch Lento family=stage note=60 range=36..84 role=stage
   release        8
   ensemble       0.6
   speed          0.25
-  volume         0.742
+  volume         0.2647
   players        12
   drift          10
   vibrato        20
@@ -958,13 +962,13 @@ patch "Choir Loft" family=stage note=60 range=36..84 role=stage
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.132
+  mac4_a2  -0.0374
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.214
+  mac6_a2  0.0606
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -974,7 +978,7 @@ patch "Choir Loft" family=stage note=60 range=36..84 role=stage
   cello          0.5
   choir          0.6
   vowel          0.3
-  volume         0.614
+  volume         0.1886
   players        12
   drift          10
   vibrato        20
@@ -1014,23 +1018,23 @@ patch Cellos family=low note=43 range=24..60
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.266
+  mac4_a2  -0.0703
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.034
+  mac6_a2  0.009
   mac7_d1  #4
   mac7_a1  0.5
   mac7_d2  #20
-  mac7_a2  -0.144
+  mac7_a2  -0.0381
   mac8_d1  #27
   mac8_a1  0.6
   violin         0
   viola          0.3
   cello          1
-  volume         0.966
+  volume         0.2769
   players        6
   drift          6
   vibrato        14
@@ -1066,7 +1070,7 @@ patch Basses family=low note=43 range=24..60
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.12
+  mac4_a2  -0.0404
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
@@ -1074,14 +1078,14 @@ patch Basses family=low note=43 range=24..60
   mac7_d1  #4
   mac7_a1  -0.5
   mac7_d2  #20
-  mac7_a2  0.242
+  mac7_a2  0.0814
   mac8_d1  #27
   mac8_a1  0.6
   violin         0
   viola          0
   cello          0.6
   contrabass     1
-  volume         0.758
+  volume         0.2766
   players        8
   drift          8
   vibrato        8
@@ -1117,7 +1121,7 @@ patch "Low Section" family=low note=43 range=24..60
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.199
+  mac4_a2  -0.0491
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
@@ -1125,14 +1129,14 @@ patch "Low Section" family=low note=43 range=24..60
   mac7_d1  #4
   mac7_a1  0.5
   mac7_d2  #20
-  mac7_a2  -0.124
+  mac7_a2  -0.0306
   mac8_d1  #27
   mac8_a1  0.6
   violin         0
   viola          0.4
   cello          0.8
   contrabass     0.6
-  volume         0.891
+  volume         0.2383
   players        12
   drift          10
   vibrato        20
@@ -1172,13 +1176,13 @@ patch "Bass Pedal" family=low note=43 range=24..60
   mac5_d1  #7
   mac5_a1  0.5
   mac5_d2  #20
-  mac5_a2  -0.207
+  mac5_a2  -0.0593
   mac6_d1  #16
   mac6_a1  0.6
   mac7_d1  #4
   mac7_a1  -0.5
   mac7_d2  #20
-  mac7_a2  0.224
+  mac7_a2  0.0642
   mac8_d1  #27
   mac8_a1  0.6
   violin         0
@@ -1188,7 +1192,7 @@ patch "Bass Pedal" family=low note=43 range=24..60
   mode           1
   attack         0.05
   release        0.8
-  volume         0.776
+  volume         0.2411
 
 patch "Dark Cellos" family=low note=43 range=24..60
   # Cellos turned dark, through an older chorus.
@@ -1213,7 +1217,7 @@ patch "Dark Cellos" family=low note=43 range=24..60
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.259
+  mac4_a2  -0.0563
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
@@ -1221,14 +1225,14 @@ patch "Dark Cellos" family=low note=43 range=24..60
   mac7_d1  #4
   mac7_a1  0.5
   mac7_d2  #20
-  mac7_a2  -0.139
+  mac7_a2  -0.0302
   mac8_d1  #27
   mac8_a1  0.6
   violin         0
   viola          0.4
   cello          1
   tone           0.25
-  volume         1
+  volume         0.2357
   players        8
   drift          8
   vibrato        14
@@ -1266,11 +1270,11 @@ patch "Deep Swell" family=low note=43 range=24..60 role=held
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.141
+  mac4_a2  -0.0438
   mac5_d1  #7
   mac5_a1  0.5
   mac5_d2  #20
-  mac5_a2  -0.188
+  mac5_a2  -0.0584
   mac6_d1  #16
   mac6_a1  0.6
   mac7_d1  #22
@@ -1287,7 +1291,7 @@ patch "Deep Swell" family=low note=43 range=24..60 role=held
   contrabass     0.9
   attack         1
   release        5
-  volume         0.841
+  volume         0.2832
   players        12
   drift          10
   vibrato        20
@@ -1324,17 +1328,17 @@ patch "Low Choir" family=low note=43 range=24..60
   mac3_d2  #15
   mac3_a2  0.15
   mac3_d3  #20
-  mac3_a3  -0.087
+  mac3_a3  -0.0289
   mac4_d1  #6
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  0.189
+  mac4_a2  0.0629
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.323
+  mac6_a2  0.107
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -1345,7 +1349,7 @@ patch "Low Choir" family=low note=43 range=24..60
   contrabass     0.4
   choir          0.9
   vowel          0.1
-  volume         0.519
+  volume         0.1873
   players        8
   drift          8
   vibrato        14
@@ -1381,7 +1385,7 @@ patch "Low Brass" family=low note=43 range=24..60 role=chord
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.082
+  mac4_a2  -0.0328
   mac5_d1  #10
   mac5_a1  0.5
   mac6_d1  #16
@@ -1389,7 +1393,7 @@ patch "Low Brass" family=low note=43 range=24..60 role=chord
   mac7_d1  #4
   mac7_a1  0.5
   mac7_d2  #20
-  mac7_a2  -0.099
+  mac7_a2  -0.0396
   mac8_d1  #27
   mac8_a1  0.6
   violin         0
@@ -1401,7 +1405,7 @@ patch "Low Brass" family=low note=43 range=24..60 role=chord
   mode           1
   attack         0.05
   release        0.5
-  volume         0.589
+  volume         0.2555
   players        4
   drift          4
   scatter        15
@@ -1436,15 +1440,15 @@ patch Undertow family=low note=43 range=24..60 role=held
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.061
+  mac4_a2  -0.0154
   mac5_d1  #7
   mac5_a1  0.5
   mac5_d2  #20
-  mac5_a2  -0.105
+  mac5_a2  -0.0265
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  -0.065
+  mac6_a2  -0.0164
   mac7_d1  #22
   mac7_a1  0.4
   mac7_d2  #24
@@ -1460,7 +1464,7 @@ patch Undertow family=low note=43 range=24..60 role=held
   phaser         0.4
   rate           0.1
   feedback       0.5
-  volume         0.407
+  volume         0.1115
   players        6
   drift          10
   vibrato        6
@@ -1495,13 +1499,13 @@ patch "Aah Choir" family=choir note=60 range=36..84
   mac4_d1  #6
   mac4_a1  -0.5
   mac4_d2  #20
-  mac4_a2  0.269
+  mac4_a2  0.103
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.314
+  mac6_a2  0.12
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -1510,7 +1514,7 @@ patch "Aah Choir" family=choir note=60 range=36..84
   viola          0
   cello          0
   choir          0.9
-  volume         0.49
+  volume         0.203
   players        8
   drift          8
   vibrato        14
@@ -1544,19 +1548,19 @@ patch "Ooh Choir" family=choir note=60 range=36..84
   mac3_d2  #15
   mac3_a2  0.15
   mac3_d3  #20
-  mac3_a3  -0.291
+  mac3_a3  -0.0749
   mac4_d1  #6
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.269
+  mac4_a2  -0.0695
   mac5_d1  #7
   mac5_a1  0.5
   mac5_d2  #20
-  mac5_a2  0.241
+  mac5_a2  0.0623
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.197
+  mac6_a2  0.0509
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -1566,7 +1570,7 @@ patch "Ooh Choir" family=choir note=60 range=36..84
   cello          0
   choir          0.9
   vowel          0
-  volume         0.759
+  volume         0.2126
   players        8
   drift          8
   vibrato        14
@@ -1600,19 +1604,19 @@ patch "Ee Choir" family=choir note=60 range=36..84
   mac3_d2  #15
   mac3_a2  0.15
   mac3_d3  #20
-  mac3_a3  -0.132
+  mac3_a3  -0.051
   mac4_d1  #6
   mac4_a1  -0.5
   mac4_d2  #20
-  mac4_a2  0.08
+  mac4_a2  0.031
   mac5_d1  #7
   mac5_a1  0.5
   mac5_d2  #20
-  mac5_a2  0.15
+  mac5_a2  0.058
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.143
+  mac6_a2  0.0553
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -1622,7 +1626,7 @@ patch "Ee Choir" family=choir note=60 range=36..84
   cello          0
   choir          0.9
   vowel          1
-  volume         0.495
+  volume         0.2074
   players        6
   drift          8
   vibrato        14
@@ -1660,11 +1664,11 @@ patch "Oh Choir" family=choir note=60 range=36..84
   mac5_d1  #7
   mac5_a1  0.5
   mac5_d2  #20
-  mac5_a2  0.174
+  mac5_a2  0.0572
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.202
+  mac6_a2  0.0665
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -1674,7 +1678,7 @@ patch "Oh Choir" family=choir note=60 range=36..84
   cello          0
   choir          0.9
   vowel          0.25
-  volume         0.636
+  volume         0.2269
 
 patch "Big Choir" family=choir note=60 range=36..84
   # Sixteen singers, seated, in a big hall.
@@ -1697,7 +1701,7 @@ patch "Big Choir" family=choir note=60 range=36..84
   mac3_d2  #15
   mac3_a2  0.15
   mac3_d3  #20
-  mac3_a3  0.149
+  mac3_a3  0.049
   mac4_d1  #6
   mac4_a1  0.5
   mac5_d1  #7
@@ -1705,7 +1709,7 @@ patch "Big Choir" family=choir note=60 range=36..84
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.302
+  mac6_a2  0.0994
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -1716,7 +1720,7 @@ patch "Big Choir" family=choir note=60 range=36..84
   choir          1
   vowel          0.45
   ensemble       0.45
-  volume         0.517
+  volume         0.1844
   players        16
   drift          15
   vibrato        30
@@ -1758,7 +1762,7 @@ patch "Distant Voices" family=choir note=60 range=36..84
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.308
+  mac6_a2  0.0835
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -1771,7 +1775,7 @@ patch "Distant Voices" family=choir note=60 range=36..84
   tone           0.35
   attack         1.2
   release        4
-  volume         0.62
+  volume         0.1818
   players        12
   drift          10
   vibrato        20
@@ -1811,11 +1815,11 @@ patch "Vowel Drift" family=choir note=60 range=36..84 role=held
   mac5_d1  #7
   mac5_a1  0.5
   mac5_d2  #20
-  mac5_a2  0.189
+  mac5_a2  0.0384
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.198
+  mac6_a2  0.0402
   mac7_d1  #22
   mac7_a1  0.4
   mac7_d2  #24
@@ -1829,7 +1833,7 @@ patch "Vowel Drift" family=choir note=60 range=36..84 role=held
   cello          0
   choir          0.95
   vowel          0.4
-  volume         0.593
+  volume         0.1304
   players        12
   drift          10
   vibrato        20
@@ -1874,7 +1878,7 @@ patch "Choir and Strings" family=choir note=60 range=36..84 role=stage
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.277
+  mac6_a2  0.0821
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -1883,7 +1887,7 @@ patch "Choir and Strings" family=choir note=60 range=36..84 role=stage
   viola          0.4
   cello          0.3
   choir          0.7
-  volume         0.646
+  volume         0.2077
   players        12
   drift          10
   vibrato        20
@@ -1925,7 +1929,7 @@ patch Chant family=choir note=60 range=36..84
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.211
+  mac6_a2  0.0475
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -1937,7 +1941,7 @@ patch Chant family=choir note=60 range=36..84
   vowel          0.2
   tone           0.4
   ensemble       0.4
-  volume         0.789
+  volume         0.1925
   players        4
   drift          5
   vibrato        6
@@ -1979,11 +1983,11 @@ patch "Brass Section" family=brass note=60 range=36..84 role=chord
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.119
+  mac6_a2  0.0401
   mac7_d1  #4
   mac7_a1  0.5
   mac7_d2  #20
-  mac7_a2  -0.22
+  mac7_a2  -0.0742
   mac8_d1  #27
   mac8_a1  0.6
   violin         0
@@ -1993,7 +1997,7 @@ patch "Brass Section" family=brass note=60 range=36..84 role=chord
   mode           1
   attack         0.01
   release        0.3
-  volume         0.881
+  volume         0.3216
 
 patch "Blat Brass" family=brass note=60 range=36..84 role=chord
   # Blown hard so it rasps, plain.
@@ -2018,17 +2022,17 @@ patch "Blat Brass" family=brass note=60 range=36..84 role=chord
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.223
+  mac4_a2  -0.0727
   mac5_d1  #10
   mac5_a1  -0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.139
+  mac6_a2  0.0452
   mac7_d1  #4
   mac7_a1  0.5
   mac7_d2  #20
-  mac7_a2  -0.193
+  mac7_a2  -0.0628
   mac8_d1  #27
   mac8_a1  0.6
   violin         0
@@ -2041,7 +2045,7 @@ patch "Blat Brass" family=brass note=60 range=36..84 role=chord
   mode           1
   attack         0.005
   release        0.3
-  volume         0.861
+  volume         0.3036
 
 patch "Soft Brass" family=brass note=60 range=36..84 role=chord
   # Four players blown gently, a plate behind them.
@@ -2070,11 +2074,11 @@ patch "Soft Brass" family=brass note=60 range=36..84 role=chord
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.25
+  mac6_a2  0.124
   mac7_d1  #4
   mac7_a1  0.5
   mac7_d2  #20
-  mac7_a2  -0.14
+  mac7_a2  -0.0689
   mac8_d1  #27
   mac8_a1  0.6
   violin         0
@@ -2087,7 +2091,7 @@ patch "Soft Brass" family=brass note=60 range=36..84 role=chord
   mode           1
   attack         0.08
   release        0.4
-  volume         0.75
+  volume         0.4003
   players        4
   drift          4
   vibrato        5
@@ -2127,11 +2131,11 @@ patch "Brass Swell" family=brass note=60 range=36..84 role=chord
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.011
+  mac6_a2  0.00436
   mac7_d1  #4
   mac7_a1  0.5
   mac7_d2  #20
-  mac7_a2  -0.328
+  mac7_a2  -0.13
   mac8_d1  #27
   mac8_a1  0.6
   violin         0
@@ -2142,7 +2146,7 @@ patch "Brass Swell" family=brass note=60 range=36..84 role=chord
   brassdecay     2.5
   attack         0.8
   release        1
-  volume         0.989
+  volume         0.4242
   players        6
   drift          5
   vibrato        6
@@ -2179,17 +2183,17 @@ patch "Stab Brass" family=brass note=60 range=36..84 role=chord
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.166
+  mac4_a2  -0.0498
   mac5_d1  #10
   mac5_a1  -0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.011
+  mac6_a2  0.00331
   mac7_d1  #4
   mac7_a1  0.5
   mac7_d2  #20
-  mac7_a2  -0.289
+  mac7_a2  -0.0864
   mac8_d1  #27
   mac8_a1  0.6
   violin         0
@@ -2202,7 +2206,7 @@ patch "Stab Brass" family=brass note=60 range=36..84 role=chord
   mode           1
   attack         0.003
   release        0.15
-  volume         0.989
+  volume         0.3218
   players        3
   drift          3
   scatter        8
@@ -2238,7 +2242,7 @@ patch "Horn Section" family=brass note=60 range=36..84 role=chord
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.206
+  mac4_a2  -0.0508
   mac5_d1  #10
   mac5_a1  0.5
   mac6_d1  #16
@@ -2256,7 +2260,7 @@ patch "Horn Section" family=brass note=60 range=36..84 role=chord
   mode           1
   attack         0.03
   release        0.5
-  volume         1
+  volume         0.2676
   players        8
   drift          6
   vibrato        6
@@ -2285,7 +2289,7 @@ patch "Mellow Horns" family=brass note=60 range=36..84 role=chord
   mac1_d1  #11
   mac1_a1  0.35
   mac1_d2  #20
-  mac1_a2  -0.215
+  mac1_a2  -0.0831
   mac2_d1  #12
   mac2_a1  0.2
   mac2_d2  #13
@@ -2297,7 +2301,7 @@ patch "Mellow Horns" family=brass note=60 range=36..84 role=chord
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.308
+  mac4_a2  -0.118
   mac5_d1  #10
   mac5_a1  0.5
   mac6_d1  #16
@@ -2305,7 +2309,7 @@ patch "Mellow Horns" family=brass note=60 range=36..84 role=chord
   mac7_d1  #4
   mac7_a1  0.5
   mac7_d2  #20
-  mac7_a2  -0.316
+  mac7_a2  -0.123
   mac8_d1  #27
   mac8_a1  0.6
   violin         0
@@ -2320,7 +2324,7 @@ patch "Mellow Horns" family=brass note=60 range=36..84 role=chord
   attack         0.06
   release        0.6
   ensemble       0.4
-  volume         1
+  volume         0.4191
   players        6
   drift          5
   vibrato        10
@@ -2357,21 +2361,21 @@ patch "Brass and Strings" family=brass note=60 range=36..84 role=chord
   mac3_d2  #15
   mac3_a2  0.15
   mac3_d3  #20
-  mac3_a3  -0.19
+  mac3_a3  -0.0418
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.19
+  mac4_a2  -0.0418
   mac5_d1  #10
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.149
+  mac6_a2  0.0328
   mac7_d1  #4
   mac7_a1  0.5
   mac7_d2  #20
-  mac7_a2  -0.118
+  mac7_a2  -0.026
   mac8_d1  #27
   mac8_a1  0.6
   violin         0.5
@@ -2382,7 +2386,7 @@ patch "Brass and Strings" family=brass note=60 range=36..84 role=chord
   mode           1
   attack         0.05
   release        0.6
-  volume         0.851
+  volume         0.2029
   players        10
   drift          8
   vibrato        12
@@ -2418,13 +2422,13 @@ patch "Vox Brass" family=brass note=60 range=36..84 role=chord
   mac3_d2  #15
   mac3_a2  0.15
   mac3_d3  #20
-  mac3_a3  -0.185
+  mac3_a3  -0.0426
   mac4_d1  #6
   mac4_a1  -0.5
   mac5_d1  #7
   mac5_a1  0.5
   mac5_d2  #20
-  mac5_a2  0.139
+  mac5_a2  0.032
   mac6_d1  #16
   mac6_a1  0.6
   mac7_d1  #4
@@ -2440,7 +2444,7 @@ patch "Vox Brass" family=brass note=60 range=36..84 role=chord
   mode           1
   attack         0.05
   release        0.8
-  volume         0.861
+  volume         0.2149
   players        6
   drift          6
   vibrato        8
@@ -2478,13 +2482,13 @@ patch "Drifting Sections" family=motion note=60 range=36..84 role=held
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.159
+  mac4_a2  -0.0271
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.159
+  mac6_a2  0.0271
   mac7_d1  #22
   mac7_a1  0.4
   mac7_d2  #24
@@ -2497,7 +2501,7 @@ patch "Drifting Sections" family=motion note=60 range=36..84 role=held
   viola          0.6
   cello          0.7
   contrabass     0.3
-  volume         0.614
+  volume         0.1136
   players        12
   drift          10
   vibrato        20
@@ -2539,13 +2543,13 @@ patch Breathing family=motion note=60 range=36..84 role=held
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.19
+  mac4_a2  -0.0423
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.248
+  mac6_a2  0.0551
   mac7_d1  #22
   mac7_a1  0.4
   mac7_d2  #24
@@ -2556,7 +2560,7 @@ patch Breathing family=motion note=60 range=36..84 role=held
   mac8_a1  0.6
   viola          0.7
   cello          0.6
-  volume         0.6
+  volume         0.1447
   players        12
   drift          10
   vibrato        20
@@ -2599,7 +2603,7 @@ patch Pulse family=motion note=60 range=36..84 role=held
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.141
+  mac6_a2  0.0428
   mac7_d1  #22
   mac7_a1  0.4
   mac7_d2  #24
@@ -2610,7 +2614,7 @@ patch Pulse family=motion note=60 range=36..84 role=held
   mac8_a1  0.6
   viola          0.6
   cello          0.5
-  volume         0.517
+  volume         0.1701
   players        8
   drift          6
   vibrato        10
@@ -2647,17 +2651,17 @@ patch Tide family=motion note=60 range=36..84 role=held
   mac3_d2  #15
   mac3_a2  0.15
   mac3_d3  #20
-  mac3_a3  -0.088
+  mac3_a3  -0.0145
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.104
+  mac4_a2  -0.0171
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.168
+  mac6_a2  0.0277
   mac7_d1  #22
   mac7_a1  0.35
   mac7_d2  #24
@@ -2670,7 +2674,7 @@ patch Tide family=motion note=60 range=36..84 role=held
   viola          0.7
   cello          0.8
   contrabass     0.5
-  volume         0.554
+  volume         0.099
   players        12
   drift          10
   vibrato        20
@@ -2712,13 +2716,13 @@ patch Cues family=motion note=60 range=36..84 role=held
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.1
+  mac4_a2  -0.0144
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.145
+  mac6_a2  0.0208
   mac7_d1  #22
   mac7_a1  0.4
   mac7_d2  #24
@@ -2733,7 +2737,7 @@ patch Cues family=motion note=60 range=36..84 role=held
   contrabass     0.4
   choir          0.4
   brass          0.3
-  volume         0.628
+  volume         0.09785
   players        12
   drift          10
   vibrato        20
@@ -2777,11 +2781,11 @@ patch "Shimmer Steps" family=motion note=60 range=36..84 role=held
   mac5_d1  #7
   mac5_a1  0.5
   mac5_d2  #20
-  mac5_a2  0.149
+  mac5_a2  0.0313
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.24
+  mac6_a2  0.0504
   mac7_d1  #22
   mac7_a1  0.4
   mac7_d2  #24
@@ -2794,7 +2798,7 @@ patch "Shimmer Steps" family=motion note=60 range=36..84 role=held
   viola          0.3
   cello          0
   tone           0.6
-  volume         0.689
+  volume         0.1569
   players        10
   drift          8
   vibrato        16
@@ -2838,7 +2842,7 @@ patch "Vowel Tide" family=motion note=60 range=36..84 role=held
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.238
+  mac6_a2  0.0397
   mac7_d1  #22
   mac7_a1  0.4
   mac7_d2  #24
@@ -2852,7 +2856,7 @@ patch "Vowel Tide" family=motion note=60 range=36..84 role=held
   cello          0
   choir          1
   vowel          0.5
-  volume         0.681
+  volume         0.1231
   players        12
   drift          10
   vibrato        20
@@ -2894,13 +2898,13 @@ patch "Phased Strings" family=motion note=60 range=36..84 role=held
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.242
+  mac4_a2  -0.0458
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  -0.6
   mac6_d2  #20
-  mac6_a2  -0.175
+  mac6_a2  -0.0331
   mac7_d1  #22
   mac7_a1  0.4
   mac7_d2  #24
@@ -2912,7 +2916,7 @@ patch "Phased Strings" family=motion note=60 range=36..84 role=held
   phaser         0.7
   rate           0.3
   feedback       0.5
-  volume         0.851
+  volume         0.1747
   motion         1
   mrate          0.1
   mbalance       0.2
@@ -2942,15 +2946,15 @@ patch Sunrise family=motion note=60 range=36..84 role=held
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.145
+  mac4_a2  -0.0323
   mac5_d1  #7
   mac5_a1  0.5
   mac5_d2  #20
-  mac5_a2  -0.123
+  mac5_a2  -0.0274
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.212
+  mac6_a2  0.0472
   mac7_d1  #22
   mac7_a1  0.4
   mac7_d2  #24
@@ -2966,7 +2970,7 @@ patch Sunrise family=motion note=60 range=36..84 role=held
   brassdecay     3
   attack         3
   release        6
-  volume         0.776
+  volume         0.1871
   players        12
   drift          10
   vibrato        20
@@ -3006,17 +3010,17 @@ patch "Old Box" family=worn note=60 range=36..84
   mac3_d1  #14
   mac3_a1  -0.5
   mac3_d2  #20
-  mac3_a2  -0.192
+  mac3_a2  -0.0485
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.111
+  mac4_a2  -0.028
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.189
+  mac6_a2  0.0477
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -3024,7 +3028,7 @@ patch "Old Box" family=worn note=60 range=36..84
   viola          0.7
   cello          0.6
   ensemble       0.8
-  volume         0.541
+  volume         0.1481
   age            0.45
 
 patch "Bucket Brigade" family=worn note=60 range=36..84
@@ -3048,13 +3052,13 @@ patch "Bucket Brigade" family=worn note=60 range=36..84
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.105
+  mac4_a2  -0.0232
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.195
+  mac6_a2  0.0432
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -3063,7 +3067,7 @@ patch "Bucket Brigade" family=worn note=60 range=36..84
   cello          0.5
   ensemble       1
   speed          0.6
-  volume         0.535
+  volume         0.1284
   age            1
 
 patch "Worn Strings" family=worn note=60 range=36..84
@@ -3085,21 +3089,21 @@ patch "Worn Strings" family=worn note=60 range=36..84
   mac3_d1  #14
   mac3_a1  -0.5
   mac3_d2  #20
-  mac3_a2  -0.171
+  mac3_a2  -0.104
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.097
+  mac4_a2  -0.0587
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.09
+  mac6_a2  0.0544
   mac7_d1  #4
   mac7_a1  0.5
   mac7_d2  #20
-  mac7_a2  -0.072
+  mac7_a2  -0.0436
   mac8_d1  #27
   mac8_a1  -0.7
   viola          0.7
@@ -3107,7 +3111,7 @@ patch "Worn Strings" family=worn note=60 range=36..84
   ensemble       0.8
   phaser         0.3
   rate           0.12
-  volume         0.517
+  volume         0.339
   age            0.7
   insert Tape
     wow          0.25
@@ -3116,6 +3120,7 @@ patch "Worn Strings" family=worn note=60 range=36..84
     tone         8000 Hz
     hiss         0.06
     age          0.5
+    gain         -6.8 dB
 
 patch Cassette family=worn note=60 range=36..84
   # Strings off a cassette: the top gone, a steady wow.
@@ -3140,23 +3145,23 @@ patch Cassette family=worn note=60 range=36..84
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.068
+  mac4_a2  -0.049
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.105
+  mac6_a2  0.0756
   mac7_d1  #4
   mac7_a1  0.5
   mac7_d2  #20
-  mac7_a2  -0.076
+  mac7_a2  -0.0547
   mac8_d1  #27
   mac8_a1  -0.6
   viola          0.6
   cello          0.5
   tone           0.6
-  volume         0.405
+  volume         0.3161
   players        4
   drift          6
   age            0.6
@@ -3167,6 +3172,7 @@ patch Cassette family=worn note=60 range=36..84
     tone         6500 Hz
     hiss         0.12
     age          0.45
+    gain         -5.9 dB
 
 patch "Jet Phase" family=worn note=60 range=36..84
   # A deep phaser on an ageing chorus.
@@ -3191,7 +3197,7 @@ patch "Jet Phase" family=worn note=60 range=36..84
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.176
+  mac4_a2  -0.041
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
@@ -3199,14 +3205,14 @@ patch "Jet Phase" family=worn note=60 range=36..84
   mac7_d1  #4
   mac7_a1  0.5
   mac7_d2  #20
-  mac7_a2  -0.124
+  mac7_a2  -0.0289
   mac8_d1  #27
   mac8_a1  0.6
   tone           0.8
   phaser         1
   rate           0.15
   feedback       0.85
-  volume         0.66
+  volume         0.1666
   age            0.4
 
 patch Warble family=worn note=60 range=36..84
@@ -3230,13 +3236,13 @@ patch Warble family=worn note=60 range=36..84
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.123
+  mac4_a2  -0.027
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.128
+  mac6_a2  0.0281
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -3245,7 +3251,7 @@ patch Warble family=worn note=60 range=36..84
   speed          1
   phaser         0.4
   rate           2
-  volume         0.734
+  volume         0.1745
   age            0.8
 
 patch "Faded Choir" family=worn note=60 range=36..84
@@ -3273,11 +3279,11 @@ patch "Faded Choir" family=worn note=60 range=36..84
   mac5_d1  #7
   mac5_a1  0.5
   mac5_d2  #20
-  mac5_a2  0.164
+  mac5_a2  0.095
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.189
+  mac6_a2  0.109
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -3288,7 +3294,7 @@ patch "Faded Choir" family=worn note=60 range=36..84
   choir          0.9
   vowel          0.3
   tone           0.55
-  volume         0.541
+  volume         0.339
   age            0.7
   insert Tape
     wow          0.25
@@ -3297,6 +3303,7 @@ patch "Faded Choir" family=worn note=60 range=36..84
     tone         8000 Hz
     hiss         0.06
     age          0.5
+    gain         -5.1 dB
 
 patch "Dusty Brass" family=worn note=60 range=36..84 role=chord
   # Shared-filter brass through an old chorus and tape.
@@ -3319,7 +3326,7 @@ patch "Dusty Brass" family=worn note=60 range=36..84 role=chord
   mac3_d2  #15
   mac3_a2  0.15
   mac3_d3  #20
-  mac3_a3  0.295
+  mac3_a3  0.161
   mac4_d1  #5
   mac4_a1  0.5
   mac5_d1  #10
@@ -3327,11 +3334,11 @@ patch "Dusty Brass" family=worn note=60 range=36..84 role=chord
   mac6_d1  #16
   mac6_a1  0.6
   mac6_d2  #20
-  mac6_a2  0.141
+  mac6_a2  0.077
   mac7_d1  #4
   mac7_a1  0.5
   mac7_d2  #20
-  mac7_a2  -0.129
+  mac7_a2  -0.0702
   mac8_d1  #27
   mac8_a1  -0.6
   violin         0
@@ -3344,7 +3351,7 @@ patch "Dusty Brass" family=worn note=60 range=36..84 role=chord
   attack         0.02
   release        0.4
   ensemble       0.5
-  volume         0.575
+  volume         0.339
   age            0.6
   insert Tape
     wow          0.1
@@ -3353,6 +3360,7 @@ patch "Dusty Brass" family=worn note=60 range=36..84 role=chord
     tone         12000 Hz
     hiss         0.03
     age          0.2
+    gain         -1.5 dB
 
 patch "Spin Cycle" family=worn note=60 range=36..84
   # A fast phaser on violas and an old chorus.
@@ -3377,13 +3385,13 @@ patch "Spin Cycle" family=worn note=60 range=36..84
   mac4_d1  #5
   mac4_a1  0.5
   mac4_d2  #20
-  mac4_a2  -0.132
+  mac4_a2  -0.0374
   mac5_d1  #7
   mac5_a1  0.5
   mac6_d1  #16
   mac6_a1  -0.6
   mac6_d2  #20
-  mac6_a2  -0.171
+  mac6_a2  -0.0485
   mac7_d1  #4
   mac7_a1  0.5
   mac8_d1  #27
@@ -3392,5 +3400,5 @@ patch "Spin Cycle" family=worn note=60 range=36..84
   phaser         0.9
   rate           3
   feedback       0.3
-  volume         0.832
+  volume         0.2555
   age            0.5

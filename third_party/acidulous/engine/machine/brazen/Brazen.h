@@ -20,6 +20,8 @@ namespace acidulous::machine {
 
 class Brazen final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+4.3 dB). */
+    static constexpr float kHouseTrim = 1.632f;
     static constexpr int kVoices = 6;
     static constexpr int kPlayers = 4;
 

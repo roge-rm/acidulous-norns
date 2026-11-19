@@ -86,7 +86,7 @@ const ParamDef *Mosaic::paramDefs(int32_t &count) const {
         putN(VoiceMode, "voicemode", 0.0f, 2.0f, 0.0f, Curve::Stepped, 3, "");
         // Up to 1.5, like the other machines. Values are saved normalised, so
         // changing this range rescales saved volumes.
-        putN(Volume, "volume", 0.0f, 1.5f, 0.8f, Curve::Linear, 0, "");
+        putN(Volume, "volume", 0.0f, 1.5f, 0.24f, Curve::Linear, 0, ""); // 16 dB under the top
         putN(Pan, "pan", -1.0f, 1.0f, 0.0f, Curve::Linear, 0, "");
         putN(VelocityAmount, "velamt", 0.0f, 1.0f, 1.0f, Curve::Linear, 0, "");
         putN(VelToFilter, "veltofilter", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, "");
@@ -522,7 +522,7 @@ void Mosaic::evalMatrix(Voice &v) {
     // Pressure makes the note brighter and louder, on top of the matrix.
     const float prs = glidePressure(v.prsGlide, v.pressure, pressure) * paramOf(MpePressure);
     v.mod[DstFilterFreq] += prs * 0.4f;
-    v.mod[DstAmp] += prs * 0.4f;
+    v.mod[DstAmp] += prs * (0.4f / kHouseTrim); // the same level at any trim
 }
 
 float Mosaic::readSample(const SampleData &s, double pos) {
@@ -574,7 +574,7 @@ void Mosaic::renderVoice(Voice &v, int32_t frames, float *outL, float *outR) {
     // reader ignores. When the file sets level from velocity, the panel's
     // curve is skipped so it doesn't apply twice.
     const float velAmp = v.fileDrivesLevel ? 1.0f : velocityGain(vel, paramOf(VelocityAmount));
-    const float volume = clampf(paramOf(Volume) + v.mod[DstAmp], 0.0f, 2.0f) * velAmp * kHouse;
+    const float volume = clampf(paramOf(Volume) + v.mod[DstAmp], 0.0f, 2.0f) * velAmp * kHouse * kHouseTrim;
     const float panBase = clampf(paramOf(Pan) + v.mod[DstPan], -1.0f, 1.0f);
     const int loopMode = stepOf(LoopModeIndex);
     const bool reverse = paramOf(Reverse) >= 0.5f;

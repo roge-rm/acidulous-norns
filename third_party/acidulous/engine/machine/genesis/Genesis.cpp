@@ -93,7 +93,7 @@ const ParamDef kBase[Genesis::MacroBase] = {
         {"comprelease", 0.02f, 1.0f, 0.18f, Curve::Exponential, 0, "s"},
         {"duck", 0.0f, 1.0f, 0.3f, Curve::Linear, 0, ""},
         {"drive", 0.0f, 1.0f, 0.15f, Curve::Linear, 0, ""},
-        {"volume", 0.0f, 1.5f, 0.9f, Curve::Linear, 0, ""},
+        {"volume", 0.0f, 1.5f, 0.33f, Curve::Linear, 0, ""}, // 13 dB under the top
         {"pan", -1.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
 };
 
@@ -306,7 +306,7 @@ bool Genesis::render(float *L, float *R, int32_t frames) {
     const float compAttack = 1.0f - std::exp(-1.0f / (val(CompAttack) * sr));
     const float compRelease = 1.0f - std::exp(-1.0f / (val(CompRelease) * sr));
     const float duck = val(Duck);
-    const float drive = val(Drive), volume = val(Volume);
+    const float drive = val(Drive), volume = val(Volume) * kHouseTrim;
     const float pan = val(Pan);
     const float panL = std::cos((pan + 1.0f) * 0.25f * 3.14159265f);
     const float panR = std::sin((pan + 1.0f) * 0.25f * 3.14159265f);

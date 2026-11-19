@@ -26,7 +26,12 @@
 # Four tables are built along that path and crossfaded; they share their
 # random phases, which is the trick that stops two of them cancelling.
 #
-# **Levels.** The bank is levelled to the house line by `volume`. A pad is
+# **Levels.** Every patch sits at -27.5 on `loud`, within 1 dB, Init included.
+# Init gets there through the machine's house trim, with `volume` at its
+# default of 0.23, 16 dB under the top. The patches are levelled by `volume`,
+# never higher than 6 dB under the top; Worn Sky, Tin Choir and Iron Hum take
+# the rest from the gain of their last insert.
+# A pad is
 # judged on what happens while it is held, so the measurements are taken from
 # a phrase that holds.
 #
@@ -64,7 +69,7 @@ patch "Soft Focus" note=60 range=36..84 family=pad
   mac2_d1  #1
   mac2_a1  0.5
   mac2_d2  #13
-  mac2_a2  -0.1
+  mac2_a2  -0.02305
   mac3_d1  #3
   mac3_a1  0.4
   mac3_d2  #7
@@ -93,7 +98,7 @@ patch "Soft Focus" note=60 range=36..84 family=pad
   cutoff         7000 Hz
   ampattack      0.7 s
   amprelease     2.2 s
-  volume         0.88
+  volume         0.2028
   send reverb    0.15
 
 # High and thin, with the bands wide enough that no partial is a line
@@ -116,7 +121,7 @@ patch Cirrus note=72 range=48..96 family=pad
   mac2_d1  #1
   mac2_a1  0.6
   mac2_d2  #13
-  mac2_a2  -0.1
+  mac2_a2  -0.01984
   mac3_d1  #3
   mac3_a1  0.3
   mac3_d2  #7
@@ -147,7 +152,7 @@ patch Cirrus note=72 range=48..96 family=pad
   amprelease     2.2 s
   drift          8 cents
   driftrate      0.09 Hz
-  volume         1.03
+  volume         0.2044
 
 # The other half of the sky: low, slow and enormous. Four seconds to
 # arrive and five to go, which is not an effect - it is the whole
@@ -201,7 +206,7 @@ patch Stratus note=52 range=36..79 family=pad
   ampsustain     0.9
   amprelease     5 s
   spread         #2
-  volume         1.37
+  volume         0.2368
 
 # Thick through the middle where most music actually sits, and moving
 # enough that a held chord is never quite the same twice.
@@ -222,7 +227,7 @@ patch Nimbus note=60 range=36..84 family=pad
   mac2_d1  #1
   mac2_a1  0.6
   mac2_d2  #13
-  mac2_a2  -0.1
+  mac2_a2  -0.01831
   mac3_d1  #3
   mac3_a1  0.4
   mac3_d2  #7
@@ -254,7 +259,7 @@ patch Nimbus note=60 range=36..84 family=pad
   ampattack      1.2 s
   amprelease     2.8 s
   spread         #2
-  volume         1.36
+  volume         0.249
 
 # The one to reach for without reading anything: soft, mid, no tricks.
 # Every bank needs one patch that just plays chords.
@@ -273,7 +278,7 @@ patch "Warm Bed" note=60 range=36..84 family=pad
   mac1_d2  #9
   mac1_a2  0.1
   mac2_d1  #13
-  mac2_a1  -0.15
+  mac2_a1  -0.03836
   mac2_d2  #1
   mac2_a2  0.5
   mac3_d1  #3
@@ -304,7 +309,7 @@ patch "Warm Bed" note=60 range=36..84 family=pad
   cutoff         6400 Hz
   ampattack      0.55 s
   amprelease     1.8 s
-  volume         0.87
+  volume         0.2225
 
 # Dark and a little driven, with a chorus on it. Warm rather than soft.
 patch Ember note=55 range=36..79 family=pad
@@ -326,7 +331,7 @@ patch Ember note=55 range=36..79 family=pad
   mac2_d2  #11
   mac2_a2  0.4
   mac2_d3  #13
-  mac2_a3  -0.1
+  mac2_a3  -0.07603
   mac3_d1  #1
   mac3_a1  0.6
   mac4_d1  #3
@@ -359,7 +364,7 @@ patch Ember note=55 range=36..79 family=pad
   drive          0.12
   ampattack      0.6 s
   amprelease     2.2 s
-  volume         1.07
+  volume         0.197
   insert Chorus
     voices       #1
     rate         #12
@@ -418,7 +423,7 @@ patch "Slow Bloom" note=60 range=36..84 family=pad
   filtrelease    3 s
   ampattack      1.2 s
   amprelease     3 s
-  volume         1.05
+  volume         0.2207
   send reverb    0.12
 
 # Bands six semitones wide, which stops being a chorus and becomes
@@ -441,7 +446,7 @@ patch "Deep Wash" note=48 range=33..72 family=pad
   mac2_d1  #1
   mac2_a1  0.8
   mac2_d2  #13
-  mac2_a2  -0.05
+  mac2_a2  -0.01016
   mac3_d1  #3
   mac3_a1  0.1
   mac3_d2  #7
@@ -473,7 +478,7 @@ patch "Deep Wash" note=48 range=33..72 family=pad
   ampattack      2.5 s
   amprelease     5 s
   spread         #2
-  volume         1.12
+  volume         0.2275
 
 # Narrow bands and a high tilt: the partials stay separate, so it rings
 # rather than washes. Bright without being hard.
@@ -494,7 +499,7 @@ patch Halo note=72 range=48..96 family=pad
   mac2_d1  #1
   mac2_a1  0.7
   mac2_d2  #13
-  mac2_a2  -0.1
+  mac2_a2  -0.01895
   mac3_d1  #3
   mac3_a1  0.2
   mac3_d2  #7
@@ -526,7 +531,7 @@ patch Halo note=72 range=48..96 family=pad
   amprelease     2.6 s
   shimmer        0.25
   shimmerint     #1
-  volume         0.86
+  volume         0.163
 
 # Bright and wide with an octave shimmer over it and a long room. For
 # over the top of a mix.
@@ -547,7 +552,7 @@ patch Glow note=67 range=48..91 family=pad
   mac2_d1  #1
   mac2_a1  0.6
   mac2_d2  #13
-  mac2_a2  -0.1
+  mac2_a2  -0.02007
   mac3_d1  #3
   mac3_a1  0.15
   mac3_d2  #7
@@ -579,7 +584,7 @@ patch Glow note=67 range=48..91 family=pad
   shimmerint     #1
   ampattack      0.8 s
   amprelease     3 s
-  volume         0.82
+  volume         0.1646
   send reverb    0.22
 
 # Quiet and filtered back, made to sit under something. A pad that
@@ -630,7 +635,7 @@ patch Veil note=60 range=36..84 family=pad
   resonance      0.15
   ampattack      1.8 s
   amprelease     3.4 s
-  volume         1.01
+  volume         0.2099
 
 # A pad played back off a tired tape: the pitch wanders and the top is
 # gone.
@@ -651,7 +656,7 @@ patch "Worn Sky" note=60 range=36..84 family=pad
   mac2_d1  #1
   mac2_a1  0.6
   mac2_d2  #13
-  mac2_a2  -0.1
+  mac2_a2  -0.04082
   mac3_d1  #3
   mac3_a1  0.3
   mac3_d2  #7
@@ -661,7 +666,7 @@ patch "Worn Sky" note=60 range=36..84 family=pad
   mac4_d2  #11
   mac4_a2  0.3
   mac4_d3  #13
-  mac4_a3  -0.2
+  mac4_a3  -0.1211
   mac5_d1  #15
   mac5_a1  0.4
   mac5_d2  #17
@@ -684,7 +689,7 @@ patch "Worn Sky" note=60 range=36..84 family=pad
   cutoff         5500 Hz
   ampattack      0.9 s
   amprelease     2.6 s
-  volume         0.88
+  volume         0.4333
   insert Tape
     wow          0.25
     flutter      0.15
@@ -692,6 +697,7 @@ patch "Worn Sky" note=60 range=36..84 family=pad
     tone         6000 Hz
     hiss         0
     age          0.5
+    gain         -6.5 dB
 
 # The filter and the pan move once a bar, in time with the song.
 patch "Tidal Pad" note=60 range=36..84 family=pad
@@ -740,7 +746,7 @@ patch "Tidal Pad" note=60 range=36..84 family=pad
   lfo2pan        0.35
   ampattack      0.5 s
   amprelease     2.2 s
-  volume         0.89
+  volume         0.2275
   send reverb    0.12
 
 # A phaser over a slow morph between two spectra, so it is always
@@ -790,7 +796,7 @@ patch "Turning Sky" note=60 range=36..84 family=pad role=drone
   cutoff         8000 Hz
   ampattack      1.4 s
   amprelease     3.2 s
-  volume         1.14
+  volume         0.3346
   insert Phaser
     stages       #1
     rate         #11
@@ -818,7 +824,7 @@ patch Inward note=60 range=36..84 family=pad
   mac2_d1  #1
   mac2_a1  0.7
   mac2_d2  #13
-  mac2_a2  -0.1
+  mac2_a2  -0.02176
   mac3_d1  #3
   mac3_a1  0.3
   mac3_d2  #7
@@ -849,7 +855,7 @@ patch Inward note=60 range=36..84 family=pad
   cutoff         9000 Hz
   ampattack      0.9 s
   amprelease     2.8 s
-  volume         0.83
+  volume         0.1806
   send reverb    0.18
 
 # --- hollow ------------------------------------------------------
@@ -903,7 +909,7 @@ patch Hollow note=60 range=36..84 family=hollow
   cutoff         7000 Hz
   ampattack      0.9 s
   amprelease     2.4 s
-  volume         0.86
+  volume         0.2276
 
 # A soft stopped tube with an O over it, close and woody.
 patch "Wooden Tube" note=57 range=40..81 family=hollow
@@ -954,7 +960,7 @@ patch "Wooden Tube" note=57 range=40..81 family=hollow
   cutoff         5000 Hz
   ampattack      0.3 s
   amprelease     1.5 s
-  volume         0.54
+  volume         0.1585
 
 # Odd partials falling the way a square wave's do, under a filter
 # that opens on each note and a chorus.
@@ -1009,7 +1015,7 @@ patch "Square Mist" note=60 range=36..84 family=hollow
   filtsustain    0.4
   ampattack      0.2 s
   amprelease     1.6 s
-  volume         1.24
+  volume         0.235
   insert Chorus
     voices       #1
     rate         #14
@@ -1068,7 +1074,7 @@ patch "Reed Bed" note=57 range=40..81 family=hollow
   cutoff         6800 Hz
   ampattack      0.6 s
   amprelease     2 s
-  volume         1.31
+  volume         0.229
 
 # Narrow bands, odd partials, almost no drift: as close as this machine
 # gets to standing still, which against everything else in the bank is
@@ -1119,7 +1125,7 @@ patch "Pipe Cloud" note=64 range=43..88 family=hollow
   cutoff         9000 Hz
   ampattack      0.25 s
   amprelease     1.2 s
-  volume         0.86
+  volume         0.1937
 
 # Few partials, very wide bands that widen further up: more breath
 # across a neck than note.
@@ -1170,7 +1176,7 @@ patch "Blown Bottle" note=64 range=45..88 family=hollow
   cutoff         6000 Hz
   ampattack      0.4 s
   amprelease     1.6 s
-  volume         0.57
+  volume         0.1731
   send reverb    0.15
 
 # A hollow tube with a second one a fifth above it, and an echo.
@@ -1222,7 +1228,7 @@ patch "Hollow Fifth" note=60 range=40..84 family=hollow
   cutoff         7500 Hz
   ampattack      0.5 s
   amprelease     2 s
-  volume         1.00
+  volume         0.2079
   insert Delay
     time         #3
     feedback     0.35
@@ -1277,7 +1283,7 @@ patch "Bent Tube" note=60 range=40..84 family=hollow role=drone
   cutoff         8000 Hz
   ampattack      0.6 s
   amprelease     2.4 s
-  volume         0.56
+  volume         0.2296
   send reverb    0.18
 
 # --- voice -------------------------------------------------------
@@ -1301,7 +1307,7 @@ patch Choir note=60 range=43..84 family=voice
   mac2_d1  #9
   mac2_a1  0.2
   mac2_d2  #13
-  mac2_a2  -0.1
+  mac2_a2  -0.02127
   mac3_d1  #6
   mac3_a1  0.4
   mac3_d2  #7
@@ -1336,7 +1342,7 @@ patch Choir note=60 range=43..84 family=voice
   spread         #2
   ampattack      0.5 s
   amprelease     2 s
-  volume         1.00
+  volume         0.2127
 
 # The dark vowel with the formants well up. All of the character is in
 # three bumps in the spectrum and none of it in a filter.
@@ -1357,7 +1363,7 @@ patch Ooh note=55 range=40..79 family=voice
   mac2_d1  #9
   mac2_a1  0.2
   mac2_d2  #13
-  mac2_a2  -0.1
+  mac2_a2  -0.02278
   mac3_d1  #6
   mac3_a1  0.4
   mac3_d2  #7
@@ -1389,7 +1395,7 @@ patch Ooh note=55 range=40..79 family=voice
   cutoff         5000 Hz
   ampattack      0.7 s
   amprelease     2.2 s
-  volume         0.79
+  volume         0.18
 
 # The open one, brighter and further forward. Against Ooh this is the
 # same machine with one knob moved, which is the point of a formant.
@@ -1410,7 +1416,7 @@ patch Ahh note=62 range=45..84 family=voice
   mac2_d1  #9
   mac2_a1  0.2
   mac2_d2  #13
-  mac2_a2  -0.1
+  mac2_a2  -0.0181
   mac3_d1  #6
   mac3_a1  0.4
   mac3_d2  #7
@@ -1442,7 +1448,7 @@ patch Ahh note=62 range=45..84 family=voice
   cutoff         9500 Hz
   ampattack      0.55 s
   amprelease     2.1 s
-  volume         1.13
+  volume         0.2045
 
 # Lips closed: the U vowel, all of it low, like a section humming.
 patch "Closed Mouth" note=55 range=40..79 family=voice
@@ -1462,7 +1468,7 @@ patch "Closed Mouth" note=55 range=40..79 family=voice
   mac2_d1  #9
   mac2_a1  0.2
   mac2_d2  #13
-  mac2_a2  -0.1
+  mac2_a2  -0.02386
   mac3_d1  #6
   mac3_a1  0.4
   mac3_d2  #7
@@ -1494,7 +1500,7 @@ patch "Closed Mouth" note=55 range=40..79 family=voice
   cutoff         2500 Hz
   ampattack      0.6 s
   amprelease     2 s
-  volume         0.59
+  volume         0.1408
 
 # Low voices on O, three to a note, in a big room.
 patch "Low Chant" note=48 range=36..67 family=voice
@@ -1514,7 +1520,7 @@ patch "Low Chant" note=48 range=36..67 family=voice
   mac2_d1  #9
   mac2_a1  0.2
   mac2_d2  #13
-  mac2_a2  -0.1
+  mac2_a2  -0.02031
   mac3_d1  #6
   mac3_a1  0.4
   mac3_d2  #7
@@ -1547,7 +1553,7 @@ patch "Low Chant" note=48 range=36..67 family=voice
   cutoff         5000 Hz
   ampattack      0.6 s
   amprelease     2.4 s
-  volume         1.07
+  volume         0.2173
   send reverb    0.2
 
 # High voices on E, light and forward.
@@ -1568,7 +1574,7 @@ patch "Upper Voices" note=72 range=55..91 family=voice
   mac2_d1  #9
   mac2_a1  0.2
   mac2_d2  #13
-  mac2_a2  -0.1
+  mac2_a2  -0.01895
   mac3_d1  #6
   mac3_a1  0.4
   mac3_d2  #7
@@ -1600,7 +1606,7 @@ patch "Upper Voices" note=72 range=55..91 family=voice
   cutoff         10000 Hz
   ampattack      0.6 s
   amprelease     2.4 s
-  volume         0.98
+  volume         0.1857
 
 # A full choir on Ah with a long release, in a lot of reverb.
 patch Nave note=60 range=40..84 family=voice
@@ -1620,7 +1626,7 @@ patch Nave note=60 range=40..84 family=voice
   mac2_d1  #9
   mac2_a1  0.2
   mac2_d2  #13
-  mac2_a2  -0.1
+  mac2_a2  -0.02803
   mac3_d1  #6
   mac3_a1  0.4
   mac3_d2  #7
@@ -1653,7 +1659,7 @@ patch Nave note=60 range=40..84 family=voice
   cutoff         8000 Hz
   ampattack      1 s
   amprelease     4.5 s
-  volume         0.72
+  volume         0.2018
   send reverb    0.35
 
 # A voice with the bands opened until the pitch is only just there.
@@ -1675,7 +1681,7 @@ patch "Whisper Choir" note=67 range=48..88 family=voice
   mac2_d1  #9
   mac2_a1  0.2
   mac2_d2  #13
-  mac2_a2  -0.1
+  mac2_a2  -0.01985
   mac3_d1  #6
   mac3_a1  0.4
   mac3_d2  #7
@@ -1708,7 +1714,7 @@ patch "Whisper Choir" note=67 range=48..88 family=voice
   cutoff         11000 Hz
   ampattack      1.4 s
   amprelease     2.8 s
-  volume         1.10
+  volume         0.2183
 
 # One vowel at the bottom of the keyboard and another at the top, with
 # the morph on key tracking. The same chord says two different things
@@ -1730,7 +1736,7 @@ patch "Vowel Morph" note=60 range=43..84 family=voice role=drone
   mac2_d1  #9
   mac2_a1  0.2
   mac2_d2  #13
-  mac2_a2  -0.1
+  mac2_a2  -0.02617
   mac3_d1  #6
   mac3_a1  0.4
   mac3_d2  #7
@@ -1764,7 +1770,7 @@ patch "Vowel Morph" note=60 range=43..84 family=voice role=drone
   cutoff         8600 Hz
   ampattack      0.8 s
   amprelease     2.6 s
-  volume         1.03
+  volume         0.2695
 
 # The LFO walks the vowel from Ah to Oh and back, slowly, so a held
 # chord talks.
@@ -1814,7 +1820,7 @@ patch "Talking Cloud" note=60 range=43..84 family=voice role=drone
   cutoff         8500 Hz
   ampattack      0.7 s
   amprelease     2.4 s
-  volume         0.95
+  volume         0.2429
 
 # Narrow partials and a peak filter that wanders slowly up and down
 # the series, picking out one harmonic at a time over the drone.
@@ -1831,7 +1837,7 @@ patch "Overtone Chant" note=48 range=36..64 family=voice role=drone
   mac1_d1  #9
   mac1_a1  0.12
   mac1_d2  #13
-  mac1_a2  -0.15
+  mac1_a2  -0.03878
   mac2_d1  #8
   mac2_a1  0.15
   mac3_d1  #22
@@ -1867,7 +1873,7 @@ patch "Overtone Chant" note=48 range=36..64 family=voice role=drone
   lfo2cutoff     0.3
   ampattack      0.8 s
   amprelease     2.6 s
-  volume         0.62
+  volume         0.1603
   send reverb    0.15
 
 # Narrow, still and crushed: a choir out of a toy.
@@ -1890,11 +1896,11 @@ patch "Tin Choir" note=60 range=43..84 family=voice
   mac3_d2  #3
   mac3_a2  0.3
   mac3_d3  #13
-  mac3_a3  -0.35
+  mac3_a3  -0.1274
   mac4_d1  #2
   mac4_a1  0.5
   mac4_d2  #13
-  mac4_a2  -0.35
+  mac4_a2  -0.1274
   mac5_d1  #15
   mac5_a1  0.5
   mac6_d1  #17
@@ -1917,12 +1923,13 @@ patch "Tin Choir" note=60 range=43..84 family=voice
   cutoff         9000 Hz
   ampattack      0.3 s
   amprelease     1.4 s
-  volume         1.19
+  volume         0.4333
   insert Bitcrusher
     bits         7
     rate         16000 Hz
     tone         7000 Hz
     mix          0.5
+    gain         -7.1 dB
 
 # --- shimmer -----------------------------------------------------
 
@@ -1942,7 +1949,7 @@ patch "Shimmer Pad" note=62 range=43..88 family=shimmer
   mac1_d1  #2
   mac1_a1  0.8
   mac1_d2  #13
-  mac1_a2  -0.2
+  mac1_a2  -0.03747
   mac2_d1  #8
   mac2_a1  -0.3
   mac2_d2  #9
@@ -1981,7 +1988,7 @@ patch "Shimmer Pad" note=62 range=43..88 family=shimmer
   cutoff         12000 Hz
   ampattack      1.1 s
   amprelease     3.2 s
-  volume         1.09
+  volume         0.2042
 
 # An octave reader kept low and soft under a warm pad, with a little
 # room. The plain one.
@@ -2032,7 +2039,7 @@ patch "Pale Octave" note=60 range=40..84 family=shimmer
   cutoff         9000 Hz
   ampattack      0.9 s
   amprelease     3 s
-  volume         0.90
+  volume         0.1958
   send reverb    0.15
 
 # The same trick at a fifth, which does not fuse the way an octave does
@@ -2084,7 +2091,7 @@ patch "Fifth Up" note=62 range=43..88 family=shimmer
   cutoff         11000 Hz
   ampattack      0.9 s
   amprelease     2.8 s
-  volume         0.96
+  volume         0.2188
 
 # The octave and a fifth above, so the shimmer sits on the third
 # partial and colours rather than doubles.
@@ -2134,7 +2141,7 @@ patch "Twelfth Glow" note=60 range=40..84 family=shimmer
   cutoff         9500 Hz
   ampattack      1.2 s
   amprelease     3.4 s
-  volume         0.74
+  volume         0.187
   send reverb    0.18
 
 # Two octaves up and quiet, which is how you make a low pad sound large
@@ -2186,7 +2193,7 @@ patch "Two Octaves" note=57 range=40..84 family=shimmer
   cutoff         6500 Hz
   ampattack      1.8 s
   amprelease     4 s
-  volume         0.85
+  volume         0.1807
 
 # An Ooh spectrum with an octave above it and a chorus, so a held chord
 # reads as a choir behind glass.
@@ -2241,7 +2248,7 @@ patch "Frost Choir" note=60 range=43..84 family=shimmer
   cutoff         8000 Hz
   ampattack      1 s
   amprelease     3 s
-  volume         0.77
+  volume         0.1754
   insert Chorus
     voices       #1
     rate         #12
@@ -2304,7 +2311,7 @@ patch "Rising Glass" note=72 range=55..96 family=shimmer
   lfo2cutoff     0.35
   ampattack      0.8 s
   amprelease     3.2 s
-  volume         0.62
+  volume         0.166
   insert Delay
     time         #3
     feedback     0.35
@@ -2367,7 +2374,7 @@ patch "Lantern Swell" note=57 range=40..84 family=shimmer role=drone
   cutoff         8000 Hz
   ampattack      2 s
   amprelease     4.5 s
-  volume         0.76
+  volume         0.2309
   send reverb    0.2
 
 # Partials stretched sharp, so the cloud is half a bell, with an octave
@@ -2420,7 +2427,7 @@ patch "Stretched Halo" note=64 range=45..88 family=shimmer
   cutoff         9500 Hz
   ampattack      1 s
   amprelease     3.5 s
-  volume         1.05
+  volume         0.2108
   insert Phaser
     stages       #1
     rate         #11
@@ -2480,7 +2487,7 @@ patch "Mirror Ice" note=60 range=40..84 family=shimmer role=drone
   cutoff         8500 Hz
   ampattack      1.4 s
   amprelease     4 s
-  volume         0.88
+  volume         0.2768
   insert Delay
     time         #4
     feedback     0.45
@@ -2524,7 +2531,7 @@ patch "Sub Cloud" note=40 range=28..60 family=dark
   mac5_d2  #12
   mac5_a2  0.05
   mac5_d3  #13
-  mac5_a3  -0.1
+  mac5_a3  -0.02804
   mac6_d1  #15
   mac6_a1  0.4
   mac6_d2  #17
@@ -2545,7 +2552,7 @@ patch "Sub Cloud" note=40 range=28..60 family=dark
   cutoff         1400 Hz
   ampattack      0.8 s
   amprelease     2.4 s
-  volume         0.51
+  volume         0.143
 
 # Low, warm and slow to arrive, with the filter well down. A bed for
 # under a slow song.
@@ -2580,7 +2587,7 @@ patch "Dusk Bed" note=45 range=31..67 family=dark
   mac5_d2  #12
   mac5_a2  0.1
   mac5_d3  #13
-  mac5_a3  -0.2
+  mac5_a3  -0.05005
   mac6_d1  #15
   mac6_a1  0.4
   mac6_d2  #17
@@ -2603,7 +2610,7 @@ patch "Dusk Bed" note=45 range=31..67 family=dark
   filtertype     #3
   ampattack      1.4 s
   amprelease     3.5 s
-  volume         0.71
+  volume         0.1674
   send reverb    0.12
 
 # An Oh vowel in the low register, closing to an Oo on the morph.
@@ -2639,7 +2646,7 @@ patch "Mourning Choir" note=48 range=36..67 family=dark
   mac5_d2  #12
   mac5_a2  0.1
   mac5_d3  #13
-  mac5_a3  -0.2
+  mac5_a3  -0.04799
   mac6_d1  #15
   mac6_a1  0.4
   mac6_d2  #17
@@ -2663,7 +2670,7 @@ patch "Mourning Choir" note=48 range=36..67 family=dark
   cutoff         3500 Hz
   ampattack      1.3 s
   amprelease     3.5 s
-  volume         0.92
+  volume         0.1868
   send reverb    0.2
 
 # Odd partials only, low and filtered, so it is a stopped pipe in a
@@ -2699,7 +2706,7 @@ patch "Cellar Air" note=43 range=31..64 family=dark role=drone
   mac5_d2  #12
   mac5_a2  0.05
   mac5_d3  #13
-  mac5_a3  -0.25
+  mac5_a3  -0.06757
   mac6_d1  #15
   mac6_a1  0.4
   mac6_d2  #17
@@ -2723,7 +2730,7 @@ patch "Cellar Air" note=43 range=31..64 family=dark role=drone
   cutoff         2200 Hz
   ampattack      2 s
   amprelease     4.5 s
-  volume         1.16
+  volume         0.2865
   send reverb    0.15
 
 # The same register with the bands thrown open. It has no pitch to speak
@@ -2759,7 +2766,7 @@ patch Undertow note=40 range=28..64 family=dark
   mac5_d2  #12
   mac5_a2  0.05
   mac5_d3  #13
-  mac5_a3  -0.25
+  mac5_a3  -0.06035
   mac6_d1  #15
   mac6_a1  0.4
   mac6_d2  #17
@@ -2783,7 +2790,7 @@ patch Undertow note=40 range=28..64 family=dark
   ampattack      3 s
   amprelease     6.5 s
   spread         #2
-  volume         1.21
+  volume         0.2543
 
 # A resonant low-pass moved by a slow LFO over a wide, dark cloud, so
 # the drone rises out of the water and sinks again.
@@ -2841,7 +2848,7 @@ patch "Black Water" note=40 range=28..60 family=dark role=drone
   lfo2cutoff     0.4
   ampattack      2.5 s
   amprelease     5 s
-  volume         0.93
+  volume         0.3398
   send reverb    0.15
 
 # A comb on narrow bands, low, so it hums like a transformer, with the
@@ -2877,7 +2884,7 @@ patch "Iron Hum" note=36 range=28..55 family=dark role=drone
   mac5_d2  #12
   mac5_a2  0.1
   mac5_d3  #13
-  mac5_a3  -0.2
+  mac5_a3  -0.1398
   mac6_d1  #15
   mac6_a1  0.4
   mac6_d2  #17
@@ -2902,7 +2909,7 @@ patch "Iron Hum" note=36 range=28..55 family=dark role=drone
   cutoff         2600 Hz
   ampattack      1.2 s
   amprelease     3.5 s
-  volume         0.62
+  volume         0.4333
   insert Tape
     wow          0.2
     flutter      0.1
@@ -2910,6 +2917,7 @@ patch "Iron Hum" note=36 range=28..55 family=dark role=drone
     tone         4000 Hz
     hiss         0
     age          0.6
+    gain         -6.9 dB
 
 # Low and driven through the filter, so the bottom of a chord grinds.
 # A soft clip on the way out keeps it from getting loud.
@@ -2967,7 +2975,7 @@ patch "Coal Seam" note=40 range=28..60 family=dark
   drive          0.25
   ampattack      0.9 s
   amprelease     3 s
-  volume         0.36
+  volume         0.08636
 
 # A slow random LFO moves the morph between a dark cloud and a smeared
 # one, so the bed never settles into a loop.
@@ -3002,7 +3010,7 @@ patch "Night Engine" note=40 range=28..60 family=dark role=drone
   mac5_d2  #12
   mac5_a2  0.05
   mac5_d3  #13
-  mac5_a3  -0.25
+  mac5_a3  -0.07711
   mac6_d1  #15
   mac6_a1  0.4
   mac6_d2  #17
@@ -3029,7 +3037,7 @@ patch "Night Engine" note=40 range=28..60 family=dark role=drone
   ampattack      2 s
   amprelease     5 s
   spread         #2
-  volume         1.07
+  volume         0.3105
   send reverb    0.15
 
 # Partials crowded down onto the fundamental and smeared wide, an
@@ -3065,7 +3073,7 @@ patch Abyss note=48 range=36..67 family=dark role=drone
   mac5_d2  #12
   mac5_a2  0.05
   mac5_d3  #13
-  mac5_a3  -0.25
+  mac5_a3  -0.07357
   mac6_d1  #15
   mac6_a1  0.4
   mac6_d2  #17
@@ -3092,7 +3100,7 @@ patch Abyss note=48 range=36..67 family=dark role=drone
   ampattack      3 s
   amprelease     6 s
   spread         #2
-  volume         1.20
+  volume         0.3213
   send reverb    0.2
 
 # --- morph -------------------------------------------------------
@@ -3150,7 +3158,7 @@ patch "Morph Key" note=60 range=36..88 family=morph role=drone
   filterkey      0.6
   ampattack      1 s
   amprelease     3 s
-  volume         0.85
+  volume         0.2249
 
 # A slow sine walks the morph from wide bands to narrow ones, so the
 # cloud comes into focus and blurs again.
@@ -3203,7 +3211,7 @@ patch Lens note=60 range=36..84 family=morph role=drone
   cutoff         8000 Hz
   ampattack      1.2 s
   amprelease     3.5 s
-  volume         1.00
+  volume         0.2557
   send reverb    0.15
 
 # The morph is played by hand: slide on an MPE controller, or the
@@ -3258,7 +3266,7 @@ patch "Slide Glow" note=60 range=36..84 family=morph
   cutoff         9500 Hz
   ampattack      0.6 s
   amprelease     2.8 s
-  volume         0.67
+  volume         0.1655
   send reverb    0.12
 
 # Thirty seconds from one spectrum to the other and back. Slower than
@@ -3299,11 +3307,11 @@ patch "Slow Turn" note=60 range=36..84 family=morph role=drone
   mac6_d2  #11
   mac6_a2  0.4
   mac6_d3  #13
-  mac6_a3  -0.4
+  mac6_a3  -0.1347
   mac7_d1  #17
   mac7_a1  0.5
   mac7_d2  #13
-  mac7_a2  -0.15
+  mac7_a2  -0.04506
   mac8_d1  #24
   mac8_a1  -0.5
   partials       68
@@ -3323,7 +3331,7 @@ patch "Slow Turn" note=60 range=36..84 family=morph role=drone
   ampattack      2.2 s
   amprelease     4.5 s
   spread         #2
-  volume         1.09
+  volume         0.3274
 
 # Two slow things at rates that do not divide into each other - the
 # morph on one, the filter on the other - so it never arrives at the
@@ -3383,7 +3391,7 @@ patch Breathing note=60 range=36..84 family=morph role=drone
   resonance      0.2
   ampattack      2.6 s
   amprelease     5.2 s
-  volume         0.87
+  volume         0.2768
 
 # Odd partials at one end, all of them at the other, with a slow LFO
 # between, so a stopped pipe opens and closes.
@@ -3438,7 +3446,7 @@ patch "Hollow Turn" note=57 range=40..81 family=morph role=drone
   cutoff         8000 Hz
   ampattack      1 s
   amprelease     3 s
-  volume         0.62
+  volume         0.2819
   send reverb    0.15
 
 # A comb comes in on the far spectrum, and a triangle LFO rocks the
@@ -3494,7 +3502,7 @@ patch "Tide Table" note=60 range=36..84 family=morph role=drone
   cutoff         8500 Hz
   ampattack      1.6 s
   amprelease     4 s
-  volume         0.79
+  volume         0.2693
   insert Chorus
     voices       #1
     rate         #14
@@ -3563,7 +3571,7 @@ patch "Drone Field" note=45 range=33..72 family=morph role=drone
   cutoff         7000 Hz
   ampattack      3.4 s
   amprelease     7 s
-  volume         1.25
+  volume         0.2881
 
 # An eight-step LFO synced to the tempo jumps the morph, one step a
 # beat, so a held chord changes colour in time with the song.
@@ -3620,7 +3628,7 @@ patch "Stepping Cloud" note=60 range=36..84 family=morph role=drone
   cutoff         9000 Hz
   ampattack      0.8 s
   amprelease     3 s
-  volume         1.27
+  volume         0.321
   insert Delay
     time         #3
     feedback     0.3
@@ -3685,7 +3693,7 @@ patch "Random Sky" note=60 range=36..84 family=morph role=drone
   ampattack      1.8 s
   amprelease     4.5 s
   spread         #2
-  volume         1.0
+  volume         0.2771
   send reverb    0.18
 
 # Key tracking and a slow LFO both push towards a stretched, bright
@@ -3745,7 +3753,7 @@ patch "Rust Bloom" note=60 range=36..88 family=morph role=drone
   filterkey      0.4
   ampattack      1.2 s
   amprelease     4 s
-  volume         0.80
+  volume         0.2666
   send reverb    0.2
 
 # From partials crowded flat to partials stretched sharp, and a square
@@ -3801,7 +3809,7 @@ patch "Inside Out" note=60 range=36..84 family=morph role=drone
   cutoff         8500 Hz
   ampattack      1.5 s
   amprelease     4 s
-  volume         1.14
+  volume         0.3346
   insert Phaser
     stages       #1
     rate         #11
@@ -3838,7 +3846,7 @@ patch "Spectral Pluck" note=60 range=40..84 family=pluck role=keys
   mac3_d2  #17
   mac3_a2  0.3
   mac3_d3  #13
-  mac3_a3  -0.15
+  mac3_a3  -0.04558
   mac4_d1  #1
   mac4_a1  0.6
   mac5_d1  #3
@@ -3846,21 +3854,21 @@ patch "Spectral Pluck" note=60 range=40..84 family=pluck role=keys
   mac5_d2  #7
   mac5_a2  0.3
   mac5_d3  #13
-  mac5_a3  -0.15
+  mac5_a3  -0.04558
   mac6_d1  #2
   mac6_a1  0.4
   mac6_d2  #13
-  mac6_a2  -0.1
+  mac6_a2  -0.03038
   mac7_d1  #5
   mac7_a1  0.4
   mac7_d2  #6
   mac7_a2  0.2
   mac7_d3  #13
-  mac7_a3  -0.08
+  mac7_a3  -0.02431
   mac8_d1  #12
   mac8_a1  0.5
   mac8_d2  #13
-  mac8_a2  -0.1
+  mac8_a2  -0.05461
   partials       42
   tilt           -10 dB/oct
   bandwidth      16 cents
@@ -3876,7 +3884,7 @@ patch "Spectral Pluck" note=60 range=40..84 family=pluck role=keys
   ampdecay       1.1 s
   ampsustain     0
   amprelease     0.9 s
-  volume         1.25
+  volume         0.3798
 
 # Few partials, a dark tilt and a low cutoff with a little envelope on
 # it. The soft one, for under a melody.
@@ -3903,7 +3911,7 @@ patch "Felt Pluck" note=60 range=40..84 family=pluck role=keys
   mac3_d2  #17
   mac3_a2  0.3
   mac3_d3  #13
-  mac3_a3  -0.15
+  mac3_a3  -0.0397
   mac4_d1  #1
   mac4_a1  0.6
   mac5_d1  #3
@@ -3911,21 +3919,21 @@ patch "Felt Pluck" note=60 range=40..84 family=pluck role=keys
   mac5_d2  #7
   mac5_a2  0.3
   mac5_d3  #13
-  mac5_a3  -0.3
+  mac5_a3  -0.0794
   mac6_d1  #2
   mac6_a1  0.4
   mac6_d2  #13
-  mac6_a2  -0.1
+  mac6_a2  -0.02647
   mac7_d1  #5
   mac7_a1  0.4
   mac7_d2  #6
   mac7_a2  0.2
   mac7_d3  #13
-  mac7_a3  -0.15
+  mac7_a3  -0.0397
   mac8_d1  #12
   mac8_a1  0.5
   mac8_d2  #13
-  mac8_a2  -0.1
+  mac8_a2  -0.0551
   partials       30
   tilt           -14 dB/oct
   bandwidth      12 cents
@@ -3940,7 +3948,7 @@ patch "Felt Pluck" note=60 range=40..84 family=pluck role=keys
   ampdecay       1.4 s
   ampsustain     0
   amprelease     1.2 s
-  volume         1.24
+  volume         0.3282
   send reverb    0.12
 
 # Softer at the front and longer at the back, with the bands narrow
@@ -3968,7 +3976,7 @@ patch "Harp Cloud" note=64 range=43..88 family=pluck role=keys
   mac3_d2  #17
   mac3_a2  0.3
   mac3_d3  #13
-  mac3_a3  -0.15
+  mac3_a3  -0.03747
   mac4_d1  #1
   mac4_a1  0.6
   mac5_d1  #3
@@ -3976,21 +3984,21 @@ patch "Harp Cloud" note=64 range=43..88 family=pluck role=keys
   mac5_d2  #7
   mac5_a2  0.3
   mac5_d3  #13
-  mac5_a3  -0.2
+  mac5_a3  -0.04996
   mac6_d1  #2
   mac6_a1  0.4
   mac6_d2  #13
-  mac6_a2  -0.1
+  mac6_a2  -0.02498
   mac7_d1  #5
   mac7_a1  0.4
   mac7_d2  #6
   mac7_a2  0.2
   mac7_d3  #13
-  mac7_a3  -0.12
+  mac7_a3  -0.02998
   mac8_d1  #12
   mac8_a1  0.5
   mac8_d2  #13
-  mac8_a2  -0.1
+  mac8_a2  -0.05007
   partials       36
   tilt           -11 dB/oct
   bandwidth      11 cents
@@ -4004,7 +4012,7 @@ patch "Harp Cloud" note=64 range=43..88 family=pluck role=keys
   ampdecay       2.2 s
   ampsustain     0.08
   amprelease     2 s
-  volume         1.10
+  volume         0.2748
 
 # Struck strings with a little stretch on them and a lot of top. The
 # unison spread is what does the ringing, not a reverb.
@@ -4031,7 +4039,7 @@ patch Cimbalom note=64 range=45..88 family=pluck role=keys
   mac3_d2  #17
   mac3_a2  0.3
   mac3_d3  #13
-  mac3_a3  -0.15
+  mac3_a3  -0.0362
   mac4_d1  #1
   mac4_a1  0.6
   mac5_d1  #3
@@ -4039,21 +4047,21 @@ patch Cimbalom note=64 range=45..88 family=pluck role=keys
   mac5_d2  #7
   mac5_a2  0.3
   mac5_d3  #13
-  mac5_a3  -0.15
+  mac5_a3  -0.0362
   mac6_d1  #2
   mac6_a1  0.4
   mac6_d2  #13
-  mac6_a2  -0.1
+  mac6_a2  -0.02413
   mac7_d1  #5
   mac7_a1  0.4
   mac7_d2  #6
   mac7_a2  0.2
   mac7_d3  #13
-  mac7_a3  -0.08
+  mac7_a3  -0.01931
   mac8_d1  #12
   mac8_a1  0.5
   mac8_d2  #13
-  mac8_a2  -0.1
+  mac8_a2  -0.04605
   partials       52
   tilt           -7 dB/oct
   bandwidth      14 cents
@@ -4068,7 +4076,7 @@ patch Cimbalom note=64 range=45..88 family=pluck role=keys
   ampdecay       1.8 s
   ampsustain     0.1
   amprelease     2.4 s
-  volume         1.13
+  volume         0.2727
 
 # A tine: mostly odd partials, very narrow, a hair sharp as they climb.
 patch "Thumb Cloud" note=64 range=48..91 family=pluck role=keys
@@ -4094,7 +4102,7 @@ patch "Thumb Cloud" note=64 range=48..91 family=pluck role=keys
   mac3_d2  #17
   mac3_a2  0.3
   mac3_d3  #13
-  mac3_a3  -0.15
+  mac3_a3  -0.03836
   mac4_d1  #1
   mac4_a1  0.6
   mac5_d1  #3
@@ -4102,21 +4110,21 @@ patch "Thumb Cloud" note=64 range=48..91 family=pluck role=keys
   mac5_d2  #7
   mac5_a2  0.3
   mac5_d3  #13
-  mac5_a3  -0.15
+  mac5_a3  -0.03836
   mac6_d1  #2
   mac6_a1  0.4
   mac6_d2  #13
-  mac6_a2  -0.1
+  mac6_a2  -0.02557
   mac7_d1  #5
   mac7_a1  0.4
   mac7_d2  #6
   mac7_a2  0.2
   mac7_d3  #13
-  mac7_a3  -0.08
+  mac7_a3  -0.02046
   mac8_d1  #12
   mac8_a1  0.5
   mac8_d2  #13
-  mac8_a2  -0.1
+  mac8_a2  -0.04355
   partials       16
   tilt           -5 dB/oct
   bandwidth      6 cents
@@ -4132,7 +4140,7 @@ patch "Thumb Cloud" note=64 range=48..91 family=pluck role=keys
   ampdecay       1.3 s
   ampsustain     0.04
   amprelease     1.4 s
-  volume         1.12
+  volume         0.2864
   send reverb    0.15
 
 # Stretch for the string and a comb for whatever has been laid across
@@ -4161,31 +4169,31 @@ patch "Prepared Piano" note=55 range=36..84 family=pluck role=keys
   mac3_d2  #17
   mac3_a2  0.3
   mac3_d3  #13
-  mac3_a3  -0.15
+  mac3_a3  -0.02943
   mac4_d1  #1
   mac4_a1  0.6
   mac4_d2  #13
-  mac4_a2  -0.12
+  mac4_a2  -0.02354
   mac5_d1  #3
   mac5_a1  0.4
   mac5_d2  #7
   mac5_a2  0.3
   mac5_d3  #13
-  mac5_a3  -0.4
+  mac5_a3  -0.07848
   mac6_d1  #2
   mac6_a1  0.4
   mac6_d2  #13
-  mac6_a2  -0.1
+  mac6_a2  -0.01962
   mac7_d1  #5
   mac7_a1  0.4
   mac7_d2  #6
   mac7_a2  0.2
   mac7_d3  #13
-  mac7_a3  -0.15
+  mac7_a3  -0.02943
   mac8_d1  #12
   mac8_a1  0.5
   mac8_d2  #13
-  mac8_a2  -0.1
+  mac8_a2  -0.05913
   partials       48
   tilt           -9 dB/oct
   bandwidth      13 cents
@@ -4200,7 +4208,7 @@ patch "Prepared Piano" note=55 range=36..84 family=pluck role=keys
   ampdecay       2.4 s
   ampsustain     0.12
   amprelease     2.6 s
-  volume         1.50
+  volume         0.2943
 
 # A pluck with the octave reader on, through a short ping-pong delay.
 patch "Glint Pick" note=67 range=48..91 family=pluck role=keys
@@ -4226,7 +4234,7 @@ patch "Glint Pick" note=67 range=48..91 family=pluck role=keys
   mac3_d2  #17
   mac3_a2  0.3
   mac3_d3  #13
-  mac3_a3  -0.15
+  mac3_a3  -0.03498
   mac4_d1  #1
   mac4_a1  0.6
   mac5_d1  #3
@@ -4234,21 +4242,21 @@ patch "Glint Pick" note=67 range=48..91 family=pluck role=keys
   mac5_d2  #7
   mac5_a2  0.3
   mac5_d3  #13
-  mac5_a3  -0.15
+  mac5_a3  -0.03498
   mac6_d1  #2
   mac6_a1  0.4
   mac6_d2  #13
-  mac6_a2  -0.1
+  mac6_a2  -0.02332
   mac7_d1  #5
   mac7_a1  0.4
   mac7_d2  #6
   mac7_a2  0.2
   mac7_d3  #13
-  mac7_a3  -0.08
+  mac7_a3  -0.01866
   mac8_d1  #12
   mac8_a1  0.5
   mac8_d2  #13
-  mac8_a2  -0.1
+  mac8_a2  -0.03664
   partials       40
   tilt           -9 dB/oct
   bandwidth      14 cents
@@ -4266,7 +4274,7 @@ patch "Glint Pick" note=67 range=48..91 family=pluck role=keys
   ampdecay       1.6 s
   ampsustain     0.06
   amprelease     2 s
-  volume         0.87
+  volume         0.2029
   insert Delay
     time         #3
     feedback     0.3
@@ -4300,7 +4308,7 @@ patch "Torn Pluck" note=57 range=40..84 family=pluck role=keys
   mac3_d2  #17
   mac3_a2  0.3
   mac3_d3  #13
-  mac3_a3  -0.15
+  mac3_a3  -0.03818
   mac4_d1  #1
   mac4_a1  0.6
   mac5_d1  #3
@@ -4308,21 +4316,21 @@ patch "Torn Pluck" note=57 range=40..84 family=pluck role=keys
   mac5_d2  #7
   mac5_a2  0.3
   mac5_d3  #13
-  mac5_a3  -0.15
+  mac5_a3  -0.0277
   mac6_d1  #2
   mac6_a1  0.4
   mac6_d2  #13
-  mac6_a2  -0.1
+  mac6_a2  -0.01847
   mac7_d1  #5
   mac7_a1  0.4
   mac7_d2  #6
   mac7_a2  0.2
   mac7_d3  #13
-  mac7_a3  -0.08
+  mac7_a3  -0.01477
   mac8_d1  #12
   mac8_a1  0.5
   mac8_d2  #13
-  mac8_a2  -0.1
+  mac8_a2  -0.04958
   partials       56
   tilt           -5.5 dB/oct
   bandwidth      30 cents
@@ -4342,7 +4350,7 @@ patch "Torn Pluck" note=57 range=40..84 family=pluck role=keys
   ampdecay       1.5 s
   ampsustain     0
   amprelease     1.4 s
-  volume         1.5
+  volume         0.277
 
 # --- bell --------------------------------------------------------
 
@@ -4376,7 +4384,7 @@ patch "Bell Cloud" note=72 range=48..91 family=bell role=bell
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.25
+  mac5_a2  -0.1163
   mac6_d1  #5
   mac6_a1  0.4
   mac6_d2  #6
@@ -4405,7 +4413,7 @@ patch "Bell Cloud" note=72 range=48..91 family=bell role=bell
   ampdecay       4 s
   ampsustain     0.25
   amprelease     5 s
-  volume         1.17
+  volume         0.5443
 
 # A small bell with a round tilt and a long, plain ring.
 patch "Chapel Bell" note=67 range=48..88 family=bell role=bell
@@ -4433,11 +4441,11 @@ patch "Chapel Bell" note=67 range=48..88 family=bell role=bell
   mac4_d1  #1
   mac4_a1  0.6
   mac4_d2  #13
-  mac4_a2  -0.2
+  mac4_a2  -0.06663
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.1
+  mac5_a2  -0.03332
   mac6_d1  #5
   mac6_a1  0.4
   mac6_d2  #6
@@ -4464,7 +4472,7 @@ patch "Chapel Bell" note=67 range=48..88 family=bell role=bell
   ampdecay       5 s
   ampsustain     0.2
   amprelease     6 s
-  volume         1.11
+  volume         0.3698
   send reverb    0.2
 
 # Small, bright and gone almost at once. Few partials, narrow bands, and
@@ -4492,13 +4500,13 @@ patch "Music Box" note=84 range=60..103 family=bell role=bell
   mac3_d2  #17
   mac3_a2  0.3
   mac3_d3  #13
-  mac3_a3  -0.25
+  mac3_a3  -0.1305
   mac4_d1  #1
   mac4_a1  0.6
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.1
+  mac5_a2  -0.0522
   mac6_d1  #5
   mac6_a1  0.4
   mac6_d2  #6
@@ -4523,7 +4531,7 @@ patch "Music Box" note=84 range=60..103 family=bell role=bell
   ampdecay       0.85 s
   ampsustain     0.05
   amprelease     1.1 s
-  volume         1.27
+  volume         0.6629
 
 # A long tube rather than a cast bell: fewer partials, less stretch, and
 # a decay you can wait out.
@@ -4554,7 +4562,7 @@ patch Tubular note=67 range=48..88 family=bell role=bell
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.1
+  mac5_a2  -0.0396
   mac6_d1  #5
   mac6_a1  0.4
   mac6_d2  #6
@@ -4580,7 +4588,7 @@ patch Tubular note=67 range=48..88 family=bell role=bell
   ampdecay       6 s
   ampsustain     0.15
   amprelease     7 s
-  volume         0.99
+  volume         0.392
 
 # Stretch and a deep scallop together, hit hard. The comb is what makes
 # it sound like a plate with a shape rather than a tone with an attack.
@@ -4611,7 +4619,7 @@ patch "Struck Metal" note=64 range=45..88 family=bell role=bell
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.1
+  mac5_a2  -0.05101
   mac6_d1  #5
   mac6_a1  0.4
   mac6_d2  #6
@@ -4639,7 +4647,7 @@ patch "Struck Metal" note=64 range=45..88 family=bell role=bell
   ampdecay       2.6 s
   ampsustain     0.18
   amprelease     3.2 s
-  volume         0.98
+  volume         0.4999
 
 # High, thin and lit from above: the shimmer reads the same table two
 # octaves up, so the sparkle is made of the sound itself rather than of
@@ -4671,7 +4679,7 @@ patch "Glass Rain" note=79 range=55..100 family=bell role=bell
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.1
+  mac5_a2  -0.05219
   mac6_d1  #5
   mac6_a1  0.4
   mac6_d2  #6
@@ -4700,7 +4708,7 @@ patch "Glass Rain" note=79 range=55..100 family=bell role=bell
   lfo1rate       0.08 Hz
   ampattack      0.3 s
   amprelease     3 s
-  volume         0.62
+  volume         0.3236
 
 # A big one, struck once and left. The stretch is wide enough that the
 # top of it is no longer in the same key as the bottom, which is what a
@@ -4732,7 +4740,7 @@ patch Temple note=48 range=36..72 family=bell role=bell
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.1
+  mac5_a2  -0.04052
   mac6_d1  #5
   mac6_a1  0.4
   mac6_d2  #6
@@ -4762,7 +4770,7 @@ patch Temple note=48 range=36..72 family=bell role=bell
   ampdecay       7 s
   ampsustain     0.3
   amprelease     9 s
-  volume         1.16
+  volume         0.47
 
 # A glass rim rubbed rather than struck: a slow attack, a few narrow
 # stretched partials and a fast drift that makes them beat.
@@ -4789,15 +4797,15 @@ patch "Rim Song" note=72 range=55..96 family=bell
   mac3_d2  #17
   mac3_a2  0.3
   mac3_d3  #13
-  mac3_a3  -0.25
+  mac3_a3  -0.03894
   mac4_d1  #1
   mac4_a1  0.6
   mac4_d2  #13
-  mac4_a2  -0.2
+  mac4_a2  -0.03115
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.1
+  mac5_a2  -0.01558
   mac6_d1  #5
   mac6_a1  0.4
   mac6_d2  #6
@@ -4824,7 +4832,7 @@ patch "Rim Song" note=72 range=55..96 family=bell
   cutoff         14000 Hz
   ampattack      1.4 s
   amprelease     6 s
-  volume         0.97
+  volume         0.1511
   send reverb    0.2
 
 # Stretch at the top of its travel with the bands wide open: the
@@ -4857,7 +4865,7 @@ patch Gong note=45 range=33..72 family=bell role=bell
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.1
+  mac5_a2  -0.03739
   mac6_d1  #5
   mac6_a1  0.4
   mac6_d2  #6
@@ -4887,7 +4895,7 @@ patch Gong note=45 range=33..72 family=bell role=bell
   ampsustain     0.35
   amprelease     10 s
   spread         #2
-  volume         1.22
+  volume         0.4561
 
 # A gong hit hard: every partial wide, stretched as far as it goes and
 # falling back over the length of the keyboard.
@@ -4918,7 +4926,7 @@ patch "Wind Gong" note=43 range=31..67 family=bell role=bell
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.1
+  mac5_a2  -0.04546
   mac6_d1  #5
   mac6_a1  0.4
   mac6_d2  #6
@@ -4950,7 +4958,7 @@ patch "Wind Gong" note=43 range=31..67 family=bell role=bell
   ampdecay       6 s
   ampsustain     0.3
   amprelease     9 s
-  volume         0.87
+  volume         0.3955
   send reverb    0.15
 
 # The same idea with a scallop cut through it, so it rings in bands
@@ -4982,7 +4990,7 @@ patch "Sheet Metal" note=52 range=36..79 family=bell role=bell
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.1
+  mac5_a2  -0.04242
   mac6_d1  #5
   mac6_a1  0.4
   mac6_d2  #6
@@ -5011,7 +5019,7 @@ patch "Sheet Metal" note=52 range=36..79 family=bell role=bell
   ampdecay       4.5 s
   ampsustain     0.25
   amprelease     5.5 s
-  volume         1.18
+  volume         0.5006
 
 # Stretch below zero, which nothing acoustic does: the partials crowd
 # *towards* the fundamental instead of away from it, and the result
@@ -5043,7 +5051,7 @@ patch Cavern note=45 range=33..72 family=bell
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #13
-  mac5_a2  -0.1
+  mac5_a2  -0.02556
   mac6_d1  #5
   mac6_a1  0.4
   mac6_d2  #6
@@ -5071,7 +5079,7 @@ patch Cavern note=45 range=33..72 family=bell
   ampattack      2.8 s
   amprelease     6 s
   spread         #2
-  volume         1.03
+  volume         0.2633
 
 # --- comb --------------------------------------------------------
 
@@ -5099,7 +5107,7 @@ patch "Comb Pad" note=60 range=36..84 family=comb
   mac3_d2  #7
   mac3_a2  0.3
   mac3_d3  #13
-  mac3_a3  -0.1
+  mac3_a3  -0.0179
   mac4_d1  #5
   mac4_a1  0.4
   mac4_d2  #6
@@ -5111,11 +5119,11 @@ patch "Comb Pad" note=60 range=36..84 family=comb
   mac5_d2  #19
   mac5_a2  0.3
   mac5_d3  #13
-  mac5_a3  -0.12
+  mac5_a3  -0.02148
   mac6_d1  #2
   mac6_a1  0.35
   mac6_d2  #13
-  mac6_a2  -0.1
+  mac6_a2  -0.0179
   mac7_d1  #15
   mac7_a1  0.3
   mac7_d2  #17
@@ -5123,7 +5131,7 @@ patch "Comb Pad" note=60 range=36..84 family=comb
   mac8_d1  #12
   mac8_a1  0.5
   mac8_d2  #13
-  mac8_a2  -0.1
+  mac8_a2  -0.04958
   partials       56
   tilt           -10 dB/oct
   bandwidth      40 cents
@@ -5137,7 +5145,7 @@ patch "Comb Pad" note=60 range=36..84 family=comb
   cutoff         8800 Hz
   ampattack      1 s
   amprelease     2.6 s
-  volume         1.25
+  volume         0.2237
 
 # A long-period comb - twelve partials between notches - which reads as
 # a formant rather than as a phaser.
@@ -5162,7 +5170,7 @@ patch Scallop note=64 range=43..88 family=comb
   mac3_d2  #7
   mac3_a2  0.3
   mac3_d3  #13
-  mac3_a3  -0.1
+  mac3_a3  -0.02252
   mac4_d1  #5
   mac4_a1  0.4
   mac4_d2  #6
@@ -5176,7 +5184,7 @@ patch Scallop note=64 range=43..88 family=comb
   mac6_d1  #2
   mac6_a1  0.35
   mac6_d2  #13
-  mac6_a2  -0.1
+  mac6_a2  -0.02252
   mac7_d1  #15
   mac7_a1  0.3
   mac7_d2  #17
@@ -5184,7 +5192,7 @@ patch Scallop note=64 range=43..88 family=comb
   mac8_d1  #12
   mac8_a1  0.5
   mac8_d2  #13
-  mac8_a2  -0.1
+  mac8_a2  -0.04526
   partials       64
   tilt           -8 dB/oct
   bandwidth      26 cents
@@ -5198,7 +5206,7 @@ patch Scallop note=64 range=43..88 family=comb
   cutoff         10500 Hz
   ampattack      0.7 s
   amprelease     2.2 s
-  volume         1.05
+  volume         0.2365
 
 # The comb under a vowel, so the notches cut through a voice.
 patch "Combed Choir" note=57 range=40..81 family=comb
@@ -5222,7 +5230,7 @@ patch "Combed Choir" note=57 range=40..81 family=comb
   mac3_d2  #7
   mac3_a2  0.3
   mac3_d3  #13
-  mac3_a3  -0.1
+  mac3_a3  -0.02151
   mac4_d1  #5
   mac4_a1  0.4
   mac4_d2  #6
@@ -5234,11 +5242,11 @@ patch "Combed Choir" note=57 range=40..81 family=comb
   mac5_d2  #19
   mac5_a2  0.3
   mac5_d3  #13
-  mac5_a3  -0.12
+  mac5_a3  -0.02581
   mac6_d1  #2
   mac6_a1  0.35
   mac6_d2  #13
-  mac6_a2  -0.1
+  mac6_a2  -0.02151
   mac7_d1  #15
   mac7_a1  0.3
   mac7_d2  #17
@@ -5246,7 +5254,7 @@ patch "Combed Choir" note=57 range=40..81 family=comb
   mac8_d1  #12
   mac8_a1  0.5
   mac8_d2  #13
-  mac8_a2  -0.1
+  mac8_a2  -0.04647
   partials       56
   tilt           -10 dB/oct
   bandwidth      30 cents
@@ -5262,7 +5270,7 @@ patch "Combed Choir" note=57 range=40..81 family=comb
   cutoff         8000 Hz
   ampattack      1.2 s
   amprelease     3 s
-  volume         1.08
+  volume         0.2323
   send reverb    0.15
 
 # The morph follows the key, from a deep comb to its opposite, so the
@@ -5288,7 +5296,7 @@ patch "Key Comb" note=60 range=36..88 family=comb
   mac3_d2  #7
   mac3_a2  0.3
   mac3_d3  #13
-  mac3_a3  -0.1
+  mac3_a3  -0.02414
   mac4_d1  #5
   mac4_a1  0.4
   mac4_d2  #6
@@ -5302,7 +5310,7 @@ patch "Key Comb" note=60 range=36..88 family=comb
   mac6_d1  #2
   mac6_a1  0.35
   mac6_d2  #13
-  mac6_a2  -0.1
+  mac6_a2  -0.02414
   mac7_d1  #15
   mac7_a1  0.3
   mac7_d2  #17
@@ -5310,7 +5318,7 @@ patch "Key Comb" note=60 range=36..88 family=comb
   mac8_d1  #12
   mac8_a1  0.5
   mac8_d2  #13
-  mac8_a2  -0.1
+  mac8_a2  -0.04226
   partials       60
   tilt           -10 dB/oct
   bandwidth      30 cents
@@ -5325,7 +5333,7 @@ patch "Key Comb" note=60 range=36..88 family=comb
   cutoff         9500 Hz
   ampattack      0.6 s
   amprelease     2.4 s
-  volume         0.96
+  volume         0.2317
 
 # And this is what happens when the notches *do* move: LFO1 walks the
 # morph from a deep comb to its opposite, so the peaks and the troughs
@@ -5351,7 +5359,7 @@ patch "Phase Cloud" note=60 range=36..84 family=comb role=drone
   mac3_d2  #7
   mac3_a2  0.3
   mac3_d3  #13
-  mac3_a3  -0.1
+  mac3_a3  -0.02804
   mac4_d1  #5
   mac4_a1  0.4
   mac4_d2  #6
@@ -5365,7 +5373,7 @@ patch "Phase Cloud" note=60 range=36..84 family=comb role=drone
   mac6_d1  #2
   mac6_a1  0.35
   mac6_d2  #13
-  mac6_a2  -0.1
+  mac6_a2  -0.02804
   mac7_d1  #15
   mac7_a1  0.3
   mac7_d2  #17
@@ -5373,7 +5381,7 @@ patch "Phase Cloud" note=60 range=36..84 family=comb role=drone
   mac8_d1  #12
   mac8_a1  0.5
   mac8_d2  #13
-  mac8_a2  -0.1
+  mac8_a2  -0.04878
   partials       60
   tilt           -11 dB/oct
   bandwidth      45 cents
@@ -5390,7 +5398,7 @@ patch "Phase Cloud" note=60 range=36..84 family=comb role=drone
   cutoff         9500 Hz
   ampattack      1.6 s
   amprelease     3.6 s
-  volume         1.01
+  volume         0.2832
 
 # A comb with the octave reader over it and the LFO turning the comb
 # slowly, like light through a fence.
@@ -5407,7 +5415,7 @@ patch "Slatted Light" note=64 range=45..88 family=comb role=drone
   mac1_d1  #1
   mac1_a1  0.8
   mac1_d2  #13
-  mac1_a2  -0.15
+  mac1_a2  -0.03971
   mac2_d1  #8
   mac2_a1  0.35
   mac2_d2  #9
@@ -5417,7 +5425,7 @@ patch "Slatted Light" note=64 range=45..88 family=comb role=drone
   mac3_d2  #7
   mac3_a2  0.3
   mac3_d3  #13
-  mac3_a3  -0.1
+  mac3_a3  -0.02648
   mac4_d1  #5
   mac4_a1  0.4
   mac4_d2  #6
@@ -5429,11 +5437,11 @@ patch "Slatted Light" note=64 range=45..88 family=comb role=drone
   mac5_d2  #19
   mac5_a2  0.3
   mac5_d3  #13
-  mac5_a3  -0.12
+  mac5_a3  -0.03177
   mac6_d1  #2
   mac6_a1  0.35
   mac6_d2  #13
-  mac6_a2  -0.1
+  mac6_a2  -0.02648
   mac7_d1  #15
   mac7_a1  0.3
   mac7_d2  #17
@@ -5441,7 +5449,7 @@ patch "Slatted Light" note=64 range=45..88 family=comb role=drone
   mac8_d1  #12
   mac8_a1  0.5
   mac8_d2  #13
-  mac8_a2  -0.1
+  mac8_a2  -0.03812
   partials       48
   tilt           -11 dB/oct
   bandwidth      36 cents
@@ -5459,7 +5467,7 @@ patch "Slatted Light" note=64 range=45..88 family=comb role=drone
   cutoff         12000 Hz
   ampattack      1.4 s
   amprelease     3.5 s
-  volume         0.82
+  volume         0.2171
   insert Chorus
     voices       #1
     rate         #12
@@ -5492,7 +5500,7 @@ patch Grate note=40 range=28..64 family=comb role=drone
   mac3_d2  #7
   mac3_a2  0.3
   mac3_d3  #13
-  mac3_a3  -0.1
+  mac3_a3  -0.02419
   mac4_d1  #5
   mac4_a1  0.4
   mac4_d2  #6
@@ -5529,7 +5537,7 @@ patch Grate note=40 range=28..64 family=comb role=drone
   drive          0.3
   ampattack      0.8 s
   amprelease     2.5 s
-  volume         0.40
+  volume         0.105
 
 # A long comb on partials that go from crowded to stretched as the LFO
 # turns, so the notches slide across a spectrum that is itself moving.
@@ -5554,7 +5562,7 @@ patch Lattice note=60 range=36..84 family=comb role=drone
   mac3_d2  #7
   mac3_a2  0.3
   mac3_d3  #13
-  mac3_a3  -0.1
+  mac3_a3  -0.03781
   mac4_d1  #5
   mac4_a1  0.4
   mac4_d2  #6
@@ -5568,7 +5576,7 @@ patch Lattice note=60 range=36..84 family=comb role=drone
   mac6_d1  #2
   mac6_a1  0.35
   mac6_d2  #13
-  mac6_a2  -0.1
+  mac6_a2  -0.03781
   mac7_d1  #15
   mac7_a1  0.3
   mac7_d2  #17
@@ -5576,7 +5584,7 @@ patch Lattice note=60 range=36..84 family=comb role=drone
   mac8_d1  #12
   mac8_a1  0.5
   mac8_d2  #13
-  mac8_a2  -0.1
+  mac8_a2  -0.04613
   partials       72
   tilt           -10 dB/oct
   bandwidth      26 cents
@@ -5594,5 +5602,5 @@ patch Lattice note=60 range=36..84 family=comb role=drone
   cutoff         9000 Hz
   ampattack      1.8 s
   amprelease     4 s
-  volume         0.74
+  volume         0.2798
   send reverb    0.2

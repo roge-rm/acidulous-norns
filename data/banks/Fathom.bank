@@ -44,10 +44,11 @@
 # rain, hail, thunder, fire, ice and snow. A kit's macros reach the knobs
 # every pad shares, and More and Calm each pad's own density too. Where a
 # macro at full moves the level by more than 1.5 dB, a volume route takes it
-# back out, and where the volume is already near the top the macro goes less
-# far. Levels are read off a held note, since a 2 s note of sparse drops or
-# slow gusts can land anywhere. Thunder Clap is levelled on its loudest
-# 400 ms instead, since the crack is the sound.
+# back out, and on some patches the macro goes less far instead. Every patch
+# sits at -27.5 on `loud`, within 1 dB, Init included. Init gets there through
+# the machine's house trim, with `volume` at its default of 0.15, 16 dB under
+# the top. The patches are levelled by `volume`, never higher than 6 dB under
+# the top.
 
 machine Fathom
 role pad
@@ -57,6 +58,7 @@ role pad
 patch Init family=water note=48 range=36..60
 
 patch "Fish Tank" family=water note=55 range=43..67
+  volume         0.1597
   # A steady line of small bubbles.
   set macro1 "More"
   set macro2 "Bigger"
@@ -69,7 +71,7 @@ patch "Fish Tank" family=water note=55 range=43..67
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.353
+  mac1_a2  -0.078
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #3
@@ -77,11 +79,11 @@ patch "Fish Tank" family=water note=55 range=43..67
   mac4_d1  #4
   mac4_a1  0.4
   mac4_d2  #12
-  mac4_a2  -0.138
+  mac4_a2  -0.0304
   mac5_d1  #13
   mac5_a1  -0.5
   mac5_d2  #12
-  mac5_a2  -0.138
+  mac5_a2  -0.0304
   mac6_d1  #13
   mac6_a1  0.25
   mac7_d1  #9
@@ -89,12 +91,13 @@ patch "Fish Tank" family=water note=55 range=43..67
   mac8_d1  #1
   mac8_a1  -0.206
   mac8_d2  #12
-  mac8_a2  0.216
+  mac8_a2  0.0476
   density        0.55
   size           3 st
   rise           0.5
 
 patch "Tap Drip" family=water note=48 range=36..60
+  volume         0.1615
   # A leaking tap, steady.
   set macro1 "More"
   set macro2 "Bigger"
@@ -107,7 +110,7 @@ patch "Tap Drip" family=water note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.217
+  mac1_a2  -0.0484
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #3
@@ -115,7 +118,7 @@ patch "Tap Drip" family=water note=48 range=36..60
   mac4_d1  #4
   mac4_a1  0.4
   mac4_d2  #12
-  mac4_a2  -0.124
+  mac4_a2  -0.0277
   mac5_d1  #13
   mac5_a1  -0.5
   mac6_d1  #13
@@ -125,12 +128,13 @@ patch "Tap Drip" family=water note=48 range=36..60
   mac8_d1  #1
   mac8_a1  -0.281
   mac8_d2  #12
-  mac8_a2  0.221
+  mac8_a2  0.0493
   model          #1
   density        0.55
   size           1 st
 
 patch "Cave Drips" family=water note=43 range=31..55
+  volume         0.1525
   # Slow drips into a pool.
   set macro1 "More"
   set macro2 "Bigger"
@@ -143,7 +147,7 @@ patch "Cave Drips" family=water note=43 range=31..55
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.298
+  mac1_a2  -0.063
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #3
@@ -159,13 +163,14 @@ patch "Cave Drips" family=water note=43 range=31..55
   mac8_d1  #1
   mac8_a1  -0.206
   mac8_d2  #12
-  mac8_a2  0.165
+  mac8_a2  0.0347
   model          #1
   density        0.45
   size           4 st
   decay          0.7
 
 patch Gutter family=water note=40 range=28..52
+  volume         0.1019
   # Faster, uneven drips.
   set macro1 "More"
   set macro2 "Bigger"
@@ -178,7 +183,7 @@ patch Gutter family=water note=40 range=28..52
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.225
+  mac1_a2  -0.0317
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #3
@@ -194,12 +199,13 @@ patch Gutter family=water note=40 range=28..52
   mac8_d1  #1
   mac8_a1  -0.131
   mac8_d2  #12
-  mac8_a2  0.188
+  mac8_a2  0.0264
   model          #1
   density        0.75
   size           8 st
 
 patch "Big Bubbles" family=water note=36 range=24..48
+  volume         0.1456
   # Slow, deep bubbles, long and round.
   set macro1 "More"
   set macro2 "Bigger"
@@ -212,7 +218,7 @@ patch "Big Bubbles" family=water note=36 range=24..48
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.324
+  mac1_a2  -0.0654
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #3
@@ -228,7 +234,7 @@ patch "Big Bubbles" family=water note=36 range=24..48
   mac8_d1  #1
   mac8_a1  -0.3
   mac8_d2  #12
-  mac8_a2  0.227
+  mac8_a2  0.0456
   density        0.35
   size           7 st
   decay          0.8
@@ -247,7 +253,7 @@ patch "Boiling Pot" family=water note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.121
+  mac1_a2  -0.0137
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #3
@@ -255,7 +261,7 @@ patch "Boiling Pot" family=water note=48 range=36..60
   mac4_d1  #4
   mac4_a1  0.4
   mac4_d2  #12
-  mac4_a2  -0.116
+  mac4_a2  -0.0131
   mac5_d1  #13
   mac5_a1  -0.5
   mac6_d1  #13
@@ -265,13 +271,14 @@ patch "Boiling Pot" family=water note=48 range=36..60
   mac8_d1  #1
   mac8_a1  -0.188
   mac8_d2  #12
-  mac8_a2  0.344
+  mac8_a2  0.0389
   density        0.85
   size           9 st
   rise           0.6
-  volume         0.6
+  volume         0.0702
 
 patch Submerged family=water note=36 range=24..48
+  volume         0.1543
   # Below the surface: a dark wash and big, slow bubbles.
   set macro1 "More"
   set macro2 "Bigger"
@@ -284,7 +291,7 @@ patch Submerged family=water note=36 range=24..48
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.316
+  mac1_a2  -0.0672
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #3
@@ -292,11 +299,11 @@ patch Submerged family=water note=36 range=24..48
   mac4_d1  #4
   mac4_a1  0.4
   mac4_d2  #12
-  mac4_a2  -0.15
+  mac4_a2  -0.0319
   mac5_d1  #13
   mac5_a1  -0.375
   mac5_d2  #12
-  mac5_a2  0.291
+  mac5_a2  0.0618
   mac6_d1  #5
   mac6_a1  0.5
   mac7_d1  #9
@@ -304,10 +311,11 @@ patch Submerged family=water note=36 range=24..48
   mac8_d1  #1
   mac8_a1  -0.3
   mac8_d2  #12
-  mac8_a2  0.132
+  mac8_a2  0.0281
   model          #14
 
 patch "Deep Underwater" family=water note=31 range=24..43
+  volume         0.2362
   # Deeper still, almost nothing but the wash.
   set macro1 "More"
   set macro2 "Bigger"
@@ -320,7 +328,7 @@ patch "Deep Underwater" family=water note=31 range=24..43
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.391
+  mac1_a2  -0.127
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #3
@@ -330,7 +338,7 @@ patch "Deep Underwater" family=water note=31 range=24..43
   mac5_d1  #13
   mac5_a1  -0.25
   mac5_d2  #12
-  mac5_a2  0.272
+  mac5_a2  0.0888
   mac6_d1  #5
   mac6_a1  0.5
   mac7_d1  #9
@@ -354,7 +362,7 @@ patch Diver family=water note=40 range=28..52
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.25
+  mac1_a2  -0.0443
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #3
@@ -362,11 +370,11 @@ patch Diver family=water note=40 range=28..52
   mac4_d1  #4
   mac4_a1  0.4
   mac4_d2  #12
-  mac4_a2  -0.112
+  mac4_a2  -0.0199
   mac5_d1  #13
   mac5_a1  -0.5
   mac5_d2  #12
-  mac5_a2  0.216
+  mac5_a2  0.0383
   mac6_d1  #5
   mac6_a1  0.5
   mac7_d1  #9
@@ -374,11 +382,11 @@ patch Diver family=water note=40 range=28..52
   mac8_d1  #1
   mac8_a1  -0.3
   mac8_d2  #12
-  mac8_a2  0.331
+  mac8_a2  0.0586
   model          #14
   density        0.7
   rise           0.8
-  volume         0.5
+  volume         0.09168
 
 patch "Bubble Notes" family=water note=48 range=24..72 role=tune
   # One bubble a note, tuned: play a melody.
@@ -395,17 +403,17 @@ patch "Bubble Notes" family=water note=48 range=24..72 role=tune
   mac2_d1  #4
   mac2_a1  -0.241
   mac2_d2  #12
-  mac2_a2  0.15
+  mac2_a2  0.0731
   mac3_d1  #3
   mac3_a1  0.5
   mac3_d2  #12
-  mac3_a2  0.2
+  mac3_a2  0.0974
   mac4_d1  #2
   mac4_a1  0.1
   mac5_d1  #13
   mac5_a1  -0.5
   mac5_d2  #12
-  mac5_a2  -0.125
+  mac5_a2  -0.061
   mac6_d1  #13
   mac6_a1  0.25
   mac7_d1  #9
@@ -413,12 +421,12 @@ patch "Bubble Notes" family=water note=48 range=24..72 role=tune
   mac8_d1  #1
   mac8_a1  0.4
   mac8_d2  #12
-  mac8_a2  -0.155
+  mac8_a2  -0.0757
   density        0
   size           0 st
   rise           0
   decay          0.7
-  volume         0.8
+  volume         0.4039
 
 patch "Drip Notes" family=water note=43 range=24..60 role=tune
   # One drip a note, tuned.
@@ -433,7 +441,7 @@ patch "Drip Notes" family=water note=43 range=24..60 role=tune
   mac1_d1  #4
   mac1_a1  0.4
   mac1_d2  #12
-  mac1_a2  -0.267
+  mac1_a2  -0.066
   mac2_d1  #4
   mac2_a1  -0.131
   mac3_d1  #3
@@ -443,7 +451,7 @@ patch "Drip Notes" family=water note=43 range=24..60 role=tune
   mac5_d1  #13
   mac5_a1  -0.5
   mac5_d2  #12
-  mac5_a2  -0.241
+  mac5_a2  -0.0596
   mac6_d1  #13
   mac6_a1  0.188
   mac7_d1  #9
@@ -451,11 +459,11 @@ patch "Drip Notes" family=water note=43 range=24..60 role=tune
   mac8_d1  #1
   mac8_a1  0.4
   mac8_d2  #12
-  mac8_a2  -0.527
+  mac8_a2  -0.13
   model          #1
   density        0
   size           0 st
-  volume         1
+  volume         0.256
 
 patch "Bubble Melody" family=water note=60 range=48..84 role=tune
   # One clean bubble a note that holds its pitch: play a tune.
@@ -478,7 +486,7 @@ patch "Bubble Melody" family=water note=60 range=48..84 role=tune
   mac5_d1  #13
   mac5_a1  -0.5
   mac5_d2  #12
-  mac5_a2  -0.339
+  mac5_a2  -0.154
   mac6_d1  #13
   mac6_a1  0.25
   mac7_d1  #9
@@ -486,13 +494,13 @@ patch "Bubble Melody" family=water note=60 range=48..84 role=tune
   mac8_d1  #1
   mac8_a1  0.4
   mac8_d2  #12
-  mac8_a2  -0.292
+  mac8_a2  -0.132
   density        0
   size           0 st
   rise           0
   decay          0.9
   spread         0.2
-  volume         1
+  volume         0.4711
 
 patch "Bubble Chords" family=water note=48 range=36..72
   # Bubbles on the chord you hold: play chords and they follow.
@@ -507,7 +515,7 @@ patch "Bubble Chords" family=water note=48 range=36..72
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.353
+  mac1_a2  -0.0796
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #3
@@ -515,11 +523,11 @@ patch "Bubble Chords" family=water note=48 range=36..72
   mac4_d1  #4
   mac4_a1  0.4
   mac4_d2  #12
-  mac4_a2  -0.138
+  mac4_a2  -0.0301
   mac5_d1  #13
   mac5_a1  -0.5
   mac5_d2  #12
-  mac5_a2  -0.138
+  mac5_a2  -0.0301
   mac6_d1  #13
   mac6_a1  0.25
   mac7_d1  #9
@@ -527,15 +535,16 @@ patch "Bubble Chords" family=water note=48 range=36..72
   mac8_d1  #1
   mac8_a1  -0.206
   mac8_d2  #12
-  mac8_a2  0.216
+  mac8_a2  0.0471
   density        0.6
   size           12 st
   rise           0.08
   decay          0.8
   snap           1
-  volume         0.47
+  volume         0.106
 
 patch "Tuned Drips" family=water note=55 range=43..79
+  volume         0.1543
   # Slow drips that land on the held notes.
   set macro1 "More"
   set macro2 "Bigger"
@@ -548,7 +557,7 @@ patch "Tuned Drips" family=water note=55 range=43..79
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.217
+  mac1_a2  -0.0462
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #3
@@ -556,7 +565,7 @@ patch "Tuned Drips" family=water note=55 range=43..79
   mac4_d1  #4
   mac4_a1  0.4
   mac4_d2  #12
-  mac4_a2  -0.124
+  mac4_a2  -0.0264
   mac5_d1  #13
   mac5_a1  -0.5
   mac6_d1  #13
@@ -566,7 +575,7 @@ patch "Tuned Drips" family=water note=55 range=43..79
   mac8_d1  #1
   mac8_a1  -0.281
   mac8_d2  #12
-  mac8_a2  0.221
+  mac8_a2  0.0471
   model          #1
   density        0.6
   size           12 st
@@ -577,6 +586,7 @@ patch "Tuned Drips" family=water note=55 range=43..79
 # --- stream -------------------------------------------------------------------
 
 patch Trickle family=stream note=52 range=40..64
+  volume         0.1672
   # Just a little water.
   set macro1 "More"
   set macro2 "Bigger"
@@ -589,7 +599,7 @@ patch Trickle family=stream note=52 range=40..64
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.244
+  mac1_a2  -0.0563
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #3
@@ -605,12 +615,13 @@ patch Trickle family=stream note=52 range=40..64
   mac8_d1  #1
   mac8_a1  -0.188
   mac8_d2  #12
-  mac8_a2  0.249
+  mac8_a2  0.0574
   model          #3
   density        0.2
   size           6 st
 
 patch Brook family=stream note=48 range=36..60
+  volume         0.1007
   # A small stream over stones.
   set macro1 "More"
   set macro2 "Bigger"
@@ -623,7 +634,7 @@ patch Brook family=stream note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.369
+  mac1_a2  -0.0513
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #3
@@ -631,7 +642,7 @@ patch Brook family=stream note=48 range=36..60
   mac4_d1  #4
   mac4_a1  0.4
   mac4_d2  #12
-  mac4_a2  -0.138
+  mac4_a2  -0.0192
   mac5_d1  #13
   mac5_a1  -0.5
   mac6_d1  #13
@@ -641,7 +652,7 @@ patch Brook family=stream note=48 range=36..60
   mac8_d1  #1
   mac8_a1  -0.206
   mac8_d2  #12
-  mac8_a2  0.237
+  mac8_a2  0.0329
   model          #3
   density        0.4
   size           8 st
@@ -659,7 +670,7 @@ patch River family=stream note=36 range=24..48
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.227
+  mac1_a2  -0.0346
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #3
@@ -667,7 +678,7 @@ patch River family=stream note=36 range=24..48
   mac4_d1  #4
   mac4_a1  0.4
   mac4_d2  #12
-  mac4_a2  -0.106
+  mac4_a2  -0.0161
   mac5_d1  #13
   mac5_a1  -0.5
   mac6_d1  #13
@@ -677,11 +688,11 @@ patch River family=stream note=36 range=24..48
   mac8_d1  #1
   mac8_a1  -0.3
   mac8_d2  #12
-  mac8_a2  0.304
+  mac8_a2  0.0463
   model          #3
   density        0.6
   size           12 st
-  volume         0.4
+  volume         0.06312
 
 patch "Distant River" family=stream note=36 range=24..48
   # A wide river heard from up the bank.
@@ -696,7 +707,7 @@ patch "Distant River" family=stream note=36 range=24..48
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.152
+  mac1_a2  -0.0282
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #3
@@ -704,7 +715,7 @@ patch "Distant River" family=stream note=36 range=24..48
   mac4_d1  #4
   mac4_a1  0.4
   mac4_d2  #12
-  mac4_a2  -0.054
+  mac4_a2  -0.01
   mac5_d1  #13
   mac5_a1  -0.5
   mac6_d1  #13
@@ -714,11 +725,11 @@ patch "Distant River" family=stream note=36 range=24..48
   mac8_d1  #1
   mac8_a1  -0.3
   mac8_d2  #12
-  mac8_a2  0.225
+  mac8_a2  0.0417
   model          #3
   density        0.5
   size           12 st
-  volume         0.298
+  volume         0.05719
   send reverb    0.35
 
 patch Fountain family=stream note=55 range=43..67
@@ -734,7 +745,7 @@ patch Fountain family=stream note=55 range=43..67
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.175
+  mac1_a2  -0.023
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #3
@@ -742,11 +753,11 @@ patch Fountain family=stream note=55 range=43..67
   mac4_d1  #4
   mac4_a1  0.4
   mac4_d2  #12
-  mac4_a2  -0.084
+  mac4_a2  -0.011
   mac5_d1  #13
   mac5_a1  -0.5
   mac5_d2  #12
-  mac5_a2  -0.081
+  mac5_a2  -0.0106
   mac6_d1  #13
   mac6_a1  0.25
   mac7_d1  #9
@@ -754,11 +765,11 @@ patch Fountain family=stream note=55 range=43..67
   mac8_d1  #1
   mac8_a1  -0.3
   mac8_d2  #12
-  mac8_a2  0.253
+  mac8_a2  0.0332
   model          #3
   density        0.75
   size           5 st
-  volume         0.4
+  volume         0.05435
 
 patch "Little Falls" family=stream note=48 range=36..60
   # A small fall, close by and bright.
@@ -773,7 +784,7 @@ patch "Little Falls" family=stream note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.094
+  mac1_a2  -0.0142
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #4
@@ -781,7 +792,7 @@ patch "Little Falls" family=stream note=48 range=36..60
   mac4_d1  #13
   mac4_a1  -0.5
   mac4_d2  #12
-  mac4_a2  -0.064
+  mac4_a2  -0.00966
   mac5_d1  #7
   mac5_a1  0.4
   mac6_d1  #7
@@ -791,13 +802,14 @@ patch "Little Falls" family=stream note=48 range=36..60
   mac8_d1  #1
   mac8_a1  -0.3
   mac8_d2  #12
-  mac8_a2  0.129
+  mac8_a2  0.0194
   model          #9
   tone           0.7
   density        0.8
-  volume         0.4
+  volume         0.0624
 
 patch Waterfall family=stream note=40 range=31..55
+  volume         0.08376
   # The roar of falling water and its countless bubbles.
   set macro1 "More"
   set macro2 "Bigger"
@@ -810,7 +822,7 @@ patch Waterfall family=stream note=40 range=31..55
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.25
+  mac1_a2  -0.0289
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #4
@@ -826,10 +838,11 @@ patch Waterfall family=stream note=40 range=31..55
   mac8_d1  #1
   mac8_a1  -0.3
   mac8_d2  #12
-  mac8_a2  0.177
+  mac8_a2  0.0205
   model          #9
 
 patch "Waterfall Far" family=stream note=36 range=28..48
+  volume         0.1105
   # Heard from down the valley, dark and steady.
   set macro1 "More"
   set macro2 "Bigger"
@@ -842,7 +855,7 @@ patch "Waterfall Far" family=stream note=36 range=28..48
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.29
+  mac1_a2  -0.0442
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #4
@@ -852,7 +865,7 @@ patch "Waterfall Far" family=stream note=36 range=28..48
   mac5_d1  #7
   mac5_a1  0.4
   mac5_d2  #12
-  mac5_a2  -0.151
+  mac5_a2  -0.023
   mac6_d1  #7
   mac6_a1  -0.3
   mac7_d1  #9
@@ -860,7 +873,7 @@ patch "Waterfall Far" family=stream note=36 range=28..48
   mac8_d1  #1
   mac8_a1  -0.3
   mac8_d2  #12
-  mac8_a2  0.228
+  mac8_a2  0.0348
   model          #9
   tone           0.2
   density        0.4
@@ -878,7 +891,7 @@ patch Rapids family=stream note=45 range=33..57
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.133
+  mac1_a2  -0.0208
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #4
@@ -886,7 +899,7 @@ patch Rapids family=stream note=45 range=33..57
   mac4_d1  #13
   mac4_a1  -0.5
   mac4_d2  #12
-  mac4_a2  -0.07
+  mac4_a2  -0.0109
   mac5_d1  #7
   mac5_a1  0.4
   mac6_d1  #7
@@ -896,16 +909,17 @@ patch Rapids family=stream note=45 range=33..57
   mac8_d1  #1
   mac8_a1  -0.3
   mac8_d2  #12
-  mac8_a2  0.137
+  mac8_a2  0.0214
   model          #9
   density        0.75
   size           6 st
   tone           0.6
   gust           0.9
   spread         1
-  volume         0.417
+  volume         0.06732
 
 patch "Hand Splash" family=stream note=48 range=36..60
+  volume         0.3078
   # A hand in the water and a burst of bubbles.
   set macro1 "More"
   set macro2 "Bigger"
@@ -918,7 +932,7 @@ patch "Hand Splash" family=stream note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.231
+  mac1_a2  -0.0981
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #3
@@ -926,7 +940,7 @@ patch "Hand Splash" family=stream note=48 range=36..60
   mac4_d1  #4
   mac4_a1  0.4
   mac4_d2  #12
-  mac4_a2  -0.117
+  mac4_a2  -0.0497
   mac5_d1  #13
   mac5_a1  -0.5
   mac6_d1  #13
@@ -936,10 +950,11 @@ patch "Hand Splash" family=stream note=48 range=36..60
   mac8_d1  #1
   mac8_a1  -0.281
   mac8_d2  #12
-  mac8_a2  0.203
+  mac8_a2  0.0863
   model          #13
 
 patch Paddling family=stream note=48 range=36..60
+  volume         0.2905
   # Splashes in a steady rhythm, like paddling.
   set macro1 "More"
   set macro2 "Bigger"
@@ -952,7 +967,7 @@ patch Paddling family=stream note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.384
+  mac1_a2  -0.154
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #3
@@ -971,6 +986,7 @@ patch Paddling family=stream note=48 range=36..60
   density        0.6
 
 patch "Big Splash" family=stream note=40 range=31..52
+  volume         0.3298
   # Something heavy thrown in.
   set macro1 "More"
   set macro2 "Bigger"
@@ -983,7 +999,7 @@ patch "Big Splash" family=stream note=40 range=31..52
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.243
+  mac1_a2  -0.11
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #3
@@ -991,7 +1007,7 @@ patch "Big Splash" family=stream note=40 range=31..52
   mac4_d1  #4
   mac4_a1  0.4
   mac4_d2  #12
-  mac4_a2  -0.147
+  mac4_a2  -0.0672
   mac5_d1  #13
   mac5_a1  -0.5
   mac6_d1  #13
@@ -1001,11 +1017,12 @@ patch "Big Splash" family=stream note=40 range=31..52
   mac8_d1  #1
   mac8_a1  -0.281
   mac8_d2  #12
-  mac8_a2  0.19
+  mac8_a2  0.0865
   model          #13
   size           12 st
 
 patch "Pentatonic Brook" family=stream note=60 range=48..72
+  volume         0.1105
   # A brook in C minor pentatonic: set the key and scale to the song.
   set macro1 "More"
   set macro2 "Bigger"
@@ -1018,7 +1035,7 @@ patch "Pentatonic Brook" family=stream note=60 range=48..72
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.369
+  mac1_a2  -0.0563
   mac2_d1  #2
   mac2_a1  0.3
   mac3_d1  #3
@@ -1026,7 +1043,7 @@ patch "Pentatonic Brook" family=stream note=60 range=48..72
   mac4_d1  #4
   mac4_a1  0.4
   mac4_d2  #12
-  mac4_a2  -0.138
+  mac4_a2  -0.0211
   mac5_d1  #13
   mac5_a1  -0.5
   mac6_d1  #13
@@ -1036,7 +1053,7 @@ patch "Pentatonic Brook" family=stream note=60 range=48..72
   mac8_d1  #1
   mac8_a1  -0.206
   mac8_d2  #12
-  mac8_a2  0.237
+  mac8_a2  0.0361
   model          #3
   density        0.4
   size           12 st
@@ -1050,6 +1067,7 @@ patch "Pentatonic Brook" family=stream note=60 range=48..72
 # --- sea ----------------------------------------------------------------------
 
 patch "Calm Sea" family=sea note=48 range=36..60
+  volume         0.156
   # Barely moving.
   set macro1 "Foam"
   set macro2 "Waves"
@@ -1062,17 +1080,17 @@ patch "Calm Sea" family=sea note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #12
-  mac1_a2  -0.177
+  mac1_a2  -0.0381
   mac2_d1  #5
   mac2_a1  0.5
   mac3_d1  #7
   mac3_a1  0.4
   mac3_d2  #12
-  mac3_a2  -0.271
+  mac3_a2  -0.0583
   mac4_d1  #7
   mac4_a1  -0.131
   mac4_d2  #12
-  mac4_a2  0.276
+  mac4_a2  0.0594
   mac5_d1  #8
   mac5_a1  0.4
   mac6_d1  #8
@@ -1089,6 +1107,7 @@ patch "Calm Sea" family=sea note=48 range=36..60
   tone           0.25
 
 patch Shore family=sea note=52 range=36..60
+  volume         0.1198
   # Small waves, bright foam.
   set macro1 "Foam"
   set macro2 "Waves"
@@ -1101,7 +1120,7 @@ patch Shore family=sea note=52 range=36..60
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #12
-  mac1_a2  -0.132
+  mac1_a2  -0.0218
   mac2_d1  #5
   mac2_a1  0.5
   mac3_d1  #7
@@ -1109,7 +1128,7 @@ patch Shore family=sea note=52 range=36..60
   mac4_d1  #7
   mac4_a1  -0.3
   mac4_d2  #12
-  mac4_a2  0.206
+  mac4_a2  0.034
   mac5_d1  #8
   mac5_a1  0.4
   mac6_d1  #8
@@ -1121,7 +1140,7 @@ patch Shore family=sea note=52 range=36..60
   mac8_d2  #1
   mac8_a2  -0.3
   mac8_d3  #12
-  mac8_a3  -0.128
+  mac8_a3  -0.0212
   model          #4
   swell          2 beats
   gust           0.6
@@ -1129,6 +1148,7 @@ patch Shore family=sea note=52 range=36..60
   density        0.7
 
 patch "Beach Surf" family=sea note=48 range=36..60
+  volume         0.1711
   # Waves every four beats.
   set macro1 "Foam"
   set macro2 "Waves"
@@ -1141,23 +1161,23 @@ patch "Beach Surf" family=sea note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #12
-  mac1_a2  -0.122
+  mac1_a2  -0.0288
   mac2_d1  #5
   mac2_a1  0.5
   mac3_d1  #7
   mac3_a1  0.4
   mac3_d2  #12
-  mac3_a2  -0.177
+  mac3_a2  -0.0418
   mac4_d1  #7
   mac4_a1  -0.263
   mac4_d2  #12
-  mac4_a2  0.293
+  mac4_a2  0.069
   mac5_d1  #8
   mac5_a1  0.4
   mac6_d1  #8
   mac6_a1  -0.2
   mac6_d2  #12
-  mac6_a2  0.268
+  mac6_a2  0.063
   mac7_d1  #2
   mac7_a1  0.3
   mac8_d1  #5
@@ -1169,6 +1189,7 @@ patch "Beach Surf" family=sea note=48 range=36..60
   gust           0.8
 
 patch "Long Swell" family=sea note=48 range=36..60
+  volume         0.2308
   # Long waves, eight beats apart, dark.
   set macro1 "Foam"
   set macro2 "Waves"
@@ -1181,17 +1202,17 @@ patch "Long Swell" family=sea note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #12
-  mac1_a2  -0.192
+  mac1_a2  -0.0612
   mac2_d1  #5
   mac2_a1  0.5
   mac3_d1  #7
   mac3_a1  0.4
   mac3_d2  #12
-  mac3_a2  -0.243
+  mac3_a2  -0.0774
   mac4_d1  #7
   mac4_a1  -0.15
   mac4_d2  #12
-  mac4_a2  0.256
+  mac4_a2  0.0816
   mac5_d1  #8
   mac5_a1  0.4
   mac6_d1  #8
@@ -1220,17 +1241,17 @@ patch Harbour family=sea note=43 range=31..55
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #12
-  mac1_a2  -0.212
+  mac1_a2  -0.0451
   mac2_d1  #5
   mac2_a1  0.5
   mac3_d1  #7
   mac3_a1  0.4
   mac3_d2  #12
-  mac3_a2  -0.251
+  mac3_a2  -0.0534
   mac4_d1  #7
   mac4_a1  -0.131
   mac4_d2  #12
-  mac4_a2  0.205
+  mac4_a2  0.0436
   mac5_d1  #8
   mac5_a1  0.4
   mac6_d1  #8
@@ -1248,7 +1269,7 @@ patch Harbour family=sea note=43 range=31..55
   density        0.5
   size           8 st
   decay          0.7
-  volume         0.759
+  volume         0.1672
 
 patch "Near Surf" family=sea note=48 range=36..60
   # Standing in the waves, the foam all round.
@@ -1269,13 +1290,13 @@ patch "Near Surf" family=sea note=48 range=36..60
   mac4_d1  #7
   mac4_a1  -0.3
   mac4_d2  #12
-  mac4_a2  0.115
+  mac4_a2  0.0298
   mac5_d1  #8
   mac5_a1  0.4
   mac6_d1  #8
   mac6_a1  -0.2
   mac6_d2  #12
-  mac6_a2  0.19
+  mac6_a2  0.0492
   mac7_d1  #2
   mac7_a1  0.3
   mac8_d1  #5
@@ -1288,7 +1309,7 @@ patch "Near Surf" family=sea note=48 range=36..60
   tone           0.75
   density        0.8
   spread         1
-  volume         0.488
+  volume         0.1308
 
 patch "Far Surf" family=sea note=43 range=31..55
   # Waves from the top of the cliff.
@@ -1303,17 +1324,17 @@ patch "Far Surf" family=sea note=43 range=31..55
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #12
-  mac1_a2  -0.13
+  mac1_a2  -0.0382
   mac2_d1  #5
   mac2_a1  0.5
   mac3_d1  #7
   mac3_a1  0.4
   mac3_d2  #12
-  mac3_a2  -0.296
+  mac3_a2  -0.087
   mac4_d1  #7
   mac4_a1  -0.112
   mac4_d2  #12
-  mac4_a2  0.279
+  mac4_a2  0.0822
   mac5_d1  #8
   mac5_a1  0.4
   mac6_d1  #8
@@ -1329,7 +1350,7 @@ patch "Far Surf" family=sea note=43 range=31..55
   gust           0.8
   tone           0.2
   density        0.3
-  volume         0.681
+  volume         0.2071
   send reverb    0.4
 
 patch "Pebble Beach" family=sea note=52 range=40..64
@@ -1349,17 +1370,17 @@ patch "Pebble Beach" family=sea note=52 range=40..64
   mac3_d1  #7
   mac3_a1  0.4
   mac3_d2  #12
-  mac3_a2  -0.104
+  mac3_a2  -0.0219
   mac4_d1  #7
   mac4_a1  -0.3
   mac4_d2  #12
-  mac4_a2  0.151
+  mac4_a2  0.0317
   mac5_d1  #8
   mac5_a1  0.4
   mac6_d1  #8
   mac6_a1  -0.2
   mac6_d2  #12
-  mac6_a2  0.111
+  mac6_a2  0.0233
   mac7_d1  #2
   mac7_a1  0.3
   mac8_d1  #5
@@ -1373,7 +1394,7 @@ patch "Pebble Beach" family=sea note=52 range=40..64
   density        1
   size           14 st
   decay          0.2
-  volume         0.529
+  volume         0.1152
 
 patch "Sea Cave" family=sea note=36 range=24..48
   # Waves booming into a cave.
@@ -1388,17 +1409,17 @@ patch "Sea Cave" family=sea note=36 range=24..48
   mac1_d1  #1
   mac1_a1  0.4
   mac1_d2  #12
-  mac1_a2  -0.188
+  mac1_a2  -0.0572
   mac2_d1  #5
   mac2_a1  0.5
   mac3_d1  #7
   mac3_a1  0.4
   mac3_d2  #12
-  mac3_a2  -0.399
+  mac3_a2  -0.121
   mac4_d1  #7
   mac4_a1  -0.056
   mac4_d2  #12
-  mac4_a2  0.2
+  mac4_a2  0.0606
   mac5_d1  #8
   mac5_a1  0.4
   mac6_d1  #8
@@ -1414,7 +1435,7 @@ patch "Sea Cave" family=sea note=36 range=24..48
   gust           1
   tone           0.12
   density        0.2
-  volume         0.784
+  volume         0.2468
   send reverb    0.55
 
 # --- rain ---------------------------------------------------------------------
@@ -1432,7 +1453,7 @@ patch Drizzle family=rain note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.383
+  mac1_a2  -0.115
   mac2_d1  #1
   mac2_a1  -0.056
   mac3_d1  #7
@@ -1440,23 +1461,23 @@ patch Drizzle family=rain note=48 range=36..60
   mac4_d1  #7
   mac4_a1  -0.3
   mac4_d2  #12
-  mac4_a2  0.215
+  mac4_a2  0.0648
   mac5_d1  #2
   mac5_a1  0.3
   mac6_d1  #4
   mac6_a1  0.4
   mac6_d2  #12
-  mac6_a2  -0.122
+  mac6_a2  -0.0367
   mac7_d1  #13
   mac7_a1  -0.5
   mac7_d2  #12
-  mac7_a2  -0.042
+  mac7_a2  -0.0127
   mac8_d1  #9
   mac8_a1  0.4
   model          #2
   density        0.2
   tone           0.3
-  volume         0.738
+  volume         0.2297
 
 patch "Light Rain" family=rain note=48 range=36..60
   # A shower on water.
@@ -1471,33 +1492,33 @@ patch "Light Rain" family=rain note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.311
+  mac1_a2  -0.075
   mac2_d1  #1
   mac2_a1  -0.169
   mac2_d2  #12
-  mac2_a2  0.283
+  mac2_a2  0.0684
   mac3_d1  #7
   mac3_a1  0.4
   mac4_d1  #7
   mac4_a1  -0.3
   mac4_d2  #12
-  mac4_a2  0.127
+  mac4_a2  0.0307
   mac5_d1  #2
   mac5_a1  0.3
   mac6_d1  #4
   mac6_a1  0.4
   mac6_d2  #12
-  mac6_a2  -0.105
+  mac6_a2  -0.0254
   mac7_d1  #13
   mac7_a1  -0.5
   mac7_d2  #12
-  mac7_a2  -0.026
+  mac7_a2  -0.0063
   mac8_d1  #9
   mac8_a1  0.4
   model          #2
   density        0.35
   tone           0.4
-  volume         0.629
+  volume         0.1573
 
 patch Downpour family=rain note=48 range=36..60
   # Heavy rain, the hiss up.
@@ -1512,11 +1533,11 @@ patch Downpour family=rain note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.091
+  mac1_a2  -0.0139
   mac2_d1  #1
   mac2_a1  -0.263
   mac2_d2  #12
-  mac2_a2  0.192
+  mac2_a2  0.0293
   mac3_d1  #7
   mac3_a1  0.4
   mac4_d1  #7
@@ -1532,7 +1553,7 @@ patch Downpour family=rain note=48 range=36..60
   model          #2
   density        0.85
   tone           0.6
-  volume         0.311
+  volume         0.04907
 
 patch Monsoon family=rain note=48 range=36..60
   # Heavy tropical rain on deep water.
@@ -1549,7 +1570,7 @@ patch Monsoon family=rain note=48 range=36..60
   mac2_d1  #1
   mac2_a1  -0.3
   mac2_d2  #12
-  mac2_a2  0.108
+  mac2_a2  0.0303
   mac3_d1  #7
   mac3_a1  0.4
   mac4_d1  #7
@@ -1567,7 +1588,7 @@ patch Monsoon family=rain note=48 range=36..60
   tone           0.75
   size           10 st
   spread         1
-  volume         0.118
+  volume         0.03427
 
 patch "Distant Rain" family=rain note=43 range=31..55
   # Rain across the valley, dark and wide.
@@ -1582,19 +1603,19 @@ patch "Distant Rain" family=rain note=43 range=31..55
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.144
+  mac1_a2  -0.0352
   mac2_d1  #1
   mac2_a1  -0.3
   mac2_d2  #12
-  mac2_a2  0.243
+  mac2_a2  0.0594
   mac3_d1  #7
   mac3_a1  0.4
   mac3_d2  #12
-  mac3_a2  -0.057
+  mac3_a2  -0.0139
   mac4_d1  #7
   mac4_a1  -0.3
   mac4_d2  #12
-  mac4_a2  0.061
+  mac4_a2  0.0149
   mac5_d1  #2
   mac5_a1  0.3
   mac6_d1  #4
@@ -1602,13 +1623,13 @@ patch "Distant Rain" family=rain note=43 range=31..55
   mac7_d1  #13
   mac7_a1  -0.5
   mac7_d2  #12
-  mac7_a2  -0.01
+  mac7_a2  -0.00244
   mac8_d1  #9
   mac8_a1  0.4
   model          #2
   density        0.6
   tone           0.15
-  volume         0.309
+  volume         0.07818
   send reverb    0.35
 
 patch "Rain on Leaves" family=rain note=48 range=36..60
@@ -1624,11 +1645,11 @@ patch "Rain on Leaves" family=rain note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.397
+  mac1_a2  -0.121
   mac2_d1  #1
   mac2_a1  -0.169
   mac2_d2  #12
-  mac2_a2  0.315
+  mac2_a2  0.096
   mac3_d1  #7
   mac3_a1  0.4
   mac4_d1  #7
@@ -1638,13 +1659,13 @@ patch "Rain on Leaves" family=rain note=48 range=36..60
   mac5_d2  #7
   mac5_a2  0.3
   mac5_d3  #12
-  mac5_a3  -0.376
+  mac5_a3  -0.115
   mac6_d1  #1
   mac6_a1  -0.15
   mac6_d2  #7
   mac6_a2  -0.15
   mac6_d3  #12
-  mac6_a3  0.313
+  mac6_a3  0.0954
   mac7_d1  #9
   mac7_a1  0.4
   mac8_d1  #10
@@ -1652,7 +1673,7 @@ patch "Rain on Leaves" family=rain note=48 range=36..60
   model          #2
   density        0.6
   surface        #1
-  volume         0.747
+  volume         0.2352
 
 patch Window family=rain note=48 range=36..60
   # Rain against glass, close.
@@ -1667,7 +1688,7 @@ patch Window family=rain note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.52
+  mac1_a2  -0.175
   mac2_d1  #1
   mac2_a1  -0.075
   mac3_d1  #7
@@ -1679,7 +1700,7 @@ patch Window family=rain note=48 range=36..60
   mac5_d2  #7
   mac5_a2  0.3
   mac5_d3  #12
-  mac5_a3  -0.524
+  mac5_a3  -0.177
   mac6_d1  #1
   mac6_a1  -0.056
   mac6_d2  #7
@@ -1692,7 +1713,7 @@ patch Window family=rain note=48 range=36..60
   density        0.5
   surface        #3
   tone           0.3
-  volume         0.976
+  volume         0.3409
 
 patch "Tin Roof" family=rain note=48 range=36..60
   # Rain on a metal roof, ringing.
@@ -1707,11 +1728,11 @@ patch "Tin Roof" family=rain note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.413
+  mac1_a2  -0.0954
   mac2_d1  #1
   mac2_a1  -0.188
   mac2_d2  #12
-  mac2_a2  0.252
+  mac2_a2  0.0582
   mac3_d1  #7
   mac3_a1  0.4
   mac4_d1  #7
@@ -1721,13 +1742,13 @@ patch "Tin Roof" family=rain note=48 range=36..60
   mac5_d2  #7
   mac5_a2  0.3
   mac5_d3  #12
-  mac5_a3  -0.386
+  mac5_a3  -0.0888
   mac6_d1  #1
   mac6_a1  -0.188
   mac6_d2  #7
   mac6_a2  -0.188
   mac6_d3  #12
-  mac6_a3  0.272
+  mac6_a3  0.063
   mac7_d1  #9
   mac7_a1  0.4
   mac8_d1  #10
@@ -1735,7 +1756,7 @@ patch "Tin Roof" family=rain note=48 range=36..60
   model          #2
   density        0.55
   surface        #2
-  volume         0.676
+  volume         0.1615
 
 patch "Light Hail" family=rain note=48 range=36..60
   # A few hailstones, scattered.
@@ -1750,11 +1771,11 @@ patch "Light Hail" family=rain note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.361
+  mac1_a2  -0.159
   mac2_d1  #1
   mac2_a1  -0.17
   mac2_d2  #12
-  mac2_a2  0.225
+  mac2_a2  0.0984
   mac3_d1  #2
   mac3_a1  0.3
   mac4_d1  #13
@@ -1766,14 +1787,14 @@ patch "Light Hail" family=rain note=48 range=36..60
   mac6_d2  #7
   mac6_a2  0.3
   mac6_d3  #12
-  mac6_a3  -0.319
+  mac6_a3  -0.14
   mac7_d1  #9
   mac7_a1  0.4
   mac8_d1  #10
   mac8_a1  0.25
   model          #8
   density        0.3
-  volume         0.775
+  volume         0.3527
 
 patch Hail family=rain note=48 range=36..60
   # Ice on a hard roof, bouncing.
@@ -1788,11 +1809,11 @@ patch Hail family=rain note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.376
+  mac1_a2  -0.103
   mac2_d1  #1
   mac2_a1  -0.206
   mac2_d2  #12
-  mac2_a2  0.352
+  mac2_a2  0.0469
   mac3_d1  #2
   mac3_a1  0.3
   mac4_d1  #13
@@ -1804,13 +1825,13 @@ patch Hail family=rain note=48 range=36..60
   mac6_d2  #7
   mac6_a2  0.3
   mac6_d3  #12
-  mac6_a3  -0.444
+  mac6_a3  -0.122
   mac7_d1  #9
   mac7_a1  0.4
   mac8_d1  #10
   mac8_a1  0.25
   model          #8
-  volume         0.832
+  volume         0.2362
 
 patch "Hail on Tin" family=rain note=52 range=40..64
   # Heavy hail on a tin roof, bright.
@@ -1825,11 +1846,11 @@ patch "Hail on Tin" family=rain note=52 range=40..64
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.23
+  mac1_a2  -0.0436
   mac2_d1  #1
   mac2_a1  -0.225
   mac2_d2  #12
-  mac2_a2  0.186
+  mac2_a2  0.0353
   mac3_d1  #2
   mac3_a1  0.3
   mac4_d1  #13
@@ -1841,7 +1862,7 @@ patch "Hail on Tin" family=rain note=52 range=40..64
   mac6_d2  #7
   mac6_a2  0.3
   mac6_d3  #12
-  mac6_a3  -0.223
+  mac6_a3  -0.0423
   mac7_d1  #9
   mac7_a1  0.4
   mac8_d1  #10
@@ -1850,9 +1871,10 @@ patch "Hail on Tin" family=rain note=52 range=40..64
   surface        #2
   density        0.7
   tone           0.8
-  volume         0.499
+  volume         0.09798
 
 patch "Short Rainstick" family=rain note=52 range=40..64
+  volume         0.1254
   # A short stick turned quickly.
   set macro1 "More"
   set macro2 "Calm"
@@ -1865,19 +1887,19 @@ patch "Short Rainstick" family=rain note=52 range=40..64
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.304
+  mac1_a2  -0.0526
   mac2_d1  #1
   mac2_a1  -0.188
   mac2_d2  #12
-  mac2_a2  0.172
+  mac2_a2  0.0298
   mac3_d1  #4
   mac3_a1  0.4
   mac3_d2  #12
-  mac3_a2  -0.206
+  mac3_a2  -0.0356
   mac4_d1  #4
   mac4_a1  -0.197
   mac4_d2  #12
-  mac4_a2  0.155
+  mac4_a2  0.0268
   mac5_d1  #1
   mac5_a1  0.4
   mac5_d2  #4
@@ -1893,6 +1915,7 @@ patch "Short Rainstick" family=rain note=52 range=40..64
   density        0.8
 
 patch Rainstick family=rain note=48 range=36..60
+  volume         0.2033
   # Pebbles falling past the pins, thinning out.
   set macro1 "More"
   set macro2 "Calm"
@@ -1905,23 +1928,23 @@ patch Rainstick family=rain note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.289
+  mac1_a2  -0.081
   mac2_d1  #1
   mac2_a1  -0.131
   mac2_d2  #12
-  mac2_a2  0.252
+  mac2_a2  0.0708
   mac3_d1  #4
   mac3_a1  0.4
   mac4_d1  #4
   mac4_a1  -0.241
   mac4_d2  #12
-  mac4_a2  0.15
+  mac4_a2  0.0421
   mac5_d1  #1
   mac5_a1  0.4
   mac5_d2  #4
   mac5_a2  -0.3
   mac5_d3  #12
-  mac5_a3  -0.197
+  mac5_a3  -0.0552
   mac6_d1  #9
   mac6_a1  0.4
   mac7_d1  #9
@@ -1931,6 +1954,7 @@ patch Rainstick family=rain note=48 range=36..60
   model          #15
 
 patch "Long Rainstick" family=rain note=48 range=36..60
+  volume         0.1855
   # A long stick, the fall slowing over seconds.
   set macro1 "More"
   set macro2 "Calm"
@@ -1943,11 +1967,11 @@ patch "Long Rainstick" family=rain note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.381
+  mac1_a2  -0.0978
   mac2_d1  #1
   mac2_a1  -0.15
   mac2_d2  #12
-  mac2_a2  0.271
+  mac2_a2  0.0696
   mac3_d1  #4
   mac3_a1  0.4
   mac4_d1  #4
@@ -1957,7 +1981,7 @@ patch "Long Rainstick" family=rain note=48 range=36..60
   mac5_d2  #4
   mac5_a2  -0.3
   mac5_d3  #12
-  mac5_a3  -0.369
+  mac5_a3  -0.0942
   mac6_d1  #9
   mac6_a1  0.4
   mac7_d1  #9
@@ -1980,27 +2004,27 @@ patch "Rain in the Key" family=rain note=60 range=48..72
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.311
+  mac1_a2  -0.0684
   mac2_d1  #1
   mac2_a1  -0.169
   mac2_d2  #12
-  mac2_a2  0.283
+  mac2_a2  0.0624
   mac3_d1  #7
   mac3_a1  0.4
   mac4_d1  #7
   mac4_a1  -0.3
   mac4_d2  #12
-  mac4_a2  0.127
+  mac4_a2  0.028
   mac5_d1  #2
   mac5_a1  0.3
   mac6_d1  #4
   mac6_a1  0.4
   mac6_d2  #12
-  mac6_a2  -0.105
+  mac6_a2  -0.0232
   mac7_d1  #13
   mac7_a1  -0.5
   mac7_d2  #12
-  mac7_a2  -0.026
+  mac7_a2  -0.00573
   mac8_d1  #9
   mac8_a1  0.4
   model          #2
@@ -2010,11 +2034,12 @@ patch "Rain in the Key" family=rain note=60 range=48..72
   decay          0.8
   tone           0.4
   snap           1
-  volume         0.53
+  volume         0.1209
 
 # --- weather ------------------------------------------------------------------
 
 patch Breeze family=weather note=36 range=24..48
+  volume         0.1184
   # A soft wind coming and going.
   set macro1 "Gusts"
   set macro2 "Lull"
@@ -2033,19 +2058,19 @@ patch Breeze family=weather note=36 range=24..48
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #12
-  mac4_a2  -0.179
+  mac4_a2  -0.0292
   mac5_d1  #7
   mac5_a1  -0.263
   mac5_d2  #12
-  mac5_a2  0.292
+  mac5_a2  0.0477
   mac6_d1  #13
   mac6_a1  -0.375
   mac6_d2  #12
-  mac6_a2  0.293
+  mac6_a2  0.0479
   mac7_d1  #13
   mac7_a1  0.25
   mac7_d2  #12
-  mac7_a2  -0.135
+  mac7_a2  -0.0221
   mac8_d1  #10
   mac8_a1  0.25
   model          #5
@@ -2073,22 +2098,22 @@ patch "Hot Wind" family=weather note=43 range=31..55
   mac5_d1  #7
   mac5_a1  -0.3
   mac5_d2  #12
-  mac5_a2  0.086
+  mac5_a2  0.0149
   mac6_d1  #13
   mac6_a1  -0.5
   mac6_d2  #12
-  mac6_a2  0.189
+  mac6_a2  0.0327
   mac7_d1  #13
   mac7_a1  0.25
   mac7_d2  #12
-  mac7_a2  -0.067
+  mac7_a2  -0.0116
   mac8_d1  #10
   mac8_a1  0.25
   model          #5
   gust           0.3
   tone           0.75
   fade           1.5 s
-  volume         0.359
+  volume         0.06426
 
 patch Gale family=weather note=43 range=31..55
   # Strong, gusty, bright.
@@ -2115,13 +2140,13 @@ patch Gale family=weather note=43 range=31..55
   mac7_d1  #13
   mac7_a1  0.25
   mac7_d2  #12
-  mac7_a2  -0.159
+  mac7_a2  -0.0153
   mac8_d1  #10
   mac8_a1  0.25
   model          #5
   gust           1
   tone           0.8
-  volume         0.85
+  volume         0.08466
 
 patch "Storm Wind" family=weather note=40 range=28..52
   # A storm wind, hard gusts and a whine in the wires.
@@ -2142,7 +2167,7 @@ patch "Storm Wind" family=weather note=40 range=28..52
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #12
-  mac4_a2  -0.161
+  mac4_a2  -0.018
   mac5_d1  #7
   mac5_a1  -0.244
   mac6_d1  #13
@@ -2150,14 +2175,14 @@ patch "Storm Wind" family=weather note=40 range=28..52
   mac7_d1  #13
   mac7_a1  0.25
   mac7_d2  #12
-  mac7_a2  -0.186
+  mac7_a2  -0.0208
   mac8_d1  #10
   mac8_a1  0.25
   model          #5
   gust           1
   tone           0.65
   whistle        0.3
-  volume         1
+  volume         0.1156
 
 patch "Chimney Wind" family=weather note=36 range=24..48
   # Wind in a chimney, a hollow howl.
@@ -2176,11 +2201,11 @@ patch "Chimney Wind" family=weather note=36 range=24..48
   mac3_d1  #6
   mac3_a1  0.5
   mac3_d2  #12
-  mac3_a2  -0.384
+  mac3_a2  -0.0528
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #12
-  mac4_a2  -0.181
+  mac4_a2  -0.0249
   mac5_d1  #7
   mac5_a1  -0.263
   mac6_d1  #13
@@ -2188,14 +2213,14 @@ patch "Chimney Wind" family=weather note=36 range=24..48
   mac7_d1  #13
   mac7_a1  0.25
   mac7_d2  #12
-  mac7_a2  -0.227
+  mac7_a2  -0.0312
   mac8_d1  #10
   mac8_a1  0.25
   model          #5
   whistle        0.5
   gust           0.9
   tone           0.35
-  volume         1
+  volume         0.1423
 
 patch "Moaning Wind" family=weather note=31 range=19..43 role=tune
   # Low, hollow, whistling.
@@ -2214,7 +2239,7 @@ patch "Moaning Wind" family=weather note=31 range=19..43 role=tune
   mac3_d1  #6
   mac3_a1  0.5
   mac3_d2  #12
-  mac3_a2  -0.406
+  mac3_a2  -0.156
   mac4_d1  #7
   mac4_a1  0.4
   mac5_d1  #7
@@ -2224,14 +2249,14 @@ patch "Moaning Wind" family=weather note=31 range=19..43 role=tune
   mac7_d1  #13
   mac7_a1  0.25
   mac7_d2  #12
-  mac7_a2  -0.237
+  mac7_a2  -0.0904
   mac8_d1  #10
   mac8_a1  0.25
   model          #5
   whistle        0.6
   gust           0.8
   tone           0.25
-  volume         1
+  volume         0.3965
 
 patch Thunder family=weather note=36 range=24..48
   # A crack, then the rumble rolling away.
@@ -2246,37 +2271,37 @@ patch Thunder family=weather note=36 range=24..48
   mac1_d1  #4
   mac1_a1  0.5
   mac1_d2  #12
-  mac1_a2  -0.144
+  mac1_a2  -0.0233
   mac2_d1  #4
   mac2_a1  -0.35
   mac2_d2  #12
-  mac2_a2  0.299
+  mac2_a2  0.0483
   mac3_d1  #7
   mac3_a1  0.4
   mac3_d2  #12
-  mac3_a2  -0.201
+  mac3_a2  -0.0324
   mac4_d1  #7
   mac4_a1  -0.244
   mac4_d2  #12
-  mac4_a2  0.303
+  mac4_a2  0.0489
   mac5_d1  #5
   mac5_a1  0.5
   mac5_d2  #12
-  mac5_a2  0.204
+  mac5_a2  0.0329
   mac6_d1  #5
   mac6_a1  -0.5
   mac6_d2  #12
-  mac6_a2  -0.187
+  mac6_a2  -0.0302
   mac7_d1  #7
   mac7_a1  0.3
   mac7_d2  #4
   mac7_a2  -0.2
   mac7_d3  #12
-  mac7_a3  0.268
+  mac7_a3  0.0432
   mac8_d1  #10
   mac8_a1  0.25
   model          #7
-  volume         0.732
+  volume         0.1223
 
 patch "Thunder Clap" family=weather note=40 range=28..52
   # Close: a loud crack and a short rumble.
@@ -2295,31 +2320,31 @@ patch "Thunder Clap" family=weather note=40 range=28..52
   mac3_d1  #7
   mac3_a1  0.4
   mac3_d2  #12
-  mac3_a2  -0.062
+  mac3_a2  -0.0143
   mac4_d1  #7
   mac4_a1  -0.3
   mac4_d2  #12
-  mac4_a2  0.502
+  mac4_a2  0.116
   mac5_d1  #5
   mac5_a1  0.5
   mac5_d2  #12
-  mac5_a2  0.013
+  mac5_a2  0.003
   mac6_d1  #5
   mac6_a1  -0.5
   mac6_d2  #12
-  mac6_a2  -0.016
+  mac6_a2  -0.00369
   mac7_d1  #7
   mac7_a1  0.3
   mac7_d2  #4
   mac7_a2  -0.2
   mac7_d3  #12
-  mac7_a3  -0.062
+  mac7_a3  -0.0143
   mac8_d1  #10
   mac8_a1  0.25
   model          #7
   tone           0.8
   decay          0.3
-  volume         0.255
+  volume         0.0609
 
 patch "Distant Thunder" family=weather note=31 range=24..43
   # Far off: no crack to speak of, a low roll coming and going.
@@ -2334,39 +2359,39 @@ patch "Distant Thunder" family=weather note=31 range=24..43
   mac1_d1  #4
   mac1_a1  0.5
   mac1_d2  #12
-  mac1_a2  -0.138
+  mac1_a2  -0.046
   mac2_d1  #4
   mac2_a1  -0.35
   mac2_d2  #12
-  mac2_a2  0.277
+  mac2_a2  0.0924
   mac3_d1  #7
   mac3_a1  0.4
   mac3_d2  #12
-  mac3_a2  -0.066
+  mac3_a2  -0.022
   mac4_d1  #7
   mac4_a1  -0.112
   mac4_d2  #12
-  mac4_a2  0.239
+  mac4_a2  0.0798
   mac5_d1  #5
   mac5_a1  0.5
   mac5_d2  #12
-  mac5_a2  -0.01
+  mac5_a2  -0.00334
   mac6_d1  #5
   mac6_a1  -0.5
   mac6_d2  #12
-  mac6_a2  -0.032
+  mac6_a2  -0.0107
   mac7_d1  #7
   mac7_a1  0.3
   mac7_d2  #4
   mac7_a2  -0.2
   mac7_d3  #12
-  mac7_a3  -0.091
+  mac7_a3  -0.0304
   mac8_d1  #10
   mac8_a1  0.25
   model          #7
   tone           0.2
   fade           1.5 s
-  volume         0.676
+  volume         0.2334
 
 patch "Rolling Thunder" family=weather note=31 range=24..43
   # Thunder going on and on round the hills.
@@ -2383,15 +2408,15 @@ patch "Rolling Thunder" family=weather note=31 range=24..43
   mac2_d1  #4
   mac2_a1  -0.35
   mac2_d2  #12
-  mac2_a2  0.09
+  mac2_a2  0.0265
   mac3_d1  #7
   mac3_a1  0.4
   mac3_d2  #12
-  mac3_a2  0.09
+  mac3_a2  0.0265
   mac4_d1  #7
   mac4_a1  -0.225
   mac4_d2  #12
-  mac4_a2  0.15
+  mac4_a2  0.0441
   mac5_d1  #5
   mac5_a1  0.5
   mac6_d1  #5
@@ -2401,14 +2426,14 @@ patch "Rolling Thunder" family=weather note=31 range=24..43
   mac7_d2  #4
   mac7_a2  -0.2
   mac7_d3  #12
-  mac7_a3  0.226
+  mac7_a3  0.0666
   mac8_d1  #10
   mac8_a1  0.25
   model          #7
   decay          1
   gust           1
   tone           0.3
-  volume         0.461
+  volume         0.1402
   send reverb    0.3
 
 patch "Whistling Wind" family=weather note=48 range=31..60 role=tune
@@ -2426,11 +2451,11 @@ patch "Whistling Wind" family=weather note=48 range=31..60 role=tune
   mac2_d1  #5
   mac2_a1  -0.5
   mac2_d2  #12
-  mac2_a2  -0.076
+  mac2_a2  -0.0278
   mac3_d1  #6
   mac3_a1  0.5
   mac3_d2  #12
-  mac3_a2  -0.101
+  mac3_a2  -0.037
   mac4_d1  #7
   mac4_a1  0.4
   mac5_d1  #7
@@ -2438,17 +2463,17 @@ patch "Whistling Wind" family=weather note=48 range=31..60 role=tune
   mac6_d1  #13
   mac6_a1  -0.5
   mac6_d2  #12
-  mac6_a2  0.24
+  mac6_a2  0.0876
   mac7_d1  #13
   mac7_a1  0.25
   mac7_d2  #12
-  mac7_a2  -0.102
+  mac7_a2  -0.0373
   mac8_d1  #10
   mac8_a1  0.25
   model          #5
   whistle        0.8
   gust           0.7
-  volume         0.4
+  volume         0.1514
 
 patch "Wind Whistle" family=weather note=60 range=48..79 role=tune
   # A clear whistle with little wind: play a tune.
@@ -2463,34 +2488,34 @@ patch "Wind Whistle" family=weather note=60 range=48..79 role=tune
   mac1_d1  #5
   mac1_a1  0.5
   mac1_d2  #12
-  mac1_a2  0.028
+  mac1_a2  0.0164
   mac2_d1  #5
   mac2_a1  -0.5
   mac3_d1  #6
   mac3_a1  0.5
   mac3_d2  #12
-  mac3_a2  -0.019
+  mac3_a2  -0.0112
   mac4_d1  #7
   mac4_a1  0.4
   mac4_d2  #12
-  mac4_a2  0.021
+  mac4_a2  0.0123
   mac5_d1  #7
   mac5_a1  -0.3
   mac6_d1  #13
   mac6_a1  -0.5
   mac6_d2  #12
-  mac6_a2  0.052
+  mac6_a2  0.0305
   mac7_d1  #13
   mac7_a1  0.25
   mac7_d2  #12
-  mac7_a2  -0.019
+  mac7_a2  -0.0112
   mac8_d1  #10
   mac8_a1  0.25
   model          #5
   whistle        0.9
   gust           0.15
   tone           0.5
-  volume         0.104
+  volume         0.06312
 
 # --- fire ---------------------------------------------------------------------
 
@@ -2524,7 +2549,7 @@ patch Campfire family=fire note=36 range=24..48
   mac8_a1  0.25
   model          #6
   density        0.55
-  volume         1
+  volume         0.3785
 
 patch Hearth family=fire note=36 range=24..48
   # A steady fire indoors.
@@ -2539,7 +2564,7 @@ patch Hearth family=fire note=36 range=24..48
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.167
+  mac1_a2  -0.0557
   mac2_d1  #1
   mac2_a1  -0.3
   mac3_d1  #5
@@ -2560,7 +2585,7 @@ patch Hearth family=fire note=36 range=24..48
   density        0.5
   gust           0.4
   tone           0.5
-  volume         1
+  volume         0.3452
 
 patch "Wood Stove" family=fire note=36 range=24..48
   # A fire behind an iron door, muffled.
@@ -2594,7 +2619,7 @@ patch "Wood Stove" family=fire note=36 range=24..48
   density        0.4
   gust           0.3
   tone           0.2
-  volume         0.977
+  volume         0.3452
 
 patch Embers family=fire note=36 range=24..48
   # Just the odd crackle.
@@ -2628,7 +2653,7 @@ patch Embers family=fire note=36 range=24..48
   density        0.3
   gust           0.2
   tone           0.2
-  volume         1
+  volume         0.3259
 
 patch Bonfire family=fire note=36 range=24..48
   # Loud pops and a big roar.
@@ -2643,7 +2668,7 @@ patch Bonfire family=fire note=36 range=24..48
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.194
+  mac1_a2  -0.0686
   mac2_d1  #1
   mac2_a1  -0.3
   mac3_d1  #5
@@ -2663,7 +2688,7 @@ patch Bonfire family=fire note=36 range=24..48
   model          #6
   density        0.8
   gust           0.8
-  volume         1
+  volume         0.3657
 
 patch Wildfire family=fire note=36 range=24..48
   # A forest burning, a roar and pops everywhere.
@@ -2698,9 +2723,10 @@ patch Wildfire family=fire note=36 range=24..48
   gust           1
   tone           0.9
   spread         1
-  volume         1
+  volume         0.2972
 
 patch "Hot Pan" family=fire note=60 range=48..72
+  volume         0.1328
   # Steam and fat in a hot pan.
   set macro1 "More"
   set macro2 "Calm"
@@ -2717,11 +2743,11 @@ patch "Hot Pan" family=fire note=60 range=48..72
   mac3_d1  #7
   mac3_a1  0.4
   mac3_d2  #12
-  mac3_a2  -0.192
+  mac3_a2  -0.0352
   mac4_d1  #7
   mac4_a1  -0.3
   mac4_d2  #12
-  mac4_a2  0.265
+  mac4_a2  0.0485
   mac5_d1  #1
   mac5_a1  0.3
   mac5_d2  #7
@@ -2731,7 +2757,7 @@ patch "Hot Pan" family=fire note=60 range=48..72
   mac6_d2  #7
   mac6_a2  -0.281
   mac6_d3  #12
-  mac6_a3  0.281
+  mac6_a3  0.0515
   mac7_d1  #9
   mac7_a1  0.4
   mac8_d1  #10
@@ -2739,6 +2765,7 @@ patch "Hot Pan" family=fire note=60 range=48..72
   model          #10
 
 patch Frying family=fire note=60 range=48..72
+  volume         0.1225
   # A pan full, loud and busy.
   set macro1 "More"
   set macro2 "Calm"
@@ -2755,11 +2782,11 @@ patch Frying family=fire note=60 range=48..72
   mac3_d1  #7
   mac3_a1  0.4
   mac3_d2  #12
-  mac3_a2  -0.173
+  mac3_a2  -0.0293
   mac4_d1  #7
   mac4_a1  -0.3
   mac4_d2  #12
-  mac4_a2  0.206
+  mac4_a2  0.0349
   mac5_d1  #1
   mac5_a1  0.3
   mac5_d2  #7
@@ -2769,7 +2796,7 @@ patch Frying family=fire note=60 range=48..72
   mac6_d2  #7
   mac6_a2  -0.263
   mac6_d3  #12
-  mac6_a3  0.284
+  mac6_a3  0.048
   mac7_d1  #9
   mac7_a1  0.4
   mac8_d1  #10
@@ -2794,11 +2821,11 @@ patch Grill family=fire note=60 range=48..72
   mac3_d1  #7
   mac3_a1  0.4
   mac3_d2  #12
-  mac3_a2  -0.146
+  mac3_a2  -0.041
   mac4_d1  #7
   mac4_a1  -0.3
   mac4_d2  #12
-  mac4_a2  0.213
+  mac4_a2  0.0598
   mac5_d1  #1
   mac5_a1  0.3
   mac5_d2  #7
@@ -2808,7 +2835,7 @@ patch Grill family=fire note=60 range=48..72
   mac6_d2  #7
   mac6_a2  -0.3
   mac6_d3  #12
-  mac6_a3  0.263
+  mac6_a3  0.0738
   mac7_d1  #9
   mac7_a1  0.4
   mac8_d1  #10
@@ -2816,9 +2843,10 @@ patch Grill family=fire note=60 range=48..72
   model          #10
   density        0.5
   tone           0.4
-  volume         0.501
+  volume         0.1455
 
 patch Steam family=fire note=64 range=52..76
+  volume         0.1043
   # A kettle's hiss and a few spits.
   set macro1 "More"
   set macro2 "Calm"
@@ -2837,7 +2865,7 @@ patch Steam family=fire note=64 range=52..76
   mac4_d1  #7
   mac4_a1  -0.3
   mac4_d2  #12
-  mac4_a2  0.204
+  mac4_a2  0.0293
   mac5_d1  #1
   mac5_a1  0.3
   mac5_d2  #7
@@ -2847,7 +2875,7 @@ patch Steam family=fire note=64 range=52..76
   mac6_d2  #7
   mac6_a2  -0.3
   mac6_d3  #12
-  mac6_a3  0.214
+  mac6_a3  0.0308
   mac7_d1  #9
   mac7_a1  0.4
   mac8_d1  #10
@@ -2859,6 +2887,7 @@ patch Steam family=fire note=64 range=52..76
 # --- winter -------------------------------------------------------------------
 
 patch "Snow Steps" family=winter note=48 range=36..60
+  volume         0.2905
   # Footsteps in fresh snow.
   set macro1 "Steps"
   set macro2 "Calm"
@@ -2871,11 +2900,11 @@ patch "Snow Steps" family=winter note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.245
+  mac1_a2  -0.0984
   mac2_d1  #1
   mac2_a1  -0.188
   mac2_d2  #12
-  mac2_a2  0.221
+  mac2_a2  0.0882
   mac3_d1  #7
   mac3_a1  0.4
   mac4_d1  #7
@@ -2885,13 +2914,13 @@ patch "Snow Steps" family=winter note=48 range=36..60
   mac5_d2  #7
   mac5_a2  0.3
   mac5_d3  #12
-  mac5_a3  -0.239
+  mac5_a3  -0.096
   mac6_d1  #1
   mac6_a1  -0.188
   mac6_d2  #7
   mac6_a2  -0.188
   mac6_d3  #12
-  mac6_a3  0.181
+  mac6_a3  0.0726
   mac7_d1  #9
   mac7_a1  0.4
   mac8_d1  #10
@@ -2899,6 +2928,7 @@ patch "Snow Steps" family=winter note=48 range=36..60
   model          #12
 
 patch "Snow Run" family=winter note=48 range=36..60
+  volume         0.1634
   # Running through it, quick and crunchy.
   set macro1 "Steps"
   set macro2 "Calm"
@@ -2911,11 +2941,11 @@ patch "Snow Run" family=winter note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.167
+  mac1_a2  -0.0377
   mac2_d1  #1
   mac2_a1  -0.188
   mac2_d2  #12
-  mac2_a2  0.251
+  mac2_a2  0.0566
   mac3_d1  #7
   mac3_a1  0.4
   mac4_d1  #7
@@ -2925,13 +2955,13 @@ patch "Snow Run" family=winter note=48 range=36..60
   mac5_d2  #7
   mac5_a2  0.3
   mac5_d3  #12
-  mac5_a3  -0.134
+  mac5_a3  -0.0302
   mac6_d1  #1
   mac6_a1  -0.188
   mac6_d2  #7
   mac6_a2  -0.188
   mac6_d3  #12
-  mac6_a3  0.215
+  mac6_a3  0.0485
   mac7_d1  #9
   mac7_a1  0.4
   mac8_d1  #10
@@ -2940,6 +2970,7 @@ patch "Snow Run" family=winter note=48 range=36..60
   density        0.8
 
 patch "Packed Snow" family=winter note=52 range=40..64
+  volume         0.3078
   # Old, hard snow, squeakier.
   set macro1 "Steps"
   set macro2 "Calm"
@@ -2952,11 +2983,11 @@ patch "Packed Snow" family=winter note=52 range=40..64
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.243
+  mac1_a2  -0.103
   mac2_d1  #1
   mac2_a1  -0.188
   mac2_d2  #12
-  mac2_a2  0.236
+  mac2_a2  0.1
   mac3_d1  #7
   mac3_a1  0.4
   mac4_d1  #7
@@ -2966,13 +2997,13 @@ patch "Packed Snow" family=winter note=52 range=40..64
   mac5_d2  #7
   mac5_a2  0.3
   mac5_d3  #12
-  mac5_a3  -0.246
+  mac5_a3  -0.105
   mac6_d1  #1
   mac6_a1  -0.188
   mac6_d2  #7
   mac6_a2  -0.188
   mac6_d3  #12
-  mac6_a3  0.195
+  mac6_a3  0.0826
   mac7_d1  #9
   mac7_a1  0.4
   mac8_d1  #10
@@ -2993,11 +3024,11 @@ patch Sleet family=winter note=60 range=48..72
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.197
+  mac1_a2  -0.0642
   mac2_d1  #1
   mac2_a1  -0.3
   mac2_d2  #12
-  mac2_a2  0.288
+  mac2_a2  0.0936
   mac3_d1  #2
   mac3_a1  0.3
   mac4_d1  #13
@@ -3009,7 +3040,7 @@ patch Sleet family=winter note=60 range=48..72
   mac6_d2  #7
   mac6_a2  0.3
   mac6_d3  #12
-  mac6_a3  -0.193
+  mac6_a3  -0.063
   mac7_d1  #9
   mac7_a1  0.4
   mac8_d1  #10
@@ -3017,7 +3048,7 @@ patch Sleet family=winter note=60 range=48..72
   model          #8
   density        0.7
   size           3 st
-  volume         0.442
+  volume         0.1491
 
 patch Blizzard family=winter note=48 range=36..60
   # Snow driven sideways on a hard wind.
@@ -3036,30 +3067,31 @@ patch Blizzard family=winter note=48 range=36..60
   mac3_d1  #6
   mac3_a1  0.5
   mac3_d2  #12
-  mac3_a2  0.131
+  mac3_a2  0.0166
   mac4_d1  #7
   mac4_a1  0.4
   mac5_d1  #7
   mac5_a1  -0.3
   mac5_d2  #12
-  mac5_a2  0.111
+  mac5_a2  0.0141
   mac6_d1  #13
   mac6_a1  -0.5
   mac6_d2  #12
-  mac6_a2  0.286
+  mac6_a2  0.0363
   mac7_d1  #13
   mac7_a1  0.25
   mac7_d2  #12
-  mac7_a2  -0.111
+  mac7_a2  -0.0141
   mac8_d1  #10
   mac8_a1  0.25
   model          #5
   gust           1
   tone           0.85
   whistle        0.2
-  volume         0.569
+  volume         0.0747
 
 patch "Pond Ice" family=winter note=48 range=36..60
+  volume         0.2839
   # A frozen pond cracking, its sheet ringing.
   set macro1 "More"
   set macro2 "Calm"
@@ -3072,7 +3104,7 @@ patch "Pond Ice" family=winter note=48 range=36..60
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.28
+  mac1_a2  -0.11
   mac2_d1  #1
   mac2_a1  -0.206
   mac3_d1  #2
@@ -3082,11 +3114,11 @@ patch "Pond Ice" family=winter note=48 range=36..60
   mac5_d1  #4
   mac5_a1  -0.35
   mac5_d2  #12
-  mac5_a2  0.19
+  mac5_a2  0.0744
   mac6_d1  #13
   mac6_a1  -0.5
   mac6_d2  #12
-  mac6_a2  -0.138
+  mac6_a2  -0.0541
   mac7_d1  #13
   mac7_a1  0.25
   mac8_d1  #9
@@ -3094,6 +3126,7 @@ patch "Pond Ice" family=winter note=48 range=36..60
   model          #11
 
 patch "Ice Shards" family=winter note=60 range=48..72
+  volume         0.3186
   # Small, quick cracks.
   set macro1 "More"
   set macro2 "Calm"
@@ -3106,7 +3139,7 @@ patch "Ice Shards" family=winter note=60 range=48..72
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.337
+  mac1_a2  -0.148
   mac2_d1  #1
   mac2_a1  -0.3
   mac3_d1  #2
@@ -3114,15 +3147,15 @@ patch "Ice Shards" family=winter note=60 range=48..72
   mac4_d1  #4
   mac4_a1  0.4
   mac4_d2  #12
-  mac4_a2  -0.143
+  mac4_a2  -0.0629
   mac5_d1  #4
   mac5_a1  -0.35
   mac5_d2  #12
-  mac5_a2  0.189
+  mac5_a2  0.0829
   mac6_d1  #13
   mac6_a1  -0.5
   mac6_d2  #12
-  mac6_a2  -0.16
+  mac6_a2  -0.0707
   mac7_d1  #13
   mac7_a1  0.25
   mac8_d1  #9
@@ -3144,7 +3177,7 @@ patch Icicles family=winter note=72 range=60..84
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.229
+  mac1_a2  -0.113
   mac2_d1  #1
   mac2_a1  -0.206
   mac3_d1  #2
@@ -3154,7 +3187,7 @@ patch Icicles family=winter note=72 range=60..84
   mac5_d1  #4
   mac5_a1  -0.35
   mac5_d2  #12
-  mac5_a2  0.148
+  mac5_a2  0.0729
   mac6_d1  #13
   mac6_a1  -0.5
   mac7_d1  #13
@@ -3165,9 +3198,10 @@ patch Icicles family=winter note=72 range=60..84
   density        0.5
   decay          0.6
   size           5 st
-  volume         0.7
+  volume         0.3575
 
 patch "Ice Groans" family=winter note=40 range=31..52
+  volume         0.2335
   # Slow cracks, long glassy rings.
   set macro1 "More"
   set macro2 "Calm"
@@ -3188,11 +3222,11 @@ patch "Ice Groans" family=winter note=40 range=31..52
   mac5_d1  #4
   mac5_a1  -0.35
   mac5_d2  #12
-  mac5_a2  0.16
+  mac5_a2  0.0515
   mac6_d1  #13
   mac6_a1  -0.5
   mac6_d2  #12
-  mac6_a2  -0.122
+  mac6_a2  -0.0393
   mac7_d1  #13
   mac7_a1  0.25
   mac8_d1  #9
@@ -3214,41 +3248,42 @@ patch "Frozen Lake" family=winter note=36 range=28..48
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.364
+  mac1_a2  -0.1108
   mac2_d1  #1
   mac2_a1  -0.3
   mac2_d2  #12
-  mac2_a2  0.098
+  mac2_a2  0.0288
   mac3_d1  #2
   mac3_a1  0.3
   mac3_d2  #12
-  mac3_a2  -0.119
+  mac3_a2  -0.035
   mac4_d1  #4
   mac4_a1  0.4
   mac5_d1  #4
   mac5_a1  -0.35
   mac5_d2  #12
-  mac5_a2  0.508
+  mac5_a2  0.149
   mac6_d1  #13
   mac6_a1  -0.5
   mac6_d2  #12
-  mac6_a2  -0.281
+  mac6_a2  -0.0859
   mac7_d1  #13
   mac7_a1  0.078
   mac7_d2  #12
-  mac7_a2  0.223
+  mac7_a2  0.0654
   mac8_d1  #9
   mac8_a1  0.4
   model          #11
   density        0.2
   decay          1
   size           2 st
-  volume         0.437
+  volume         0.1329
   send reverb    0.4
 
 # --- kit ----------------------------------------------------------------------
 
 patch "Weather Kit" family=kit note=36 range=36..51
+  volume         0.1359
   # Sixteen pads: fire, wind, rain, drips, bubbles, a stream and surf, to play a scene on one track.
   set macro1 "More"
   set macro2 "Calm"
@@ -3261,7 +3296,7 @@ patch "Weather Kit" family=kit note=36 range=36..51
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.123
+  mac1_a2  -0.0231
   mac2_d1  #1
   mac2_a1  -0.3
   mac3_d1  #7
@@ -3282,6 +3317,7 @@ patch "Weather Kit" family=kit note=36 range=36..51
   p07_level      0.822
 
 patch "Storm Kit" family=kit note=36 range=36..51
+  volume         0.1328
   # Sixteen pads for a storm: rain, heavy rain, hail, wind, gusts, thunder near and far.
   set macro1 "More"
   set macro2 "Calm"
@@ -3294,11 +3330,11 @@ patch "Storm Kit" family=kit note=36 range=36..51
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.337
+  mac1_a2  -0.0618
   mac2_d1  #1
   mac2_a1  -0.169
   mac2_d2  #12
-  mac2_a2  0.289
+  mac2_a2  0.053
   mac3_d1  #7
   mac3_a1  0.4
   mac4_d1  #7
@@ -3310,7 +3346,7 @@ patch "Storm Kit" family=kit note=36 range=36..51
   mac7_d1  #13
   mac7_a1  -0.5
   mac7_d2  #12
-  mac7_a2  -0.019
+  mac7_a2  -0.00348
   mac8_d1  #9
   mac8_a1  0.4
   kit            1
@@ -3372,6 +3408,7 @@ patch "Storm Kit" family=kit note=36 range=36..51
   p16_density    0.6
 
 patch "Water Kit" family=kit note=36 range=36..51
+  volume         0.1672
   # Sixteen pads of water: bubbles, drips, a stream, splashes, a waterfall and the deep.
   set macro1 "More"
   set macro2 "Calm"
@@ -3384,7 +3421,7 @@ patch "Water Kit" family=kit note=36 range=36..51
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.333
+  mac1_a2  -0.0768
   mac2_d1  #1
   mac2_a1  -0.056
   mac3_d1  #7
@@ -3396,7 +3433,7 @@ patch "Water Kit" family=kit note=36 range=36..51
   mac6_d1  #4
   mac6_a1  0.4
   mac6_d2  #12
-  mac6_a2  -0.112
+  mac6_a2  -0.0259
   mac7_d1  #13
   mac7_a1  -0.5
   mac8_d1  #9
@@ -3479,7 +3516,7 @@ patch "Campfire Kit" family=kit note=36 range=36..51
   mac8_d1  #9
   mac8_a1  0.4
   kit            1
-  volume         1
+  volume         0.149
   p01_model      #6
   p01_note       36
   p01_density    0.4
@@ -3562,15 +3599,15 @@ patch "Harbour Kit" family=kit note=36 range=36..51
   mac3_d1  #7
   mac3_a1  0.4
   mac3_d2  #12
-  mac3_a2  -0.239
+  mac3_a2  -0.0618
   mac4_d1  #7
   mac4_a1  -0.131
   mac4_d2  #12
-  mac4_a2  0.171
+  mac4_a2  0.0443
   mac5_d1  #5
   mac5_a1  0.5
   mac5_d2  #12
-  mac5_a2  0.164
+  mac5_a2  0.0425
   mac6_d1  #4
   mac6_a1  0.4
   mac7_d1  #13
@@ -3580,7 +3617,7 @@ patch "Harbour Kit" family=kit note=36 range=36..51
   kit            1
   swell          3 beats
   tone           0.4
-  volume         0.814
+  volume         0.2182
   p01_model      #4
   p01_note       43
   p01_density    0.3
@@ -3659,7 +3696,7 @@ patch "Winter Kit" family=kit note=36 range=36..51
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.349
+  mac1_a2  -0.0732
   mac2_d1  #1
   mac2_a1  -0.15
   mac3_d1  #7
@@ -3675,7 +3712,7 @@ patch "Winter Kit" family=kit note=36 range=36..51
   mac8_d1  #9
   mac8_a1  0.4
   kit            1
-  volume         1
+  volume         0.2179
   p01_model      #12
   p01_note       48
   p01_density    0.5
@@ -3754,13 +3791,13 @@ patch "Kitchen Kit" family=kit note=36 range=36..51
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.16
+  mac1_a2  -0.0311
   mac2_d1  #1
   mac2_a1  -0.3
   mac3_d1  #7
   mac3_a1  0.4
   mac3_d2  #12
-  mac3_a2  -0.228
+  mac3_a2  -0.0443
   mac4_d1  #7
   mac4_a1  -0.225
   mac5_d1  #5
@@ -3773,7 +3810,7 @@ patch "Kitchen Kit" family=kit note=36 range=36..51
   mac8_a1  0.4
   kit            1
   surface        #3
-  volume         1
+  volume         0.201
   p01_model      #10
   p01_note       60
   p01_density    0.8
@@ -3856,7 +3893,7 @@ patch "Forest Kit" family=kit note=36 range=36..51
   mac3_d1  #7
   mac3_a1  0.4
   mac3_d2  #12
-  mac3_a2  -0.231
+  mac3_a2  -0.0503
   mac4_d1  #7
   mac4_a1  -0.169
   mac5_d1  #5
@@ -3869,7 +3906,7 @@ patch "Forest Kit" family=kit note=36 range=36..51
   mac8_a1  0.4
   kit            1
   surface        #1
-  volume         1
+  volume         0.2255
   p01_model      #5
   p01_note       36
   p01_density    0.5
@@ -3948,11 +3985,11 @@ patch "Cave Kit" family=kit note=36 range=36..51
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.289
+  mac1_a2  -0.0518
   mac2_d1  #1
   mac2_a1  -0.206
   mac2_d2  #12
-  mac2_a2  0.169
+  mac2_a2  0.0303
   mac3_d1  #7
   mac3_a1  0.4
   mac4_d1  #7
@@ -3967,7 +4004,7 @@ patch "Cave Kit" family=kit note=36 range=36..51
   mac8_a1  0.4
   kit            1
   decay          0.7
-  volume         0.7
+  volume         0.1298
   send reverb    0.4
   p01_model      #1
   p01_note       43
@@ -4047,7 +4084,7 @@ patch "Garden Kit" family=kit note=36 range=36..51
   mac1_d1  #1
   mac1_a1  0.35
   mac1_d2  #12
-  mac1_a2  -0.512
+  mac1_a2  -0.0894
   mac2_d1  #1
   mac2_a1  -0.075
   mac3_d1  #7
@@ -4064,7 +4101,7 @@ patch "Garden Kit" family=kit note=36 range=36..51
   mac8_a1  0.4
   kit            1
   surface        #1
-  volume         1
+  volume         0.1811
   p01_model      #2
   p01_note       48
   p01_density    0.35

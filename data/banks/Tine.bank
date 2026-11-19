@@ -32,9 +32,10 @@
 # can't carry slendro or pelog, so set those in the tuning.
 #
 # Values are in each parameter's own units; `audition params Tine` lists
-# them. A patch names only what it changes. Every patch sits at -22 on
-# `loud` at its own note, from -24.9 (Dry Wood) to -19.0 (Bowl Rubbed): the
-# short, dry ones are the quiet end, the rolled and rubbed notes the loud.
+# them. A patch names only what it changes. Every patch sits at -27.5 on
+# `loud`, within 1 dB, Init included. Init gets there through the machine's
+# house trim, with `volume` at its default of 0.24, 12 dB under the top. The
+# patches are levelled by `volume`, never higher than 6 dB under the top.
 #
 # Every patch but Init carries eight named macros. Destinations are
 # numbered as in Tine.h's MacroDest: #1 mallet, #2 position, #3 decay,
@@ -58,6 +59,7 @@ role bell
 patch Init family=wood note=60 range=36..96
 
 patch "Rosewood Marimba" family=wood note=60 range=36..96 role=keys
+  volume         0.09493
   # Rosewood bars over their tubes, medium yarn mallets.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -72,7 +74,7 @@ patch "Rosewood Marimba" family=wood note=60 range=36..96 role=keys
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.131
+  mac1_a3  -0.0176
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -80,19 +82,19 @@ patch "Rosewood Marimba" family=wood note=60 range=36..96 role=keys
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.289
+  mac3_a2  0.0391
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.124
+  mac4_a3  -0.0166
   mac5_d1  #6
   mac5_a1  0.4
   mac6_d1  #11
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  -0.384
+  mac6_a2  -0.0518
   mac7_d1  #10
   mac7_a1  0.6
   mac8_d1  #12
@@ -101,6 +103,7 @@ patch "Rosewood Marimba" family=wood note=60 range=36..96 role=keys
   mallet         0.45
 
 patch "Soft Marimba" family=wood note=55 range=36..90 role=keys
+  volume         0.07893
   # Soft mallets: the note and its tube, hardly any overtone.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -121,19 +124,19 @@ patch "Soft Marimba" family=wood note=55 range=36..90 role=keys
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.244
+  mac3_a2  0.0273
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.118
+  mac4_a3  -0.0137
   mac5_d1  #6
   mac5_a1  0.4
   mac6_d1  #11
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  -0.341
+  mac6_a2  -0.0396
   mac7_d1  #10
   mac7_a1  0.6
   mac8_d1  #12
@@ -143,6 +146,7 @@ patch "Soft Marimba" family=wood note=55 range=36..90 role=keys
   position       0.15
 
 patch "Bright Marimba" family=wood note=64 range=36..96 role=keys
+  volume         0.128
   # Hard rubber mallets near the end of the bar.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -163,21 +167,21 @@ patch "Bright Marimba" family=wood note=64 range=36..96 role=keys
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.3
+  mac3_a2  0.0547
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.131
+  mac4_a3  -0.0234
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.138
+  mac5_a2  -0.0254
   mac6_d1  #11
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  -0.243
+  mac6_a2  -0.0449
   mac7_d1  #10
   mac7_a1  0.6
   mac8_d1  #12
@@ -188,6 +192,7 @@ patch "Bright Marimba" family=wood note=64 range=36..96 role=keys
   tube           0.6
 
 patch "Bass Marimba" family=wood note=40 range=28..60 role=bass
+  volume         0.09167
   # The low end of the bars: long tubes, soft mallets.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -208,7 +213,7 @@ patch "Bass Marimba" family=wood note=40 range=28..60 role=bass
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.289
+  mac3_a2  0.0391
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -218,7 +223,7 @@ patch "Bass Marimba" family=wood note=40 range=28..60 role=bass
   mac6_d1  #11
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  -0.333
+  mac6_a2  -0.043
   mac7_d1  #10
   mac7_a1  0.6
   mac8_d1  #12
@@ -248,7 +253,7 @@ patch "Marimba Roll" family=wood note=60 range=36..90 role=pad
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.214
+  mac3_a2  0.0195
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -258,17 +263,18 @@ patch "Marimba Roll" family=wood note=60 range=36..90 role=pad
   mac6_d1  #11
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  -0.098
+  mac6_a2  -0.0088
   mac7_d1  #10
   mac7_a1  0.6
   mac8_d1  #12
   mac8_a1  0.6
   roll           13
-  volume         0.5
+  volume         0.0453
   mallet         0.2
   tube           0.8
 
 patch "Wide Marimba" family=wood note=60 range=36..96 role=keys
+  volume         0.08754
   # Two marimbas a few cents apart, spread across a room.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -283,7 +289,7 @@ patch "Wide Marimba" family=wood note=60 range=36..96 role=keys
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.118
+  mac1_a3  -0.0146
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -291,19 +297,19 @@ patch "Wide Marimba" family=wood note=60 range=36..96 role=keys
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.289
+  mac3_a2  0.0352
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.118
+  mac4_a3  -0.0146
   mac5_d1  #6
   mac5_a1  0.4
   mac6_d1  #11
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  -0.38
+  mac6_a2  -0.0474
   mac7_d1  #10
   mac7_a1  0.6
   mac8_d1  #12
@@ -315,6 +321,7 @@ patch "Wide Marimba" family=wood note=60 range=36..96 role=keys
   send reverb    0.15
 
 patch Xylophone family=wood note=72 range=53..100 role=bell
+  volume         0.1668
   # Hard wood, tuned to the twelfth, struck with hard mallets.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -335,21 +342,21 @@ patch Xylophone family=wood note=72 range=53..100 role=bell
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.255
+  mac3_a2  0.0625
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.157
+  mac4_a3  -0.0391
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.138
+  mac5_a2  -0.0312
   mac6_d1  #11
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  -0.345
+  mac6_a2  -0.082
   mac7_d1  #10
   mac7_a1  0.6
   mac8_d1  #12
@@ -359,6 +366,7 @@ patch Xylophone family=wood note=72 range=53..100 role=bell
   tube           0.6
 
 patch "Soft Xylophone" family=wood note=72 range=53..100 role=bell
+  volume         0.1668
   # The same bars with rubber mallets.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -379,19 +387,19 @@ patch "Soft Xylophone" family=wood note=72 range=53..100 role=bell
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.289
+  mac3_a2  0.0703
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.157
+  mac4_a3  -0.0391
   mac5_d1  #6
   mac5_a1  0.4
   mac6_d1  #11
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  -0.398
+  mac6_a2  -0.0938
   mac7_d1  #10
   mac7_a1  0.6
   mac8_d1  #12
@@ -401,6 +409,7 @@ patch "Soft Xylophone" family=wood note=72 range=53..100 role=bell
   tube           0.7
 
 patch "Xylophone Hard" family=wood note=72 range=60..96
+  volume         0.154
   # Hard mallets, bright and quick.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -421,21 +430,21 @@ patch "Xylophone Hard" family=wood note=72 range=60..96
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.151
+  mac3_a2  0.0352
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.157
+  mac4_a3  -0.0352
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.144
+  mac5_a2  -0.0312
   mac6_d1  #11
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  -0.32
+  mac6_a2  -0.0703
   mac7_d1  #10
   mac7_a1  0.6
   mac8_d1  #12
@@ -469,15 +478,15 @@ patch "Dry Wood" family=wood note=60 range=40..90 role=keys
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.206
+  mac4_a3  -0.0391
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.267
+  mac5_a2  -0.0508
   mac6_d1  #11
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  -0.505
+  mac6_a2  -0.0996
   mac7_d1  #10
   mac7_a1  0.6
   mac8_d1  #12
@@ -486,9 +495,10 @@ patch "Dry Wood" family=wood note=60 range=40..90 role=keys
   decay          0.15
   mallet         0.7
   damp           0.6
-  volume         1
+  volume         0.1959
 
 patch Balafon family=wood note=60 range=48..84
+  volume         0.2357
   # Wooden bars over gourds, each with a buzzing membrane.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -503,7 +513,7 @@ patch Balafon family=wood note=60 range=48..84
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.118
+  mac1_a3  -0.0391
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -511,21 +521,21 @@ patch Balafon family=wood note=60 range=48..84
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.289
+  mac3_a2  0.0938
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.124
+  mac4_a3  -0.043
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.144
+  mac5_a2  -0.0469
   mac6_d1  #11
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  -0.273
+  mac6_a2  -0.0811
   mac7_d1  #10
   mac7_a1  0.6
   mac8_d1  #12
@@ -555,7 +565,7 @@ patch "Low Balafon" family=wood note=48 range=36..72
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.198
+  mac3_a2  0.0625
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -565,7 +575,7 @@ patch "Low Balafon" family=wood note=48 range=36..72
   mac6_d1  #11
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  -0.129
+  mac6_a2  -0.0391
   mac7_d1  #10
   mac7_a1  0.6
   mac8_d1  #12
@@ -575,9 +585,10 @@ patch "Low Balafon" family=wood note=48 range=36..72
   tube           0.95
   mallet         0.45
   decay          0.6
-  volume         0.5
+  volume         0.159
 
 patch "Slit Drum" family=wood note=48 range=40..60
+  volume         0.233
   # A hollowed log with tongues cut in its slot, warm and short.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -598,21 +609,21 @@ patch "Slit Drum" family=wood note=48 range=40..60
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.289
+  mac3_a2  0.0938
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.157
+  mac4_a3  -0.0547
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.138
+  mac5_a2  -0.0469
   mac6_d1  #11
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  -0.353
+  mac6_a2  -0.1172
   mac7_d1  #10
   mac7_a1  0.6
   mac8_d1  #12
@@ -620,6 +631,7 @@ patch "Slit Drum" family=wood note=48 range=40..60
   model          #15
 
 patch "Slit Drum Soft" family=wood note=45 range=36..57
+  volume         0.2174
   # Padded beaters, rounder and longer.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -634,7 +646,7 @@ patch "Slit Drum Soft" family=wood note=45 range=36..57
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.118
+  mac1_a3  -0.0391
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -642,21 +654,21 @@ patch "Slit Drum Soft" family=wood note=45 range=36..57
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.289
+  mac3_a2  0.0859
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.131
+  mac4_a3  -0.0391
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.138
+  mac5_a2  -0.043
   mac6_d1  #11
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  -0.405
+  mac6_a2  -0.125
   mac7_d1  #10
   mac7_a1  0.6
   mac8_d1  #12
@@ -666,6 +678,7 @@ patch "Slit Drum Soft" family=wood note=45 range=36..57
   decay          0.7
 
 patch "Log Drum Low" family=wood note=40 range=31..52
+  volume         0.225
   # The big log, deep and woody.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -686,21 +699,21 @@ patch "Log Drum Low" family=wood note=40 range=31..52
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.3
+  mac3_a2  0.0938
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.15
+  mac4_a3  -0.0469
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.131
+  mac5_a2  -0.043
   mac6_d1  #11
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  -0.408
+  mac6_a2  -0.1309
   mac7_d1  #10
   mac7_a1  0.6
   mac8_d1  #12
@@ -712,6 +725,7 @@ patch "Log Drum Low" family=wood note=40 range=31..52
 # --- vibes ----------------------------------------------------------------------
 
 patch "Concert Vibes" family=vibes note=60 range=53..89 role=keys
+  volume         0.07628
   # Metal bars with the damper down: notes stop when let go.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -726,7 +740,7 @@ patch "Concert Vibes" family=vibes note=60 range=53..89 role=keys
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.138
+  mac1_a3  -0.0156
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -738,7 +752,7 @@ patch "Concert Vibes" family=vibes note=60 range=53..89 role=keys
   mac4_d2  #8
   mac4_a2  0.3
   mac4_d3  #14
-  mac4_a3  0.142
+  mac4_a3  0.0156
   mac5_d1  #3
   mac5_a1  0.35
   mac5_d2  #5
@@ -746,11 +760,11 @@ patch "Concert Vibes" family=vibes note=60 range=53..89 role=keys
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.3
+  mac6_a2  0.0312
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.297
+  mac7_a2  -0.0322
   mac8_d1  #12
   mac8_a1  0.6
   model          #1
@@ -758,6 +772,7 @@ patch "Concert Vibes" family=vibes note=60 range=53..89 role=keys
   tube           0.7
 
 patch "Soft Vibes" family=vibes note=60 range=53..89 role=chord
+  volume         0.1115
   # Yarn mallets, the damper down.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -782,7 +797,7 @@ patch "Soft Vibes" family=vibes note=60 range=53..89 role=chord
   mac4_d2  #8
   mac4_a2  0.3
   mac4_d3  #14
-  mac4_a3  0.142
+  mac4_a3  0.0195
   mac5_d1  #3
   mac5_a1  0.35
   mac5_d2  #5
@@ -790,11 +805,11 @@ patch "Soft Vibes" family=vibes note=60 range=53..89 role=chord
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.3
+  mac6_a2  0.0469
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.311
+  mac7_a2  -0.0488
   mac8_d1  #12
   mac8_a1  0.6
   model          #1
@@ -803,6 +818,7 @@ patch "Soft Vibes" family=vibes note=60 range=53..89 role=chord
   tube           0.8
 
 patch "Hard Vibes" family=vibes note=65 range=53..89 role=lead
+  volume         0.1938
   # Hard mallets near the end of the bar.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -833,11 +849,11 @@ patch "Hard Vibes" family=vibes note=65 range=53..89 role=lead
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.289
+  mac6_a2  0.0781
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.238
+  mac7_a2  -0.0664
   mac8_d1  #12
   mac8_a1  0.6
   model          #1
@@ -847,6 +863,7 @@ patch "Hard Vibes" family=vibes note=65 range=53..89 role=lead
   tube           0.6
 
 patch "Vibes Motor" family=vibes note=60 range=53..89 role=keys
+  volume         0.07893
   # The discs turning, a quick, even pulse.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -861,7 +878,7 @@ patch "Vibes Motor" family=vibes note=60 range=53..89 role=keys
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.138
+  mac1_a3  -0.0156
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -879,11 +896,11 @@ patch "Vibes Motor" family=vibes note=60 range=53..89 role=keys
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.3
+  mac6_a2  0.0332
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.302
+  mac7_a2  -0.0342
   mac8_d1  #12
   mac8_a1  0.6
   model          #1
@@ -893,6 +910,7 @@ patch "Vibes Motor" family=vibes note=60 range=53..89 role=keys
   depth          0.6
 
 patch "Slow Motor" family=vibes note=57 range=53..89 role=chord
+  volume         0.1251
   # The discs turning slowly, the notes left to ring.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -907,7 +925,7 @@ patch "Slow Motor" family=vibes note=57 range=53..89 role=chord
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.124
+  mac1_a3  -0.0234
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -925,11 +943,11 @@ patch "Slow Motor" family=vibes note=57 range=53..89 role=chord
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.255
+  mac6_a2  0.0469
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.311
+  mac7_a2  -0.0547
   mac8_d1  #12
   mac8_a1  0.6
   model          #1
@@ -952,7 +970,7 @@ patch "Grid Motor" family=vibes note=60 range=53..89 role=chord
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.124
+  mac1_a3  -0.0254
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -970,11 +988,11 @@ patch "Grid Motor" family=vibes note=60 range=53..89 role=chord
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.346
+  mac6_a2  0.0664
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.284
+  mac7_a2  -0.0557
   mac8_d1  #12
   mac8_a1  0.6
   model          #1
@@ -982,7 +1000,7 @@ patch "Grid Motor" family=vibes note=60 range=53..89 role=chord
   motor          4
   depth          0.9
   decay          0.7
-  volume         0.63
+  volume         0.1235
 
 patch "Paired Vibes" family=vibes note=60 range=53..89 role=chord
   # Two sets of bars 7 cents apart, spread: a chorus with no motor.
@@ -1009,7 +1027,7 @@ patch "Paired Vibes" family=vibes note=60 range=53..89 role=chord
   mac4_d2  #8
   mac4_a2  0.3
   mac4_d3  #14
-  mac4_a3  0.134
+  mac4_a3  0.0312
   mac5_d1  #3
   mac5_a1  0.35
   mac5_d2  #5
@@ -1019,7 +1037,7 @@ patch "Paired Vibes" family=vibes note=60 range=53..89 role=chord
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.34
+  mac7_a2  -0.0781
   mac8_d1  #12
   mac8_a1  0.6
   model          #1
@@ -1028,7 +1046,7 @@ patch "Paired Vibes" family=vibes note=60 range=53..89 role=chord
   tube           0.8
   mallet         0.3
   spread         0.6
-  volume         0.62
+  volume         0.1428
   send reverb    0.12
 
 patch "Night Vibes" family=vibes note=57 range=53..89 role=keys
@@ -1062,11 +1080,11 @@ patch "Night Vibes" family=vibes note=57 range=53..89 role=keys
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.202
+  mac6_a2  0.0254
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.177
+  mac7_a2  -0.0215
   mac8_d1  #12
   mac8_a1  0.6
   model          #1
@@ -1076,13 +1094,14 @@ patch "Night Vibes" family=vibes note=57 range=53..89 role=keys
   decay          0.75
   damp           0.5
   tube           0.9
-  volume         0.49
+  volume         0.05987
   insert Delay
     feedback     0.3
     mix          0.2
   send reverb    0.2
 
 patch "Long Vibes" family=vibes note=57 range=53..89 role=pad
+  volume         0.09936
   # Struck softly and left to ring for a long time.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -1107,7 +1126,7 @@ patch "Long Vibes" family=vibes note=57 range=53..89 role=pad
   mac4_d2  #8
   mac4_a2  0.3
   mac4_d3  #14
-  mac4_a3  0.161
+  mac4_a3  0.0234
   mac5_d1  #3
   mac5_a1  0.35
   mac5_d2  #5
@@ -1115,11 +1134,11 @@ patch "Long Vibes" family=vibes note=57 range=53..89 role=pad
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.3
+  mac6_a2  0.043
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.263
+  mac7_a2  -0.0371
   mac8_d1  #12
   mac8_a1  0.6
   model          #1
@@ -1158,14 +1177,14 @@ patch "Vibes Roll" family=vibes note=60 range=53..89 role=pad
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.115
+  mac6_a2  0.0156
   mac7_d1  #11
   mac7_a1  0.5
   mac8_d1  #12
   mac8_a1  0.6
   model          #1
   roll           11
-  volume         0.33
+  volume         0.04794
   mallet         0.2
   tube           0.9
   motor          4
@@ -1196,7 +1215,7 @@ patch "Bowed Vibes" family=vibes note=60 range=53..89 role=pad
   mac4_d2  #8
   mac4_a2  0.3
   mac4_d3  #14
-  mac4_a3  0.058
+  mac4_a3  0.0088
   mac5_d1  #3
   mac5_a1  0.35
   mac5_d2  #5
@@ -1204,7 +1223,7 @@ patch "Bowed Vibes" family=vibes note=60 range=53..89 role=pad
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.07
+  mac6_a2  0.0107
   mac7_d1  #11
   mac7_a1  0.5
   mac8_d1  #12
@@ -1214,11 +1233,12 @@ patch "Bowed Vibes" family=vibes note=60 range=53..89 role=pad
   decay          0.9
   roll           18
   tube           0.9
-  volume         0.27
+  volume         0.04061
 
 # --- bells ----------------------------------------------------------------------
 
 patch "Orchestra Glock" family=bells note=84 range=72..108 role=bell
+  volume         0.2005
   # Steel bars and brass mallets.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -1239,7 +1259,7 @@ patch "Orchestra Glock" family=bells note=84 range=72..108 role=bell
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.255
+  mac3_a2  0.0781
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -1247,15 +1267,15 @@ patch "Orchestra Glock" family=bells note=84 range=72..108 role=bell
   mac5_d1  #3
   mac5_a1  -0.35
   mac5_d2  #14
-  mac5_a2  0.151
+  mac5_a2  0.0469
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.289
+  mac6_a2  0.0859
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.263
+  mac7_a2  -0.0742
   mac8_d1  #12
   mac8_a1  0.6
   model          #3
@@ -1263,6 +1283,7 @@ patch "Orchestra Glock" family=bells note=84 range=72..108 role=bell
   tube           0
 
 patch "Soft Glockenspiel" family=bells note=84 range=72..108 role=bell
+  volume         0.21
   # The same bars with plastic mallets.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -1283,7 +1304,7 @@ patch "Soft Glockenspiel" family=bells note=84 range=72..108 role=bell
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.289
+  mac3_a2  0.0859
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -1291,15 +1312,15 @@ patch "Soft Glockenspiel" family=bells note=84 range=72..108 role=bell
   mac5_d1  #3
   mac5_a1  -0.35
   mac5_d2  #14
-  mac5_a2  0.142
+  mac5_a2  0.0391
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.277
+  mac6_a2  0.082
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.311
+  mac7_a2  -0.0938
   mac8_d1  #12
   mac8_a1  0.6
   model          #3
@@ -1307,6 +1328,7 @@ patch "Soft Glockenspiel" family=bells note=84 range=72..108 role=bell
   tube           0
 
 patch "Bell Bars" family=bells note=72 range=60..100 role=bell
+  volume         0.142
   # Steel bars struck with felt over wooden boxes: soft and glassy.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -1327,7 +1349,7 @@ patch "Bell Bars" family=bells note=72 range=60..100 role=bell
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.289
+  mac3_a2  0.0586
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -1335,15 +1357,15 @@ patch "Bell Bars" family=bells note=72 range=60..100 role=bell
   mac5_d1  #3
   mac5_a1  -0.35
   mac5_d2  #14
-  mac5_a2  0.142
+  mac5_a2  0.0273
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.277
+  mac6_a2  0.0547
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.328
+  mac7_a2  -0.0664
   mac8_d1  #12
   mac8_a1  0.6
   model          #3
@@ -1353,6 +1375,7 @@ patch "Bell Bars" family=bells note=72 range=60..100 role=bell
   damp           0.7
 
 patch "Tin Bells" family=bells note=84 range=67..108 role=bell
+  volume         0.2496
   # Small bars struck near the end, brittle.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -1371,7 +1394,7 @@ patch "Tin Bells" family=bells note=84 range=67..108 role=bell
   mac2_d2  #1
   mac2_a2  -0.15
   mac2_d3  #14
-  mac2_a3  0.277
+  mac2_a3  0.1094
   mac3_d1  #2
   mac3_a1  0.4
   mac4_d1  #3
@@ -1379,19 +1402,19 @@ patch "Tin Bells" family=bells note=84 range=67..108 role=bell
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.124
+  mac4_a3  -0.0391
   mac5_d1  #3
   mac5_a1  -0.35
   mac5_d2  #14
-  mac5_a2  0.142
+  mac5_a2  0.0547
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.277
+  mac6_a2  0.1094
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.333
+  mac7_a2  -0.1172
   mac8_d1  #12
   mac8_a1  0.6
   model          #3
@@ -1432,7 +1455,7 @@ patch "Chorus Glock" family=bells note=84 range=72..108
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.411
+  mac7_a2  -0.1133
   mac8_d1  #12
   mac8_a1  0.6
   model          #3
@@ -1440,12 +1463,13 @@ patch "Chorus Glock" family=bells note=84 range=72..108
   tube           0
   pair           9
   spread         0.6
-  volume         1
+  volume         0.2769
   insert Chorus
     depth        0.3
     mix          0.25
 
 patch "Concert Chimes" family=bells note=60 range=60..77
+  volume         0.225
   # Tubular bells, struck with a rawhide mallet.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -1460,11 +1484,11 @@ patch "Concert Chimes" family=bells note=60 range=60..77
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.306
+  mac1_a3  -0.0977
   mac2_d1  #4
   mac2_a1  -0.25
   mac2_d2  #14
-  mac2_a2  0.3
+  mac2_a2  0.0938
   mac3_d1  #2
   mac3_a1  0.4
   mac4_d1  #3
@@ -1476,7 +1500,7 @@ patch "Concert Chimes" family=bells note=60 range=60..77
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.289
+  mac6_a2  0.0938
   mac7_d1  #11
   mac7_a1  0.5
   mac8_d1  #12
@@ -1485,6 +1509,7 @@ patch "Concert Chimes" family=bells note=60 range=60..77
   tube           0
 
 patch "Chimes Soft" family=bells note=60 range=60..77
+  volume         0.2439
   # A softer mallet, the bells ringing on.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -1499,15 +1524,15 @@ patch "Chimes Soft" family=bells note=60 range=60..77
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.373
+  mac1_a3  -0.1289
   mac2_d1  #4
   mac2_a1  -0.25
   mac2_d2  #14
-  mac2_a2  0.3
+  mac2_a2  0.1094
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  -0.124
+  mac3_a2  -0.043
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -1517,11 +1542,11 @@ patch "Chimes Soft" family=bells note=60 range=60..77
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.289
+  mac6_a2  0.1016
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.163
+  mac7_a2  -0.0547
   mac8_d1  #12
   mac8_a1  0.6
   model          #9
@@ -1530,6 +1555,7 @@ patch "Chimes Soft" family=bells note=60 range=60..77
   tube           0
 
 patch "Chimes Damped" family=bells note=60 range=60..77
+  volume         0.2614
   # Each bell cut shorter.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -1544,11 +1570,11 @@ patch "Chimes Damped" family=bells note=60 range=60..77
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.311
+  mac1_a3  -0.1172
   mac2_d1  #4
   mac2_a1  -0.25
   mac2_d2  #14
-  mac2_a2  0.3
+  mac2_a2  0.1094
   mac3_d1  #2
   mac3_a1  0.4
   mac4_d1  #3
@@ -1560,7 +1586,7 @@ patch "Chimes Damped" family=bells note=60 range=60..77
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.266
+  mac6_a2  0.0938
   mac7_d1  #11
   mac7_a1  0.5
   mac8_d1  #12
@@ -1584,13 +1610,13 @@ patch "Low Tubular Bells" family=bells note=48 range=40..64
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.159
+  mac1_a3  -0.0488
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
   mac2_a2  -0.15
   mac2_d3  #14
-  mac2_a3  0.52
+  mac2_a3  0.1641
   mac3_d1  #2
   mac3_a1  0.4
   mac4_d1  #3
@@ -1602,20 +1628,21 @@ patch "Low Tubular Bells" family=bells note=48 range=40..64
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.214
+  mac6_a2  0.0664
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.148
+  mac7_a2  -0.0449
   mac8_d1  #12
   mac8_a1  0.6
   model          #9
   tube           0
   mallet         0.4
   decay          0.7
-  volume         0.48
+  volume         0.1491
 
 patch Crotales family=bells note=84 range=72..96
+  volume         0.1915
   # Small bronze discs, high and long.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -1630,7 +1657,7 @@ patch Crotales family=bells note=84 range=72..96
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.15
+  mac1_a3  -0.0391
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -1638,7 +1665,7 @@ patch Crotales family=bells note=84 range=72..96
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.277
+  mac3_a2  0.0781
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -1648,17 +1675,18 @@ patch Crotales family=bells note=84 range=72..96
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.289
+  mac6_a2  0.0742
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.315
+  mac7_a2  -0.0859
   mac8_d1  #12
   mac8_a1  0.6
   model          #10
   tube           0
 
 patch "Crotales Bright" family=bells note=84 range=72..96
+  volume         0.154
   # Brass mallets, glassy.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -1687,11 +1715,11 @@ patch "Crotales Bright" family=bells note=84 range=72..96
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.289
+  mac6_a2  0.0625
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.221
+  mac7_a2  -0.0488
   mac8_d1  #12
   mac8_a1  0.6
   model          #10
@@ -1714,7 +1742,7 @@ patch "Crotales Hall" family=bells note=84 range=72..96
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.13
+  mac1_a3  -0.0352
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -1722,7 +1750,7 @@ patch "Crotales Hall" family=bells note=84 range=72..96
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.214
+  mac3_a2  0.0586
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -1732,17 +1760,17 @@ patch "Crotales Hall" family=bells note=84 range=72..96
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.232
+  mac6_a2  0.0664
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.215
+  mac7_a2  -0.0605
   mac8_d1  #12
   mac8_a1  0.6
   model          #10
   mallet         0.6
   tube           0
-  volume         0.54
+  volume         0.1512
   send reverb    0.3
 
 patch "Crotales Bowed" family=bells note=84 range=72..96
@@ -1766,7 +1794,7 @@ patch "Crotales Bowed" family=bells note=84 range=72..96
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.133
+  mac3_a2  0.0391
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -1776,7 +1804,7 @@ patch "Crotales Bowed" family=bells note=84 range=72..96
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.139
+  mac6_a2  0.0391
   mac7_d1  #11
   mac7_a1  0.5
   mac8_d1  #12
@@ -1786,11 +1814,12 @@ patch "Crotales Bowed" family=bells note=84 range=72..96
   decay          0.9
   roll           18
   tube           0
-  volume         0.35
+  volume         0.1026
 
 # --- gamelan --------------------------------------------------------------------
 
 patch Saron family=gamelan note=67 range=60..79
+  volume         0.1788
   # A gamelan's bronze bar, bright and clangy.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -1805,7 +1834,7 @@ patch Saron family=gamelan note=67 range=60..79
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.15
+  mac1_a3  -0.0391
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -1813,7 +1842,7 @@ patch Saron family=gamelan note=67 range=60..79
   mac3_d1  #15
   mac3_a1  0.2
   mac3_d2  #14
-  mac3_a2  0.277
+  mac3_a2  0.0703
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -1821,20 +1850,21 @@ patch Saron family=gamelan note=67 range=60..79
   mac5_d1  #3
   mac5_a1  -0.35
   mac5_d2  #14
-  mac5_a2  0.142
+  mac5_a2  0.0391
   mac6_d1  #6
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  -0.169
+  mac6_a2  -0.043
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.376
+  mac7_a2  -0.0957
   mac8_d1  #12
   mac8_a1  0.6
   model          #11
 
 patch "Saron Damped" family=gamelan note=67 range=60..79
+  volume         0.1938
   # Each note stopped by the hand as the next is struck.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -1849,7 +1879,7 @@ patch "Saron Damped" family=gamelan note=67 range=60..79
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.15
+  mac1_a3  -0.041
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -1857,7 +1887,7 @@ patch "Saron Damped" family=gamelan note=67 range=60..79
   mac3_d1  #15
   mac3_a1  0.2
   mac3_d2  #14
-  mac3_a2  0.233
+  mac3_a2  0.0625
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -1867,11 +1897,11 @@ patch "Saron Damped" family=gamelan note=67 range=60..79
   mac6_d1  #6
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  -0.169
+  mac6_a2  -0.0469
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.391
+  mac7_a2  -0.1074
   mac8_d1  #12
   mac8_a1  0.6
   model          #11
@@ -1892,7 +1922,7 @@ patch "Saron Pair" family=gamelan note=67 range=60..79
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.172
+  mac1_a3  -0.0508
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -1908,18 +1938,19 @@ patch "Saron Pair" family=gamelan note=67 range=60..79
   mac6_d1  #6
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  -0.193
+  mac6_a2  -0.0586
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.451
+  mac7_a2  -0.1406
   mac8_d1  #12
   mac8_a1  0.6
   model          #11
   pair           8
-  volume         0.8
+  volume         0.2456
 
 patch Gender family=gamelan note=60 range=48..79
+  volume         0.1649
   # The thin-barred gender, padded and singing.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -1940,7 +1971,7 @@ patch Gender family=gamelan note=60 range=48..79
   mac3_d1  #15
   mac3_a1  0.2
   mac3_d2  #14
-  mac3_a2  0.277
+  mac3_a2  0.0664
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -1950,11 +1981,11 @@ patch Gender family=gamelan note=60 range=48..79
   mac6_d1  #6
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  -0.169
+  mac6_a2  -0.0391
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.311
+  mac7_a2  -0.0742
   mac8_d1  #12
   mac8_a1  0.6
   model          #11
@@ -1982,7 +2013,7 @@ patch "Gender Pair" family=gamelan note=60 range=48..79
   mac3_d1  #15
   mac3_a1  0.2
   mac3_d2  #14
-  mac3_a2  0.185
+  mac3_a2  0.0703
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -1992,11 +2023,11 @@ patch "Gender Pair" family=gamelan note=60 range=48..79
   mac6_d1  #6
   mac6_a1  0.5
   mac6_d2  #14
-  mac6_a2  -0.14
+  mac6_a2  -0.0508
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.279
+  mac7_a2  -0.1035
   mac8_d1  #12
   mac8_a1  0.6
   model          #11
@@ -2004,9 +2035,10 @@ patch "Gender Pair" family=gamelan note=60 range=48..79
   decay          0.8
   pair           5
   spread         0.4
-  volume         0.58
+  volume         0.2166
 
 patch Bonang family=gamelan note=62 range=55..74
+  volume         0.1893
   # A row of kettle gongs, the bosses struck.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -2021,7 +2053,7 @@ patch Bonang family=gamelan note=62 range=55..74
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.157
+  mac1_a3  -0.043
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -2029,7 +2061,7 @@ patch Bonang family=gamelan note=62 range=55..74
   mac3_d1  #15
   mac3_a1  0.2
   mac3_d2  #14
-  mac3_a2  0.266
+  mac3_a2  0.0703
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -2041,12 +2073,13 @@ patch Bonang family=gamelan note=62 range=55..74
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.365
+  mac7_a2  -0.0977
   mac8_d1  #12
   mac8_a1  0.6
   model          #12
 
 patch "Bonang Barung" family=gamelan note=55 range=48..67
+  volume         0.1767
   # The lower bonang, rounder.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -2061,7 +2094,7 @@ patch "Bonang Barung" family=gamelan note=55 range=48..67
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.15
+  mac1_a3  -0.0391
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -2069,7 +2102,7 @@ patch "Bonang Barung" family=gamelan note=55 range=48..67
   mac3_d1  #15
   mac3_a1  0.2
   mac3_d2  #14
-  mac3_a2  0.191
+  mac3_a2  0.0469
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -2081,7 +2114,7 @@ patch "Bonang Barung" family=gamelan note=55 range=48..67
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.263
+  mac7_a2  -0.0664
   mac8_d1  #12
   mac8_a1  0.6
   model          #12
@@ -2103,7 +2136,7 @@ patch "Bonang Pair" family=gamelan note=62 range=55..74
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.21
+  mac1_a3  -0.0625
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -2121,13 +2154,13 @@ patch "Bonang Pair" family=gamelan note=62 range=55..74
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.495
+  mac7_a2  -0.1484
   mac8_d1  #12
   mac8_a1  0.6
   model          #12
   mallet         0.6
   pair           12
-  volume         0.87
+  volume         0.2641
 
 patch "Bonang Interlock" family=gamelan note=62 range=55..74
   # Quick repeated strokes, as two players interlock.
@@ -2164,9 +2197,10 @@ patch "Bonang Interlock" family=gamelan note=62 range=55..74
   model          #12
   roll           8
   decay          0.4
-  volume         0.4
+  volume         0.1619
 
 patch Kempul family=gamelan note=48 range=40..60
+  volume         0.2174
   # The smaller hanging gong.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -2181,7 +2215,7 @@ patch Kempul family=gamelan note=48 range=40..60
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.248
+  mac1_a3  -0.0781
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -2199,7 +2233,7 @@ patch Kempul family=gamelan note=48 range=40..60
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.273
+  mac7_a2  -0.084
   mac8_d1  #12
   mac8_a1  0.6
   model          #13
@@ -2207,6 +2241,7 @@ patch Kempul family=gamelan note=48 range=40..60
   tube           0
 
 patch "Gong Ageng" family=gamelan note=36 range=28..48
+  volume         0.21
   # The great gong, deep and long.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -2221,13 +2256,13 @@ patch "Gong Ageng" family=gamelan note=36 range=28..48
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.216
+  mac1_a3  -0.0664
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
   mac2_a2  -0.15
   mac2_d3  #14
-  mac2_a3  0.142
+  mac2_a3  0.0469
   mac3_d1  #15
   mac3_a1  0.2
   mac4_d1  #3
@@ -2241,7 +2276,7 @@ patch "Gong Ageng" family=gamelan note=36 range=28..48
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.181
+  mac7_a2  -0.0547
   mac8_d1  #12
   mac8_a1  0.6
   model          #13
@@ -2262,7 +2297,7 @@ patch "Gong Soft" family=gamelan note=36 range=28..48
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.267
+  mac1_a3  -0.0586
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -2285,11 +2320,12 @@ patch "Gong Soft" family=gamelan note=36 range=28..48
   mallet         0.15
   bloom          0.8
   tube           0
-  volume         1
+  volume         0.2224
 
 # --- thumb ----------------------------------------------------------------------
 
 patch "Thumb Piano" family=thumb note=60 range=48..88 role=tune
+  volume         0.1594
   # Metal tines over a wooden box, plucked by the thumbs.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -2304,7 +2340,7 @@ patch "Thumb Piano" family=thumb note=60 range=48..88 role=tune
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.124
+  mac1_a3  -0.0273
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -2314,11 +2350,11 @@ patch "Thumb Piano" family=thumb note=60 range=48..88 role=tune
   mac4_d1  #6
   mac4_a1  0.5
   mac4_d2  #14
-  mac4_a2  -0.181
+  mac4_a2  -0.041
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  0.289
+  mac5_a2  0.0664
   mac6_d1  #3
   mac6_a1  0.35
   mac6_d2  #5
@@ -2326,11 +2362,11 @@ patch "Thumb Piano" family=thumb note=60 range=48..88 role=tune
   mac7_d1  #15
   mac7_a1  0.25
   mac7_d2  #14
-  mac7_a2  0.233
+  mac7_a2  0.0508
   mac8_d1  #11
   mac8_a1  0.5
   mac8_d2  #14
-  mac8_a2  -0.353
+  mac8_a2  -0.0801
   model          #4
   tube           0.4
 
@@ -2357,11 +2393,11 @@ patch "Bright Thumb" family=thumb note=67 range=52..92 role=tune
   mac4_d1  #6
   mac4_a1  0.5
   mac4_d2  #14
-  mac4_a2  -0.277
+  mac4_a2  -0.0703
   mac5_d1  #2
   mac5_a1  0.2
   mac5_d2  #14
-  mac5_a2  0.05
+  mac5_a2  0.0238
   mac6_d1  #3
   mac6_a1  0.35
   mac6_d2  #5
@@ -2369,19 +2405,20 @@ patch "Bright Thumb" family=thumb note=67 range=52..92 role=tune
   mac7_d1  #15
   mac7_a1  0.15
   mac7_d2  #14
-  mac7_a2  0.05
+  mac7_a2  0.0238
   mac8_d1  #11
   mac8_a1  0.3
   mac8_d2  #14
-  mac8_a2  -0.315
+  mac8_a2  -0.0781
   model          #4
   mallet         0.9
   position       0.7
   bright         0.65
   tube           0.2
-  volume         0.95
+  volume         0.2398
 
 patch "Buzzing Thumb" family=thumb note=60 range=48..88 role=tune
+  volume         0.1575
   # With rattles on the tines.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -2396,7 +2433,7 @@ patch "Buzzing Thumb" family=thumb note=60 range=48..88 role=tune
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.131
+  mac1_a3  -0.0293
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -2406,11 +2443,11 @@ patch "Buzzing Thumb" family=thumb note=60 range=48..88 role=tune
   mac4_d1  #6
   mac4_a1  0.5
   mac4_d2  #14
-  mac4_a2  -0.181
+  mac4_a2  -0.041
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  0.277
+  mac5_a2  0.0625
   mac6_d1  #3
   mac6_a1  0.35
   mac6_d2  #5
@@ -2418,16 +2455,17 @@ patch "Buzzing Thumb" family=thumb note=60 range=48..88 role=tune
   mac7_d1  #15
   mac7_a1  0.25
   mac7_d2  #14
-  mac7_a2  0.233
+  mac7_a2  0.0469
   mac8_d1  #11
   mac8_a1  0.5
   mac8_d2  #14
-  mac8_a2  -0.398
+  mac8_a2  -0.0898
   model          #4
   buzz           0.6
   tube           0.4
 
 patch "Gourd Thumb" family=thumb note=55 range=43..84 role=tune
+  volume         0.114
   # Tines over a big gourd: round, low and buzzing a little.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -2452,7 +2490,7 @@ patch "Gourd Thumb" family=thumb note=55 range=43..84 role=tune
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  0.289
+  mac5_a2  0.0469
   mac6_d1  #3
   mac6_a1  0.35
   mac6_d2  #5
@@ -2460,11 +2498,11 @@ patch "Gourd Thumb" family=thumb note=55 range=43..84 role=tune
   mac7_d1  #15
   mac7_a1  0.25
   mac7_d2  #14
-  mac7_a2  0.191
+  mac7_a2  0.0312
   mac8_d1  #11
   mac8_a1  0.5
   mac8_d2  #14
-  mac8_a2  -0.345
+  mac8_a2  -0.0586
   model          #4
   tube           0.9
   buzz           0.1
@@ -2494,11 +2532,11 @@ patch "Calabash Thumb" family=thumb note=55 range=43..79 role=tune
   mac4_d1  #6
   mac4_a1  -0.6
   mac4_d2  #14
-  mac4_a2  0.206
+  mac4_a2  0.0391
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  0.206
+  mac5_a2  0.041
   mac6_d1  #3
   mac6_a1  0.35
   mac6_d2  #5
@@ -2506,18 +2544,18 @@ patch "Calabash Thumb" family=thumb note=55 range=43..79 role=tune
   mac7_d1  #15
   mac7_a1  0.25
   mac7_d2  #14
-  mac7_a2  0.152
+  mac7_a2  0.0273
   mac8_d1  #11
   mac8_a1  0.5
   mac8_d2  #14
-  mac8_a2  -0.274
+  mac8_a2  -0.0552
   model          #4
   tube           1
   buzz           0.35
   mallet         0.35
   bright         0.4
   decay          0.65
-  volume         0.5
+  volume         0.09907
 
 patch "Bass Thumb" family=thumb note=43 range=36..60 role=bass
   # Long, wide tines over a box, low and round.
@@ -2544,7 +2582,7 @@ patch "Bass Thumb" family=thumb note=43 range=36..60 role=bass
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  0.232
+  mac5_a2  0.0391
   mac6_d1  #3
   mac6_a1  0.35
   mac6_d2  #5
@@ -2554,13 +2592,13 @@ patch "Bass Thumb" family=thumb note=43 range=36..60 role=bass
   mac8_d1  #11
   mac8_a1  0.5
   mac8_d2  #14
-  mac8_a2  -0.269
+  mac8_a2  -0.0449
   model          #4
   tube           0.7
   mallet         0.4
   decay          0.7
   bright         0.4
-  volume         0.54
+  volume         0.09007
 
 patch "Bottle Cap Thumb" family=thumb note=60 range=48..84 role=tune
   # Bottle caps on the box: a metal rattle on every note.
@@ -2577,7 +2615,7 @@ patch "Bottle Cap Thumb" family=thumb note=60 range=48..84 role=tune
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.15
+  mac1_a3  -0.0293
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -2587,11 +2625,11 @@ patch "Bottle Cap Thumb" family=thumb note=60 range=48..84 role=tune
   mac4_d1  #6
   mac4_a1  0.5
   mac4_d2  #14
-  mac4_a2  -0.214
+  mac4_a2  -0.043
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  0.2
+  mac5_a2  0.0391
   mac6_d1  #3
   mac6_a1  0.35
   mac6_d2  #5
@@ -2599,19 +2637,20 @@ patch "Bottle Cap Thumb" family=thumb note=60 range=48..84 role=tune
   mac7_d1  #15
   mac7_a1  0.25
   mac7_d2  #14
-  mac7_a2  0.2
+  mac7_a2  0.043
   mac8_d1  #11
   mac8_a1  0.5
   mac8_d2  #14
-  mac8_a2  -0.307
+  mac8_a2  -0.0625
   model          #4
   buzz           1
   mallet         0.7
   tube           0.3
   bright         0.6
-  volume         0.8
+  volume         0.1604
 
 patch "Steel Comb" family=thumb note=79 range=60..100 role=bell
+  volume         0.21
   # The teeth of a steel comb plucked by pins.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -2634,29 +2673,30 @@ patch "Steel Comb" family=thumb note=79 range=60..100 role=bell
   mac4_d1  #6
   mac4_a1  0.5
   mac4_d2  #14
-  mac4_a2  -0.199
+  mac4_a2  -0.0586
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  0.289
+  mac5_a2  0.0859
   mac6_d1  #3
   mac6_a1  0.35
   mac6_d2  #5
   mac6_a2  -0.6
   mac6_d3  #14
-  mac6_a3  -0.138
+  mac6_a3  -0.043
   mac7_d1  #15
   mac7_a1  0.25
   mac7_d2  #14
-  mac7_a2  0.255
+  mac7_a2  0.0781
   mac8_d1  #11
   mac8_a1  0.5
   mac8_d2  #14
-  mac8_a2  -0.328
+  mac8_a2  -0.0977
   model          #5
   tube           0.2
 
 patch "Slow Music Box" family=thumb note=72 range=55..96 role=bell
+  volume         0.1809
   # A larger comb, rings longer and darker.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -2679,11 +2719,11 @@ patch "Slow Music Box" family=thumb note=72 range=55..96 role=bell
   mac4_d1  #6
   mac4_a1  0.5
   mac4_d2  #14
-  mac4_a2  -0.187
+  mac4_a2  -0.0469
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  0.289
+  mac5_a2  0.0781
   mac6_d1  #3
   mac6_a1  0.35
   mac6_d2  #5
@@ -2691,11 +2731,11 @@ patch "Slow Music Box" family=thumb note=72 range=55..96 role=bell
   mac7_d1  #15
   mac7_a1  0.25
   mac7_d2  #14
-  mac7_a2  0.266
+  mac7_a2  0.0703
   mac8_d1  #11
   mac8_a1  0.5
   mac8_d2  #14
-  mac8_a2  -0.288
+  mac8_a2  -0.0742
   model          #5
   decay          0.75
   bright         0.35
@@ -2726,7 +2766,7 @@ patch "Music Box Slow" family=thumb note=72 range=60..96
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  0.206
+  mac5_a2  0.0586
   mac6_d1  #3
   mac6_a1  0.35
   mac6_d2  #5
@@ -2734,17 +2774,18 @@ patch "Music Box Slow" family=thumb note=72 range=60..96
   mac7_d1  #15
   mac7_a1  0.25
   mac7_d2  #14
-  mac7_a2  0.19
+  mac7_a2  0.0547
   mac8_d1  #11
   mac8_a1  0.5
   mac8_d2  #14
-  mac8_a2  -0.209
+  mac8_a2  -0.0586
   model          #5
   decay          0.7
   tube           0.7
-  volume         0.5
+  volume         0.1417
 
 patch "Comb Echo" family=thumb note=79 range=60..100
+  volume         0.2149
   # A small, bright comb through an echo, in a room.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -2759,7 +2800,7 @@ patch "Comb Echo" family=thumb note=79 range=60..100
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.118
+  mac1_a3  -0.0352
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -2769,25 +2810,25 @@ patch "Comb Echo" family=thumb note=79 range=60..100
   mac4_d1  #6
   mac4_a1  0.5
   mac4_d2  #14
-  mac4_a2  -0.204
+  mac4_a2  -0.0625
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  0.289
+  mac5_a2  0.0859
   mac6_d1  #3
   mac6_a1  0.35
   mac6_d2  #5
   mac6_a2  -0.6
   mac6_d3  #14
-  mac6_a3  -0.144
+  mac6_a3  -0.043
   mac7_d1  #15
   mac7_a1  0.25
   mac7_d2  #14
-  mac7_a2  0.255
+  mac7_a2  0.082
   mac8_d1  #11
   mac8_a1  0.5
   mac8_d2  #14
-  mac8_a2  -0.333
+  mac8_a2  -0.1016
   model          #5
   tube           0.2
   bright         0.65
@@ -2800,6 +2841,7 @@ patch "Comb Echo" family=thumb note=79 range=60..100
 # --- pans -----------------------------------------------------------------------
 
 patch "Lead Pan" family=pans note=67 range=55..88 role=tune
+  volume         0.1727
   # A lead pan struck with rubber sticks, the octave blooming.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -2814,7 +2856,7 @@ patch "Lead Pan" family=pans note=67 range=55..88 role=tune
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.144
+  mac1_a3  -0.0352
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -2826,19 +2868,19 @@ patch "Lead Pan" family=pans note=67 range=55..88 role=tune
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.124
+  mac4_a3  -0.0312
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.181
+  mac5_a2  -0.043
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.202
+  mac6_a2  0.0508
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.373
+  mac7_a2  -0.0928
   mac8_d1  #12
   mac8_a1  0.6
   model          #6
@@ -2861,7 +2903,7 @@ patch "Double Pan" family=pans note=60 range=48..79 role=tune
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.173
+  mac1_a3  -0.0352
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -2875,13 +2917,13 @@ patch "Double Pan" family=pans note=60 range=48..79 role=tune
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.235
+  mac5_a2  -0.0469
   mac6_d1  #15
   mac6_a1  0.25
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.464
+  mac7_a2  -0.0938
   mac8_d1  #12
   mac8_a1  0.6
   model          #6
@@ -2890,7 +2932,7 @@ patch "Double Pan" family=pans note=60 range=48..79 role=tune
   pair           6
   spread         0.5
   tube           0
-  volume         0.88
+  volume         0.1764
 
 patch "Pan Roll" family=pans note=67 range=55..88 role=pad
   # Held notes rolled quickly, as pans play long notes.
@@ -2919,23 +2961,24 @@ patch "Pan Roll" family=pans note=67 range=55..88 role=pad
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.147
+  mac5_a2  -0.0137
   mac6_d1  #15
   mac6_a1  0.25
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.093
+  mac7_a2  -0.0088
   mac8_d1  #12
   mac8_a1  0.6
   model          #6
   bloom          0.5
   roll           16
-  volume         0.55
+  volume         0.05042
   mallet         0.35
   tube           0
 
 patch "Bass Pan" family=pans note=43 range=31..60 role=bass
+  volume         0.1005
   # The big drums, the octave strong.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -2962,13 +3005,13 @@ patch "Bass Pan" family=pans note=43 range=31..60 role=bass
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.163
+  mac5_a2  -0.0234
   mac6_d1  #15
   mac6_a1  0.25
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.328
+  mac7_a2  -0.0469
   mac8_d1  #12
   mac8_a1  0.6
   model          #6
@@ -2978,6 +3021,7 @@ patch "Bass Pan" family=pans note=43 range=31..60 role=bass
   tube           0
 
 patch Handpan family=pans note=57 range=45..77 role=tune
+  volume         0.1453
   # Struck with the fingers: round and long.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -2992,7 +3036,7 @@ patch Handpan family=pans note=57 range=45..77 role=tune
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.144
+  mac1_a3  -0.0293
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -3006,15 +3050,15 @@ patch Handpan family=pans note=57 range=45..77 role=tune
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.157
+  mac5_a2  -0.0332
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.289
+  mac6_a2  0.0625
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.337
+  mac7_a2  -0.0703
   mac8_d1  #12
   mac8_a1  0.6
   model          #7
@@ -3022,6 +3066,7 @@ patch Handpan family=pans note=57 range=45..77 role=tune
   tube           0.3
 
 patch "Handpan Soft" family=pans note=62 range=50..74
+  volume         0.2052
   # Fingertips only, round and soft.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -3048,21 +3093,22 @@ patch "Handpan Soft" family=pans note=62 range=50..74
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.144
+  mac5_a2  -0.043
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.3
+  mac6_a2  0.0859
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.315
+  mac7_a2  -0.0918
   mac8_d1  #12
   mac8_a1  0.6
   model          #7
   mallet         0.2
 
 patch "Soft Handpan" family=pans note=55 range=45..77 role=pad
+  volume         0.1372
   # Softer fingers, longer ring, a little spread.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -3089,15 +3135,15 @@ patch "Soft Handpan" family=pans note=55 range=45..77 role=pad
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.157
+  mac5_a2  -0.0312
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.277
+  mac6_a2  0.0547
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.216
+  mac7_a2  -0.043
   mac8_d1  #12
   mac8_a1  0.6
   model          #7
@@ -3108,6 +3154,7 @@ patch "Soft Handpan" family=pans note=55 range=45..77 role=pad
   tube           0.3
 
 patch "Tongue Drum" family=pans note=60 range=48..79 role=tune
+  volume         0.1372
   # Tongues cut into a steel drum, struck with rubber mallets.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -3122,7 +3169,7 @@ patch "Tongue Drum" family=pans note=60 range=48..79 role=tune
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.124
+  mac1_a3  -0.0254
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -3130,7 +3177,7 @@ patch "Tongue Drum" family=pans note=60 range=48..79 role=tune
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.289
+  mac3_a2  0.0547
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -3138,21 +3185,22 @@ patch "Tongue Drum" family=pans note=60 range=48..79 role=tune
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.144
+  mac5_a2  -0.0273
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.266
+  mac6_a2  0.0508
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.337
+  mac7_a2  -0.0664
   mac8_d1  #12
   mac8_a1  0.6
   model          #8
   tube           0.5
 
 patch "Tongue Drum Bright" family=pans note=67 range=55..79
+  volume         0.2029
   # Hard rubber mallets, a clear ring.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -3167,7 +3215,7 @@ patch "Tongue Drum Bright" family=pans note=67 range=55..79
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.118
+  mac1_a3  -0.0352
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -3175,7 +3223,7 @@ patch "Tongue Drum Bright" family=pans note=67 range=55..79
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.289
+  mac3_a2  0.0859
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -3183,21 +3231,22 @@ patch "Tongue Drum Bright" family=pans note=67 range=55..79
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.144
+  mac5_a2  -0.043
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.255
+  mac6_a2  0.0703
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.337
+  mac7_a2  -0.0977
   mac8_d1  #12
   mac8_a1  0.6
   model          #8
   mallet         0.8
 
 patch "Deep Tongue" family=pans note=48 range=40..67 role=tune
+  volume         0.1028
   # A bigger drum, low and long.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -3218,7 +3267,7 @@ patch "Deep Tongue" family=pans note=48 range=40..67 role=tune
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.289
+  mac3_a2  0.043
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -3230,7 +3279,7 @@ patch "Deep Tongue" family=pans note=48 range=40..67 role=tune
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.278
+  mac7_a2  -0.041
   mac8_d1  #12
   mac8_a1  0.6
   model          #8
@@ -3239,6 +3288,7 @@ patch "Deep Tongue" family=pans note=48 range=40..67 role=tune
   tube           0.7
 
 patch "Singing Bowl" family=pans note=60 range=48..72
+  volume         0.196
   # A thick bowl struck with a padded stick, beating as it rings.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -3253,7 +3303,7 @@ patch "Singing Bowl" family=pans note=60 range=48..72
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.124
+  mac1_a3  -0.0352
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -3261,7 +3311,7 @@ patch "Singing Bowl" family=pans note=60 range=48..72
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.277
+  mac3_a2  0.0781
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -3269,21 +3319,22 @@ patch "Singing Bowl" family=pans note=60 range=48..72
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.199
+  mac5_a2  -0.0547
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.3
+  mac6_a2  0.082
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.324
+  mac7_a2  -0.0898
   mac8_d1  #12
   mac8_a1  0.6
   model          #14
   tube           0
 
 patch "Bowl Low" family=pans note=48 range=36..60
+  volume         0.2005
   # A big bowl, low and slow.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -3304,7 +3355,7 @@ patch "Bowl Low" family=pans note=48 range=36..60
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.289
+  mac3_a2  0.082
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -3312,15 +3363,15 @@ patch "Bowl Low" family=pans note=48 range=36..60
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.187
+  mac5_a2  -0.0547
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.151
+  mac6_a2  0.043
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.297
+  mac7_a2  -0.0859
   mac8_d1  #12
   mac8_a1  0.6
   model          #14
@@ -3328,6 +3379,7 @@ patch "Bowl Low" family=pans note=48 range=36..60
   tube           0
 
 patch "Bowl Set" family=pans note=60 range=43..79
+  volume         0.21
   # A row of bowls across the keys, wide, in a room.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -3348,7 +3400,7 @@ patch "Bowl Set" family=pans note=60 range=43..79
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.289
+  mac3_a2  0.0859
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -3356,15 +3408,15 @@ patch "Bowl Set" family=pans note=60 range=43..79
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.199
+  mac5_a2  -0.0586
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.289
+  mac6_a2  0.0859
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.258
+  mac7_a2  -0.0781
   mac8_d1  #12
   mac8_a1  0.6
   model          #14
@@ -3375,6 +3427,7 @@ patch "Bowl Set" family=pans note=60 range=43..79
   send reverb    0.25
 
 patch "Bowl Rubbed" family=pans note=60 range=48..72
+  volume         0.109
   # The stick run round the rim: a long, swelling tone.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -3389,7 +3442,7 @@ patch "Bowl Rubbed" family=pans note=60 range=48..72
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.118
+  mac1_a3  -0.0195
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -3397,7 +3450,7 @@ patch "Bowl Rubbed" family=pans note=60 range=48..72
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.289
+  mac3_a2  0.0449
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -3405,7 +3458,7 @@ patch "Bowl Rubbed" family=pans note=60 range=48..72
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.193
+  mac5_a2  -0.0293
   mac6_d1  #15
   mac6_a1  0.25
   mac7_d1  #11
@@ -3433,31 +3486,31 @@ patch "Growing Bowl" family=pans note=55 range=43..72 role=pad
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.101
+  mac1_a3  -0.0117
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
   mac2_a2  -0.15
   mac2_d3  #14
-  mac2_a3  -0.147
+  mac2_a3  -0.0166
   mac3_d1  #2
   mac3_a1  0.4
   mac3_d2  #14
-  mac3_a2  0.235
+  mac3_a2  0.0273
   mac4_d1  #3
   mac4_a1  -0.35
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.157
+  mac5_a2  -0.0176
   mac6_d1  #15
   mac6_a1  0.25
   mac6_d2  #14
-  mac6_a2  0.131
+  mac6_a2  0.0156
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.166
+  mac7_a2  -0.0186
   mac8_d1  #12
   mac8_a1  0.6
   model          #14
@@ -3465,11 +3518,12 @@ patch "Growing Bowl" family=pans note=55 range=43..72 role=pad
   mallet         0.03
   decay          1
   tube           0
-  volume         0.57
+  volume         0.06502
 
 # --- hits -----------------------------------------------------------------------
 
 patch "Temple Blocks" family=hits note=67 range=60..76
+  volume         0.1707
   # Hollow wooden blocks, a dry knock with a pitch.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -3490,28 +3544,29 @@ patch "Temple Blocks" family=hits note=67 range=60..76
   mac3_d1  #3
   mac3_a1  -0.35
   mac3_d2  #14
-  mac3_a2  0.233
+  mac3_a2  0.0547
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.169
+  mac4_a3  -0.043
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  0.277
+  mac5_a2  0.0703
   mac6_d1  #15
   mac6_a1  0.4
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.369
+  mac7_a2  -0.0898
   mac8_d1  #12
   mac8_a1  0.6
   model          #16
 
 patch "Temple Blocks Hard" family=hits note=72 range=64..84
+  volume         0.142
   # Hard mallets, sharper.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -3532,23 +3587,23 @@ patch "Temple Blocks Hard" family=hits note=72 range=64..84
   mac3_d1  #3
   mac3_a1  -0.35
   mac3_d2  #14
-  mac3_a2  0.223
+  mac3_a2  0.043
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.169
+  mac4_a3  -0.0352
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  0.266
+  mac5_a2  0.0547
   mac6_d1  #15
   mac6_a1  0.4
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.384
+  mac7_a2  -0.0781
   mac8_d1  #12
   mac8_a1  0.6
   model          #16
@@ -3569,7 +3624,7 @@ patch "Wood Blocks" family=hits note=79 range=72..88
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.196
+  mac1_a3  -0.0391
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -3581,7 +3636,7 @@ patch "Wood Blocks" family=hits note=79 range=72..88
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.233
+  mac4_a3  -0.043
   mac5_d1  #2
   mac5_a1  0.2
   mac6_d1  #15
@@ -3589,13 +3644,13 @@ patch "Wood Blocks" family=hits note=79 range=72..88
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.548
+  mac7_a2  -0.1074
   mac8_d1  #12
   mac8_a1  0.6
   model          #16
   decay          0.3
   bright         0.6
-  volume         1
+  volume         0.1915
 
 patch "Clave Sticks" family=hits note=84 range=76..96
   # Two hardwood sticks, a short, high knock.
@@ -3622,7 +3677,7 @@ patch "Clave Sticks" family=hits note=84 range=76..96
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.215
+  mac4_a3  -0.0625
   mac5_d1  #2
   mac5_a1  0.25
   mac6_d1  #15
@@ -3630,7 +3685,7 @@ patch "Clave Sticks" family=hits note=84 range=76..96
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.493
+  mac7_a2  -0.1367
   mac8_d1  #12
   mac8_a1  0.6
   model          #2
@@ -3638,7 +3693,7 @@ patch "Clave Sticks" family=hits note=84 range=76..96
   mallet         1
   tube           0
   bright         0.7
-  volume         1
+  volume         0.28
 
 patch "Low Log" family=hits note=40 range=31..52
   # A big log struck hard and stopped, a kit's low drum.
@@ -3665,7 +3720,7 @@ patch "Low Log" family=hits note=40 range=31..52
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.233
+  mac4_a3  -0.0586
   mac5_d1  #2
   mac5_a1  0.2
   mac6_d1  #15
@@ -3673,16 +3728,17 @@ patch "Low Log" family=hits note=40 range=31..52
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.597
+  mac7_a2  -0.1484
   mac8_d1  #12
   mac8_a1  0.6
   model          #15
   decay          0.2
   mallet         0.6
   damp           0.8
-  volume         1
+  volume         0.2467
 
 patch Cowbell family=hits note=68 range=60..76
+  volume         0.1707
   # A clanking metal bell.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -3703,29 +3759,30 @@ patch Cowbell family=hits note=68 range=60..76
   mac3_d1  #3
   mac3_a1  -0.35
   mac3_d2  #14
-  mac3_a2  0.191
+  mac3_a2  0.0508
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.15
+  mac4_a3  -0.0352
   mac5_d1  #2
   mac5_a1  0.4
   mac6_d1  #15
   mac6_a1  0.4
   mac6_d2  #14
-  mac6_a2  0.142
+  mac6_a2  0.0352
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.365
+  mac7_a2  -0.0879
   mac8_d1  #12
   mac8_a1  0.6
   model          #17
   tube           0
 
 patch "Cowbell Muted" family=hits note=68 range=60..76
+  volume         0.2076
   # The hand on the bell, short and dry.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -3750,7 +3807,7 @@ patch "Cowbell Muted" family=hits note=68 range=60..76
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.15
+  mac4_a3  -0.0469
   mac5_d1  #2
   mac5_a1  0.4
   mac6_d1  #15
@@ -3758,7 +3815,7 @@ patch "Cowbell Muted" family=hits note=68 range=60..76
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.373
+  mac7_a2  -0.1113
   mac8_d1  #12
   mac8_a1  0.6
   model          #17
@@ -3766,6 +3823,7 @@ patch "Cowbell Muted" family=hits note=68 range=60..76
   tube           0
 
 patch Agogo family=hits note=72 range=64..84
+  volume         0.1594
   # The paired agogô bells, struck with a stick.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -3786,23 +3844,23 @@ patch Agogo family=hits note=72 range=64..84
   mac3_d1  #3
   mac3_a1  -0.35
   mac3_d2  #14
-  mac3_a2  0.191
+  mac3_a2  0.043
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.15
+  mac4_a3  -0.0352
   mac5_d1  #2
   mac5_a1  0.4
   mac6_d1  #15
   mac6_a1  0.4
   mac6_d2  #14
-  mac6_a2  0.181
+  mac6_a2  0.0391
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.361
+  mac7_a2  -0.082
   mac8_d1  #12
   mac8_a1  0.6
   model          #17
@@ -3831,13 +3889,13 @@ patch "Double Agogo" family=hits note=72 range=64..84
   mac3_d1  #3
   mac3_a1  -0.35
   mac3_d2  #14
-  mac3_a2  0.08
+  mac3_a2  0.0359
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.181
+  mac4_a3  -0.0469
   mac5_d1  #2
   mac5_a1  0.4
   mac6_d1  #15
@@ -3845,7 +3903,7 @@ patch "Double Agogo" family=hits note=72 range=64..84
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.475
+  mac7_a2  -0.1113
   mac8_d1  #12
   mac8_a1  0.6
   model          #17
@@ -3854,7 +3912,7 @@ patch "Double Agogo" family=hits note=72 range=64..84
   pair           40
   tune           -20
   tube           0
-  volume         0.92
+  volume         0.2193
 
 patch "Pipe Hit" family=hits note=72 range=60..84
   # A length of pipe struck and gripped, short and metal.
@@ -3871,11 +3929,11 @@ patch "Pipe Hit" family=hits note=72 range=60..84
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.145
+  mac1_a3  -0.0371
   mac2_d1  #4
   mac2_a1  -0.3
   mac2_d2  #14
-  mac2_a2  0.376
+  mac2_a2  0.0977
   mac3_d1  #3
   mac3_a1  -0.35
   mac4_d1  #3
@@ -3887,7 +3945,7 @@ patch "Pipe Hit" family=hits note=72 range=60..84
   mac6_d1  #15
   mac6_a1  0.4
   mac6_d2  #14
-  mac6_a2  0.219
+  mac6_a2  0.0547
   mac7_d1  #11
   mac7_a1  0.5
   mac8_d1  #12
@@ -3897,9 +3955,10 @@ patch "Pipe Hit" family=hits note=72 range=60..84
   mallet         0.9
   tube           0
   damp           0.9
-  volume         0.51
+  volume         0.1318
 
 patch Triangle family=hits note=84 range=76..96
+  volume         0.2675
   # A bent steel rod, ringing.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -3914,7 +3973,7 @@ patch Triangle family=hits note=84 range=76..96
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.324
+  mac1_a3  -0.125
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -3928,15 +3987,15 @@ patch Triangle family=hits note=84 range=76..96
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  0.171
+  mac5_a2  0.0625
   mac6_d1  #15
   mac6_a1  0.4
   mac6_d2  #14
-  mac6_a2  0.289
+  mac6_a2  0.1094
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.293
+  mac7_a2  -0.1133
   mac8_d1  #12
   mac8_a1  0.6
   model          #18
@@ -3957,7 +4016,7 @@ patch "Triangle Muted" family=hits note=84 range=76..96
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.45
+  mac1_a3  -0.1328
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -3973,19 +4032,20 @@ patch "Triangle Muted" family=hits note=84 range=76..96
   mac6_d1  #6
   mac6_a1  0.6
   mac6_d2  #14
-  mac6_a2  -0.362
+  mac6_a2  -0.1055
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.457
+  mac7_a2  -0.1348
   mac8_d1  #12
   mac8_a1  0.6
   model          #18
   decay          0.15
   tube           0
-  volume         1
+  volume         0.2899
 
 patch "Triangle Roll" family=hits note=84 range=76..96
+  volume         0.1767
   # The beater rattled inside a corner.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -4000,7 +4060,7 @@ patch "Triangle Roll" family=hits note=84 range=76..96
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.263
+  mac1_a3  -0.0664
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -4014,11 +4074,11 @@ patch "Triangle Roll" family=hits note=84 range=76..96
   mac5_d1  #2
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  0.202
+  mac5_a2  0.0508
   mac6_d1  #15
   mac6_a1  0.4
   mac6_d2  #14
-  mac6_a2  0.3
+  mac6_a2  0.0742
   mac7_d1  #11
   mac7_a1  0.5
   mac8_d1  #12
@@ -4044,7 +4104,7 @@ patch "Bowl Keys" family=odd note=60 range=48..84 role=keys
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.095
+  mac1_a3  -0.0117
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -4052,7 +4112,7 @@ patch "Bowl Keys" family=odd note=60 range=48..84 role=keys
   mac3_d1  #15
   mac3_a1  0.5
   mac3_d2  #14
-  mac3_a2  0.236
+  mac3_a2  0.0312
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -4064,7 +4124,7 @@ patch "Bowl Keys" family=odd note=60 range=48..84 role=keys
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.23
+  mac7_a2  -0.0303
   mac8_d1  #6
   mac8_a1  0.4
   model          #14
@@ -4072,7 +4132,7 @@ patch "Bowl Keys" family=odd note=60 range=48..84 role=keys
   mallet         0.6
   tube           0.7
   damp           0.8
-  volume         0.51
+  volume         0.06681
 
 patch "Gong Keys" family=odd note=67 range=55..84 role=tune
   # A gong's modes played as a tune, high up.
@@ -4095,7 +4155,7 @@ patch "Gong Keys" family=odd note=67 range=55..84 role=tune
   mac3_d1  #15
   mac3_a1  0.5
   mac3_d2  #14
-  mac3_a2  0.248
+  mac3_a2  0.043
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -4107,16 +4167,16 @@ patch "Gong Keys" family=odd note=67 range=55..84 role=tune
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.199
+  mac7_a2  -0.0332
   mac8_d1  #6
   mac8_a1  0.4
   mac8_d2  #14
-  mac8_a2  -0.123
+  mac8_a2  -0.0205
   model          #13
   decay          0.3
   mallet         0.6
   tube           0.4
-  volume         0.6
+  volume         0.1
 
 patch "Bent Bars" family=odd note=55 range=43..79 role=keys
   # Glockenspiel bars down low over marimba tubes, which ring on the note's
@@ -4140,7 +4200,7 @@ patch "Bent Bars" family=odd note=55 range=43..79 role=keys
   mac3_d1  #15
   mac3_a1  0.5
   mac3_d2  #14
-  mac3_a2  0.157
+  mac3_a2  0.0215
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -4152,13 +4212,13 @@ patch "Bent Bars" family=odd note=55 range=43..79 role=keys
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.126
+  mac7_a2  -0.0176
   mac8_d1  #6
   mac8_a1  0.4
   model          #3
   tube           0.8
   mallet         0.4
-  volume         0.38
+  volume         0.05273
 
 patch "Buzzing Marimba" family=odd note=55 range=36..84 role=keys
   # A marimba with a rattle on every bar, hard mallets and a sour pair.
@@ -4191,7 +4251,7 @@ patch "Buzzing Marimba" family=odd note=55 range=36..84 role=keys
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.407
+  mac7_a2  -0.0547
   mac8_d1  #6
   mac8_a1  0.4
   model          #0
@@ -4201,9 +4261,10 @@ patch "Buzzing Marimba" family=odd note=55 range=36..84 role=keys
   pair           20
   tune           -10
   tube           0.7
-  volume         0.75
+  volume         0.1017
 
 patch "Rattle Pan" family=odd note=60 range=48..79 role=tune
+  volume         0.147
   # A steel pan with a rattle on it, the octave blooming hard.
   set macro1 "Hard"
   set macro2 "Dark"
@@ -4218,7 +4279,7 @@ patch "Rattle Pan" family=odd note=60 range=48..79 role=tune
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.131
+  mac1_a3  -0.0273
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -4226,7 +4287,7 @@ patch "Rattle Pan" family=odd note=60 range=48..79 role=tune
   mac3_d1  #15
   mac3_a1  0.5
   mac3_d2  #14
-  mac3_a2  0.255
+  mac3_a2  0.0547
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -4238,11 +4299,11 @@ patch "Rattle Pan" family=odd note=60 range=48..79 role=tune
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.273
+  mac7_a2  -0.0625
   mac8_d1  #6
   mac8_a1  0.4
   mac8_d2  #14
-  mac8_a2  -0.169
+  mac8_a2  -0.0352
   model          #6
   buzz           0.8
   bloom          0.8
@@ -4280,18 +4341,18 @@ patch "Sour Bells" family=odd note=72 range=60..96
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.259
+  mac7_a2  -0.0859
   mac8_d1  #6
   mac8_a1  0.4
   mac8_d2  #14
-  mac8_a2  -0.241
+  mac8_a2  -0.0781
   model          #3
   pair           45
   tune           -22
   mallet         0.7
   tube           0
   spread         0.5
-  volume         1
+  volume         0.329
 
 patch "Motor Gong" family=odd note=48 range=36..60
   # A gong over a vibraphone's tubes with the discs turning.
@@ -4308,7 +4369,7 @@ patch "Motor Gong" family=odd note=48 range=36..60
   mac1_d2  #4
   mac1_a2  0.15
   mac1_d3  #14
-  mac1_a3  -0.161
+  mac1_a3  -0.0371
   mac2_d1  #4
   mac2_a1  -0.4
   mac2_d2  #1
@@ -4316,7 +4377,7 @@ patch "Motor Gong" family=odd note=48 range=36..60
   mac3_d1  #15
   mac3_a1  0.5
   mac3_d2  #14
-  mac3_a2  0.282
+  mac3_a2  0.0664
   mac4_d1  #3
   mac4_a1  0.35
   mac4_d2  #5
@@ -4328,7 +4389,7 @@ patch "Motor Gong" family=odd note=48 range=36..60
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.187
+  mac7_a2  -0.043
   mac8_d1  #7
   mac8_a1  0.4
   model          #13
@@ -4336,7 +4397,7 @@ patch "Motor Gong" family=odd note=48 range=36..60
   motor          3
   depth          1
   decay          0.7
-  volume         0.55
+  volume         0.1252
 
 patch "Bowed Glass" family=odd note=79 range=67..96 role=pad
   # Glass bars bowed, a pair beating slowly, in a room.
@@ -4359,7 +4420,7 @@ patch "Bowed Glass" family=odd note=79 range=67..96 role=pad
   mac3_d1  #15
   mac3_a1  0.5
   mac3_d2  #14
-  mac3_a2  0.129
+  mac3_a2  0.0195
   mac4_d1  #3
   mac4_a1  -0.35
   mac5_d1  #10
@@ -4371,14 +4432,14 @@ patch "Bowed Glass" family=odd note=79 range=67..96 role=pad
   mac8_d1  #6
   mac8_a1  0.4
   mac8_d2  #14
-  mac8_a2  -0.083
+  mac8_a2  -0.0117
   model          #3
   roll           22
   mallet         0.02
   decay          1
   pair           4
   tube           0
-  volume         0.3
+  volume         0.04358
   send reverb    0.2
 
 patch "Endless Metal" family=odd note=48 range=36..72
@@ -4402,7 +4463,7 @@ patch "Endless Metal" family=odd note=48 range=36..72
   mac3_d1  #15
   mac3_a1  0.5
   mac3_d2  #14
-  mac3_a2  0.208
+  mac3_a2  0.0508
   mac4_d1  #3
   mac4_a1  -0.35
   mac5_d1  #10
@@ -4412,17 +4473,17 @@ patch "Endless Metal" family=odd note=48 range=36..72
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.178
+  mac7_a2  -0.0449
   mac8_d1  #6
   mac8_a1  0.4
   mac8_d2  #14
-  mac8_a2  -0.112
+  mac8_a2  -0.0273
   model          #10
   decay          1
   mallet         0.3
   bloom          1
   tube           0
-  volume         0.42
+  volume         0.1061
   send reverb    0.3
 
 # --- melt -----------------------------------------------------------------------
@@ -4440,13 +4501,13 @@ patch "Marimba to Bowl" family=melt note=60 range=36..96 role=melt
   mac1_d1  #17
   mac1_a1  1
   mac1_d2  #14
-  mac1_a2  -0.164
+  mac1_a2  -0.0371
   mac2_d1  #1
   mac2_a1  0.4
   mac2_d2  #4
   mac2_a2  0.15
   mac2_d3  #14
-  mac2_a3  -0.105
+  mac2_a3  -0.0234
   mac3_d1  #4
   mac3_a1  -0.4
   mac3_d2  #1
@@ -4458,15 +4519,15 @@ patch "Marimba to Bowl" family=melt note=60 range=36..96 role=melt
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.11
+  mac5_a2  -0.0234
   mac6_d1  #15
   mac6_a1  0.2
   mac6_d2  #14
-  mac6_a2  0.137
+  mac6_a2  0.0195
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.316
+  mac7_a2  -0.0693
   mac8_d1  #12
   mac8_a1  0.6
   model          #0
@@ -4476,7 +4537,7 @@ patch "Marimba to Bowl" family=melt note=60 range=36..96 role=melt
   mallet         0.45
   decay          0.7
   tube           0.6
-  volume         0.561
+  volume         0.1219
   send reverb    0.25
 
 patch "Glock to Gong" family=melt note=72 range=60..100 role=melt
@@ -4496,7 +4557,7 @@ patch "Glock to Gong" family=melt note=72 range=60..100 role=melt
   mac2_d2  #4
   mac2_a2  0.15
   mac2_d3  #14
-  mac2_a3  -0.131
+  mac2_a3  -0.0391
   mac3_d1  #4
   mac3_a1  -0.4
   mac3_d2  #1
@@ -4508,15 +4569,15 @@ patch "Glock to Gong" family=melt note=72 range=60..100 role=melt
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.162
+  mac5_a2  -0.0508
   mac6_d1  #15
   mac6_a1  0.2
   mac6_d2  #14
-  mac6_a2  0.214
+  mac6_a2  0.0664
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.241
+  mac7_a2  -0.0742
   mac8_d1  #12
   mac8_a1  0.6
   model          #3
@@ -4526,7 +4587,7 @@ patch "Glock to Gong" family=melt note=72 range=60..100 role=melt
   mallet         0.5
   decay          0.8
   tube           0
-  volume         0.587
+  volume         0.1802
   send reverb    0.25
 
 patch "Pan to Vibes" family=melt note=64 range=55..88 role=melt
@@ -4546,7 +4607,7 @@ patch "Pan to Vibes" family=melt note=64 range=55..88 role=melt
   mac2_d2  #4
   mac2_a2  0.15
   mac2_d3  #14
-  mac2_a3  -0.098
+  mac2_a3  -0.0273
   mac3_d1  #4
   mac3_a1  -0.4
   mac3_d2  #1
@@ -4556,19 +4617,19 @@ patch "Pan to Vibes" family=melt note=64 range=55..88 role=melt
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.08
+  mac4_a3  -0.0078
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.08
+  mac5_a2  -0.0186
   mac6_d1  #15
   mac6_a1  0.2
   mac6_d2  #14
-  mac6_a2  0.096
+  mac6_a2  0.0352
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.235
+  mac7_a2  -0.0527
   mac8_d1  #12
   mac8_a1  0.6
   model          #6
@@ -4579,7 +4640,7 @@ patch "Pan to Vibes" family=melt note=64 range=55..88 role=melt
   depth          0.4
   tube           0.6
   bloom          0.6
-  volume         0.477
+  volume         0.1211
   send reverb    0.25
 
 patch "Thumb to Handpan" family=melt note=60 range=48..84 role=melt
@@ -4599,7 +4660,7 @@ patch "Thumb to Handpan" family=melt note=60 range=48..84 role=melt
   mac2_d2  #4
   mac2_a2  0.15
   mac2_d3  #14
-  mac2_a3  -0.148
+  mac2_a3  -0.043
   mac3_d1  #4
   mac3_a1  -0.4
   mac3_d2  #1
@@ -4611,15 +4672,15 @@ patch "Thumb to Handpan" family=melt note=60 range=48..84 role=melt
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.229
+  mac5_a2  -0.0664
   mac6_d1  #15
   mac6_a1  0.2
   mac6_d2  #14
-  mac6_a2  0.17
+  mac6_a2  0.0547
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.324
+  mac7_a2  -0.0952
   mac8_d1  #12
   mac8_a1  0.6
   model          #4
@@ -4628,7 +4689,7 @@ patch "Thumb to Handpan" family=melt note=60 range=48..84 role=melt
   heat           0.5
   buzz           0.15
   tube           0
-  volume         0.83
+  volume         0.2406
   send reverb    0.25
 
 patch "Vibes Breathing" family=melt note=60 range=53..89 role=melt
@@ -4648,7 +4709,7 @@ patch "Vibes Breathing" family=melt note=60 range=53..89 role=melt
   mac2_d2  #4
   mac2_a2  0.15
   mac2_d3  #14
-  mac2_a3  -0.102
+  mac2_a3  -0.0352
   mac3_d1  #4
   mac3_a1  -0.4
   mac3_d2  #1
@@ -4660,15 +4721,15 @@ patch "Vibes Breathing" family=melt note=60 range=53..89 role=melt
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.097
+  mac5_a2  -0.0352
   mac6_d1  #15
   mac6_a1  0.2
   mac6_d2  #14
-  mac6_a2  0.212
+  mac6_a2  0.0781
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.246
+  mac7_a2  -0.084
   mac8_d1  #12
   mac8_a1  0.6
   model          #1
@@ -4680,7 +4741,7 @@ patch "Vibes Breathing" family=melt note=60 range=53..89 role=melt
   tube           0.6
   motor          0
   return         #1
-  volume         0.494
+  volume         0.1721
   send reverb    0.25
 
 patch "Saron to Gong" family=melt note=60 range=48..76 role=melt
@@ -4700,7 +4761,7 @@ patch "Saron to Gong" family=melt note=60 range=48..76 role=melt
   mac2_d2  #4
   mac2_a2  0.15
   mac2_d3  #14
-  mac2_a3  -0.096
+  mac2_a3  -0.0312
   mac3_d1  #4
   mac3_a1  -0.4
   mac3_d2  #1
@@ -4712,15 +4773,15 @@ patch "Saron to Gong" family=melt note=60 range=48..76 role=melt
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.157
+  mac5_a2  -0.0527
   mac6_d1  #15
   mac6_a1  0.2
   mac6_d2  #14
-  mac6_a2  0.208
+  mac6_a2  0.0703
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.246
+  mac7_a2  -0.082
   mac8_d1  #12
   mac8_a1  0.6
   model          #11
@@ -4729,7 +4790,7 @@ patch "Saron to Gong" family=melt note=60 range=48..76 role=melt
   heat           0.3
   decay          0.7
   tube           0
-  volume         0.57
+  volume         0.1875
   send reverb    0.25
 
 patch "Wood to Metal" family=melt note=72 range=60..96 role=melt
@@ -4745,13 +4806,13 @@ patch "Wood to Metal" family=melt note=72 range=60..96 role=melt
   mac1_d1  #17
   mac1_a1  1
   mac1_d2  #14
-  mac1_a2  -0.211
+  mac1_a2  -0.0508
   mac2_d1  #1
   mac2_a1  0.4
   mac2_d2  #4
   mac2_a2  0.15
   mac2_d3  #14
-  mac2_a3  -0.145
+  mac2_a3  -0.0332
   mac3_d1  #4
   mac3_a1  -0.4
   mac3_d2  #1
@@ -4761,17 +4822,17 @@ patch "Wood to Metal" family=melt note=72 range=60..96 role=melt
   mac4_d2  #5
   mac4_a2  -0.6
   mac4_d3  #14
-  mac4_a3  -0.122
+  mac4_a3  -0.0293
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.139
+  mac5_a2  -0.0312
   mac6_d1  #15
   mac6_a1  0.2
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.372
+  mac7_a2  -0.0859
   mac8_d1  #12
   mac8_a1  0.6
   model          #2
@@ -4781,7 +4842,7 @@ patch "Wood to Metal" family=melt note=72 range=60..96 role=melt
   mallet         0.6
   decay          0.7
   tube           0.4
-  volume         0.622
+  volume         0.1432
   send reverb    0.25
 
 patch "Tongue Shimmer" family=melt note=60 range=48..77 role=melt
@@ -4797,13 +4858,13 @@ patch "Tongue Shimmer" family=melt note=60 range=48..77 role=melt
   mac1_d1  #17
   mac1_a1  1
   mac1_d2  #14
-  mac1_a2  -0.175
+  mac1_a2  -0.0469
   mac2_d1  #1
   mac2_a1  0.4
   mac2_d2  #4
   mac2_a2  0.15
   mac2_d3  #14
-  mac2_a3  -0.129
+  mac2_a3  -0.0352
   mac3_d1  #4
   mac3_a1  -0.4
   mac3_d2  #1
@@ -4815,15 +4876,15 @@ patch "Tongue Shimmer" family=melt note=60 range=48..77 role=melt
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.199
+  mac5_a2  -0.0566
   mac6_d1  #15
   mac6_a1  0.2
   mac6_d2  #14
-  mac6_a2  0.241
+  mac6_a2  0.1016
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.369
+  mac7_a2  -0.0977
   mac8_d1  #12
   mac8_a1  0.6
   model          #8
@@ -4832,7 +4893,7 @@ patch "Tongue Shimmer" family=melt note=60 range=48..77 role=melt
   heat           0.4
   decay          0.7
   tube           0
-  volume         0.723
+  volume         0.2025
   send reverb    0.25
 
 patch "Hot Crotales" family=melt note=72 range=60..96 role=melt
@@ -4848,7 +4909,7 @@ patch "Hot Crotales" family=melt note=72 range=60..96 role=melt
   mac1_d1  #17
   mac1_a1  1
   mac1_d2  #14
-  mac1_a2  0.106
+  mac1_a2  0.0391
   mac2_d1  #1
   mac2_a1  0.4
   mac2_d2  #4
@@ -4864,15 +4925,15 @@ patch "Hot Crotales" family=melt note=72 range=60..96 role=melt
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.135
+  mac5_a2  -0.0469
   mac6_d1  #15
   mac6_a1  0.2
   mac6_d2  #14
-  mac6_a2  0.171
+  mac6_a2  0.0625
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.135
+  mac7_a2  -0.0488
   mac8_d1  #12
   mac8_a1  0.6
   model          #10
@@ -4882,7 +4943,7 @@ patch "Hot Crotales" family=melt note=72 range=60..96 role=melt
   decay          0.8
   mallet         0.5
   tube           0
-  volume         0.489
+  volume         0.1764
   send reverb    0.25
 
 patch "Gong Cools" family=melt note=48 range=36..72 role=melt
@@ -4902,7 +4963,7 @@ patch "Gong Cools" family=melt note=48 range=36..72 role=melt
   mac2_d2  #4
   mac2_a2  0.15
   mac2_d3  #14
-  mac2_a3  -0.094
+  mac2_a3  -0.0312
   mac3_d1  #4
   mac3_a1  -0.4
   mac3_d2  #1
@@ -4914,7 +4975,7 @@ patch "Gong Cools" family=melt note=48 range=36..72 role=melt
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.09
+  mac5_a2  -0.0273
   mac6_d1  #15
   mac6_a1  0.2
   mac7_d1  #11
@@ -4928,7 +4989,7 @@ patch "Gong Cools" family=melt note=48 range=36..72 role=melt
   mallet         0.4
   decay          0.7
   tube           0.5
-  volume         0.456
+  volume         0.145
   send reverb    0.25
 
 patch "Handpan Tide" family=melt note=55 range=45..77 role=melt
@@ -4944,13 +5005,13 @@ patch "Handpan Tide" family=melt note=55 range=45..77 role=melt
   mac1_d1  #17
   mac1_a1  1
   mac1_d2  #14
-  mac1_a2  -0.302
+  mac1_a2  -0.082
   mac2_d1  #1
   mac2_a1  0.4
   mac2_d2  #4
   mac2_a2  0.15
   mac2_d3  #14
-  mac2_a3  -0.154
+  mac2_a3  -0.043
   mac3_d1  #4
   mac3_a1  -0.4
   mac3_d2  #1
@@ -4962,15 +5023,15 @@ patch "Handpan Tide" family=melt note=55 range=45..77 role=melt
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.19
+  mac5_a2  -0.0527
   mac6_d1  #15
   mac6_a1  0.2
   mac6_d2  #14
-  mac6_a2  0.199
+  mac6_a2  0.0508
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.378
+  mac7_a2  -0.1016
   mac8_d1  #12
   mac8_a1  0.6
   model          #7
@@ -4981,7 +5042,7 @@ patch "Handpan Tide" family=melt note=55 range=45..77 role=melt
   decay          0.8
   tube           0
   return         #1
-  volume         0.69
+  volume         0.1866
   send reverb    0.25
 
 patch "Sinking Bowl" family=melt note=60 range=48..84 role=melt
@@ -4997,13 +5058,13 @@ patch "Sinking Bowl" family=melt note=60 range=48..84 role=melt
   mac1_d1  #17
   mac1_a1  1
   mac1_d2  #14
-  mac1_a2  -0.186
+  mac1_a2  -0.0703
   mac2_d1  #1
   mac2_a1  0.4
   mac2_d2  #4
   mac2_a2  0.15
   mac2_d3  #14
-  mac2_a3  -0.107
+  mac2_a3  -0.0391
   mac3_d1  #4
   mac3_a1  -0.4
   mac3_d2  #1
@@ -5015,15 +5076,15 @@ patch "Sinking Bowl" family=melt note=60 range=48..84 role=melt
   mac5_d1  #6
   mac5_a1  0.4
   mac5_d2  #14
-  mac5_a2  -0.176
+  mac5_a2  -0.0625
   mac6_d1  #15
   mac6_a1  0.2
   mac6_d2  #14
-  mac6_a2  0.252
+  mac6_a2  0.0938
   mac7_d1  #11
   mac7_a1  0.5
   mac7_d2  #14
-  mac7_a2  -0.24
+  mac7_a2  -0.0879
   mac8_d1  #12
   mac8_a1  0.6
   model          #14
@@ -5033,6 +5094,6 @@ patch "Sinking Bowl" family=melt note=60 range=48..84 role=melt
   decay          0.8
   tube           0
   return         #1
-  volume         0.637
+  volume         0.2324
   send reverb    0.25
 

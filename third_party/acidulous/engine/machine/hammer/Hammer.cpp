@@ -163,7 +163,7 @@ const ParamDef *Hammer::paramDefs(int32_t &count) const {
         {"detail", 0.0f, 1.0f, 0.0f, Curve::Stepped, 2, ""},
         // 4, 6, 8, 10, 12, 16, 20, 24, 32 at most.
         {"voices", 0.0f, 8.0f, 6.0f, Curve::Stepped, 9, ""},
-        {"volume", 0.0f, 1.5f, 1.0f, Curve::Linear, 0, ""},
+        {"volume", 0.0f, 1.5f, 0.23f, Curve::Linear, 0, ""}, // 16 dB under the top
         {"pan", -1.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
         {"bendrange", 0.0f, 24.0f, 2.0f, Curve::Stepped, 25, ""},
         {"octave", -3.0f, 3.0f, 0.0f, Curve::Stepped, 7, ""},
@@ -1372,7 +1372,7 @@ bool Hammer::render(float *L, float *R, int32_t frames) {
         any = true;
     }
     board.setRoom(paramOf(Tail) / 0.5f, fullDetail());
-    const float volume = paramOf(Volume);
+    const float volume = paramOf(Volume) * kHouseTrim;
     const float pan = paramOf(Pan);
     const float gl = std::cos((pan + 1.0f) * 0.785398f) * 1.41421f, gr = std::sin((pan + 1.0f) * 0.785398f) * 1.41421f;
     // The board only while something's in it or it still rings: the

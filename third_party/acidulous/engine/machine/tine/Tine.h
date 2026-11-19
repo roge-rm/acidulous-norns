@@ -31,6 +31,8 @@ namespace acidulous::machine {
  */
 class Tine final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+5.9 dB). */
+    static constexpr float kHouseTrim = 1.962f;
     enum P : int32_t {
         Model = 0, Tune, Mallet, Position, Decay, Bright, Damp,
         Tube, Motor, Depth, Bloom, Buzz, Roll, Spread,

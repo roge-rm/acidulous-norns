@@ -78,7 +78,7 @@ const ParamDef kBase[Cumulus::MacroBase] = {
         {"lfo2cutoff", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
         {"lfo2pan", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
         {"drive", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
-        {"volume", 0.0f, 1.5f, 1.07f, Curve::Linear, 0, ""}, // puts Init at the standard level
+        {"volume", 0.0f, 1.5f, 0.23f, Curve::Linear, 0, ""}, // 16 dB under the top
         {"pan", -1.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
         {"glide", 0.0f, 2.0f, 0.0f, Curve::Linear, 0, "s"},
         {"bendrange", 0.0f, 24.0f, 2.0f, Curve::Stepped, 25, ""},
@@ -380,7 +380,7 @@ bool Cumulus::render(float *L, float *R, int32_t frames) {
         }
     }();
     const float driftCents = value(DstDrift), driftRate = paramOf(DriftRate);
-    const float drive = value(DstDrive), volume = value(DstAmp), pan = value(DstPan);
+    const float drive = value(DstDrive), volume = value(DstAmp) * kHouseTrim, pan = value(DstPan);
     const int32_t unison = std::clamp(steppedOf(Spread), 1, kUnison);
     const float unisonNorm = 1.0f / std::sqrt(static_cast<float>(unison));
 

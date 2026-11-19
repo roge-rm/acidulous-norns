@@ -26,6 +26,8 @@ namespace acidulous::machine {
  */
 class Fret final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+2.5 dB). */
+    static constexpr float kHouseTrim = 1.332f;
     enum P : int32_t {
         Model = 0, Tune, Pickup, Coil, Tone, Stroke, Hardness, Position,
         Mute, Sustain, Bright, Buzz, Harmonic,

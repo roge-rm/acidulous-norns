@@ -33,6 +33,8 @@ namespace acidulous::machine {
  */
 class Tongue final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+3.0 dB). */
+    static constexpr float kHouseTrim = 1.415f;
     enum P : int32_t {
         Model = 0, Tune, Set, Edge, Ring, Pluck, Overtones,
         Mouth, Focus, Depth, Glide,

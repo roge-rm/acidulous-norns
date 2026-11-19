@@ -36,10 +36,12 @@
 # expressions (the `e|` line is the formula module's text), Molt's ear
 # playing Hammer, and Draw's reed beside Timber's pipe.
 #
-# Levels: held and pattern patches sit at -24.5 dB on `loud`, the loudest
-# four hundred milliseconds. A pluck spends most of that window decaying, so
-# the plucks stop where their peak reaches -8 dBFS and sit lower. Drums are
-# levelled by their peaks. Gain past the top of volume is an Eq insert.
+# Levels: every patch sits at -27.5 on `loud`, within 1 dB, Init included.
+# Init gets there through the machine's house trim, with `volume` at its
+# default of 0.14, 17 dB under the top. The patches are levelled by `volume`,
+# never higher than 6 dB under the top; Patched String, Rotor String,
+# Listening and Morphing take the rest from the gain of their last insert;
+# Ring Metal, Knocked String and Euclid Hands from an Eq insert.
 
 machine Nexus
 
@@ -92,9 +94,7 @@ patch Subtractive family=lead
   s08_p2         0.35
   s08_p3         0.4
   s08_p4         1.0
-  volume         1.000
-  insert Eq
-    gain         1.3 dB
+  volume         0.2229
 
 patch "Width Walker" note=67 range=48..88 family=lead
   # A pulse whose width an LFO walks, through a four-pole filter. The
@@ -146,7 +146,7 @@ patch "Width Walker" note=67 range=48..88 family=lead
   s08_p2         0.35
   s08_p3         0.4
   s08_p4         1.0
-  volume         0.34
+  volume         0.08025
 
 patch "One Knob, Four Things" family=lead
   # The same macro into four places, each cable at its own depth - which is
@@ -199,7 +199,7 @@ patch "One Knob, Four Things" family=lead
   s11_p2         0.35
   s11_p3         0.4
   s11_p4         1.0
-  volume         0.57
+  volume         0.1186
 
 patch "Wired Lead" note=67 range=48..88 family=lead
   # Two saws through a filter, with vibrato, a wah, an echo and a breath of noise
@@ -251,7 +251,7 @@ patch "Wired Lead" note=67 range=48..88 family=lead
   s09_p4         1.0
   s11_p1         0.5
   s12_p2         0.64
-  volume         0.45
+  volume         0.1003
 
 patch "Frame Lead" note=67 range=48..88 family=lead
   # A wavetable whose frame an envelope sweeps on every note, a saw an
@@ -304,7 +304,7 @@ patch "Frame Lead" note=67 range=48..88 family=lead
   s09_p3         0.4
   s09_p4         1.0
   s10_p2         0.749
-  volume         0.65
+  volume         0.1306
 
 patch "Operator Lead" note=67 range=48..88 family=lead
   # Two operators patched by hand: the modulator a ratio of two, its
@@ -353,7 +353,7 @@ patch "Operator Lead" note=67 range=48..88 family=lead
   s09_p2         0.3
   s09_p3         0.4
   s09_p4         1.0
-  volume         0.32
+  volume         0.07297
 
 patch "Spinning Lead" note=67 range=48..88 family=lead
   # Two taps off the tonewheels, driven a little, into the rotating
@@ -404,7 +404,7 @@ patch "Spinning Lead" note=67 range=48..88 family=lead
   s10_p3         0.4
   s10_p4         1.0
   s12_p1         0.535
-  volume         1.00
+  volume         0.1672
 
 patch "Rosin Lead" note=67 range=48..88 family=lead
   # The string, bowed rather than plucked: an oscillator and a little
@@ -456,7 +456,7 @@ patch "Rosin Lead" note=67 range=48..88 family=lead
   s09_p4         0.576
   s10_p1         0.45
   s10_p5         1.0
-  volume         0.28
+  volume         0.0569
 
 patch "Saying Ah" note=67 range=48..84 family=lead
   # Two oscillators through Diction's throat. An envelope opens each
@@ -509,7 +509,7 @@ patch "Saying Ah" note=67 range=48..84 family=lead
   s10_p2         0.3
   s10_p3         0.4
   s10_p4         1.0
-  volume         0.64
+  volume         0.1494
 
 patch "Round Floor" note=40 range=28..64 family=bass
   # A sine with a triangle an octave up, softly filtered: the plainest
@@ -563,7 +563,7 @@ patch "Round Floor" note=40 range=28..64 family=bass
   s12_p2         0.555
   s12_p3         0.0
   s12_p4         0.45
-  volume         0.47
+  volume         0.09122
 
 patch "Macro Sweep" family=bass
   # What a macro is. The `macro` module has no knobs and eight outputs, each
@@ -608,7 +608,7 @@ patch "Macro Sweep" family=bass
   s09_p3         1.0
   s10_p1         0.3
   s10_p2         0.25
-  volume         0.41
+  volume         0.08053
 
 patch "Rubber Saw" note=40 range=28..64 family=bass
   # A saw and a square an octave down into a resonant four-pole
@@ -659,7 +659,7 @@ patch "Rubber Saw" note=40 range=28..64 family=bass
   s09_p3         0.4
   s09_p4         1.0
   s12_p2         0.596
-  volume         0.96
+  volume         0.2756
 
 patch "Wired Bass" note=40 range=28..64 family=bass
   # A saw and a pulse an octave down, with eight macros patched by hand. Each
@@ -710,7 +710,7 @@ patch "Wired Bass" note=40 range=28..64 family=bass
   s06_p4         0.3
   s08_p1         0.2
   s10_p1         1.0
-  volume         0.813
+  volume         0.1711
 
 patch "Drift Pair" note=40 range=28..64 family=bass
   # Two saws a little apart, so they beat, and a slow LFO leaning on
@@ -754,7 +754,7 @@ patch "Drift Pair" note=40 range=28..64 family=bass
   s09_p1         0.5
   s09_p3         1.0
   s10_p6         1.0
-  volume         0.44
+  volume         0.1113
 
 patch "Wheel Bass" note=40 range=28..64 family=bass
   # Tonewheel taps for a bass, with a click of noise at the key and a
@@ -806,7 +806,7 @@ patch "Wheel Bass" note=40 range=28..64 family=bass
   s12_p1         0.595
   s14_p1         0.722
   s14_p2         0.75
-  volume         1.00
+  volume         0.1919
 
 patch "Operator Bass" note=40 range=28..64 family=bass
   # FM for the low end: a modulator at the same ratio, its depth on a
@@ -852,7 +852,7 @@ patch "Operator Bass" note=40 range=28..64 family=bass
   s10_p1         0.5
   s10_p3         1.0
   s13_p2         0.1613
-  volume         0.52
+  volume         0.1021
 
 patch "Folded Floor" note=40 range=28..64 family=bass
   # The fold table, swept from its plain frame into its folded ones by
@@ -902,7 +902,7 @@ patch "Folded Floor" note=40 range=28..64 family=bass
   s08_p3         1.0
   s09_p2         0.577
   s11_p1         0.64
-  volume         1.00
+  volume         0.1919
 
 patch "Gut Bass" note=40 range=28..64 family=bass
   # The string, plucked low by a softened burst of noise, like a
@@ -960,7 +960,7 @@ patch "Gut Bass" note=40 range=28..64 family=bass
   s10_p3         0.4
   s10_p4         1.0
   s12_p1         0.47
-  volume         1.000
+  volume         0.3699
   insert Eq
     gain         2.8 dB
 
@@ -1008,7 +1008,7 @@ patch "Bass Vowels" note=40 range=28..64 family=bass
   s08_p3         1.0
   s09_p2         0.688
   s11_p1         0.89
-  volume         1.00
+  volume         0.2056
 
 patch "Slow Saws" note=60 range=36..84 family=pad
   # Two saws a little apart, a filter that opens over a second or so,
@@ -1055,7 +1055,7 @@ patch "Slow Saws" note=60 range=36..84 family=pad
   s09_p1         0.6
   s09_p5         1.0
   s10_p2         0.327
-  volume         0.33
+  volume         0.077
 
 patch "Breathing Pulse" note=60 range=36..84 family=pad
   # Two pulses whose widths two slow LFOs move at different rates, so
@@ -1104,7 +1104,7 @@ patch "Breathing Pulse" note=60 range=36..84 family=pad
   s10_p1         0.6
   s10_p5         1.0
   s13_p1         0.7
-  volume         0.32
+  volume         0.08478
 
 patch "Wired Pad" note=60 range=36..84 family=pad
   # A wavetable and a saw, slow to open, through a chorus and a reverb send.
@@ -1152,7 +1152,7 @@ patch "Wired Pad" note=60 range=36..84 family=pad
   s08_p2         0.36
   s10_p5         1.0
   s12_p1         0.5
-  volume         0.80
+  volume         0.2699
 
 patch "Wheel Haze" note=60 range=36..84 family=pad
   # Three tonewheel taps, swelling in slowly, through the cabinet with
@@ -1199,7 +1199,7 @@ patch "Wheel Haze" note=60 range=36..84 family=pad
   s09_p1         0.6
   s09_p5         1.0
   s12_p2         0.361
-  volume         0.32
+  volume         0.06731
 
 patch "Machine Choir" note=60 range=36..84 family=pad
   # Two copies of the choir table a little apart, each with its own
@@ -1252,7 +1252,7 @@ patch "Machine Choir" note=60 range=36..84 family=pad
   s10_p1         0.6
   s10_p5         1.0
   s13_p1         0.7
-  volume         0.40
+  volume         0.09442
 
 patch "Slow Phase" note=60 range=36..84 family=pad
   # Three saws, one an octave up, through the phaser and into a
@@ -1298,7 +1298,7 @@ patch "Slow Phase" note=60 range=36..84 family=pad
   s09_p1         0.6
   s09_p5         1.0
   s12_p2         0.3
-  volume         0.37
+  volume         0.08344
 
 patch "Glass Ops" note=60 range=36..84 family=pad
   # Two carriers, at one and two, under a modulator at four whose
@@ -1344,7 +1344,7 @@ patch "Glass Ops" note=60 range=36..84 family=pad
   s10_p1         0.6
   s10_p5         1.0
   s13_p2         0.41
-  volume         0.31
+  volume         0.07493
 
 patch "Bowed Wire" note=60 range=36..84 family=pad
   # Two strings, an octave apart, bowed by a soft noise for as long as
@@ -1399,7 +1399,7 @@ patch "Bowed Wire" note=60 range=36..84 family=pad
   s11_p1         0.6
   s11_p5         1.0
   s14_p2         0.361
-  volume         0.52
+  volume         0.1271
 
 patch "Upper Air" note=60 range=36..84 family=pad
   # The glass table and a triangle an octave up, slow to swell, into a
@@ -1445,7 +1445,7 @@ patch "Upper Air" note=60 range=36..84 family=pad
   s08_p5         1.0
   s08_p7         0.5
   s09_p2         0.278
-  volume         0.41
+  volume         0.1099
 
 patch "Slow Vowels" note=60 range=36..84 family=pad
   # Two saws through the throat, a random LFO walking the vowel, so
@@ -1489,7 +1489,7 @@ patch "Slow Vowels" note=60 range=36..84 family=pad
   s09_p1         0.6
   s09_p5         1.0
   s12_p2         0.289
-  volume         0.31
+  volume         0.08025
 
 patch "Cloud Saw" note=60 range=36..84 family=pad
   # Saws into a grain cloud that reads back over the last moments of
@@ -1540,7 +1540,7 @@ patch "Cloud Saw" note=60 range=36..84 family=pad
   s13_p1         0.12
   s13_p2         0.737
   s13_p6         0.2
-  volume         0.49
+  volume         0.1343
 
 patch "Shifted Sky" note=60 range=36..84 family=pad
   # Saws through the frequency shifter, a few hertz off and fed back,
@@ -1584,7 +1584,7 @@ patch "Shifted Sky" note=60 range=36..84 family=pad
   s08_p1         0.65
   s08_p5         1.0
   s09_p2         0.327
-  volume         0.35
+  volume         0.08854
 
 patch "Patched String" family=house
   # Filament's string, plucked by a burst of noise. No other modular has this
@@ -1628,9 +1628,9 @@ patch "Patched String" family=house
   s08_p5         1.0
   s09_p1         0.6
   s09_p3         1.0
-  volume         1.000
+  volume         0.4955
   insert Eq
-    gain         1.7 dB
+    gain         8.3 dB
 
 patch "Rotor String" family=house
   # And through Manual's cabinet, which is the other block nothing else can
@@ -1679,9 +1679,9 @@ patch "Rotor String" family=house
   s09_p5         1.0
   s10_p1         0.6
   s10_p3         1.0
-  volume         1.000
+  volume         0.4955
   insert Eq
-    gain         8.1 dB
+    gain         9.6 dB
 
 patch "Two Operators" family=house
   # Two operators and the rest of Ratio taken apart and patched by hand.
@@ -1723,7 +1723,7 @@ patch "Two Operators" family=house
   s09_p1         0.6
   s09_p3         1.0
   s10_p2         0.749
-  volume         0.87
+  volume         0.1895
 
 patch Tonewheels family=house
   # Manual's generator as a block. Ninety-one wheels turning, through a filter
@@ -1768,7 +1768,7 @@ patch Tonewheels family=house
   s09_p1         0.6
   s09_p3         1.0
   s10_p2         0.771
-  volume         0.39
+  volume         0.06983
 
 patch "Wavetable Drift" family=house
   # Trinity's wavetable bank, with an LFO walking through the frames. The
@@ -1815,7 +1815,7 @@ patch "Wavetable Drift" family=house
   s09_p5         1.0
   s10_p1         0.6
   s10_p3         1.0
-  volume         0.74
+  volume         0.2225
 
 patch "Motor Bars" note=65 range=55..84 family=house
   # Tine's vibraphone as a block, its motor turning, into a filter and a
@@ -1869,7 +1869,7 @@ patch "Motor Bars" note=65 range=55..84 family=house
   s08_p1         0.5
   s08_p3         1.0
   s10_p1         0.7568
-  volume         0.80
+  volume         0.3245
 
 patch "Free Reeds" family=house
   # Draw's accordion reed with a slow bellows attack, and a pipe an octave down.
@@ -1914,7 +1914,7 @@ patch "Free Reeds" family=house
   s08_p5         1.0
   s09_p1         0.6
   s09_p3         1.0
-  volume         1.000
+  volume         0.2104
   insert Eq
     gain         5.1 dB
 
@@ -1985,9 +1985,7 @@ patch "Patched Pipes" note=62 range=55..79 family=house
   s08_p2         0.771
   s09_p1         1.0
   s11_p1         1.0
-  volume         0.80
-  insert Eq
-    gain         1.2 dB
+  volume         0.2271
 
 patch "Horn in a Hall" family=house
   # Brazen's horn blown by an envelope, into the reverb.
@@ -2029,7 +2027,7 @@ patch "Horn in a Hall" family=house
   s06_p4         1.0
   s07_p1         0.6
   s07_p3         1.0
-  volume         1.000
+  volume         0.1986
   insert Eq
     gain         14.7 dB
 
@@ -2080,7 +2078,7 @@ patch "Bridge Sitar" note=55 range=43..79 family=house
   s06_p3         1.0
   s07_p2         0.604
   s09_p1         0.7385
-  volume         0.80
+  volume         0.2762
   insert Eq
     gain         3.5 dB
 
@@ -2126,7 +2124,7 @@ patch "Talking Harp" family=house
   s07_p5         1.0
   s08_p1         0.6
   s08_p3         1.0
-  volume         1.000
+  volume         0.2839
   insert Eq
     gain         12.5 dB
 
@@ -2172,7 +2170,7 @@ patch "Talk Box Guitar" family=house
   s07_p5         1.0
   s08_p1         0.6
   s08_p3         1.0
-  volume         1.000
+  volume         0.3148
   insert Eq
     gain         2.0 dB
 
@@ -2222,7 +2220,7 @@ patch "Whistled Tune" note=72 range=60..88 family=house
   s05_p1         1.0
   s06_p2         0.806
   s08_p1         0.5546
-  volume         0.80
+  volume         0.1571
 
 patch Talking family=house input=break
   # Cipher's band map as a block: what is plugged in shapes the oscillators.
@@ -2267,7 +2265,7 @@ patch Talking family=house input=break
   s10_p1         0.6
   s10_p3         1.0
   s11_p2         0.749
-  volume         1.000
+  volume         0.2774
   insert Eq
     gain         2.1 dB
 
@@ -2317,9 +2315,9 @@ patch Listening family=house input=break
   s06_p1         0.6
   s06_p3         1.0
   s07_p6         1.0
-  volume         1.000
+  volume         0.4955
   insert Eq
-    gain         3.0 dB
+    gain         4.3 dB
 
 patch "Sing to the Piano" family=house input=break
   # Hum into the phone and Hammer's piano follows your pitch.
@@ -2361,7 +2359,7 @@ patch "Sing to the Piano" family=house input=break
   s07_p1         0.6
   s07_p3         1.0
   s08_p6         1.0
-  volume         0.550
+  volume         0.1712
 
 patch "Wired Kick" note=36 range=24..48 family=percussion
   # A sine with an envelope dropping its pitch three octaves in forty
@@ -2422,9 +2420,7 @@ patch "Wired Kick" note=36 range=24..48 family=percussion
   s12_p1         0.85
   s12_p2         0.1458
   s14_p1         0.7217
-  volume         0.80
-  insert Eq
-    gain         0.8 dB
+  volume         0.2244
 
 patch "Wired Snare" note=48 range=36..60 family=percussion
   # A triangle with a little pitch drop for the head, and noise through a
@@ -2479,7 +2475,7 @@ patch "Wired Snare" note=48 range=36..60 family=percussion
   s12_p1         0.35
   s12_p5         1.0
   s14_p1         0.3793
-  volume         0.80
+  volume         0.3171
 
 patch "Wired Hat" note=60 range=48..72 family=percussion
   # Noise through a high pass on a very short envelope. Open brings in a
@@ -2538,7 +2534,7 @@ patch "Wired Hat" note=60 range=48..72 family=percussion
   s11_p3         0.6
   s11_p4         1.0
   s13_p1         0.4355
-  volume         0.80
+  volume         0.4955
 
 patch "Wired Clap" note=50 range=38..62 family=percussion
   # Noise through a band pass, chopped by an envelope that loops every
@@ -2601,7 +2597,7 @@ patch "Wired Clap" note=50 range=38..62 family=percussion
   s11_p1         0.6
   s11_p3         1.0
   s13_p1         1.0
-  volume         0.80
+  volume         0.4447
 
 patch "Key Toms" note=45 range=36..60 family=percussion
   # A sine tom with its pitch falling a fifth and a breath of noise on
@@ -2659,7 +2655,7 @@ patch "Key Toms" note=45 range=36..60 family=percussion
   s12_p3         0.0
   s12_p4         0.714
   s14_p1         0.5741
-  volume         0.80
+  volume         0.2271
 
 patch "Ring Metal" note=60 range=48..84 family=percussion
   # Two square waves a sixth apart through a band pass, on a quick
@@ -2716,7 +2712,9 @@ patch "Ring Metal" note=60 range=48..84 family=percussion
   s11_p1         0.5
   s11_p5         1.0
   s13_p1         0.3013
-  volume         0.80
+  volume         0.4955
+  insert Eq
+    gain         2.6 dB
 
 patch "Hand Drum" note=50 range=36..72 family=percussion
   # Palm's djembe as a block, the stroke chosen by how hard you play.
@@ -2765,7 +2763,7 @@ patch "Hand Drum" note=50 range=36..72 family=percussion
   s05_p3         1.0
   s06_p2         0.639
   s08_p1         0.6081
-  volume         0.80
+  volume         0.4498
 
 patch "Struck Bars" note=72 range=53..96 family=percussion
   # Tine's xylophone as a block, hard mallets, short and bright. The
@@ -2817,9 +2815,7 @@ patch "Struck Bars" note=72 range=53..96 family=percussion
   s07_p1         0.6
   s07_p3         1.0
   s09_p1         0.4768
-  volume         0.80
-  insert Eq
-    gain         1.9 dB
+  volume         0.2461
 
 patch "Knocked String" note=48 range=36..72 family=percussion
   # Filament's string knocked by a click of noise and damped almost at
@@ -2872,7 +2868,9 @@ patch "Knocked String" note=48 range=36..72 family=percussion
   s11_p1         0.6
   s11_p3         1.0
   s13_p1         0.6902
-  volume         0.80
+  volume         0.4955
+  insert Eq
+    gain         2.1 dB
 
 patch "Euclid Hands" family=percussion
   # Plays itself from the transport: a Euclidean five over sixteen strikes
@@ -2933,7 +2931,9 @@ patch "Euclid Hands" family=percussion
   s11_p1         0.75
   s11_p2         0.625
   s13_p1         0.4355
-  volume         0.80
+  volume         0.4955
+  insert Eq
+    gain         1.5 dB
 
 patch "Octave Climb" note=48 range=36..60 family=generative
   # Hold a key and it climbs in octaves, a sixteenth a step, four steps
@@ -2989,7 +2989,7 @@ patch "Octave Climb" note=48 range=36..60 family=generative
   s14_p1         0.6
   s14_p5         1.0
   s15_p1         0.3539
-  volume         0.80
+  volume         0.1664
 
 patch "Fifth Scatter" note=48 range=36..60 family=generative
   # Hold a key and a random step picks the root, the fifth, the ninth or
@@ -3045,7 +3045,7 @@ patch "Fifth Scatter" note=48 range=36..60 family=generative
   s14_p1         0.6
   s14_p5         1.0
   s15_p1         0.3881
-  volume         0.80
+  volume         0.1955
 
 patch "Euclid Bass" note=36 range=28..52 family=generative
   # Hold a key for a bass line: seven over sixteen gates it and three
@@ -3103,7 +3103,7 @@ patch "Euclid Bass" note=36 range=28..52 family=generative
   s13_p4         1.0
   s14_p1         0.45
   s14_p5         1.0
-  volume         1.000
+  volume         0.2334
   insert Eq
     gain         2.9 dB
 
@@ -3152,7 +3152,7 @@ patch "Sample and Hold" family=generative
   s11_p1         0.6
   s11_p3         1.0
   s12_p2         0.749
-  volume         0.62
+  volume         0.1929
 
 patch "Runs Itself" family=generative
   # A patch that plays itself: the transport drives a Euclidean pattern, the
@@ -3199,7 +3199,7 @@ patch "Runs Itself" family=generative
   s12_p2         0.749
   s13_p1         0.85
   s13_p2         0.25
-  volume         0.82
+  volume         0.2382
 
 patch "Pentatonic Walk" family=generative
   # Plays itself from the transport. A random note every eighth, eased
@@ -3259,7 +3259,7 @@ patch "Pentatonic Walk" family=generative
   s14_p1         0.6
   s14_p5         1.0
   s15_p1         0.1923
-  volume         0.80
+  volume         0.1867
 
 patch "Wandering Note" note=60 range=48..72 family=generative
   # Hold a key and the note wanders an octave up or down and back,
@@ -3316,7 +3316,7 @@ patch "Wandering Note" note=60 range=48..72 family=generative
   s14_p1         0.6
   s14_p5         1.0
   s15_p1         0.1734
-  volume         0.80
+  volume         0.1553
 
 patch "Euclid Bells" family=generative
   # Plays itself from the transport: Tine's glockenspiel as a block,
@@ -3378,7 +3378,7 @@ patch "Euclid Bells" family=generative
   s13_p4         1.0
   s14_p1         0.65
   s14_p5         1.0
-  volume         1.000
+  volume         0.2416
   insert Eq
     gain         2.0 dB
 
@@ -3439,7 +3439,7 @@ patch "Coin Toss Kit" family=generative
   s14_p1         0.4
   s14_p5         1.0
   s15_p1         0.5
-  volume         0.80
+  volume         0.1608
 
 patch "Drum Echoes" family=generative
   # Palm's tabla, struck by each note, into a delay that feeds back.
@@ -3480,7 +3480,7 @@ patch "Drum Echoes" family=generative
   s08_p2         0.45
   s08_p3         0.35
   s08_p4         1.0
-  volume         1.000
+  volume         0.2938
   insert Eq
     gain         3.7 dB
 
@@ -3533,9 +3533,7 @@ patch "Gate Logic" note=60 range=48..72 family=generative
   s13_p4         1.0
   s14_p1         0.6
   s14_p5         1.0
-  volume         1.000
-  insert Eq
-    gain         0.3 dB
+  volume         0.2416
 
 patch "Counting Song" family=generative
   # Plays itself from the transport. A formula counts in fives round
@@ -3599,7 +3597,7 @@ patch "Counting Song" family=generative
   s14_p1         0.6
   s14_p5         1.0
   s15_p1         0.2109
-  volume         0.80
+  volume         0.1762
 
 patch "Note Rain" family=generative
   # Plays itself from the transport. On a third of the thirty-seconds a
@@ -3654,7 +3652,7 @@ patch "Note Rain" family=generative
   s12_p2         0.4
   s12_p3         0.4
   s12_p4         1.0
-  volume         0.847
+  volume         0.2546
 
 patch Bytebeat family=generative
   # A formula as an oscillator at the note's pitch, through the bitcrusher.
@@ -3699,9 +3697,7 @@ patch Bytebeat family=generative
   s10_p1         0.85
   s10_p2         0.25
   s11_p2         0.771
-  volume         1.000
-  insert Eq
-    gain         2.4 dB
+  volume         0.2711
 
 patch "Saw to Square" note=60 range=36..84 family=morph
   # A saw at A, a square whose width wanders at B, through one filter:
@@ -3762,7 +3758,7 @@ patch "Saw to Square" note=60 range=36..84 family=morph
   s12_p1         0.6
   s12_p5         1.0
   s13_p1         0.3539
-  volume         0.80
+  volume         0.1626
 
 patch "Still to Wobble" note=40 range=28..64 family=morph
   # A saw bass, still at A. Towards B an LFO on the eighths opens the
@@ -3825,7 +3821,7 @@ patch "Still to Wobble" note=40 range=28..64 family=morph
   s12_p1         0.0
   s12_p3         0.6
   s13_p1         0.3539
-  volume         0.80
+  volume         0.1553
 
 patch "Slow to Snappy" note=60 range=36..84 family=morph
   # Two envelopes on one VCA: a slow swell at A, a short pluck with the
@@ -3888,7 +3884,7 @@ patch "Slow to Snappy" note=60 range=36..84 family=morph
   s11_p1         0.65
   s11_p5         1.0
   s12_p1         0.1794
-  volume         0.80
+  volume         0.2095
 
 patch "Pure to Bell" note=72 range=48..96 family=morph
   # Two operators. At A the modulator barely touches the carrier and it is
@@ -3945,7 +3941,7 @@ patch "Pure to Bell" note=72 range=48..96 family=morph
   s12_p1         0.65
   s12_p5         1.0
   s13_p1         0.2877
-  volume         0.80
+  volume         0.2826
 
 patch "Pluck to Bow" note=48 range=36..72 family=morph
   # Filament's string with two ways in: a click of noise plucks it at A,
@@ -4007,7 +4003,7 @@ patch "Pluck to Bow" note=48 range=36..72 family=morph
   s11_p4         1.0
   s12_p1         0.55
   s12_p5         1.0
-  volume         1.000
+  volume         0.4932
   insert Eq
     gain         9.6 dB
 
@@ -4058,9 +4054,9 @@ patch Morphing family=morph
   s09_p5         1.0
   s10_p1         0.6
   s10_p3         1.0
-  volume         1.000
+  volume         0.4955
   insert Eq
-    gain         7.9 dB
+    gain         9.2 dB
 
 patch "Ah to Oo" note=57 range=45..64 family=morph
   # A saw and a pulse sung through Diction's throat. A->B moves the mouth
@@ -4119,7 +4115,7 @@ patch "Ah to Oo" note=57 range=45..64 family=morph
   s11_p1         0.6
   s11_p5         1.0
   s12_p1         0.2339
-  volume         0.80
+  volume         0.1645
 
 patch "Clean to Crushed" note=67 range=48..88 family=morph
   # A pulse lead, clean at A. Towards B it goes through the bitcrusher
@@ -4180,7 +4176,7 @@ patch "Clean to Crushed" note=67 range=48..88 family=morph
   s11_p1         0.6
   s11_p5         1.0
   s12_p1         0.2061
-  volume         0.80
+  volume         0.1607
 
 patch "Unison to Fifths" note=48 range=36..72 family=morph
   # Three saws. At A they are one note, spread a little; at B the second
@@ -4236,7 +4232,7 @@ patch "Unison to Fifths" note=48 range=36..72 family=morph
   s12_p1         0.6
   s12_p5         1.0
   s13_p1         0.151
-  volume         0.80
+  volume         0.2297
 
 patch "Struck to Blown" note=60 range=55..79 family=morph
   # Tine's marimba as a block at A and Timber's pipe blown at B, from the
@@ -4291,7 +4287,7 @@ patch "Struck to Blown" note=60 range=55..79 family=morph
   s08_p4         1.0
   s09_p1         0.55
   s09_p5         1.0
-  volume         1.000
+  volume         0.3297
   insert Eq
     gain         7.6 dB
 
@@ -4337,7 +4333,7 @@ patch "Wall Pad" family=texture
   s10_p1         0.6
   s10_p3         1.0
   s11_p2         0.749
-  volume         0.560
+  volume         0.1099
 
 patch "Two Saw Drone" note=36 range=24..48 family=texture
   # Two saws a few cents apart over a sine an octave down, through a
@@ -4395,7 +4391,7 @@ patch "Two Saw Drone" note=36 range=24..48 family=texture
   s12_p1         0.7
   s12_p5         1.0
   s13_p1         0.2421
-  volume         0.80
+  volume         0.1977
 
 patch "Organ Hum" note=48 range=36..72 family=texture
   # Manual's wheels at the note, the octave and the twelfth, into the
@@ -4449,7 +4445,7 @@ patch "Organ Hum" note=48 range=36..72 family=texture
   s12_p1         0.65
   s12_p5         1.0
   s13_p1         0.1794
-  volume         0.80
+  volume         0.1589
 
 patch "Filtered Wind" note=60 range=36..84 family=texture
   # Pink noise through two narrow band-passes that follow the key, a
@@ -4514,7 +4510,7 @@ patch "Filtered Wind" note=60 range=36..84 family=texture
   s09_p4         1.0
   s10_p1         0.7
   s10_p5         1.0
-  volume         1.000
+  volume         0.2255
   insert Eq
     gain         7.8 dB
 
@@ -4558,7 +4554,7 @@ patch "Sitar Hall" family=texture
   s06_p1         0.6
   s06_p3         1.0
   s07_p6         1.0
-  volume         0.90
+  volume         0.3918
 
 patch "Shimmer Cloud" note=60 range=36..72 family=texture
   # A triangle and a sine an octave up into a reverb with its shimmer
@@ -4618,7 +4614,7 @@ patch "Shimmer Cloud" note=60 range=36..72 family=texture
   s11_p3         0.4
   s11_p4         1.0
   s12_p1         0.1145
-  volume         0.80
+  volume         0.1846
 
 patch "Grain Haze" note=60 range=36..84 family=texture
   # Saws into a grain cloud that reads back from the last two seconds,
@@ -4682,7 +4678,7 @@ patch "Grain Haze" note=60 range=36..84 family=texture
   s11_p3         0.4
   s11_p4         1.0
   s12_p1         0.2594
-  volume         0.80
+  volume         0.2024
 
 patch "Noise String" note=48 range=36..72 family=texture
   # A string that is never let go: a thin stream of noise keeps it
@@ -4736,7 +4732,7 @@ patch "Noise String" note=48 range=36..72 family=texture
   s09_p4         1.0
   s10_p1         0.7
   s10_p5         1.0
-  volume         1.000
+  volume         0.2774
   insert Eq
     gain         3.3 dB
 
@@ -4788,7 +4784,7 @@ patch "Feeding Back" family=texture
   c03_b          0.5000
   c04_a          0.3500
   c04_b          0.3500
-  volume         0.548
+  volume         0.1076
 
 patch "Rain in the Yard" note=48 range=36..60 family=texture
   # Fathom's rain as a block, falling while a key is held, with a low
@@ -4839,9 +4835,7 @@ patch "Rain in the Yard" note=48 range=36..60 family=texture
   s10_p4         1.0
   s11_p1         0.5
   s11_p5         1.0
-  volume         1.000
-  insert Eq
-    gain         7.9 dB
+  volume         0.2742
 
 patch "Birds by the Brook" family=texture
   # Aviary's warbling birds over Fathom's stream, both from the same key.
@@ -4884,7 +4878,7 @@ patch "Birds by the Brook" family=texture
   s08_p1         0.6
   s08_p3         1.0
   s09_p6         1.0
-  volume         1.000
+  volume         0.2938
   insert Eq
     gain         5.8 dB
 
@@ -4943,7 +4937,7 @@ patch "Night Pond" note=48 range=36..60 family=texture
   s13_p4         1.0
   s14_p1         0.6
   s14_p5         1.0
-  volume         1.000
+  volume         0.3742
   insert Eq
     gain         4.1 dB
 
@@ -5000,7 +4994,7 @@ patch "Chance Birds" family=texture
   s11_p2         0.35
   s11_p3         0.4
   s11_p4         1.0
-  volume         1.000
+  volume         0.1374
   insert Eq
     gain         12.1 dB
 
@@ -5056,6 +5050,6 @@ patch "Tuning Dial" note=48 range=36..72 family=texture
   s12_p4         1.0
   s13_p1         0.5
   s13_p5         1.0
-  volume         1.000
+  volume         0.2255
   insert Eq
     gain         3.5 dB

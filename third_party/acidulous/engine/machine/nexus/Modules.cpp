@@ -1,5 +1,13 @@
 #include "Modules.h"
 #include "Instruments.h"
+#include <engine/machine/aviary/Aviary.h>
+#include <engine/machine/chanter/Chanter.h>
+#include <engine/machine/fathom/Fathom.h>
+#include <engine/machine/fret/Fret.h>
+#include <engine/machine/hammer/Hammer.h>
+#include <engine/machine/palm/Palm.h>
+#include <engine/machine/sympath/Sympath.h>
+#include <engine/machine/tine/Tine.h>
 
 // The module table. The engine publishes it to the UI, so the editor's
 // labels, jack names and module defaults all come from here, with no second
@@ -101,6 +109,10 @@ void MachineMod::prepare(float sr, int32_t) {
     host->prepare(static_cast<int32_t>(sr));
     const ModuleInfo &info = infoFor(type);
     for (int i = 0; i < kKnobs; ++i) param[i] = info.knob[i] != nullptr ? host->params().indexOf(info.knob[i]) : -1;
+    // The host plays at its default volume, with its house trim after it.
+    const int32_t vol = host->params().indexOf("volume");
+    const float hostVolume = vol >= 0 ? host->params().def(vol).def : 1.0f;
+    gain = hostVolume > 0.0f ? level / hostVolume : 1.0f;
     reset();
 }
 
@@ -148,17 +160,19 @@ Module *makeModule(int32_t type) {
     case TPipe: return new PipeMod();
     case TReed: return new ReedMod();
     case TJaw: return new JawMod();
-    case TPiano: return new MachineMod(type, "Hammer");
+    // The blocks play at the level their patches were voiced at: the
+    // machine's volume at 0.7 (Hammer's at 1) without its house trim.
+    case TPiano: return new MachineMod(type, "Hammer", 1.0f / Hammer::kHouseTrim);
     case TThroat: return new ThroatMod();
     case TFormula: return new FormulaMod();
     case TFollow: return new FollowMod();
-    case TGuitar: return new MachineMod(type, "Fret");
-    case TMallets: return new MachineMod(type, "Tine");
-    case TSitar: return new MachineMod(type, "Sympath");
-    case TDrum: return new MachineMod(type, "Palm");
-    case TPipes: return new MachineMod(type, "Chanter");
-    case TBird: return new MachineMod(type, "Aviary");
-    case TWater: return new MachineMod(type, "Fathom");
+    case TGuitar: return new MachineMod(type, "Fret", 0.7f / Fret::kHouseTrim);
+    case TMallets: return new MachineMod(type, "Tine", 0.7f / Tine::kHouseTrim);
+    case TSitar: return new MachineMod(type, "Sympath", 0.7f / Sympath::kHouseTrim);
+    case TDrum: return new MachineMod(type, "Palm", 0.7f / Palm::kHouseTrim);
+    case TPipes: return new MachineMod(type, "Chanter", 0.7f / Chanter::kHouseTrim);
+    case TBird: return new MachineMod(type, "Aviary", 0.7f / Aviary::kHouseTrim);
+    case TWater: return new MachineMod(type, "Fathom", 0.7f / Fathom::kHouseTrim);
     default: return new BlankMod();
     }
 }

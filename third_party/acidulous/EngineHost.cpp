@@ -7,6 +7,7 @@
 #include <engine/machine/diction/RecordedVoice.h>
 #include <engine/machine/diction/Phones.h>
 #include <engine/machine/molt/Molt.h>
+#include <engine/machine/abacus/Borrow.h>
 #include <engine/core/Settings.h>
 #include <engine/machine/nexus/Nexus.h>
 
@@ -2513,6 +2514,40 @@ std::string EngineHost::loadUtterance(int rack, const std::string &path) {
     return mountUtterance(*this, rack, std::move(utterance));
 }
 
+std::string EngineHost::loadBorrowFile(int rack, const std::string &path) {
+    using machine::abacus::Spectra;
+    if (rack < 0 || rack >= kRackCount) return "no such rack";
+    if (awaitMachine(sEngine, rack, "Abacus") == nullptr) return "that rack is not an Abacus";
+    Mount mount;
+    mount.kind = Mount::Kind::Object;
+    mount.machineType = "Abacus";
+    mount.rack = rack;
+    mount.slot = 0;
+    mount.object = nullptr;
+    mount.deleter = deleteAs<Spectra>;
+    if (!path.empty()) {
+        std::string error;
+        auto data = WavReader::read(path, kSampleRate, error);
+        if (!data) return error.empty() ? "that file couldn't be read" : error;
+        // Only what's analysed is summed, and the decoded file goes as soon as it's done.
+        const auto frames = static_cast<int32_t>(
+            std::min<double>(data->frames, std::floor(machine::abacus::kFileSeconds * kSampleRate)));
+        std::vector<float> mono(static_cast<size_t>(frames));
+        for (int32_t i = 0; i < frames; ++i) {
+            const auto at = static_cast<size_t>(i);
+            mono[at] = data->stereo ? 0.5f * (data->left[at] + data->right[at]) : data->left[at];
+        }
+        data.reset();
+        // A few hundred ms for a minute of sound, so never on the audio thread.
+        auto spectra = Spectra::analyse(mono.data(), frames, static_cast<float>(kSampleRate));
+        spectra->name = path.substr(path.find_last_of('/') + 1);
+        LOGI("abacus borrow on rack %d: '%s', %zu frames (%.2f s)", rack, spectra->name.c_str(), spectra->frames.size(),
+             static_cast<double>(spectra->seconds));
+        mount.object = spectra.release();
+    }
+    // Handed over before the mount: on failure the retry deletes it.
+    return mountObjectWithRetry(mount) ? "" : "mount queue full";
+}
 
 std::string EngineHost::loadVoice(int rack, int slot, const std::string &spec) {
     if (rack < 0 || rack >= kRackCount) return "no such rack";

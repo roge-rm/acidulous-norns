@@ -17,12 +17,11 @@
 # leaves a second and a half between strikes, puts two together so two tails
 # beat, and leaves the last one ringing on its own.
 #
-# Levelled to the house figure on the loudness column, the same as every
-# other machine in the app. Part of that came out of the machine's own output
-# (`kHouse` in Ratio.cpp) so Init lands there too. A few patches sit one to
-# six decibels under and they are either a single operator with nothing
-# modulating it or a strike short enough that four hundred milliseconds of it
-# is mostly silence.
+# Every patch sits at -27.5 on `loud`, within 1 dB, Init included. Init gets
+# there through the machine's house trim, with `volume` at its default of
+# 0.14, 17 dB under the top. The patches are levelled by `volume`, never
+# higher than 6 dB under the top; Squelch, Chip Lead, Zap and Radio take the
+# rest from the gain of their last insert; Tin Can from an Eq insert.
 #
 # A ratio is a multiplier on the note, so a carrier's is almost always one and
 # everything interesting happens in the operators feeding it. A carrier at
@@ -90,10 +89,10 @@ patch "Soft Keys" family=keys  note=60 range=36..84 role=keys
   o6_level       0.00
   f_type         #2
   f_freq         3000 Hz
-  volume         1.000
+  volume         0.1812
   m01_src        #1
   m01_dest       #19
-  m01_depth      0.175
+  m01_depth      0.03171
   # Morph goes to one chain, so the partials modulate each other.
   algob          #0
 
@@ -150,7 +149,7 @@ patch "Mellow Keys" family=keys  note=60 range=36..84 role=keys
   f_type         #1
   f_freq         2500 Hz
   f_key          0.5
-  volume         0.87
+  volume         0.1182
   insert Chorus
     voices       #1
     rate         #14
@@ -211,7 +210,7 @@ patch "Stage Keys" family=keys  note=60 range=36..84 role=keys
   o4_sustain     0.0
   o5_level       0
   o6_level       0
-  volume         0.72
+  volume         0.1217
   # Morph goes to every operator into the first.
   algob          #14
 
@@ -230,7 +229,7 @@ patch "Bell Piano" family=keys  note=60 range=36..84 role=keys
   mac1_d2  #7
   mac1_a2  0.3
   mac1_d3  #19
-  mac1_a3  -0.1
+  mac1_a3  -0.0203
   mac2_d1  #11
   mac2_a1  0.1
   mac3_d1  #5
@@ -261,7 +260,7 @@ patch "Bell Piano" family=keys  note=60 range=36..84 role=keys
   o4_level       0.35
   o4_ratio       3
   o4_sustain     0
-  volume         0.76
+  volume         0.1425
 
 patch "Wide Keys" family=keys  note=60 range=36..84 role=keys
   set macro1 "Bright"
@@ -326,7 +325,7 @@ patch "Wide Keys" family=keys  note=60 range=36..84 role=keys
   o6_level       0.2
   o6_decay       0.6 s
   o6_sustain     0
-  volume         0.76
+  volume         0.1159
   insert Chorus
     voices       #1
     rate         #14
@@ -363,7 +362,7 @@ patch Upright family=keys  note=60 range=36..84 role=keys
   mac7_d1  #2
   mac7_a1  0.5
   mac7_d2  #19
-  mac7_a2  -0.265
+  mac7_a2  -0.04204
   mac8_d1  #7
   mac8_a1  0.3
   # A piano from three pairs, the brightness falling away faster than the
@@ -402,7 +401,7 @@ patch Upright family=keys  note=60 range=36..84 role=keys
   o6_level       0.15
   o6_decay       0.03 s
   o6_sustain     0
-  volume         0.86
+  volume         0.1389
   send reverb    0.15
 
 patch "Reed Keys" family=keys  note=60 range=36..84 role=keys
@@ -456,7 +455,7 @@ patch "Reed Keys" family=keys  note=60 range=36..84 role=keys
   o4_sustain     0.0
   o5_level       0
   o6_level       0
-  volume         0.77
+  volume         0.1379
   # Morph goes to every operator into the first.
   algob          #14
 
@@ -512,7 +511,7 @@ patch "Tremolo Keys" family=keys  note=60 range=36..84 role=keys
   o4_decay       0.3 s
   o4_sustain     0
   o4_vel         0.9
-  volume         0.8
+  volume         0.1417
   insert Tremolo
     rate         #8
     depth        0.35
@@ -571,7 +570,7 @@ patch "Thump Keys" family=keys  note=60 range=36..84 role=keys
   o6_sustain     0.0
   o4_level       0
   o5_level       0
-  volume         0.63
+  volume         0.1128
   # Morph goes to one chain.
   algob          #0
 
@@ -624,10 +623,10 @@ patch "Funk Keys" family=keys  note=60 range=36..84 role=keys
   f_type         #2
   f_freq         4000 Hz
   f_key          0.6
-  volume         1.000
+  volume         0.1653
   m01_src        #1
   m01_dest       #19
-  m01_depth      0.318
+  m01_depth      0.05257
   # Morph goes to three pairs, so the feedback operator is heard.
   algob          #6
 
@@ -684,7 +683,7 @@ patch "Pulse Keys" family=keys  note=60 range=36..84 role=keys
   f_decay        0.25 s
   f_sustain      0.1
   f_key          0.5
-  volume         0.62
+  volume         0.08719
   insert Phaser
     stages       #1
     rate         #14
@@ -752,7 +751,7 @@ patch Harpsichord family=keys  note=60 range=36..84 role=keys
   o6_level       0.2
   o6_decay       0.1 s
   o6_sustain     0
-  volume         0.8
+  volume         0.1277
   send reverb    0.12
 
 patch Vibes family=keys  note=60 range=36..84 role=keys
@@ -804,7 +803,7 @@ patch Vibes family=keys  note=60 range=36..84 role=keys
   o4_level       0.1
   o4_decay       0.08 s
   o4_sustain     0
-  volume         0.72
+  volume         0.119
   insert Tremolo
     rate         #8
     depth        0.25
@@ -838,7 +837,7 @@ patch Celesta family=keys  note=72 range=60..96 role=keys
   mac7_d1  #2
   mac7_a1  0.5
   mac7_d2  #19
-  mac7_a2  -0.291
+  mac7_a2  -0.04612
   mac8_d1  #11
   mac8_a1  0.08
   # Small struck plates over a box: nearly a sine, an octave under it that
@@ -864,7 +863,7 @@ patch Celesta family=keys  note=72 range=60..96 role=keys
   o4_level       0.1
   o4_decay       0.3 s
   o4_sustain     0
-  volume         0.877
+  volume         0.1368
   send reverb    0.15
 
 patch "Glass Keys" family=keys  note=60 range=36..84 role=keys
@@ -916,7 +915,7 @@ patch "Glass Keys" family=keys  note=60 range=36..84 role=keys
   o4_sustain     0.0
   o5_level       0
   o6_level       0
-  volume         0.76
+  volume         0.1393
   # Morph goes to every operator into the first.
   algob          #14
 
@@ -983,7 +982,7 @@ patch "Morph Keys" family=keys  note=60 range=36..84 role=keys
   o6_level       0.2
   o6_decay       0.5 s
   o6_sustain     0
-  volume         0.54
+  volume         0.09453
   send reverb    0.12
 
 patch "Phase Keys" family=keys  note=60 range=36..84 role=keys
@@ -1040,7 +1039,7 @@ patch "Phase Keys" family=keys  note=60 range=36..84 role=keys
   f_decay        0.4 s
   f_sustain      0.2
   f_key          0.5
-  volume         0.95
+  volume         0.1742
   send reverb    0.12
 
 patch "Ring Keys" family=keys  note=60 range=36..84 role=keys
@@ -1060,7 +1059,7 @@ patch "Ring Keys" family=keys  note=60 range=36..84 role=keys
   mac3_d1  #5
   mac3_a1  -0.4
   mac3_d2  #19
-  mac3_a2  0.55
+  mac3_a2  0.102
   mac4_d1  #17
   mac4_a1  -0.5
   mac5_d1  #6
@@ -1094,7 +1093,7 @@ patch "Ring Keys" family=keys  note=60 range=36..84 role=keys
   o4_level       0.15
   o4_decay       0.3 s
   o4_sustain     0
-  volume         0.97
+  volume         0.1659
   send reverb    0.15
 
 patch "Toy Box" family=keys  note=60 range=36..84 role=keys
@@ -1116,7 +1115,7 @@ patch "Toy Box" family=keys  note=60 range=36..84 role=keys
   mac4_d1  #17
   mac4_a1  -0.35
   mac4_d2  #19
-  mac4_a2  0.417
+  mac4_a2  0.0829
   mac5_d1  #16
   mac5_a1  0.3
   mac6_d1  #3
@@ -1144,7 +1143,7 @@ patch "Toy Box" family=keys  note=60 range=36..84 role=keys
   o4_level       0.00
   o5_level       0.00
   o6_level       0.00
-  volume         0.84
+  volume         0.1539
   # Morph goes to every operator into the first.
   algob          #14
 
@@ -1175,7 +1174,7 @@ patch "Deep Sine" family=bass  note=36 range=24..55 role=bass
   mac8_d1  #4
   mac8_a1  -0.4
   mac8_d2  #19
-  mac8_a2  0.738
+  mac8_a2  0.1995
   # One carrier, one modulator at the octave, and almost nothing else. The
   # bass that does not fight anything.
   algoa          #6
@@ -1191,7 +1190,7 @@ patch "Deep Sine" family=bass  note=36 range=24..55 role=bass
   o4_level       0
   o5_level       0
   o6_level       0
-  volume         1.00
+  volume         0.2774
   # Morph goes to all six heard, the modulator an octave up.
   algob          #22
 
@@ -1248,7 +1247,7 @@ patch "Finger Bass" family=bass  note=36 range=24..55 role=bass
   f_freq         1400 Hz
   f_key          0.4
   voicemode      #1
-  volume         1.00
+  volume         0.3007
 
 patch Slap family=bass  note=36 range=24..55 role=bass
   set macro1 "Bright"
@@ -1295,10 +1294,10 @@ patch Slap family=bass  note=36 range=24..55 role=bass
   o4_level       0
   o5_level       0
   o6_level       0
-  volume         1.000
+  volume         0.2416
   m01_src        #1
   m01_dest       #19
-  m01_depth      0.148
+  m01_depth      0.03576
   # Morph goes to every operator into the first.
   algob          #14
 
@@ -1351,10 +1350,10 @@ patch "Pluck Bass FM" family=bass  note=36 range=24..55 role=bass
   f_env          0.6
   f_decay        0.15 s
   f_sustain      0.0
-  volume         1.000
+  volume         0.2281
   m01_src        #1
   m01_dest       #19
-  m01_depth      0.585
+  m01_depth      0.1334
   # Morph goes to three pairs.
   algob          #6
 
@@ -1407,7 +1406,7 @@ patch "Pulse Bass" family=bass  note=36 range=24..55 role=bass
   f_sustain      0.2
   f_key          0.3
   voicemode      #1
-  volume         0.9
+  volume         0.244
 
 patch Fretless family=bass  note=36 range=24..55 role=bass
   set macro1 "Mwah"
@@ -1463,7 +1462,7 @@ patch Fretless family=bass  note=36 range=24..55 role=bass
   f_type         #1
   f_freq         1800 Hz
   f_key          0.3
-  volume         0.9
+  volume         0.2615
 
 patch "Wide Bass FM" family=bass  note=36 range=24..55 role=bass
   set macro1 "Bright"
@@ -1496,7 +1495,7 @@ patch "Wide Bass FM" family=bass  note=36 range=24..55 role=bass
   mac8_d1  #2
   mac8_a1  0.5
   mac8_d2  #19
-  mac8_a2  0.421
+  mac8_a2  0.125
   # Two carriers a few cents apart panned hard, which on a bass is usually
   # a mistake and here is not, because the filter keeps the beating under
   # the note.
@@ -1531,7 +1530,7 @@ patch "Wide Bass FM" family=bass  note=36 range=24..55 role=bass
   o6_level       0
   f_type         #3
   f_freq         1500 Hz
-  volume         0.72
+  volume         0.1975
   # Morph goes to every operator into the first.
   algob          #14
 
@@ -1587,7 +1586,7 @@ patch "Hollow Bass" family=bass  note=36 range=24..55 role=bass
   f_freq         1500 Hz
   f_key          0.3
   voicemode      #1
-  volume         0.84
+  volume         0.2706
 
 # Starts at 30: below that the fixed modulator is *above* the note and its
 # sidebands stop being harmonics of anything, which reads a hundred cents
@@ -1648,10 +1647,10 @@ patch "Sub Drop FM" family=bass  note=36 range=30..55 role=bass
   o6_level       0
   f_type         #3
   f_freq         600 Hz
-  volume         1.000
+  volume         0.2649
   m01_src        #1
   m01_dest       #19
-  m01_depth      0.778
+  m01_depth      0.2061
 
 patch "Growl FM" family=bass  note=36 range=24..55 role=bass
   set macro1 "Growl"
@@ -1710,10 +1709,10 @@ patch "Growl FM" family=bass  note=36 range=24..55 role=bass
   f_type         #3
   f_freq         1600 Hz
   f_res          0.2
-  volume         1.000
+  volume         0.2619
   m01_src        #1
   m01_dest       #19
-  m01_depth      0.303
+  m01_depth      0.07936
 
   # Morph goes to every operator into the first.
   algob          #14
@@ -1772,12 +1771,12 @@ patch Squelch family=bass  note=36 range=24..55 role=bass
   m01_src        #4
   m01_dest       #17
   m01_depth      0.2
-  volume         0.96
+  volume         0.2637
   insert Distortion
     drive        6
     tone         5000 Hz
     mix          0.6
-    gain         -3.5 dB
+    gain         -4.3 dB
 
 patch "Grit Bass" family=bass  note=36 range=24..55 role=bass
   set macro1 "Grit"
@@ -1792,7 +1791,7 @@ patch "Grit Bass" family=bass  note=36 range=24..55 role=bass
   mac1_d1  #5
   mac1_a1  0.3
   mac1_d2  #19
-  mac1_a2  -0.1
+  mac1_a2  -0.0277
   mac2_d1  #17
   mac2_a1  0.3
   mac3_d1  #17
@@ -1825,7 +1824,7 @@ patch "Grit Bass" family=bass  note=36 range=24..55 role=bass
   o3_level       0.4
   o3_mode        #7
   voicemode      #1
-  volume         0.95
+  volume         0.2432
 
 patch "Sync Bass" family=bass  note=36 range=24..55 role=bass
   set macro1 "Sync"
@@ -1881,7 +1880,7 @@ patch "Sync Bass" family=bass  note=36 range=24..55 role=bass
   f_freq         2500 Hz
   f_key          0.3
   voicemode      #1
-  volume         1.00
+  volume         0.2872
 
 patch "Fold Bass" family=bass  note=36 range=24..55 role=bass
   set macro1 "Fold"
@@ -1935,7 +1934,7 @@ patch "Fold Bass" family=bass  note=36 range=24..55 role=bass
   f_type         #3
   f_freq         3000 Hz
   voicemode      #1
-  volume         0.78
+  volume         0.2602
 
 patch "Metal Bass" family=bass  note=36 range=24..55 role=bass
   set macro1 "Metal"
@@ -1982,7 +1981,7 @@ patch "Metal Bass" family=bass  note=36 range=24..55 role=bass
   o5_level       0
   o6_level       0
   snap           #0
-  volume         1.00
+  volume         0.2711
   # Morph goes to every operator into the first.
   algob          #14
 
@@ -2045,7 +2044,7 @@ patch "Morph Bass" family=bass  note=36 range=24..55 role=bass
   f_type         #3
   f_freq         2000 Hz
   voicemode      #1
-  volume         0.85
+  volume         0.2358
 
 patch Wobble family=bass  note=36 range=24..55 role=bass
   set macro1 "Speed"
@@ -2102,7 +2101,7 @@ patch Wobble family=bass  note=36 range=24..55 role=bass
   f_type         #3
   f_freq         600 Hz
   f_res          0.45
-  volume         0.98
+  volume         0.2948
 
 patch "Crunch Bass" family=bass  note=36 range=24..55 role=bass
   set macro1 "Crush"
@@ -2154,7 +2153,7 @@ patch "Crunch Bass" family=bass  note=36 range=24..55 role=bass
   f_type         #3
   f_freq         2500 Hz
   voicemode      #1
-  volume         0.94
+  volume         0.2434
 
 patch "Whistle FM" family=lead  note=67 range=48..91 role=lead
   set macro1 "Edge"
@@ -2179,7 +2178,7 @@ patch "Whistle FM" family=lead  note=67 range=48..91 role=lead
   mac6_d1  #4
   mac6_a1  -0.4
   mac6_d2  #19
-  mac6_a2  0.816
+  mac6_a2  0.207
   mac7_d1  #3
   mac7_a1  0.15
   mac8_d1  #11
@@ -2198,10 +2197,10 @@ patch "Whistle FM" family=lead  note=67 range=48..91 role=lead
   o5_level       0.00
   o6_level       0.00
   glide          0.1 s
-  volume         1.000
+  volume         0.2589
   m01_src        #1
   m01_dest       #19
-  m01_depth      0.202
+  m01_depth      0.0523
   # Silent until a macro reaches them: an octave, a twelfth and noise.
   o2_ratio       2
   o3_ratio       3
@@ -2232,7 +2231,7 @@ patch "Breath Lead" family=lead  note=67 range=48..91 role=lead
   mac7_d1  #2
   mac7_a1  0.5
   mac7_d2  #19
-  mac7_a2  0.37
+  mac7_a2  0.09946
   mac8_d1  #9
   mac8_a1  -0.03
   # A sine with a little noise blown into it and a vibrato that waits a
@@ -2263,7 +2262,7 @@ patch "Breath Lead" family=lead  note=67 range=48..91 role=lead
   o6_level       0.04
   o6_attack      0.03 s
   o6_sustain     0.6
-  volume         0.38
+  volume         0.103
   insert Delay
     time         #2
     feedback     0.3
@@ -2315,7 +2314,7 @@ patch "Square Lead FM" family=lead  note=67 range=48..91 role=lead
   o5_level       0
   o6_level       0
   glide          0.03 s
-  volume         0.89
+  volume         0.2176
   # Morph goes to all six heard, the square modulator too.
   algob          #22
 
@@ -2363,7 +2362,7 @@ patch "Reed Lead" family=lead  note=67 range=48..91 role=lead
   o4_level       0
   o5_level       0
   o6_level       0
-  volume         0.87
+  volume         0.2305
   # Morph goes to all six heard.
   algob          #22
 
@@ -2416,7 +2415,7 @@ patch "Brass FM" family=lead  note=67 range=48..91 role=lead
   o4_level       0
   o5_level       0
   o6_level       0
-  volume         0.72
+  volume         0.1952
   # Morph goes to three pairs.
   algob          #6
 
@@ -2470,7 +2469,7 @@ patch "Saw Lead" family=lead  note=67 range=48..91 role=lead
   f_freq         3500 Hz
   f_res          0.15
   f_key          0.5
-  volume         0.65
+  volume         0.1955
   insert Delay
     time         #2
     feedback     0.3
@@ -2494,7 +2493,7 @@ patch Fiddle family=lead  note=67 range=48..91 role=lead
   mac2_d1  #17
   mac2_a1  -0.25
   mac2_d2  #19
-  mac2_a2  0.337
+  mac2_a2  0.108
   mac3_d1  #17
   mac3_a1  0.3
   mac4_d1  #16
@@ -2538,7 +2537,7 @@ patch Fiddle family=lead  note=67 range=48..91 role=lead
   f_freq         4500 Hz
   f_res          0.2
   f_key          0.3
-  volume         0.68
+  volume         0.1998
   send reverb    0.15
 
 patch "Fifth Stack" family=lead  note=67 range=48..91 role=lead
@@ -2560,7 +2559,7 @@ patch "Fifth Stack" family=lead  note=67 range=48..91 role=lead
   mac4_d1  #17
   mac4_a1  -0.5
   mac4_d2  #19
-  mac4_a2  0.401
+  mac4_a2  0.11
   mac5_d1  #16
   mac5_a1  0.3
   mac6_d1  #3
@@ -2590,7 +2589,7 @@ patch "Fifth Stack" family=lead  note=67 range=48..91 role=lead
   o6_level       0.3
   o6_decay       1.5 s
   o6_sustain     0.5
-  volume         0.90
+  volume         0.2277
   # Morph goes to one chain.
   algob          #0
 
@@ -2647,7 +2646,7 @@ patch "Sync Lead" family=lead  note=67 range=48..91 role=lead
   f_type         #3
   f_freq         5000 Hz
   f_key          0.3
-  volume         0.82
+  volume         0.2148
   insert Delay
     time         #2
     feedback     0.3
@@ -2694,7 +2693,7 @@ patch "Fold Lead" family=lead  note=67 range=48..91 role=lead
   o2_sustain     0.9
   o2_wave        #7
   voicemode      #2
-  volume         0.99
+  volume         0.2337
   # Morph goes to every operator into the first.
   algob          #14
   # Silent until a macro reaches them: a ring operator fed by
@@ -2724,7 +2723,7 @@ patch "Chip Lead" family=lead  note=67 range=48..91 role=lead
   mac5_d1  #4
   mac5_a1  -0.3
   mac5_d2  #19
-  mac5_a2  0.37
+  mac5_a2  0.132
   mac6_d1  #3
   mac6_a1  0.15
   mac7_d1  #2
@@ -2755,11 +2754,12 @@ patch "Chip Lead" family=lead  note=67 range=48..91 role=lead
   o3_decay       2 s
   o3_sustain     0.85
   o3_release     0.05 s
-  volume         0.8
+  volume         0.2637
   insert Bitcrusher
     bits         6
     rate         12000 Hz
     mix          0.4
+    gain         -2.2 dB
 
 patch "Vowel Lead" family=lead  note=67 range=48..91 role=lead
   set macro1 "Vowel"
@@ -2814,7 +2814,7 @@ patch "Vowel Lead" family=lead  note=67 range=48..91 role=lead
   m01_src        #11
   m01_dest       #10
   m01_depth      0.1
-  volume         0.85
+  volume         0.2201
   send reverb    0.12
 
 patch "Morph Lead" family=lead  note=67 range=48..91 role=lead
@@ -2834,7 +2834,7 @@ patch "Morph Lead" family=lead  note=67 range=48..91 role=lead
   mac3_d1  #17
   mac3_a1  -0.25
   mac3_d2  #19
-  mac3_a2  0.297
+  mac3_a2  0.08421
   mac4_d1  #16
   mac4_a1  0.2
   mac5_d1  #21
@@ -2881,7 +2881,7 @@ patch "Morph Lead" family=lead  note=67 range=48..91 role=lead
   o6_sustain     0.7
   f_type         #3
   f_freq         5000 Hz
-  volume         0.62
+  volume         0.1802
   insert Delay
     time         #2
     feedback     0.3
@@ -2949,7 +2949,7 @@ patch "Phase Lead" family=lead  note=67 range=48..91 role=lead
   f_freq         4000 Hz
   f_res          0.25
   f_key          0.3
-  volume         0.88
+  volume         0.2677
   insert Delay
     time         #2
     feedback     0.3
@@ -2978,7 +2978,7 @@ patch "Sync Stab" family=lead  note=60 range=36..84 role=keys
   mac5_d1  #17
   mac5_a1  -0.5
   mac5_d2  #19
-  mac5_a2  0.719
+  mac5_a2  0.1075
   mac6_d1  #3
   mac6_a1  0.15
   mac7_d1  #21
@@ -2999,7 +2999,7 @@ patch "Sync Stab" family=lead  note=60 range=36..84 role=keys
   o2_sustain     1
   o2_wave        #7
   snap           #0
-  volume         0.90
+  volume         0.1372
   # Morph goes to every operator into the first.
   algob          #14
   # Silent until a macro reaches them: a sine under the note.
@@ -3024,7 +3024,7 @@ patch Scream family=lead  note=67 range=48..91 role=lead
   mac4_d1  #17
   mac4_a1  -0.25
   mac4_d2  #19
-  mac4_a2  0.669
+  mac4_a2  0.1954
   mac5_d1  #18
   mac5_a1  0.4
   mac6_d1  #3
@@ -3057,7 +3057,7 @@ patch Scream family=lead  note=67 range=48..91 role=lead
   f_type         #3
   f_freq         4000 Hz
   f_res          0.2
-  volume         0.86
+  volume         0.2498
   # Morph goes to three pairs.
   algob          #6
 
@@ -3114,7 +3114,7 @@ patch "Ring Lead" family=lead  note=67 range=48..91 role=lead
   m01_src        #11
   m01_dest       #11
   m01_depth      0.005
-  volume         1.00
+  volume         0.2502
   insert Delay
     time         #2
     feedback     0.3
@@ -3178,7 +3178,7 @@ patch "Stretch Lead" family=lead  note=67 range=48..91 role=lead
   o4_ratio       4
   o4_level       0.2
   o4_sustain     0.5
-  volume         0.57
+  volume         0.1393
   insert Delay
     time         #2
     feedback     0.3
@@ -3239,7 +3239,7 @@ patch Harp family=pluck  note=60 range=36..88 role=arp
   o4_level       0.1
   o4_decay       0.2 s
   o4_sustain     0
-  volume         0.828
+  volume         0.1337
   send reverb    0.2
 
 patch Nylon family=pluck  note=55 range=40..79 role=arp
@@ -3296,7 +3296,7 @@ patch Nylon family=pluck  note=55 range=40..79 role=arp
   f_type         #1
   f_freq         4000 Hz
   f_key          0.5
-  volume         0.996
+  volume         0.2048
   send reverb    0.1
 
 patch Plucked family=pluck  note=55 range=40..79 role=arp
@@ -3347,7 +3347,7 @@ patch Plucked family=pluck  note=55 range=40..79 role=arp
   o4_level       0.00
   o5_level       0.00
   o6_level       0.00
-  volume         1.00
+  volume         0.175
   # Morph goes to three pairs.
   algob          #6
 
@@ -3404,7 +3404,7 @@ patch Steel family=pluck  note=55 range=40..79 role=arp
   o4_level       0.3
   o4_decay       0.3 s
   o4_sustain     0
-  volume         0.705
+  volume         0.1277
   insert Chorus
     voices       #1
     rate         #14
@@ -3435,7 +3435,7 @@ patch Pizzicato family=pluck  note=62 range=43..91 role=arp
   mac4_d1  #17
   mac4_a1  -0.5
   mac4_d2  #19
-  mac4_a2  0.587
+  mac4_a2  0.105
   mac5_d1  #16
   mac5_a1  0.3
   mac6_d1  #3
@@ -3474,7 +3474,7 @@ patch Pizzicato family=pluck  note=62 range=43..91 role=arp
   o5_decay       0.5 s
   o5_sustain     0
   o5_release     0.15 s
-  volume         0.973
+  volume         0.1608
   send reverb    0.25
 
 patch Muted family=pluck  note=52 range=40..76 role=arp
@@ -3498,7 +3498,7 @@ patch Muted family=pluck  note=52 range=40..76 role=arp
   mac4_d1  #17
   mac4_a1  -0.5
   mac4_d2  #19
-  mac4_a2  1.000
+  mac4_a2  0.1431
   mac5_d1  #16
   mac5_a1  0.3
   mac6_d1  #3
@@ -3506,7 +3506,7 @@ patch Muted family=pluck  note=52 range=40..76 role=arp
   mac7_d1  #2
   mac7_a1  0.5
   mac7_d2  #19
-  mac7_a2  0.537
+  mac7_a2  0.0975
   mac8_d1  #11
   mac8_a1  0.08
   # A palm on the strings: the note stops almost as soon as it starts and
@@ -3541,10 +3541,10 @@ patch Muted family=pluck  note=52 range=40..76 role=arp
   o5_decay       0.4 s
   o5_sustain     0
   o5_release     0.15 s
-  volume         1.000
+  volume         0.1672
   m01_src        #1
   m01_dest       #19
-  m01_depth      0.161
+  m01_depth      0.02692
 
 patch Mallet family=pluck  note=60 range=36..84 role=arp
   set macro1 "Bright"
@@ -3602,7 +3602,7 @@ patch Mallet family=pluck  note=60 range=36..84 role=arp
   o5_decay       1 s
   o5_sustain     0
   o5_release     0.15 s
-  volume         0.847
+  volume         0.1535
   send reverb    0.15
 
 patch Thumb family=pluck  note=64 range=48..84 role=arp
@@ -3661,7 +3661,7 @@ patch Thumb family=pluck  note=64 range=48..84 role=arp
   o5_decay       0.9 s
   o5_sustain     0
   o5_release     0.15 s
-  volume         0.857
+  volume         0.1553
   send reverb    0.15
 
 patch Koto family=pluck  note=62 range=43..86 role=arp
@@ -3721,7 +3721,7 @@ patch Koto family=pluck  note=62 range=43..86 role=arp
   m01_src        #7
   m01_dest       #1
   m01_depth      0.006
-  volume         0.673
+  volume         0.1248
   send reverb    0.2
 
 patch Twang family=pluck  note=62 range=48..84 role=arp
@@ -3777,7 +3777,7 @@ patch Twang family=pluck  note=62 range=48..84 role=arp
   o4_level       0.25
   o4_decay       0.06 s
   o4_sustain     0
-  volume         0.919
+  volume         0.1554
   send reverb    0.1
 
 patch "Echo Pluck" family=pluck  note=60 range=40..84 role=arp
@@ -3807,7 +3807,7 @@ patch "Echo Pluck" family=pluck  note=60 range=40..84 role=arp
   mac7_d1  #2
   mac7_a1  0.5
   mac7_d2  #19
-  mac7_a2  0.51
+  mac7_a2  0.08131
   mac8_d1  #11
   mac8_a1  0.08
   # Three short pairs, two of them seven cents either side, into a
@@ -3844,7 +3844,7 @@ patch "Echo Pluck" family=pluck  note=60 range=40..84 role=arp
   o6_level       0.25
   o6_decay       0.15 s
   o6_sustain     0
-  volume         0.773
+  volume         0.1234
   insert Delay
     time         #2
     feedback     0.35
@@ -3882,7 +3882,7 @@ patch Fanned family=pluck  note=60 range=40..84 role=arp
   mac7_d1  #2
   mac7_a1  0.5
   mac7_d2  #19
-  mac7_a2  0.519
+  mac7_a2  0.08975
   mac8_d1  #13
   mac8_a1  0.08
   # Four modulators into one sine, all on the harmonic series, then skew
@@ -3913,7 +3913,7 @@ patch Fanned family=pluck  note=60 range=40..84 role=arp
   o5_level       0.1
   o5_decay       0.15 s
   o5_sustain     0
-  volume         0.560
+  volume         0.09806
   send reverb    0.15
 
 patch "Ring Pluck" family=pluck  note=60 range=40..84 role=arp
@@ -3973,7 +3973,7 @@ patch "Ring Pluck" family=pluck  note=60 range=40..84 role=arp
   o5_level       0.6
   o5_decay       1 s
   o5_sustain     0
-  volume         1.000
+  volume         0.1812
   send reverb    0.12
 
 patch "Fold Pluck" family=pluck  note=55 range=40..79 role=arp
@@ -4025,7 +4025,7 @@ patch "Fold Pluck" family=pluck  note=55 range=40..79 role=arp
   f_type         #1
   f_freq         4000 Hz
   f_key          0.5
-  volume         0.973
+  volume         0.1704
   send reverb    0.12
 
 patch Bell family=bell  note=60 range=36..84 role=bell
@@ -4063,7 +4063,7 @@ patch Bell family=bell  note=60 range=36..84 role=bell
   mac8_d2  #6
   mac8_a2  -0.45
   mac8_d3  #19
-  mac8_a3  0.1
+  mac8_a3  0.0342
   algoa          #6
   o1_decay       6 s
   o1_release     6 s
@@ -4079,7 +4079,7 @@ patch Bell family=bell  note=60 range=36..84 role=bell
   o3_release     4 s
   o3_sustain     0
   snap           #5
-  volume         0.79
+  volume         0.2488
 
 patch Glock family=bell  note=79 range=60..96 role=bell
   set macro1 "Strike"
@@ -4134,7 +4134,7 @@ patch Glock family=bell  note=79 range=60..96 role=bell
   o5_level       0.15
   o5_decay       0.3 s
   o5_sustain     0
-  volume         0.8
+  volume         0.2794
   send reverb    0.15
 
 patch Chime family=bell  note=67 range=48..91 role=bell
@@ -4193,7 +4193,7 @@ patch Chime family=bell  note=67 range=48..91 role=bell
   o4_level       0.08
   o4_decay       1 s
   o4_sustain     0
-  volume         0.580
+  volume         0.2435
   send reverb    0.2
 
 patch Handbell family=bell  note=67 range=48..91 role=bell
@@ -4253,7 +4253,7 @@ patch Handbell family=bell  note=67 range=48..91 role=bell
   o5_level       0.1
   o5_decay       1 s
   o5_sustain     0
-  volume         0.8
+  volume         0.2826
   send reverb    0.2
 
 patch "Struck Glass" family=bell  note=60 range=36..84 role=bell
@@ -4279,7 +4279,7 @@ patch "Struck Glass" family=bell  note=60 range=36..84 role=bell
   mac4_d1  #17
   mac4_a1  -0.5
   mac4_d2  #19
-  mac4_a2  0.442
+  mac4_a2  0.1935
   mac5_d1  #3
   mac5_a1  0.2
   mac6_d1  #2
@@ -4314,7 +4314,7 @@ patch "Struck Glass" family=bell  note=60 range=36..84 role=bell
   o5_level       0
   o6_level       0
   snap           #0
-  volume         0.69
+  volume         0.3034
   # Morph goes to every operator into the first.
   algob          #14
 
@@ -4343,13 +4343,13 @@ patch Tubular family=bell  note=60 range=36..84 role=bell
   mac4_d1  #17
   mac4_a1  -0.5
   mac4_d2  #19
-  mac4_a2  0.287
+  mac4_a2  0.0989
   mac5_d1  #3
   mac5_a1  0.2
   mac6_d1  #2
   mac6_a1  0.5
   mac6_d2  #19
-  mac6_a2  0.454
+  mac6_a2  0.172
   mac7_d1  #16
   mac7_a1  0.35
   mac8_d1  #5
@@ -4383,7 +4383,7 @@ patch Tubular family=bell  note=60 range=36..84 role=bell
   o5_sustain     0.0
   o6_level       0
   snap           #0
-  volume         0.54
+  volume         0.1886
   # Morph goes to all six heard, so the modulators ring as partials.
   algob          #22
 
@@ -4441,7 +4441,7 @@ patch "Music Box" family=bell  note=79 range=60..96 role=bell
   o4_level       0.1
   o4_decay       0.02 s
   o4_sustain     0
-  volume         0.838
+  volume         0.2763
   insert Delay
     time         #2
     feedback     0.35
@@ -4504,7 +4504,7 @@ patch Gamelan family=bell  note=60 range=36..84 role=bell
   o5_level       0
   o6_level       0
   snap           #0
-  volume         0.77
+  volume         0.2481
   # Morph goes to every operator into the first.
   algob          #14
 
@@ -4565,7 +4565,7 @@ patch Church family=bell  note=60 range=36..84 role=bell
   o5_level       0
   o6_level       0
   snap           #0
-  volume         0.86
+  volume         0.3074
   # Morph goes to every operator into the first.
   algob          #14
 
@@ -4631,7 +4631,7 @@ patch Carillon family=bell  note=55 range=36..79 role=bell
   o6_level       0.1
   o6_decay       0.1 s
   o6_sustain     0
-  volume         0.973
+  volume         0.3517
   send reverb    0.3
 
 patch Ice family=bell  note=67 range=48..88 role=bell
@@ -4661,7 +4661,7 @@ patch Ice family=bell  note=67 range=48..88 role=bell
   mac8_d1  #5
   mac8_a1  -0.12
   mac8_d2  #19
-  mac8_a2  0.325
+  mac8_a2  0.114
   # Thin, very high, and almost no low end - but on the note. The carrier
   # was written at four times the ratio, so the patch played two octaves
   # above the key; the height comes from the modulators and the high-pass
@@ -4689,7 +4689,7 @@ patch Ice family=bell  note=67 range=48..88 role=bell
   f_type         #5
   f_freq         500 Hz
   f_key          0.8
-  volume         0.73
+  volume         0.2352
   # Morph goes to every operator into the first.
   algob          #14
 
@@ -4748,7 +4748,7 @@ patch Anvil family=bell  note=60 range=36..84 role=bell
   o5_level       0
   o6_level       0
   snap           #0
-  volume         0.86
+  volume         0.2902
   # Morph goes to one chain, where the ring operators have something to multiply.
   algob          #0
   # Silent until a macro reaches them: a short pair at two
@@ -4811,7 +4811,7 @@ patch Clank family=bell  note=60 range=36..84 role=bell
   o4_level       0.3
   o4_decay       0.2 s
   o4_sustain     0
-  volume         0.877
+  volume         0.2761
   send reverb    0.15
 
 patch Bowl family=bell  note=60 range=36..84 role=bell
@@ -4863,7 +4863,7 @@ patch Bowl family=bell  note=60 range=36..84 role=bell
   o5_level       0
   o6_level       0
   snap           #0
-  volume         0.82
+  volume         0.2965
   # Morph goes to every operator into the first.
   algob          #14
 
@@ -4894,7 +4894,7 @@ patch Gong family=bell  note=48 range=36..72 role=bell
   mac6_d1  #2
   mac6_a1  0.5
   mac6_d2  #19
-  mac6_a2  0.357
+  mac6_a2  0.1024
   mac7_d1  #16
   mac7_a1  0.35
   mac8_d1  #5
@@ -4925,7 +4925,7 @@ patch Gong family=bell  note=48 range=36..72 role=bell
   o4_level       0.1
   o4_decay       2 s
   o4_sustain     0
-  volume         0.425
+  volume         0.1235
   send reverb    0.3
 
 patch "Kalimba FM" family=bell  note=60 range=36..84 role=bell
@@ -4974,7 +4974,7 @@ patch "Kalimba FM" family=bell  note=60 range=36..84 role=bell
   o4_level       0.00
   o5_level       0.00
   o6_level       0.00
-  volume         1.00
+  volume         0.3336
   # Morph goes to all six heard.
   algob          #22
 
@@ -5005,7 +5005,7 @@ patch "Bent Bell" family=bell  note=60 range=36..84 role=bell
   mac6_d1  #2
   mac6_a1  0.5
   mac6_d2  #19
-  mac6_a2  0.381
+  mac6_a2  0.1362
   mac7_d1  #16
   mac7_a1  0.35
   mac8_d1  #5
@@ -5043,7 +5043,7 @@ patch "Bent Bell" family=bell  note=60 range=36..84 role=bell
   m01_src        #7
   m01_dest       #3
   m01_depth      -0.12
-  volume         0.401
+  volume         0.1417
   send reverb    0.2
 
 patch "Morph Bell" family=bell  note=60 range=36..84 role=bell
@@ -5067,13 +5067,13 @@ patch "Morph Bell" family=bell  note=60 range=36..84 role=bell
   mac4_d1  #17
   mac4_a1  -0.5
   mac4_d2  #19
-  mac4_a2  0.265
+  mac4_a2  0.127
   mac5_d1  #3
   mac5_a1  0.2
   mac6_d1  #2
   mac6_a1  -0.4
   mac6_d2  #19
-  mac6_a2  -0.175
+  mac6_a2  -0.07789
   mac7_d1  #16
   mac7_a1  0.35
   mac8_d1  #5
@@ -5109,7 +5109,7 @@ patch "Morph Bell" family=bell  note=60 range=36..84 role=bell
   m01_src        #8
   m01_dest       #2
   m01_depth      -1
-  volume         0.553
+  volume         0.2432
   send reverb    0.2
 
 patch Drawbars family=reed  note=60 range=36..84 role=keys
@@ -5173,7 +5173,7 @@ patch Drawbars family=reed  note=60 range=36..84 role=keys
   o6_sustain     1
   o6_decay       8 s
   o1_attack      0.01 s
-  volume         0.99
+  volume         0.1655
   # Morph goes to three pairs, each drawbar modulating the one below.
   algob          #6
 
@@ -5229,7 +5229,7 @@ patch "Percussive Organ" family=reed  note=60 range=36..84 role=keys
   o4_sustain     0.0
   o5_level       0.00
   o6_level       0.00
-  volume         1.00
+  volume         0.173
   # Morph goes to three pairs.
   algob          #6
   # Silent until a macro reaches them: the two top drawbars.
@@ -5263,7 +5263,7 @@ patch "Rotor Organ" family=reed  note=60 range=36..84 role=keys
   mac3_d2  #9
   mac3_a2  -0.3
   mac3_d3  #19
-  mac3_a3  0.466
+  mac3_a3  0.0896
   mac4_d1  #17
   mac4_a1  -0.45
   mac5_d1  #16
@@ -5303,7 +5303,7 @@ patch "Rotor Organ" family=reed  note=60 range=36..84 role=keys
   o6_level       0.35
   o6_decay       8 s
   o6_sustain     1
-  volume         0.665
+  volume         0.1177
   insert Rotary
     speed        #0
     mix          1
@@ -5331,7 +5331,7 @@ patch Chapel family=reed  note=55 range=36..79 role=pad
   mac3_d2  #4
   mac3_a2  -0.2
   mac3_d3  #19
-  mac3_a3  0.33
+  mac3_a3  0.0558
   mac4_d1  #17
   mac4_a1  -0.45
   mac5_d1  #16
@@ -5382,7 +5382,7 @@ patch Chapel family=reed  note=55 range=36..79 role=pad
   o6_decay       8 s
   o6_sustain     1
   o6_release     0.4 s
-  volume         0.713
+  volume         0.1112
   send reverb    0.35
 
 patch Harmonica family=reed  note=60 range=36..84 role=keys
@@ -5440,7 +5440,7 @@ patch Harmonica family=reed  note=60 range=36..84 role=keys
   o5_level       0
   o6_level       0
   l1_rate        5.5 Hz
-  volume         0.87
+  volume         0.1558
   # Morph goes to every operator into the first.
   algob          #14
 
@@ -5463,7 +5463,7 @@ patch Flute family=reed  note=72 range=60..96 role=lead
   mac4_d1  #17
   mac4_a1  -0.5
   mac4_d2  #19
-  mac4_a2  0.414
+  mac4_a2  0.1048
   mac5_d1  #16
   mac5_a1  0.2
   mac6_d1  #6
@@ -5506,7 +5506,7 @@ patch Flute family=reed  note=72 range=60..96 role=lead
   m01_src        #11
   m01_dest       #1
   m01_depth      0.005
-  volume         0.730
+  volume         0.1869
   send reverb    0.2
 
 patch "Pan Flute" family=reed  note=67 range=55..91 role=lead
@@ -5568,7 +5568,7 @@ patch "Pan Flute" family=reed  note=67 range=55..91 role=lead
   m01_src        #11
   m01_dest       #1
   m01_depth      0.004
-  volume         0.681
+  volume         0.1825
   send reverb    0.3
 
 patch Clarinet family=reed  note=62 range=50..89 role=lead
@@ -5588,7 +5588,7 @@ patch Clarinet family=reed  note=62 range=50..89 role=lead
   mac3_d1  #17
   mac3_a1  -0.5
   mac3_d2  #19
-  mac3_a2  0.33
+  mac3_a2  0.08291
   mac4_d1  #16
   mac4_a1  0.25
   mac5_d1  #6
@@ -5627,7 +5627,7 @@ patch Clarinet family=reed  note=62 range=50..89 role=lead
   m01_src        #11
   m01_dest       #1
   m01_depth      0.003
-  volume         0.665
+  volume         0.1702
   send reverb    0.15
 
 patch "Oboe FM" family=reed  note=67 range=48..91 role=lead
@@ -5674,7 +5674,7 @@ patch "Oboe FM" family=reed  note=67 range=48..91 role=lead
   o4_level       0.00
   o5_level       0.00
   o6_level       0.00
-  volume         0.87
+  volume         0.2498
   # Morph goes to every operator into the first.
   algob          #14
   # Silent until a macro reaches it: an octave above.
@@ -5702,7 +5702,7 @@ patch Bassoon family=reed  note=50 range=34..72 role=lead
   mac3_d1  #17
   mac3_a1  -0.25
   mac3_d2  #19
-  mac3_a2  0.376
+  mac3_a2  0.114
   mac4_d1  #16
   mac4_a1  0.25
   mac5_d1  #6
@@ -5742,7 +5742,7 @@ patch Bassoon family=reed  note=50 range=34..72 role=lead
   f_type         #1
   f_freq         1500 Hz
   f_key          0.4
-  volume         0.877
+  volume         0.2461
   send reverb    0.15
 
 patch Accordion family=reed  note=60 range=36..84 role=keys
@@ -5795,7 +5795,7 @@ patch Accordion family=reed  note=60 range=36..84 role=keys
   o4_decay       6 s
   o5_level       0
   o6_level       0
-  volume         0.93
+  volume         0.1957
   # Morph goes to three pairs.
   algob          #6
   # Silent until a macro reaches it: a reed an octave down.
@@ -5831,7 +5831,7 @@ patch Pipe family=reed  note=55 range=36..79 role=pad
   mac8_d1  #2
   mac8_a1  0.5
   mac8_d2  #19
-  mac8_a2  0.842
+  mac8_a2  0.0949
   # A quarter sine as the carrier, which has a hole in every cycle and
   # therefore a hollow spectrum, with no modulation at all.
   algoa          #22
@@ -5851,10 +5851,10 @@ patch Pipe family=reed  note=55 range=36..79 role=pad
   o4_level       0.00
   o5_level       0.00
   o6_level       0.00
-  volume         1.000
+  volume         0.1473
   m01_src        #1
   m01_dest       #19
-  m01_depth      0.396
+  m01_depth      0.05833
   # Morph goes to three pairs.
   algob          #6
   # Silent until a macro reaches them: a fourth-foot pipe and breath.
@@ -5933,7 +5933,7 @@ patch "Morph Organ" family=reed  note=60 range=36..84 role=keys
   m01_src        #11
   m01_dest       #2
   m01_depth      0.3
-  volume         0.628
+  volume         0.1112
   insert Chorus
     voices       #1
     rate         #14
@@ -5958,13 +5958,13 @@ patch "Fold Reed" family=reed  note=62 range=48..84 role=lead
   mac2_d1  #5
   mac2_a1  0.25
   mac2_d2  #19
-  mac2_a2  0.249
+  mac2_a2  0.061
   mac3_d1  #5
   mac3_a1  -0.2
   mac4_d1  #17
   mac4_a1  -0.5
   mac4_d2  #19
-  mac4_a2  0.361
+  mac4_a2  0.09075
   mac5_d1  #6
   mac5_a1  0.3
   mac6_d1  #3
@@ -6003,7 +6003,7 @@ patch "Fold Reed" family=reed  note=62 range=48..84 role=lead
   m01_src        #11
   m01_dest       #1
   m01_depth      0.004
-  volume         0.580
+  volume         0.1468
   send reverb    0.15
 
 patch "Warm Pad" family=pad  note=55 range=36..79 role=pad
@@ -6023,7 +6023,7 @@ patch "Warm Pad" family=pad  note=55 range=36..79 role=pad
   mac2_d1  #17
   mac2_a1  -0.5
   mac2_d2  #19
-  mac2_a2  0.382
+  mac2_a2  0.07075
   mac3_d1  #5
   mac3_a1  0.3
   mac3_d2  #7
@@ -6039,7 +6039,7 @@ patch "Warm Pad" family=pad  note=55 range=36..79 role=pad
   mac8_d1  #12
   mac8_a1  0.006
   mac8_d2  #19
-  mac8_a2  0.208
+  mac8_a2  0.0423
   # Three soft pairs, one of them a few cents sharp, with a slow attack and
   # a gentle filter. The plain pad the rest of the family is heard against.
   algoa          #6
@@ -6078,7 +6078,7 @@ patch "Warm Pad" family=pad  note=55 range=36..79 role=pad
   f_type         #1
   f_freq         2500 Hz
   f_key          0.3
-  volume         0.692
+  volume         0.1298
   insert Chorus
     voices       #1
     rate         #14
@@ -6105,7 +6105,7 @@ patch "String Pad FM" family=pad  note=55 range=36..79 role=pad
   mac2_d1  #5
   mac2_a1  0.3
   mac2_d2  #19
-  mac2_a2  -0.08
+  mac2_a2  -0.017
   mac3_d1  #12
   mac3_a1  0.1
   mac4_d1  #17
@@ -6147,7 +6147,7 @@ patch "String Pad FM" family=pad  note=55 range=36..79 role=pad
   o4_sustain     0.5
   o5_level       0
   o6_level       0
-  volume         0.71
+  volume         0.1394
 
 patch "Choir FM" family=pad  note=55 range=36..79 role=pad
   set macro1 "Bright"
@@ -6164,7 +6164,7 @@ patch "Choir FM" family=pad  note=55 range=36..79 role=pad
   mac2_d1  #17
   mac2_a1  -0.5
   mac2_d2  #19
-  mac2_a2  0.786
+  mac2_a2  0.1266
   mac3_d1  #5
   mac3_a1  0.15
   mac3_d2  #4
@@ -6176,7 +6176,7 @@ patch "Choir FM" family=pad  note=55 range=36..79 role=pad
   mac6_d1  #2
   mac6_a1  0.5
   mac6_d2  #19
-  mac6_a2  0.243
+  mac6_a2  0.0421
   mac7_d1  #11
   mac7_a1  0.1
   mac8_d1  #12
@@ -6207,7 +6207,7 @@ patch "Choir FM" family=pad  note=55 range=36..79 role=pad
   o6_level       0
   f_type         #2
   f_freq         3000 Hz
-  volume         0.89
+  volume         0.1421
 
 patch "Saw Pad" family=pad  note=55 range=36..79 role=pad
   set macro1 "Bright"
@@ -6224,7 +6224,7 @@ patch "Saw Pad" family=pad  note=55 range=36..79 role=pad
   mac2_d1  #17
   mac2_a1  -0.4
   mac2_d2  #19
-  mac2_a2  0.883
+  mac2_a2  0.1793
   mac3_d1  #5
   mac3_a1  0.15
   mac3_d2  #7
@@ -6244,7 +6244,7 @@ patch "Saw Pad" family=pad  note=55 range=36..79 role=pad
   mac8_d2  #14
   mac8_a2  0.006
   mac8_d3  #19
-  mac8_a3  0.289
+  mac8_a3  0.0638
   # Three saws a few cents apart behind a filter that opens slowly as the
   # chord arrives. Ratios at one, so this is the machine as a plain synth.
   algoa          #6
@@ -6286,7 +6286,7 @@ patch "Saw Pad" family=pad  note=55 range=36..79 role=pad
   f_decay        3 s
   f_sustain      0.6
   f_release      1.5 s
-  volume         0.759
+  volume         0.1543
   insert Chorus
     voices       #1
     rate         #14
@@ -6313,7 +6313,7 @@ patch Halo family=pad  note=60 range=36..84 role=pad
   mac2_d1  #17
   mac2_a1  -0.5
   mac2_d2  #19
-  mac2_a2  0.209
+  mac2_a2  0.0402
   mac3_d1  #9
   mac3_a1  0.3
   mac4_d1  #6
@@ -6323,7 +6323,7 @@ patch Halo family=pad  note=60 range=36..84 role=pad
   mac6_d1  #2
   mac6_a1  0.5
   mac6_d2  #19
-  mac6_a2  0.167
+  mac6_a2  0.0321
   mac7_d1  #13
   mac7_a1  0.1
   mac8_d1  #11
@@ -6365,7 +6365,7 @@ patch Halo family=pad  note=60 range=36..84 role=pad
   o6_attack      2 s
   o6_decay       5 s
   o6_sustain     0.6
-  volume         0.596
+  volume         0.1056
   insert Chorus
     voices       #1
     rate         #14
@@ -6394,7 +6394,7 @@ patch "Air Pad" family=pad  note=55 range=36..79 role=pad
   mac3_d1  #17
   mac3_a1  -0.5
   mac3_d2  #19
-  mac3_a2  0.167
+  mac3_a2  0.0423
   mac4_d1  #7
   mac4_a1  0.25
   mac5_d1  #3
@@ -6406,7 +6406,7 @@ patch "Air Pad" family=pad  note=55 range=36..79 role=pad
   mac8_d1  #12
   mac8_a1  0.006
   mac8_d2  #19
-  mac8_a2  0.174
+  mac8_a2  0.044
   # A little noise frequency-modulating two of the carriers, which is a
   # breath on the note rather than a hiss beside it.
   algoa          #6
@@ -6450,7 +6450,7 @@ patch "Air Pad" family=pad  note=55 range=36..79 role=pad
   f_type         #1
   f_freq         3000 Hz
   f_key          0.3
-  volume         0.501
+  volume         0.117
   send reverb    0.2
 
 patch "Morph Sweep" family=pad  note=55 range=36..79 role=pad
@@ -6504,7 +6504,7 @@ patch "Morph Sweep" family=pad  note=55 range=36..79 role=pad
   o5_ratio       6
   o6_level       0.35
   o6_ratio       8
-  volume         0.857
+  volume         0.1322
 
 patch "Morph Pad" family=pad  note=55 range=36..79 role=pad
   set macro1 "Bright"
@@ -6561,7 +6561,7 @@ patch "Morph Pad" family=pad  note=55 range=36..79 role=pad
   o4_sustain     0.5
   o5_level       0
   o6_level       0
-  volume         0.96
+  volume         0.1447
 
 patch Tide family=pad  note=55 range=36..79 role=pad
   set macro1 "Bright"
@@ -6645,7 +6645,7 @@ patch Tide family=pad  note=55 range=36..79 role=pad
   m02_src        #12
   m02_dest       #3
   m02_depth      0.06
-  volume         0.638
+  volume         0.1197
   send reverb    0.2
 
 patch "Warped Pad" family=pad  note=60 range=36..84 role=bell
@@ -6663,7 +6663,7 @@ patch "Warped Pad" family=pad  note=60 range=36..84 role=bell
   mac2_d1  #17
   mac2_a1  -0.35
   mac2_d2  #19
-  mac2_a2  0.434
+  mac2_a2  0.2
   mac3_d1  #7
   mac3_a1  0.3
   mac4_d1  #6
@@ -6673,7 +6673,7 @@ patch "Warped Pad" family=pad  note=60 range=36..84 role=bell
   mac6_d1  #2
   mac6_a1  0.5
   mac6_d2  #19
-  mac6_a2  0.251
+  mac6_a2  0.116
   mac7_d1  #11
   mac7_a1  0.1
   mac8_d1  #12
@@ -6691,7 +6691,7 @@ patch "Warped Pad" family=pad  note=60 range=36..84 role=bell
   o3_level       0.45
   o3_ratio       7
   skew           0.22
-  volume         0.72
+  volume         0.3058
 
 patch "Skewed Pad" family=pad  note=55 range=36..79 role=pad
   set macro1 "Bright"
@@ -6749,7 +6749,7 @@ patch "Skewed Pad" family=pad  note=55 range=36..79 role=pad
   o4_sustain     0.6
   o5_level       0.00
   o6_level       0.00
-  volume         1.00
+  volume         0.1524
 
 patch "Drone FM" family=pad  note=55 range=36..79 role=pad
   set macro1 "Bright"
@@ -6810,7 +6810,7 @@ patch "Drone FM" family=pad  note=55 range=36..79 role=pad
   o5_decay       10 s
   o5_sustain     0.9
   o6_level       0
-  volume         1.00
+  volume         0.1942
 
 patch "Ring Pad" family=pad  note=55 range=36..79 role=pad
   set macro1 "Bright"
@@ -6827,7 +6827,7 @@ patch "Ring Pad" family=pad  note=55 range=36..79 role=pad
   mac2_d1  #17
   mac2_a1  -0.5
   mac2_d2  #19
-  mac2_a2  0.257
+  mac2_a2  0.043
   mac3_d1  #6
   mac3_a1  0.3
   mac4_d1  #8
@@ -6837,7 +6837,7 @@ patch "Ring Pad" family=pad  note=55 range=36..79 role=pad
   mac6_d1  #2
   mac6_a1  0.4
   mac6_d2  #19
-  mac6_a2  0.144
+  mac6_a2  0.0241
   mac7_d1  #11
   mac7_a1  0.1
   mac8_d1  #15
@@ -6884,7 +6884,7 @@ patch "Ring Pad" family=pad  note=55 range=36..79 role=pad
   f_type         #1
   f_freq         3500 Hz
   f_key          0.3
-  volume         0.617
+  volume         0.09514
   insert Delay
     time         #3
     feedback     0.35
@@ -6908,7 +6908,7 @@ patch "Sync Pad" family=pad  note=55 range=36..79 role=pad
   mac2_d1  #17
   mac2_a1  -0.3
   mac2_d2  #19
-  mac2_a2  0.45
+  mac2_a2  0.0734
   mac3_d1  #10
   mac3_a1  0.15
   mac4_d1  #6
@@ -6918,7 +6918,7 @@ patch "Sync Pad" family=pad  note=55 range=36..79 role=pad
   mac6_d1  #2
   mac6_a1  0.4
   mac6_d2  #19
-  mac6_a2  0.229
+  mac6_a2  0.0374
   mac7_d1  #7
   mac7_a1  0.3
   mac7_d2  #16
@@ -6962,7 +6962,7 @@ patch "Sync Pad" family=pad  note=55 range=36..79 role=pad
   f_type         #3
   f_freq         2500 Hz
   f_key          0.4
-  volume         0.851
+  volume         0.1283
   insert Chorus
     voices       #1
     rate         #14
@@ -6987,7 +6987,7 @@ patch "Phase Pad" family=pad  note=55 range=36..79 role=pad
   mac2_d1  #17
   mac2_a1  -0.5
   mac2_d2  #19
-  mac2_a2  0.698
+  mac2_a2  0.136
   mac3_d1  #16
   mac3_a1  0.3
   mac4_d1  #6
@@ -7043,7 +7043,7 @@ patch "Phase Pad" family=pad  note=55 range=36..79 role=pad
   f_type         #3
   f_freq         3000 Hz
   f_key          0.3
-  volume         0.923
+  volume         0.1653
   insert Phaser
     stages       #1
     rate         #14
@@ -7065,7 +7065,7 @@ patch "Fold Pad" family=pad  note=55 range=36..79 role=pad
   mac1_d1  #16
   mac1_a1  0.25
   mac1_d2  #19
-  mac1_a2  0.335
+  mac1_a2  0.0689
   mac2_d1  #5
   mac2_a1  -0.2
   mac3_d1  #17
@@ -7073,19 +7073,19 @@ patch "Fold Pad" family=pad  note=55 range=36..79 role=pad
   mac4_d1  #17
   mac4_a1  -0.5
   mac4_d2  #19
-  mac4_a2  0.406
+  mac4_a2  0.0834
   mac5_d1  #3
   mac5_a1  0.12
   mac6_d1  #2
   mac6_a1  0.4
   mac6_d2  #19
-  mac6_a2  0.198
+  mac6_a2  0.0407
   mac7_d1  #11
   mac7_a1  0.1
   mac8_d1  #12
   mac8_a1  0.006
   mac8_d2  #19
-  mac8_a2  0.228
+  mac8_a2  0.0469
   # A sine into a wavefolder, the sine's attack slower than the folder's,
   # so the fold deepens as the note arrives. An LFO on the drive keeps it
   # moving, and a plain sine a few cents away keeps the note.
@@ -7122,7 +7122,7 @@ patch "Fold Pad" family=pad  note=55 range=36..79 role=pad
   f_type         #3
   f_freq         3500 Hz
   f_key          0.3
-  volume         0.700
+  volume         0.1328
   insert Chorus
     voices       #1
     rate         #14
@@ -7179,7 +7179,7 @@ patch Wood family=texture  note=60 range=36..84 role=bell
   o5_level       0.00
   o6_level       0.00
   snap           #0
-  volume         1.00
+  volume         0.4657
 
 patch "Tin Can" family=texture  note=60 range=36..84 role=bell
   set macro1 "Pitch"
@@ -7234,11 +7234,13 @@ patch "Tin Can" family=texture  note=60 range=36..84 role=bell
   o4_sustain     0
   o5_level       0
   o6_level       0
-  volume         1.000
+  volume         0.2774
   m01_src        #1
   m01_dest       #19
-  m01_depth      0.230
+  m01_depth      0.0638
   send reverb    0.15
+  insert Eq
+    gain         0.8 dB
 
 patch Wind family=texture  note=67 range=48..91 role=pad
   set macro1 "Bright"
@@ -7253,15 +7255,15 @@ patch Wind family=texture  note=67 range=48..91 role=pad
   mac1_d1  #17
   mac1_a1  0.3
   mac1_d2  #19
-  mac1_a2  -0.487
+  mac1_a2  -0.08816
   mac2_d1  #17
   mac2_a1  -0.2
   mac2_d2  #19
-  mac2_a2  0.595
+  mac2_a2  0.114
   mac3_d1  #18
   mac3_a1  0.4
   mac3_d2  #19
-  mac3_a2  -0.296
+  mac3_a2  -0.0566
   mac4_d1  #22
   mac4_a1  0.5
   mac5_d1  #21
@@ -7310,8 +7312,8 @@ patch Wind family=texture  note=67 range=48..91 role=pad
   m01_depth      0.15
   m02_src        #12
   m02_dest       #19
-  m02_depth      0.25
-  volume         0.950
+  m02_depth      0.04426
+  volume         0.1682
   send reverb    0.2
 
 patch Hum family=texture  note=43 range=31..67 role=drone
@@ -7327,13 +7329,13 @@ patch Hum family=texture  note=43 range=31..67 role=drone
   mac1_d1  #8
   mac1_a1  0.3
   mac1_d2  #19
-  mac1_a2  -0.228
+  mac1_a2  -0.0527
   mac2_d1  #17
   mac2_a1  0.3
   mac3_d1  #17
   mac3_a1  -0.5
   mac3_d2  #19
-  mac3_a2  0.622
+  mac3_a2  0.143
   mac4_d1  #11
   mac4_a1  0.004
   mac5_d1  #16
@@ -7385,7 +7387,7 @@ patch Hum family=texture  note=43 range=31..67 role=drone
   f_type         #1
   f_freq         1500 Hz
   f_key          0.3
-  volume         0.943
+  volume         0.2008
   send reverb    0.15
 
 patch Riser family=texture  note=55 range=36..79 role=pad
@@ -7403,7 +7405,7 @@ patch Riser family=texture  note=55 range=36..79 role=pad
   mac2_d1  #17
   mac2_a1  -0.5
   mac2_d2  #19
-  mac2_a2  0.496
+  mac2_a2  0.08088
   mac3_d1  #5
   mac3_a1  0.25
   mac4_d1  #18
@@ -7442,7 +7444,7 @@ patch Riser family=texture  note=55 range=36..79 role=pad
   f_env          0.85
   f_attack       3.5 s
   f_sustain      0.9
-  volume         1.00
+  volume         0.1672
 
 patch Dive family=texture  note=60 range=36..84 role=bell
   set macro1 "Pitch"
@@ -7461,7 +7463,7 @@ patch Dive family=texture  note=60 range=36..84 role=bell
   mac3_d1  #17
   mac3_a1  -0.5
   mac3_d2  #19
-  mac3_a2  0.318
+  mac3_a2  0.11
   mac4_d1  #16
   mac4_a1  0.3
   mac5_d1  #6
@@ -7502,7 +7504,7 @@ patch Dive family=texture  note=60 range=36..84 role=bell
   m01_src        #7
   m01_dest       #1
   m01_depth      0.5
-  volume         1.000
+  volume         0.3185
   insert Delay
     time         #3
     feedback     0.35
@@ -7567,16 +7569,17 @@ patch Zap family=texture  note=60 range=36..84 role=bell
   m01_src        #7
   m01_dest       #1
   m01_depth      1
-  volume         1.000
+  volume         0.2774
   m02_src        #1
   m02_dest       #19
-  m02_depth      0.318
+  m02_depth      0.08821
   insert Delay
     time         #2
     feedback     0.3
     tone         5000 Hz
     mode         #1
     mix          0.2
+    gain         0.8 dB
 
 patch Crush family=texture  note=67 range=48..91 role=lead
   set macro1 "Crush"
@@ -7633,7 +7636,7 @@ patch Crush family=texture  note=67 range=48..91 role=lead
   o4_level       0
   o5_level       0
   o6_level       0
-  volume         0.88
+  volume         0.247
 
 patch Radio family=texture  note=60 range=36..84 role=lead
   set macro1 "Static"
@@ -7650,23 +7653,23 @@ patch Radio family=texture  note=60 range=36..84 role=lead
   mac2_d1  #17
   mac2_a1  0.3
   mac2_d2  #19
-  mac2_a2  0.389
+  mac2_a2  0.142
   mac3_d1  #17
   mac3_a1  -0.5
   mac4_d1  #18
   mac4_a1  0.4
   mac4_d2  #19
-  mac4_a2  0.298
+  mac4_a2  0.109
   mac5_d1  #5
   mac5_a1  0.2
   mac5_d2  #19
-  mac5_a2  -0.317
+  mac5_a2  -0.1044
   mac6_d1  #16
   mac6_a1  0.3
   mac7_d1  #2
   mac7_a1  0.4
   mac7_d2  #19
-  mac7_a2  0.727
+  mac7_a2  0.265
   mac8_d1  #1
   mac8_a1  0.25
   # Modulators at fixed frequencies, so the tone does not follow the key
@@ -7698,11 +7701,12 @@ patch Radio family=texture  note=60 range=36..84 role=lead
   f_freq         1200 Hz
   f_key          0.6
   f_res          0.3
-  volume         0.784
+  volume         0.2637
   insert Bitcrusher
     bits         6
     rate         11000 Hz
     mix          0.5
+    gain         -2.4 dB
 
 patch Swarm family=texture  note=55 range=36..79 role=pad
   set macro1 "Bright"
@@ -7719,7 +7723,7 @@ patch Swarm family=texture  note=55 range=36..79 role=pad
   mac2_d1  #17
   mac2_a1  -0.5
   mac2_d2  #19
-  mac2_a2  0.754
+  mac2_a2  0.146
   mac3_d1  #5
   mac3_a1  0.15
   mac3_d2  #7
@@ -7784,7 +7788,7 @@ patch Swarm family=texture  note=55 range=36..79 role=pad
   f_type         #3
   f_freq         3000 Hz
   f_key          0.3
-  volume         1.000
+  volume         0.1791
   insert Flanger
     rate         #14
     depth        0.5

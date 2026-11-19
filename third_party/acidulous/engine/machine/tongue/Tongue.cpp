@@ -130,7 +130,7 @@ const ParamDef *Tongue::paramDefs(int32_t &count) const {
         {"velocity", 0.0f, 1.0f, 0.6f, Curve::Linear, 0, ""},
         {"bend", 0.0f, 12.0f, 2.0f, Curve::Linear, 0, "st"},
         {"octave", -2.0f, 2.0f, 0.0f, Curve::Stepped, 5, ""},
-        {"volume", 0.0f, 1.0f, 0.7f, Curve::Linear, 0, ""},
+        {"volume", 0.0f, 1.0f, 0.21f, Curve::Linear, 0, ""}, // 14 dB under the top
         // 0 is auto: the kind's own.
         {"reeds", 0.0f, static_cast<float>(kReeds), 0.0f, Curve::Stepped, kReeds + 1, ""},
         {"chord", 0.0f, static_cast<float>(kChords - 1), 0.0f, Curve::Stepped, kChords, ""},
@@ -824,7 +824,7 @@ bool Tongue::render(float *L, float *R, int32_t frames) {
     const float breath = clampf(paramOf(Breath) + pressure, 0.0f, 1.0f);
     const float airNoise = clampf(paramOf(Air), 0.0f, 1.0f);
     const float sustain = clampf(paramOf(Sustain), 0.0f, 1.0f);
-    const float volume = paramOf(Volume);
+    const float volume = paramOf(Volume) * kHouseTrim;
     const float ringKnob = paramOf(Ring);
     // The kind's low cut, from the model knob: one for the whole machine.
     const float lowCut = kKindVoices[std::clamp(steppedTargetOf(Model), 0, kKinds - 1)].lowCut;

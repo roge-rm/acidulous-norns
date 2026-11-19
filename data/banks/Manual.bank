@@ -73,6 +73,11 @@
 #
 # Values are in each parameter's own units; `audition params Manual` lists
 # them. A patch names only what it changes.
+#
+# Every patch sits at -27.5 on `loud`, within 1 dB, Init included. Init gets
+# there through the machine's house trim, with `volume` at its default of
+# 0.33, 16 dB under the top. The patches are levelled by `volume`, never
+# higher than 6 dB under the top.
 
 machine Manual
 # Four demos, because a hymn says nothing about a combo organ:
@@ -146,7 +151,7 @@ patch "Jazz Flutes" family=tonewheel note=60 range=48..84 role=gospel
   rotspeed       #1
   drive          0.08
   click          0.2
-  volume         0.25
+  volume         0.3701
   pedalon        #1
   pedsplit       48
   pedal          0.9
@@ -213,7 +218,7 @@ patch "Third Perc" family=tonewheel note=60 range=48..84 role=gospel
   rotspeed       #2
   drive          0.3
   click          0.5
-  volume         0.2675
+  volume         0.4101
   pedalon        #1
   pedsplit       48
   pedal          0.9
@@ -270,7 +275,7 @@ patch "Slow Tap" family=tonewheel note=60 range=48..84 role=gospel
   perckey        0.2
   rotspeed       #1
   drive          0.2
-  volume         0.25
+  volume         0.3788
   pedalon        #1
   pedsplit       48
   pedal          0.9
@@ -335,7 +340,7 @@ patch Comping family=tonewheel note=60 range=41..79 role=gospel
   rotspeed       #1
   drive          0.15
   upper          0.8
-  volume         0.26
+  volume         0.4738
 
 # The dark half-drawn one. Mid bars in, top bars back, leakage up:
 # the sound of an instrument that has been in the room a long time.
@@ -399,7 +404,7 @@ patch Smoke family=tonewheel note=60 range=36..84 role=gospel
   rotspeed       #1
   drive          0.42
   treble         -2
-  volume         0.2575
+  volume         0.3358
 
 # Nothing at the bottom and a gap in the middle. A thin registration is
 # a real one - it is what you use when a horn section has the tune.
@@ -445,7 +450,7 @@ patch "Whistle Bars" family=tonewheel note=67 range=48..88 role=gospel
   vibtype        #2
   vibdepth       0.5
   click          0.45
-  volume         0.3625
+  volume         0.4264
   pedalon        #1
   pedsplit       48
   pedal          0.9
@@ -509,7 +514,7 @@ patch "Bright Ballad" family=tonewheel note=60 range=48..84 role=gospel
   drive          0.2
   vibtype        #4
   vibdepth       0.5
-  volume         0.315
+  volume         0.3791
   pedalon        #1
   pedsplit       48
   pedal          0.9
@@ -586,7 +591,7 @@ patch "Low Light" family=tonewheel note=60 range=41..84 role=gospel
   barglide       0.8
   express        #3
   swellbox       0.5
-  volume         0.263
+  volume         0.427
   send reverb    0.12
 
 # The scanner alone, at its widest, with the cabinet braked so there is
@@ -635,7 +640,7 @@ patch "Chorus Vib" family=tonewheel note=60 range=48..84 role=gospel
   rotspeed       #0
   rotary         #1
   drive          0.12
-  volume         0.2375
+  volume         0.2827
   pedalon        #1
   pedsplit       48
   pedal          0.9
@@ -709,7 +714,7 @@ patch Gospel family=cabinet note=60 range=29..84 role=gospel
   vibtype        #3
   vibdepth       0.45
   click          0.4
-  volume         0.2525
+  volume         0.3256
 
 # Every bar out, which is not a registration so much as a decision.
 # It is meant to be too much, and the cabinet on fast is the point.
@@ -772,7 +777,7 @@ patch "Full Draw" family=cabinet note=60 range=36..84 role=gospel
   click          0.55
   vibtype        #5
   vibdepth       0.7
-  volume         0.2575
+  volume         0.3172
 
 # Four bars and the amplifier worked hard. The 8' sitting under it is
 # what stops the drive turning the whole thing into fuzz.
@@ -833,7 +838,7 @@ patch "Blues Wail" family=cabinet note=60 range=48..84 role=gospel
   rotspeed       #2
   click          0.5
   mid            2
-  volume         0.2775
+  volume         0.2909
 
 # Past where the amplifier is polite. The bias is off centre so the
 # clipping is not symmetrical, which is where the even harmonics come
@@ -897,7 +902,7 @@ patch "Driven Wheels" family=cabinet note=64 range=41..84 role=gospel
   click          0.6
   bass           2
   treble         -3
-  volume         0.265
+  volume         0.3263
 
 # The rotor braked, so the horn points one way and stays there. What is
 # left is the cabinet as a fixed colour, honky and boxed in, with the
@@ -965,7 +970,7 @@ patch "Parked Horn" family=cabinet note=60 range=41..84 role=gospel
   bias           0.1
   mid            2.5
   click          0.45
-  volume         0.2025
+  volume         0.2703
 
 # The cabinet driving the instrument instead of only carrying it. The
 # horn's phase is a modulation source here, so the upper bars and the
@@ -1024,7 +1029,7 @@ patch "Cabinet Mod" family=cabinet note=60 range=48..84 role=gospel
   m3_amt         0.1
   perc           #0
   drive          0.22
-  volume         0.2225
+  volume         0.345
   pedalon        #1
   pedsplit       48
   pedal          0.9
@@ -1107,7 +1112,7 @@ patch "Tempo Rotor" family=cabinet note=60 range=29..84 role=gospel
   vibdepth       0.4
   click          0.35
   barglide       0.6
-  volume         0.23
+  volume         0.3289
 
 # The registration never settles. One LFO walks the morph, another
 # opens the spray, and the two are at rates that do not divide into
@@ -1198,7 +1203,7 @@ patch "Slow Wander" family=cabinet note=60 range=41..84 role=gospel
   perc           #0
   rotspeed       #1
   drive          0.25
-  volume         0.2575
+  volume         0.3641
   pedalon        #1
   pedsplit       48
   pedal          0.9
@@ -1288,7 +1293,7 @@ patch "Slow Pull" family=cabinet note=60 range=29..84 role=gospel
   barglide       1.5
   express        #3
   swellbox       0.35
-  volume         0.25
+  volume         0.3263
 
 # Squares divided down from one master oscillator and switched in by
 # footage, which is the whole of a combo organ. No drawbars: a tab is
@@ -1336,7 +1341,7 @@ patch "Combo Bright" family=combo note=60 range=48..84 role=combo
   vibrate        7.2
   vibdepth       0.55
   drive          0.25
-  volume         0.2325
+  volume         0.3212
 
 # Squares at 16' and 8' with only a breath of 4', the reedy filter
 # nearly shut and the attack softened. On the swell pedal, with a slow
@@ -1387,7 +1392,7 @@ patch "Combo Mellow" family=combo note=60 range=41..84 role=combo
   treble         -8
   express        #3
   swellbox       0.5
-  volume         0.265
+  volume         0.4301
   send reverb    0.12
 
 # The pulse wave through the reedy filter well up, which is the buzz
@@ -1432,7 +1437,7 @@ patch "Combo Reed" family=combo note=60 range=48..84 role=combo
   vibdepth       0.4
   drive          0.35
   mid            2.5
-  volume         0.205
+  volume         0.3034
 
 # Saws rather than squares, 8' and 4' and the first mixture tab, with
 # the vibrato fast and shallow. The riff sound.
@@ -1479,7 +1484,7 @@ patch "Combo Sixties" family=combo note=60 range=48..84 role=combo
   vibrate        8.8
   vibdepth       0.45
   drive          0.4
-  volume         0.2775
+  volume         0.4155
 
 # Both mixture tabs out, which on a small transistor organ was always
 # sold as a church sound and is nothing of the kind. That is exactly
@@ -1527,7 +1532,7 @@ patch "Combo Mixture" family=combo note=60 range=48..84 role=combo
   vibdepth       0.4
   drive          0.22
   treble         -1.5
-  volume         0.2275
+  volume         0.3143
 
 # The attack shortened until the key click is most of the note. Played
 # short this is a percussion instrument.
@@ -1574,7 +1579,7 @@ patch "Combo Stab" family=combo note=60 range=48..84 role=combo
   attack         0.0008
   release        0.012
   drive          0.45
-  volume         0.1975
+  volume         0.246
 
 # 2' and the mixtures with nothing underneath. It has no bottom at all,
 # and against a bass line that is the point.
@@ -1621,7 +1626,7 @@ patch "Combo Thin" family=combo note=67 range=55..88 role=combo
   vibdepth       0.5
   drive          0.18
   bass           -4
-  volume         0.315
+  volume         0.4664
 
 # The transistor organ played through the rotary cabinet: saws and the
 # mixture tab with no vibrato of its own, so all the movement is the
@@ -1672,7 +1677,7 @@ patch "Combo Spin" family=combo note=60 range=48..84 role=combo
   rotary         #1
   rotspeed       #1
   drive          0.3
-  volume         0.29
+  volume         0.4875
 
 # The principal chorus at 16', 8' and 4' - one rank at three pitches,
 # which is what an organ means by a chorus and has nothing to do with
@@ -1736,7 +1741,7 @@ patch Diapason family=church note=60 range=36..84 role=chorale
   windnoise      0.1
   pedalon        #1
   pedsplit       44
-  volume         0.19
+  volume         0.2913
   pa_1           1
   pa_2           0.75
 
@@ -1797,7 +1802,7 @@ patch "Flutes 8 and 4" family=church note=60 range=41..88 role=chorale
   windsag        0.22
   windresp       0.28
   windnoise      0.2
-  volume         0.3125
+  volume         0.437
   pedalon        #1
   pedsplit       44
   pedal          0.95
@@ -1862,7 +1867,7 @@ patch "Strings Celeste" family=church note=60 range=41..84 role=chorale
   spraywide      0.8
   spraypat       #1
   windsag        0.18
-  volume         0.325
+  volume         0.3911
   pedalon        #1
   pedsplit       44
   pedal          0.95
@@ -1924,7 +1929,7 @@ patch "Sesquialtera" family=church note=60 range=48..84 role=chorale
   chiff          0.3
   tracker        0.2
   windsag        0.25
-  volume         0.1675
+  volume         0.2087
   pedalon        #1
   pedsplit       44
   pedal          0.95
@@ -1987,7 +1992,7 @@ patch "Reed Stop" family=church note=60 range=41..84 role=chorale
   tracker        0.3
   windsag        0.32
   windresp       0.3
-  volume         0.2525
+  volume         0.3295
   pedalon        #1
   pedsplit       44
   pedal          0.95
@@ -2053,7 +2058,7 @@ patch Plenum family=church note=60 range=36..84 role=chorale
   windnoise      0.12
   pedalon        #1
   pedsplit       44
-  volume         0.195
+  volume         0.2726
   pa_1           1
   pa_2           1
 
@@ -2116,7 +2121,7 @@ patch "Full Organ" family=church note=60 range=33..88 role=chorale
   pedalon        #1
   pedsplit       44
   pedal          1
-  volume         0.0825
+  volume         0.1309
   pa_1           1
   pa_2           1
 
@@ -2176,7 +2181,7 @@ patch "Gedackt" family=church note=60 range=48..88 role=chorale
   windsag        0.3
   windresp       0.9
   windnoise      0.3
-  volume         0.3325
+  volume         0.4701
   pedalon        #1
   pedsplit       44
   pedal          0.95
@@ -2256,7 +2261,7 @@ patch "Swell Organ" family=church note=60 range=36..84 role=chorale
   barglide       0.5
   express        #3
   swellbox       0.7
-  volume         0.16
+  volume         0.2452
 
 # One tibia at 8' with a breath of 4' and a gentle tremulant, behind
 # shutters on the swell pedal. The theatre organ at its quietest.
@@ -2325,7 +2330,7 @@ patch "Soft Tibia" family=theatre note=60 range=41..84 role=chorale
   express        #3
   swellbox       0.6
   barglide       0.4
-  volume         0.555
+  volume         0.645
 
 # A tibia, the theatre organ's big round flute, on unit footages from
 # 16' to 2' with a deep fast tremulant, behind shutters. Kinura adds the
@@ -2395,7 +2400,7 @@ patch "Tibia Trem" family=theatre note=60 range=41..84 role=chorale
   barglide       0.4
   express        #3
   swellbox       0.6
-  volume         0.355
+  volume         0.4474
 
 # The kinura: a small thin reed that buzzes, at 8' and 4' over a quiet
 # tibia, with the tremulant on. It is meant to be a little silly.
@@ -2464,7 +2469,7 @@ patch Kinura family=theatre note=60 range=41..84 role=chorale
   express        #3
   swellbox       0.6
   barglide       0.4
-  volume         0.546
+  volume         0.5856
 
 # The vox humana: a soft reed with a little string, dark behind the
 # shutters, on a slow deep tremulant. A choir a long way off.
@@ -2530,7 +2535,7 @@ patch "Vox Humana" family=theatre note=60 range=41..84 role=chorale
   express        #3
   swellbox       0.7
   barglide       0.4
-  volume         0.714
+  volume         0.8594
 
 # Tibias at 8', 4', 2 2/3', 2' and the tierce, the chord a theatre
 # organist builds a solo out of, with the tremulant full on.
@@ -2597,7 +2602,7 @@ patch "Tierce Tibia" family=theatre note=60 range=41..84 role=chorale
   express        #3
   swellbox       0.6
   barglide       0.4
-  volume         0.369
+  volume         0.3487
 
 # Tibias, strings and the reeds from 16' up, on one tremulant and one
 # wind supply. The big ending.
@@ -2664,7 +2669,7 @@ patch "Grand Theatre" family=theatre note=60 range=36..84 role=chorale
   express        #3
   swellbox       0.6
   barglide       0.4
-  volume         0.175
+  volume         0.2131
 
 # A tibia and a string with the tremulant as deep and fast as it goes.
 # The wobble is the sound.
@@ -2733,7 +2738,7 @@ patch "Deep Trem" family=theatre note=60 range=41..84 role=chorale
   express        #3
   swellbox       0.6
   barglide       0.4
-  volume         0.441
+  volume         0.5433
 
 # Free reeds under bellows pressure. The buzz is the reed beating
 # against its frame and it grows with how hard the thing is pushed,
@@ -2789,7 +2794,7 @@ patch "Hand Pumped" family=reed note=60 range=41..81 role=swell
   windsag        0.42
   windresp       0.3
   windnoise      0.12
-  volume         0.4375
+  volume         0.4638
   pedalon        #1
   pedsplit       44
   pedal          0.85
@@ -2857,7 +2862,7 @@ patch "Parlour Reed" family=reed note=60 range=41..81 role=swell
   pa_2           0.5
   express        #3
   swellbox       0.5
-  volume         0.764
+  volume         0.858
 
 # Three reeds to a key, a few cents apart. They are all at the same
 # pitch - that is what makes it a musette rather than a registration -
@@ -2918,7 +2923,7 @@ patch "Shimmer Reeds" family=reed note=60 range=45..84 role=swell
   tremdepth      0
   tremrate       5.4
   windsag        0.28
-  volume         0.5
+  volume         0.5005
   pedalon        #1
   pedsplit       44
   pedal          0.85
@@ -2980,7 +2985,7 @@ patch Melodeon family=reed note=60 range=45..81 role=swell
   windsag        0.35
   windresp       0.22
   windnoise      0.28
-  volume         0.5
+  volume         0.6754
   pedalon        #1
   pedsplit       44
   pedal          0.85
@@ -3040,7 +3045,7 @@ patch "Pump Organ" family=reed note=60 range=38..79 role=swell
   tremrate       3.2
   tremdepth      0.12
   bass           2
-  volume         0.34
+  volume         0.4921
   pedalon        #1
   pedsplit       44
   pedal          0.85
@@ -3100,7 +3105,7 @@ patch "Big Reed" family=reed note=60 range=36..81 role=swell
   windsag        0.5
   windresp       0.35
   windnoise      0.15
-  volume         0.375
+  volume         0.3344
   pedalon        #1
   pedsplit       44
   pedal          0.85
@@ -3167,7 +3172,7 @@ patch "Reed Choir" family=reed note=60 range=36..81 role=swell
   pedal          0.85
   pa_1           0.875
   pa_2           0.5
-  volume         0.329
+  volume         0.3145
   send reverb    0.15
 
 # The whole instrument at once, which is the thing this machine is for:
@@ -3235,7 +3240,7 @@ patch "Two Manuals" family=split note=60 range=29..84 role=gospel
   pedsus         0.25
   rotspeed       #1
   drive          0.3
-  volume         0.2525
+  volume         0.345
 
 # Flutes in chorus on top, a soft 8' and 4' to comp on below, and the
 # feet light, with a little sustain to join a slow bass line.
@@ -3300,7 +3305,7 @@ patch "Ballad Split" family=split note=60 range=29..84 role=gospel
   vibdepth       0.6
   rotspeed       #1
   drive          0.1
-  volume         0.3345
+  volume         0.484
 
 # Written from the feet up. The pedal split is high enough that the left
 # hand walks on it, the sustain is long enough to join the notes, and
@@ -3364,7 +3369,7 @@ patch "Pedal Bass" family=split note=60 range=29..79 role=gospel
   rotspeed       #1
   drive          0.35
   bass           3
-  volume         0.27
+  volume         0.509
 
 # No pedals: the left hand plays the bass on the lower manual below the
 # split, at the key's own pitch, and the right hand comps and plays the
@@ -3429,7 +3434,7 @@ patch "Left Hand Bass" family=split note=60 range=29..84 role=gospel
   drive          0.25
   bass           2
   click          0.4
-  volume         0.22275
+  volume         0.3376
 
 # A combo organ with the bottom two octaves switched to a bass
 # registration, which is how these were played when there was no bass
@@ -3488,7 +3493,7 @@ patch "Combo Split" family=split note=60 range=41..84 role=combo
   vibdepth       0.5
   drive          0.45
   bass           2.5
-  volume         0.225
+  volume         0.3332
 
 # Written for the feet: 16' and 8' in the pedals with the reeds up, the
 # pedal split raised so the left hand can play them, and the manual
@@ -3554,7 +3559,7 @@ patch "Pedal Reeds" family=split note=60 range=29..79 role=chorale
   windsag        0.45
   windresp       0.4
   bass           2.5
-  volume         0.23
+  volume         0.3606
   pa_1           1
   pa_2           1
 
@@ -3629,7 +3634,7 @@ patch "Pump Split" family=split note=60 range=29..81 role=chorale
   pedsus         0.25
   pa_1           1
   pa_2           0.75
-  volume         0.48325
+  volume         0.5305
 
 # Two whole registrations and a slow LFO between them: the bars move
 # under a chord you are still holding, which no organ with real
@@ -3712,7 +3717,7 @@ patch "Drawbar Morph" family=odd note=60 range=41..84 role=gospel
   perc           #0
   rotspeed       #1
   drive          0.25
-  volume         0.2675
+  volume         0.3782
   pedalon        #1
   pedsplit       48
   pedal          0.9
@@ -3788,7 +3793,7 @@ patch "Opening Bars" family=odd note=60 range=41..84 role=gospel
   pedal          0.9
   pa_1           1
   pa_2           0.5
-  volume         0.3305
+  volume         0.4567
 
 # Every key draws its own registration: a random amount of the morph
 # from the gospel bars over to a bright flute set, chosen at the note-on.
@@ -3862,7 +3867,7 @@ patch "Every Key" family=odd note=60 range=41..84 role=gospel
   pedal          0.9
   pa_1           1
   pa_2           0.5
-  volume         0.26475
+  volume         0.4106
 
 # An old one. The wheels are worn so the tuning wanders, the shielding
 # has given up so the generator is audible on its own, and the motor
@@ -3929,7 +3934,7 @@ patch "Tired Machine" family=odd note=60 range=41..79 role=gospel
   perc           #0
   rotspeed       #0
   drive          0.3
-  volume         0.3
+  volume         0.337
   pedalon        #1
   pedsplit       48
   pedal          0.9
@@ -4002,7 +4007,7 @@ patch "Starved Wind" family=odd note=60 range=36..81 role=swell
   m2_amt         0.3
   pedalon        #1
   pedsplit       44
-  volume         0.1375
+  volume         0.2311
   pa_1           1
   pa_2           0.75
 
@@ -4074,7 +4079,7 @@ patch "Ghost Pipes" family=odd note=60 range=41..84 role=chorale
   pa_2           0.5
   express        #3
   swellbox       0.5
-  volume         0.275
+  volume         0.2883
   send reverb    0.2
 
 # Spray wound all the way up, which stops being a worn generator and
@@ -4134,7 +4139,7 @@ patch Sprayed family=odd note=60 range=41..84 role=gospel
   vibtype        #4
   vibdepth       0.3
   drive          0.2
-  volume         0.25
+  volume         0.2712
   pedalon        #1
   pedsplit       48
   pedal          0.9

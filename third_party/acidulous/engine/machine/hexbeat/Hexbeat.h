@@ -13,6 +13,8 @@ namespace acidulous::machine {
 
 class Hexbeat final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+4.1 dB). */
+    static constexpr float kHouseTrim = 1.61f;
     enum P : int32_t {
         KickTune, KickDecay, KickPunch, KickLevel,
         SnareTune, SnareDecay, SnareSnappy, SnareTone, SnareLevel,

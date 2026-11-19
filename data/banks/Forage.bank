@@ -58,6 +58,11 @@
 # `--material dirtykit` is the same kit with room ahead of the kick, DC under
 # the snare, the clap 12 dB down and a stereo crash, for checking a patch on
 # samples nobody trimmed.
+#
+# Every patch sits at -25.8 on `loud`, the loudest 400 ms, within 1 dB, Init
+# included. Init gets there through the machine's house trim, with `volume` at
+# its default of 0.2, 18 dB under the top. The patches are levelled by
+# `volume`, never higher than 6 dB under the top.
 
 machine Forage
 role    beat
@@ -70,29 +75,29 @@ patch Straight family=straight
   # every other patch here is a departure from.
   p*_cutoff      16000 Hz
   accent         0.7
-  volume         0.90
+  volume         0.1934
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.034
+  mac1_a2  -0.0106
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #4
   mac2_a2  0.018
   mac2_d3  #12
-  mac2_a3  0.367
+  mac2_a3  0.0781
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.257
+  mac3_a2  0.0547
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  0.036
+  mac4_a2  0.0112
   set macro5 "Kick"
   mac5_d1  #27
   mac5_a1  0.1
@@ -112,7 +117,7 @@ patch Straight family=straight
   mac8_d1  #13
   mac8_a1  -1
   mac8_d2  #12
-  mac8_a2  -0.226
+  mac8_a2  -0.0488
 
 patch "Same Hits" family=straight
   # Velocity and accent off, so every hit plays at full level, like a sampler
@@ -120,29 +125,29 @@ patch "Same Hits" family=straight
   p*_cutoff      16000 Hz
   velocity       0.0
   accent         0.0
-  volume         0.9
+  volume         0.1206
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.027
+  mac1_a2  -0.00523
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #4
   mac2_a2  0.021
   mac2_d3  #12
-  mac2_a3  0.367
+  mac2_a3  0.0488
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.257
+  mac3_a2  0.0352
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  0.036
+  mac4_a2  0.00698
   set macro5 "Kick"
   mac5_d1  #27
   mac5_a1  0.1
@@ -168,29 +173,29 @@ patch Softened family=straight
   p*_cutoff      7000 Hz
   p*_reso        0.15
   p*_decay       0.9
-  volume         1.0
+  volume         0.2148
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.072
+  mac1_a2  -0.0223
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #4
   mac2_a2  0.034
   mac2_d3  #12
-  mac2_a3  0.3
+  mac2_a3  0.0664
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.099
+  mac3_a2  0.0307
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  -0.023
+  mac4_a2  -0.00715
   set macro5 "Kick"
   mac5_d1  #27
   mac5_a1  0.1
@@ -210,7 +215,7 @@ patch Softened family=straight
   mac8_d1  #13
   mac8_a1  -1
   mac8_d2  #12
-  mac8_a2  -0.251
+  mac8_a2  -0.0527
 
 patch Soft family=straight
   # A kit that answers quietly. Accent almost off, so a hard hit and a gentle
@@ -218,22 +223,22 @@ patch Soft family=straight
   # under something rather than over it.
   p*_cutoff      9000 Hz
   accent         0.1
-  volume         0.86
+  volume         0.2671
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.05
+  mac1_a2  -0.0225
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #12
-  mac2_a2  0.389
+  mac2_a2  0.1172
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.148
+  mac3_a2  0.0469
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
@@ -256,38 +261,38 @@ patch Soft family=straight
   mac8_d1  #13
   mac8_a1  -1
   mac8_d2  #12
-  mac8_a2  -0.216
+  mac8_a2  -0.0684
 
 patch Hard family=straight
   # The other way: accent at full, so the loud hits are a long way above the
   # quiet ones and several at once bend the output stage. A sample box that
   # clips when the whole kit lands on one beat is the sound.
   accent         1.0
-  volume         1.34
+  volume         0.1715
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.03
+  mac1_a2  -0.00555
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #4
   mac2_a2  0.129
   mac2_d3  #12
-  mac2_a3  0.073
+  mac2_a3  0.0135
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #4
   mac3_a2  0.07
   mac3_d3  #12
-  mac3_a3  0.073
+  mac3_a3  0.0135
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  0.064
+  mac4_a2  0.0118
   set macro5 "Kick"
   mac5_d1  #27
   mac5_a1  0.1
@@ -307,14 +312,14 @@ patch Hard family=straight
   mac8_d1  #13
   mac8_a1  -1
   mac8_d2  #12
-  mac8_a2  -0.336
+  mac8_a2  -0.043
 
 patch Tight family=shape
   # Everything short. A decay of 0.35 is about a tenth of a second, so each
   # pad is its attack and very little else - the difference between a kit you
   # can play sixteenths on and one that smears.
   p*_decay       0.35
-  volume         0.90
+  volume         0.2893
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
@@ -322,17 +327,17 @@ patch Tight family=shape
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #12
-  mac2_a2  0.34
+  mac2_a2  0.1094
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.05
+  mac3_a2  0.0233
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  0.043
+  mac4_a2  0.02
   set macro5 "Cut"
   mac5_d1  #2
   mac5_a1  -0.25
@@ -342,7 +347,7 @@ patch Tight family=shape
   mac6_d2  #9
   mac6_a2  -0.3
   mac6_d3  #12
-  mac6_a3  0.05
+  mac6_a3  0.0233
   set macro7 "Kick"
   mac7_d1  #27
   mac7_a1  0.1
@@ -354,7 +359,7 @@ patch Tight family=shape
   mac8_d2  #30
   mac8_a2  0.1
   mac8_d3  #12
-  mac8_a3  -0.046
+  mac8_a3  -0.0214
 
 patch Gated family=shape
   # Shorter still, and hard. This is the gate on a room mic: the front of
@@ -362,7 +367,7 @@ patch Gated family=shape
   # whether or not it was recorded that way.
   p*_decay       0.2
   accent         0.85
-  volume         1.02
+  volume         0.306
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
@@ -370,7 +375,7 @@ patch Gated family=shape
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #12
-  mac2_a2  0.157
+  mac2_a2  0.0469
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
@@ -391,20 +396,20 @@ patch Gated family=shape
   mac7_d2  #14
   mac7_a2  -0.04
   mac7_d3  #12
-  mac7_a3  -0.045
+  mac7_a3  -0.0195
   set macro8 "Snare"
   mac8_d1  #29
   mac8_a1  0.1
   mac8_d2  #30
   mac8_a2  0.1
   mac8_d3  #12
-  mac8_a3  -0.108
+  mac8_a3  -0.0312
 
 patch "One Voice" family=shape
   # Every pad in choke group 1, so each hit cuts off the one before and only
   # one sound plays at a time.
   p*_choke       #1
-  volume         0.92
+  volume         0.2193
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
@@ -414,17 +419,17 @@ patch "One Voice" family=shape
   mac2_d2  #4
   mac2_a2  0.023
   mac2_d3  #12
-  mac2_a3  0.353
+  mac2_a3  0.0859
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.273
+  mac3_a2  0.0664
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  0.044
+  mac4_a2  0.0151
   set macro5 "Cut"
   mac5_d1  #2
   mac5_a1  -0.25
@@ -434,7 +439,7 @@ patch "One Voice" family=shape
   mac6_d2  #9
   mac6_a2  -0.3
   mac6_d3  #12
-  mac6_a3  0.036
+  mac6_a3  0.0124
   set macro7 "Kick"
   mac7_d1  #27
   mac7_a1  0.1
@@ -452,7 +457,7 @@ patch Clipped family=shape
   # sample this is the transient alone; on a short one it changes nothing,
   # which is the honest behaviour.
   p*_end         0.33
-  volume         0.94
+  volume         0.2115
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
@@ -462,29 +467,29 @@ patch Clipped family=shape
   mac2_d2  #4
   mac2_a2  0.031
   mac2_d3  #12
-  mac2_a3  0.34
+  mac2_a3  0.0781
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.34
+  mac3_a2  0.0742
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  0.045
+  mac4_a2  0.0146
   set macro5 "Cut"
   mac5_d1  #2
   mac5_a1  -0.25
   mac5_d2  #12
-  mac5_a2  0.34
+  mac5_a2  0.0781
   set macro6 "Punch"
   mac6_d1  #8
   mac6_a1  0.3
   mac6_d2  #9
   mac6_a2  -0.3
   mac6_d3  #12
-  mac6_a3  0.037
+  mac6_a3  0.0121
   set macro7 "Kick"
   mac7_d1  #27
   mac7_a1  0.1
@@ -502,31 +507,31 @@ patch Body family=shape
   # that adds weight and nothing else.
   p*_start       0.1
   p*_decay       0.8
-  volume         1.13
+  volume         0.3092
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.026
+  mac1_a2  -0.0103
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #4
   mac2_a2  0.165
   mac2_d3  #12
-  mac2_a3  0.213
+  mac2_a3  0.0586
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #4
   mac3_a2  0.025
   mac3_d3  #12
-  mac3_a3  0.213
+  mac3_a3  0.0625
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  0.045
+  mac4_a2  0.0178
   set macro5 "Cut"
   mac5_d1  #2
   mac5_a1  -0.25
@@ -536,7 +541,7 @@ patch Body family=shape
   mac6_d2  #9
   mac6_a2  -0.3
   mac6_d3  #12
-  mac6_a3  0.026
+  mac6_a3  0.0103
   set macro7 "Kick"
   mac7_d1  #27
   mac7_a1  0.1
@@ -553,41 +558,41 @@ patch Backwards family=shape
   # its own transient instead of starting on it, and thirteen of them is a
   # kit that plays before the beat rather than on it.
   p*_reverse     #1
-  volume         0.96
+  volume         0.186
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.043
+  mac1_a2  -0.0121
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #4
   mac2_a2  0.096
   mac2_d3  #12
-  mac2_a3  0.327
+  mac2_a3  0.0625
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.318
+  mac3_a2  0.0625
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  0.046
+  mac4_a2  0.0129
   set macro5 "Cut"
   mac5_d1  #2
   mac5_a1  -0.25
   mac5_d2  #12
-  mac5_a2  0.054
+  mac5_a2  0.0151
   set macro6 "Punch"
   mac6_d1  #8
   mac6_a1  0.3
   mac6_d2  #9
   mac6_a2  -0.3
   mac6_d3  #12
-  mac6_a3  0.046
+  mac6_a3  0.0129
   set macro7 "Kick"
   mac7_d1  #27
   mac7_a1  0.1
@@ -604,28 +609,28 @@ patch "Reverse Gate" family=shape
   # the swell is allowed to build and then stops at its peak.
   p*_reverse     #1
   p*_decay       0.45
-  volume         1.50
+  volume         0.7298
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #4
   mac1_a2  0.043
   mac1_d3  #12
-  mac1_a3  -0.033
+  mac1_a3  -0.0233
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.15
   mac2_d2  #4
   mac2_a2  0.181
   mac2_d3  #12
-  mac2_a3  -0.033
+  mac2_a3  -0.0233
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #4
   mac3_a2  0.106
   mac3_d3  #12
-  mac3_a3  -0.033
+  mac3_a3  -0.0233
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
@@ -633,7 +638,7 @@ patch "Reverse Gate" family=shape
   mac5_d1  #2
   mac5_a1  -0.25
   mac5_d2  #12
-  mac5_a2  -0.129
+  mac5_a2  -0.0625
   set macro6 "Punch"
   mac6_d1  #8
   mac6_a1  0.3
@@ -657,22 +662,22 @@ patch Dusty family=tone
   p*_cutoff      2200 Hz
   p*_reso        0.25
   p*_crush       0.25
-  volume         1.05
+  volume         0.2154
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.09
+  mac1_a2  -0.0195
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #12
-  mac2_a2  0.244
+  mac2_a2  0.0508
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.033
+  mac3_a2  0.00976
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
@@ -680,7 +685,7 @@ patch Dusty family=tone
   mac5_d1  #5
   mac5_a1  0.3
   mac5_d2  #12
-  mac5_a2  -0.199
+  mac5_a2  -0.041
   set macro6 "Reso"
   mac6_d1  #6
   mac6_a1  0.25
@@ -702,41 +707,41 @@ patch Telephone family=tone
   p*_mode        #1
   p*_cutoff      1400 Hz
   p*_reso        0.35
-  volume         1.18
+  volume         0.7383
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.162
+  mac1_a2  -0.1016
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #4
   mac2_a2  0.064
   mac2_d3  #12
-  mac2_a3  0.18
+  mac2_a3  0.1094
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  -0.204
+  mac3_a2  -0.125
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  -0.132
+  mac4_a2  -0.0859
   set macro5 "Open"
   mac5_d1  #5
   mac5_a1  0.3
   mac5_d2  #12
-  mac5_a2  -0.236
+  mac5_a2  -0.1484
   set macro6 "Reso"
   mac6_d1  #6
   mac6_a1  0.25
   mac6_d2  #4
   mac6_a2  0.009
   mac6_d3  #12
-  mac6_a3  0.18
+  mac6_a3  0.1094
   set macro7 "Kick"
   mac7_d1  #27
   mac7_a1  0.1
@@ -754,45 +759,45 @@ patch "Soda Can" family=tone
   p*_mode        #1
   p*_cutoff      3200 Hz
   p*_reso        0.55
-  volume         1.2
+  volume         0.5448
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.127
+  mac1_a2  -0.0625
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #4
   mac2_a2  0.108
   mac2_d3  #12
-  mac2_a3  0.167
+  mac2_a3  0.0781
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #4
   mac3_a2  0.081
   mac3_d3  #12
-  mac3_a3  0.167
+  mac3_a3  0.0781
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  0.028
+  mac4_a2  0.0183
   set macro5 "Open"
   mac5_d1  #5
   mac5_a1  0.3
   mac5_d2  #4
   mac5_a2  0.162
   mac5_d3  #12
-  mac5_a3  0.167
+  mac5_a3  0.0781
   set macro6 "Reso"
   mac6_d1  #6
   mac6_a1  0.25
   mac6_d2  #4
   mac6_a2  0.016
   mac6_d3  #12
-  mac6_a3  0.167
+  mac6_a3  0.0781
   set macro7 "Kick"
   mac7_d1  #27
   mac7_a1  0.1
@@ -809,29 +814,29 @@ patch "Eight Bit" family=tone
   # something like twenty kilohertz. Enough to hear on the cymbals, not
   # enough to lose the kick.
   p*_crush       0.35
-  volume         0.87
+  volume         0.2026
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.026
+  mac1_a2  -0.00875
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #4
   mac2_a2  0.016
   mac2_d3  #12
-  mac2_a3  0.387
+  mac2_a3  0.0938
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.23
+  mac3_a2  0.0547
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  0.101
+  mac4_a2  0.0234
   set macro5 "Open"
   mac5_d1  #5
   mac5_a1  0.3
@@ -855,39 +860,39 @@ patch Sandpaper family=tone
   p*_crush       0.55
   p*_cutoff      8000 Hz
   p*_reso        0.2
-  volume         1.0
+  volume         0.2075
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.037
+  mac1_a2  -0.0111
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #4
   mac2_a2  0.026
   mac2_d3  #12
-  mac2_a3  0.3
+  mac2_a3  0.0625
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.154
+  mac3_a2  0.0312
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  0.099
+  mac4_a2  0.0297
   set macro5 "Open"
   mac5_d1  #5
   mac5_a1  0.3
   mac5_d2  #12
-  mac5_a2  -0.052
+  mac5_a2  -0.0156
   set macro6 "Reso"
   mac6_d1  #6
   mac6_a1  0.25
   mac6_d2  #12
-  mac6_a2  -0.052
+  mac6_a2  -0.0156
   set macro7 "Kick"
   mac7_d1  #27
   mac7_a1  0.1
@@ -904,22 +909,22 @@ patch Ruined family=tone
   # aliasing rather than hiss. Three or four bits at a few kilohertz.
   p*_crush       0.8
   p*_cutoff      3500 Hz
-  volume         1.03
+  volume         0.2114
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.089
+  mac1_a2  -0.0176
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #12
-  mac2_a2  0.24
+  mac2_a2  0.0508
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.041
+  mac3_a2  0.0122
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
@@ -927,12 +932,12 @@ patch Ruined family=tone
   mac5_d1  #5
   mac5_a1  0.3
   mac5_d2  #12
-  mac5_a2  -0.102
+  mac5_a2  -0.0195
   set macro6 "Reso"
   mac6_d1  #6
   mac6_a1  0.25
   mac6_d2  #12
-  mac6_a2  -0.046
+  mac6_a2  -0.0137
   set macro7 "Kick"
   mac7_d1  #27
   mac7_a1  0.1
@@ -950,22 +955,22 @@ patch Resonant family=tone
   # kit turns into something tuned that it was not.
   p*_cutoff      600 Hz
   p*_reso        0.8
-  volume         0.69
+  volume         0.2167
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.111
+  mac1_a2  -0.0352
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #12
-  mac2_a2  0.126
+  mac2_a2  0.0391
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  -0.138
+  mac3_a2  -0.043
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
@@ -973,12 +978,12 @@ patch Resonant family=tone
   mac5_d1  #5
   mac5_a1  0.3
   mac5_d2  #12
-  mac5_a2  -0.17
+  mac5_a2  -0.0547
   set macro6 "Reso"
   mac6_d1  #6
   mac6_a1  0.125
   mac6_d2  #12
-  mac6_a2  -0.235
+  mac6_a2  -0.0742
   set macro7 "Kick"
   mac7_d1  #27
   mac7_a1  0.1
@@ -995,29 +1000,135 @@ patch "Fifth Down" family=motion
   # longer as well as lower - tape, not a pitch shifter, which is what makes
   # it sound like a different room rather than a different kit.
   p*_pitch       -7
-  volume         0.91
+  volume         0.2194
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.06
+  mac1_a2  -0.0209
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #4
   mac2_a2  0.034
   mac2_d3  #12
-  mac2_a3  0.36
+  mac2_a3  0.0859
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.175
+  mac3_a2  0.043
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  0.021
+  mac4_a2  0.00731
+  set macro5 "Higher"
+  mac5_d1  #10
+  mac5_a1  0.25
+  mac5_d2  #12
+  mac5_a2  0.015
+  set macro6 "Fall"
+  mac6_d1  #8
+  mac6_a1  0.4
+  mac6_d2  #9
+  mac6_a2  0.2
+  mac6_d3  #12
+  mac6_a3  0.015
+  set macro7 "Rise"
+  mac7_d1  #8
+  mac7_a1  -0.4
+  mac7_d2  #9
+  mac7_a2  0.3
+  mac7_d3  #12
+  mac7_a3  -0.0139
+  set macro8 "Kick"
+  mac8_d1  #27
+  mac8_a1  0.1
+  mac8_d2  #14
+  mac8_a2  -0.04
+
+patch "Tape Drag" family=motion
+  # Three semitones down and a bit darker, like tape running slow.
+  p*_pitch       -3
+  p*_cutoff      7500 Hz
+  volume         0.2124
+  set macro1 "Lower"
+  mac1_d1  #10
+  mac1_a1  -0.25
+  mac1_d2  #12
+  mac1_a2  -0.0195
+  set macro2 "Short"
+  mac2_d1  #3
+  mac2_a1  -0.6
+  mac2_d2  #4
+  mac2_a2  0.021
+  mac2_d3  #12
+  mac2_a3  0.0625
+  set macro3 "Dark"
+  mac3_d1  #5
+  mac3_a1  -0.3
+  mac3_d2  #12
+  mac3_a2  0.0234
+  set macro4 "Crush"
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac4_d2  #12
+  mac4_a2  0.00704
+  set macro5 "Higher"
+  mac5_d1  #10
+  mac5_a1  0.25
+  mac5_d2  #12
+  mac5_a2  0.0273
+  set macro6 "Fall"
+  mac6_d1  #8
+  mac6_a1  0.4
+  mac6_d2  #9
+  mac6_a2  0.2
+  mac6_d3  #12
+  mac6_a3  0.0304
+  set macro7 "Rise"
+  mac7_d1  #8
+  mac7_a1  -0.4
+  mac7_d2  #9
+  mac7_a2  0.3
+  mac7_d3  #12
+  mac7_a3  -0.0221
+  set macro8 "Kick"
+  mac8_d1  #27
+  mac8_a1  0.1
+  mac8_d2  #14
+  mac8_a2  -0.04
+
+patch "Octave Up" family=motion
+  # And up, where every sample is half as long. Thin and hurried, and the
+  # gaps it leaves are where the rest of the pattern goes.
+  p*_pitch       12
+  volume         0.2191
+  set macro1 "Lower"
+  mac1_d1  #10
+  mac1_a1  -0.25
+  mac1_d2  #12
+  mac1_a2  -0.0156
+  set macro2 "Short"
+  mac2_d1  #3
+  mac2_a1  -0.6
+  mac2_d2  #4
+  mac2_a2  0.026
+  mac2_d3  #12
+  mac2_a3  0.0625
+  set macro3 "Dark"
+  mac3_d1  #5
+  mac3_a1  -0.3
+  mac3_d2  #4
+  mac3_a2  0.012
+  mac3_d3  #12
+  mac3_a3  0.0625
+  set macro4 "Crush"
+  mac4_d1  #7
+  mac4_a1  0.5
+  mac4_d2  #12
+  mac4_a2  0.0205
   set macro5 "Higher"
   mac5_d1  #10
   mac5_a1  0.25
@@ -1029,120 +1140,14 @@ patch "Fifth Down" family=motion
   mac6_d2  #9
   mac6_a2  0.2
   mac6_d3  #12
-  mac6_a3  0.043
+  mac6_a3  0.0469
   set macro7 "Rise"
   mac7_d1  #8
   mac7_a1  -0.4
   mac7_d2  #9
   mac7_a2  0.3
   mac7_d3  #12
-  mac7_a3  -0.04
-  set macro8 "Kick"
-  mac8_d1  #27
-  mac8_a1  0.1
-  mac8_d2  #14
-  mac8_a2  -0.04
-
-patch "Tape Drag" family=motion
-  # Three semitones down and a bit darker, like tape running slow.
-  p*_pitch       -3
-  p*_cutoff      7500 Hz
-  volume         1.0
-  set macro1 "Lower"
-  mac1_d1  #10
-  mac1_a1  -0.25
-  mac1_d2  #12
-  mac1_a2  -0.086
-  set macro2 "Short"
-  mac2_d1  #3
-  mac2_a1  -0.6
-  mac2_d2  #4
-  mac2_a2  0.021
-  mac2_d3  #12
-  mac2_a3  0.3
-  set macro3 "Dark"
-  mac3_d1  #5
-  mac3_a1  -0.3
-  mac3_d2  #12
-  mac3_a2  0.108
-  set macro4 "Crush"
-  mac4_d1  #7
-  mac4_a1  0.5
-  mac4_d2  #12
-  mac4_a2  0.023
-  set macro5 "Higher"
-  mac5_d1  #10
-  mac5_a1  0.25
-  mac5_d2  #12
-  mac5_a2  0.135
-  set macro6 "Fall"
-  mac6_d1  #8
-  mac6_a1  0.4
-  mac6_d2  #9
-  mac6_a2  0.2
-  mac6_d3  #12
-  mac6_a3  0.099
-  set macro7 "Rise"
-  mac7_d1  #8
-  mac7_a1  -0.4
-  mac7_d2  #9
-  mac7_a2  0.3
-  mac7_d3  #12
-  mac7_a3  -0.072
-  set macro8 "Kick"
-  mac8_d1  #27
-  mac8_a1  0.1
-  mac8_d2  #14
-  mac8_a2  -0.04
-
-patch "Octave Up" family=motion
-  # And up, where every sample is half as long. Thin and hurried, and the
-  # gaps it leaves are where the rest of the pattern goes.
-  p*_pitch       12
-  volume         1.02
-  set macro1 "Lower"
-  mac1_d1  #10
-  mac1_a1  -0.25
-  mac1_d2  #12
-  mac1_a2  -0.081
-  set macro2 "Short"
-  mac2_d1  #3
-  mac2_a1  -0.6
-  mac2_d2  #4
-  mac2_a2  0.026
-  mac2_d3  #12
-  mac2_a3  0.287
-  set macro3 "Dark"
-  mac3_d1  #5
-  mac3_a1  -0.3
-  mac3_d2  #4
-  mac3_a2  0.012
-  mac3_d3  #12
-  mac3_a3  0.287
-  set macro4 "Crush"
-  mac4_d1  #7
-  mac4_a1  0.5
-  mac4_d2  #12
-  mac4_a2  0.066
-  set macro5 "Higher"
-  mac5_d1  #10
-  mac5_a1  0.25
-  mac5_d2  #12
-  mac5_a2  0.206
-  set macro6 "Fall"
-  mac6_d1  #8
-  mac6_a1  0.4
-  mac6_d2  #9
-  mac6_a2  0.2
-  mac6_d3  #12
-  mac6_a3  0.216
-  set macro7 "Rise"
-  mac7_d1  #8
-  mac7_a1  -0.4
-  mac7_d2  #9
-  mac7_a2  0.3
-  mac7_d3  #12
-  mac7_a3  -0.088
+  mac7_a3  -0.0195
   set macro8 "Kick"
   mac8_d1  #27
   mac8_a1  0.1
@@ -1155,50 +1160,50 @@ patch Boing family=motion
   # trick there is; on thirteen pads at once it is a kit made of springs.
   p*_penv        0.8
   p*_pdecay      60 ms
-  volume         0.99
+  volume         0.2079
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.051
+  mac1_a2  -0.0155
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #4
   mac2_a2  0.048
   mac2_d3  #12
-  mac2_a3  0.307
+  mac2_a3  0.0664
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #4
   mac3_a2  0.007
   mac3_d3  #12
-  mac3_a3  0.307
+  mac3_a3  0.0664
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  0.072
+  mac4_a2  0.0219
   set macro5 "Higher"
   mac5_d1  #10
   mac5_a1  0.25
   mac5_d2  #12
-  mac5_a2  0.107
+  mac5_a2  0.0234
   set macro6 "Fall"
   mac6_d1  #8
   mac6_a1  0.4
   mac6_d2  #9
   mac6_a2  0.2
   mac6_d3  #12
-  mac6_a3  0.055
+  mac6_a3  0.0167
   set macro7 "Rise"
   mac7_d1  #8
   mac7_a1  -0.4
   mac7_d2  #9
   mac7_a2  0.3
   mac7_d3  #12
-  mac7_a3  -0.058
+  mac7_a3  -0.0176
   set macro8 "Kick"
   mac8_d1  #27
   mac8_a1  0.1
@@ -1211,41 +1216,41 @@ patch Zapped family=motion
   p*_penv        0.9
   p*_pdecay      18 ms
   p*_decay       0.7
-  volume         1.0
+  volume         0.2302
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.037
+  mac1_a2  -0.0123
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #4
   mac2_a2  0.066
   mac2_d3  #12
-  mac2_a3  0.3
+  mac2_a3  0.0703
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.222
+  mac3_a2  0.0508
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  0.048
+  mac4_a2  0.0159
   set macro5 "Higher"
   mac5_d1  #10
   mac5_a1  0.25
   mac5_d2  #12
-  mac5_a2  0.073
+  mac5_a2  0.0243
   set macro6 "Fall"
   mac6_d1  #8
   mac6_a1  0.4
   mac6_d2  #9
   mac6_a2  0.2
   mac6_d3  #12
-  mac6_a3  0.023
+  mac6_a3  0.00763
   set macro7 "Rise"
   mac7_d1  #8
   mac7_a1  -0.4
@@ -1263,48 +1268,48 @@ patch Sucked family=motion
   # rather the point.
   p*_penv        -0.6
   p*_pdecay      150 ms
-  volume         0.99
+  volume         0.2055
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.058
+  mac1_a2  -0.0174
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #4
   mac2_a2  0.046
   mac2_d3  #12
-  mac2_a3  0.307
+  mac2_a3  0.0625
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.2
+  mac3_a2  0.0391
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  0.039
+  mac4_a2  0.0117
   set macro5 "Higher"
   mac5_d1  #10
   mac5_a1  0.25
   mac5_d2  #12
-  mac5_a2  0.055
+  mac5_a2  0.0165
   set macro6 "Fall"
   mac6_d1  #8
   mac6_a1  0.4
   mac6_d2  #9
   mac6_a2  0.2
   mac6_d3  #12
-  mac6_a3  0.047
+  mac6_a3  0.0141
   set macro7 "Rise"
   mac7_d1  #8
   mac7_a1  -0.4
   mac7_d2  #9
   mac7_a2  0.3
   mac7_d3  #12
-  mac7_a3  -0.044
+  mac7_a3  -0.0132
   set macro8 "Kick"
   mac8_d1  #27
   mac8_a1  0.1
@@ -1322,29 +1327,29 @@ patch "Choked Hats" family=kit
   p08_choke      #1
   p08_decay      0.75
   accent         0.7
-  volume         0.86
+  volume         0.1935
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.019
+  mac1_a2  -0.00619
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #4
   mac2_a2  0.009
   mac2_d3  #12
-  mac2_a3  0.393
+  mac2_a3  0.0898
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.265
+  mac3_a2  0.0586
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  0.041
+  mac4_a2  0.0133
   set macro5 "Kick"
   mac5_d1  #27
   mac5_a1  0.1
@@ -1377,27 +1382,27 @@ patch "One Hand" family=kit
   p10_choke      #1
   p09_decay      0.8
   accent         0.7
-  volume         0.86
+  volume         0.198
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.032
+  mac1_a2  -0.0107
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #12
-  mac2_a2  0.389
+  mac2_a2  0.0898
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.218
+  mac3_a2  0.0508
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  0.07
+  mac4_a2  0.0233
   set macro5 "Kick"
   mac5_d1  #27
   mac5_a1  0.1
@@ -1443,27 +1448,27 @@ patch Spread family=kit
   p11_pan        0.24
   p12_pan        -0.26
   accent         0.7
-  volume         0.77
+  volume         0.1922
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.017
+  mac1_a2  -0.00613
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #12
-  mac2_a2  0.4
+  mac2_a2  0.1016
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.195
+  mac3_a2  0.0469
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  0.037
+  mac4_a2  0.0133
   set macro5 "Kick"
   mac5_d1  #27
   mac5_a1  0.1
@@ -1505,7 +1510,7 @@ patch "Low and High" family=kit
   p11_decay      0.55
   p12_decay      0.5
   accent         0.7
-  volume         0.96
+  volume         0.197
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
@@ -1515,17 +1520,17 @@ patch "Low and High" family=kit
   mac2_d2  #4
   mac2_a2  0.017
   mac2_d3  #12
-  mac2_a3  0.327
+  mac2_a3  0.0664
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.156
+  mac3_a2  0.0312
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  0.038
+  mac4_a2  0.0113
   set macro5 "Kick"
   mac5_d1  #27
   mac5_a1  0.1
@@ -1558,34 +1563,34 @@ patch "Big Kick" family=kit
   p00_penv       0.25
   p00_pdecay     40 ms
   p02_level      0.85
-  volume         0.66
+  volume         0.137
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.02
+  mac1_a2  -0.00598
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #12
-  mac2_a2  0.054
+  mac2_a2  0.0162
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.054
+  mac3_a2  0.0162
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
   mac4_d2  #12
-  mac4_a2  0.026
+  mac4_a2  0.00779
   set macro5 "Kick"
   mac5_d1  #27
   mac5_a1  0.1
   mac5_d2  #14
   mac5_a2  -0.04
   mac5_d3  #12
-  mac5_a3  -0.048
+  mac5_a3  -0.0144
   set macro6 "Snare"
   mac6_d1  #29
   mac6_a1  0.1
@@ -1613,22 +1618,22 @@ patch "Deep Toms" family=kit
   p05_level      1.0
   p06_level      1.0
   p00_decay      0.5
-  volume         0.83
+  volume         0.2194
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.043
+  mac1_a2  -0.0164
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #12
-  mac2_a2  0.265
+  mac2_a2  0.0703
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
   mac3_d2  #12
-  mac3_a2  0.019
+  mac3_a2  0.00725
   set macro4 "Crush"
   mac4_d1  #7
   mac4_a1  0.5
@@ -1650,7 +1655,7 @@ patch "Deep Toms" family=kit
   mac7_d3  #20
   mac7_a3  -0.1
   mac7_d4  #12
-  mac7_a4  -0.031
+  mac7_a4  -0.0118
   set macro8 "Hats"
   mac8_d1  #34
   mac8_a1  0.08
@@ -1670,17 +1675,17 @@ patch "Dark Metals" family=kit
   p10_cutoff     3500 Hz
   p09_decay      0.75
   p10_decay      0.7
-  volume         0.92
+  volume         0.2167
   set macro1 "Lower"
   mac1_d1  #10
   mac1_a1  -0.25
   mac1_d2  #12
-  mac1_a2  -0.079
+  mac1_a2  -0.0195
   set macro2 "Short"
   mac2_d1  #3
   mac2_a1  -0.6
   mac2_d2  #12
-  mac2_a2  0.214
+  mac2_a2  0.0508
   set macro3 "Dark"
   mac3_d1  #5
   mac3_a1  -0.3
@@ -1698,7 +1703,7 @@ patch "Dark Metals" family=kit
   mac6_d2  #30
   mac6_a2  0.1
   mac6_d3  #12
-  mac6_a3  -0.06
+  mac6_a3  -0.0204
   set macro7 "Toms"
   mac7_d1  #18
   mac7_a1  -0.1
@@ -1707,7 +1712,7 @@ patch "Dark Metals" family=kit
   mac7_d3  #20
   mac7_a3  -0.1
   mac7_d4  #12
-  mac7_a4  -0.067
+  mac7_a4  -0.0228
   set macro8 "Hats"
   mac8_d1  #34
   mac8_a1  0.08

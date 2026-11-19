@@ -29,6 +29,8 @@ namespace acidulous::machine {
 
 class Filament final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+8.2 dB). */
+    static constexpr float kHouseTrim = 2.556f;
     static constexpr int kVoices = 8;
     static constexpr int kSympathetic = 6;
     static constexpr int kBodyModes = 6; // per side

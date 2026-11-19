@@ -23,6 +23,8 @@ namespace acidulous::machine {
  */
 class Aviary final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+4.2 dB). */
+    static constexpr float kHouseTrim = 1.631f;
     enum P : int32_t {
         Pattern = 0, Tune, Rate, Length, Sweep, Rasp, Two, Interval,
         Breath, Throat, Beak, Flock, Spread, Space,

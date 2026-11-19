@@ -72,7 +72,10 @@
 # (+14 cents on Stopped Wood, -3 on the old tight oboe), and `fine` carries
 # it. Init sets nothing by rule and so reads 12 cents flat.
 #
-# Every patch sits between -25.0 and -25.4 dB RMS (Init -25.2), and every
+# Every patch sits at -27.5 on `loud`, within 1 dB, Init included. Init gets
+# there through the machine's house trim, with `volume` at its default of
+# 0.36, 12 dB under the top. The patches are levelled by `volume`, never
+# higher than 6 dB under the top. Every
 # centre is within 3 cents but Init (-18) and Contrabassoon (-11). Across a
 # whole range the tuning is mostly within 10 cents with the odd note at 20,
 # which is the tube below the fingers pulling each fingering differently
@@ -168,10 +171,9 @@ patch Clarinet family=clarinet  note=62 range=52..76
   attack         0.02 s
   breath         0.1
   keys           0.2
-  volume         0.80
 
   fine           11 cents
-  volume         0.83
+  volume         0.3762
 patch "A Clarinet" family=clarinet  note=61 range=51..75
   set macro1 "Blow"
   set macro2 "Looser"
@@ -204,7 +206,7 @@ patch "A Clarinet" family=clarinet  note=61 range=51..75
   mac6_d2  #7
   mac6_a2  0.15
   mac6_d3  #32
-  mac6_a3  0.1
+  mac6_a3  0.0393
   mac7_d1  #17
   mac7_a1  0.5
   mac8_d1  #15
@@ -221,7 +223,7 @@ patch "A Clarinet" family=clarinet  note=61 range=51..75
   swell          0.2
   swelltime      0.4 s
   vibrato        0 cents
-  volume         0.667
+  volume         0.2609
   send reverb    0.12
 
 patch "High Clarinet" family=clarinet  note=69 range=57..81
@@ -248,7 +250,7 @@ patch "High Clarinet" family=clarinet  note=69 range=57..81
   mac4_d2  #7
   mac4_a2  0.15
   mac4_d3  #32
-  mac4_a3  0.1
+  mac4_a3  0.03831
   mac5_d1  #35
   mac5_a1  -0.3
   mac5_d2  #36
@@ -272,7 +274,7 @@ patch "High Clarinet" family=clarinet  note=69 range=57..81
   pressure       0.95
   tongue         0.8
   vibrato        0 cents
-  volume         0.857
+  volume         0.3093
 
 patch Chalumeau family=clarinet  note=57 range=50..66
   set macro1 "Blow"
@@ -325,7 +327,7 @@ patch Chalumeau family=clarinet  note=57 range=50..66
   swelltime      0.5 s
   tongue         0.4
   vibrato        0 cents
-  volume         0.85
+  volume         0.4138
   send reverb    0.15
 
 patch "Basset Horn" family=clarinet  note=57 range=43..72
@@ -360,7 +362,7 @@ patch "Basset Horn" family=clarinet  note=57 range=43..72
   mac6_d2  #7
   mac6_a2  0.15
   mac6_d3  #32
-  mac6_a3  0.1
+  mac6_a3  0.0395
   mac7_d1  #15
   mac7_a1  -0.4
   mac7_d2  #20
@@ -378,7 +380,7 @@ patch "Basset Horn" family=clarinet  note=57 range=43..72
   swell          0.25
   swelltime      0.5 s
   vibrato        4 cents
-  volume         0.63
+  volume         0.258
   send reverb    0.15
 
 patch "Jazz Clarinet" family=clarinet  note=64 range=52..79
@@ -427,7 +429,7 @@ patch "Jazz Clarinet" family=clarinet  note=64 range=52..79
   vibrato        18 cents
   vibratodelay   0.15 s
   vibratorate    5.5 Hz
-  volume         0.621
+  volume         0.2429
   send reverb    0.15
 
 patch Klezmer family=clarinet  note=67 range=55..81
@@ -479,7 +481,7 @@ patch Klezmer family=clarinet  note=67 range=55..81
   vibrato        30 cents
   vibratodelay   0.1 s
   vibratorate    6.5 Hz
-  volume         0.519
+  volume         0.1873
   send reverb    0.12
 
 patch "Alto Sax" family=sax  note=60 range=50..74
@@ -525,10 +527,9 @@ patch "Alto Sax" family=sax  note=60 range=50..74
   pressure       0.95
   tongue         0.7
   vibrato        9 cents
-  volume         0.58
 
   fine           9 cents
-  volume         0.57
+  volume         0.1976
 patch "Soprano Sax" family=sax  note=68 range=58..82
   set macro1 "Blow"
   set macro2 "Looser"
@@ -553,7 +554,7 @@ patch "Soprano Sax" family=sax  note=68 range=58..82
   mac4_d2  #7
   mac4_a2  0.15
   mac4_d3  #32
-  mac4_a3  0.1
+  mac4_a3  0.04245
   mac5_d1  #35
   mac5_a1  -0.3
   mac5_d2  #36
@@ -577,7 +578,7 @@ patch "Soprano Sax" family=sax  note=68 range=58..82
   pressure       0.95
   tongue         0.75
   vibrato        12 cents
-  volume         0.463
+  volume         0.194
 
 patch "Tenor Sax" family=sax  note=56 range=46..70
   set macro1 "Growl"
@@ -607,7 +608,7 @@ patch "Tenor Sax" family=sax  note=56 range=46..70
   mac5_d2  #7
   mac5_a2  0.15
   mac5_d3  #32
-  mac5_a3  0.1
+  mac5_a3  0.04166
   mac6_d1  #35
   mac6_a1  -0.3
   mac6_d2  #36
@@ -631,7 +632,7 @@ patch "Tenor Sax" family=sax  note=56 range=46..70
   swelltime      0.2 s
   tongue         0.7
   vibrato        10 cents
-  volume         0.477
+  volume         0.1977
 
 patch "Baritone Sax" family=sax  note=48 range=39..63
   set macro1 "Growl"
@@ -661,7 +662,7 @@ patch "Baritone Sax" family=sax  note=48 range=39..63
   mac5_d2  #7
   mac5_a2  0.15
   mac5_d3  #32
-  mac5_a3  0.1
+  mac5_a3  0.03647
   mac6_d1  #35
   mac6_a1  -0.4
   mac6_d2  #36
@@ -683,7 +684,7 @@ patch "Baritone Sax" family=sax  note=48 range=39..63
   pressure       0.95
   tongue         0.7
   vibrato        6 cents
-  volume         0.689
+  volume         0.2374
 
 patch Subtone family=sax  note=56 range=46..70
   set macro1 "Air"
@@ -737,7 +738,7 @@ patch Subtone family=sax  note=56 range=46..70
   tongue         0.3
   vibrato        14 cents
   vibratorate    4.5 Hz
-  volume         0.554
+  volume         0.2576
   send reverb    0.2
 
 patch "Ballad Tenor" family=sax  note=58 range=46..72
@@ -794,7 +795,7 @@ patch "Ballad Tenor" family=sax  note=58 range=46..72
   vibrato        20 cents
   vibratodelay   0.25 s
   vibratorate    5 Hz
-  volume         0.357
+  volume         0.1928
   send reverb    0.25
 
 patch "Sax Section" family=sax  note=60 range=50..74
@@ -817,7 +818,7 @@ patch "Sax Section" family=sax  note=60 range=50..74
   mac3_d2  #7
   mac3_a2  0.15
   mac3_d3  #32
-  mac3_a3  0.1
+  mac3_a3  0.03455
   mac4_d1  #35
   mac4_a1  -0.3
   mac4_d2  #36
@@ -850,7 +851,7 @@ patch "Sax Section" family=sax  note=60 range=50..74
   pressure       0.95
   tongue         0.75
   vibrato        10 cents
-  volume         0.5
+  volume         0.1742
   insert Chorus
     mix          0.3
   send reverb    0.15
@@ -883,7 +884,7 @@ patch Honker family=sax  note=56 range=46..70
   mac5_d2  #7
   mac5_a2  0.15
   mac5_d3  #32
-  mac5_a3  0.1
+  mac5_a3  0.04485
   mac6_d1  #29
   mac6_a1  0.3
   mac7_d1  #37
@@ -907,7 +908,7 @@ patch Honker family=sax  note=56 range=46..70
   swelltime      0.15 s
   tongue         0.85
   vibrato        6 cents
-  volume         0.512
+  volume         0.2022
 
 patch Oboe family=double  note=70 range=60..84
   set macro1 "Blow"
@@ -960,7 +961,7 @@ patch Oboe family=double  note=70 range=60..84
   pressure       0.95
   tongue         0.8
   vibrato        12 cents
-  volume         0.42
+  volume         0.1822
 
 patch "Cor Anglais" family=double  note=62 range=52..76
   set macro1 "Blow"
@@ -1014,7 +1015,7 @@ patch "Cor Anglais" family=double  note=62 range=52..76
   swelltime      0.4 s
   tongue         0.75
   vibrato        10 cents
-  volume         0.511
+  volume         0.1954
   send reverb    0.15
 
 patch "Oboe d'Amore" family=double  note=66 range=56..80
@@ -1069,7 +1070,7 @@ patch "Oboe d'Amore" family=double  note=66 range=56..80
   pressure       0.95
   tongue         0.8
   vibrato        10 cents
-  volume         0.505
+  volume         0.1908
   send reverb    0.1
 
 patch "Piccolo Oboe" family=double  note=74 range=64..88
@@ -1121,7 +1122,7 @@ patch "Piccolo Oboe" family=double  note=74 range=64..88
   pressure       0.95
   tongue         0.85
   vibrato        12 cents
-  volume         0.541
+  volume         0.1864
 
 patch Shawm family=double  note=69 range=62..81
   set macro1 "Blast"
@@ -1171,7 +1172,7 @@ patch Shawm family=double  note=69 range=62..81
   pressure       1.1
   tongue         0.9
   vibrato        0 cents
-  volume         0.409
+  volume         0.1443
   send reverb    0.2
 
 patch "Apricot Reed" family=double  note=64 range=56..72
@@ -1228,7 +1229,7 @@ patch "Apricot Reed" family=double  note=64 range=56..72
   vibrato        15 cents
   vibratodelay   0.4 s
   vibratorate    4.5 Hz
-  volume         0.541
+  volume         0.3471
   send reverb    0.3
 
 patch Crumhorn family=double  note=60 range=53..67
@@ -1283,7 +1284,7 @@ patch Crumhorn family=double  note=60 range=53..67
   pressure       1.05
   tongue         0.9
   vibrato        0 cents
-  volume         0.567
+  volume         0.2404
   send reverb    0.15
 
 patch Flute family=flute  note=72 range=62..86
@@ -1335,7 +1336,7 @@ patch Flute family=flute  note=72 range=62..86
   pressure       0.8
   tongue         0.35
   vibrato        10.8 cents
-  volume         0.23
+  volume         0.09422
 
 patch "Alto Flute" family=flute  note=67 range=55..79
   set macro1 "Blow"
@@ -1389,7 +1390,7 @@ patch "Alto Flute" family=flute  note=67 range=55..79
   swelltime      0.4 s
   tongue         0.35
   vibrato        10 cents
-  volume         0.22
+  volume         0.09648
   send reverb    0.15
 
 patch "Piccolo Flute" family=flute  note=84 range=74..96
@@ -1442,7 +1443,7 @@ patch "Piccolo Flute" family=flute  note=84 range=74..96
   pressure       0.8
   tongue         0.4
   vibrato        10 cents
-  volume         0.23
+  volume         0.08594
 
 patch "Whisper Flute" family=flute  note=72 range=62..86
   set macro1 "Air"
@@ -1494,7 +1495,7 @@ patch "Whisper Flute" family=flute  note=72 range=62..86
   swelltime      0.5 s
   tongue         0.25
   vibrato        8 cents
-  volume         0.213
+  volume         0.08825
   send reverb    0.25
 
 patch Traverso family=flute  note=69 range=62..84
@@ -1549,7 +1550,7 @@ patch Traverso family=flute  note=69 range=62..84
   pressure       0.7
   tongue         0.4
   vibrato        0 cents
-  volume         0.175
+  volume         0.05314
   send reverb    0.2
 
 patch "Irish Flute" family=flute  note=72 range=62..86
@@ -1602,7 +1603,7 @@ patch "Irish Flute" family=flute  note=72 range=62..86
   swelltime      0.12 s
   tongue         0.6
   vibrato        6 cents
-  volume         0.255
+  volume         0.09416
   send reverb    0.15
 
 patch Bansuri family=flute  note=69 range=59..81
@@ -1657,7 +1658,7 @@ patch Bansuri family=flute  note=69 range=59..81
   vibrato        14 cents
   vibratodelay   0.4 s
   vibratorate    5 Hz
-  volume         0.25
+  volume         0.09888
   send reverb    0.3
 
 patch Overblown family=flute  note=72 range=62..86
@@ -1709,7 +1710,7 @@ patch Overblown family=flute  note=72 range=62..86
   vibrato        16 cents
   vibratodelay   0.2 s
   vibratorate    5.5 Hz
-  volume         0.189
+  volume         0.07561
   send reverb    0.12
 
 patch Recorder family=pipe  note=77 range=67..89
@@ -1762,7 +1763,7 @@ patch Recorder family=pipe  note=77 range=67..89
   lattice        2000 Hz
   pressure       0.72
   vibrato        0 cents
-  volume         0.232
+  volume         0.09072
   send reverb    0.15
 
 patch "Pan Pipe" family=pipe  note=67 range=57..79
@@ -1813,7 +1814,7 @@ patch "Pan Pipe" family=pipe  note=67 range=57..79
   lattice        2200 Hz
   pressure       0.7
   tongue         0.2
-  volume         0.432
+  volume         0.167
   send reverb    0.25
 
 patch "Tin Whistle" family=pipe  note=81 range=74..91
@@ -1867,7 +1868,7 @@ patch "Tin Whistle" family=pipe  note=81 range=74..91
   vibrato        6 cents
   vibratodelay   0.5 s
   vibratorate    6 Hz
-  volume         0.195
+  volume         0.06128
   send reverb    0.2
 
 patch Ocarina family=pipe  note=74 range=67..84
@@ -1922,7 +1923,7 @@ patch Ocarina family=pipe  note=74 range=67..84
   release        0.2 s
   vibrato        8 cents
   vibratodelay   0.4 s
-  volume         0.238
+  volume         0.08201
   send reverb    0.3
 
 patch "Bent Bamboo" family=pipe  note=67 range=62..79
@@ -1975,7 +1976,7 @@ patch "Bent Bamboo" family=pipe  note=67 range=62..79
   swell          0.45
   swelltime      0.6 s
   vibrato        0 cents
-  volume         0.223
+  volume         0.09239
   send reverb    0.35
 
 patch Jug family=pipe  note=55 range=48..64
@@ -2024,7 +2025,7 @@ patch Jug family=pipe  note=55 range=48..64
   pressure       0.85
   release        0.15 s
   vibrato        0 cents
-  volume         0.387
+  volume         0.1567
 
 patch "Bass Clarinet" family=low  note=50 range=40..62
   set macro1 "Blow"
@@ -2071,7 +2072,7 @@ patch "Bass Clarinet" family=low  note=50 range=40..62
   lattice        1000 Hz
   pressure       0.9
   tongue         0.6
-  volume         0.98
+  volume         0.3789
 
 patch Bassoon family=low  note=46 range=36..60
   set macro1 "Blow"
@@ -2125,7 +2126,7 @@ patch Bassoon family=low  note=46 range=36..60
   keys           0.4
   lattice        700 Hz
   pressure       0.9
-  volume         0.86
+  volume         0.3522
 
 patch "Bass Flute" family=low  note=60 range=50..74
   set macro1 "Blow"
@@ -2178,7 +2179,7 @@ patch "Bass Flute" family=low  note=60 range=50..74
   release        0.25 s
   vibrato        9 cents
   vibratodelay   0.4 s
-  volume         0.300
+  volume         0.1258
   send reverb    0.2
 
 patch "Contrabass Clarinet" family=low  note=38 range=28..50
@@ -2227,7 +2228,7 @@ patch "Contrabass Clarinet" family=low  note=38 range=28..50
   lattice        600 Hz
   pressure       0.95
   tongue         0.6
-  volume         1.380
+  volume         0.5154
 
 patch Contrabassoon family=low  note=42 range=32..53
   set macro1 "Blow"
@@ -2277,7 +2278,7 @@ patch Contrabassoon family=low  note=42 range=32..53
   keys           0.4
   lattice        420 Hz
   pressure       0.95
-  volume         0.733
+  volume         0.3254
 
 patch "Stopped Wood" family=odd  note=55 range=46..68
   set macro1 "Blow"
@@ -2332,7 +2333,7 @@ patch "Stopped Wood" family=odd  note=55 range=46..68
   lattice        700 Hz
   pressure       1
   tongue         0.5
-  volume         0.459
+  volume         0.2014
 
 patch Forked family=odd  note=62 range=52..74
   set macro1 "Blow"
@@ -2391,7 +2392,7 @@ patch Forked family=odd  note=62 range=52..74
   lattice        1200 Hz
   pressure       1
   tongue         0.6
-  volume         0.27
+  volume         0.1636
 
 patch "Flutter Flute" family=odd  note=72 range=62..86
   set macro1 "Flutter"
@@ -2440,7 +2441,7 @@ patch "Flutter Flute" family=odd  note=72 range=62..86
   lattice        1400 Hz
   pressure       0.8
   vibrato        0 cents
-  volume         0.253
+  volume         0.1013
   send reverb    0.2
 
 patch "Buzz Reed" family=odd  note=57 range=48..69
@@ -2489,7 +2490,7 @@ patch "Buzz Reed" family=odd  note=57 range=48..69
   pressure       1
   tongue         0.8
   vibrato        0 cents
-  volume         0.674
+  volume         0.2729
 
 patch Squeal family=odd  note=69 range=60..79
   set macro1 "Blow"
@@ -2533,7 +2534,7 @@ patch Squeal family=odd  note=69 range=60..79
   pressure       1.25
   tongue         0.9
   vibrato        10 cents
-  volume         0.895
+  volume         0.2987
 
 patch "Glass Jet" family=odd  note=69 range=60..81
   set macro1 "Blow"
@@ -2583,5 +2584,5 @@ patch "Glass Jet" family=odd  note=69 range=60..81
   release        0.8 s
   vibrato        5 cents
   vibratorate    4 Hz
-  volume         0.333
+  volume         0.1188
   send reverb    0.45

@@ -15,6 +15,8 @@ namespace acidulous::machine {
 
 class Reflux final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (+10.8 dB). */
+    static constexpr float kHouseTrim = 3.452f;
     enum P : int32_t { Wave, Tune, Cutoff, Resonance, EnvMod, Decay, Accent, Slide, Drive, Volume,
                        // the open layer
                        PulseWidth, Sub, Mode,

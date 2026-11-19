@@ -424,6 +424,11 @@ class EngineHost {
      */
     std::string loadUtterance(int rack, const std::string &path);
     /**
+     * A file for an Abacus to borrow from: decoded, summed to mono and
+     * analysed into frames on a worker, then mounted. An empty path clears it.
+     */
+    std::string loadBorrowFile(int rack, const std::string &path);
+    /**
      * A recorded voice for the Diction on [rack], from [spec]: a line per
      * held vowel, "V|PHONE|path|holdFrom|holdTo", per diphthong,
      * "D|PHONE|path|holdFrom|holdTo|glideFrom|glideTo", and per consonant,

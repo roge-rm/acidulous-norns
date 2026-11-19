@@ -173,7 +173,7 @@ const ParamDef *Sympath::paramDefs(int32_t &count) const {
         {"velocity", 0.0f, 1.0f, 0.6f, Curve::Linear, 0, ""},
         {"bend", 0.0f, 12.0f, 2.0f, Curve::Linear, 0, "st"},
         {"octave", -2.0f, 2.0f, 0.0f, Curve::Stepped, 5, ""},
-        {"volume", 0.0f, 1.0f, 0.7f, Curve::Linear, 0, ""},
+        {"volume", 0.0f, 1.0f, 0.14f, Curve::Linear, 0, ""}, // 17 dB under the top
     };
     static const ParamDef last[Count - Sidechain] = {
         // The track whose sound rings the strings: 0 for none, 1..16.
@@ -839,7 +839,7 @@ bool Sympath::render(float *L, float *R, int32_t frames) {
     const float bridge = clampf(paramOf(Bridge) * k.bridge, 0.0f, 1.0f);
     const float curve = clampf(paramOf(Curve), 0.0f, 1.0f) * kCurveSpan;
     const float tarbLevel = clampf(paramOf(Tarbs), 0.0f, 1.0f);
-    const float volume = paramOf(Volume);
+    const float volume = paramOf(Volume) * kHouseTrim;
     const float gamak = clampf(paramOf(Gamak) + wheel, 0.0f, 1.0f) * kGamakDepth;
     const float meend = goalOf(Meend);
     const float meendCoef = meend > 0.0f ? 1.0f - std::exp(-static_cast<float>(kRetuneEvery) / (meend * 0.001f * sampleRate / 3.0f)) : 1.0f;

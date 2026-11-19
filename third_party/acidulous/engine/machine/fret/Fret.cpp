@@ -94,7 +94,7 @@ const ParamDef *Fret::paramDefs(int32_t &count) const {
         {"velocity", 0.0f, 1.0f, 0.6f, Curve::Linear, 0, ""},
         {"bend", 0.0f, 12.0f, 2.0f, Curve::Linear, 0, "st"},
         {"octave", -2.0f, 2.0f, 0.0f, Curve::Stepped, 5, ""},
-        {"volume", 0.0f, 1.0f, 0.7f, Curve::Linear, 0, ""},
+        {"volume", 0.0f, 1.0f, 0.19f, Curve::Linear, 0, ""}, // 14 dB under the top
         // How long a released string keeps ringing: 0 the fingers stop it, 1 it rings out its sustain.
         {"ring", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
         {"swell", 0.0f, 4.0f, 0.0f, Curve::Linear, 0, "s"},
@@ -516,7 +516,7 @@ bool Fret::render(float *L, float *R, int32_t frames) {
     const auto airDelay = static_cast<int32_t>(kAirDelay * sampleRate);
     const auto airSize = static_cast<int32_t>(air.size());
     const float buzz = clampf(paramOf(Buzz), 0.0f, 1.0f);
-    const float volume = paramOf(Volume);
+    const float volume = paramOf(Volume) * kHouseTrim;
     const float vibratoDepth = kVibratoDepth;
     const float slideCoef = goalOf(Slide) > 0.0f ? 1.0f - std::exp(-static_cast<float>(kRetuneEvery) / (goalOf(Slide) * 0.001f * sampleRate / 3.0f)) : 1.0f;
     const float dcPole = 1.0f - 6.2831853f * 15.0f / sampleRate;

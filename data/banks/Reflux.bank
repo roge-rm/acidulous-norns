@@ -10,9 +10,11 @@
 # Every patch but Init has eight named macros. Each one adds its depth to up
 # to four destinations, so with the macros at zero a patch plays as written.
 #
-# Levelled to about -27.7 dB on the harness's loudness column. Band Squelch
-# and Ghost sit two decibels under with their volume at the top: the band
-# takes both ends off the spectrum, and drive doesn't buy it back.
+# Every patch sits at -27.5 on `loud`, within 1 dB, Init included. Init gets
+# there through the machine's house trim, with `volume` at its default of 0.2,
+# 18 dB under the top. The patches are levelled by `volume`, never higher than
+# 6 dB under the top; Hard Acid, Gritty, Hard Clip, Tube Acid, Foldback, Low
+# Bits and Snarl take the rest from the gain of their last insert.
 #
 # The band in band mode doesn't follow the keyboard, so below some note it
 # sits many harmonics above the fundamental and there is no note left in it.
@@ -76,7 +78,7 @@ patch Round family=classic  note=36 range=24..55
   accent         0.35
   slide          45 ms
   drive          0.05
-  volume         0.99
+  volume         0.2676
 
 patch "Open Saw" family=classic  note=36 range=24..55
   set macro1 "Close"
@@ -115,7 +117,7 @@ patch "Open Saw" family=classic  note=36 range=24..55
   decay          500 ms
   accent         0.3
   drive          0.0
-  volume         0.87
+  volume         0.2299
 
 patch "Warm Acid" family=classic  note=36 range=24..55
   set macro1 "Open"
@@ -155,7 +157,7 @@ patch "Warm Acid" family=classic  note=36 range=24..55
   accent         0.6
   slide          60 ms
   drive          0.1
-  volume         0.89
+  volume         0.2271
 
 patch Classic family=classic  note=36 range=24..55
   set macro1 "Open"
@@ -200,7 +202,7 @@ patch Classic family=classic  note=36 range=24..55
   accent         0.75
   slide          50 ms
   drive          0.16
-  volume         0.88
+  volume         0.2246
 
 patch "Square Acid" family=classic  note=36 range=24..55
   set macro1 "Open"
@@ -242,7 +244,7 @@ patch "Square Acid" family=classic  note=36 range=24..55
   accent         0.75
   slide          55 ms
   drive          0.15
-  volume         0.67
+  volume         0.169
 
 patch "Deep Acid" family=classic  note=36 range=24..55
   set macro1 "Open"
@@ -283,7 +285,7 @@ patch "Deep Acid" family=classic  note=36 range=24..55
   slide          70 ms
   sub            0.15
   drive          0.15
-  volume         0.9
+  volume         0.2271
 
 patch Rolling family=classic  note=36 range=24..55
   set macro1 "Open"
@@ -323,7 +325,7 @@ patch Rolling family=classic  note=36 range=24..55
   accent         0.85
   slide          80 ms
   drive          0.2
-  volume         0.89
+  volume         0.222
 
 patch "Half Square" family=classic  note=36 range=24..55
   set macro1 "Open"
@@ -364,7 +366,7 @@ patch "Half Square" family=classic  note=36 range=24..55
   accent         0.75
   slide          55 ms
   drive          0.15
-  volume         1.23
+  volume         0.3139
 
 patch "Soft Slope" family=classic  note=36 range=24..55
   set macro1 "Open"
@@ -406,7 +408,7 @@ patch "Soft Slope" family=classic  note=36 range=24..55
   accent         0.75
   slide          50 ms
   drive          0.15
-  volume         0.88
+  volume         0.222
 
 patch "Bright Acid" family=classic  note=36 range=24..55
   set macro1 "Open"
@@ -446,7 +448,7 @@ patch "Bright Acid" family=classic  note=36 range=24..55
   accent         0.8
   slide          45 ms
   drive          0.2
-  volume         0.89
+  volume         0.2246
 
 patch Squelch family=classic  note=36 range=24..55
   set macro1 "Open"
@@ -488,7 +490,7 @@ patch Squelch family=classic  note=36 range=24..55
   accent         0.92
   slide          40 ms
   drive          0.22
-  volume         0.90
+  volume         0.2219
 
 patch "Hard Acid" family=classic  note=36 range=24..55
   set macro1 "Open"
@@ -528,11 +530,12 @@ patch "Hard Acid" family=classic  note=36 range=24..55
   accent         1
   slide          50 ms
   drive          0.45
-  volume         0.75
+  volume         0.2173
   insert Distortion
     drive        3
     tone         5000 Hz
     mix          0.5
+    gain         -1.3 dB
 
 patch "Acid Echo" family=classic  note=36 range=24..55
   set macro1 "Open"
@@ -572,7 +575,7 @@ patch "Acid Echo" family=classic  note=36 range=24..55
   accent         0.75
   slide          50 ms
   drive          0.18
-  volume         0.82
+  volume         0.2022
   insert Delay
     time         #3
     feedback     0.35
@@ -622,7 +625,7 @@ patch Rubber family=classic  note=36 range=24..55
   accent         0.8
   slide          130 ms
   drive          0.25
-  volume         0.74
+  volume         0.1846
 
 # A fixed band on a moving note: below the tenor register the band sits
 # thirty-five harmonics above the fundamental and there is no note left in
@@ -671,7 +674,7 @@ patch Reed family=classic  note=48 range=36..67
   accent         0.55
   slide          90 ms
   drive          0.25
-  volume         1.41
+  volume         0.4989
 
 # --- short -------------------------------------------------------------
 
@@ -714,7 +717,7 @@ patch Pluck family=short  note=36 range=24..55
   accent         0.5
   slide          30 ms
   drive          0.3
-  volume         0.95
+  volume         0.2453
 
 patch Thump family=short  note=36 range=24..55
   set macro1 "Open"
@@ -753,7 +756,7 @@ patch Thump family=short  note=36 range=24..55
   slide          20 ms
   sub            0.3
   drive          0.2
-  volume         1.12
+  volume         0.2637
 
 patch Damped family=short  note=36 range=24..55
   set macro1 "Open"
@@ -792,7 +795,7 @@ patch Damped family=short  note=36 range=24..55
   accent         0.6
   slide          20 ms
   drive          0.1
-  volume         0.92
+  volume         0.2322
 
 patch Doorstop family=short  note=36 range=24..55
   set macro1 "Open"
@@ -831,7 +834,7 @@ patch Doorstop family=short  note=36 range=24..55
   accent         0.85
   slide          25 ms
   drive          0.3
-  volume         0.98
+  volume         0.2334
 
 patch Stab family=short  note=36 range=24..55
   set macro1 "Open"
@@ -871,7 +874,7 @@ patch Stab family=short  note=36 range=24..55
   accent         0.8
   slide          25 ms
   drive          0.25
-  volume         0.73
+  volume         0.1821
 
 patch "Snap Pulse" family=short  note=36 range=24..55
   set macro1 "Open"
@@ -911,7 +914,7 @@ patch "Snap Pulse" family=short  note=36 range=24..55
   accent         0.8
   slide          30 ms
   drive          0.15
-  volume         0.74
+  volume         0.1846
 
 patch Pip family=short  note=36 range=24..55
   set macro1 "Open"
@@ -951,7 +954,7 @@ patch Pip family=short  note=36 range=24..55
   accent         0.7
   slide          20 ms
   drive          0.1
-  volume         0.67
+  volume         0.169
 
 patch Tick family=short  note=36 range=24..55
   set macro1 "Open"
@@ -992,7 +995,7 @@ patch Tick family=short  note=36 range=24..55
   accent         0.85
   slide          20 ms
   drive          0.18
-  volume         0.92
+  volume         0.2295
 
 patch "Dotted Pluck" family=short  note=36 range=24..55
   set macro1 "Open"
@@ -1030,7 +1033,7 @@ patch "Dotted Pluck" family=short  note=36 range=24..55
   accent         0.6
   slide          25 ms
   drive          0.2
-  volume         0.83
+  volume         0.2046
   insert Delay
     time         #3
     feedback     0.4
@@ -1075,7 +1078,7 @@ patch Knock family=short  note=36 range=30..55
   accent         0.7
   slide          20 ms
   drive          0.15
-  volume         1.5
+  volume         0.5224
 
 # Same again, higher: a band at 2600 Hz has nothing to say about a note at
 # 100.
@@ -1118,7 +1121,7 @@ patch Glass family=short  note=60 range=49..79
   accent         0.3
   slide          35 ms
   drive          0.05
-  volume         0.62
+  volume         0.1735
 
 patch Rattle family=short  note=36 range=24..55
   set macro1 "Open"
@@ -1161,7 +1164,7 @@ patch Rattle family=short  note=36 range=24..55
   lfo_shape      #2
   lfo_retrig     #1
   lfo_cut        0.4
-  volume         0.93
+  volume         0.2319
 
 # --- sub ---------------------------------------------------------------
 
@@ -1204,7 +1207,7 @@ patch "Sub Saw" family=sub  note=36 range=24..55
   accent         0.4
   slide          50 ms
   drive          0.05
-  volume         1.12
+  volume         0.2794
 
 patch "Sub Square" family=sub  note=36 range=24..55
   set macro1 "Open"
@@ -1247,7 +1250,7 @@ patch "Sub Square" family=sub  note=36 range=24..55
   accent         0.4
   slide          50 ms
   drive          0.05
-  volume         0.87
+  volume         0.222
 
 patch "Sub Hollow" family=sub  note=36 range=24..55
   set macro1 "Open"
@@ -1290,7 +1293,7 @@ patch "Sub Hollow" family=sub  note=36 range=24..55
   decay          480 ms
   accent         0.5
   drive          0.08
-  volume         0.91
+  volume         0.2349
 
 patch "Sub Blend" family=sub  note=36 range=24..55
   set macro1 "Open"
@@ -1333,7 +1336,7 @@ patch "Sub Blend" family=sub  note=36 range=24..55
   accent         0.5
   slide          50 ms
   drive          0.08
-  volume         1.17
+  volume         0.2885
 
 patch "Sub Pluck" family=sub  note=36 range=24..55
   set macro1 "Open"
@@ -1374,7 +1377,7 @@ patch "Sub Pluck" family=sub  note=36 range=24..55
   accent         0.6
   slide          30 ms
   drive          0.1
-  volume         1.09
+  volume         0.2657
 
 patch "Sub Acid" family=sub  note=36 range=24..55
   set macro1 "Open"
@@ -1415,7 +1418,7 @@ patch "Sub Acid" family=sub  note=36 range=24..55
   accent         0.75
   slide          60 ms
   drive          0.15
-  volume         0.96
+  volume         0.2395
 
 patch "Sub PWM" family=sub  note=36 range=24..55
   set macro1 "Open"
@@ -1461,7 +1464,7 @@ patch "Sub PWM" family=sub  note=36 range=24..55
   lfo_rate       0.4 Hz
   lfo_shape      #1
   lfo_pw         0.7
-  volume         0.82
+  volume         0.2069
 
 patch "Hollow Pulse" family=sub  note=36 range=24..55
   set macro1 "Open"
@@ -1506,7 +1509,7 @@ patch "Hollow Pulse" family=sub  note=36 range=24..55
   accent         0.6
   slide          55 ms
   drive          0.12
-  volume         1.06
+  volume         0.2737
 
 # Stops at 45: above that the cutoff at the floor leaves the sub with the
 # note only thirteen decibels behind it, and it is a sub no longer.
@@ -1552,7 +1555,7 @@ patch "Sub Drop" family=sub  note=36 range=24..45
   decay          900 ms
   accent         0.3
   drive          0.0
-  volume         1.46
+  volume         0.3601
 
 patch "Thin Ice" family=sub  note=48 range=36..67
   set macro1 "Open"
@@ -1592,7 +1595,7 @@ patch "Thin Ice" family=sub  note=48 range=36..67
   decay          220 ms
   accent         0.4
   drive          0.05
-  volume         0.76
+  volume         0.2008
 
 # --- dirty -------------------------------------------------------------
 
@@ -1635,7 +1638,7 @@ patch "Warm Drive" family=dirty  note=36 range=24..55
   accent         0.7
   slide          55 ms
   drive          0.5
-  volume         0.93
+  volume         0.2347
 
 patch Gritty family=dirty  note=36 range=24..55
   set macro1 "Open"
@@ -1676,13 +1679,13 @@ patch Gritty family=dirty  note=36 range=24..55
   accent         0.8
   slide          50 ms
   drive          0.4
-  volume         0.98
+  volume         0.2839
   insert Distortion
     drive        4
     tone         4500 Hz
     mix          0.5
     mode         #3
-    gain         -3 dB
+    gain         -4.1 dB
 
 patch Rasp family=dirty  note=36 range=24..55
   set macro1 "Open"
@@ -1723,7 +1726,7 @@ patch Rasp family=dirty  note=36 range=24..55
   accent         0.6
   slide          45 ms
   drive          0.7
-  volume         0.92
+  volume         0.2375
 
 patch Wasp family=dirty  note=48 range=36..67
   set macro1 "Open"
@@ -1765,7 +1768,7 @@ patch Wasp family=dirty  note=48 range=36..67
   accent         0.55
   slide          40 ms
   drive          0.1
-  volume         0.75
+  volume         0.2004
 
 patch "Hard Clip" family=dirty  note=36 range=24..55
   set macro1 "Open"
@@ -1808,13 +1811,13 @@ patch "Hard Clip" family=dirty  note=36 range=24..55
   accent         0.85
   slide          45 ms
   drive          0.3
-  volume         0.89
+  volume         0.2578
   insert Distortion
     drive        5
     tone         5000 Hz
     mix          0.6
     mode         #1
-    gain         -5 dB
+    gain         -6.2 dB
 
 patch "Tube Acid" family=dirty  note=36 range=24..55
   set macro1 "Open"
@@ -1856,13 +1859,13 @@ patch "Tube Acid" family=dirty  note=36 range=24..55
   accent         0.85
   slide          60 ms
   drive          0.6
-  volume         0.94
+  volume         0.2723
   insert Distortion
     drive        8
     tone         4000 Hz
     mix          0.7
     mode         #3
-    gain         -4 dB
+    gain         -4.8 dB
 
 patch Screamer family=dirty  note=36 range=24..55
   set macro1 "Open"
@@ -1905,7 +1908,7 @@ patch Screamer family=dirty  note=36 range=24..55
   accent         0.8
   slide          45 ms
   drive          1
-  volume         0.87
+  volume         0.2195
 
 patch Buzzsaw family=dirty  note=36 range=24..55
   set macro1 "Open"
@@ -1946,7 +1949,7 @@ patch Buzzsaw family=dirty  note=36 range=24..55
   decay          400 ms
   accent         0.55
   drive          0.85
-  volume         0.91
+  volume         0.2349
 
 patch Grind family=dirty  note=36 range=24..48
   set macro1 "Open"
@@ -1990,7 +1993,7 @@ patch Grind family=dirty  note=36 range=24..48
   decay          600 ms
   accent         0.6
   drive          0.9
-  volume         0.98
+  volume         0.2501
 
 patch Foldback family=dirty  note=36 range=24..55
   set macro1 "Open"
@@ -2031,12 +2034,13 @@ patch Foldback family=dirty  note=36 range=24..55
   accent         0.8
   slide          50 ms
   drive          0.3
-  volume         0.79
+  volume         0.2289
   insert Distortion
     drive        3
     tone         6000 Hz
     mix          0.7
     mode         #2
+    gain         -1.3 dB
 
 patch "Low Bits" family=dirty  note=36 range=24..55
   set macro1 "Open"
@@ -2076,12 +2080,13 @@ patch "Low Bits" family=dirty  note=36 range=24..55
   accent         0.8
   slide          50 ms
   drive          0.35
-  volume         0.89
+  volume         0.2578
   insert Bitcrusher
     bits         6
     rate         9000 Hz
     tone         7000 Hz
     mix          0.7
+    gain         -0.6 dB
 
 patch Shredder family=dirty  note=36 range=24..55
   set macro1 "Open"
@@ -2122,7 +2127,7 @@ patch Shredder family=dirty  note=36 range=24..55
   accent         0.9
   slide          45 ms
   drive          0.9
-  volume         0.84
+  volume         0.2434
   insert Distortion
     drive        4
     tone         7000 Hz
@@ -2176,7 +2181,7 @@ patch Talk family=motion  note=36 range=24..55
   accent         0.7
   slide          70 ms
   drive          0.1
-  volume         0.85
+  volume         0.217
 
 patch "Snap Back" family=motion  note=36 range=24..55
   set macro1 "Open"
@@ -2215,7 +2220,7 @@ patch "Snap Back" family=motion  note=36 range=24..55
   accent         0.8
   slide          180 ms
   drive          0.15
-  volume         0.92
+  volume         0.2217
 
 patch "Wah Line" family=motion  note=36 range=24..55
   set macro1 "Open"
@@ -2254,7 +2259,7 @@ patch "Wah Line" family=motion  note=36 range=24..55
   accent         1
   slide          60 ms
   drive          0.15
-  volume         0.84
+  volume         0.2095
 
 patch "Slide Line" family=motion  note=36 range=24..55
   set macro1 "Open"
@@ -2296,7 +2301,7 @@ patch "Slide Line" family=motion  note=36 range=24..55
   accent         0.7
   slide          420 ms
   drive          0.14
-  volume         0.89
+  volume         0.2246
 
 patch "Long Glide" family=motion  note=36 range=24..55
   set macro1 "Open"
@@ -2338,7 +2343,7 @@ patch "Long Glide" family=motion  note=36 range=24..55
   accent         0.6
   slide          250 ms
   drive          0.1
-  volume         0.65
+  volume         0.1659
 
 patch "Glide Echo" family=motion  note=36 range=24..55
   set macro1 "Open"
@@ -2377,7 +2382,7 @@ patch "Glide Echo" family=motion  note=36 range=24..55
   accent         0.7
   slide          200 ms
   drive          0.15
-  volume         0.81
+  volume         0.202
   insert Delay
     time         #4
     feedback     0.35
@@ -2423,7 +2428,7 @@ patch "Long Sweep" family=motion  note=36 range=24..55
   accent         0.45
   slide          60 ms
   drive          0.15
-  volume         0.91
+  volume         0.2377
 
 patch Crawl family=motion  note=24 range=24..48
   set macro1 "Open"
@@ -2463,7 +2468,7 @@ patch Crawl family=motion  note=24 range=24..48
   accent         0.4
   slide          300 ms
   drive          0.12
-  volume         1.32
+  volume         0.3143
 
 patch Breather family=motion  note=36 range=24..55
   set macro1 "Open"
@@ -2505,7 +2510,7 @@ patch Breather family=motion  note=36 range=24..55
   drive          0.12
   lfo_sync       #14
   lfo_cut        0.35
-  volume         0.92
+  volume         0.2403
 
 patch "Pulse Sweep" family=motion  note=36 range=24..55
   set macro1 "Open"
@@ -2549,7 +2554,7 @@ patch "Pulse Sweep" family=motion  note=36 range=24..55
   lfo_sync       #15
   lfo_shape      #1
   lfo_pw         0.9
-  volume         0.76
+  volume         0.1874
 
 patch Ebb family=motion  note=36 range=24..55
   set macro1 "Open"
@@ -2591,7 +2596,7 @@ patch Ebb family=motion  note=36 range=24..55
   lfo_sync       #16
   lfo_shape      #1
   lfo_cut        0.5
-  volume         0.85
+  volume         0.2096
   send reverb    0.12
 
 patch Siren family=motion  note=36 range=24..55
@@ -2632,7 +2637,7 @@ patch Siren family=motion  note=36 range=24..55
   accent         0.35
   slide          80 ms
   drive          0.14
-  volume         0.93
+  volume         0.2486
 
 patch Wander family=motion  note=36 range=24..55
   set macro1 "Open"
@@ -2675,7 +2680,7 @@ patch Wander family=motion  note=36 range=24..55
   lfo_shape      #4
   lfo_cut        0.35
   lfo_pitch      0.008
-  volume         0.89
+  volume         0.2271
 
 patch "Octave Down" family=motion  note=48 range=36..60
   set macro1 "Open"
@@ -2717,7 +2722,7 @@ patch "Octave Down" family=motion  note=48 range=36..60
   accent         0.5
   slide          60 ms
   drive          0.1
-  volume         1.06
+  volume         0.2644
 
 # --- wobble ------------------------------------------------------------
 
@@ -2758,7 +2763,7 @@ patch "Slow Wob" family=wobble  note=36 range=24..55
   drive          0.3
   lfo_sync       #12
   lfo_cut        0.6
-  volume         1.01
+  volume         0.2731
 
 patch Womp family=wobble  note=36 range=24..55
   set macro1 "Open"
@@ -2798,7 +2803,7 @@ patch Womp family=wobble  note=36 range=24..55
   lfo_sync       #6
   lfo_retrig     #1
   lfo_cut        0.6
-  volume         1.05
+  volume         0.2649
 
 patch "Quarter Wob" family=wobble  note=36 range=24..55
   set macro1 "Open"
@@ -2838,7 +2843,7 @@ patch "Quarter Wob" family=wobble  note=36 range=24..55
   lfo_shape      #1
   lfo_retrig     #1
   lfo_cut        0.6
-  volume         1.04
+  volume         0.278
 
 patch "Triplet Wob" family=wobble  note=36 range=24..55
   set macro1 "Open"
@@ -2878,7 +2883,7 @@ patch "Triplet Wob" family=wobble  note=36 range=24..55
   lfo_sync       #4
   lfo_retrig     #1
   lfo_cut        0.55
-  volume         1.04
+  volume         0.2654
 
 patch "Saw Wob" family=wobble  note=36 range=24..55
   set macro1 "Open"
@@ -2919,7 +2924,7 @@ patch "Saw Wob" family=wobble  note=36 range=24..55
   lfo_shape      #3
   lfo_retrig     #1
   lfo_cut        0.6
-  volume         1.03
+  volume         0.254
 
 patch Chop family=wobble  note=36 range=24..55
   set macro1 "Open"
@@ -2959,7 +2964,7 @@ patch Chop family=wobble  note=36 range=24..55
   lfo_sync       #3
   lfo_shape      #2
   lfo_cut        0.5
-  volume         1.03
+  volume         0.269
 
 patch "Triplet Chop" family=wobble  note=36 range=24..55
   set macro1 "Open"
@@ -2999,7 +3004,7 @@ patch "Triplet Chop" family=wobble  note=36 range=24..55
   lfo_shape      #2
   lfo_retrig     #1
   lfo_cut        0.5
-  volume         1.03
+  volume         0.2629
 
 patch "PWM Wob" family=wobble  note=36 range=24..55
   set macro1 "Open"
@@ -3042,7 +3047,7 @@ patch "PWM Wob" family=wobble  note=36 range=24..55
   lfo_shape      #1
   lfo_pw         0.9
   lfo_cut        0.2
-  volume         0.82
+  volume         0.2117
 
 patch "Random Steps" family=wobble  note=36 range=24..55
   set macro1 "Open"
@@ -3081,7 +3086,7 @@ patch "Random Steps" family=wobble  note=36 range=24..55
   lfo_sync       #3
   lfo_shape      #4
   lfo_cut        0.6
-  volume         1.0
+  volume         0.2552
 
 patch Warble family=wobble  note=36 range=24..55
   set macro1 "Open"
@@ -3122,7 +3127,7 @@ patch Warble family=wobble  note=36 range=24..55
   lfo_retrig     #1
   lfo_pitch      0.02
   lfo_cut        0.15
-  volume         1.16
+  volume         0.2639
   insert Chorus
     depth        0.4
     mix          0.3
@@ -3164,7 +3169,7 @@ patch Trill family=wobble  note=36 range=24..55
   lfo_sync       #3
   lfo_shape      #2
   lfo_pitch      0.0833
-  volume         0.94
+  volume         0.2427
 
 patch Snarl family=wobble  note=36 range=24..55
   set macro1 "Open"
@@ -3210,12 +3215,13 @@ patch Snarl family=wobble  note=36 range=24..55
   lfo_retrig     #1
   lfo_cut        0.6
   lfo_pw         0.5
-  volume         0.89
+  volume         0.2578
   insert Distortion
     drive        3
     tone         5000 Hz
     mix          0.4
     mode         #3
+    gain         -1.2 dB
 
 # --- band --------------------------------------------------------------
 
@@ -3248,9 +3254,7 @@ patch "Band Squelch" family=band  note=36 range=24..55
   mac8_d1  #6
   mac8_a1  0.3
   # Band-pass: no bottom and no top, so what is left is the resonance itself.
-  # Volume at the top and drive doing the rest, and it is still the quietest
-  # thing here by two decibels - which is what taking the ends off a spectrum
-  # costs, not something to pretend away.
+  # Taking the ends off a spectrum costs level, so an Eq after it makes that up.
   mode           #1
   cutoff         690 Hz
   resonance      0.85
@@ -3258,7 +3262,7 @@ patch "Band Squelch" family=band  note=36 range=24..55
   decay          120 ms
   accent         0.9
   drive          0.55
-  volume         1.50
+  volume         0.7432
 
 patch "Band Pluck" family=band  note=48 range=43..67
   set macro1 "Open"
@@ -3298,7 +3302,7 @@ patch "Band Pluck" family=band  note=48 range=43..67
   accent         0.8
   slide          40 ms
   drive          0.3
-  volume         1.46
+  volume         0.5407
 
 patch Nasal family=band  note=48 range=43..67
   set macro1 "Open"
@@ -3340,7 +3344,7 @@ patch Nasal family=band  note=48 range=43..67
   accent         0.6
   slide          60 ms
   drive          0.25
-  volume         1.44
+  volume         0.4656
 
 patch "Band Glide" family=band  note=48 range=43..67
   set macro1 "Open"
@@ -3380,7 +3384,7 @@ patch "Band Glide" family=band  note=48 range=43..67
   accent         0.7
   slide          220 ms
   drive          0.3
-  volume         1.39
+  volume         0.5728
 
 patch "Band Lead" family=band  note=48 range=36..67
   set macro1 "Open"
@@ -3421,7 +3425,7 @@ patch "Band Lead" family=band  note=48 range=36..67
   accent         0.6
   slide          90 ms
   drive          0.35
-  volume         1.26
+  volume         0.4004
 
 patch "Phone Line" family=band  note=60 range=55..79
   set macro1 "Open"
@@ -3462,7 +3466,7 @@ patch "Phone Line" family=band  note=60 range=55..79
   accent         0.5
   slide          50 ms
   drive          0.45
-  volume         1.35
+  volume         0.3767
   insert Distortion
     drive        3
     tone         3500 Hz
@@ -3514,7 +3518,7 @@ patch Ghost family=band  note=48 range=36..67
   accent         0.3
   slide          180 ms
   drive          0.1
-  volume         1.50
+  volume         0.5929
 
 patch Vowel family=band  note=48 range=43..67
   set macro1 "Open"
@@ -3554,7 +3558,7 @@ patch Vowel family=band  note=48 range=43..67
   drive          0.2
   lfo_rate       0.7 Hz
   lfo_cut        0.35
-  volume         0.92
+  volume         0.3242
   insert Chorus
     depth        0.4
     mix          0.3
@@ -3599,7 +3603,7 @@ patch "Band Wob" family=band  note=48 range=43..67
   lfo_shape      #1
   lfo_retrig     #1
   lfo_cut        0.4
-  volume         1.23
+  volume         0.3033
 
 patch Wide family=band  note=36 range=24..55
   set macro1 "Open"
@@ -3644,7 +3648,7 @@ patch Wide family=band  note=36 range=24..55
   accent         0.4
   slide          50 ms
   drive          0.06
-  volume         1.02
+  volume         0.2544
 
 # --- filter ------------------------------------------------------------
 
@@ -3686,7 +3690,7 @@ patch Mellow family=filter  note=36 range=24..55
   accent         0.6
   slide          60 ms
   drive          0.1
-  volume         0.89
+  volume         0.2271
 
 patch Twelve family=filter  note=36 range=24..55
   set macro1 "Open"
@@ -3726,7 +3730,7 @@ patch Twelve family=filter  note=36 range=24..55
   accent         0.7
   slide          60 ms
   drive          0.15
-  volume         0.88
+  volume         0.2246
 
 patch Shrill family=filter  note=36 range=24..55
   set macro1 "Open"
@@ -3766,7 +3770,7 @@ patch Shrill family=filter  note=36 range=24..55
   accent         0.9
   slide          50 ms
   drive          0.2
-  volume         0.87
+  volume         0.217
 
 patch "Thin Line" family=filter  note=36 range=29..58
   set macro1 "Open"
@@ -3806,7 +3810,7 @@ patch "Thin Line" family=filter  note=36 range=29..58
   accent         0.7
   slide          60 ms
   drive          0.15
-  volume         1.5
+  volume         0.4819
 
 patch "Bare Square" family=filter  note=36 range=31..58
   set macro1 "Open"
@@ -3848,7 +3852,7 @@ patch "Bare Square" family=filter  note=36 range=31..58
   accent         0.6
   slide          60 ms
   drive          0.2
-  volume         1.1
+  volume         0.3187
 
 patch Pinch family=filter  note=36 range=31..58
   set macro1 "Open"
@@ -3888,7 +3892,7 @@ patch Pinch family=filter  note=36 range=31..58
   accent         0.7
   slide          50 ms
   drive          0.2
-  volume         1.5
+  volume         0.4819
 
 patch "Notch Fall" family=filter  note=36 range=24..55
   set macro1 "Open"
@@ -3926,7 +3930,7 @@ patch "Notch Fall" family=filter  note=36 range=24..55
   decay          600 ms
   accent         0.6
   drive          0.2
-  volume         0.92
+  volume         0.2348
 
 patch "Notch Drift" family=filter  note=36 range=24..55
   set macro1 "Open"
@@ -3966,7 +3970,7 @@ patch "Notch Drift" family=filter  note=36 range=24..55
   drive          0.15
   lfo_rate       0.3 Hz
   lfo_cut        0.5
-  volume         1.08
+  volume         0.2572
   insert Chorus
     depth        0.3
     mix          0.25
@@ -4011,7 +4015,7 @@ patch "Notch Wob" family=filter  note=36 range=24..55
   lfo_sync       #6
   lfo_shape      #1
   lfo_cut        0.45
-  volume         1.5
+  volume         0.4009
 
 patch Whistler family=filter  note=60 range=52..76
   set macro1 "Open"
@@ -4051,7 +4055,7 @@ patch Whistler family=filter  note=60 range=52..76
   accent         0.7
   slide          70 ms
   drive          0.2
-  volume         0.77
+  volume         0.2034
   insert Delay
     time         #4
     feedback     0.35

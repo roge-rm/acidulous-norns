@@ -83,7 +83,10 @@
 # range narrower than the tune its high answer is sung lower in the same
 # scale, so every note is still a note of the tune's key.
 #
-# Levelled on `loud` to between -25.8 and -25.5 dB, the level Init lands at.
+# Every patch sits at -27.5 on `loud`, within 1 dB, Init included. Init gets
+# there through the machine's house trim, with `volume` at its default of
+# 0.36, 12 dB under the top. The patches are levelled by `volume`, never
+# higher than 6 dB under the top.
 # `audition sweep Brazen` plays every note of every range (1248): none dead,
 # none on the wrong partial. What reads oddly on purpose: Foghorn's and Hornet's `hollow` (-30,
 # the swell still rising and the flutter's sidebands), Air Leak's breath.
@@ -142,7 +145,7 @@ patch Trumpet family=high  note=62 range=52..82
   vibrato        8 cents
   vibratodelay   0.5 s
   breath         0.08
-  volume         0.57
+  volume         0.2203
   fine           4 cents
 
 patch "C Trumpet" family=high  note=64 range=54..84
@@ -193,7 +196,7 @@ patch "C Trumpet" family=high  note=64 range=54..84
   vibratodelay   0.4 s
   breath         0.07
   fine           5 cents
-  volume         0.57
+  volume         0.2229
 
 patch Cornet family=high  note=60 range=52..77
   # Between the flugel and the trumpet, which is exactly what it is.
@@ -242,7 +245,7 @@ patch Cornet family=high  note=60 range=52..77
   vibrato        7 cents
   breath         0.06
   fine           8 cents
-  volume         0.59
+  volume         0.2307
 
 patch "Rotary Trumpet" family=high  note=62 range=52..80
   # The round, dark one: a wider bell throat and no vibrato, played into a
@@ -293,7 +296,7 @@ patch "Rotary Trumpet" family=high  note=62 range=52..80
   vibrato        0 cents
   breath         0.04
   fine           10 cents
-  volume         0.55
+  volume         0.2125
   cutoff         3800 Hz
   send reverb    0.15
 
@@ -349,7 +352,7 @@ patch "Lead Trumpet" family=high  note=67 range=58..86
   breath         0.06
   drive          0.15
   fine           7 cents
-  volume         0.55
+  volume         0.2101
 
 patch Piccolo family=high  note=70 range=64..91
   # The same instrument again, shorter and harder, up where it screams. The
@@ -398,7 +401,7 @@ patch Piccolo family=high  note=70 range=64..91
   vibrato        6 cents
   breath         0.1
   fine           11 cents
-  volume         0.56
+  volume         0.1997
 
 patch "Late Set" family=high  note=62 range=52..80
   # A small-room jazz trumpet: one voice that slides into its notes, a slow
@@ -451,7 +454,7 @@ patch "Late Set" family=high  note=62 range=52..80
   vibratodelay   0.25 s
   breath         0.14
   fine           6 cents
-  volume         0.51
+  volume         0.2017
   send reverb    0.2
 
 patch Horn family=horn  note=53 range=41..72
@@ -511,7 +514,7 @@ patch Horn family=horn  note=53 range=41..72
   width          0.5
   breath         0.05
   fine           12 cents
-  volume         0.62
+  volume         0.2689
   cutoff         4800 Hz
 
 patch Flugel family=horn  note=58 range=52..77
@@ -563,7 +566,7 @@ patch Flugel family=horn  note=58 range=52..77
   vibrato        5 cents
   breath         0.05
   fine           7 cents
-  volume         0.61
+  volume         0.2304
 
 patch "Alto Horn" family=horn  note=55 range=48..74
   # The band's middle voice: a horn's roundness with a valve trumpet's
@@ -614,7 +617,7 @@ patch "Alto Horn" family=horn  note=55 range=48..74
   vibrato        4 cents
   breath         0.05
   fine           13 cents
-  volume         0.6
+  volume         0.2373
   cutoff         4500 Hz
 
 patch Euphonium family=horn  note=50 range=40..70
@@ -667,7 +670,7 @@ patch Euphonium family=horn  note=50 range=40..70
   vibratodelay   0.4 s
   breath         0.03
   fine           18 cents
-  volume         0.62
+  volume         0.2598
   cutoff         3500 Hz
 
 patch "Wagner Tuba" family=horn  note=48 range=38..65
@@ -720,7 +723,7 @@ patch "Wagner Tuba" family=horn  note=48 range=38..65
   vibrato        0 cents
   breath         0.03
   fine           19 cents
-  volume         0.53
+  volume         0.2246
   cutoff         2600 Hz
   send reverb    0.2
 
@@ -776,7 +779,7 @@ patch "Distant Horn" family=horn  note=53 range=41..72
   vibrato        4 cents
   breath         0.06
   fine           16 cents
-  volume         0.48
+  volume         0.2418
   cutoff         2800 Hz
   send reverb    0.3
 
@@ -831,7 +834,7 @@ patch "Horn Call" family=horn  note=55 range=43..74
   vibrato        3 cents
   breath         0.05
   fine           17 cents
-  volume         0.46
+  volume         0.1819
   send reverb    0.25
 
 patch Trombone family=low  note=48 range=40..67
@@ -880,7 +883,7 @@ patch Trombone family=low  note=48 range=40..67
   vibrato        5 cents
   breath         0.04
   fine           18 cents
-  volume         0.64
+  volume         0.2532
   cutoff         5000 Hz
 
 patch "Valve Trombone" family=low  note=50 range=40..67
@@ -931,7 +934,7 @@ patch "Valve Trombone" family=low  note=50 range=40..67
   vibrato        4 cents
   breath         0.07
   fine           16 cents
-  volume         0.64
+  volume         0.2561
   cutoff         6000 Hz
 
 patch "Bass Trombone" family=low  note=43 range=34..58
@@ -980,7 +983,7 @@ patch "Bass Trombone" family=low  note=43 range=34..58
   vibrato        4 cents
   breath         0.03
   fine           15 cents
-  volume         0.70
+  volume         0.2933
   cutoff         3200 Hz
 
 patch Tuba family=low  note=41 range=31..53
@@ -1035,7 +1038,7 @@ patch Tuba family=low  note=41 range=31..53
   # nowhere to hide and at the default 0.15 read brighter than the piccolo.
   breath         0
   fine           16 cents
-  volume         0.71
+  volume         0.294
   cutoff         1600 Hz
 
 patch "Contrabass Tuba" family=low  note=38 range=31..50
@@ -1087,7 +1090,7 @@ patch "Contrabass Tuba" family=low  note=38 range=31..50
   vibrato        0 cents
   breath         0
   fine           17 cents
-  volume         0.78
+  volume         0.2946
   cutoff         1200 Hz
 
 patch Cimbasso family=low  note=38 range=31..55
@@ -1138,7 +1141,7 @@ patch Cimbasso family=low  note=38 range=31..55
   breath         0.02
   drive          0.1
   fine           16 cents
-  volume         0.79
+  volume         0.2985
   cutoff         2600 Hz
 
 patch Sousaphone family=low  note=36 range=31..53
@@ -1191,7 +1194,7 @@ patch Sousaphone family=low  note=36 range=31..53
   vibrato        0 cents
   breath         0.02
   fine           20 cents
-  volume         0.94
+  volume         0.3165
   cutoff         2200 Hz
 
 patch Tailgate family=low  note=48 range=40..67
@@ -1245,7 +1248,7 @@ patch Tailgate family=low  note=48 range=40..67
   vibratodelay   0.2 s
   breath         0.06
   fine           18 cents
-  volume         0.69
+  volume         0.2698
 
 patch "Straight Mute" family=muted  note=62 range=52..82
   # A mute is a filter here and not a volume knob. The straight one takes the
@@ -1293,7 +1296,7 @@ patch "Straight Mute" family=muted  note=62 range=52..82
   bite           0.6
   attack         0.016 s
   breath         0.09
-  volume         1.06
+  volume         0.4004
   cutoff         4200 Hz
   fine           3 cents
 
@@ -1344,7 +1347,7 @@ patch "Cup Mute" family=muted  note=58 range=52..82
   attack         0.026 s
   breath         0.06
   fine           13 cents
-  volume         0.65
+  volume         0.2542
   cutoff         3200 Hz
 
 patch "Bucket Mute" family=muted  note=62 range=52..80
@@ -1397,7 +1400,7 @@ patch "Bucket Mute" family=muted  note=62 range=52..80
   vibrato        6 cents
   breath         0.08
   fine           9 cents
-  volume         0.54
+  volume         0.2289
   cutoff         2200 Hz
 
 patch "Muted Trombone" family=muted  note=50 range=40..67
@@ -1447,7 +1450,7 @@ patch "Muted Trombone" family=muted  note=50 range=40..67
   vibrato        4 cents
   breath         0.06
   fine           16 cents
-  volume         1.38
+  volume         0.4865
   cutoff         4000 Hz
 
 patch Harmon family=muted  note=62 range=52..82
@@ -1497,7 +1500,7 @@ patch Harmon family=muted  note=62 range=52..82
   attack         0.02 s
   vibrato        10 cents
   breath         0.12
-  volume         1.17
+  volume         0.4471
   cutoff         5000 Hz
 
 patch "Practice Mute" family=muted  note=62 range=52..80
@@ -1548,7 +1551,7 @@ patch "Practice Mute" family=muted  note=62 range=52..80
   vibrato        4 cents
   breath         0.2
   fine           4 cents
-  volume         0.64
+  volume         0.2532
   cutoff         2400 Hz
   resonance      0.5
 
@@ -1602,7 +1605,7 @@ patch Plunger family=muted  note=60 range=52..80
   vibrato        8 cents
   breath         0.1
   fine           5 cents
-  volume         1.1
+  volume         0.3661
   cutoff         4500 Hz
 
 patch Section family=section  note=55 range=55..79
@@ -1660,7 +1663,7 @@ patch Section family=section  note=55 range=55..79
   attack         0.045 s
   breath         0.05
   fine           6 cents
-  volume         0.17
+  volume         0.06276
   cutoff         4000 Hz
 
 patch "Horn Choir" family=section  note=53 range=41..70
@@ -1721,7 +1724,7 @@ patch "Horn Choir" family=section  note=53 range=41..70
   vibrato        3 cents
   breath         0.04
   fine           12 cents
-  volume         0.14
+  volume         0.05472
   cutoff         3600 Hz
   send reverb    0.25
 
@@ -1782,7 +1785,7 @@ patch "Trombone Choir" family=section  note=48 range=40..67
   vibrato        3 cents
   breath         0.04
   fine           19 cents
-  volume         0.21
+  volume         0.07842
   cutoff         4200 Hz
   players        #2
   send reverb    0.2
@@ -1847,7 +1850,7 @@ patch "Big Band" family=section  note=62 range=55..82
   breath         0.06
   drive          0.1
   fine           6 cents
-  volume         0.17
+  volume         0.06422
 
 patch Fanfare family=section  note=65 range=55..79
   # Everything leant on at once. Brass at the top is the shock front, which is
@@ -1904,7 +1907,7 @@ patch Fanfare family=section  note=65 range=55..79
   vibrato        4 cents
   breath         0.07
   fine           14 cents
-  volume         0.47
+  volume         0.1735
 
 patch "Brass Hits" family=section  note=60 range=48..79
   # Short hits for a horn line: four players on the same attack, the air
@@ -1967,7 +1970,7 @@ patch "Brass Hits" family=section  note=60 range=48..79
   breath         0.05
   drive          0.15
   fine           0 cents
-  volume         0.19
+  volume         0.07345
   send reverb    0.12
 
 patch Growl family=section  note=58 range=55..77
@@ -2019,7 +2022,7 @@ patch Growl family=section  note=58 range=55..77
   attack         0.018 s
   breath         0.07
   fine           10 cents
-  volume         0.83
+  volume         0.2994
 
 patch Shambles family=section  note=55 range=55..79
   # The same four with nobody listening to anybody. The `lock` knob is the one
@@ -2072,7 +2075,7 @@ patch Shambles family=section  note=55 range=55..79
   attack         0.07 s
   breath         0.06
   fine           27 cents
-  volume         0.28
+  volume         0.1316
   cutoff         4400 Hz
 
 patch Bugle family=natural  note=64 range=55..72
@@ -2127,7 +2130,7 @@ patch Bugle family=natural  note=64 range=55..72
   vibrato        0 cents
   breath         0.07
   fine           6 cents
-  volume         0.49
+  volume         0.1983
   send reverb    0.15
 
 patch "Post Horn" family=natural  note=67 range=60..79
@@ -2181,7 +2184,7 @@ patch "Post Horn" family=natural  note=67 range=60..79
   vibrato        0 cents
   breath         0.08
   fine           10 cents
-  volume         0.50
+  volume         0.1932
   send reverb    0.15
 
 patch Alphorn family=natural  note=55 range=48..67
@@ -2238,7 +2241,7 @@ patch Alphorn family=natural  note=55 range=48..67
   vibrato        0 cents
   breath         0.05
   fine           19 cents
-  volume         0.42
+  volume         0.1821
   cutoff         2600 Hz
   send reverb    0.35
 
@@ -2296,7 +2299,7 @@ patch Conch family=natural  note=55 range=48..62
   vibrato        0 cents
   breath         0.25
   fine           21 cents
-  volume         0.44
+  volume         0.1931
   cutoff         1800 Hz
   send reverb    0.25
 
@@ -2355,7 +2358,7 @@ patch "Ram Horn" family=natural  note=62 range=55..70
   breath         0.1
   drive          0.2
   fine           9 cents
-  volume         0.43
+  volume         0.1644
   send reverb    0.2
 
 patch "Tin Horn" family=odd  note=74 range=67..91
@@ -2407,7 +2410,7 @@ patch "Tin Horn" family=odd  note=74 range=67..91
   vibrato        5 cents
   breath         0.1
   fine           4 cents
-  volume         0.52
+  volume         0.1751
 
 patch Foghorn family=odd  note=36 range=31..48
   # A horn too big to carry: two players on one long note that swells up out
@@ -2462,7 +2465,7 @@ patch Foghorn family=odd  note=36 range=31..48
   vibrato        0 cents
   breath         0.03
   fine           19 cents
-  volume         0.44
+  volume         0.1781
   cutoff         1400 Hz
   scatter        0 ms
   send reverb    0.35
@@ -2521,7 +2524,7 @@ patch "Air Leak" family=odd  note=60 range=50..74
   vibrato        6 cents
   breath         0.7
   fine           7 cents
-  volume         0.49
+  volume         0.2251
   send reverb    0.2
 
 patch Hornet family=odd  note=64 range=55..82
@@ -2580,7 +2583,7 @@ patch Hornet family=odd  note=64 range=55..82
   vibrato        0 cents
   breath         0.06
   fine           12 cents
-  volume         0.5
+  volume         0.2324
 
 patch Gargle family=odd  note=55 range=45..72
   # The growl turned all the way up and driven: a horn with gravel in it.
@@ -2628,4 +2631,4 @@ patch Gargle family=odd  note=55 range=45..72
   breath         0.08
   drive          0.5
   fine           17 cents
-  volume         0.92
+  volume         0.381

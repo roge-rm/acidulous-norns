@@ -13,6 +13,8 @@ namespace acidulous::machine {
 
 class Resonance final : public Machine {
   public:
+    /** Output gain after `volume`. It puts Init at the house level with `volume` at its default (-1.7 dB). */
+    static constexpr float kHouseTrim = 0.8228f;
     static constexpr int kPads = 8;
     static constexpr int kMaxModes = 24;
     static constexpr uint8_t kBaseNote = 36;

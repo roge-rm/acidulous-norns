@@ -75,7 +75,7 @@ const ParamDef *Molt::paramDefs(int32_t &count) const {
         {"transpose", -12.0f, 12.0f, 0.0f, Curve::Stepped, 25, ""},
         {"velocity", 0.0f, 1.0f, 1.0f, Curve::Linear, 0, ""},
         {"drive", 0.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
-        {"volume", 0.0f, 1.5f, 0.8f, Curve::Linear, 0, ""},
+        {"volume", 0.0f, 1.5f, 0.24f, Curve::Linear, 0, ""}, // 16 dB under the top
         {"pan", -1.0f, 1.0f, 0.0f, Curve::Linear, 0, ""},
     };
     static ParamDef defs[Count];
@@ -438,7 +438,7 @@ bool Molt::render(float *L, float *R, int32_t frames) {
     horn.set(1500.0f, 0.25f + mega * 0.45f, dsp::MultiFilter::BP12, dsp::MultiFilter::Clip, mega);
 
     const float drive = paramOf(Drive);
-    const float volume = paramOf(Volume);
+    const float volume = paramOf(Volume) * kHouseTrim;
     const float panKnob = paramOf(Pan);
     const float panL = std::cos((panKnob + 1.0f) * 0.25f * dsp::kPi);
     const float panR = std::sin((panKnob + 1.0f) * 0.25f * dsp::kPi);

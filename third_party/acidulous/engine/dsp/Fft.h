@@ -5,8 +5,9 @@
 
 // A radix-2 complex FFT, iterative and in place. Used to build Cumulus's
 // clouds on a worker thread, which only needs one large inverse transform.
+// Abacus's borrow runs it on the audio thread a part at a time.
 //
-// Not used on the audio thread. No allocation inside transform().
+// No allocation inside transform() or forwardPart().
 namespace acidulous::dsp {
 
 class Fft {
@@ -69,6 +70,43 @@ class Fft {
             for (int32_t i = 0; i < n; ++i) {
                 re[i] *= scale;
                 im[i] *= -scale;
+            }
+        }
+    }
+
+    /**
+     * The forward transform in [parts] calls, so it can be spread over
+     * audio blocks: call with part 0 to parts - 1 in order. The same sums as
+     * transform(re, im, false).
+     */
+    void forwardPart(float *re, float *im, int part, int parts) const {
+        if (part == 0) {
+            for (int32_t i = 0; i < n; ++i) {
+                const int32_t j = rev[static_cast<size_t>(i)];
+                if (i < j) {
+                    std::swap(re[i], re[j]);
+                    std::swap(im[i], im[j]);
+                }
+            }
+        }
+        int passes = 0;
+        while ((2 << passes) <= n) ++passes;
+        const int from = passes * part / parts, to = passes * (part + 1) / parts;
+        for (int p = from; p < to; ++p) {
+            const int32_t half = 1 << p, len = half * 2;
+            // Each pass's twiddles start after the ones before: 1 + 2 + ... + half / 2.
+            const size_t base = static_cast<size_t>(half - 1);
+            for (int32_t i = 0; i < n; i += len) {
+                for (int32_t k = 0; k < half; ++k) {
+                    const Twiddle &w = tw[base + static_cast<size_t>(k)];
+                    const int32_t a = i + k, b = a + half;
+                    const float xr = re[b] * w.c - im[b] * w.s;
+                    const float xi = re[b] * w.s + im[b] * w.c;
+                    re[b] = re[a] - xr;
+                    im[b] = im[a] - xi;
+                    re[a] += xr;
+                    im[a] += xi;
+                }
             }
         }
     }
