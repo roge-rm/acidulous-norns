@@ -981,6 +981,43 @@ int main(int argc, char** argv)
         check(log.wait("/song_unloaded", r), "the rooms song unloads");
     }
 
+    // An Abacus's Borrow file: the app's own voice is written as its cache
+    // path and read from data/rooms, a packed file from the song, and both
+    // count in the song's memory.
+    {
+        const std::string cache = "/data/user/0/com.rm.acidulous/cache/borrow/";
+        write_zip(scratch + "/borrow_factory.zip",
+                  {{"engine.txt", "acidulous-engine 4\nMountMachine 0 \"Abacus\"\n"
+                                  "LoadBorrowFile 0 \"" + cache + "borrow-voice.wav\"\n"}});
+        write_zip(scratch + "/borrow_packed.zip",
+                  {{"engine.txt", "acidulous-engine 4\nMountMachine 0 \"Abacus\"\n"
+                                  "LoadBorrowFile 0 \"zip:take.wav\"\n"},
+                   {"take.wav", wav(48000)}});
+        Reply r;
+        bool  ok = load(scratch + "/borrow_factory.zip", r);
+        check(ok && str(r, 2).empty(), "an Abacus song with the factory voice loads: " + str(r, 2));
+        ok = load(scratch + "/borrow_packed.zip", r);
+        check(ok && str(r, 2).empty(), "an Abacus song with a packed file loads: " + str(r, 2));
+        // Two packed files at 800000 bytes each, over a 1 MB budget.
+        setenv("ACIDULOUS_SAMPLE_LIMIT_MB", "1", 1);
+        const std::string big = wav(200000);
+        write_zip(scratch + "/borrow_one.zip",
+                  {{"engine.txt", "acidulous-engine 4\nMountMachine 0 \"Abacus\"\nLoadBorrowFile 0 \"zip:a.wav\"\n"},
+                   {"a.wav", big}});
+        write_zip(scratch + "/borrow_two.zip",
+                  {{"engine.txt", "acidulous-engine 4\nMountMachine 0 \"Abacus\"\nLoadBorrowFile 0 \"zip:a.wav\"\n"
+                                  "MountMachine 1 \"Abacus\"\nLoadBorrowFile 1 \"zip:a.wav\"\n"},
+                   {"a.wav", big}});
+        ok = load(scratch + "/borrow_one.zip", r);
+        check(ok && str(r, 2).empty(), "one packed Borrow file fits the budget: " + str(r, 2));
+        ok = load(scratch + "/borrow_two.zip", r);
+        check(ok && str(r, 2).find("over the 1.0 MB") != std::string::npos, "Borrow files count in the budget: " + str(r, 2));
+        unsetenv("ACIDULOUS_SAMPLE_LIMIT_MB");
+        log.clear();
+        cmd("/song_unload", {});
+        check(log.wait("/song_unloaded", r), "the Abacus song unloads");
+    }
+
     // A song's Mosaic zones are the part's, with absolute paths.
     {
         write_zip(scratch + "/zones.zip",

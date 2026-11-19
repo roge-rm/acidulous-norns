@@ -9,6 +9,7 @@
 #include <engine/core/PresetFile.h>
 #include <engine/inputmod/InputModRegistry.h>
 #include <engine/machine/MachineRegistry.h>
+#include <engine/machine/abacus/Borrow.h>
 #include <engine/machine/nexus/Graph.h>
 #include <engine/rack/MasterBus.h>
 #include <jni.h>
@@ -206,7 +207,8 @@ std::vector<std::string> words(const std::string& line)
 
 // [text] with each LoadImpulse that names one of our rooms by the app's file
 // name, impulse-<id>.wav anywhere but in the song (the app writes its own
-// cache path), reading [rooms]/impulse-<id>.wav in its place.
+// cache path), reading [rooms]/impulse-<id>.wav in its place. A
+// LoadBorrowFile's borrow-<id>.wav is read from [rooms]/borrow-<id>.wav the same way.
 std::string with_our_rooms(const std::string& text, const std::string& rooms)
 {
     std::string out;
@@ -217,14 +219,17 @@ std::string with_our_rooms(const std::string& text, const std::string& rooms)
         end        = end == std::string::npos ? text.size() : end + 1;
         std::string line = text.substr(at, end - at);
         at               = end;
-        if(line.compare(0, 12, "LoadImpulse ") != 0)
+        const bool borrow = line.compare(0, 15, "LoadBorrowFile ") == 0;
+        if(!borrow && line.compare(0, 12, "LoadImpulse ") != 0)
         {
             out += line;
             continue;
         }
-        // The fourth word's span, a quoted string skipped past its escapes.
+        const size_t      nth    = borrow ? 3 : 4;
+        const std::string prefix = borrow ? "borrow-" : "impulse-";
+        // The path word's span, a quoted string skipped past its escapes.
         size_t i = 0, from = 0, to = 0;
-        for(int k = 0; k < 4 && i < line.size(); ++k)
+        for(size_t k = 0; k < nth && i < line.size(); ++k)
         {
             while(i < line.size() && line[i] == ' ')
                 ++i;
@@ -243,17 +248,17 @@ std::string with_our_rooms(const std::string& text, const std::string& rooms)
             to = i;
         }
         const auto        w    = words(line.substr(0, line.find('\n')));
-        const std::string path = w.size() >= 4 ? w[3] : std::string();
+        const std::string path = w.size() >= nth ? w[nth - 1] : std::string();
         const size_t      cut  = path.find_last_of('/');
         const std::string name = cut == std::string::npos ? path : path.substr(cut + 1);
         std::string       id;
-        if(path.compare(0, 4, "zip:") != 0 && name.size() > 12 && name.compare(0, 8, "impulse-") == 0 &&
+        if(path.compare(0, 4, "zip:") != 0 && name.size() > prefix.size() + 4 && name.compare(0, prefix.size(), prefix) == 0 &&
            name.compare(name.size() - 4, 4, ".wav") == 0)
-            id = name.substr(8, name.size() - 12);
+            id = name.substr(prefix.size(), name.size() - prefix.size() - 4);
         bool safe = !id.empty();
         for(const char c : id)
             safe = safe && (std::isalnum(static_cast<unsigned char>(c)) || c == '-' || c == '_');
-        const std::string file = rooms + "/impulse-" + id + ".wav";
+        const std::string file = rooms + "/" + prefix + id + ".wav";
         struct stat       st{};
         if(!safe || to <= from || stat(file.c_str(), &st) != 0)
         {
@@ -505,6 +510,8 @@ SongAudio song_audio(const std::string& text, const std::string& root, int held_
                 sum += decoded_bytes(p, 0, 0, false);
             out.racks[rack][0] = sum;
         }
+        else if(call == "LoadBorrowFile" && w.size() >= 3)
+            out.racks[rack][0] = decoded_bytes(resolve(w[2]), kSampleRate, int(machine::abacus::kFileSeconds), false);
         else if((call == "LoadTake" || call == "LoadUtterance") && w.size() >= 3)
             out.racks[rack][0] = decoded_bytes(resolve(w[2]), kSampleRate, 0, true);
         else if(call == "LoadReel" && w.size() >= 3)

@@ -1530,10 +1530,25 @@ void Core::request_cloud(int part)
     cloud_cv.notify_one();
 }
 
+namespace
+{
+// [name] as a string that lasts, for Mount::machineType, or null if it isn't one
+// of the object-holding machines.
+const char* machine_literal(const std::string& name)
+{
+    for(const char* t : {"Cumulus", "Nexus", "Formulate", "Forage", "Mosaic", "Dice", "Pollen", "Molt", "Abacus", "Bias",
+                         "Diction"})
+        if(name == t)
+            return t;
+    return nullptr;
+}
+} // namespace
+
 // A /load clear: takes the machine's cloud, graph, program or samples out and
 // the engine frees them. Worker thread, under the part's mount lock.
 void Core::clear_objects(int part)
 {
+    const char* type = machine_literal(parts[part].machine);
     const std::string& m = parts[part].machine;
     void (*deleter)(void*) = nullptr;
     int slots              = 1;
@@ -1566,7 +1581,8 @@ void Core::clear_objects(int part)
     for(int slot = 0; slot < slots; ++slot)
     {
         Mount mt;
-        mt.kind    = Mount::Kind::Object;
+        mt.kind        = Mount::Kind::Object;
+        mt.machineType = type;
         mt.rack    = part;
         mt.slot    = slot;
         mt.object  = nullptr;
@@ -2503,7 +2519,8 @@ bool Core::apply_patch(int part, const std::string& machine, PatchSource& src, c
         if(program || parts[part].program)
         {
             Mount mt;
-            mt.kind    = Mount::Kind::Object;
+            mt.kind        = Mount::Kind::Object;
+            mt.machineType = "Formulate";
             mt.rack    = part;
             mt.slot    = 0;
             mt.object  = program.get();
@@ -2530,7 +2547,8 @@ bool Core::apply_patch(int part, const std::string& machine, PatchSource& src, c
         {
             // No graph: clear the last patch's, so the part is silent.
             Mount mt;
-            mt.kind    = Mount::Kind::Object;
+            mt.kind        = Mount::Kind::Object;
+            mt.machineType = "Nexus";
             mt.rack    = part;
             mt.slot    = 0;
             mt.object  = nullptr;
@@ -3067,7 +3085,8 @@ std::string Core::load_folder_map(int part, const std::string& folder)
 std::string Core::load_take(int part, const std::string& path, bool sung)
 {
     Mount mt;
-    mt.kind    = Mount::Kind::Object;
+    mt.kind        = Mount::Kind::Object;
+    mt.machineType = sung ? "Molt" : machine_literal(parts[part].machine);
     mt.rack    = part;
     mt.slot    = 0;
     mt.object  = nullptr;
@@ -4609,7 +4628,8 @@ void Core::load_borrow(int part, const std::string& setting, int arg)
     spectra->name = base_name(setting);
     const int64_t held = spectra->bytes();
     Mount         mt;
-    mt.kind    = Mount::Kind::Object;
+    mt.kind        = Mount::Kind::Object;
+    mt.machineType = "Abacus";
     mt.rack    = part;
     mt.slot    = 0;
     mt.deleter = delete_as<machine::abacus::Spectra>;
