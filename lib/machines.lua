@@ -4,7 +4,7 @@
 -- and a short line per machine.
 return {
   groups = {
-    {name = "synths", icon = "synths", machines = {"Cumulus", "Divisi", "Formulate", "Ratio", "Reflux", "Trinity"}},
+    {name = "synths", icon = "synths", machines = {"Abacus", "Cumulus", "Divisi", "Formulate", "Ratio", "Reflux", "Trinity"}},
     {name = "drums", icon = "drums", machines = {"Dice", "Forage", "Genesis", "Hexbeat", "Palm", "Resonance"}},
     {name = "keys", icon = "keys", machines = {"Hammer", "Manual", "Tine"}},
     {name = "strings", icon = "strings", machines = {"Filament", "Fret", "Sympath"}},
@@ -14,6 +14,7 @@ return {
     {name = "beyond", icon = "beyond", machines = {"Bias", "Cipher", "Diction", "Nexus"}},
   },
   about = {
+    Abacus = "additive",
     Aviary = "birdsong",
     Bias = "four-track",
     Brazen = "modelled brass",

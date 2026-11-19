@@ -32,6 +32,7 @@ double machine_cost(const std::string& machine)
         {"Genesis", 2.2},   {"Palm", 1.9},      {"Tongue", 1.8},   {"Timber", 1.7},   {"Aviary", 1.7},
         {"Bias", 2.0},
         {"Divisi", 29.5},
+        {"Abacus", 30.0}, // guess, to be measured on the Pi
     };
     const auto it = cost.find(machine);
     return it == cost.end() ? 10.0 : it->second;

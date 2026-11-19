@@ -55,6 +55,7 @@ P.MACHINES = {
   {name = "Pollen", short = "Polln", note = 60},
   {name = "Molt", short = "Molt", note = 57},
   {name = "Divisi", short = "Divis", note = 60},
+  {name = "Abacus", short = "Abacs", note = 60},
   {name = "Bias", short = "Bias", song_only = true},
 }
 
