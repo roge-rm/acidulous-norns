@@ -1298,4 +1298,46 @@ function M.Divisi(x, y, w, h, t, e, held)
   end
 end
 
+-- Abacus: an abacus with a rod per partial, the fundamental on top. A note
+-- slides each rod's beads across to its partial's level, every rod at its
+-- own speed, the high ones dying away first; while held the rods are
+-- counted off in rhythm, one lighting after another.
+local ABACUS_RODS, ABACUS_BEADS = 5, 4
+function M.Abacus(x, y, w, h, t, e, held)
+  e = max(e, held > 0 and 0.6 or 0)
+  local since, n = since_on("Abacus", held, t)
+  -- the frame
+  fill_rect(x, y, w, 1, 6)
+  fill_rect(x, y + h - 1, w, 1, 6)
+  fill_rect(x, y + 1, 2, h - 2, 4)
+  fill_rect(x + w - 2, y + 1, 2, h - 2, 4)
+  local x0, x1 = x + 2, x + w - 3
+  local count = held > 0 and since > 0.5 and floor(t * 5) % ABACUS_RODS or -1
+  for k = 0, ABACUS_RODS - 1 do
+    local ry = y + 3 + k * 4
+    fill_rect(x0, ry, x1 - x0 + 1, 1, 2)
+    -- the partial's level, each note a little different
+    local level = (k + 1) ^ -0.6 * (0.7 + 0.3 * hash(n * 7 + k))
+    local slide = 0.12 + 0.45 * hash(k * 3 + 1)
+    local p = held > 0 and util.clamp(since / slide, 0, 1) or 1
+    p = p * p * (3 - 2 * p)
+    local damp = held > 0 and (0.55 + 0.45 * exp(-since * (0.2 + 0.5 * k))) or 1
+    local v = ABACUS_BEADS * level * min(1, 1.6 * e) * p * damp
+    v = v + 0.07 * (1 + sin(t * (0.3 + 0.07 * k) + k * 2))
+    for j = 0, ABACUS_BEADS - 1 do
+      local f = util.clamp(v - j, 0, 1)
+      local left = x0 + (ABACUS_BEADS - 1 - j) * 5
+      local right = x1 - 3 - j * 5
+      local bx = rnd(left + (right - left) * f)
+      local lv = 4 + f * (4 + 5 * e)
+      if k == count and f > 0.5 then lv = 15 end
+      lit(lv)
+      rect(bx + 1, ry - 1, 2, 1)
+      rect(bx, ry, 4, 1)
+      rect(bx + 1, ry + 1, 2, 1)
+      screen.fill()
+    end
+  end
+end
+
 return M
