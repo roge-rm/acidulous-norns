@@ -1,12 +1,13 @@
 -- Moves a part's saved machine params from a PSET written with the engine at
--- 5a75dc18 (layout 1) or 8d1ab328 (layout 2) onto the engine now (layout 3).
+-- 5a75dc18 (layout 1), 8d1ab328 (layout 2) or the one before the house trims
+-- (layout 3) onto the engine now (layout 4).
 -- No param moved: the new ones all come after the old, and a few old ones
 -- changed range or what they do. A PSET saves the layout in "param_layout";
 -- one without it is 1.
 
 local L = {}
 
-L.NOW = 3
+L.NOW = 4
 
 -- Each machine's param count in layout 1. The params after these are new.
 L.COUNTS_1 = {
@@ -24,6 +25,19 @@ L.COUNTS_1 = {
 L.COUNTS_2 = {Tine = 92, Palm = 156, Chanter = 91, Fathom = 154, Sympath = 93}
 L.DESTS_2 = {Tine = 17, Palm = 15, Chanter = 14, Fathom = 14}
 L.DESTS_3 = {Tine = 18, Palm = 17, Chanter = 17, Fathom = 15}
+
+-- Each machine's kHouseTrim (engine/machine/<name>/<Name>.h, as in the app at
+-- 39b51401). The engine now multiplies the volume by it, so a volume saved
+-- before is divided by it to play as loud. Cipher, Bias and Abacus: none.
+L.TRIMS = {
+  Reflux = 3.452, Trinity = 1.437, Ratio = 1.936, Manual = 0.3424, Cumulus = 1.053,
+  Formulate = 1.666, Pollen = 3.081, Brazen = 1.632, Timber = 1.523,
+  Filament = 2.556, Nexus = 2.93, Hexbeat = 1.61, Genesis = 0.9452,
+  Resonance = 0.8228, Forage = 2.709, Dice = 1.679, Mosaic = 1.492, Molt = 3.498,
+  Diction = 1.357, Hammer = 4.595, Tongue = 1.415, Draw = 1.386, Fret = 1.332,
+  Tine = 1.962, Sympath = 1.221, Palm = 3.369, Chanter = 1.33, Aviary = 1.631,
+  Fathom = 1.61, Divisi = 1.281,
+}
 
 local function clamp01(v)
   return v < 0 and 0 or (v > 1 and 1 or v)
@@ -79,6 +93,18 @@ local FIX = {
   end,
 }
 
+-- Divides the machine's volume by its trim, to 1 at most (Manual's 0.3424
+-- sends any volume over 0.3424 to full).
+local function trim(machine, values, defs)
+  local t = L.TRIMS[machine]
+  if not t then return end
+  for j = 1, #defs do
+    if defs[j].name == "volume" and values[j] then
+      values[j] = clamp01(values[j] / t)
+    end
+  end
+end
+
 -- Moves values (slot j -> 0-1 value, for every one of defs) of a machine
 -- from layout `from` in place. defs are the machine's defs now, unmap(d, x)
 -- maps a default to 0-1. The new params take their defaults, which play as
@@ -86,10 +112,18 @@ local FIX = {
 -- patch should take from it.
 function L.migrate(machine, values, defs, unmap, from)
   from = from or 1
+  if from >= L.NOW then return false end
   local macros = false
-  if from >= 2 then
+  if from == 3 then
+    trim(machine, values, defs)
+    return false
+  end
+  if from == 2 then
     local before = L.COUNTS_2[machine]
-    if not before then return false end
+    if not before then
+      trim(machine, values, defs)
+      return false
+    end
     for j = before + 1, #defs do
       values[j] = unmap(defs[j], defs[j].default)
     end
@@ -102,10 +136,14 @@ function L.migrate(machine, values, defs, unmap, from)
         end
       end
     end
+    trim(machine, values, defs)
     return false
   end
   local before = L.COUNTS_1[machine]
-  if not before then return false end
+  if not before then
+    trim(machine, values, defs)
+    return false
+  end
   for j = before + 1, #defs do
     local d = defs[j]
     values[j] = unmap(d, d.default)
@@ -119,6 +157,7 @@ function L.migrate(machine, values, defs, unmap, from)
     end
     fix(function(name) return values[at[name]] end, function(name, v) values[at[name]] = v end)
   end
+  trim(machine, values, defs)
   return macros
 end
 

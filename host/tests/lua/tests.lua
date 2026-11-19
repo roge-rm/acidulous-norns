@@ -804,6 +804,43 @@ elseif which == "19" then
   LAYOUT.migrate("Tine", v, d, P.unmap, 1)
   CHECK(v[10] == 0 and v[93] == 0.5, "a layout 1 PSET gets defaults, not a rescale")
 
+  -- house trims: an old volume is divided by the machine's trim, to 1 at most
+  local function vol_defs(n)
+    local dd = {}
+    for j = 1, n do dd[j] = {name = "k" .. j, min = 0, max = 1, default = 0, unit = "", steps = 0, curve = "lin"} end
+    dd[3].name = "volume"
+    return dd
+  end
+  local hd = vol_defs(58)
+  hd[6].name, hd[7].name, hd[8].name = "tension", "clang", "duplex"
+  local hv = {}
+  for j = 1, 58 do hv[j] = 0.5 end
+  LAYOUT.migrate("Hammer", hv, hd, P.unmap, 1)
+  CHECK(math.abs(hv[3] - 0.5 / 4.595) < 1e-9 and hv[5] == 0.5, "Hammer's old volume is divided by 4.595")
+  hv = {}
+  for j = 1, 58 do hv[j] = 0.5 end
+  LAYOUT.migrate("Hammer", hv, hd, P.unmap, 2)
+  CHECK(math.abs(hv[3] - 0.5 / 4.595) < 1e-9, "a layout 2 PSET gets the trim too")
+  hv = {}
+  for j = 1, 58 do hv[j] = 0.5 end
+  LAYOUT.migrate("Hammer", hv, hd, P.unmap, 3)
+  CHECK(math.abs(hv[3] - 0.5 / 4.595) < 1e-9 and hv[10] == 0.5 and hv[6] == 0.5, "a layout 3 PSET gets the trim and nothing else moves")
+  hv = {}
+  for j = 1, 58 do hv[j] = 0.5 end
+  LAYOUT.migrate("Hammer", hv, hd, P.unmap, LAYOUT.NOW)
+  CHECK(hv[3] == 0.5, "a PSET at the layout now is untouched")
+  local md = vol_defs(169)
+  local mv = {}
+  for j = 1, 169 do mv[j] = 0.2 end
+  mv[3] = 0.5
+  LAYOUT.migrate("Manual", mv, md, P.unmap, 3)
+  CHECK(mv[3] == 1, "Manual's volume clamps at 1")
+  mv = {}
+  for j = 1, 169 do mv[j] = 0.2 end
+  mv[3] = 0.3
+  LAYOUT.migrate("Cipher", mv, vol_defs(92), P.unmap, 3)
+  CHECK(mv[3] == 0.3, "a machine without a trim keeps its volume")
+
   -- a Venue: room and file in the fx param
   P.effects = {"Delay", "Venue"}
   local part = P.own[1]
