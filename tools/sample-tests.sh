@@ -18,7 +18,8 @@ while IFS='|' read -r machine phrase patch kind path arg; do
     script=$out/$name.txt
     {
         printf '0 patch 0 %s "%s"\n' "$machine" "$patch"
-        printf '0 load 0 %s "%s" %s\n' "$kind" "$mat/$path" "$arg"
+        case $path in factory:*) file=$path ;; *) file=$mat/$path ;; esac
+        printf '0 load 0 %s "%s" %s\n' "$kind" "$file" "$arg"
         cat "$root/host/tests/$phrase.txt"
     } > "$script"
     if ! text=$("$render" "$@" "$script" "$out/$name.wav" 2>&1); then
@@ -56,5 +57,28 @@ Pollen|pad|Init|sample|loop.wav|0
 Pollen|pad|Drift|sample|voice.flac|0
 Molt|keys|Init|sample|voice.wav|0
 Molt|keys|Choir|sample|voice.flac|0
+Abacus|keys|Voice Scan|sample|voice.wav|0
+Abacus|keys|Voice Scan|sample|voice.flac|0
+Abacus|keys|Voice Scan|sample|factory:voice|0
 LIST
+# Abacus borrowing from part 1 (sidechain 1) sounds different from not
+for sc in 0 0.0625; do
+    {
+        echo '0 patch 0 Trinity "Saw Lead"'
+        echo '0 patch 1 Abacus "Voice Scan"'
+        echo '0 param 1 borrow 0.5'
+        echo "0 param 1 sidechain $sc"
+        echo '0.1 note 0 1 48 100'
+        echo '0.1 note 1 1 60 100'
+        echo '1.5 note 0 1 48 0'
+        echo '1.5 note 1 1 60 0'
+    } > "$out/Abacus-sidechain-$sc.txt"
+    "$render" "$@" "$out/Abacus-sidechain-$sc.txt" "$out/Abacus-sidechain-$sc.wav" >/dev/null 2>&1 || { echo "FAIL: Abacus sidechain render" >&2; failed=1; }
+done
+if cmp -s "$out/Abacus-sidechain-0.wav" "$out/Abacus-sidechain-0.0625.wav"; then
+    echo "FAIL: Abacus sidechain changes nothing" >&2
+    failed=1
+else
+    echo "Abacus sidechain: from track 1 differs from off"
+fi
 exit $failed

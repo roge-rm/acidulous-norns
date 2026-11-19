@@ -49,6 +49,7 @@ M.table = {
   Dice = m({"swap", "swap"}, {"reverse", "rev"}, {"stutter", "stuttr"}, {"drop", "drop"}, {"jump", "jump"}),
   Pollen = m({"position", "pos"}, {"size", "size"}, {"density", "dense"}, {"spread", "spread"}, {"bloom", "bloom"}),
   Divisi = m({"violin", "violin"}, {"cello", "cello"}, {"choir", "choir"}, {"attack", "attack"}, {"ensemble", "ensmbl"}),
+  Abacus = m({"slope", "slope"}, {"odd", "odd"}, {"peak", "peak"}, {"shimmer", "shimmr"}, {"release", "rel"}),
   Molt = m({"tune", "tune"}, {"rate", "rate"}, {"formant", "formnt"}, {"robot", "robot"}, {"amprelease", "rel"}),
 }
 

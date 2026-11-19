@@ -10,7 +10,7 @@ e2f14304a03c22b216c5111778f99df4786ffd6f (see VERSION), by tools/vendor-acidulou
   and lines_dispatch.cpp, not its drivers)
 - tools/patchbank.h and tools/audition_settings.h
 - the factory banks, in data/banks at the top of this repo, and the Venue
-  rooms (impulse-<id>.wav) in data/rooms
+  rooms (impulse-<id>.wav) and Abacus files (borrow-<id>.wav) in data/rooms
 
 It's GPL-3.0-or-later, see LICENSE and NOTICE. Don't edit these files here;
 change them in the app and copy them again.

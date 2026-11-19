@@ -72,7 +72,9 @@
 //        pad 0-12), "kit" (Forage, a folder: its first 13 audio files by name
 //        on pads 0-12), "sf2" (Mosaic, arg the preset's index in /presets),
 //        "folder" (Mosaic, a folder of WAVs mapped by the note names in their
-//        names), "sample" (Dice, Pollen, Molt), "slices" (Forage, the one
+//        names), "sample" (Dice, Pollen, Molt, and Abacus's Borrow file, which
+//        can be "factory:voice", the one in data/rooms; it is analysed on the
+//        worker, the first minute of it), "slices" (Forage, the one
 //        file its pads slice, up to 10 minutes of it), "voice" (Diction, a
 //        recorded voice's bank.json from the app with its takes beside it,
 //        arg 0 the voice sung in, 1 the one morphed to; an empty path puts

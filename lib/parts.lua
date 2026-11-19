@@ -1517,7 +1517,7 @@ local function base(path) return path:match("([^/]+)/*$") or path end
 local function stem(path) return (base(path):gsub("%.[^%.]*$", "")) end
 
 -- The machines that load files.
-P.SAMPLE_MACHINES = {Forage = true, Mosaic = true, Dice = true, Pollen = true, Molt = true}
+P.SAMPLE_MACHINES = {Forage = true, Mosaic = true, Dice = true, Pollen = true, Molt = true, Abacus = true}
 
 -- Sends /load. kind and arg as host/src/bridge.h has them. A path with | in
 -- it is refused, as | separates the files in the saved list.
@@ -1611,10 +1611,10 @@ function P.material(i)
     if n == 0 and part.files.slices then return part.files.slices.name or stem(part.files.slices.path) end
     if n == 0 then return "empty, k1+k3" end
     return base(first.path:match("^(.*)/[^/]+$") or "") .. ", " .. n .. (n == 1 and " pad" or " pads")
-  elseif m == "Mosaic" or m == "Dice" or m == "Pollen" or m == "Molt" then
+  elseif m == "Mosaic" or m == "Dice" or m == "Pollen" or m == "Molt" or m == "Abacus" then
     local f = part.files.main
     if f then return f.name or stem(f.path) end
-    return m == "Pollen" and "live input" or "empty, k1+k3"
+    return m == "Pollen" and "live input" or (m == "Abacus" and "no file" or "empty, k1+k3")
   end
 end
 

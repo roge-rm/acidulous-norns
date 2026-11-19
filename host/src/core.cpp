@@ -18,6 +18,7 @@
 #include <engine/effect/SlotMod.h>
 #include <engine/inputmod/InputModRegistry.h>
 #include <engine/machine/MachineRegistry.h>
+#include <engine/machine/abacus/Borrow.h>
 #include <engine/machine/TableCounts.h>
 #include <engine/machine/cumulus/Cloud.h>
 #include <engine/machine/cumulus/Cumulus.h>
@@ -1550,6 +1551,8 @@ void Core::clear_objects(int part)
         deleter = delete_as<audio::Take>;
     else if(m == "Molt")
         deleter = delete_as<audio::Utterance>;
+    else if(m == "Abacus")
+        deleter = delete_as<machine::abacus::Spectra>;
     else if(m == "Bias")
         deleter = delete_as<audio::Reel>;
     else if(m == "Diction")
@@ -2374,7 +2377,13 @@ void Core::load_patch(int part, const std::string& machine, const std::string& n
         std::fprintf(stderr, "acidulous: %s %s: %s\n", machine.c_str(), patch->name.c_str(), p.c_str());
     src.low  = patch->low;
     src.high = patch->high;
-    apply_patch(part, machine, src, patch->name);
+    std::string borrow;
+    if(machine == "Abacus")
+        for(const auto& kv : src.settings)
+            if(kv.first == "sample")
+                borrow = kv.second;
+    if(apply_patch(part, machine, src, patch->name) && !borrow.empty())
+        load(part, "sample", borrow, 0);
 }
 
 // Puts a patch on the part, which already has its machine: every param, its
@@ -2436,7 +2445,10 @@ bool Core::apply_patch(int part, const std::string& machine, PatchSource& src, c
     // place. Loaded samples stay too, since the machine isn't remounted.
     for(int32_t i = 0; i < count; ++i)
     {
-        if(patch_keeps(machine, defs[i].name) && size_t(i) < parts[part].values.size())
+        // Abacus keeps the track it listens to unless the patch names one, as the app does.
+        const bool keeps_track = machine == "Abacus" && !std::strcmp(defs[i].name, "sidechain") &&
+                                 std::find(src.named.begin(), src.named.end(), "sidechain") == src.named.end();
+        if((patch_keeps(machine, defs[i].name) || keeps_track) && size_t(i) < parts[part].values.size())
         {
             src.norm[size_t(i)] = parts[part].values[size_t(i)];
             continue;
@@ -2784,6 +2796,8 @@ void Core::load_now(int part, const std::string& kind, const std::string& path, 
     }
     if(path.find_first_of("|\n") != std::string::npos)
         return load_error(part, kind, path, arg, "names with | can't be loaded");
+    if(kind == "sample" && m == "Abacus")
+        return load_borrow(part, path, arg);
     struct stat found{};
     if(!path.empty() && stat(path.c_str(), &found) != 0)
         return load_error(part, kind, path, arg, "not found");
@@ -3281,7 +3295,7 @@ std::string relative_to(const std::string& path, const std::vector<std::string>&
 // found" names it).
 std::string resolve(const std::string& path, const std::vector<std::string>& roots, const std::string& own)
 {
-    if(path.empty() || path[0] == '/')
+    if(path.empty() || path[0] == '/' || path.rfind("factory:", 0) == 0)
         return path;
     const size_t colon = path.find(':');
     if(colon != std::string::npos && colon > 0 && path.find('/') > colon)
@@ -4336,7 +4350,7 @@ void Core::load_preset_files(int part, const std::string& path, int index,
                std::isdigit((unsigned char)k[2]) && k.compare(3, 7, "_sample") == 0;
     };
     const auto is_sample = [&](const std::string& k) {
-        return k == "sample" && (m == "Dice" || m == "Pollen" || m == "Molt");
+        return k == "sample" && (m == "Dice" || m == "Pollen" || m == "Molt" || m == "Abacus");
     };
     const auto is_slices = [&](const std::string& k) { return k == "slice_sample" && m == "Forage"; };
     const auto is_voice  = [&](const std::string& k) { return (k == "voice" || k == "morphvoice") && m == "Diction"; };
@@ -4541,6 +4555,70 @@ std::string Core::impulse_file(const std::string& impulse, std::string& why) con
         return "";
     }
     return file;
+}
+
+// The file Abacus borrows from, as a setting names it: "factory:<id>" is
+// data/rooms/borrow-<id>.wav, anything else is a path. "" with [why] set if it isn't there.
+std::string Core::borrow_file(const std::string& setting, std::string& why) const
+{
+    std::string file = setting;
+    if(starts_with(setting, kFactory))
+    {
+        const std::string id = setting.substr(8);
+        if(id.empty() || !safe_name(id) || id.find('/') != std::string::npos)
+        {
+            why = "no file " + id;
+            return "";
+        }
+        file = rooms_dir() + "/borrow-" + id + ".wav";
+    }
+    if(!exists(file))
+    {
+        why = starts_with(setting, kFactory) ? "no file " + setting.substr(8) : "not found";
+        return "";
+    }
+    return file;
+}
+
+// Abacus's Borrow file, "" to clear: decoded, summed to mono and analysed here,
+// then mounted. Worker, under the part's mount lock. Replies /loaded with
+// [setting] as it came, so a "factory:<id>" is kept in the part's files.
+void Core::load_borrow(int part, const std::string& setting, int arg)
+{
+    std::string why;
+    if(setting.empty())
+    {
+        clear_objects(part);
+        return loaded(part, "sample", "", arg, "");
+    }
+    const std::string file = borrow_file(setting, why);
+    if(file.empty())
+        return load_error(part, "sample", setting, arg, why);
+    const int64_t need = decoded_bytes(file, kSampleRate, int(machine::abacus::kFileSeconds), false);
+    if(!room_for(need, why))
+        return load_error(part, "sample", setting, arg, why);
+    auto data = decodeAudio(file, kSampleRate, why, int(machine::abacus::kFileSeconds));
+    if(!data || data->frames <= 1)
+        return load_error(part, "sample", setting, arg, why.empty() ? "that file couldn't be read" : why);
+    std::vector<float> mono(size_t(data->frames));
+    for(int32_t i = 0; i < data->frames; ++i)
+        mono[size_t(i)] = data->stereo ? 0.5f * (data->left[size_t(i)] + data->right[size_t(i)]) : data->left[size_t(i)];
+    const int32_t frames = data->frames;
+    data.reset();
+    auto spectra  = machine::abacus::Spectra::analyse(mono.data(), frames, float(kSampleRate));
+    spectra->name = base_name(setting);
+    const int64_t held = spectra->bytes();
+    Mount         mt;
+    mt.kind    = Mount::Kind::Object;
+    mt.rack    = part;
+    mt.slot    = 0;
+    mt.deleter = delete_as<machine::abacus::Spectra>;
+    // The engine owns it from here and frees it if the queue stays full.
+    mt.object = spectra.release();
+    if(!host.mountObjectWithRetry(mt))
+        return load_error(part, "sample", setting, arg, "mount queue full");
+    set_held(part, 0, held);
+    loaded(part, "sample", setting, arg, starts_with(setting, kFactory) ? setting.substr(8) : stem(setting));
 }
 
 // A "factory:<id>" setting as its room file, anything else as it is.

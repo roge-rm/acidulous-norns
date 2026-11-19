@@ -1,6 +1,6 @@
 local here = arg[0]:match("^(.*)/[^/]+$")
 local which = arg[2]
-local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"}
+local CASES = {"1", "2", "3", "4", "5", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22"}
 if not which then
   -- every case, each in a fresh run
   local failed = 0
@@ -1006,6 +1006,34 @@ elseif which == "21" then
   ADVANCE(0.5)
   at = index("/patch_fx")
   CHECK(at and index("/patch") and index("/patch") < at, "and on a fresh part's load")
+elseif which == "22" then
+  -- Abacus's Borrow file: the picker's first rows, the built-in voice, the part's files
+  local picker = include("lib/picker")
+  local part = P.part(1)
+  part.machine = "Abacus"
+  CHECK(P.SAMPLE_MACHINES.Abacus and picker.takes("Abacus") ~= nil, "Abacus takes a file")
+  CHECK(P.material(1) == "no file", "and says none is loaded")
+  CHECK(picker.open(P, 1), "the picker opens on Abacus")
+  local rows = picker.screen().rows
+  CHECK(rows[1] == "no file" and rows[2] == "voice", "its first list has no file and the built-in voice")
+  picker.enc(2, 1)
+  SENT_CLEAR()
+  picker.key(3, 1, false)
+  CHECK(FIND("/load", function(a) return a[1] == 0 and a[2] == "sample" and a[3] == "factory:voice" end) ~= nil,
+    "K3 on voice loads factory:voice")
+  CHECK(not picker.active(), "and closes")
+  P.osc("/loaded", {0, "sample", "factory:voice", 0, "voice", "Abacus"})
+  CHECK(P.material(1) == "voice", "the file shows by its name")
+  -- a restart sends it again after the machine, as a file's path is
+  SENT_CLEAR()
+  P.resend()
+  ADVANCE(0.5)
+  CHECK(FIND("/load", function(a) return a[2] == "sample" and a[3] == "factory:voice" end) ~= nil,
+    "the file is sent again after a plugin restart")
+  CHECK(picker.open(P, 1), "the picker opens again")
+  SENT_CLEAR()
+  picker.key(3, 1, false)
+  CHECK(FIND("/load", function(a) return a[2] == "clear" end) ~= nil and next(part.files) == nil, "no file empties the part")
 end
 print(FAILS == 0 and "all ok" or (FAILS .. " failed"))
 os.exit(FAILS == 0 and 0 or 1)

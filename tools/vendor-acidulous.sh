@@ -1,6 +1,6 @@
 #!/bin/sh
 # Copies the Acidulous engine into third_party/acidulous and its factory banks
-# into data/banks, and the Venue rooms into data/rooms.
+# into data/banks, and the Venue rooms and Abacus files into data/rooms.
 # Usage: tools/vendor-acidulous.sh [PATH_TO_ACIDULOUS]
 # The copied files are never edited by hand.
 set -eu
@@ -27,8 +27,8 @@ cp "$cpp/platform/lines/EngineLines.h" "$cpp/platform/lines/EngineLines.cpp" "$c
 # The patch bank reader and what it includes.
 cp "$src/tools/patchbank.h" "$src/tools/audition_settings.h" "$dst/tools/"
 cp "$src"/tools/banks/*.bank "$root/data/banks/"
-# Venue's rooms, as the app ships them (impulse-<id>.wav).
-cp "$src"/shared/src/commonMain/files/impulse-*.wav "$root/data/rooms/"
+# Venue's rooms (impulse-<id>.wav) and Abacus's files (borrow-<id>.wav), as the app ships them.
+cp "$src"/shared/src/commonMain/files/impulse-*.wav "$src"/shared/src/commonMain/files/borrow-*.wav "$root/data/rooms/"
 git -C "$src" log -1 --format='Acidulous %H (%cs)' > "$dst/VERSION"
 if [ -n "$(git -C "$src" status --porcelain -- app/src/main/cpp/engine app/src/main/cpp/sequencer app/src/main/cpp/EngineHost.cpp app/src/main/cpp/EngineHost.h app/src/main/cpp/platform tools/banks tools/patchbank.h tools/audition_settings.h)" ]; then
     echo "with uncommitted changes" >> "$dst/VERSION"
@@ -47,7 +47,7 @@ $commit (see VERSION), by tools/vendor-acidulous.sh:
   and lines_dispatch.cpp, not its drivers)
 - tools/patchbank.h and tools/audition_settings.h
 - the factory banks, in data/banks at the top of this repo, and the Venue
-  rooms (impulse-<id>.wav) in data/rooms
+  rooms (impulse-<id>.wav) and Abacus files (borrow-<id>.wav) in data/rooms
 
 It's GPL-3.0-or-later, see LICENSE and NOTICE. Don't edit these files here;
 change them in the app and copy them again.

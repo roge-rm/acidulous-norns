@@ -225,6 +225,8 @@ class Core
     // Venue impulses: kept per insert slot, and per send in row kSendRow,
     // built on the cloud thread.
     std::string rooms_dir() const;
+    std::string borrow_file(const std::string& setting, std::string& why) const;
+    void        load_borrow(int part, const std::string& setting, int arg);
     std::string impulse_file(const std::string& impulse, std::string& why) const;
     void request_impulse(int part, int slot, bool settle);
     void build_impulse(int part, int slot, const std::string& impulse, const float* shape);

@@ -7,6 +7,8 @@
 --   Mosaic: a SoundFont and then its preset, or a folder of WAVs
 --   Dice, Pollen, Molt: a file. Pollen's first list also has "live input",
 --     which empties the part (K3 or K1 + K3).
+--   Abacus: a file to borrow from. Its first list also has "no file" (empties
+--     it) and "voice", the built-in file (K3 or K1 + K3 on either).
 -- A Venue's card opens it too (K1 + K3 on the card) for an impulse file;
 -- K1 + K3 or K3 on a file picks it.
 -- Files on the USB stick are copied to dust/audio/acidulous when loaded.
@@ -31,6 +33,7 @@ P.TAKES = {
   Dice = {file = "sample", exts = AUDIO},
   Pollen = {file = "sample", exts = AUDIO},
   Molt = {file = "sample", exts = AUDIO},
+  Abacus = {file = "sample", exts = AUDIO},
 }
 
 local st = nil
@@ -102,6 +105,10 @@ local function fill()
   st.rows = {}
   if not st.dir then
     if st.machine == "Pollen" then st.rows[1] = {label = "live input", live = true} end
+    if st.machine == "Abacus" then
+      st.rows[1] = {label = "no file", live = true}
+      st.rows[2] = {label = "voice", factory = "factory:voice"}
+    end
     for _, r in ipairs(lib.roots()) do
       st.rows[#st.rows + 1] = {label = r.name, path = r.path, dir = true}
     end
@@ -343,6 +350,9 @@ function P.key(n, z, k1)
       if not row or row.none then return end
       if row.live then
         parts.clear_files(st.i)
+        close()
+      elseif row.factory then
+        parts.load_file(st.i, "sample", row.factory, 0)
         close()
       elseif row.this then
         pick(st.dir, true)

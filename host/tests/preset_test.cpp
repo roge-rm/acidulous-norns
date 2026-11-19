@@ -20,8 +20,8 @@
 // - Forage's slice_sample from presets, loaded and saved packed
 // - Diction's recorded voices from presets, loaded, saved packed as the app
 //   packs them and loaded again
-// - every machine's files (Forage pads and slices, Dice, Pollen and Molt
-//   samples, Mosaic's SoundFont and zones) packed as media/<path>, two of one
+// - every machine's files (Forage pads and slices, Dice, Pollen, Molt and
+//   Abacus samples, Mosaic's SoundFont and zones) packed as media/<path>, two of one
 //   name made distinct, loaded back the same, saved over, past 64 MB a path
 // - the app's machine presets loaded as their engine lines load them, and
 //   its effect presets into a part's own slot as theirs load them
@@ -1085,7 +1085,7 @@ int main(int argc, char** argv)
 
             // Dice, Pollen and Molt: their sample.
             int part = 0;
-            for(const char* m : {"Dice", "Pollen", "Molt"})
+            for(const char* m : {"Dice", "Pollen", "Molt", "Abacus"})
             {
                 const std::string machine = m, file = scratch + "/" + machine + "/one.acpreset";
                 cmd("/patch", {Value::i(part), Value::s(machine), Value::s("Init")});
@@ -1099,6 +1099,35 @@ int main(int argc, char** argv)
                 check(reload(part, file, machine) && loaded("sample", back) && bytes_of(back) == bytes_of(pk + "voice.wav"),
                       machine + "'s sample loads back the same");
                 part = part == 0 ? 1 : 0;
+            }
+
+            // Abacus's built-in file: a patch names it, it is saved as
+            // factory:voice and loads back the same, a missing one is an error.
+            {
+                log.clear();
+                cmd("/patch", {Value::i(1), Value::s("Abacus"), Value::s("Voice Scan")});
+                c->drain();
+                bool found = false;
+                for(const auto& x : log.all("/loaded"))
+                    found = found || (x.args[1].str == "sample" && x.args[2].str == "factory:voice" && x.args[3].num == 0 &&
+                                      x.args[4].str == "voice");
+                check(found && log.count("/error") == 0, "Abacus's patch loads the built-in voice");
+                const std::string file = scratch + "/Abacus/voice.acpreset";
+                check(save(1, file, "Voice", with(root, {"sample", "factory:voice"})) == "ok", "save Abacus with its built-in file");
+                z = entries_of(file);
+                if(read_file(file, p) && !p.patches.empty())
+                    check(setting(p.patches[0], "sample") == "factory:voice" && z.size() == 2, "the built-in file isn't packed");
+                cmd("/load", {Value::i(1), Value::s("clear"), Value::s("")});
+                check(reload(1, file, "Abacus") && loaded("sample", "factory:voice"), "the built-in file loads back");
+                log.clear();
+                cmd("/load", {Value::i(1), Value::s("sample"), Value::s("factory:nothing"), Value::i(0)});
+                c->drain();
+                check(log.count("/error") == 1, "a built-in file that isn't there is an error");
+                log.clear();
+                cmd("/load", {Value::i(1), Value::s("sample"), Value::s(pk + "voice.wav"), Value::i(0)});
+                cmd("/load", {Value::i(1), Value::s("sample"), Value::s(""), Value::i(0)});
+                c->drain();
+                check(log.count("/error") == 0 && log.count("/loaded") == 2, "Abacus loads a file and clears it");
             }
 
             // Mosaic: a SoundFont, then a folder's zones with their files.
