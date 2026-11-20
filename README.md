@@ -246,7 +246,7 @@ In the picker's order. Parts is about how many can play at once on a Pi 4. Mixin
 
 ## Samples
 
-Forage, Mosaic, Dice, Pollen and Molt play samples. On one of those parts press **K1** + **K3** for the file list, in dust/audio and on a USB stick if one's in. Each starts with a sound of its own when you pick it.
+Forage, Mosaic, Dice, Pollen and Molt play samples, and Abacus can borrow its partials from one. On one of those parts press **K1** + **K3** for the file list, in dust/audio and on a USB stick if one's in. Each starts with a sound of its own when you pick it.
 
 <img src="docs/images/picker.png" width="384" alt="The file list in an 808 folder">
 
@@ -260,6 +260,7 @@ Forage, Mosaic, Dice, Pollen and Molt play samples. On one of those parts press 
 - **Forage**: **E3** picks the pad, and it moves on after each file so you can build a kit. **use this folder** loads the first 13 files.
 - **Mosaic**: an .sf2 and one of its presets, or **use this folder** on a folder of WAVs. A note in the file name, like `piano C4.wav`, puts it on that note.
 - **Dice**, **Pollen** and **Molt** take one file. Pollen with none, or **live input**, plays the norns input.
+- **Abacus** takes one file to borrow from, or **voice**, a built-in one. Some of its patches load voice themselves.
 
 WAV, AIFF and FLAC, up to 30 seconds except on Mosaic. All parts together can hold 320 MB, 64 MB per SoundFont. Files from USB are copied to dust/audio/acidulous/usb.
 
