@@ -204,7 +204,8 @@ In the picker's order. Parts is about how many can play at once on a Pi 4. Mixin
 
 | | Machine | What it does | Parts |
 |---|---|---|---|
-| synths | Cumulus | Pads made from a spectrum of partials | 4 |
+| synths | Abacus | Additive, a level for every partial | 1 to 6 |
+| | Cumulus | Pads made from a spectrum of partials | 4 |
 | | Divisi | Strings, choir and brass ensemble | 2 to 8 |
 | | Formulate | 8-bit chip synth with formula waves | 8 |
 | | Ratio | Six-operator FM | 2 |
@@ -237,6 +238,7 @@ In the picker's order. Parts is about how many can play at once on a Pi 4. Mixin
 | | Diction | Vocal synth | 8 |
 | | Nexus | Modular, built from the other machines | 1 to 2 |
 
+- Abacus plays 1 part of its heavy bell, string and choir patches, about 4 of the saws and organs and 6 of the mallets.
 - Divisi plays 2 parts of its choir and brass patches, 8 of the strings alone.
 - Diction sings a vowel with its built-in voice, picked with the vowel macro.
 - Nexus's Listening, Talking and Sing to the Piano play the norns input, so they're silent without one.

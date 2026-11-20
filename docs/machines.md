@@ -118,6 +118,38 @@ So 2 parts of the choir and brass patches (3 is right at 60% with nothing else p
 
 Everything with a Venue insert (wooden hall) reads load 27.0, highest 28.7 and worst 43.3, so a Venue adds about 11% load. A Vessel adds about 2%.
 
+## Abacus
+
+Every one of the 96 patches played on the norns as above for 6 seconds (4-note chords, three beats on and one off at 90 bpm), with Reflux and Hexbeat on other parts doing nothing. A patch's cost follows how many partials it keeps sounding: the bells, slow strings and choirs are the heaviest and the mallets the lightest. The heaviest worst block in that run was Bell Haze at 50.1, which is what `machine_cost` has. The heaviest few and some others again for 12 seconds:
+
+| Machine | Patch | Load % | Highest % | Worst % | scsynth CPU % |
+|---|---|---|---|---|---|
+| Abacus | Big Plate | 33.7 | 36.9 | 48.9 | 35 |
+| Abacus | Ice Strings | 33.3 | 37.8 | 47.6 | 34 |
+| Abacus | Bell Haze | 30.8 | 34.1 | 47.1 | 33 |
+| Abacus | Glass Bowl | 30.9 | 33.9 | 45.7 | 31 |
+| Abacus | Long Tubes | 30.3 | 34.0 | 42.5 | 33 |
+| Abacus | Choir Oh | 27.4 | 32.4 | 41.8 | 30 |
+| Abacus | Saw Stack | 13.0 | 17.1 | 24.3 | 15 |
+| Abacus | Init | 10.5 | 16.5 | 20.3 | 13 |
+| Abacus | Wood Bars | 3.5 | 5.3 | 10.6 | 6 |
+
+By family in the 6 second run (worst %): classic 11 to 36, organ 11 to 31, vocal 23 to 43, strings 17 to 49, mallets 10 to 27, bells 16 to 50, count 12 to 29, borrow 21 to 41, slide 14 to 41.
+
+Several parts at once, each holding the same chord, over 6 seconds:
+
+| Patch | Parts | Load % | Highest % | Worst % |
+|---|---|---|---|---|
+| Big Plate | 1 | 15.0 | 15.8 | 24.7 |
+| Big Plate | 2 | 27.9 | 29.4 | 39.2 |
+| Saw Stack | 1 | 9.7 | 10.1 | 16.6 |
+| Saw Stack | 2 | 17.4 | 17.8 | 27.0 |
+| Saw Stack | 4 | 32.7 | 33.1 | 42.5 |
+| Saw Stack | 6 | 48.3 | 48.6 | 60.7 |
+| Wood Bars | 6 | 11.8 | 12.1 | 24.3 |
+
+A held chord costs less than a struck one, as each new note starts all its partials at once. So 1 part of the heavy bells, strings and choirs, about 4 of the plain saws and organs and 6 of the mallets.
+
 ## The sample machines
 
 Played on the norns the same way, with the test files from `host/tests/make_material.py` loaded (a 13-pad kit, test.sf2, short WAV and FLAC files). Bias plays in songs only (its takes come from the song's folder), so it isn't in the machine picker.
